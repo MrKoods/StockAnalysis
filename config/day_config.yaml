@@ -1,0 +1,22 @@
+# DAY MODEL ONLY: mega-cap/liquid basket watchlist and all day-trading-specific scoring thresholds.
+# Swing model settings belong exclusively in swing_config.yaml.
+
+watchlist:
+  tickers:
+    - AAPL   # Mega-cap, highly liquid
+    - NVDA   # High liquidity, large intraday range, rich options flow
+    - TSLA   # High-beta, large intraday ranges
+    - MSFT   # Mega-cap, highly liquid
+    - SPY    # Index ETF — most liquid instrument
+    - QQQ    # Tech-heavy index ETF
+
+scoring_thresholds:
+  opening_range_minutes: 15             # minutes after open used to define the opening range high/low
+  relative_volume_threshold: 2.0        # relative volume (vs. same time yesterday) required to confirm momentum
+  vwap_retest_tolerance_pct: 0.2        # % within VWAP level to count as a VWAP hold
+  min_rr_ratio: 1.5                     # minimum reward:risk ratio to surface an intraday candidate
+
+trade_selector:
+  prefer_equity_over_options: true      # weight straight stock positions higher to avoid theta decay
+  max_options_dte: 2                    # maximum DTE for day model short-dated options
+  iv_high_threshold: 60                 # IV percentile above which debit spreads are preferred over naked options

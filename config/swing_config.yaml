@@ -1,0 +1,27 @@
+# SWING MODEL ONLY: semiconductor watchlist, sector ETF benchmarks, and all swing-specific scoring thresholds.
+# Day model settings belong exclusively in day_config.yaml.
+
+watchlist:
+  tickers:
+    - NVDA   # Nvidia
+    - AMD    # AMD
+    - AVGO   # Broadcom
+    - TSM    # Taiwan Semiconductor
+    - MU     # Micron
+    - ASML   # ASML Holding
+  sector_etf_benchmark:
+    - SMH    # VanEck Semiconductor ETF
+    - SOXX   # iShares Semiconductor ETF
+
+scoring_thresholds:
+  breakout_volume_multiplier: 1.5       # volume must be > X times 20-day avg to confirm breakout
+  ma_short_period: 20                   # short moving average period (days)
+  ma_long_period: 50                    # long moving average period (days)
+  relative_strength_outperformance: 5   # % 20-day return must exceed SPY by this to score +1
+  sentiment_lookback_days: 5            # days of sentiment trend to evaluate
+  min_rr_ratio: 2.0                     # minimum reward:risk ratio to surface a candidate
+
+trade_selector:
+  iv_percentile_high_threshold: 50      # IV percentile above which "high IV" structures are preferred
+  swing_expiry_days_min: 30             # minimum DTE for swing options (calendars, calls, puts)
+  swing_expiry_days_max: 90             # maximum DTE for swing options

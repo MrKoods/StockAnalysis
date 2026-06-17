@@ -1,0 +1,18 @@
+# Python dependencies for the full project (both swing and day models, backtesting, shared utilities).
+
+# Market data
+yfinance
+
+# Data handling
+pandas
+numpy
+
+# Config loading
+pyyaml
+python-dotenv
+
+# HTTP / API calls
+requests
+
+# Testing
+pytest

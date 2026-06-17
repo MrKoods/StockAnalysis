@@ -1,0 +1,18 @@
+# Shared project-wide settings: API base URLs, rate limits, and output format configuration.
+# Model-specific watchlists and scoring thresholds belong in swing_config.yaml or day_config.yaml — not here.
+
+api:
+  alpha_vantage_base_url: "https://www.alphavantage.co/query"
+  polygon_base_url: "https://api.polygon.io"
+  stocktwits_base_url: "https://api.stocktwits.com/api/2"
+  stockgeist_base_url: "https://api.stockgeist.ai"
+  rate_limit_calls_per_minute: 5  # Alpha Vantage free tier default
+
+output:
+  format: csv  # csv or json
+  swing_output_dir: "output/swing_recommendations"
+  day_output_dir: "output/day_recommendations"
+
+logging:
+  level: INFO
+  log_dir: "logs"
