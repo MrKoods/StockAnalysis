@@ -14,14 +14,23 @@ watchlist:
     - SOXX   # iShares Semiconductor ETF
 
 scoring_thresholds:
-  breakout_volume_multiplier: 1.5       # volume must be > X times 20-day avg to confirm breakout
+  breakout_volume_multiplier: 2.0       # volume must be > X times 20-day avg to confirm breakout
   ma_short_period: 20                   # short moving average period (days)
   ma_long_period: 50                    # long moving average period (days)
   relative_strength_outperformance: 5   # % 20-day return must exceed SPY by this to score +1
   sentiment_lookback_days: 5            # days of sentiment trend to evaluate
+  news_lookback_days: 3                 # days of news history to pull for news scoring
   min_rr_ratio: 2.0                     # minimum reward:risk ratio to surface a candidate
 
 trade_selector:
   iv_percentile_high_threshold: 50      # IV percentile above which "high IV" structures are preferred
   swing_expiry_days_min: 30             # minimum DTE for swing options (calendars, calls, puts)
   swing_expiry_days_max: 90             # maximum DTE for swing options
+
+backtesting:
+  start_date: "2019-01-01"             # inclusive start of backtest window
+  end_date: "2024-12-31"              # inclusive end of backtest window
+  max_hold_days: 42                   # force-exit after this many calendar days (6-week swing trade max)
+  min_win_rate: 0.50                  # Phase 4 gate: win rate must exceed this
+  min_profit_factor: 1.5              # Phase 4 gate: gross wins / gross losses must exceed this (replaces avg R:R)
+  max_risk_norm_drawdown: 0.20        # Phase 4 gate: drawdown on 1%-risk-per-trade curve must stay below this
