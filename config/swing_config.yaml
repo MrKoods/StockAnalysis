@@ -21,6 +21,8 @@ scoring_thresholds:
   sentiment_lookback_days: 5            # days of sentiment trend to evaluate
   news_lookback_days: 3                 # days of news history to pull for news scoring
   min_rr_ratio: 2.0                     # minimum reward:risk ratio to surface a candidate
+  min_score_threshold: 3               # minimum absolute score to open a trade
+  trailing_stop_min_hold_days: 12      # trailing stop only activates after this many days held
 
 trade_selector:
   iv_percentile_high_threshold: 50      # IV percentile above which "high IV" structures are preferred

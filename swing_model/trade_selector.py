@@ -20,13 +20,14 @@ class SwingTradeSelector:
         self.thresholds = swing_config["scoring_thresholds"]
         self.selector_cfg = swing_config["trade_selector"]
         self.min_rr: float = self.thresholds["min_rr_ratio"]
+        self.min_score: int = self.thresholds.get("min_score_threshold", 3)
 
     def select(self, ticker: str, score: int, indicators: dict) -> dict | None:
         """
         Return a trade recommendation dict for the ticker given its score and current IV regime.
         Returns None if confidence is too low or no structure meets the minimum R:R threshold.
         """
-        if abs(score) < 3:
+        if abs(score) < self.min_score:
             return None  # Low or conflicting signals — no trade
 
         # Broad market filter: stand aside entirely when SPY is below its 200-day MA
@@ -40,8 +41,12 @@ class SwingTradeSelector:
 
         direction = "bullish" if score > 0 else "bearish"
 
-        # Sector regime filter: no longs when sector ETF is below its 50-day MA
-        if direction == "bullish" and not indicators.get("sector_above_ma50", True):
+        # Sector regime filters: longs require sector uptrend, shorts require sector downtrend.
+        # Both rules ensure we're trading with the sector trend, not against it.
+        sector_above_ma50 = indicators.get("sector_above_ma50", True)
+        if direction == "bullish" and not sector_above_ma50:
+            return None
+        if direction == "bearish" and sector_above_ma50:
             return None
         iv_regime = self._get_iv_regime(indicators)
 

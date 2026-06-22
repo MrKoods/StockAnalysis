@@ -36,6 +36,7 @@ class BacktestEngine:
         self.thresholds = config.get("scoring_thresholds", {})
         self.bt_cfg = config.get("backtesting", {})
         self.max_hold_days: int = self.bt_cfg.get("max_hold_days", 30)
+        self.trail_min_hold_days: int = self.thresholds.get("trailing_stop_min_hold_days", 10)
         self._benchmark_df: pd.DataFrame | None = None
         self._benchmark_ma50: pd.Series | None = None
         self._spy_df: pd.DataFrame | None = None
@@ -211,10 +212,37 @@ class BacktestEngine:
             if active is not None:
                 date = bar["date"]
                 days_held = (date - active["entry_date"]).days
+                entry = active["entry_price"]
+                atr_val = active["atr"]
+
+                risk = abs(entry - active["stop"])
+
+                # Always track running extreme from entry day so the trailing stop
+                # has the true high/low when it first activates.
+                if active["direction"] == "bullish":
+                    active["trail_extreme"] = max(active["trail_extreme"], bar["high"])
+                else:
+                    active["trail_extreme"] = min(active["trail_extreme"], bar["low"])
+                trail_extreme = active["trail_extreme"]
+
+                # Trailing stop: after the minimum hold period, once the trade gains 1× risk
+                # trail 1× risk below the running extreme. The hold-day guard lets fast
+                # breakout trades reach the fixed 2R target without being cut short;
+                # the trailing stop then captures the slower drift-and-reverse time exits.
+                if days_held >= self.trail_min_hold_days:
+                    if active["direction"] == "bullish":
+                        if trail_extreme >= entry + risk:
+                            active["trailing_stop"] = trail_extreme - risk
+                    else:
+                        if trail_extreme <= entry - risk:
+                            active["trailing_stop"] = trail_extreme + risk
+
+                trailing_stop = active.get("trailing_stop")
+                effective_stop = trailing_stop if trailing_stop is not None else active["stop"]
 
                 hit_stop = (
-                    (active["direction"] == "bullish" and bar["low"] <= active["stop"])
-                    or (active["direction"] == "bearish" and bar["high"] >= active["stop"])
+                    (active["direction"] == "bullish" and bar["low"] <= effective_stop)
+                    or (active["direction"] == "bearish" and bar["high"] >= effective_stop)
                 )
                 hit_target = (
                     (active["direction"] == "bullish" and bar["high"] >= active["target"])
@@ -224,8 +252,8 @@ class BacktestEngine:
                 # Conservative: stop wins if both stop and target touched on the same bar
                 if hit_stop:
                     active["exit_date"] = date
-                    active["exit_price"] = active["stop"]
-                    active["exit_reason"] = "stop"
+                    active["exit_price"] = round(effective_stop, 4)
+                    active["exit_reason"] = "trailing_stop" if trailing_stop is not None else "stop"
                 elif hit_target:
                     active["exit_date"] = date
                     active["exit_price"] = active["target"]
@@ -268,6 +296,8 @@ class BacktestEngine:
                     "direction": rec["direction"],
                     "structure": rec["structure"],
                     "score": score,
+                    "atr": atr_val,
+                    "trail_extreme": entry_price,  # tracks running high (bull) or low (bear)
                 }
 
         return trades
