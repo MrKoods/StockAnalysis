@@ -1,124 +1,204 @@
-import json
+"""
+SHARED: Wraps StockTwits API + Reddit via PRAW.
+Produces timestamped posts with bullish/bearish labels and credibility metadata.
+All timestamps normalized to UTC immediately on ingestion.
+Implements exponential backoff on all API calls.
+"""
+
+import os
+import time
+import logging
+from datetime import datetime, timezone
+from typing import Optional
+
 import requests
-from datetime import datetime, timedelta
-from pathlib import Path
 
 from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_TIMEOUT = 10
+_STOCKTWITS_BASE = "https://api.stocktwits.com/api/2"
+_DEFAULT_SUBREDDITS = ["wallstreetbets", "investing", "stocks", "StockMarket", "semiconductors"]
+
+_BULLISH_REDDIT_KEYWORDS = [
+    "buy", "long", "calls", "bull", "bullish", "moon", "rocket", "squeeze",
+    "breakout", "upside", "strong", "buy the dip", "accumulate",
+]
+_BEARISH_REDDIT_KEYWORDS = [
+    "sell", "short", "puts", "bear", "bearish", "dump", "crash", "down",
+    "avoid", "weak", "overvalued", "exit", "reduce",
+]
 
 
-class SentimentClient:
-    """Fetches and caches StockTwits sentiment snapshots.
-
-    Uses the public StockTwits stream endpoint (no auth required for basic reads).
-    Daily snapshots are cached under data/raw/sentiment/{TICKER}/{YYYY-MM-DD}.json
-    so repeated calls on the same day avoid redundant API hits and historical trend
-    analysis can look back over cached files.
+def fetch_stocktwits(ticker: str, limit: int = 30) -> list[dict]:
     """
+    Fetch recent StockTwits posts for a ticker.
 
-    def __init__(self, config: dict):
-        api = config.get("api", {})
-        self.base_url = api.get("stocktwits_base_url", "https://api.stocktwits.com/api/2")
-        self.cache_dir = Path("data/raw/sentiment")
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+    Returns list of dicts:
+    {
+        post_id, timestamp_utc, body, sentiment (bullish/bearish/None),
+        author_id, author_username, author_followers, author_following,
+        author_join_date, author_verified
+    }
+    """
+    access_token = os.environ.get("STOCKTWITS_ACCESS_TOKEN")
+    params: dict = {"limit": limit}
+    if access_token:
+        params["access_token"] = access_token
 
-    def get_stocktwits_sentiment(self, ticker: str) -> dict:
-        """Return current StockTwits sentiment snapshot (bullish/bearish ratio, message volume) for a ticker."""
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        cached = self._load_snapshot(ticker, today)
-        if cached:
-            return cached
+    url = f"{_STOCKTWITS_BASE}/streams/symbol/{ticker}.json"
+    resp = _backoff_get(url, params)
+    if resp is None:
+        logger.warning(f"StockTwits: no response for {ticker} — sentiment-offline mode.")
+        return []
 
-        url = f"{self.base_url}/streams/symbol/{ticker.upper()}.json"
+    try:
+        data = resp.json()
+    except Exception as exc:
+        logger.error(f"StockTwits: JSON parse error for {ticker}: {exc}")
+        return []
+
+    messages = data.get("messages", [])
+    posts = []
+    for msg in messages:
+        ts_raw = msg.get("created_at", "")
         try:
-            resp = requests.get(url, timeout=_TIMEOUT)
-            resp.raise_for_status()
-            messages = resp.json().get("messages", [])
-        except requests.RequestException as exc:
-            logger.warning(f"StockTwits request failed for {ticker}: {exc}")
-            return self._empty_snapshot(ticker, today)
+            ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            ts = datetime.now(timezone.utc)
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
 
-        bullish = sum(
-            1 for m in messages
-            if m.get("entities", {}).get("sentiment", {}).get("basic") == "Bullish"
+        sentiment_raw = msg.get("entities", {}).get("sentiment")
+        if isinstance(sentiment_raw, dict):
+            label = sentiment_raw.get("basic", "").lower()
+            sentiment = label if label in ("bullish", "bearish") else None
+        else:
+            sentiment = None
+
+        user = msg.get("user", {})
+        posts.append({
+            "post_id": str(msg.get("id", "")),
+            "timestamp_utc": ts.isoformat(),
+            "body": msg.get("body", ""),
+            "sentiment": sentiment,
+            "author_id": str(user.get("id", "")),
+            "author_username": user.get("username", ""),
+            "author_followers": int(user.get("followers", 0)),
+            "author_following": int(user.get("following", 0)),
+            "author_join_date": user.get("join_date", None),
+            "author_verified": bool(user.get("official", False)),
+        })
+
+    logger.info(f"StockTwits: fetched {len(posts)} posts for {ticker}.")
+    return posts
+
+
+def fetch_reddit(
+    ticker: str,
+    subreddits: Optional[list[str]] = None,
+    limit: int = 50,
+    time_filter: str = "week",
+) -> list[dict]:
+    """
+    Fetch Reddit posts mentioning ticker from configured subreddits via PRAW.
+
+    Returns list of dicts:
+    {
+        post_id, timestamp_utc, title, body, subreddit, score,
+        num_comments, author_name, author_created_utc, author_link_karma, sentiment
+    }
+    Sentiment is keyword-classified here (Reddit has no native labels).
+    """
+    try:
+        import praw
+    except ImportError:
+        logger.warning("praw not installed — Reddit sentiment unavailable.")
+        return []
+
+    client_id = os.environ.get("REDDIT_CLIENT_ID")
+    client_secret = os.environ.get("REDDIT_CLIENT_SECRET")
+    user_agent = os.environ.get("REDDIT_USER_AGENT", "StockAnalysis/1.0")
+
+    if not client_id or not client_secret:
+        logger.warning("Reddit credentials not configured — Reddit sentiment unavailable.")
+        return []
+
+    try:
+        reddit = praw.Reddit(
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=user_agent,
         )
-        bearish = sum(
-            1 for m in messages
-            if m.get("entities", {}).get("sentiment", {}).get("basic") == "Bearish"
-        )
-        total = len(messages)
+    except Exception as exc:
+        logger.error(f"PRAW init failed: {exc}")
+        return []
 
-        snapshot = {
-            "date": today,
-            "ticker": ticker.upper(),
-            "message_count": total,
-            "bullish_count": bullish,
-            "bearish_count": bearish,
-            "neutral_count": total - bullish - bearish,
-            "bullish_ratio": bullish / total if total > 0 else 0.0,
-            "bearish_ratio": bearish / total if total > 0 else 0.0,
-        }
-        self._save_snapshot(ticker, snapshot)
-        return snapshot
+    if subreddits is None:
+        subreddits = _DEFAULT_SUBREDDITS
 
-    def get_sentiment_history(self, ticker: str, lookback_days: int) -> list[dict]:
-        """Return daily sentiment snapshots over the lookback window for trend analysis."""
-        history = []
-        today = datetime.utcnow().date()
+    posts = []
+    query = ticker
+    for sub_name in subreddits:
+        try:
+            subreddit = reddit.subreddit(sub_name)
+            results = subreddit.search(query, time_filter=time_filter, limit=limit // len(subreddits))
+            for post in results:
+                ts = datetime.fromtimestamp(post.created_utc, tz=timezone.utc)
+                body = post.selftext or ""
+                combined_text = f"{post.title} {body}"
+                sentiment = classify_sentiment_reddit(combined_text)
+                author = post.author
+                posts.append({
+                    "post_id": post.id,
+                    "timestamp_utc": ts.isoformat(),
+                    "title": post.title,
+                    "body": body,
+                    "subreddit": sub_name,
+                    "score": post.score,
+                    "num_comments": post.num_comments,
+                    "author_name": str(author) if author else "deleted",
+                    "author_created_utc": float(author.created_utc) if author else None,
+                    "author_link_karma": int(author.link_karma) if author else 0,
+                    "sentiment": sentiment,
+                })
+        except Exception as exc:
+            logger.warning(f"Reddit r/{sub_name} search failed for {ticker}: {exc}")
+            continue
 
-        for days_back in range(lookback_days, -1, -1):
-            date_str = (today - timedelta(days=days_back)).strftime("%Y-%m-%d")
-            entry = self._load_snapshot(ticker, date_str)
-            if entry:
-                history.append(entry)
+    logger.info(f"Reddit: fetched {len(posts)} posts for {ticker} across {subreddits}.")
+    return posts
 
-        # Always try to get a fresh snapshot for today if not cached yet
-        if not history or history[-1]["date"] != today.strftime("%Y-%m-%d"):
-            current = self.get_stocktwits_sentiment(ticker)
-            if current["message_count"] > 0:
-                history.append(current)
 
-        return history
-
-    def get_mention_spike(self, ticker: str) -> dict:
-        """Return real-time mention count relative to baseline — used by day model for sudden spike detection."""
-        snapshot = self.get_stocktwits_sentiment(ticker)
-        # Simple heuristic: 30+ messages in the last stream fetch is elevated activity
-        return {
-            "ticker": ticker.upper(),
-            "message_count": snapshot["message_count"],
-            "is_spike": snapshot["message_count"] >= 30,
-        }
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _empty_snapshot(self, ticker: str, date_str: str) -> dict:
-        return {
-            "date": date_str,
-            "ticker": ticker.upper(),
-            "message_count": 0,
-            "bullish_count": 0,
-            "bearish_count": 0,
-            "neutral_count": 0,
-            "bullish_ratio": 0.0,
-            "bearish_ratio": 0.0,
-        }
-
-    def _save_snapshot(self, ticker: str, snapshot: dict) -> None:
-        ticker_dir = self.cache_dir / ticker.upper()
-        ticker_dir.mkdir(parents=True, exist_ok=True)
-        path = ticker_dir / f"{snapshot['date']}.json"
-        with open(path, "w") as f:
-            json.dump(snapshot, f)
-
-    def _load_snapshot(self, ticker: str, date_str: str) -> dict | None:
-        path = self.cache_dir / ticker.upper() / f"{date_str}.json"
-        if path.exists():
-            with open(path) as f:
-                return json.load(f)
+def classify_sentiment_reddit(text: str) -> Optional[str]:
+    """
+    Naive keyword-based sentiment classifier for Reddit posts.
+    Returns 'bullish', 'bearish', or None (neutral/ambiguous).
+    Reddit doesn't provide native sentiment labels.
+    """
+    if not text:
         return None
+    text_lower = text.lower()
+    bull = sum(1 for kw in _BULLISH_REDDIT_KEYWORDS if kw in text_lower)
+    bear = sum(1 for kw in _BEARISH_REDDIT_KEYWORDS if kw in text_lower)
+    if bull > bear:
+        return "bullish"
+    if bear > bull:
+        return "bearish"
+    return None
+
+
+def _backoff_get(url: str, params: dict, retries: int = 3, **kwargs) -> Optional[requests.Response]:
+    """GET request with exponential backoff (30s → 60s → 120s → None)."""
+    delays = [30, 60, 120]
+    for attempt in range(retries):
+        try:
+            resp = requests.get(url, params=params, timeout=10, **kwargs)
+            resp.raise_for_status()
+            return resp
+        except Exception as exc:
+            if attempt < len(delays):
+                logger.warning(f"Request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
+                time.sleep(delays[attempt])
+    logger.error(f"All retries exhausted for {url}")
+    return None

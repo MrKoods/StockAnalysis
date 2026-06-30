@@ -1,18 +1,78 @@
-# Shared project-wide settings: API base URLs, rate limits, and output format configuration.
-# Model-specific watchlists and scoring thresholds belong in swing_config.yaml or day_config.yaml — not here.
+# Shared settings: API base URLs, rate limits, output formats, notification routing
+# Source of truth for infrastructure-level configuration (not strategy-level — see swing_config.yaml)
 
 api:
-  alpha_vantage_base_url: "https://www.alphavantage.co/query"
-  polygon_base_url: "https://api.polygon.io"
-  stocktwits_base_url: "https://api.stocktwits.com/api/2"
-  stockgeist_base_url: "https://api.stockgeist.ai"
-  rate_limit_calls_per_minute: 5  # Alpha Vantage free tier default
+  alpha_vantage:
+    base_url: "https://www.alphavantage.co/query"
+    daily_call_limit: 25
+    daily_call_budget: 20          # 5 calls reserved as retry buffer
+    rate_limit_per_minute: 5
+    # Daily allocation (enforced by market_data_client.py):
+    #   post-close scan:  6 news + 1 SMH + 1 VIX = 8 calls
+    #   pre-market scan:  6 news = 6 calls
+    #   mid-session scan: 6 news = 6 calls
+    #   total: 20 calls
 
-output:
-  format: csv  # csv or json
-  swing_output_dir: "output/swing_recommendations"
-  day_output_dir: "output/day_recommendations"
+  yfinance:
+    timeout_seconds: 30
+    max_retries: 3
+
+  stocktwits:
+    base_url: "https://api.stocktwits.com/api/2"
+    rate_limit_per_hour: 200
+
+  reddit:
+    subreddits:
+      - wallstreetbets
+      - stocks
+      - semiconductors
+      - investing
+    posts_per_ticker: 50
+    time_filter: "week"
+
+retry:
+  backoff_base_seconds: 30          # fail → wait 30s → retry → 60s → retry → 120s → fallback
+  max_retries: 3
+
+data:
+  cache_dir: "data/raw"
+  processed_dir: "data/processed"
+  historical_dir: "data/historical"
+  logs_dir: "data/logs"
+  timestamp_timezone: "UTC"          # All timestamps normalized to UTC immediately on ingestion
 
 logging:
-  level: INFO
-  log_dir: "logs"
+  audit_log: "data/logs/audit_log.csv"
+  override_log: "data/logs/override_log.csv"
+  validation_log: "data/logs/validation_log.csv"
+  fill_log: "data/logs/fill_log.csv"
+  trade_outcomes: "data/logs/trade_outcomes.csv"
+  performance_log: "data/logs/performance_log.csv"
+  level: "INFO"
+
+output:
+  recommendations_dir: "output/swing_recommendations"
+  format: "csv"                      # csv or json
+
+notifications:
+  # Priority routing: all alerts → Discord; critical → also email; highest → also SMS
+  # Critical alerts: circuit breakers, Black Swan, time stops, structure stops, missed scan
+  # Highest-priority: Black Swan, Red circuit breaker only
+  discord_primary: true
+  email_secondary: true
+  sms_tertiary: true                 # Optional — requires Twilio credentials in .env
+  discord_timeout_seconds: 10
+  entry_confirmation_timeout_hours: 2
+
+scan_schedule:
+  pre_market_et: "08:30"
+  mid_session_et: "12:00"
+  post_close_et: "16:30"
+  health_check_deadline_et: "17:00"  # Silence after this time = alert
+
+model:
+  version_file: "CHANGELOG.md"
+  live_weights_file: "data/processed/live_weights.json"
+  position_state_file: "data/processed/position_state.json"
+  signal_win_rates_file: "data/processed/signal_win_rates.json"
+  macro_state_file: "data/processed/macro_state.json"

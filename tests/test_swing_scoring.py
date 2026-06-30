@@ -1,217 +1,339 @@
+"""
+Tests for swing_model/scoring.py.
+Verifies the exact confidence scoring formula from the scope:
+  Technical 60 / Sentiment 25 / News 15
+  Modifier bounds and clamping 0-100
+  High-vol regime cap at 70
+"""
+
 import pytest
 
-from swing_model.scoring import SwingScorer
-from swing_model.trade_selector import SwingTradeSelector
+from swing_model.scoring import (
+    compute_confidence_score,
+    compute_technical_sub_scores,
+    apply_high_vol_regime_cap,
+    CONFIDENCE_THRESHOLD,
+)
+
 
 # ---------------------------------------------------------------------------
-# Shared config fixture
+# Helpers
 # ---------------------------------------------------------------------------
 
-SWING_CONFIG = {
-    "scoring_thresholds": {
-        "breakout_volume_multiplier": 1.5,
-        "ma_short_period": 20,
-        "ma_long_period": 50,
-        "relative_strength_outperformance": 5,  # percent
-        "sentiment_lookback_days": 5,
-        "min_rr_ratio": 2.0,
-    },
-    "trade_selector": {
-        "iv_percentile_high_threshold": 50,
-        "swing_expiry_days_min": 30,
-        "swing_expiry_days_max": 90,
-    },
-}
+def _zero_sent():
+    return {"sentiment_score_total": 0.0, "dominant_sentiment": "neutral",
+            "trajectory_score": 0, "velocity_score": 0,
+            "cross_platform_score": 0, "spike_score": 0}
 
 
-def _bullish_indicators() -> dict:
-    """All signals strongly bullish."""
+def _zero_news():
+    return {"news_score_total": 0.0}
+
+
+def _max_sent():
+    return {"sentiment_score_total": 25.0, "dominant_sentiment": "bullish",
+            "trajectory_score": 10, "velocity_score": 5,
+            "cross_platform_score": 5, "spike_score": 5}
+
+
+def _max_news():
+    return {"news_score_total": 15.0,
+            "credibility_weighted_score": 6, "theme_alignment_score": 4,
+            "clustering_score": 3, "decay_score": 2}
+
+
+def _max_technical():
+    """Inputs that produce breakout=12, trend=12, rs=12, rsi=12, vp=12 → total 60."""
     return {
-        "close": 100.0,
-        "ma_short": 95.0,
-        "ma_long": 88.0,
-        "above_ma_short": True,
-        "above_ma_long": True,
-        "ma_short_above_ma_long": True,
-        "breakout_recent": True,
-        "breakdown_recent": False,
-        "rsi": 58.0,       # healthy bullish zone → +1 from _score_momentum
-        "atr": 2.5,
-        "macd": 0.6,
-        "macd_signal": 0.3,
-        "macd_histogram": 0.3,
-        "rs_vs_benchmark": 0.09,   # 9 % > 5 % threshold → +1
-        "rs_threshold": 0.05,
-        "realized_vol_20d": 0.25,
-        "vol_percentile_52w": 0.30,
-        "sentiment_score_component": 1,
-        "sentiment_direction": "bullish",
-    }
-
-
-def _bearish_indicators() -> dict:
-    """All signals strongly bearish."""
-    return {
-        "close": 80.0,
-        "ma_short": 87.0,
-        "ma_long": 92.0,
-        "above_ma_short": False,
-        "above_ma_long": False,
-        "ma_short_above_ma_long": False,
-        "breakout_recent": False,
-        "breakdown_recent": True,
-        "rsi": 28.0,       # deeply oversold / bearish → -1
-        "atr": 2.5,
-        "macd": -0.6,
-        "macd_signal": -0.3,
-        "macd_histogram": -0.3,
-        "rs_vs_benchmark": -0.10,   # -10 % < -5 % threshold → -1
-        "rs_threshold": 0.05,
-        "realized_vol_20d": 0.32,
-        "vol_percentile_52w": 0.35,
-        "sentiment_score_component": -1,
-        "sentiment_direction": "bearish",
+        "breakout_volume_zscore": 3.0,
+        "rs_zscore": 3.0,
+        "rsi_14": 60.0,
+        "breakout_confirmed": True,
+        "trend_intact": True,
+        "sma_20_above_sma_50": True,
+        "price_above_sma_50": True,
+        "macd_bullish": True,
     }
 
 
 # ---------------------------------------------------------------------------
-# SwingScorer tests
+# Technical sub-score tests
 # ---------------------------------------------------------------------------
 
-def test_swing_scorer_strong_bullish_all_signals():
-    scorer = SwingScorer(SWING_CONFIG)
-    score = scorer.score(_bullish_indicators())
-    # breakout=+2, trend=+1, RS=+1, momentum=+1, MACD=+1, sentiment=+1 → 7
-    assert score >= 4, f"Expected >= 4, got {score}"
+class TestTechnicalSubScores:
+    def test_max_inputs_yield_60(self):
+        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=12.0)
+        assert sub["technical_total"] == pytest.approx(60.0)
 
+    def test_each_sub_score_bounded_0_to_12(self):
+        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=12.0)
+        for key in ("breakout_score", "trend_score", "rs_score", "rsi_score", "volume_profile_score"):
+            assert 0.0 <= sub[key] <= 12.0, f"{key} = {sub[key]} out of [0,12]"
 
-def test_swing_scorer_bearish_breakdown():
-    scorer = SwingScorer(SWING_CONFIG)
-    score = scorer.score(_bearish_indicators())
-    # breakdown=-2, trend=-1, RS=-1, momentum=-1, MACD=-1, sentiment=-1 → -7
-    assert score <= -4, f"Expected <= -4, got {score}"
+    def test_zero_inputs_yield_low_score(self):
+        zero = {"breakout_volume_zscore": -3.0, "rs_zscore": -3.0, "rsi_14": 20.0,
+                "breakout_confirmed": False, "trend_intact": False,
+                "sma_20_above_sma_50": False, "price_above_sma_50": False, "macd_bullish": False}
+        sub = compute_technical_sub_scores(zero, volume_profile_score_override=0.0)
+        assert sub["technical_total"] < 15  # Weak inputs → low score
 
+    def test_breakout_capped_at_neutral_when_no_breakout(self):
+        technical = {"breakout_volume_zscore": 3.0, "breakout_confirmed": False}
+        sub = compute_technical_sub_scores(technical)
+        assert sub["breakout_score"] <= 6.0
 
-def test_swing_scorer_neutral_mixed_signals():
-    scorer = SwingScorer(SWING_CONFIG)
-    indicators = _bullish_indicators()
-    # Remove the strongest signals
-    indicators["breakout_recent"] = False
-    indicators["rs_vs_benchmark"] = 0.01   # below threshold
-    indicators["sentiment_score_component"] = -1  # bearish sentiment vs bullish trend
-    score = scorer.score(indicators)
-    # trend=+1, momentum=+1, MACD=+1, sentiment=-1, breakout=0, RS=0 → 2
-    assert -3 < score < 5, f"Expected mixed/moderate score, got {score}"
+    def test_trend_score_12_when_trend_intact_and_macd_bullish(self):
+        technical = {"trend_intact": True, "macd_bullish": True,
+                     "sma_20_above_sma_50": True, "price_above_sma_50": True}
+        sub = compute_technical_sub_scores(technical)
+        assert sub["trend_score"] == 12.0
 
+    def test_rsi_60_yields_max_rsi_score(self):
+        sub = compute_technical_sub_scores({"rsi_14": 60.0})
+        assert sub["rsi_score"] == 12.0
 
-def test_swing_scorer_macd_bullish_adds_one():
-    scorer = SwingScorer(SWING_CONFIG)
-    base = _bullish_indicators()
-    base["breakout_recent"] = False
-    base["rs_vs_benchmark"] = 0.0
-    base["sentiment_score_component"] = 0
-    base["rsi"] = 45.0  # neutral zone
+    def test_rsi_overbought_penalized(self):
+        sub_normal = compute_technical_sub_scores({"rsi_14": 60.0})
+        sub_overbought = compute_technical_sub_scores({"rsi_14": 85.0})
+        assert sub_normal["rsi_score"] > sub_overbought["rsi_score"]
 
-    base["macd"] = 0.5
-    base["macd_histogram"] = 0.2
-    score_with = scorer.score(base)
+    def test_rs_zscore_positive_gives_high_rs_score(self):
+        sub = compute_technical_sub_scores({"rs_zscore": 2.0})
+        assert sub["rs_score"] > 9.0
 
-    base["macd"] = -0.1
-    base["macd_histogram"] = -0.05
-    score_without = scorer.score(base)
+    def test_rs_zscore_negative_gives_low_rs_score(self):
+        sub = compute_technical_sub_scores({"rs_zscore": -2.0})
+        assert sub["rs_score"] < 3.0
 
-    assert score_with == score_without + 2  # +1 bullish vs -1 bearish
-
-
-def test_swing_scorer_macd_conflicted_scores_zero():
-    """MACD above signal but still below zero (recovering) → 0, not +1."""
-    scorer = SwingScorer(SWING_CONFIG)
-    base = _bullish_indicators()
-    base["macd"] = -0.3        # still below zero
-    base["macd_histogram"] = 0.1  # histogram positive — recovering but not confirmed
-    base["breakout_recent"] = False
-    base["rs_vs_benchmark"] = 0.0
-    base["sentiment_score_component"] = 0
-    base["rsi"] = 45.0
-
-    base_copy = dict(base)
-    base_copy["macd_histogram"] = 0.0
-    base_copy["macd"] = 0.0
-
-    score_conflicted = scorer.score(base)
-    score_zero = scorer.score(base_copy)
-    assert score_conflicted == score_zero  # neither condition met in both cases
+    def test_volume_profile_override_used(self):
+        sub = compute_technical_sub_scores({}, volume_profile_score_override=9.0)
+        assert sub["volume_profile_score"] == 9.0
 
 
 # ---------------------------------------------------------------------------
-# SwingTradeSelector tests
+# Base score tests
 # ---------------------------------------------------------------------------
 
-def test_swing_trade_selector_strong_bullish_low_iv_returns_long_stock():
-    scorer = SwingScorer(SWING_CONFIG)
-    selector = SwingTradeSelector(SWING_CONFIG)
-    indicators = _bullish_indicators()
-    indicators["vol_percentile_52w"] = 0.15  # low IV
-    score = scorer.score(indicators)
-    rec = selector.select("NVDA", score, indicators)
-    assert rec is not None
-    assert rec["direction"] == "bullish"
-    assert rec["structure"] == "long_stock"
+class TestBaseScore:
+    def test_max_base_score_is_100(self):
+        result = compute_confidence_score(
+            technical=_max_technical(),
+            sentiment=_max_sent(),
+            news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
+            macro_modifier=0,
+            volume_profile_score=12.0,
+        )
+        assert result["base_score"] == pytest.approx(100.0)
+
+    def test_zero_inputs_yield_low_base(self):
+        zero_tech = {"breakout_volume_zscore": -3.0, "rs_zscore": -3.0, "rsi_14": 20.0,
+                     "breakout_confirmed": False, "trend_intact": False,
+                     "sma_20_above_sma_50": False, "price_above_sma_50": False, "macd_bullish": False}
+        result = compute_confidence_score(
+            technical=zero_tech, sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
+            macro_modifier=0, volume_profile_score=0.0,
+        )
+        assert result["base_score"] < 20.0  # Some floor due to RSI/trend defaults
+
+    def test_base_score_equals_technical_plus_sentiment_plus_news(self):
+        result = compute_confidence_score(
+            technical=_max_technical(),
+            sentiment=_max_sent(),
+            news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
+            macro_modifier=0, volume_profile_score=12.0,
+        )
+        expected = result["technical_total"] + result["sentiment_total"] + result["news_total"]
+        assert result["base_score"] == pytest.approx(expected, abs=0.01)
 
 
-def test_swing_trade_selector_strong_bullish_high_iv_returns_spread():
-    scorer = SwingScorer(SWING_CONFIG)
-    selector = SwingTradeSelector(SWING_CONFIG)
-    indicators = _bullish_indicators()
-    indicators["vol_percentile_52w"] = 0.80  # high IV
-    score = scorer.score(indicators)
-    rec = selector.select("NVDA", score, indicators)
-    assert rec is not None
-    assert rec["structure"] == "bull_call_spread"
+# ---------------------------------------------------------------------------
+# Modifier and clamping tests
+# ---------------------------------------------------------------------------
+
+class TestModifiers:
+    def test_final_score_clamped_at_100(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=10, sector_rotation_modifier=5, earnings_modifier=0,
+            cross_ticker_modifier=5, insider_modifier=8, seasonality_modifier=5, macro_modifier=3,
+            volume_profile_score=12.0,
+        )
+        assert result["final_score"] <= 100.0
+
+    def test_final_score_clamped_at_zero(self):
+        zero_tech = {"breakout_volume_zscore": 0, "rs_zscore": 0, "rsi_14": 50,
+                     "breakout_confirmed": False, "trend_intact": False}
+        result = compute_confidence_score(
+            technical=zero_tech, sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=-15, sector_rotation_modifier=-15, earnings_modifier=-20,
+            cross_ticker_modifier=-10, insider_modifier=-8, seasonality_modifier=-5, macro_modifier=-10,
+        )
+        assert result["final_score"] >= 0.0
+
+    def test_modifiers_are_clamped_to_bounds(self):
+        """Passing out-of-bound modifiers: they should be silently clamped."""
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=-100,   # should be clamped to -15
+            sector_rotation_modifier=-100,  # clamped to -15
+            earnings_modifier=-100,  # clamped to -20
+            cross_ticker_modifier=100, insider_modifier=100,
+            seasonality_modifier=100, macro_modifier=100,
+            volume_profile_score=12.0,
+        )
+        assert result["regime_modifier"] == -15.0
+        assert result["sector_rotation_modifier"] == -15.0
+        assert result["earnings_modifier"] == -20.0
+        assert result["cross_ticker_modifier"] == 5.0
+        assert result["insider_modifier"] == 8.0
+        assert result["seasonality_modifier"] == 5.0
+        assert result["macro_modifier"] == 3.0
+
+    def test_total_modifier_is_sum_of_all_modifiers(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=5, sector_rotation_modifier=3, earnings_modifier=-10,
+            cross_ticker_modifier=2, insider_modifier=4, seasonality_modifier=3, macro_modifier=2,
+            volume_profile_score=12.0,
+        )
+        expected_mod = 5 + 3 + (-10) + 2 + 4 + 3 + 2
+        assert result["total_modifier"] == pytest.approx(expected_mod, abs=0.01)
+
+    def test_final_score_equals_base_plus_total_modifier(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=5, sector_rotation_modifier=0, earnings_modifier=-15,
+            cross_ticker_modifier=2, insider_modifier=0, seasonality_modifier=2, macro_modifier=0,
+            volume_profile_score=12.0,
+        )
+        expected = min(100.0, max(0.0, result["base_score"] + result["total_modifier"]))
+        assert result["final_score"] == pytest.approx(expected, abs=0.01)
+
+    def test_earnings_modifier_within_bounds(self):
+        from shared.utils.earnings_calendar import get_earnings_modifier
+        result = get_earnings_modifier(ticker="NVDA", earnings_date=None)
+        assert -20 <= result["confidence_modifier"] <= 0
 
 
-def test_swing_trade_selector_below_min_rr_returns_none():
-    scorer = SwingScorer(SWING_CONFIG)
-    selector = SwingTradeSelector(SWING_CONFIG)
-    # Conflicting signals → score will be 0 or 1 → abs(score) < 2 → None
-    indicators = _bullish_indicators()
-    indicators["breakout_recent"] = False
-    indicators["rs_vs_benchmark"] = 0.01    # below threshold → 0
-    indicators["sentiment_score_component"] = -1  # opposing
-    indicators["rsi"] = 45.0  # neutral zone → 0
-    # trend=+1, everything else 0 or negative → score ≈ 0
-    score = scorer.score(indicators)
-    if abs(score) < 2:
-        rec = selector.select("NVDA", score, indicators)
-        assert rec is None
+# ---------------------------------------------------------------------------
+# High-vol regime cap test
+# ---------------------------------------------------------------------------
+
+class TestRegimeCap:
+    def test_high_vol_caps_at_70(self):
+        result = apply_high_vol_regime_cap(score=95.0, regime="high_vol", cap=70.0)
+        assert result == 70.0
+
+    def test_no_cap_in_trending_regime(self):
+        result = apply_high_vol_regime_cap(score=95.0, regime="trending_up", cap=70.0)
+        assert result == 95.0
+
+    def test_score_below_cap_not_affected(self):
+        result = apply_high_vol_regime_cap(score=65.0, regime="high_vol", cap=70.0)
+        assert result == 65.0
+
+    def test_high_vol_regime_via_compute_score(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=12.0, regime="high_vol",
+        )
+        assert result["final_score"] <= 70.0
 
 
-def test_swing_trade_selector_conflicting_signals_returns_no_trade():
-    scorer = SwingScorer(SWING_CONFIG)
-    selector = SwingTradeSelector(SWING_CONFIG)
-    indicators = {
-        "close": 100.0,
-        "ma_short": 98.0,
-        "ma_long": 94.0,
-        "above_ma_short": True,
-        "above_ma_long": True,
-        "ma_short_above_ma_long": True,
-        "breakout_recent": False,
-        "breakdown_recent": False,
-        "rsi": 45.0,             # neutral → 0 from momentum
-        "atr": 2.5,
-        "macd": 0.0,
-        "macd_signal": 0.0,
-        "macd_histogram": 0.0,
-        "rs_vs_benchmark": 0.02,  # below 5 % threshold → 0
-        "rs_threshold": 0.05,
-        "realized_vol_20d": 0.22,
-        "vol_percentile_52w": 0.30,
-        "sentiment_score_component": -1,  # bearish sentiment vs bullish trend
-        "sentiment_direction": "bearish",
-    }
-    score = scorer.score(indicators)
-    # trend=+1, sentiment=-1, rest=0 → score=0
-    assert abs(score) <= 1
-    rec = selector.select("NVDA", score, indicators)
-    assert rec is None
+# ---------------------------------------------------------------------------
+# Scope formula verification
+# ---------------------------------------------------------------------------
+
+class TestScopeFormula:
+    """
+    Verify the scope's base formula: base = tech_total + sent_total + news_total
+    and final = base + sum(modifiers), clamped [0, 100].
+    Uses inputs engineered to produce a target 90/100 final score.
+    """
+
+    def test_90_score_achievable(self):
+        # Technical sub-scores: breakout=11, trend=9, rs=9, rsi=9, vp=9 → total=47
+        # (vol_z=2.5→11, trend_intact+no_macd→9, rs_z=1.5→9, rsi=52→9, vp=9)
+        technical = {
+            "breakout_volume_zscore": 2.5,
+            "rs_zscore": 1.5,
+            "rsi_14": 52.0,
+            "breakout_confirmed": True,
+            "trend_intact": True,
+            "sma_20_above_sma_50": True,
+            "price_above_sma_50": True,
+            "macd_bullish": False,
+        }
+        # Sentiment: total=20
+        sentiment = {
+            "sentiment_score_total": 20.0,
+            "dominant_sentiment": "bullish",
+            "trajectory_score": 8, "velocity_score": 4,
+            "cross_platform_score": 4, "spike_score": 4,
+        }
+        # News: total=13
+        news = {
+            "news_score_total": 13.0,
+            "credibility_weighted_score": 5, "theme_alignment_score": 4,
+            "clustering_score": 2, "decay_score": 2,
+        }
+        result = compute_confidence_score(
+            technical=technical, sentiment=sentiment, news=news,
+            regime_modifier=5, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=5, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=9.0,
+        )
+        # base_score = 47 + 20 + 13 = 80; modifiers = 5 + 5 = 10; final = 90
+        assert result["base_score"] == pytest.approx(80.0, abs=1.0)
+        assert result["final_score"] == pytest.approx(90.0, abs=1.0)
+        assert result["meets_threshold"] is True
+
+    def test_meets_threshold_is_false_below_90(self):
+        result = compute_confidence_score(
+            technical={"rsi_14": 50.0, "trend_intact": False},
+            sentiment={"sentiment_score_total": 5.0, "dominant_sentiment": "neutral"},
+            news={"news_score_total": 3.0},
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=-15,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+        )
+        assert result["meets_threshold"] is False
+
+    def test_sentiment_offline_cap_at_70(self):
+        sentiment_offline = {
+            "sentiment_score_total": 25.0,
+            "dominant_sentiment": "bullish",
+            "sentiment_offline": True,
+            "sentiment_offline_cap": 70,
+        }
+        result = compute_confidence_score(
+            technical=_max_technical(), sentiment=sentiment_offline, news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=12.0,
+        )
+        assert result["final_score"] <= 70.0
+
+    def test_all_required_keys_present(self):
+        result = compute_confidence_score(
+            technical={}, sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+        )
+        for key in (
+            "breakout_score", "trend_score", "rs_score", "rsi_score", "volume_profile_score",
+            "technical_total", "trajectory_score", "velocity_score", "cross_platform_score",
+            "spike_score", "sentiment_total", "credibility_score", "theme_score",
+            "clustering_score", "decay_score", "news_total", "base_score",
+            "regime_modifier", "sector_rotation_modifier", "earnings_modifier",
+            "cross_ticker_modifier", "insider_modifier", "seasonality_modifier",
+            "macro_modifier", "total_modifier", "final_score", "direction", "meets_threshold",
+        ):
+            assert key in result, f"Missing key: {key}"

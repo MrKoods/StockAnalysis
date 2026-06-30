@@ -1,0 +1,9 @@
+{
+  "_comment": "Current macro overlay state. Updated daily by macro_overlay.py. Read by scoring.py as a modifier input.",
+  "macro_state": "neutral",
+  "confidence_modifier": 0,
+  "tnx_trend": "neutral",
+  "dxy_trend": "neutral",
+  "china_tension_level": "normal",
+  "computed_at_utc": null
+}

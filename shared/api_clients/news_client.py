@@ -1,143 +1,178 @@
-import json
+"""
+SHARED: Wraps Alpha Vantage News & Sentiment + Yahoo Finance headlines.
+Produces timestamped articles with pre-computed sentiment scores.
+Enforces the 20-call/day Alpha Vantage budget (tracked in data/processed/av_call_count.json).
+All timestamps normalized to UTC. Implements exponential backoff.
+"""
+
 import os
 import time
-from datetime import datetime, timedelta
+import json
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import requests
-from dotenv import load_dotenv
+import yfinance as yf
 
 from shared.utils.logger import get_logger
 
-load_dotenv()
-
 logger = get_logger(__name__)
 
-_TIMEOUT = 15
-_BASE_URL = "https://www.alphavantage.co/query"
-
-# Alpha Vantage free tier: 25 requests/day, 5/minute.
-# With 6 tickers we make 6 calls — add a small sleep to stay under the per-minute cap.
-_RATE_LIMIT_SLEEP = 13  # seconds between calls (≈ 4–5 calls/min)
+_AV_BASE_URL = "https://www.alphavantage.co/query"
+_AV_COUNTER_FILE = Path("data/processed/av_call_count.json")
 
 
-class NewsClient:
-    """Fetches and caches Alpha Vantage News & Sentiment data.
-
-    Requires ALPHA_VANTAGE_API_KEY in the environment (or .env file).
-    If the key is missing the client returns empty results so the rest of
-    the pipeline continues without news signals — it does NOT raise.
-
-    Daily responses are cached under data/raw/news/{TICKER}/{YYYY-MM-DD}.json
-    to avoid burning free-tier quota on repeated same-day runs.
+def fetch_news_alpha_vantage(
+    ticker: str,
+    time_from: Optional[str] = None,
+    limit: int = 10,
+) -> list[dict]:
     """
+    Fetch news and sentiment from Alpha Vantage NEWS_SENTIMENT endpoint.
+    Enforces 20 call/day budget. Returns empty list if budget exceeded.
 
-    def __init__(self, config: dict):
-        self.api_key: str | None = os.getenv("ALPHA_VANTAGE_API_KEY")
-        self.base_url: str = config.get("api", {}).get(
-            "alpha_vantage_base_url", _BASE_URL
-        )
-        self.cache_dir = Path("data/raw/news")
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+    Returns list of dicts:
+    {
+        article_id, timestamp_utc, title, url, source, source_domain,
+        overall_sentiment_score, overall_sentiment_label,
+        ticker_sentiment: list[{ticker, relevance_score, sentiment_score, sentiment_label}]
+    }
+    """
+    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
+    if not api_key:
+        logger.warning("ALPHA_VANTAGE_API_KEY not set — AV news unavailable.")
+        return []
 
-        if not self.api_key:
-            logger.warning(
-                "ALPHA_VANTAGE_API_KEY not set — news signals will be skipped. "
-                "Add the key to your .env file to enable Phase 8."
-            )
+    if not check_av_budget():
+        logger.warning(f"Alpha Vantage budget exhausted for today — skipping news fetch for {ticker}.")
+        return []
 
-    def get_news_sentiment(self, ticker: str, lookback_days: int = 3) -> list[dict]:
-        """Return recent news articles with sentiment scores for a ticker.
+    params = {
+        "function": "NEWS_SENTIMENT",
+        "tickers": ticker,
+        "apikey": api_key,
+        "limit": limit,
+    }
+    if time_from:
+        params["time_from"] = time_from
 
-        Each article dict contains:
-          title, url, time_published, overall_sentiment_score,
-          ticker_sentiment_score, ticker_relevance_score
-        Only articles where relevance_score > 0.3 are included.
-        Results are cached per ticker per day.
-        """
-        if not self.api_key:
-            return []
+    data = _backoff_get(_AV_BASE_URL, params)
+    increment_av_call_count()
 
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        cached = self._load_cache(ticker, today)
-        if cached is not None:
-            return cached
+    if data is None:
+        return []
+    if "feed" not in data:
+        logger.warning(f"AV news: unexpected response structure for {ticker}: {list(data.keys())}")
+        return []
 
-        time_from = (datetime.utcnow() - timedelta(days=lookback_days)).strftime(
-            "%Y%m%dT0000"
-        )
-        params = {
-            "function": "NEWS_SENTIMENT",
-            "tickers": ticker.upper(),
-            "time_from": time_from,
-            "sort": "RELEVANCE",
-            "limit": 50,
-            "apikey": self.api_key,
-        }
-
+    articles = []
+    for item in data.get("feed", []):
+        ts_raw = item.get("time_published", "")
         try:
-            resp = requests.get(self.base_url, params=params, timeout=_TIMEOUT)
-            resp.raise_for_status()
-            data = resp.json()
-        except requests.RequestException as exc:
-            logger.warning(f"Alpha Vantage news request failed for {ticker}: {exc}")
-            return []
+            # AV format: "20240115T143022"
+            ts = datetime.strptime(ts_raw, "%Y%m%dT%H%M%S").replace(tzinfo=timezone.utc)
+        except ValueError:
+            ts = datetime.now(timezone.utc)
 
-        if "Information" in data:
-            # Rate-limit message from AV ("Thank you for using Alpha Vantage...")
-            logger.warning(f"Alpha Vantage rate limit hit for {ticker}: {data['Information']}")
+        source = item.get("source", "")
+        articles.append({
+            "article_id": item.get("url", ts_raw),
+            "timestamp_utc": ts.isoformat(),
+            "title": item.get("title", ""),
+            "url": item.get("url", ""),
+            "source": source,
+            "source_domain": item.get("source_domain", source.lower().replace(" ", "") + ".com"),
+            "overall_sentiment_score": float(item.get("overall_sentiment_score", 0.0)),
+            "overall_sentiment_label": item.get("overall_sentiment_label", "Neutral"),
+            "ticker_sentiment": item.get("ticker_sentiment", []),
+        })
+
+    logger.info(f"AV news: fetched {len(articles)} articles for {ticker}.")
+    return articles
+
+
+def fetch_news_yahoo(ticker: str, limit: int = 10) -> list[dict]:
+    """
+    Fetch Yahoo Finance headlines via yfinance as secondary/fallback news source.
+
+    Returns list of dicts:
+    {article_id, timestamp_utc, title, link, publisher}
+    No pre-computed sentiment scores — NER applied downstream.
+    """
+    try:
+        info = yf.Ticker(ticker).news
+        if not info:
+            logger.info(f"Yahoo Finance: no news for {ticker}.")
             return []
 
         articles = []
-        for item in data.get("feed", []):
-            ticker_info = _find_ticker_sentiment(item.get("ticker_sentiment", []), ticker)
-            if ticker_info is None:
-                continue
-            relevance = float(ticker_info.get("relevance_score", 0))
-            if relevance < 0.3:
-                continue
-            articles.append(
-                {
-                    "title": item.get("title", ""),
-                    "url": item.get("url", ""),
-                    "time_published": item.get("time_published", ""),
-                    "overall_sentiment_score": float(item.get("overall_sentiment_score", 0)),
-                    "ticker_sentiment_score": float(
-                        ticker_info.get("ticker_sentiment_score", 0)
-                    ),
-                    "ticker_relevance_score": relevance,
-                }
-            )
+        for item in info[:limit]:
+            # yfinance returns Unix timestamp
+            ts_raw = item.get("providerPublishTime") or item.get("publishedAt")
+            if ts_raw:
+                ts = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc)
+            else:
+                ts = datetime.now(timezone.utc)
 
-        self._save_cache(ticker, today, articles)
-        time.sleep(_RATE_LIMIT_SLEEP)  # respect per-minute cap between tickers
+            articles.append({
+                "article_id": item.get("uuid") or item.get("link", ""),
+                "timestamp_utc": ts.isoformat(),
+                "title": item.get("title", ""),
+                "link": item.get("link", ""),
+                "publisher": item.get("publisher", "Yahoo Finance"),
+                "source_domain": "finance.yahoo.com",
+                "overall_sentiment_score": None,
+                "overall_sentiment_label": None,
+                "ticker_sentiment": [],
+            })
+
+        logger.info(f"Yahoo Finance: fetched {len(articles)} articles for {ticker}.")
         return articles
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _cache_path(self, ticker: str, date_str: str) -> Path:
-        ticker_dir = self.cache_dir / ticker.upper()
-        ticker_dir.mkdir(parents=True, exist_ok=True)
-        return ticker_dir / f"{date_str}.json"
-
-    def _save_cache(self, ticker: str, date_str: str, articles: list[dict]) -> None:
-        with open(self._cache_path(ticker, date_str), "w") as f:
-            json.dump(articles, f)
-
-    def _load_cache(self, ticker: str, date_str: str) -> list[dict] | None:
-        path = self._cache_path(ticker, date_str)
-        if path.exists():
-            with open(path) as f:
-                return json.load(f)
-        return None
+    except Exception as exc:
+        logger.error(f"Yahoo Finance news fetch failed for {ticker}: {exc}")
+        return []
 
 
-def _find_ticker_sentiment(ticker_sentiment_list: list[dict], ticker: str) -> dict | None:
-    """Return the sentiment entry for `ticker` from the per-article ticker_sentiment array."""
-    target = ticker.upper()
-    for entry in ticker_sentiment_list:
-        if entry.get("ticker", "").upper() == target:
-            return entry
+def get_av_call_count() -> dict:
+    """Load today's Alpha Vantage call count from persistent counter file."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if _AV_COUNTER_FILE.exists():
+        try:
+            data = json.loads(_AV_COUNTER_FILE.read_text())
+            if data.get("date") == today:
+                return data
+        except (json.JSONDecodeError, KeyError):
+            pass
+    return {"date": today, "count": 0}
+
+
+def increment_av_call_count() -> int:
+    """Increment and persist Alpha Vantage call counter. Returns new count."""
+    data = get_av_call_count()
+    data["count"] += 1
+    _AV_COUNTER_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _AV_COUNTER_FILE.write_text(json.dumps(data))
+    return data["count"]
+
+
+def check_av_budget(daily_limit: int = 20) -> bool:
+    """Return True if a call is available within today's budget."""
+    return get_av_call_count()["count"] < daily_limit
+
+
+def _backoff_get(url: str, params: dict, retries: int = 3) -> Optional[dict]:
+    """GET with exponential backoff (30s → 60s → 120s). Returns parsed JSON or None."""
+    delays = [30, 60, 120]
+    for attempt in range(retries):
+        try:
+            resp = requests.get(url, params=params, timeout=15)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            if attempt < len(delays):
+                logger.warning(f"AV request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
+                time.sleep(delays[attempt])
+    logger.error("All Alpha Vantage retries exhausted.")
     return None

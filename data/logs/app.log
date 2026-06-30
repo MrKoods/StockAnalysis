@@ -1,0 +1,3 @@
+2026-06-30 07:05:34,217 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-06-30 07:07:37,641 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-06-30 07:07:44,162 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold

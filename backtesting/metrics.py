@@ -1,131 +1,169 @@
+"""
+Win rate, R:R, drawdown, Sharpe -- confidence calibration, per-regime stats,
+stress test results. All metrics computed on the test (out-of-sample) set only.
+"""
+
 import math
-from collections import defaultdict
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import pandas as pd
 
 
-def compute_win_rate(trades: list[dict]) -> float:
-    """Return the fraction of trades that were profitable."""
-    if not trades:
+def compute_win_rate(outcomes: list[dict]) -> float:
+    """Compute win rate from list of trade outcome dicts. Returns 0.0 if no trades."""
+    if not outcomes:
         return 0.0
-    wins = sum(1 for t in trades if t.get("pnl_pct", 0.0) > 0)
-    return wins / len(trades)
+    wins = sum(1 for o in outcomes if o.get("outcome") == "win")
+    return wins / len(outcomes)
 
 
-def compute_average_rr(trades: list[dict]) -> float:
-    """Return the average realized reward-to-risk ratio across all closed trades."""
-    realized = [t["realized_rr"] for t in trades if "realized_rr" in t]
-    if not realized:
+def compute_avg_rr(outcomes: list[dict]) -> float:
+    """Compute average achieved R:R ratio from outcomes."""
+    valid = [o for o in outcomes if "achieved_rr" in o]
+    if not valid:
         return 0.0
-    return sum(realized) / len(realized)
+    return sum(o["achieved_rr"] for o in valid) / len(valid)
 
 
-def compute_max_drawdown(equity_curve: list[float]) -> float:
-    """Return the maximum peak-to-trough drawdown as a fraction of peak equity."""
-    if len(equity_curve) < 2:
-        return 0.0
-    peak = equity_curve[0]
-    max_dd = 0.0
-    for val in equity_curve:
-        if val > peak:
-            peak = val
-        dd = (peak - val) / peak
-        if dd > max_dd:
-            max_dd = dd
-    return max_dd
-
-
-def compute_profit_factor(trades: list[dict]) -> float:
-    """Return gross winning P&L divided by gross losing P&L (absolute value).
-
-    A value >1.0 means the strategy earns more on winners than it loses on losers.
-    Infinity is returned when there are no losing trades.
+def compute_max_drawdown(equity_curve: pd.Series) -> float:
     """
-    gross_win = sum(t["pnl_pct"] for t in trades if t.get("pnl_pct", 0.0) > 0)
-    gross_loss = abs(sum(t["pnl_pct"] for t in trades if t.get("pnl_pct", 0.0) < 0))
-    if gross_loss == 0.0:
-        return float("inf") if gross_win > 0 else 0.0
-    return gross_win / gross_loss
-
-
-def compute_risk_normalized_drawdown(trades: list[dict], risk_per_trade: float = 0.01) -> float:
-    """Max drawdown on a fixed-fractional equity curve that risks `risk_per_trade` per trade.
-
-    Each trade's P&L is scaled to realized_rr * risk_per_trade, so the curve reflects
-    actual edge rather than raw dollar-move magnitude. Eliminates the high-IV artifact
-    that inflates raw drawdown numbers on volatile semiconductors.
+    Peak-to-trough drawdown on the equity curve.
+    Returns drawdown as a positive fraction (e.g., 0.15 for 15% drawdown).
     """
-    equity = 1.0
-    curve = [equity]
-    for t in sorted(trades, key=lambda x: x["entry_date"]):
-        rr = t.get("realized_rr", 0.0)
-        equity *= 1.0 + rr * risk_per_trade
-        curve.append(equity)
-    return compute_max_drawdown(curve)
-
-
-def compute_sharpe_ratio(returns: list[float], risk_free_rate: float = 0.0) -> float:
-    """Return the annualized Sharpe ratio for the given return series (assumed daily)."""
-    if len(returns) < 2:
+    if equity_curve.empty:
         return 0.0
-    n = len(returns)
-    mean_r = sum(returns) / n
-    variance = sum((r - mean_r) ** 2 for r in returns) / (n - 1)
-    std_r = math.sqrt(variance)
-    if std_r == 0.0:
+    rolling_max = equity_curve.cummax()
+    drawdown = (equity_curve - rolling_max) / rolling_max
+    return float(abs(drawdown.min()))
+
+
+def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.05) -> float:
+    """Annualized Sharpe ratio on daily returns series."""
+    if returns.empty or returns.std() == 0:
         return 0.0
-    return ((mean_r - risk_free_rate) / std_r) * math.sqrt(252)
+    daily_rf = risk_free_rate / 252
+    excess = returns - daily_rf
+    return float((excess.mean() / returns.std()) * math.sqrt(252))
 
 
-def compute_monthly_breakdown(trades: list[dict]) -> list[dict]:
-    """Return per-calendar-month stats: trade count, wins, win rate, and avg P&L."""
-    monthly: dict[str, list[dict]] = defaultdict(list)
-    for t in trades:
-        entry_date = t.get("entry_date")
-        if entry_date is None:
-            continue
-        month_key = entry_date.strftime("%Y-%m") if hasattr(entry_date, "strftime") else str(entry_date)[:7]
-        monthly[month_key].append(t)
+def per_regime_metrics(outcomes: list[dict]) -> dict:
+    """
+    Split outcomes by regime and compute metrics for each.
+    Model must meet thresholds in all four regimes independently.
+    Returns dict: {regime -> {win_rate, avg_rr, trade_count}}
+    """
+    regimes = {}
+    for o in outcomes:
+        regime = o.get("regime", "unknown")
+        regimes.setdefault(regime, []).append(o)
 
-    rows = []
-    for month in sorted(monthly.keys()):
-        month_trades = monthly[month]
-        wins = sum(1 for t in month_trades if t.get("pnl_pct", 0.0) > 0)
-        avg_pnl = sum(t.get("pnl_pct", 0.0) for t in month_trades) / len(month_trades)
-        rows.append({
-            "month": month,
-            "trades": len(month_trades),
-            "wins": wins,
-            "win_rate": round(wins / len(month_trades), 4),
-            "avg_pnl_pct": round(avg_pnl, 4),
-        })
-    return rows
-
-
-def generate_report(trades: list[dict], equity_curve: list[float]) -> dict:
-    """Aggregate all metrics into a single summary dict suitable for printing or writing to file."""
-    if not trades:
-        return {
-            "total_trades": 0,
-            "win_rate": 0.0,
-            "profit_factor": 0.0,
-            "risk_norm_drawdown": 0.0,
-            "avg_rr": 0.0,
-            "max_drawdown": 0.0,
-            "sharpe_ratio": 0.0,
-            "winning_trades": 0,
-            "losing_trades": 0,
+    result = {}
+    for regime, regime_outcomes in regimes.items():
+        result[regime] = {
+            "win_rate": compute_win_rate(regime_outcomes),
+            "avg_rr": compute_avg_rr(regime_outcomes),
+            "trade_count": len(regime_outcomes),
         }
+    return result
 
-    returns = [t.get("pnl_pct", 0.0) for t in trades]
-    pf = compute_profit_factor(trades)
 
-    return {
-        "total_trades": len(trades),
-        "win_rate": round(compute_win_rate(trades), 4),
-        "profit_factor": round(pf, 4) if pf != float("inf") else pf,
-        "risk_norm_drawdown": round(compute_risk_normalized_drawdown(trades), 4),
-        "avg_rr": round(compute_average_rr(trades), 4),
-        "max_drawdown": round(compute_max_drawdown(equity_curve), 4),
-        "sharpe_ratio": round(compute_sharpe_ratio(returns), 4),
-        "winning_trades": sum(1 for t in trades if t.get("pnl_pct", 0.0) > 0),
-        "losing_trades": sum(1 for t in trades if t.get("pnl_pct", 0.0) <= 0),
-    }
+def compute_consecutive_losses(outcomes: list[dict]) -> int:
+    """Return the maximum consecutive loss streak in the outcome list."""
+    max_consec = 0
+    current = 0
+    for o in outcomes:
+        if o.get("outcome") in ("loss", "time_stop"):
+            current += 1
+            max_consec = max(max_consec, current)
+        else:
+            current = 0
+    return max_consec
+
+
+def run_sensitivity_analysis(
+    historical_data: dict,
+    thresholds: list[int] = [85, 87, 90, 92, 95],
+) -> pd.DataFrame:
+    """
+    Run backtest across 5 confidence thresholds (Clarification 3).
+    For each threshold: qualifying trades, win rate, avg R:R, signal frequency, max consecutive losses.
+    Returns DataFrame with columns: threshold, qualifying_trades, win_rate, avg_rr, signals_per_month, max_consec_losses.
+    Saves to backtesting/reports/sensitivity_analysis.csv.
+    """
+    rows = []
+    for threshold in thresholds:
+        # Filter outcomes from historical_data by confidence threshold
+        all_outcomes = historical_data.get("outcomes", [])
+        qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= threshold]
+
+        if not qualifying:
+            rows.append({
+                "threshold": threshold,
+                "qualifying_trades": 0,
+                "win_rate": 0.0,
+                "avg_rr": 0.0,
+                "signals_per_month": 0.0,
+                "max_consec_losses": 0,
+            })
+            continue
+
+        months = historical_data.get("test_months", 1)
+        rows.append({
+            "threshold": threshold,
+            "qualifying_trades": len(qualifying),
+            "win_rate": round(compute_win_rate(qualifying), 4),
+            "avg_rr": round(compute_avg_rr(qualifying), 2),
+            "signals_per_month": round(len(qualifying) / max(months, 1), 2),
+            "max_consec_losses": compute_consecutive_losses(qualifying),
+        })
+
+    df = pd.DataFrame(rows)
+
+    report_dir = Path("backtesting/reports")
+    report_dir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(report_dir / "sensitivity_analysis.csv", index=False)
+
+    return df
+
+
+def calibrate_weights(outcomes: list[dict], current_weights: dict) -> dict:
+    """
+    Calibrate confidence scoring weights using backtesting outcomes on the train set.
+    Returns updated weights dict. Changes > 5pp require version increment.
+
+    Strategy: for each sub-signal, compute average contribution in winning vs losing trades.
+    Sub-signals that add more value in winners get a slight weight increase.
+    Change is capped at 10pp per calibration cycle.
+    """
+    if not outcomes:
+        return current_weights
+
+    new_weights = dict(current_weights)
+    wins = [o for o in outcomes if o.get("outcome") == "win"]
+    losses = [o for o in outcomes if o.get("outcome") == "loss"]
+
+    for key in current_weights:
+        win_vals = [float(o.get(key, 0)) for o in wins if key in o]
+        loss_vals = [float(o.get(key, 0)) for o in losses if key in o]
+
+        if not win_vals or not loss_vals:
+            continue
+
+        win_avg = sum(win_vals) / len(win_vals)
+        loss_avg = sum(loss_vals) / len(loss_vals)
+
+        # If winners have higher sub-signal scores → upweight slightly
+        if win_avg > loss_avg:
+            delta = min(0.02, (win_avg - loss_avg) / win_avg * 0.05)
+        elif loss_avg > win_avg:
+            delta = -min(0.02, (loss_avg - win_avg) / loss_avg * 0.05)
+        else:
+            delta = 0.0
+
+        # Cap at 10pp total change per calibration cycle
+        delta = max(-0.10, min(0.10, delta))
+        new_weights[key] = round(max(0.0, current_weights[key] + delta), 4)
+
+    return new_weights

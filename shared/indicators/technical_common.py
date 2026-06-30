@@ -1,317 +1,297 @@
-# SHARED: Core technical indicator math — moving averages, breakout detection, and relative strength.
-# Both swing and day models import from here; the same formulas are fed different timeframe data
-# (daily bars for swing, intraday bars for day). No model-specific logic lives here.
+"""
+SHARED: MA, breakout, RS, RSI, ATR, MACD + z-score normalization.
+All indicators computed on daily OHLCV DataFrames. Z-score normalization
+puts all indicator values on a comparable scale (std devs from own mean)
+before they are combined in scoring.py.
+"""
 
+import numpy as np
 import pandas as pd
+from typing import Optional
 
 
-def moving_average(df: pd.DataFrame, window: int, column: str = "Close") -> pd.Series:
-    """Compute the simple moving average (SMA) of a DataFrame column.
+# ---------------------------------------------------------------------------
+# Z-Score normalization
+# ---------------------------------------------------------------------------
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int
-        Number of periods to average over.
-    column : str, optional
-        Column name to apply the SMA to. Defaults to "Close".
-
-    Returns
-    -------
-    pd.Series
-        SMA values indexed identically to df. The first (window - 1) values are NaN.
-
-    Example
-    -------
-    >>> ma20 = moving_average(df, window=20)
+def zscore(series: pd.Series, window: int = 60) -> pd.Series:
     """
-    return df[column].rolling(window=window).mean()
-
-
-def rolling_high(df: pd.DataFrame, window: int, column: str = "High") -> pd.Series:
-    """Compute the rolling maximum over a given window (used for breakout detection).
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int
-        Number of periods to look back.
-    column : str, optional
-        Column name to apply the rolling max to. Defaults to "High".
-
-    Returns
-    -------
-    pd.Series
-        Rolling maximum values indexed identically to df.
-
-    Example
-    -------
-    >>> highs = rolling_high(df, window=20)
+    Rolling z-score: (value - rolling_mean) / rolling_std over `window` bars.
+    Returns series of z-scores aligned to the input index.
+    Windows where std == 0 return 0.0 instead of NaN.
     """
-    return df[column].rolling(window=window).max()
+    roll = series.rolling(window=window, min_periods=window)
+    mean = roll.mean()
+    std = roll.std(ddof=1)
+    z = (series - mean) / std.replace(0, np.nan)
+    return z.fillna(0.0)
 
 
-def rolling_low(df: pd.DataFrame, window: int, column: str = "Low") -> pd.Series:
-    """Compute the rolling minimum over a given window.
+def zscore_current(series: pd.Series, window: int = 60) -> float:
+    """Return z-score of the most recent value in `series` relative to the prior `window` bars."""
+    if len(series) < window + 1:
+        return 0.0
+    hist = series.iloc[-(window + 1):-1]
+    current = series.iloc[-1]
+    mu = hist.mean()
+    sigma = hist.std(ddof=1)
+    if sigma == 0 or pd.isna(sigma):
+        return 0.0
+    return float((current - mu) / sigma)
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int
-        Number of periods to look back.
-    column : str, optional
-        Column name to apply the rolling min to. Defaults to "Low".
 
-    Returns
-    -------
-    pd.Series
-        Rolling minimum values indexed identically to df.
+# ---------------------------------------------------------------------------
+# Moving averages
+# ---------------------------------------------------------------------------
 
-    Example
-    -------
-    >>> lows = rolling_low(df, window=20)
+def sma(series: pd.Series, period: int) -> pd.Series:
+    """Simple moving average over `period` bars."""
+    return series.rolling(window=period, min_periods=period).mean()
+
+
+def ema(series: pd.Series, period: int) -> pd.Series:
+    """Exponential moving average over `period` bars."""
+    return series.ewm(span=period, adjust=False, min_periods=period).mean()
+
+
+# ---------------------------------------------------------------------------
+# Breakout detection
+# ---------------------------------------------------------------------------
+
+def rolling_high(series: pd.Series, period: int = 20) -> pd.Series:
+    """Rolling maximum over `period` bars — used as the breakout level."""
+    return series.rolling(window=period, min_periods=period).max()
+
+
+def is_breakout(close: pd.Series, high: pd.Series, period: int = 20) -> pd.Series:
     """
-    return df[column].rolling(window=window).min()
-
-
-def average_volume(df: pd.DataFrame, window: int) -> pd.Series:
-    """Compute the rolling average of the Volume column.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int
-        Number of periods to average over.
-
-    Returns
-    -------
-    pd.Series
-        Rolling average volume indexed identically to df.
-
-    Example
-    -------
-    >>> avg_vol = average_volume(df, window=20)
+    Returns boolean Series: True where close exceeds the prior `period`-bar high.
+    Uses the rolling high of the prior period (shift by 1 to avoid look-ahead bias).
+    Volume confirmation expected by caller (see volume_zscore).
     """
-    return df["Volume"].rolling(window=window).mean()
+    prior_high = rolling_high(high, period=period).shift(1)
+    return close > prior_high
 
 
-def is_breakout(
-    df: pd.DataFrame,
-    lookback_window: int = 20,
-    volume_multiplier: float = 1.5,
-) -> pd.Series:
-    """Detect volume-confirmed breakout days.
+# ---------------------------------------------------------------------------
+# Relative Strength
+# ---------------------------------------------------------------------------
 
-    A breakout is True on any day where today's Close is strictly greater than
-    the rolling high of the PRIOR lookback_window days (today excluded), AND
-    today's Volume is strictly greater than volume_multiplier times the rolling
-    average volume of the same prior window.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    lookback_window : int, optional
-        Number of prior trading days to evaluate. Defaults to 20.
-    volume_multiplier : float, optional
-        Volume threshold multiplier relative to the rolling average. Defaults to 1.5.
-
-    Returns
-    -------
-    pd.Series
-        Boolean Series (True = breakout day) indexed identically to df.
-
-    Example
-    -------
-    >>> breakouts = is_breakout(df, lookback_window=20, volume_multiplier=1.5)
+def relative_strength(ticker_close: pd.Series, benchmark_close: pd.Series, period: int = 20) -> pd.Series:
     """
-    # Shift by 1 so today's bar is excluded from the lookback window
-    prior_high = df["High"].rolling(window=lookback_window).max().shift(1)
-    prior_avg_vol = df["Volume"].rolling(window=lookback_window).mean().shift(1)
-
-    price_break = df["Close"] > prior_high
-    volume_break = df["Volume"] > volume_multiplier * prior_avg_vol
-
-    return (price_break & volume_break).rename("is_breakout")
-
-
-def relative_strength(
-    ticker_df: pd.DataFrame,
-    benchmark_df: pd.DataFrame,
-    window: int = 20,
-) -> pd.Series:
-    """Compute the ticker's trailing return minus the benchmark's trailing return.
-
-    For each date, calculates the percent return of the ticker's Close over the
-    prior `window` trading days, then subtracts the same calculation for the
-    benchmark. This measures relative outperformance or underperformance.
-
-    Both DataFrames are aligned on the intersection of their date indices before
-    calculation. Dates present in one but not the other are silently dropped;
-    the returned Series is indexed to this intersection only.
-
-    Parameters
-    ----------
-    ticker_df : pd.DataFrame
-        OHLCV DataFrame for the ticker (e.g. NVDA).
-    benchmark_df : pd.DataFrame
-        OHLCV DataFrame for the benchmark (e.g. SMH or SPY).
-    window : int, optional
-        Number of trading days for the trailing return calculation. Defaults to 20.
-
-    Returns
-    -------
-    pd.Series
-        Relative strength values (ticker return minus benchmark return) on the
-        intersection of both DataFrames' date indices. Values in the first
-        `window` rows will be NaN.
-
-    Example
-    -------
-    >>> rs = relative_strength(nvda_df, smh_df, window=20)
+    Relative strength of ticker vs. benchmark over rolling `period`.
+    RS = ticker_return_period - benchmark_return_period.
+    Positive values indicate ticker outperforming benchmark (SMH).
     """
-    common_dates = ticker_df.index.intersection(benchmark_df.index)
-    ticker_close = ticker_df.loc[common_dates, "Close"]
-    bench_close = benchmark_df.loc[common_dates, "Close"]
-
-    ticker_return = ticker_close.pct_change(periods=window)
-    bench_return = bench_close.pct_change(periods=window)
-
-    return (ticker_return - bench_return).rename("relative_strength")
+    ticker_ret = ticker_close.pct_change(period)
+    bench_ret = benchmark_close.pct_change(period)
+    return ticker_ret - bench_ret
 
 
-def _ema(series: pd.Series, span: int) -> pd.Series:
-    """Exponential moving average using the standard span convention (alpha = 2 / (span + 1))."""
-    return series.ewm(span=span, adjust=False).mean()
+# ---------------------------------------------------------------------------
+# RSI
+# ---------------------------------------------------------------------------
 
-
-def rsi(df: pd.DataFrame, window: int = 14, column: str = "Close") -> pd.Series:
-    """Compute the Relative Strength Index (RSI) using Wilder's smoothing method.
-
-    RSI = 100 - (100 / (1 + avg_gain / avg_loss)), where avg_gain and avg_loss
-    are smoothed with Wilder's EMA (alpha = 1 / window). Values above 70 are
-    typically considered overbought; values below 30 are typically considered
-    oversold.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int, optional
-        Lookback period for the smoothed averages. Defaults to 14.
-    column : str, optional
-        Column to compute RSI on. Defaults to "Close".
-
-    Returns
-    -------
-    pd.Series
-        RSI values in the range [0, 100] indexed identically to df. The first
-        (window) values are NaN due to the warm-up period.
-
-    Example
-    -------
-    >>> rsi14 = rsi(df, window=14)
+def rsi(close: pd.Series, period: int = 14) -> pd.Series:
     """
-    delta = df[column].diff()
-    gains = delta.clip(lower=0)
-    losses = (-delta).clip(lower=0)
-
-    # Wilder's smoothing: alpha = 1/window, equivalent to com = window - 1
-    avg_gain = gains.ewm(alpha=1.0 / window, adjust=False, min_periods=window).mean()
-    avg_loss = losses.ewm(alpha=1.0 / window, adjust=False, min_periods=window).mean()
-
-    rs = avg_gain / avg_loss
-    return (100.0 - (100.0 / (1.0 + rs))).rename("rsi")
-
-
-def atr(df: pd.DataFrame, window: int = 14) -> pd.Series:
-    """Compute the Average True Range (ATR) using Wilder's smoothing method.
-
-    True range for each bar is the greatest of: (High - Low),
-    abs(High - previous Close), abs(Low - previous Close). ATR is the
-    Wilder's-smoothed rolling average of true range over `window` periods.
-    Commonly used to size stop-losses: e.g., stop = entry_price - 2 * ATR
-    for a long position.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    window : int, optional
-        Lookback period for smoothing. Defaults to 14.
-
-    Returns
-    -------
-    pd.Series
-        ATR values indexed identically to df. The first value is NaN because
-        true range requires a previous close; ATR itself is NaN for the first
-        (window) rows during warm-up.
-
-    Example
-    -------
-    >>> atr14 = atr(df, window=14)
+    Relative Strength Index via Wilder smoothing (ewm with alpha=1/period).
+    Returns series of RSI values (0-100).
     """
-    prev_close = df["Close"].shift(1)
-    tr = pd.concat(
-        [
-            df["High"] - df["Low"],
-            (df["High"] - prev_close).abs(),
-            (df["Low"] - prev_close).abs(),
-        ],
-        axis=1,
-    ).max(axis=1)
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    alpha = 1.0 / period
+    avg_gain = gain.ewm(alpha=alpha, adjust=False, min_periods=period).mean()
+    avg_loss = loss.ewm(alpha=alpha, adjust=False, min_periods=period).mean()
 
-    return tr.ewm(alpha=1.0 / window, adjust=False, min_periods=window).mean().rename("atr")
+    # When avg_loss == 0: RSI = 100 (all gains). When avg_gain == 0: RSI = 0.
+    rsi_series = pd.Series(index=close.index, dtype=float)
+    both_zero = (avg_gain == 0) & (avg_loss == 0)
+    all_gain = (avg_loss == 0) & (avg_gain > 0)
+    all_loss = (avg_gain == 0) & (avg_loss > 0)
+    normal = ~(both_zero | all_gain | all_loss)
 
+    rsi_series[all_gain] = 100.0
+    rsi_series[all_loss] = 0.0
+    rsi_series[both_zero] = 50.0
+    rs = avg_gain[normal] / avg_loss[normal]
+    rsi_series[normal] = 100 - (100 / (1 + rs))
+    return rsi_series.fillna(50.0)  # neutral fill for warmup period
+
+
+# ---------------------------------------------------------------------------
+# ATR
+# ---------------------------------------------------------------------------
+
+def atr(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
+    """
+    Average True Range over `period` bars.
+    TR = max(H-L, |H-prev_C|, |L-prev_C|). ATR = Wilder smoothed mean of TR.
+    """
+    prev_close = close.shift(1)
+    tr = pd.concat([
+        high - low,
+        (high - prev_close).abs(),
+        (low - prev_close).abs(),
+    ], axis=1).max(axis=1)
+    alpha = 1.0 / period
+    return tr.ewm(alpha=alpha, adjust=False, min_periods=period).mean()
+
+
+# ---------------------------------------------------------------------------
+# MACD
+# ---------------------------------------------------------------------------
 
 def macd(
-    df: pd.DataFrame,
-    fast_window: int = 12,
-    slow_window: int = 26,
-    signal_window: int = 9,
-    column: str = "Close",
-) -> pd.DataFrame:
-    """Compute MACD line, signal line, and histogram.
-
-    MACD line = EMA(fast_window) - EMA(slow_window).
-    Signal line = EMA(signal_window) of the MACD line.
-    Histogram = MACD line - signal line.
-    All EMAs use the standard span convention (alpha = 2 / (span + 1)).
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        OHLCV DataFrame as returned by market_data_client.get_ohlcv.
-    fast_window : int, optional
-        Span for the fast EMA. Defaults to 12.
-    slow_window : int, optional
-        Span for the slow EMA. Defaults to 26.
-    signal_window : int, optional
-        Span for the signal-line EMA applied to the MACD line. Defaults to 9.
-    column : str, optional
-        Column to compute MACD on. Defaults to "Close".
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with columns "macd", "signal", and "histogram", indexed
-        identically to df. The first (slow_window - 1) rows of "macd" will be
-        NaN, and "signal"/"histogram" will have additional NaN rows during
-        signal warm-up.
-
-    Example
-    -------
-    >>> m = macd(df); print(m[["macd", "signal", "histogram"]].tail())
+    close: pd.Series,
+    fast: int = 12,
+    slow: int = 26,
+    signal: int = 9,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
     """
-    macd_line = _ema(df[column], fast_window) - _ema(df[column], slow_window)
-    signal_line = _ema(macd_line, signal_window)
+    MACD line, signal line, and histogram.
+    Returns (macd_line, signal_line, histogram).
+    """
+    ema_fast = ema(close, fast)
+    ema_slow = ema(close, slow)
+    macd_line = ema_fast - ema_slow
+    signal_line = ema(macd_line, signal)
     histogram = macd_line - signal_line
+    return macd_line, signal_line, histogram
 
-    return pd.DataFrame(
-        {"macd": macd_line, "signal": signal_line, "histogram": histogram},
-        index=df.index,
-    )
+
+# ---------------------------------------------------------------------------
+# Volume z-score
+# ---------------------------------------------------------------------------
+
+def volume_zscore(volume: pd.Series, period: int = 20) -> pd.Series:
+    """
+    Z-score of volume relative to its own rolling mean/std over `period` bars.
+    Key for breakout confirmation — a breakout with volume z-score > 2 is
+    more significant than one barely above average.
+    """
+    return zscore(volume, window=period)
+
+
+# ---------------------------------------------------------------------------
+# Composite technical score (input to scoring.py)
+# ---------------------------------------------------------------------------
+
+def compute_technical_indicators(
+    ohlcv: pd.DataFrame,
+    benchmark_close: pd.Series,
+    cfg: dict,
+) -> dict:
+    """
+    Compute all technical indicators for a single ticker.
+
+    Returns dict with all fields used by scoring.py:
+    {
+        # Latest scalar values
+        close, open, high, low, volume,
+        sma_20, sma_50, rsi_14, atr_14,
+        macd_line, macd_signal, macd_hist,
+        rolling_high_20, volume_sma_20,
+        rs_vs_benchmark,
+
+        # Z-scores (normalized, used for sub-scoring)
+        breakout_volume_zscore,   # volume z-score at breakout
+        rs_zscore,                # RS z-score vs. benchmark
+        rsi_zscore,               # RSI z-score
+        volume_zscore_current,    # today's volume z-score
+
+        # Boolean signals
+        breakout_confirmed,       # close > prior 20-day high
+        trend_intact,             # sma_20 > sma_50 AND close > sma_50
+        sma_20_above_sma_50,
+        price_above_sma_50,
+        macd_bullish,             # macd_line > signal_line
+    }
+
+    cfg: contents of swing_config.yaml['technical']
+    """
+    tech_cfg = cfg.get("technical", {})
+    ma_short = tech_cfg.get("ma_short", 20)
+    ma_long = tech_cfg.get("ma_long", 50)
+    rsi_period = tech_cfg.get("rsi_period", 14)
+    atr_period = tech_cfg.get("atr_period", 14)
+    macd_fast = tech_cfg.get("macd_fast", 12)
+    macd_slow = tech_cfg.get("macd_slow", 26)
+    macd_sig = tech_cfg.get("macd_signal", 9)
+    rs_lookback = tech_cfg.get("rs_lookback", 20)
+    vol_period = tech_cfg.get("volume_avg_period", 20)
+
+    close = ohlcv["Close"]
+    high = ohlcv["High"]
+    low = ohlcv["Low"]
+    volume = ohlcv["Volume"]
+
+    sma_20_series = sma(close, ma_short)
+    sma_50_series = sma(close, ma_long)
+    rsi_series = rsi(close, rsi_period)
+    atr_series = atr(high, low, close, atr_period)
+    macd_line_s, macd_signal_s, macd_hist_s = macd(close, macd_fast, macd_slow, macd_sig)
+    rolling_high_20 = rolling_high(high, ma_short)
+    volume_sma = sma(volume.astype(float), vol_period)
+
+    # RS vs. benchmark (align on common index)
+    bench_aligned = benchmark_close.reindex(close.index, method="ffill")
+    rs_series = relative_strength(close, bench_aligned, rs_lookback)
+
+    # Z-scores
+    vol_z_series = volume_zscore(volume.astype(float), vol_period)
+    rs_z_series = zscore(rs_series.dropna().reindex(close.index), window=60)
+    rsi_z_series = zscore(rsi_series, window=60)
+
+    # Scalar (latest bar)
+    latest = -1
+
+    breakout_bool_series = is_breakout(close, high, ma_short)
+
+    c_close = float(close.iloc[latest])
+    c_sma20 = float(sma_20_series.iloc[latest]) if not pd.isna(sma_20_series.iloc[latest]) else c_close
+    c_sma50 = float(sma_50_series.iloc[latest]) if not pd.isna(sma_50_series.iloc[latest]) else c_close
+    c_rsi = float(rsi_series.iloc[latest])
+    c_atr = float(atr_series.iloc[latest]) if not pd.isna(atr_series.iloc[latest]) else 0.0
+    c_macd = float(macd_line_s.iloc[latest])
+    c_signal = float(macd_signal_s.iloc[latest])
+    c_hist = float(macd_hist_s.iloc[latest])
+    c_rolling_high = float(rolling_high_20.iloc[latest]) if not pd.isna(rolling_high_20.iloc[latest]) else c_close
+    c_vol_sma = float(volume_sma.iloc[latest]) if not pd.isna(volume_sma.iloc[latest]) else 0.0
+    c_rs = float(rs_series.iloc[latest]) if not pd.isna(rs_series.iloc[latest]) else 0.0
+    c_vol_z = float(vol_z_series.iloc[latest])
+    c_rs_z = float(rs_z_series.iloc[latest]) if not pd.isna(rs_z_series.iloc[latest]) else 0.0
+    c_rsi_z = float(rsi_z_series.iloc[latest])
+    c_breakout = bool(breakout_bool_series.iloc[latest]) if not pd.isna(breakout_bool_series.iloc[latest]) else False
+
+    return {
+        # Latest bar scalars
+        "close": c_close,
+        "open": float(ohlcv["Open"].iloc[latest]),
+        "high": float(ohlcv["High"].iloc[latest]),
+        "low": float(ohlcv["Low"].iloc[latest]),
+        "volume": float(ohlcv["Volume"].iloc[latest]),
+        "sma_20": c_sma20,
+        "sma_50": c_sma50,
+        "rsi_14": c_rsi,
+        "atr_14": c_atr,
+        "macd_line": c_macd,
+        "macd_signal": c_signal,
+        "macd_hist": c_hist,
+        "rolling_high_20": c_rolling_high,
+        "volume_sma_20": c_vol_sma,
+        "rs_vs_benchmark": c_rs,
+
+        # Z-scores
+        "breakout_volume_zscore": c_vol_z,
+        "rs_zscore": c_rs_z,
+        "rsi_zscore": c_rsi_z,
+        "volume_zscore_current": c_vol_z,
+
+        # Boolean signals
+        "breakout_confirmed": c_breakout,
+        "trend_intact": c_sma20 > c_sma50 and c_close > c_sma50,
+        "sma_20_above_sma_50": c_sma20 > c_sma50,
+        "price_above_sma_50": c_close > c_sma50,
+        "macd_bullish": c_macd > c_signal,
+    }

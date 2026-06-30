@@ -1,0 +1,12 @@
+{
+  "positions": [],
+  "account_equity": 15000.0,
+  "peak_equity": 15000.0,
+  "circuit_breaker_state": "normal",
+  "day_trades_rolling_5d": [],
+  "consecutive_losses": 0,
+  "black_swan_mode": false,
+  "black_swan_normal_days": 0,
+  "last_scan_timestamp_utc": null,
+  "model_version": "v1.0.0"
+}

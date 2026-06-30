@@ -1,241 +1,256 @@
-import json
-import os
-import time
-from datetime import datetime
-from pathlib import Path
+"""
+SHARED: Wraps yfinance — pulls daily OHLCV + earnings calendar data.
+Primary price data source. Alpha Vantage daily endpoint is the fallback.
+Enforces Alpha Vantage call budget (global_config.yaml).
+Implements exponential backoff (30s → 60s → 120s → fallback).
+"""
 
-import pandas as pd
-import requests
+import time
+import logging
+from datetime import datetime, timezone, timedelta
+from typing import Optional
+
 import yfinance as yf
-from dotenv import load_dotenv
+import pandas as pd
 
 from shared.utils.logger import get_logger
 
-load_dotenv()
-
 logger = get_logger(__name__)
 
-_TIMEOUT = 15
-_BASE_URL = "https://www.alphavantage.co/query"
-_RATE_LIMIT_SLEEP = 13  # seconds between calls — consistent with free tier (5 req/min)
+_BACKOFF_DELAYS = [30, 60, 120]
 
 
-def get_ohlcv(ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch daily OHLCV bars for a ticker over a date range using yfinance.
-
-    Parameters
-    ----------
-    ticker : str
-        The ticker symbol to fetch (e.g. "NVDA", "SPY").
-    start_date : str
-        First date to include, in "YYYY-MM-DD" format (inclusive).
-    end_date : str
-        Last date to include, in "YYYY-MM-DD" format (exclusive — yfinance
-        treats this as the day after the last bar you want, matching the
-        standard [start, end) convention used by pandas date_range).
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame indexed by date with columns: Open, High, Low, Close, Volume.
-        All values are floats except Volume (int). Index is timezone-naive.
-
-    Raises
-    ------
-    ValueError
-        If yfinance returns no data — e.g. the ticker is invalid, delisted,
-        or no trading days fall within the requested range.
-
-    Example
-    -------
-    >>> df = get_ohlcv("NVDA", "2026-01-01", "2026-06-01")
-    >>> print(df.head())
+def fetch_ohlcv(
+    ticker: str,
+    period: str = "6mo",
+    interval: str = "1d",
+    retries: int = 3,
+) -> Optional[pd.DataFrame]:
     """
-    raw = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True, progress=False)
+    Fetch daily OHLCV bars for a single ticker via yfinance.
 
-    if raw.empty:
-        raise ValueError(
-            f"No OHLCV data returned for '{ticker}' between {start_date} and {end_date}. "
-            "Check that the ticker is valid and that trading days exist in the requested range."
+    Returns DataFrame with columns [Open, High, Low, Close, Volume] indexed by UTC date.
+    Returns None if all retries fail (caller should invoke fallback or data-unavailable mode).
+
+    Backoff: 30s → 60s → 120s → None
+    """
+    def _fetch():
+        t = yf.Ticker(ticker)
+        df = t.history(period=period, interval=interval, auto_adjust=True)
+        if df.empty:
+            raise ValueError(f"Empty response for {ticker}")
+        # Normalize index to UTC
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        else:
+            df.index = df.index.tz_convert("UTC")
+        # Keep standard columns only
+        df = df[["Open", "High", "Low", "Close", "Volume"]].copy()
+        return df
+
+    return _fetch_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
+
+
+def fetch_ohlcv_batch(
+    tickers: list[str],
+    period: str = "6mo",
+    interval: str = "1d",
+) -> dict[str, Optional[pd.DataFrame]]:
+    """
+    Fetch OHLCV for multiple tickers in a single yfinance call.
+    Returns dict mapping ticker → DataFrame (or None on failure for that ticker).
+    """
+    def _fetch():
+        raw = yf.download(
+            tickers=" ".join(tickers),
+            period=period,
+            interval=interval,
+            auto_adjust=True,
+            group_by="ticker",
+            threads=True,
+            progress=False,
         )
+        if raw.empty:
+            raise ValueError("Empty batch response from yfinance")
+        return raw
 
-    df = raw[["Open", "High", "Low", "Close", "Volume"]].copy()
+    result: dict[str, Optional[pd.DataFrame]] = {}
 
-    # Flatten MultiIndex columns that yfinance sometimes produces (ticker as second level)
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
+    if len(tickers) == 1:
+        result[tickers[0]] = fetch_ohlcv(tickers[0], period=period, interval=interval)
+        return result
 
-    # Drop timezone info so callers get a plain DatetimeIndex
-    if df.index.tz is not None:
-        df.index = df.index.tz_localize(None)
+    raw = _fetch_with_backoff(_fetch, retries=3, label="fetch_ohlcv_batch")
+    if raw is None:
+        return {t: None for t in tickers}
 
-    df.attrs["ticker"] = ticker.upper()
-    return df
+    for ticker in tickers:
+        try:
+            if ticker in raw.columns.get_level_values(0):
+                df = raw[ticker][["Open", "High", "Low", "Close", "Volume"]].copy()
+                df = df.dropna(how="all")
+                if df.empty:
+                    result[ticker] = None
+                    continue
+                # Normalize index to UTC
+                if df.index.tz is None:
+                    df.index = df.index.tz_localize("UTC")
+                else:
+                    df.index = df.index.tz_convert("UTC")
+                result[ticker] = df
+            else:
+                logger.warning(f"Ticker {ticker} not found in batch response.")
+                result[ticker] = None
+        except Exception as exc:
+            logger.error(f"Error extracting {ticker} from batch: {exc}")
+            result[ticker] = None
+
+    return result
 
 
-class MarketDataClient:
-    """Thin wrapper intended for future multi-provider support (Alpha Vantage, Polygon).
-
-    Daily bars are fetched via yfinance (no key required).
-    Intraday bars and live price use Alpha Vantage TIME_SERIES_INTRADAY (requires
-    ALPHA_VANTAGE_API_KEY in environment). If the key is absent, intraday methods
-    fall back to yfinance so the pipeline continues without error.
+def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
     """
+    Fetch upcoming earnings date for a ticker via yfinance calendar data.
 
-    def __init__(self, config: dict):
-        self.config = config
-        self.api_key: str | None = os.getenv("ALPHA_VANTAGE_API_KEY")
-        self.base_url: str = config.get("api", {}).get("alpha_vantage_base_url", _BASE_URL)
-        self._cache_dir = Path("data/raw/intraday")
-        self._cache_dir.mkdir(parents=True, exist_ok=True)
+    Returns dict with keys: {next_earnings_date: datetime, days_to_earnings: int}
+    Returns None if data unavailable.
+    """
+    def _fetch():
+        t = yf.Ticker(ticker)
+        cal = t.calendar
+        if cal is None or cal.empty:
+            return None
+        # yfinance returns calendar as a DataFrame with dates as column headers
+        # Structure varies by yfinance version — handle both
+        if hasattr(cal, "columns"):
+            dates = cal.columns.tolist()
+        elif hasattr(cal, "index"):
+            dates = cal.index.tolist()
+        else:
+            return None
 
-        if not self.api_key:
-            logger.warning(
-                "ALPHA_VANTAGE_API_KEY not set — intraday methods will fall back to yfinance. "
-                "Add the key to your .env file for real-time Alpha Vantage data."
-            )
+        if not dates:
+            return None
 
-    def get_daily_ohlcv(self, ticker: str, period_days: int) -> pd.DataFrame:
-        """Return daily OHLCV bars for the given ticker and lookback period."""
-        end = pd.Timestamp.today().normalize()
-        start = end - pd.Timedelta(days=period_days)
-        return get_ohlcv(ticker, start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
+        # Take the first (earliest upcoming) earnings date
+        try:
+            next_date = pd.Timestamp(dates[0]).to_pydatetime()
+        except Exception:
+            return None
 
-    def get_intraday_ohlcv(self, ticker: str, interval_minutes: int = 5) -> pd.DataFrame:
-        """Return intraday OHLCV bars from Alpha Vantage TIME_SERIES_INTRADAY.
+        # Ensure UTC
+        if next_date.tzinfo is None:
+            next_date = next_date.replace(tzinfo=timezone.utc)
 
-        Fetches the 100 most recent bars at the given minute interval for regular
-        trading hours (9:30am–4:00pm ET). Results are cached once per
-        ticker/interval/calendar-day to avoid burning free-tier quota on repeated runs.
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        days_to_earnings = (next_date.replace(tzinfo=timezone.utc) - today).days
 
-        Falls back to yfinance if ALPHA_VANTAGE_API_KEY is not set.
-
-        Parameters
-        ----------
-        ticker : str
-            Equity symbol (e.g. "NVDA").
-        interval_minutes : int
-            Bar size in minutes. AV supports: 1, 5, 15, 30, 60.
-
-        Returns
-        -------
-        pd.DataFrame
-            DatetimeIndex (US/Eastern timestamps), columns: Open, High, Low, Close, Volume.
-
-        Raises
-        ------
-        ValueError
-            If AV returns no data or signals a rate-limit error.
-        """
-        interval_str = f"{interval_minutes}min"
-
-        if not self.api_key:
-            return self._yf_intraday_fallback(ticker, interval_minutes)
-
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        cached = self._load_cache(ticker, today, interval_str)
-        if cached is not None:
-            return cached
-
-        params = {
-            "function": "TIME_SERIES_INTRADAY",
-            "symbol": ticker.upper(),
-            "interval": interval_str,
-            "adjusted": "true",
-            "extended_hours": "false",
-            "outputsize": "compact",  # 100 most recent bars
-            "datatype": "json",
-            "apikey": self.api_key,
+        return {
+            "next_earnings_date": next_date,
+            "days_to_earnings": days_to_earnings,
         }
 
-        try:
-            resp = requests.get(self.base_url, params=params, timeout=_TIMEOUT)
-            resp.raise_for_status()
-            data = resp.json()
-        except requests.RequestException as exc:
-            raise ValueError(f"Alpha Vantage intraday request failed for {ticker}: {exc}") from exc
+    return _fetch_with_backoff(_fetch, retries=3, label=f"fetch_earnings_calendar({ticker})")
 
-        if "Information" in data:
-            raise ValueError(
-                f"Alpha Vantage rate limit hit for {ticker}: {data['Information']}"
-            )
 
-        series_key = f"Time Series ({interval_str})"
-        time_series = data.get(series_key, {})
-        if not time_series:
-            raise ValueError(
-                f"No intraday data returned for {ticker} at {interval_str} interval. "
-                f"Keys in response: {list(data.keys())}"
-            )
-
-        records = [
-            {
-                "datetime": pd.Timestamp(ts),
-                "Open": float(values["1. open"]),
-                "High": float(values["2. high"]),
-                "Low": float(values["3. low"]),
-                "Close": float(values["4. close"]),
-                "Volume": int(values["5. volume"]),
-            }
-            for ts, values in time_series.items()
-        ]
-
-        df = pd.DataFrame(records).set_index("datetime").sort_index()
-        df.attrs["ticker"] = ticker.upper()
-
-        self._save_cache(ticker, today, interval_str, df)
-        time.sleep(_RATE_LIMIT_SLEEP)
-        return df
-
-    def get_current_price(self, ticker: str) -> float:
-        """Return the latest trade price for the given ticker.
-
-        Uses the most recent 5-minute bar close from Alpha Vantage intraday feed.
-        Falls back to the last daily close via yfinance if the AV key is absent.
-        """
-        if not self.api_key:
-            df = self.get_daily_ohlcv(ticker, period_days=5)
-            return float(df["Close"].iloc[-1])
-
-        df = self.get_intraday_ohlcv(ticker, interval_minutes=5)
+def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
+    """
+    Fetch current VIX level via yfinance (^VIX).
+    Returns latest closing value or None on failure.
+    """
+    def _fetch():
+        df = yf.download("^VIX", period=period, interval="1d", progress=False, auto_adjust=True)
+        if df.empty:
+            raise ValueError("Empty VIX response")
         return float(df["Close"].iloc[-1])
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    return _fetch_with_backoff(_fetch, retries=retries, label="fetch_vix")
 
-    def _cache_path(self, ticker: str, date_str: str, interval: str) -> Path:
-        ticker_dir = self._cache_dir / ticker.upper()
-        ticker_dir.mkdir(parents=True, exist_ok=True)
-        return ticker_dir / f"{date_str}_{interval}.json"
 
-    def _save_cache(self, ticker: str, date_str: str, interval: str, df: pd.DataFrame) -> None:
-        records = df.reset_index()
-        records["datetime"] = records["datetime"].astype(str)
-        with open(self._cache_path(ticker, date_str, interval), "w") as f:
-            json.dump(records.to_dict("records"), f)
+def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
+    """
+    Fetch 10-year US Treasury yield (^TNX) via yfinance.
+    Used by macro_overlay.py as a free proxy for Fed rate direction.
+    """
+    def _fetch():
+        df = yf.download("^TNX", period=period, interval="1d", progress=False, auto_adjust=True)
+        if df.empty:
+            raise ValueError("Empty TNX response")
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        else:
+            df.index = df.index.tz_convert("UTC")
+        return df[["Open", "High", "Low", "Close", "Volume"]].copy()
 
-    def _load_cache(self, ticker: str, date_str: str, interval: str) -> pd.DataFrame | None:
-        path = self._cache_path(ticker, date_str, interval)
-        if not path.exists():
-            return None
-        with open(path) as f:
-            records = json.load(f)
-        df = pd.DataFrame(records)
-        df["datetime"] = pd.to_datetime(df["datetime"])
-        df = df.set_index("datetime").sort_index()
-        df.attrs["ticker"] = ticker.upper()
-        return df
+    return _fetch_with_backoff(_fetch, retries=3, label="fetch_treasury_yield")
 
-    def _yf_intraday_fallback(self, ticker: str, interval_minutes: int) -> pd.DataFrame:
-        """Fetch intraday bars from yfinance when no AV key is available."""
-        valid_intervals = {1: "1m", 2: "2m", 5: "5m", 15: "15m", 30: "30m", 60: "60m"}
-        yf_interval = valid_intervals.get(interval_minutes, "5m")
-        raw = yf.download(ticker, period="1d", interval=yf_interval, progress=False)
-        if raw.empty:
-            raise ValueError(f"No intraday data returned for {ticker} via yfinance fallback")
-        df = raw[["Open", "High", "Low", "Close", "Volume"]].copy()
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        df.attrs["ticker"] = ticker.upper()
-        return df
+
+def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
+    """
+    Fetch US Dollar Index (DX-Y.NYB) via yfinance.
+    Used by macro_overlay.py for USD strength signal.
+    """
+    def _fetch():
+        df = yf.download("DX-Y.NYB", period=period, interval="1d", progress=False, auto_adjust=True)
+        if df.empty:
+            raise ValueError("Empty DXY response")
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        else:
+            df.index = df.index.tz_convert("UTC")
+        return df[["Open", "High", "Low", "Close", "Volume"]].copy()
+
+    return _fetch_with_backoff(_fetch, retries=3, label="fetch_dxy")
+
+
+def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:
+    """
+    Fetch SEC Form 4 insider transactions for a ticker via yfinance.
+    Returns list of {date, insider_name, transaction_type, shares, value} dicts.
+    Note: yfinance insider data has 1-2 business day delay — treat as confirmation only.
+    """
+    def _fetch():
+        t = yf.Ticker(ticker)
+        insiders = t.insider_transactions
+        if insiders is None or insiders.empty:
+            return []
+        records = []
+        for _, row in insiders.iterrows():
+            try:
+                date = row.get("Start Date", row.get("Date", None))
+                if hasattr(date, "to_pydatetime"):
+                    date = date.to_pydatetime()
+                if date and hasattr(date, "tzinfo") and date.tzinfo is None:
+                    date = date.replace(tzinfo=timezone.utc)
+                records.append({
+                    "date": date,
+                    "insider_name": row.get("Insider", ""),
+                    "position": row.get("Position", ""),
+                    "transaction_type": row.get("Transaction", ""),
+                    "shares": row.get("Shares", 0),
+                    "value": row.get("Value", 0),
+                })
+            except Exception:
+                continue
+        return records
+
+    return _fetch_with_backoff(_fetch, retries=3, label=f"fetch_insider_transactions({ticker})")
+
+
+def _fetch_with_backoff(fn, retries: int = 3, label: str = ""):
+    """
+    Execute fn() with exponential backoff.
+    Schedule: 30s → 60s → 120s → return None.
+    """
+    last_exc = None
+    for attempt in range(retries):
+        try:
+            return fn()
+        except Exception as exc:
+            last_exc = exc
+            if attempt < len(_BACKOFF_DELAYS):
+                delay = _BACKOFF_DELAYS[attempt]
+                logger.warning(f"[{label}] Attempt {attempt + 1} failed: {exc}. Retrying in {delay}s.")
+                time.sleep(delay)
+    logger.error(f"[{label}] All {retries} retries exhausted. Last error: {last_exc}")
+    return None
