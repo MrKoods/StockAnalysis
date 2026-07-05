@@ -1,0 +1,1622 @@
+[
+  {
+    "article_id": "https://www.tradingview.com/symbols/AMEX-TSXU/",
+    "timestamp_utc": "2025-10-01T08:52:54+00:00",
+    "title": "TSXU Stock Fund Price and Chart \u2014 AMEX:TSXU",
+    "url": "https://www.tradingview.com/symbols/AMEX-TSXU/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.122547,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSXU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.126252",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.729505",
+        "ticker_sentiment_score": "0.127773",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.731159",
+        "ticker_sentiment_score": "0.132085",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.728868",
+        "ticker_sentiment_score": "0.135557",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.735094",
+        "ticker_sentiment_score": "0.113887",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqePibsC365xhriIhBF2xY-6mfGS9tKrtc2y9iWOLR3_CBF9kHr7KFqj&gaa_ts=690c4921&gaa_sig=F4gfZf4-AeuO4tP8IUqTsaas4ztj6DJtRK9PZfS86W7O0LaCdeHGB7H7cxsbE-VedD5ttQwZvqJf0DlaQXZJiQ%3D%3D",
+    "timestamp_utc": "2025-10-03T07:30:00+00:00",
+    "title": "Magnificence beyond the Magnificent 7? Here\u2019s the next generation of AI winners powering the stock market.",
+    "url": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqePibsC365xhriIhBF2xY-6mfGS9tKrtc2y9iWOLR3_CBF9kHr7KFqj&gaa_ts=690c4921&gaa_sig=F4gfZf4-AeuO4tP8IUqTsaas4ztj6DJtRK9PZfS86W7O0LaCdeHGB7H7cxsbE-VedD5ttQwZvqJf0DlaQXZJiQ%3D%3D",
+    "source": "MarketWatch",
+    "source_domain": "MarketWatch",
+    "overall_sentiment_score": 0.324854,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.937399",
+        "ticker_sentiment_score": "0.417634",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.726731",
+        "ticker_sentiment_score": "0.314868",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.749200",
+        "ticker_sentiment_score": "0.322732",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.634934",
+        "ticker_sentiment_score": "0.348876",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.609896",
+        "ticker_sentiment_score": "0.321902",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqc-708A_zDsG0-CnHpMlPn2lqI27T4suQtzJE_TnY7r9IiiAKIj2INj&gaa_ts=690baad5&gaa_sig=kMSrE9SunbFBjQkkm-PJRklNFxBt5mBkYNsTtdaMQe41bisK-Uj-x4o8r1QiNixl9KDz4XnUyMFdkoGeZ0rr1A%3D%3D",
+    "timestamp_utc": "2025-10-03T07:30:00+00:00",
+    "title": "Magnificence beyond the Magnificent 7? Here\u2019s the next generation of AI winners powering the stock market.",
+    "url": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqc-708A_zDsG0-CnHpMlPn2lqI27T4suQtzJE_TnY7r9IiiAKIj2INj&gaa_ts=690baad5&gaa_sig=kMSrE9SunbFBjQkkm-PJRklNFxBt5mBkYNsTtdaMQe41bisK-Uj-x4o8r1QiNixl9KDz4XnUyMFdkoGeZ0rr1A%3D%3D",
+    "source": "MarketWatch",
+    "source_domain": "MarketWatch",
+    "overall_sentiment_score": 0.389257,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.945955",
+        "ticker_sentiment_score": "0.381180",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.739476",
+        "ticker_sentiment_score": "0.416191",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.706141",
+        "ticker_sentiment_score": "0.428885",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.642718",
+        "ticker_sentiment_score": "0.381019",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqefSNI3TmXTmGRIrYfQi-XfjfrZkqfOfZ2VXtrSNinXbZswa-r8c5wC&gaa_ts=6908aadb&gaa_sig=mxDXm5Dp3wzSkJ_O-dAXJc97MjXswqq9hr7ApfvLlvnHEINvII-mZnzbR7B-nYrrymGZW_iCCKKsrK-v7XALfg%3D%3D",
+    "timestamp_utc": "2025-10-03T07:30:00+00:00",
+    "title": "Magnificence beyond the Magnificent 7? Here\u2019s the next generation of AI winners powering the stock market.",
+    "url": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqefSNI3TmXTmGRIrYfQi-XfjfrZkqfOfZ2VXtrSNinXbZswa-r8c5wC&gaa_ts=6908aadb&gaa_sig=mxDXm5Dp3wzSkJ_O-dAXJc97MjXswqq9hr7ApfvLlvnHEINvII-mZnzbR7B-nYrrymGZW_iCCKKsrK-v7XALfg%3D%3D",
+    "source": "MarketWatch",
+    "source_domain": "MarketWatch",
+    "overall_sentiment_score": 0.292241,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PLTR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.444497",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.831068",
+        "ticker_sentiment_score": "0.341473",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.842789",
+        "ticker_sentiment_score": "0.335569",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.618412",
+        "ticker_sentiment_score": "0.231423",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.614328",
+        "ticker_sentiment_score": "0.240234",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqevHfsEXHl3kO75aNbu2C-vhvneUlg3V2ClPjTb54X21_m5yb2y9IZx&gaa_ts=6908eed4&gaa_sig=BCTg8_v-rylg762Dd0xpAtRcwifExrMJr4c5CAfsRoSOaN-PxgUO8GznkHIZRRqc8hjn_qOdoSim8XdCqQrTKg%3D%3D",
+    "timestamp_utc": "2025-10-03T07:30:00+00:00",
+    "title": "Magnificence beyond the Magnificent 7? Here\u2019s the next generation of AI winners powering the stock market.",
+    "url": "https://www.marketwatch.com/story/magnificence-beyond-the-magnificent-7-heres-the-next-generation-of-ai-winners-powering-the-stock-market-c87e9e66?gaa_at=eafs&gaa_n=AWEtsqevHfsEXHl3kO75aNbu2C-vhvneUlg3V2ClPjTb54X21_m5yb2y9IZx&gaa_ts=6908eed4&gaa_sig=BCTg8_v-rylg762Dd0xpAtRcwifExrMJr4c5CAfsRoSOaN-PxgUO8GznkHIZRRqc8hjn_qOdoSim8XdCqQrTKg%3D%3D",
+    "source": "MarketWatch",
+    "source_domain": "MarketWatch",
+    "overall_sentiment_score": 0.386837,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PLTR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.421770",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.824428",
+        "ticker_sentiment_score": "0.438641",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.714254",
+        "ticker_sentiment_score": "0.403820",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.600005",
+        "ticker_sentiment_score": "0.322056",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/stocks/article/predictstreet-2025-10-4-iris-energy-limited-iren-a-deep-dive-into-its-dual-engine-growth-in-bitcoin-mining-and-ai-cloud-services",
+    "timestamp_utc": "2025-10-04T01:38:00+00:00",
+    "title": "Iris Energy Limited (IREN): A Deep Dive into its Dual-Engine Growth in Bitcoin Mining and AI Cloud Services",
+    "url": "https://markets.financialcontent.com/stocks/article/predictstreet-2025-10-4-iris-energy-limited-iren-a-deep-dive-into-its-dual-engine-growth-in-bitcoin-mining-and-ai-cloud-services",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.389735,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "IREN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.529416",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.778276",
+        "ticker_sentiment_score": "0.341120",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.636389",
+        "ticker_sentiment_score": "0.275180",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tikr.com/blog/lululemon-stock-prediction-where-analysts-see-the-stock-going-by-2028",
+    "timestamp_utc": "2025-10-05T00:00:00+00:00",
+    "title": "Lululemon Stock Prediction: Where Analysts See the Stock Going by 2028",
+    "url": "https://www.tikr.com/blog/lululemon-stock-prediction-where-analysts-see-the-stock-going-by-2028",
+    "source": "TIKR.com",
+    "source_domain": "TIKR.com",
+    "overall_sentiment_score": 0.071923,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "LULU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.095242",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NKE",
+        "relevance_score": "0.621135",
+        "ticker_sentiment_score": "-0.126507",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.573753",
+        "ticker_sentiment_score": "0.095421",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.590837",
+        "ticker_sentiment_score": "0.118494",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aehr.com/2025/10/aehr-test-systems-reports-fiscal-2026-first-quarter-financial-results/",
+    "timestamp_utc": "2025-10-06T00:00:00+00:00",
+    "title": "Aehr Test Systems Reports Fiscal 2026 First Quarter Financial Results; Strong AI and Data Center-Related Semiconductor Test and Burn-in Activity Underscores Multi-Year Market Opportunity",
+    "url": "https://www.aehr.com/2025/10/aehr-test-systems-reports-fiscal-2026-first-quarter-financial-results/",
+    "source": "Aehr Test Systems",
+    "source_domain": "Aehr Test Systems",
+    "overall_sentiment_score": 0.291947,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AEHR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402875",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.710426",
+        "ticker_sentiment_score": "0.345299",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.629337",
+        "ticker_sentiment_score": "0.298341",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.597799",
+        "ticker_sentiment_score": "0.236903",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aljazeera.com/economy/2025/10/6/amds-shares-surge-on-deal-to-supply-ai-chips-to-openai",
+    "timestamp_utc": "2025-10-06T00:00:00+00:00",
+    "title": "AMD\u2019s shares surge on deal to supply AI chips to OpenAI",
+    "url": "https://www.aljazeera.com/economy/2025/10/6/amds-shares-surge-on-deal-to-supply-ai-chips-to-openai",
+    "source": "Al Jazeera",
+    "source_domain": "Al Jazeera",
+    "overall_sentiment_score": 0.212181,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.730701",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.812457",
+        "ticker_sentiment_score": "-0.271844",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.614699",
+        "ticker_sentiment_score": "0.132601",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.statesman.com/business/article/openai-and-chipmaker-amd-sign-chip-supply-21086843.php",
+    "timestamp_utc": "2025-10-06T00:00:00+00:00",
+    "title": "AMD stock soars on news of chip supply deal with ChatGPT operator OpenAI",
+    "url": "https://www.statesman.com/business/article/openai-and-chipmaker-amd-sign-chip-supply-21086843.php",
+    "source": "Austin American-Statesman",
+    "source_domain": "Austin American-Statesman",
+    "overall_sentiment_score": 0.134383,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414064",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.808372",
+        "ticker_sentiment_score": "-0.226545",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketwatch.com/story/amds-stock-soars-25-heres-why-openai-wants-a-stake-in-it-7958979b?gaa_at=eafs&gaa_n=AWEtsqd5KrhaQKlGABApfRSq6dFkoFrfZOWWueCE-aQ3_3U0wdh7IgT0VMLE&gaa_ts=690749d1&gaa_sig=u3hw5IbB_2xDfNZJZGJV_tnT21u6l3lpMnrEGvdzVFwAEyyQlHuaM5K28wS-p5gB992sgwT-wyiidpOAF7iimQ%3D%3D",
+    "timestamp_utc": "2025-10-06T08:03:00+00:00",
+    "title": "AMD\u2019s stock soars to its best day in a year. Here\u2019s why OpenAI wants a stake.",
+    "url": "https://www.marketwatch.com/story/amds-stock-soars-25-heres-why-openai-wants-a-stake-in-it-7958979b?gaa_at=eafs&gaa_n=AWEtsqd5KrhaQKlGABApfRSq6dFkoFrfZOWWueCE-aQ3_3U0wdh7IgT0VMLE&gaa_ts=690749d1&gaa_sig=u3hw5IbB_2xDfNZJZGJV_tnT21u6l3lpMnrEGvdzVFwAEyyQlHuaM5K28wS-p5gB992sgwT-wyiidpOAF7iimQ%3D%3D",
+    "source": "MarketWatch",
+    "source_domain": "MarketWatch",
+    "overall_sentiment_score": 0.881999,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.853016",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.barrons.com/articles/s-p-500-futures-rise-in-premarket-trading-advanced-micro-devices-sanmina-lead-868839bf?gaa_at=eafs&gaa_n=AWEtsqcZm9mdOxKVYJ1kdWlvj-NEbnWUveCo6a15cvQVz5wxn3Ezp5e2cRj3&gaa_ts=695a699f&gaa_sig=dBkoLdzZeg6qfraXXhFxyg7DjJvRy6cshufIzhOUXv9EVpgupBo-e_p9TedHWDOX0XoDu_J_l4_DYxmeGA51Yg%3D%3D",
+    "timestamp_utc": "2025-10-06T13:09:51+00:00",
+    "title": "S&P 500 Futures Rise in Premarket Trading; Advanced Micro Devices, Sanmina Lead",
+    "url": "https://www.barrons.com/articles/s-p-500-futures-rise-in-premarket-trading-advanced-micro-devices-sanmina-lead-868839bf?gaa_at=eafs&gaa_n=AWEtsqcZm9mdOxKVYJ1kdWlvj-NEbnWUveCo6a15cvQVz5wxn3Ezp5e2cRj3&gaa_ts=695a699f&gaa_sig=dBkoLdzZeg6qfraXXhFxyg7DjJvRy6cshufIzhOUXv9EVpgupBo-e_p9TedHWDOX0XoDu_J_l4_DYxmeGA51Yg%3D%3D",
+    "source": "Barron's",
+    "source_domain": "Barron's",
+    "overall_sentiment_score": 0.451285,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SANM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.448364",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.521740",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.quiverquant.com/news/Arteris,+Inc.+Stock+(AIP)+Opinions+on+AMD+and+OpenAI+Data+Center+Deal",
+    "timestamp_utc": "2025-10-06T17:38:00+00:00",
+    "title": "Arteris, Inc. Stock (AIP) Opinions on AMD and OpenAI Data Center Deal | AIP Stock News",
+    "url": "https://www.quiverquant.com/news/Arteris,+Inc.+Stock+(AIP)+Opinions+on+AMD+and+OpenAI+Data+Center+Deal",
+    "source": "Quiver Quantitative",
+    "source_domain": "Quiver Quantitative",
+    "overall_sentiment_score": 0.150202,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AIP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.268606",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.700033",
+        "ticker_sentiment_score": "0.143977",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.602660",
+        "ticker_sentiment_score": "0.147254",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.577469",
+        "ticker_sentiment_score": "0.116498",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tomshardware.com/tech-industry/texas-instruments-to-cut-183-positions-in-its-north-texas-facilities-claims-report-about-400-employees-in-total-expected-to-be-laid-off-due-to-closure-of-older-plants",
+    "timestamp_utc": "2025-10-07T00:00:00+00:00",
+    "title": "Texas Instruments to cut 183 positions in its North Texas facilities, claims report \u2014 about 400 employees in total expected to be laid off due to closure of older plants",
+    "url": "https://www.tomshardware.com/tech-industry/texas-instruments-to-cut-183-positions-in-its-north-texas-facilities-claims-report-about-400-employees-in-total-expected-to-be-laid-off-due-to-closure-of-older-plants",
+    "source": "Tom's Hardware",
+    "source_domain": "Tom's Hardware",
+    "overall_sentiment_score": 0.172155,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.220625",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.630963",
+        "ticker_sentiment_score": "0.106334",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.562995",
+        "ticker_sentiment_score": "0.135045",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://global.morningstar.com/en-nd/stocks/amd-company-has-arrived-ai-with-massive-openai-deal",
+    "timestamp_utc": "2025-10-07T00:00:00+00:00",
+    "title": "AMD: The Company Has Arrived in AI With a Massive OpenAI Deal",
+    "url": "https://global.morningstar.com/en-nd/stocks/amd-company-has-arrived-ai-with-massive-openai-deal",
+    "source": "Morningstar Canada",
+    "source_domain": "Morningstar Canada",
+    "overall_sentiment_score": 0.255376,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.408601",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.624941",
+        "ticker_sentiment_score": "0.121473",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.notateslaapp.com/tesla-app-updates/version/4.49.6/release-notes",
+    "timestamp_utc": "2025-10-07T00:00:00+00:00",
+    "title": "Tesla App 4.49.6 Release Notes",
+    "url": "https://www.notateslaapp.com/tesla-app-updates/version/4.49.6/release-notes",
+    "source": "Not a Tesla App",
+    "source_domain": "Not a Tesla App",
+    "overall_sentiment_score": 0.190109,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.958400",
+        "ticker_sentiment_score": "0.338724",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.625139",
+        "ticker_sentiment_score": "0.125512",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.574970",
+        "ticker_sentiment_score": "0.083498",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.nasdaq.com/articles/morgan-stanley-maintains-advanced-micro-devices-amd-equal-weight-recommendation",
+    "timestamp_utc": "2025-10-07T08:03:00+00:00",
+    "title": "Morgan Stanley Maintains Advanced Micro Devices (AMD) Equal-Weight Recommendation",
+    "url": "https://www.nasdaq.com/articles/morgan-stanley-maintains-advanced-micro-devices-amd-equal-weight-recommendation",
+    "source": "Nasdaq",
+    "source_domain": "Nasdaq",
+    "overall_sentiment_score": 0.131395,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.125324",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/constellation-brands-shares-are-trading-higher-tuesday-whats-going-on-2025-10-07",
+    "timestamp_utc": "2025-10-07T19:30:00+00:00",
+    "title": "Constellation Brands Shares Are Trading Higher Tuesday: What's Going On?",
+    "url": "https://www.sahmcapital.com/news/content/constellation-brands-shares-are-trading-higher-tuesday-whats-going-on-2025-10-07",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.251293,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "STZ",
+        "relevance_score": "0.964561",
+        "ticker_sentiment_score": "0.477681",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.553048",
+        "ticker_sentiment_score": "0.077234",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/cvrx-inc-nasdaqcvrx-receives-consensus-recommendation-of-moderate-buy-from-analysts-2025-10-08/",
+    "timestamp_utc": "2025-10-08T00:00:00+00:00",
+    "title": "CVRx, Inc. (NASDAQ:CVRX) Receives Consensus Recommendation of \"Moderate Buy\" from Analysts",
+    "url": "https://www.marketbeat.com/instant-alerts/cvrx-inc-nasdaqcvrx-receives-consensus-recommendation-of-moderate-buy-from-analysts-2025-10-08/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.251814,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CVRX",
+        "relevance_score": "0.969591",
+        "ticker_sentiment_score": "0.212895",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.550307",
+        "ticker_sentiment_score": "0.346619",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-gagnon-securities-llc-buys-269170-shares-of-doubleverify-holdings-inc-dv-2025-10-08/",
+    "timestamp_utc": "2025-10-08T00:00:00+00:00",
+    "title": "Gagnon Securities LLC Buys 269,170 Shares of DoubleVerify Holdings, Inc. $DV",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-gagnon-securities-llc-buys-269170-shares-of-doubleverify-holdings-inc-dv-2025-10-08/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.198833,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "DV",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.269612",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.595402",
+        "ticker_sentiment_score": "0.342003",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.535619",
+        "ticker_sentiment_score": "0.121830",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "CRM",
+        "relevance_score": "0.551632",
+        "ticker_sentiment_score": "0.148996",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingnews.com/news/nasdaq-nvdu-delivers-45-percent-annuval-returen",
+    "timestamp_utc": "2025-10-08T04:31:28+00:00",
+    "title": "NVDU ETF Surges 39.79% YTD as Nvidia\u2019s $100B OpenAI Deal Ignites 2X Bull Run",
+    "url": "https://www.tradingnews.com/news/nasdaq-nvdu-delivers-45-percent-annuval-returen",
+    "source": "TradingNEWS",
+    "source_domain": "TradingNEWS",
+    "overall_sentiment_score": 0.370647,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.511933",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.960859",
+        "ticker_sentiment_score": "0.491996",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.609351",
+        "ticker_sentiment_score": "0.236457",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.620792",
+        "ticker_sentiment_score": "0.229278",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cnbc.com/2025/10/08/nvidia-huang-amd-open-ai.html",
+    "timestamp_utc": "2025-10-08T08:53:00+00:00",
+    "title": "Nvidia's Huang says he's surprised AMD offered OpenAI 10% of company in 'clever' deal",
+    "url": "https://www.cnbc.com/2025/10/08/nvidia-huang-amd-open-ai.html",
+    "source": "CNBC",
+    "source_domain": "CNBC",
+    "overall_sentiment_score": 0.240463,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.301782",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.896225",
+        "ticker_sentiment_score": "0.273201",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.573182",
+        "ticker_sentiment_score": "0.067389",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/news/asml-holding-vs-texas-instruments-121100377.html",
+    "timestamp_utc": "2025-10-08T12:11:00+00:00",
+    "title": "ASML Holding vs. Texas Instruments: Which Semi Stock Has an Edge?",
+    "url": "https://finance.yahoo.com/news/asml-holding-vs-texas-instruments-121100377.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.113464,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.230126",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.649413",
+        "ticker_sentiment_score": "0.011760",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.552986",
+        "ticker_sentiment_score": "0.008971",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstotrade.com/news/advanced-micro-devices-inc-amd-news-2025_10_08/",
+    "timestamp_utc": "2025-10-08T14:03:00+00:00",
+    "title": "AMD\u2019s Stock Surges on Exciting News",
+    "url": "https://stockstotrade.com/news/advanced-micro-devices-inc-amd-news-2025_10_08/",
+    "source": "StocksToTrade",
+    "source_domain": "StocksToTrade",
+    "overall_sentiment_score": 0.28829,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.469462",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.641605",
+        "ticker_sentiment_score": "0.345358",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.585442",
+        "ticker_sentiment_score": "0.132869",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cnbc.com/2025/10/08/amd-stock-rally-openai-deal.html",
+    "timestamp_utc": "2025-10-08T16:06:00+00:00",
+    "title": "AMD stock continues rally after OpenAI deal, now up 43% this week so far",
+    "url": "https://www.cnbc.com/2025/10/08/amd-stock-rally-openai-deal.html",
+    "source": "CNBC",
+    "source_domain": "CNBC",
+    "overall_sentiment_score": 0.256496,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.859324",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.724579",
+        "ticker_sentiment_score": "0.110934",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.609354",
+        "ticker_sentiment_score": "0.148874",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.556928",
+        "ticker_sentiment_score": "0.123568",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.598957",
+        "ticker_sentiment_score": "0.144547",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/news/super-micro-smci-14-9-171213208.html",
+    "timestamp_utc": "2025-10-08T17:12:13+00:00",
+    "title": "Super Micro (SMCI) Is Up 14.9% After Deepening AI Partnership With AMD and Expanding Server Portfolio",
+    "url": "https://finance.yahoo.com/news/super-micro-smci-14-9-171213208.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.243399,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.413888",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.728363",
+        "ticker_sentiment_score": "0.345301",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.605598",
+        "ticker_sentiment_score": "0.349911",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ADBE",
+        "relevance_score": "0.649193",
+        "ticker_sentiment_score": "0.133001",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.625608",
+        "ticker_sentiment_score": "0.101468",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://newsroom.intel.com/client-computing/intel-unveils-panther-lake-architecture-first-ai-pc-platform-built-on-18a",
+    "timestamp_utc": "2025-10-09T06:39:14+00:00",
+    "title": "Intel Unveils Panther Lake Architecture: First AI PC Platform Built on 18A",
+    "url": "https://newsroom.intel.com/client-computing/intel-unveils-panther-lake-architecture-first-ai-pc-platform-built-on-18a",
+    "source": "Intel Newsroom",
+    "source_domain": "Intel Newsroom",
+    "overall_sentiment_score": 0.32326,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.412013",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.635578",
+        "ticker_sentiment_score": "0.246512",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/technology-3/2025/10/09/ibm-is-americas-worst-tech-company-3/",
+    "timestamp_utc": "2025-10-09T09:15:00+00:00",
+    "title": "IBM Is America\u2019s Worst Tech Company",
+    "url": "https://247wallst.com/technology-3/2025/10/09/ibm-is-americas-worst-tech-company-3/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.073688,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "IBM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.406107",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.820738",
+        "ticker_sentiment_score": "0.243427",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.719927",
+        "ticker_sentiment_score": "0.233044",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.643547",
+        "ticker_sentiment_score": "0.112660",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.streetinsider.com/SEC+Filings/Form+FWP+GOLDMAN+SACHS+GROUP+INC+Filed+by%3A+GOLDMAN+SACHS+GROUP+INC/25439121.html",
+    "timestamp_utc": "2025-10-09T10:25:00+00:00",
+    "title": "Form FWP GOLDMAN SACHS GROUP INC Filed by: GOLDMAN SACHS GROUP INC",
+    "url": "https://www.streetinsider.com/SEC+Filings/Form+FWP+GOLDMAN+SACHS+GROUP+INC+Filed+by%3A+GOLDMAN+SACHS+GROUP+INC/25439121.html",
+    "source": "StreetInsider",
+    "source_domain": "StreetInsider",
+    "overall_sentiment_score": 0.189132,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.119703",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.804323",
+        "ticker_sentiment_score": "-0.249943",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "WFC",
+        "relevance_score": "0.610442",
+        "ticker_sentiment_score": "0.120735",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.616793",
+        "ticker_sentiment_score": "0.505468",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.640734",
+        "ticker_sentiment_score": "0.444889",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://semiengineering.com/on-package-memory-with-ucie-to-improve-bandwidth-density-and-power-efficiency-amd-intel-corp/",
+    "timestamp_utc": "2025-10-10T00:00:00+00:00",
+    "title": "On-Package Memory With UCIe To Improve Bandwidth Density And Power Efficiency (AMD, Intel Corp.)",
+    "url": "https://semiengineering.com/on-package-memory-with-ucie-to-improve-bandwidth-density-and-power-efficiency-amd-intel-corp/",
+    "source": "Semiconductor Engineering",
+    "source_domain": "Semiconductor Engineering",
+    "overall_sentiment_score": 0.468615,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.485348",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.913431",
+        "ticker_sentiment_score": "0.423168",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "timestamp_utc": "2025-10-10T00:10:31+00:00",
+    "title": "3 AI ETFs to Buy Now for the Coming Tech Revolution",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.299061,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "BAI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.302504",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.627934",
+        "ticker_sentiment_score": "0.327956",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.575832",
+        "ticker_sentiment_score": "0.280479",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/JOBY/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "timestamp_utc": "2025-10-10T03:44:00+00:00",
+    "title": "3 AI ETFs to Buy Now for the Coming Tech Revolution",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/JOBY/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.431039,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AIQ",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.623096",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.704038",
+        "ticker_sentiment_score": "0.349366",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.637427",
+        "ticker_sentiment_score": "0.331060",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/novonix-sees-unusually-large-options-volume-nasdaqnvx-2025-10-09/",
+    "timestamp_utc": "2025-10-10T04:58:03+00:00",
+    "title": "NOVONIX Sees Unusually Large Options Volume (NASDAQ:NVX)",
+    "url": "https://www.marketbeat.com/instant-alerts/novonix-sees-unusually-large-options-volume-nasdaqnvx-2025-10-09/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": -0.081012,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.106548",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.552875",
+        "ticker_sentiment_score": "-0.107945",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TER",
+        "relevance_score": "0.585347",
+        "ticker_sentiment_score": "-0.139638",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.551582",
+        "ticker_sentiment_score": "-0.140325",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.557848",
+        "ticker_sentiment_score": "-0.141524",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/SYM/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "timestamp_utc": "2025-10-10T05:23:08+00:00",
+    "title": "3 AI ETFs to Buy Now for the Coming Tech Revolution",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/SYM/pressreleases/35359680/3-ai-etfs-to-buy-now-for-the-coming-tech-revolution/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.544125,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AIQ",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.641238",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.625163",
+        "ticker_sentiment_score": "0.530324",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.646110",
+        "ticker_sentiment_score": "0.547535",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GOOG",
+        "relevance_score": "0.617587",
+        "ticker_sentiment_score": "0.531579",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/this-analyst-was-right-about-advanced-micro-devices-amd-1625290/",
+    "timestamp_utc": "2025-10-10T09:31:00+00:00",
+    "title": "This Analyst Was Right About Advanced Micro Devices (AMD)",
+    "url": "https://www.insidermonkey.com/blog/this-analyst-was-right-about-advanced-micro-devices-amd-1625290/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.423438,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.533195",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.734348",
+        "ticker_sentiment_score": "0.343014",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/whats-driving-the-market-sentiment-around-intel-corp-2025-10-10",
+    "timestamp_utc": "2025-10-10T17:01:00+00:00",
+    "title": "What's Driving the Market Sentiment Around Intel Corp?",
+    "url": "https://www.sahmcapital.com/news/content/whats-driving-the-market-sentiment-around-intel-corp-2025-10-10",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.071628,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.157033",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.611890",
+        "ticker_sentiment_score": "0.119776",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.642219",
+        "ticker_sentiment_score": "0.117455",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/news/bitdeer-technologies-group-btdr-down-221002290.html",
+    "timestamp_utc": "2025-10-10T22:10:02+00:00",
+    "title": "Bitdeer Technologies Group (BTDR) Is Down 8.4% After Expansion Into AI Hosting Amid Weaker Mining Demand \u2013 What's Changed",
+    "url": "https://finance.yahoo.com/news/bitdeer-technologies-group-btdr-down-221002290.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.026043,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "BTDR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.111121",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.643304",
+        "ticker_sentiment_score": "0.046676",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.628945",
+        "ticker_sentiment_score": "0.007019",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.601139",
+        "ticker_sentiment_score": "0.027307",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/amd-hood-iren-and-more-5-stocks-that-dominated-investor-buzz-this-week-2025-10-10",
+    "timestamp_utc": "2025-10-10T23:01:00+00:00",
+    "title": "AMD, HOOD, IREN And More: 5 Stocks That Dominated Investor Buzz This Week",
+    "url": "https://www.sahmcapital.com/news/content/amd-hood-iren-and-more-5-stocks-that-dominated-investor-buzz-this-week-2025-10-10",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.338992,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "HOOD",
+        "relevance_score": "0.973750",
+        "ticker_sentiment_score": "0.317854",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.909786",
+        "ticker_sentiment_score": "0.378598",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.844892",
+        "ticker_sentiment_score": "0.299330",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.nasdaq.com/articles/ishares-semiconductor-etf-bull-vs-bear",
+    "timestamp_utc": "2025-10-11T00:28:09+00:00",
+    "title": "iShares Semiconductor ETF: Bull vs. Bear",
+    "url": "https://www.nasdaq.com/articles/ishares-semiconductor-etf-bull-vs-bear",
+    "source": "Nasdaq",
+    "source_domain": "Nasdaq",
+    "overall_sentiment_score": 0.176765,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.080025",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.860383",
+        "ticker_sentiment_score": "0.258169",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.707093",
+        "ticker_sentiment_score": "0.275969",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.687711",
+        "ticker_sentiment_score": "0.231390",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.555857",
+        "ticker_sentiment_score": "0.116384",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/markets-news/Motley%20Fool/35389123/ishares-semiconductor-etf-bull-vs-bear/",
+    "timestamp_utc": "2025-10-11T10:45:00+00:00",
+    "title": "iShares Semiconductor ETF: Bull vs. Bear",
+    "url": "https://www.theglobeandmail.com/investing/markets/markets-news/Motley%20Fool/35389123/ishares-semiconductor-etf-bull-vs-bear/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.135234,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.106090",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.847024",
+        "ticker_sentiment_score": "0.205591",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.725096",
+        "ticker_sentiment_score": "0.249418",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.634208",
+        "ticker_sentiment_score": "0.234213",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.577141",
+        "ticker_sentiment_score": "-0.141284",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ORCL/pressreleases/35389123/ishares-semiconductor-etf-bull-vs-bear/",
+    "timestamp_utc": "2025-10-11T16:56:39+00:00",
+    "title": "iShares Semiconductor ETF: Bull vs. Bear",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ORCL/pressreleases/35389123/ishares-semiconductor-etf-bull-vs-bear/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.108736,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.635559",
+        "ticker_sentiment_score": "0.119774",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.519999",
+        "ticker_sentiment_score": "0.135168",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.505692",
+        "ticker_sentiment_score": "0.110584",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.535344",
+        "ticker_sentiment_score": "0.108244",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://wccftech.com/tsmc-could-be-barred-from-selling-chips-to-the-us-under-china-rare-earths-export-control/",
+    "timestamp_utc": "2025-10-11T18:05:00+00:00",
+    "title": "TSMC Could Be Barred From Selling Chips To the U.S. Under China\u2019s Newest \u2018Rare Earth\u2019 Export Control Measures, Disrupting the AI Industry - Wccftech",
+    "url": "https://wccftech.com/tsmc-could-be-barred-from-selling-chips-to-the-us-under-china-rare-earths-export-control/",
+    "source": "Wccftech",
+    "source_domain": "Wccftech",
+    "overall_sentiment_score": -0.432458,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.866591",
+        "ticker_sentiment_score": "-0.517049",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.843913",
+        "ticker_sentiment_score": "-0.521611",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.700210",
+        "ticker_sentiment_score": "-0.405489",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.374346",
+        "ticker_sentiment_score": "-0.207344",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aol.com/finance/etf-beaten-every-stock-magnificent-093000031.html",
+    "timestamp_utc": "2025-10-11T18:45:36+00:00",
+    "title": "This ETF Has Beaten Every Stock in the Magnificent Seven This Year. Is It Too Late to Buy? - AOL.com",
+    "url": "https://www.aol.com/finance/etf-beaten-every-stock-magnificent-093000031.html",
+    "source": "AOL.com",
+    "source_domain": "AOL.com",
+    "overall_sentiment_score": 0.301889,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.840701",
+        "ticker_sentiment_score": "0.345615",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.637791",
+        "ticker_sentiment_score": "0.310590",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.515544",
+        "ticker_sentiment_score": "0.313957",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/large-cap-stocks-to-follow-today-october-11th-2025-10-11/",
+    "timestamp_utc": "2025-10-11T21:06:52+00:00",
+    "title": "Large Cap Stocks To Follow Today - October 11th - MarketBeat",
+    "url": "https://www.marketbeat.com/instant-alerts/large-cap-stocks-to-follow-today-october-11th-2025-10-11/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.324118,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.803199",
+        "ticker_sentiment_score": "0.324581",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.713331",
+        "ticker_sentiment_score": "0.311622",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.709697",
+        "ticker_sentiment_score": "0.315964",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.746261",
+        "ticker_sentiment_score": "0.325595",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingnews.com/news/qulacomm-stock-price-forecast-analysts-eye-230-usd-target-to-qcom-stock",
+    "timestamp_utc": "2025-10-11T21:07:16+00:00",
+    "title": "Qualcomm Stock Price Forecast - QCOM Shares Rises to $171 \u2014 Strong Buy Outlook with $230 Target",
+    "url": "https://www.tradingnews.com/news/qulacomm-stock-price-forecast-analysts-eye-230-usd-target-to-qcom-stock",
+    "source": "TradingNEWS",
+    "source_domain": "TradingNEWS",
+    "overall_sentiment_score": 0.414364,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QCOM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.679124",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648578",
+        "ticker_sentiment_score": "0.258752",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.614895",
+        "ticker_sentiment_score": "0.339434",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://consent.yahoo.com/v2/collectConsent?sessionId=1_cc-session_f6168a97-5bcd-47c8-b521-04528a3aaf1b",
+    "timestamp_utc": "2025-10-11T22:24:12+00:00",
+    "title": "AMD Stock Target Lifted to $270 by TD Cowen After Landmark OpenAI Deal - Yahoo",
+    "url": "https://consent.yahoo.com/v2/collectConsent?sessionId=1_cc-session_f6168a97-5bcd-47c8-b521-04528a3aaf1b",
+    "source": "Yahoo",
+    "source_domain": "Yahoo",
+    "overall_sentiment_score": 0.411172,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.401594",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/news/amd-stock-target-lifted-270-222412291.html",
+    "timestamp_utc": "2025-10-11T22:24:12+00:00",
+    "title": "AMD Stock Target Lifted to $270 by TD Cowen After Landmark OpenAI Deal - Yahoo Finance",
+    "url": "https://finance.yahoo.com/news/amd-stock-target-lifted-270-222412291.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.202243,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.401554",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.617527",
+        "ticker_sentiment_score": "0.140817",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.316779",
+        "ticker_sentiment_score": "0.128260",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.323442",
+        "ticker_sentiment_score": "0.126335",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aol.com/finance/nvidias-ceo-just-delivered-incredible-095000863.html",
+    "timestamp_utc": "2025-10-11T23:20:49+00:00",
+    "title": "Nvidia's CEO Just Delivered Incredible News for Taiwan Semiconductor Manufacturing Stock Investors - AOL.com",
+    "url": "https://www.aol.com/finance/nvidias-ceo-just-delivered-incredible-095000863.html",
+    "source": "AOL.com",
+    "source_domain": "AOL.com",
+    "overall_sentiment_score": 0.301335,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.874318",
+        "ticker_sentiment_score": "0.502915",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.428733",
+        "ticker_sentiment_score": "0.335657",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.368345",
+        "ticker_sentiment_score": "0.273871",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.328968",
+        "ticker_sentiment_score": "0.144601",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aol.com/articles/one-best-ai-stocks-buy-113000067.html",
+    "timestamp_utc": "2025-10-12T05:03:35+00:00",
+    "title": "What Is One of the Best AI Stocks to Buy Before the Next Market Rally? - AOL.com",
+    "url": "https://www.aol.com/articles/one-best-ai-stocks-buy-113000067.html",
+    "source": "AOL.com",
+    "source_domain": "AOL.com",
+    "overall_sentiment_score": 0.139165,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.319744",
+        "ticker_sentiment_score": "0.136111",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.342498",
+        "ticker_sentiment_score": "0.122852",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.344068",
+        "ticker_sentiment_score": "0.102280",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.326226",
+        "ticker_sentiment_score": "0.123758",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4829331-tsmc-expecting-strong-3q-fy2025-earnings-tariff-threat-looks-overblown",
+    "timestamp_utc": "2025-10-12T06:21:07+00:00",
+    "title": "TSMC: Expecting Strong Q3 FY2025 Earnings, And Tariff Threat Looks Overblown (NYSE:TSM) - Seeking Alpha",
+    "url": "https://seekingalpha.com/article/4829331-tsmc-expecting-strong-3q-fy2025-earnings-tariff-threat-looks-overblown",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.30503,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.511950",
+        "ticker_sentiment_score": "0.442576",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.446752",
+        "ticker_sentiment_score": "0.432684",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.339274",
+        "ticker_sentiment_score": "0.107260",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1724 @@
+[
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/is-rambus-rmbs-cheap-on-its-russell-index-reshuffle",
+    "timestamp_utc": "2026-07-01T00:09:30+00:00",
+    "title": "Is Rambus (RMBS) Cheap On Its Russell Index Reshuffle?",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/is-rambus-rmbs-cheap-on-its-russell-index-reshuffle",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.260494,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.289587",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.609595",
+        "ticker_sentiment_score": "0.224343",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.572909",
+        "ticker_sentiment_score": "0.244362",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-amesite-operatingco-for-1-july-93CH-4717416",
+    "timestamp_utc": "2026-07-01T00:40:43+00:00",
+    "title": "Form 4 Amesite Operating Co For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-amesite-operatingco-for-1-july-93CH-4717416",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.101078,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMST",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.044522",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.632292",
+        "ticker_sentiment_score": "0.123389",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.629139",
+        "ticker_sentiment_score": "0.140477",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.632351",
+        "ticker_sentiment_score": "0.138129",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-sound-financial-bancorp-inc-for-30-june-93CH-4714432",
+    "timestamp_utc": "2026-07-01T01:48:00+00:00",
+    "title": "Form 4 Sound Financial Bancorp Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-sound-financial-bancorp-inc-for-30-june-93CH-4714432",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.157307,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SFBC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.022091",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.612721",
+        "ticker_sentiment_score": "0.126450",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.635806",
+        "ticker_sentiment_score": "0.220360",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.623131",
+        "ticker_sentiment_score": "0.225065",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-ionis-pharmaceuticals-inc-for-30-june-93CH-4714969",
+    "timestamp_utc": "2026-07-01T02:09:04+00:00",
+    "title": "Form 4 Ionis Pharmaceuticals Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-ionis-pharmaceuticals-inc-for-30-june-93CH-4714969",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.137353,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "IONS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.037927",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.619851",
+        "ticker_sentiment_score": "0.183850",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.622401",
+        "ticker_sentiment_score": "0.154592",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.619322",
+        "ticker_sentiment_score": "0.161619",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-axon-enterprise-inc-for-30-june-93CH-4714850",
+    "timestamp_utc": "2026-07-01T03:37:06+00:00",
+    "title": "Form 4 Axon Enterprise Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-axon-enterprise-inc-for-30-june-93CH-4714850",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.219219,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AXON",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.030691",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.601816",
+        "ticker_sentiment_score": "0.328166",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.644155",
+        "ticker_sentiment_score": "0.245869",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.613071",
+        "ticker_sentiment_score": "0.200932",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-orasure-technologies-inc-for-30-june-93CH-4714598",
+    "timestamp_utc": "2026-07-01T04:40:27+00:00",
+    "title": "Form 4 OraSure Technologies Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-orasure-technologies-inc-for-30-june-93CH-4714598",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": -0.103003,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "OSUR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.008900",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.756510",
+        "ticker_sentiment_score": "0.394377",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.728853",
+        "ticker_sentiment_score": "-0.391921",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.650060",
+        "ticker_sentiment_score": "-0.402772",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-adi/analog-devices/news/analog-devices-adi-after-strong-earnings-and-growth-signals",
+    "timestamp_utc": "2026-07-01T04:43:57+00:00",
+    "title": "Analog Devices (ADI) After Strong Earnings And Growth Signals Looks Undervalued",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-adi/analog-devices/news/analog-devices-adi-after-strong-earnings-and-growth-signals",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.336268,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ADI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402973",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.618895",
+        "ticker_sentiment_score": "0.335183",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.639496",
+        "ticker_sentiment_score": "0.227000",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-airbnbinc-for-30-june-93CH-4714880",
+    "timestamp_utc": "2026-07-01T05:36:58+00:00",
+    "title": "Form 4 Airbnb Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-airbnbinc-for-30-june-93CH-4714880",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.016719,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ABNB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.039053",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.637333",
+        "ticker_sentiment_score": "0.007232",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.643061",
+        "ticker_sentiment_score": "0.019100",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.638356",
+        "ticker_sentiment_score": "0.004191",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-dyne-therapeuticsinc-for-30-june-93CH-4715028",
+    "timestamp_utc": "2026-07-01T07:10:23+00:00",
+    "title": "Form 4 Dyne Therapeutics Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-dyne-therapeuticsinc-for-30-june-93CH-4715028",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.142401,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "DYN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.040529",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.636800",
+        "ticker_sentiment_score": "0.182079",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.625802",
+        "ticker_sentiment_score": "0.184947",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.600673",
+        "ticker_sentiment_score": "0.185669",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-capricorn-fund-managers-ltd-grows-holdings-in-apollo-global-management-inc-apo-2026-07-01/",
+    "timestamp_utc": "2026-07-01T07:24:11+00:00",
+    "title": "Capricorn Fund Managers Ltd Grows Holdings in Apollo Global Management Inc. $APO",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-capricorn-fund-managers-ltd-grows-holdings-in-apollo-global-management-inc-apo-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.11355,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "APO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.421261",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.609938",
+        "ticker_sentiment_score": "0.025931",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "V",
+        "relevance_score": "0.597307",
+        "ticker_sentiment_score": "0.028746",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "CRM",
+        "relevance_score": "0.567653",
+        "ticker_sentiment_score": "0.007458",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-ia-global-asset-management-inc-has-4816-million-position-in-apollo-global-management-inc-apo-2026-07-01/",
+    "timestamp_utc": "2026-07-01T08:22:04+00:00",
+    "title": "iA Global Asset Management Inc. Has $48.16 Million Position in Apollo Global Management Inc. $APO",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-ia-global-asset-management-inc-has-4816-million-position-in-apollo-global-management-inc-apo-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.164292,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "APO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.229490",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.638632",
+        "ticker_sentiment_score": "0.116192",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-leeward-financial-partners-llc-sells-3657-shares-of-alphabet-inc-googl-2026-07-01/",
+    "timestamp_utc": "2026-07-01T08:55:48+00:00",
+    "title": "Leeward Financial Partners LLC Sells 3,657 Shares of Alphabet Inc. $GOOGL",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-leeward-financial-partners-llc-sells-3657-shares-of-alphabet-inc-googl-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.112237,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.304865",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.602398",
+        "ticker_sentiment_score": "0.141748",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.739447",
+        "ticker_sentiment_score": "-0.225102",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.626220",
+        "ticker_sentiment_score": "0.241503",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T09:07:12+00:00",
+    "title": "Element Squared LLC Sells 1,572 Shares of Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.327103,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.329686",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.743263",
+        "ticker_sentiment_score": "0.385819",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.645246",
+        "ticker_sentiment_score": "0.306978",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.563027",
+        "ticker_sentiment_score": "0.294098",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.529992",
+        "ticker_sentiment_score": "0.239628",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tikr.com/blog/astera-labs-stock-could-be-worth-more-than-1000-on-scorpio-x-scale-up-ramp",
+    "timestamp_utc": "2026-07-01T09:39:25+00:00",
+    "title": "Astera Labs Stock Could Be Worth More Than $1,000 on Scorpio X Scale-Up Ramp",
+    "url": "https://www.tikr.com/blog/astera-labs-stock-could-be-worth-more-than-1000-on-scorpio-x-scale-up-ramp",
+    "source": "TIKR.com",
+    "source_domain": "TIKR.com",
+    "overall_sentiment_score": 0.141202,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ALAB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.461703",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.647601",
+        "ticker_sentiment_score": "0.282688",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.599698",
+        "ticker_sentiment_score": "-0.126011",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "WDC",
+        "relevance_score": "0.578968",
+        "ticker_sentiment_score": "-0.156263",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.morningstar.com/stocks/ai-stocks-fueled-markets-q2-comeback-now-investors-face-reality-check",
+    "timestamp_utc": "2026-07-01T10:11:11+00:00",
+    "title": "AI Stocks Fueled the Market\u2019s Q2 Comeback. Now Investors Face a Reality Check",
+    "url": "https://www.morningstar.com/stocks/ai-stocks-fueled-markets-q2-comeback-now-investors-face-reality-check",
+    "source": "Morningstar",
+    "source_domain": "Morningstar",
+    "overall_sentiment_score": 0.283762,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MORN",
+        "relevance_score": "0.832303",
+        "ticker_sentiment_score": "0.121809",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.706402",
+        "ticker_sentiment_score": "0.340872",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.740119",
+        "ticker_sentiment_score": "0.302957",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.728977",
+        "ticker_sentiment_score": "0.349252",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:4077be4c2094b:0-seagate-vs-micron-which-ai-storage-stock-has-more-upside/",
+    "timestamp_utc": "2026-07-01T10:38:19+00:00",
+    "title": "Seagate vs. Micron: Which AI Storage Stock Has More Upside?",
+    "url": "https://www.tradingview.com/news/zacks:4077be4c2094b:0-seagate-vs-micron-which-ai-storage-stock-has-more-upside/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.336444,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.432626",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.934506",
+        "ticker_sentiment_score": "0.317642",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.604699",
+        "ticker_sentiment_score": "0.312517",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-4d-molecular-therapeutics-for-30-june-93CH-4714990",
+    "timestamp_utc": "2026-07-01T12:10:40+00:00",
+    "title": "Form 144 4D Molecular Therapeutics For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-4d-molecular-therapeutics-for-30-june-93CH-4714990",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.175598,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "FDMT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.015942",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.623513",
+        "ticker_sentiment_score": "0.209008",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.613144",
+        "ticker_sentiment_score": "0.203135",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.649466",
+        "ticker_sentiment_score": "0.181568",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://uk.finance.yahoo.com/news/3-reasons-vnt-risky-1-133700248.html",
+    "timestamp_utc": "2026-07-01T13:37:00+00:00",
+    "title": "3 Reasons VNT is Risky and 1 Stock to Buy Instead",
+    "url": "https://uk.finance.yahoo.com/news/3-reasons-vnt-risky-1-133700248.html",
+    "source": "Yahoo Finance UK",
+    "source_domain": "Yahoo Finance UK",
+    "overall_sentiment_score": 0.30992,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VNT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.636443",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.609372",
+        "ticker_sentiment_score": "0.542333",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CRWD",
+        "relevance_score": "0.602830",
+        "ticker_sentiment_score": "0.510532",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.636821",
+        "ticker_sentiment_score": "0.535978",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.611491",
+        "ticker_sentiment_score": "0.502359",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.bitget.com/amp/news/detail/12560605485592",
+    "timestamp_utc": "2026-07-01T14:12:13+00:00",
+    "title": "Eightco Holdings (NASDAQ: ORBS) Reports Total Holdings of Approximately $436 Million, Includes OpenAI, Beast Industries, More Than 16,000 ETH and Over 283 Million WLD Tokens",
+    "url": "https://www.bitget.com/amp/news/detail/12560605485592",
+    "source": "Bitget",
+    "source_domain": "Bitget",
+    "overall_sentiment_score": 0.334854,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ORBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.420079",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.644235",
+        "ticker_sentiment_score": "0.211223",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.624345",
+        "ticker_sentiment_score": "0.305302",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/MU/pressreleases/3079136/the-zacks-analyst-blog-highlights-micron-technology-formfactor-texas-instruments-and-taiwan-semiconductor-manufacturing/",
+    "timestamp_utc": "2026-07-01T14:24:47+00:00",
+    "title": "The Zacks Analyst Blog Highlights Micron Technology, FormFactor, Texas Instruments and Taiwan Semiconductor Manufacturing",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/MU/pressreleases/3079136/the-zacks-analyst-blog-highlights-micron-technology-formfactor-texas-instruments-and-taiwan-semiconductor-manufacturing/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.369805,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.938402",
+        "ticker_sentiment_score": "0.304433",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.872976",
+        "ticker_sentiment_score": "0.412301",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.735633",
+        "ticker_sentiment_score": "0.340332",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.614722",
+        "ticker_sentiment_score": "0.314272",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-prosperity-bancshares-inc-for-1-july-93CH-4716480",
+    "timestamp_utc": "2026-07-01T14:39:25+00:00",
+    "title": "Form 4 Prosperity Bancshares Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-prosperity-bancshares-inc-for-1-july-93CH-4716480",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.39333,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.046910",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.628354",
+        "ticker_sentiment_score": "0.006895",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.624095",
+        "ticker_sentiment_score": "0.708781",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.616127",
+        "ticker_sentiment_score": "0.737067",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.etftrends.com/leveraged-inverse-content-hub/magnificent-marvell-extend-bullishness-second-half/",
+    "timestamp_utc": "2026-07-01T14:39:26+00:00",
+    "title": "Magnificent Marvell Can Extend Bullishness in Second Half",
+    "url": "https://www.etftrends.com/leveraged-inverse-content-hub/magnificent-marvell-extend-bullishness-second-half/",
+    "source": "ETF Trends",
+    "source_domain": "ETF Trends",
+    "overall_sentiment_score": 0.346061,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MRVU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.485324",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.627636",
+        "ticker_sentiment_score": "0.330821",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.556974",
+        "ticker_sentiment_score": "0.291884",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/loews-corp-stock-hits-alltime-high-at-11504-usd-93CH-4716523",
+    "timestamp_utc": "2026-07-01T14:51:48+00:00",
+    "title": "Loews Corp stock hits all-time high at 115.04 USD By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/loews-corp-stock-hits-alltime-high-at-11504-usd-93CH-4716523",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.145859,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "L",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.475601",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.570488",
+        "ticker_sentiment_score": "0.045964",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.583130",
+        "ticker_sentiment_score": "0.007819",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.551801",
+        "ticker_sentiment_score": "0.021298",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-tetra-technologies-inc-for-1-july-93CH-4716535",
+    "timestamp_utc": "2026-07-01T15:09:23+00:00",
+    "title": "Form 144 TETRA TECHNOLOGIES INC For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-tetra-technologies-inc-for-1-july-93CH-4716535",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.115255,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TTI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.026456",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.616185",
+        "ticker_sentiment_score": "0.043300",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.627074",
+        "ticker_sentiment_score": "0.248511",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.614494",
+        "ticker_sentiment_score": "0.125096",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-liveperson-inc-for-1-july-93CH-4716592",
+    "timestamp_utc": "2026-07-01T15:09:39+00:00",
+    "title": "Form 144 LIVEPERSON INC For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-liveperson-inc-for-1-july-93CH-4716592",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.128984,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "LPSN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.033178",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.612039",
+        "ticker_sentiment_score": "0.199143",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.625412",
+        "ticker_sentiment_score": "0.167317",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.603881",
+        "ticker_sentiment_score": "0.192223",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-main-street-capital-corp-for-30-june-93CH-4714967",
+    "timestamp_utc": "2026-07-01T15:10:53+00:00",
+    "title": "Form 144 MAIN STREET CAPITAL CORP For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-main-street-capital-corp-for-30-june-93CH-4714967",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.029414,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MAIN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.008901",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.611391",
+        "ticker_sentiment_score": "0.025330",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.615226",
+        "ticker_sentiment_score": "0.022617",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.605832",
+        "ticker_sentiment_score": "0.047898",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AMKR/pressreleases/3080563/lam-research-stock-surges-154-in-h126-should-you-buy-more-or-exit/",
+    "timestamp_utc": "2026-07-01T15:39:52+00:00",
+    "title": "Lam Research Stock Surges 154% in H1'26: Should You Buy More or Exit?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AMKR/pressreleases/3080563/lam-research-stock-surges-154-in-h126-should-you-buy-more-or-exit/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.371812,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMKR",
+        "relevance_score": "0.614832",
+        "ticker_sentiment_score": "0.130947",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.896585",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.601224",
+        "ticker_sentiment_score": "0.104549",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/technology/ai/articles/ubs-reaffirms-buy-rating-broadcom-155800215.html",
+    "timestamp_utc": "2026-07-01T15:58:00+00:00",
+    "title": "UBS Reaffirms Buy Rating on Broadcom (AVGO) Amid AI ASIC Demand and OpenAI, Anthropic Growth",
+    "url": "https://finance.yahoo.com/technology/ai/articles/ubs-reaffirms-buy-rating-broadcom-155800215.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.23116,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.971292",
+        "ticker_sentiment_score": "0.453150",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.712108",
+        "ticker_sentiment_score": "0.250908",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BX",
+        "relevance_score": "0.646435",
+        "ticker_sentiment_score": "0.122250",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "APO",
+        "relevance_score": "0.642377",
+        "ticker_sentiment_score": "0.145444",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.598107",
+        "ticker_sentiment_score": "0.243514",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://uk.finance.yahoo.com/news/amd-expands-ai-reach-versal-160400219.html",
+    "timestamp_utc": "2026-07-01T16:04:00+00:00",
+    "title": "AMD Expands AI Reach With Versal Premium Gen 2 MoP SoCs: What's Ahead?",
+    "url": "https://uk.finance.yahoo.com/news/amd-expands-ai-reach-versal-160400219.html",
+    "source": "Yahoo Finance UK",
+    "source_domain": "Yahoo Finance UK",
+    "overall_sentiment_score": -0.000511,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.309688",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.847144",
+        "ticker_sentiment_score": "-0.225303",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.715328",
+        "ticker_sentiment_score": "-0.125539",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/matson-stock-hits-alltime-high-at-20333-usd-93CH-4716649",
+    "timestamp_utc": "2026-07-01T16:10:28+00:00",
+    "title": "Matson stock hits all-time high at 203.33 USD By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/matson-stock-hits-alltime-high-at-20333-usd-93CH-4716649",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.38892,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MATX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.728820",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.644610",
+        "ticker_sentiment_score": "0.214821",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.608301",
+        "ticker_sentiment_score": "0.304479",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.628492",
+        "ticker_sentiment_score": "0.248080",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-walmart-inc-for-1-july-93CH-4716638",
+    "timestamp_utc": "2026-07-01T16:11:16+00:00",
+    "title": "Form 144 Walmart Inc. For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-walmart-inc-for-1-july-93CH-4716638",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.100961,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "WMT",
+        "relevance_score": "0.944621",
+        "ticker_sentiment_score": "0.047311",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.612413",
+        "ticker_sentiment_score": "0.023428",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.629604",
+        "ticker_sentiment_score": "0.223721",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/ubs-reaffirms-buy-rating-on-broadcom-avgo-amid-ai-asic-demand-and-openai-anthropic-growth-1793093/",
+    "timestamp_utc": "2026-07-01T16:30:13+00:00",
+    "title": "UBS Reaffirms Buy Rating on Broadcom (AVGO) Amid AI ASIC Demand and OpenAI, Anthropic Growth",
+    "url": "https://www.insidermonkey.com/blog/ubs-reaffirms-buy-rating-on-broadcom-avgo-amid-ai-asic-demand-and-openai-anthropic-growth-1793093/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.207931,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.417300",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.603052",
+        "ticker_sentiment_score": "0.134600",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "BX",
+        "relevance_score": "0.632128",
+        "ticker_sentiment_score": "0.147564",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-graftech-international-ltd-for-1-july-93CH-4716711",
+    "timestamp_utc": "2026-07-01T17:40:26+00:00",
+    "title": "Form 4 GrafTech International Ltd For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-graftech-international-ltd-for-1-july-93CH-4716711",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.168801,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "EAF",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.013147",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.619785",
+        "ticker_sentiment_score": "0.207925",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.628494",
+        "ticker_sentiment_score": "0.193658",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.615530",
+        "ticker_sentiment_score": "0.178422",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-nuvectis-pharma-inc-for-1-july-93CH-4716747",
+    "timestamp_utc": "2026-07-01T18:10:41+00:00",
+    "title": "Form 4 Nuvectis Pharma Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-nuvectis-pharma-inc-for-1-july-93CH-4716747",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.183708,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVCT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.102654",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.644697",
+        "ticker_sentiment_score": "0.176944",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.640477",
+        "ticker_sentiment_score": "0.187939",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.571411",
+        "ticker_sentiment_score": "0.183461",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-gibraltar-industries-inc-for-1-july-93CH-4716736",
+    "timestamp_utc": "2026-07-01T18:10:50+00:00",
+    "title": "Form 4 Gibraltar Industries Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-gibraltar-industries-inc-for-1-july-93CH-4716736",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.099614,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ROCK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.048622",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.618790",
+        "ticker_sentiment_score": "0.107249",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.646512",
+        "ticker_sentiment_score": "0.116239",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.601348",
+        "ticker_sentiment_score": "0.144666",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-mgic-investment-corp-for-1-july-93CH-4716789",
+    "timestamp_utc": "2026-07-01T18:39:27+00:00",
+    "title": "Form 144 MGIC INVESTMENT CORP For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-mgic-investment-corp-for-1-july-93CH-4716789",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.161431,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MTG",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.032126",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.609484",
+        "ticker_sentiment_score": "0.182605",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.639032",
+        "ticker_sentiment_score": "0.214739",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.621606",
+        "ticker_sentiment_score": "0.180328",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-144-newmont-corp-de-for-1-july-93CH-4716825",
+    "timestamp_utc": "2026-07-01T18:47:15+00:00",
+    "title": "Form 144 NEWMONT Corp /DE/ For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-144-newmont-corp-de-for-1-july-93CH-4716825",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.029009,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "NEM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.008486",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.607590",
+        "ticker_sentiment_score": "0.036376",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.637635",
+        "ticker_sentiment_score": "0.018871",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.607685",
+        "ticker_sentiment_score": "0.003646",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/universal-technical-institute-stock-hits-52week-high-at-4574-usd-93CH-4716842",
+    "timestamp_utc": "2026-07-01T19:17:11+00:00",
+    "title": "Universal Technical Institute stock hits 52-week high at 45.74 USD",
+    "url": "https://ca.investing.com/news/stock-market-news/universal-technical-institute-stock-hits-52week-high-at-4574-usd-93CH-4716842",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.365046,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "UTI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.644162",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.625981",
+        "ticker_sentiment_score": "0.111968",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-maze-therapeutics-inc-for-1-july-93CH-4717008",
+    "timestamp_utc": "2026-07-01T20:09:34+00:00",
+    "title": "Form 4 Maze Therapeutics Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-maze-therapeutics-inc-for-1-july-93CH-4717008",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.152073,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MAZE",
+        "relevance_score": "0.336664",
+        "ticker_sentiment_score": "0.000402",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.609833",
+        "ticker_sentiment_score": "0.240809",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.612935",
+        "ticker_sentiment_score": "0.228274",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-westwood-holdings-group-inc-for-30-june-93CH-4715003",
+    "timestamp_utc": "2026-07-01T20:13:31+00:00",
+    "title": "Form 4 Westwood Holdings Group Inc For: 30 June By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-westwood-holdings-group-inc-for-30-june-93CH-4715003",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": -0.096559,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "WHG",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.028511",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.745859",
+        "ticker_sentiment_score": "0.367839",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.605722",
+        "ticker_sentiment_score": "-0.384277",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.625558",
+        "ticker_sentiment_score": "-0.398122",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-13da-opko-health-for-1-july-93CH-4716900",
+    "timestamp_utc": "2026-07-01T20:39:40+00:00",
+    "title": "Form 13D/A OPKO HEALTH For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-13da-opko-health-for-1-july-93CH-4716900",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.088606,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "OPK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.015209",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.636730",
+        "ticker_sentiment_score": "0.108257",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-x4-pharmaceuticals-inc-for-1-july-93CH-4717027",
+    "timestamp_utc": "2026-07-01T20:40:40+00:00",
+    "title": "Form 4 X4 Pharmaceuticals Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-x4-pharmaceuticals-inc-for-1-july-93CH-4717027",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.146269,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "XFOR",
+        "relevance_score": "0.936824",
+        "ticker_sentiment_score": "0.000034",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.625497",
+        "ticker_sentiment_score": "0.162948",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.630891",
+        "ticker_sentiment_score": "0.180812",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.600127",
+        "ticker_sentiment_score": "0.156106",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-hayward-holdings-inc-for-1-july-93CH-4717198",
+    "timestamp_utc": "2026-07-01T21:10:04+00:00",
+    "title": "Form 4 Hayward Holdings Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-hayward-holdings-inc-for-1-july-93CH-4717198",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.113525,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "HAYW",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.197254",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.617347",
+        "ticker_sentiment_score": "0.189390",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.609606",
+        "ticker_sentiment_score": "0.198002",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.616854",
+        "ticker_sentiment_score": "0.258871",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-verisign-inc-for-1-july-93CH-4717189",
+    "timestamp_utc": "2026-07-01T21:32:06+00:00",
+    "title": "Form 4 VeriSign Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-verisign-inc-for-1-july-93CH-4717189",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.156786,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VRSN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.014031",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.711297",
+        "ticker_sentiment_score": "0.259681",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.710803",
+        "ticker_sentiment_score": "0.217413",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.704401",
+        "ticker_sentiment_score": "0.042155",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-driven-brands-holdings-inc-for-1-july-93CH-4717323",
+    "timestamp_utc": "2026-07-01T22:46:28+00:00",
+    "title": "Form 4 Driven Brands Holdings Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-driven-brands-holdings-inc-for-1-july-93CH-4717323",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.158094,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "DRVN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.021671",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.643231",
+        "ticker_sentiment_score": "0.190869",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.571745",
+        "ticker_sentiment_score": "0.176794",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.556323",
+        "ticker_sentiment_score": "0.184741",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-kratos-defense--security-solutions-for-1-july-93CH-4717359",
+    "timestamp_utc": "2026-07-01T23:11:10+00:00",
+    "title": "Form 4 Kratos Defense & Security Solutions For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-kratos-defense--security-solutions-for-1-july-93CH-4717359",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.197601,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KTOS",
+        "relevance_score": "0.970825",
+        "ticker_sentiment_score": "0.169925",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.629733",
+        "ticker_sentiment_score": "0.217714",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.645420",
+        "ticker_sentiment_score": "0.173438",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.620964",
+        "ticker_sentiment_score": "0.186060",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-west-pharmaceutical-services-inc-for-1-july-93CH-4717354",
+    "timestamp_utc": "2026-07-01T23:11:46+00:00",
+    "title": "Form 4 West Pharmaceutical Services Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-west-pharmaceutical-services-inc-for-1-july-93CH-4717354",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.175808,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WST",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.219581",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.740694",
+        "ticker_sentiment_score": "0.190509",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.640792",
+        "ticker_sentiment_score": "0.180710",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.604329",
+        "ticker_sentiment_score": "0.178218",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-paccar-inc-for-1-july-93CH-4717371",
+    "timestamp_utc": "2026-07-01T23:27:13+00:00",
+    "title": "Form 4 PACCAR Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-paccar-inc-for-1-july-93CH-4717371",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.175952,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PCAR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.025320",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.748661",
+        "ticker_sentiment_score": "0.249484",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.731200",
+        "ticker_sentiment_score": "0.246440",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.748266",
+        "ticker_sentiment_score": "0.204357",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/form-4-crowdstrike-holdings-inc-for-1-july-93CH-4717456",
+    "timestamp_utc": "2026-07-02T01:07:23+00:00",
+    "title": "Form 4 CrowdStrike Holdings Inc For: 1 July By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/form-4-crowdstrike-holdings-inc-for-1-july-93CH-4717456",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.102636,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "CRWD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.030914",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.621486",
+        "ticker_sentiment_score": "0.107911",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.638942",
+        "ticker_sentiment_score": "0.123910",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.638899",
+        "ticker_sentiment_score": "0.124560",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/symbols/SIX-VRT/ideas/page-3/",
+    "timestamp_utc": "2026-07-02T01:40:59+00:00",
+    "title": "Vertiv Holdings Co. Class A Trade Ideas \u2014 SIX:VRT",
+    "url": "https://www.tradingview.com/symbols/SIX-VRT/ideas/page-3/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.528267,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VRT",
+        "relevance_score": "0.950881",
+        "ticker_sentiment_score": "0.620645",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.655549",
+        "ticker_sentiment_score": "0.516706",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.614061",
+        "ticker_sentiment_score": "0.519219",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.598549",
+        "ticker_sentiment_score": "0.476064",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  }
+]

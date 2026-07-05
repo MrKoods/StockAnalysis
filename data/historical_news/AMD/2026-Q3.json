@@ -1,0 +1,1724 @@
+[
+  {
+    "article_id": "https://www.tipranks.com/news/company-announcements/linkage-global-inc-files-june-30-form-6-k-with-interim-results",
+    "timestamp_utc": "2026-07-01T03:10:27+00:00",
+    "title": "Linkage Global Inc Files June 30 Form 6-K With Interim Results",
+    "url": "https://www.tipranks.com/news/company-announcements/linkage-global-inc-files-june-30-form-6-k-with-interim-results",
+    "source": "TipRanks",
+    "source_domain": "TipRanks",
+    "overall_sentiment_score": -0.107808,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "LGCB",
+        "relevance_score": "0.306580",
+        "ticker_sentiment_score": "0.045450",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "PSKY",
+        "relevance_score": "0.636713",
+        "ticker_sentiment_score": "0.236925",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "F",
+        "relevance_score": "0.612235",
+        "ticker_sentiment_score": "-0.201352",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.635642",
+        "ticker_sentiment_score": "-0.421635",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.633184",
+        "ticker_sentiment_score": "0.110890",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T03:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.362288,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.257753",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.726692",
+        "ticker_sentiment_score": "0.314767",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.740367",
+        "ticker_sentiment_score": "0.343736",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.828300",
+        "ticker_sentiment_score": "0.438876",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "timestamp_utc": "2026-07-01T04:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.34593,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.254551",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.814952",
+        "ticker_sentiment_score": "0.400370",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.707586",
+        "ticker_sentiment_score": "0.314345",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.631940",
+        "ticker_sentiment_score": "0.336868",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cnbc.com/2026/07/01/kkr-sk-launch-1-3-billion-south-korea-renewable-energy-platform-ai-data-centers.html",
+    "timestamp_utc": "2026-07-01T06:11:04+00:00",
+    "title": "KKR to control South Korea's $1.3 billion renewables platform with SK as AI power demand rises",
+    "url": "https://www.cnbc.com/2026/07/01/kkr-sk-launch-1-3-billion-south-korea-renewable-energy-platform-ai-data-centers.html",
+    "source": "CNBC",
+    "source_domain": "CNBC",
+    "overall_sentiment_score": 0.320211,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.427077",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.618551",
+        "ticker_sentiment_score": "0.341361",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.635524",
+        "ticker_sentiment_score": "0.323479",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.610869",
+        "ticker_sentiment_score": "0.320087",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.606298",
+        "ticker_sentiment_score": "0.341934",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.kavout.com/market-lens/riot-platforms-from-bitcoin-volatility-to-ai-infrastructure-powerhouse",
+    "timestamp_utc": "2026-07-01T06:11:28+00:00",
+    "title": "Riot Platforms: From Bitcoin Volatility to AI Infrastructure Powerhouse",
+    "url": "https://www.kavout.com/market-lens/riot-platforms-from-bitcoin-volatility-to-ai-infrastructure-powerhouse",
+    "source": "Kavout | AI",
+    "source_domain": "Kavout | AI",
+    "overall_sentiment_score": 0.351478,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RIOT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.397973",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.790330",
+        "ticker_sentiment_score": "0.525336",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.610098",
+        "ticker_sentiment_score": "0.139910",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-american-institute-for-advanced-investment-management-llp-purchases-shares-of-990-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T07:15:03+00:00",
+    "title": "American Institute for Advanced Investment Management LLP Purchases Shares of 990 Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-american-institute-for-advanced-investment-management-llp-purchases-shares-of-990-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.392796,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.400877",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-eagle-wealth-advisors-llc-grows-stock-position-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T07:57:04+00:00",
+    "title": "Eagle Wealth Advisors LLC Grows Stock Position in Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-eagle-wealth-advisors-llc-grows-stock-position-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.497583,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.476551",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://semiengineering.com/securing-the-software-defined-vehicle-how-rambus-and-telechips-enable-safe-scalable-automotive-soc/",
+    "timestamp_utc": "2026-07-01T08:11:09+00:00",
+    "title": "Securing the Software Defined Vehicle: How Rambus and Telechips Enable Safe, Scalable Automotive SoC",
+    "url": "https://semiengineering.com/securing-the-software-defined-vehicle-how-rambus-and-telechips-enable-safe-scalable-automotive-soc/",
+    "source": "Semiconductor Engineering",
+    "source_domain": "Semiconductor Engineering",
+    "overall_sentiment_score": 0.313472,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.422992",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.735969",
+        "ticker_sentiment_score": "0.343042",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.717324",
+        "ticker_sentiment_score": "0.325715",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.637645",
+        "ticker_sentiment_score": "0.315663",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.614240",
+        "ticker_sentiment_score": "0.236229",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-increases-stake-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T08:19:03+00:00",
+    "title": "Global Trust Asset Management LLC Increases Stake in Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-increases-stake-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.213051,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.294791",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.613756",
+        "ticker_sentiment_score": "0.135681",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T08:39:25+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Motley Fool",
+    "source_domain": "The Motley Fool",
+    "overall_sentiment_score": 0.3482,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.315423",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.742899",
+        "ticker_sentiment_score": "0.424621",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.638483",
+        "ticker_sentiment_score": "0.343529",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.608432",
+        "ticker_sentiment_score": "0.318984",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T09:07:12+00:00",
+    "title": "Element Squared LLC Sells 1,572 Shares of Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.282131,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.316319",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.773691",
+        "ticker_sentiment_score": "0.391810",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.627591",
+        "ticker_sentiment_score": "0.320122",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.584260",
+        "ticker_sentiment_score": "0.275663",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.553523",
+        "ticker_sentiment_score": "0.248023",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/southwest-airlines-earnings-preview-expect-110421416.html",
+    "timestamp_utc": "2026-07-01T10:04:00+00:00",
+    "title": "Southwest Airlines Earnings Preview: What to Expect",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/southwest-airlines-earnings-preview-expect-110421416.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.139436,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "LUV",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.421386",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.603747",
+        "ticker_sentiment_score": "-0.066913",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.622487",
+        "ticker_sentiment_score": "0.122389",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "BA",
+        "relevance_score": "0.551771",
+        "ticker_sentiment_score": "0.122986",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-perkins-capital-management-inc-has-315-million-stock-position-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T10:07:08+00:00",
+    "title": "Perkins Capital Management Inc. Has $3.15 Million Stock Position in Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-perkins-capital-management-inc-has-315-million-stock-position-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.341115,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.300739",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://capital.com/en-int/markets/shares/b2gold-corp-share-price",
+    "timestamp_utc": "2026-07-01T10:39:56+00:00",
+    "title": "B2GOLD CORP (BTG) Stock Price Quote Today & Current Price Chart",
+    "url": "https://capital.com/en-int/markets/shares/b2gold-corp-share-price",
+    "source": "Capital.com",
+    "source_domain": "Capital.com",
+    "overall_sentiment_score": 0.086118,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "BTG",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.015036",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.600156",
+        "ticker_sentiment_score": "0.135962",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/07/60210847/5-stock-picks-last-quarter-from-wall-streets-most-accurate-analysts",
+    "timestamp_utc": "2026-07-01T10:53:33+00:00",
+    "title": "5 Stock Picks Last Quarter From Wall Street's Most Accurate Analysts",
+    "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/07/60210847/5-stock-picks-last-quarter-from-wall-streets-most-accurate-analysts",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.321105,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QCOM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.490778",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.818238",
+        "ticker_sentiment_score": "0.423490",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.819127",
+        "ticker_sentiment_score": "0.408554",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "C",
+        "relevance_score": "0.657621",
+        "ticker_sentiment_score": "0.033228",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/technology/ai/articles/linkhome-holdings-completes-acquisition-mortgage-120000533.html",
+    "timestamp_utc": "2026-07-01T11:40:36+00:00",
+    "title": "Linkhome Holdings Completes Acquisition of Mortgage One Group and Launches GPU Financing Business",
+    "url": "https://finance.yahoo.com/technology/ai/articles/linkhome-holdings-completes-acquisition-mortgage-120000533.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.394598,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LHAI",
+        "relevance_score": "0.968800",
+        "ticker_sentiment_score": "0.812876",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.624344",
+        "ticker_sentiment_score": "0.349399",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.647265",
+        "ticker_sentiment_score": "0.337340",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.565219",
+        "ticker_sentiment_score": "0.247816",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.599345",
+        "ticker_sentiment_score": "0.228194",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tikr.com/blog/coca-cola-stock-trades-at-81-with-a-86-analyst-target-and-105-tikr-mid-case-the-gap-explained",
+    "timestamp_utc": "2026-07-01T12:01:55+00:00",
+    "title": "Coca-Cola Stock Trades at $81 With a $86 Analyst Target and $105 TIKR Mid-Case: The Gap Explained",
+    "url": "https://www.tikr.com/blog/coca-cola-stock-trades-at-81-with-a-86-analyst-target-and-105-tikr-mid-case-the-gap-explained",
+    "source": "TIKR.com",
+    "source_domain": "TIKR.com",
+    "overall_sentiment_score": 0.242087,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.421726",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CRM",
+        "relevance_score": "0.632313",
+        "ticker_sentiment_score": "0.148385",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.604437",
+        "ticker_sentiment_score": "0.319881",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.614680",
+        "ticker_sentiment_score": "0.306385",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "WDC",
+        "relevance_score": "0.603434",
+        "ticker_sentiment_score": "-0.135041",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/earnings-preview-expect-l3harris-technologies-121153552.html",
+    "timestamp_utc": "2026-07-01T12:08:00+00:00",
+    "title": "Earnings Preview: What To Expect From L3Harris Technologies' Report",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/earnings-preview-expect-l3harris-technologies-121153552.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.223731,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LHX",
+        "relevance_score": "0.954780",
+        "ticker_sentiment_score": "0.331962",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.675633",
+        "ticker_sentiment_score": "0.299884",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.560597",
+        "ticker_sentiment_score": "0.108107",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.590179",
+        "ticker_sentiment_score": "0.246965",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "timestamp_utc": "2026-07-01T12:38:16+00:00",
+    "title": "Semiconductor ETFs to Buy as Micron Leads $2T AI-Led Chip Market Rally",
+    "url": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.655385,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.745902",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.870843",
+        "ticker_sentiment_score": "0.644236",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.879633",
+        "ticker_sentiment_score": "0.600753",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.704844",
+        "ticker_sentiment_score": "0.636490",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tikr.com/blog/texas-instruments-stock-is-up-68-year-to-date-can-it-deliver-more-upside-before-2027",
+    "timestamp_utc": "2026-07-01T12:38:50+00:00",
+    "title": "Texas Instruments Stock Is Up 68% Year to Date: Can It Deliver More Upside Before 2027?",
+    "url": "https://www.tikr.com/blog/texas-instruments-stock-is-up-68-year-to-date-can-it-deliver-more-upside-before-2027",
+    "source": "TIKR.com",
+    "source_domain": "TIKR.com",
+    "overall_sentiment_score": 0.31949,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402039",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.728662",
+        "ticker_sentiment_score": "0.330811",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.624904",
+        "ticker_sentiment_score": "0.127277",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.632680",
+        "ticker_sentiment_score": "0.345460",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.citybiz.co/article/868428/sitime-completes-renesas-timing-business-acquisition-to-accelerate-ai-data-center-growth/",
+    "timestamp_utc": "2026-07-01T13:10:38+00:00",
+    "title": "SiTime Completes Renesas Timing Business Acquisition to Accelerate AI Data Center Growth",
+    "url": "https://www.citybiz.co/article/868428/sitime-completes-renesas-timing-business-acquisition-to-accelerate-ai-data-center-growth/",
+    "source": "citybiz",
+    "source_domain": "citybiz",
+    "overall_sentiment_score": 0.330822,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SITM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.436367",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.601731",
+        "ticker_sentiment_score": "0.336290",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.628552",
+        "ticker_sentiment_score": "0.319148",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.623221",
+        "ticker_sentiment_score": "0.345020",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004404-market-movers-meta-20260701",
+    "timestamp_utc": "2026-07-01T14:20:16+00:00",
+    "title": "Meta Platforms Inc Stock (META) Moved Up by 7.56% on Jul 1: What Signal Does It Send?",
+    "url": "https://www.tradingkey.com/news/market-movers/262004404-market-movers-meta-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": 0.283791,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "META",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.389865",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.648040",
+        "ticker_sentiment_score": "0.194977",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.585377",
+        "ticker_sentiment_score": "0.106002",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.571694",
+        "ticker_sentiment_score": "0.419581",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.552419",
+        "ticker_sentiment_score": "0.259195",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.citybiz.co/article/868666/q-c-technologies-moves-headquarters-to-san-francisco-to-advance-optical-ai-computing-2/",
+    "timestamp_utc": "2026-07-01T15:09:30+00:00",
+    "title": "Q/C Technologies Moves Headquarters to San Francisco to Advance Optical AI Computing",
+    "url": "https://www.citybiz.co/article/868666/q-c-technologies-moves-headquarters-to-san-francisco-to-advance-optical-ai-computing-2/",
+    "source": "citybiz",
+    "source_domain": "citybiz",
+    "overall_sentiment_score": 0.295712,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QCLS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.405447",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.626625",
+        "ticker_sentiment_score": "0.235871",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.641203",
+        "ticker_sentiment_score": "0.342904",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.635453",
+        "ticker_sentiment_score": "0.319010",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.629933",
+        "ticker_sentiment_score": "0.242256",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://kalkinemedia.com/us/stocks/industrial/arlo-technologies-nysearlo-tests-care-tech-ambitions",
+    "timestamp_utc": "2026-07-01T15:09:32+00:00",
+    "title": "Arlo Technologies (NYSE:ARLO) Tests Care Tech Ambitions",
+    "url": "https://kalkinemedia.com/us/stocks/industrial/arlo-technologies-nysearlo-tests-care-tech-ambitions",
+    "source": "Kalkine Media",
+    "source_domain": "Kalkine Media",
+    "overall_sentiment_score": 0.187876,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ARLO",
+        "relevance_score": "0.988123",
+        "ticker_sentiment_score": "0.270539",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.627253",
+        "ticker_sentiment_score": "0.148428",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.612311",
+        "ticker_sentiment_score": "0.050101",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "JCI",
+        "relevance_score": "0.554305",
+        "ticker_sentiment_score": "0.247879",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BA",
+        "relevance_score": "0.583621",
+        "ticker_sentiment_score": "0.197553",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004606-market-movers-asml-20260701",
+    "timestamp_utc": "2026-07-01T15:09:45+00:00",
+    "title": "ASML Holding NV Stock (ASML) Moved Down by 6.02% on Jul 1: What Investors Need To Know",
+    "url": "https://www.tradingkey.com/news/market-movers/262004606-market-movers-asml-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.055688,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.484364",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.602791",
+        "ticker_sentiment_score": "-0.333322",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.641833",
+        "ticker_sentiment_score": "0.311628",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.620756",
+        "ticker_sentiment_score": "0.418067",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/07/01/stryker-vs-intuitive-surgical-strykers-joint-replacement-moat-over-intuitives-premium-valuation/",
+    "timestamp_utc": "2026-07-01T15:14:40+00:00",
+    "title": "Stryker Vs. Intuitive Surgical: Stryker\u2019s Joint-Replacement Moat Over Intuitive\u2019s Premium Valuation",
+    "url": "https://247wallst.com/investing/2026/07/01/stryker-vs-intuitive-surgical-strykers-joint-replacement-moat-over-intuitives-premium-valuation/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.198284,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SYK",
+        "relevance_score": "0.993766",
+        "ticker_sentiment_score": "0.215013",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ISRG",
+        "relevance_score": "0.925109",
+        "ticker_sentiment_score": "0.136206",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.578473",
+        "ticker_sentiment_score": "0.223027",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/07/01/micron-drops-8-sandisk-slumps-10-western-digital-falls-7-as-memory-stocks-pull-back-with-the-nasdaq/",
+    "timestamp_utc": "2026-07-01T15:20:54+00:00",
+    "title": "Micron Drops 8%, SanDisk Slumps 10%, Western Digital Falls 7% as Memory Stocks Pull Back With the NASDAQ",
+    "url": "https://247wallst.com/investing/2026/07/01/micron-drops-8-sandisk-slumps-10-western-digital-falls-7-as-memory-stocks-pull-back-with-the-nasdaq/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": -0.338566,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WDC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.414448",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.444142",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.624814",
+        "ticker_sentiment_score": "-0.205946",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.611487",
+        "ticker_sentiment_score": "-0.244114",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004608-market-movers-amd-20260701",
+    "timestamp_utc": "2026-07-01T15:22:02+00:00",
+    "title": "Advanced Micro Devices Inc Stock (AMD) Moved Down by 5.73% on Jul 1: Drivers Behind the Movement",
+    "url": "https://www.tradingkey.com/news/market-movers/262004608-market-movers-amd-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.344618,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.438158",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.628135",
+        "ticker_sentiment_score": "-0.425862",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.736139",
+        "ticker_sentiment_score": "-0.215303",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://uk.finance.yahoo.com/news/amd-expands-ai-reach-versal-160400219.html",
+    "timestamp_utc": "2026-07-01T16:04:00+00:00",
+    "title": "AMD Expands AI Reach With Versal Premium Gen 2 MoP SoCs: What's Ahead?",
+    "url": "https://uk.finance.yahoo.com/news/amd-expands-ai-reach-versal-160400219.html",
+    "source": "Yahoo Finance UK",
+    "source_domain": "Yahoo Finance UK",
+    "overall_sentiment_score": -0.03685,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.342963",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.801510",
+        "ticker_sentiment_score": "-0.206063",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.724897",
+        "ticker_sentiment_score": "-0.112362",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004711-market-movers-cat-20260701",
+    "timestamp_utc": "2026-07-01T16:15:18+00:00",
+    "title": "Caterpillar Inc Stock (CAT) Moved Down by 4.63% on Jul 1: Drivers Behind the Movement",
+    "url": "https://www.tradingkey.com/news/market-movers/262004711-market-movers-cat-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": 0.025943,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "CAT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.606097",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.600707",
+        "ticker_sentiment_score": "0.249136",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.633965",
+        "ticker_sentiment_score": "0.401563",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/markets/options/26/07/60227090/10-information-technology-stocks-whale-activity-today-s-session",
+    "timestamp_utc": "2026-07-01T17:09:56+00:00",
+    "title": "10 Information Technology Stocks Whale Activity In Today\u2019s Session",
+    "url": "https://www.benzinga.com/markets/options/26/07/60227090/10-information-technology-stocks-whale-activity-today-s-session",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": -0.731888,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WULF",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.749396",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.721011",
+        "ticker_sentiment_score": "-0.748018",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.607048",
+        "ticker_sentiment_score": "-0.738760",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004773-market-movers-sndk-20260701",
+    "timestamp_utc": "2026-07-01T17:16:08+00:00",
+    "title": "SanDisk Corporation Stock (SNDK) Moved Down by 9.91% on Jul 1: What Investors Need To Know",
+    "url": "https://www.tradingkey.com/news/market-movers/262004773-market-movers-sndk-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.197297,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNDKV",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.606510",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.741416",
+        "ticker_sentiment_score": "-0.414781",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.613220",
+        "ticker_sentiment_score": "-0.346173",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.629351",
+        "ticker_sentiment_score": "0.220832",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.606488",
+        "ticker_sentiment_score": "0.307063",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://cryptodaily.co.uk/index/graniteshares-2x-long-mrvl-daily-etf-derivaties",
+    "timestamp_utc": "2026-07-01T17:39:05+00:00",
+    "title": "Live GraniteShares 2x Long MRVL Daily ETF (Derivatives) Price Today: MVLL to USD, Market Cap & Charts",
+    "url": "https://cryptodaily.co.uk/index/graniteshares-2x-long-mrvl-daily-etf-derivaties",
+    "source": "Crypto Daily",
+    "source_domain": "Crypto Daily",
+    "overall_sentiment_score": 0.298472,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MVLL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.100410",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.700858",
+        "ticker_sentiment_score": "0.326415",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.621576",
+        "ticker_sentiment_score": "0.328129",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.600543",
+        "ticker_sentiment_score": "0.314844",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.barchart.com/story/news/3084389/analysts-at-ubs-say-advanced-micro-devices-stock-could-rally-to-670",
+    "timestamp_utc": "2026-07-01T18:37:03+00:00",
+    "title": "Analysts at UBS Say Advanced Micro Devices Stock Could Rally to $670",
+    "url": "https://www.barchart.com/story/news/3084389/analysts-at-ubs-say-advanced-micro-devices-stock-could-rally-to-670",
+    "source": "Barchart.com",
+    "source_domain": "Barchart.com",
+    "overall_sentiment_score": 0.362254,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.433005",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.638045",
+        "ticker_sentiment_score": "0.316964",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.568457",
+        "ticker_sentiment_score": "0.301288",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.532470",
+        "ticker_sentiment_score": "0.347556",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/SOXX-Q/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T19:10:52+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/SOXX-Q/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.299232,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.273543",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.652977",
+        "ticker_sentiment_score": "0.287941",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.639520",
+        "ticker_sentiment_score": "0.314335",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.612868",
+        "ticker_sentiment_score": "0.277284",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/stock?t=MX&ta=1&p=m&ty=lf&b=2&page=10",
+    "timestamp_utc": "2026-07-01T19:40:03+00:00",
+    "title": "MX - MagnaChip Semiconductor Corp Latest SEC Filings",
+    "url": "https://finviz.com/stock?t=MX&ta=1&p=m&ty=lf&b=2&page=10",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": -0.093276,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.310117",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.608687",
+        "ticker_sentiment_score": "0.010582",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.627239",
+        "ticker_sentiment_score": "0.001953",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.618891",
+        "ticker_sentiment_score": "0.034268",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648755",
+        "ticker_sentiment_score": "0.008001",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.coingecko.com/en/stocks/united-microelectronics",
+    "timestamp_utc": "2026-07-01T19:41:43+00:00",
+    "title": "United Microelectronics Stock Price: UMC Stock Chart, Market Cap & News Today",
+    "url": "https://www.coingecko.com/en/stocks/united-microelectronics",
+    "source": "CoinGecko",
+    "source_domain": "CoinGecko",
+    "overall_sentiment_score": -0.415403,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "UMC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.389605",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.555300",
+        "ticker_sentiment_score": "-0.383671",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.578253",
+        "ticker_sentiment_score": "-0.420832",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.566038",
+        "ticker_sentiment_score": "-0.414400",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.555436",
+        "ticker_sentiment_score": "-0.425645",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstory.org/us/stocks/nasdaq/himx/news/why-up-down/why-himax-himx-shares-are-plunging-today-2",
+    "timestamp_utc": "2026-07-01T20:09:38+00:00",
+    "title": "Why Himax (HIMX) Shares Are Plunging Today",
+    "url": "https://stockstory.org/us/stocks/nasdaq/himx/news/why-up-down/why-himax-himx-shares-are-plunging-today-2",
+    "source": "StockStory",
+    "source_domain": "StockStory",
+    "overall_sentiment_score": -0.216941,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "HIMX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.248702",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.716256",
+        "ticker_sentiment_score": "-0.216631",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.604193",
+        "ticker_sentiment_score": "-0.219989",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.634922",
+        "ticker_sentiment_score": "-0.247989",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.622455",
+        "ticker_sentiment_score": "-0.227927",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/markets/tech/26/07/60218992/amd-dips-4-as-investors-lock-in-profits-after-a-blockbuster-ai-rotation-surge",
+    "timestamp_utc": "2026-07-01T23:37:12+00:00",
+    "title": "AMD Dips 4% as Investors Lock in Profits After a Blockbuster AI Rotation Surge",
+    "url": "https://www.benzinga.com/markets/tech/26/07/60218992/amd-dips-4-as-investors-lock-in-profits-after-a-blockbuster-ai-rotation-surge",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.059915,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.973185",
+        "ticker_sentiment_score": "-0.241173",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.744414",
+        "ticker_sentiment_score": "0.243340",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.660594",
+        "ticker_sentiment_score": "0.137432",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.600616",
+        "ticker_sentiment_score": "0.136596",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tipranks.com/news/stock-market-today-spy-qqq-lose-steam-as-rate-hike-odds-trend-lower-ahead-of-key-jobs-data",
+    "timestamp_utc": "2026-07-02T02:11:46+00:00",
+    "title": "Stock Market Today: SPY, QQQ Lose Steam as AI Stocks Face Pressure ahead of Key Jobs Data",
+    "url": "https://www.tipranks.com/news/stock-market-today-spy-qqq-lose-steam-as-rate-hike-odds-trend-lower-ahead-of-key-jobs-data",
+    "source": "TipRanks",
+    "source_domain": "TipRanks",
+    "overall_sentiment_score": -0.130821,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SPY",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.222496",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.702500",
+        "ticker_sentiment_score": "-0.254186",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.734710",
+        "ticker_sentiment_score": "-0.295255",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.617548",
+        "ticker_sentiment_score": "0.245367",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-advanced-micro-devices-inc-amd-is-cane-capital-partners-llcs-10th-largest-position-2026-07-02/",
+    "timestamp_utc": "2026-07-02T07:26:02+00:00",
+    "title": "Advanced Micro Devices, Inc. $AMD is Cane Capital Partners LLC's 10th Largest Position",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-advanced-micro-devices-inc-amd-is-cane-capital-partners-llcs-10th-largest-position-2026-07-02/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.189278,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.252988",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.609714",
+        "ticker_sentiment_score": "0.105961",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.moomoo.com/news/post/72371101/amkor-technology-slides-as-chip-stocks-retreat-and-investors-weigh",
+    "timestamp_utc": "2026-07-02T09:09:56+00:00",
+    "title": "Amkor Technology Slides as Chip Stocks Retreat and Investors Weigh Arizona Ramp Costs",
+    "url": "https://www.moomoo.com/news/post/72371101/amkor-technology-slides-as-chip-stocks-retreat-and-investors-weigh",
+    "source": "Moomoo",
+    "source_domain": "Moomoo",
+    "overall_sentiment_score": -0.246655,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.435841",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.746030",
+        "ticker_sentiment_score": "-0.232706",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.607410",
+        "ticker_sentiment_score": "-0.108954",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.643399",
+        "ticker_sentiment_score": "-0.137843",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-smart-wealth-llc-sells-8552-shares-of-advanced-micro-devices-inc-amd-2026-07-02/",
+    "timestamp_utc": "2026-07-02T09:24:03+00:00",
+    "title": "SMART Wealth LLC Sells 8,552 Shares of Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-smart-wealth-llc-sells-8552-shares-of-advanced-micro-devices-inc-amd-2026-07-02/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.284116,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.294222",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/intel-marvell-technology-amd-stocks-030024777.html",
+    "timestamp_utc": "2026-07-02T11:00:00+00:00",
+    "title": "Intel, Marvell Technology, and AMD Stocks Trade Down, What You Need To Know",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/intel-marvell-technology-amd-stocks-030024777.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": -0.112245,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.413952",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.872744",
+        "ticker_sentiment_score": "-0.440503",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.729511",
+        "ticker_sentiment_score": "0.325374",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.609750",
+        "ticker_sentiment_score": "0.286446",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.572771",
+        "ticker_sentiment_score": "-0.320985",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/stock?t=MCHP&ta=2&p=d&ty=lf&page=34",
+    "timestamp_utc": "2026-07-02T11:39:04+00:00",
+    "title": "MCHP - Microchip Technology Inc Latest SEC Filings",
+    "url": "https://finviz.com/stock?t=MCHP&ta=2&p=d&ty=lf&page=34",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": -0.130877,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MCHP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.215360",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.630366",
+        "ticker_sentiment_score": "-0.136672",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.593351",
+        "ticker_sentiment_score": "-0.134574",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.605094",
+        "ticker_sentiment_score": "-0.143491",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.560980",
+        "ticker_sentiment_score": "-0.115704",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/know-ahead-american-express-earnings-130544369.html",
+    "timestamp_utc": "2026-07-02T12:37:21+00:00",
+    "title": "What You Need To Know Ahead of American Express' Earnings Release",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/know-ahead-american-express-earnings-130544369.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.204037,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AXP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.283362",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SPGI",
+        "relevance_score": "0.605329",
+        "ticker_sentiment_score": "0.146733",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.630154",
+        "ticker_sentiment_score": "0.250988",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://sg.finance.yahoo.com/news/zacks-analyst-blog-highlights-amd-125500578.html",
+    "timestamp_utc": "2026-07-02T13:07:52+00:00",
+    "title": "The Zacks Analyst Blog Highlights AMD, Lam Research, Cisco Systems, Perma-Pipe international and AstroNova",
+    "url": "https://sg.finance.yahoo.com/news/zacks-analyst-blog-highlights-amd-125500578.html",
+    "source": "Yahoo Finance Singapore",
+    "source_domain": "Yahoo Finance Singapore",
+    "overall_sentiment_score": 0.364702,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CSCO",
+        "relevance_score": "0.905330",
+        "ticker_sentiment_score": "0.335419",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.886014",
+        "ticker_sentiment_score": "0.425394",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.867715",
+        "ticker_sentiment_score": "0.312061",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://sg.finance.yahoo.com/news/intc-outpaces-industry-play-stock-131800372.html",
+    "timestamp_utc": "2026-07-02T13:08:57+00:00",
+    "title": "INTC Outpaces Industry in a Year: How to Play the Stock?",
+    "url": "https://sg.finance.yahoo.com/news/intc-outpaces-industry-play-stock-131800372.html",
+    "source": "Yahoo Finance Singapore",
+    "source_domain": "Yahoo Finance Singapore",
+    "overall_sentiment_score": 0.380886,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.538161",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.729756",
+        "ticker_sentiment_score": "0.344181",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.606808",
+        "ticker_sentiment_score": "0.346627",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:242266f68094b:0-can-amkr-s-2-5d-packaging-pipeline-drive-long-term-growth/",
+    "timestamp_utc": "2026-07-02T13:09:20+00:00",
+    "title": "Can AMKR's 2.5D Packaging Pipeline Drive Long-Term Growth?",
+    "url": "https://www.tradingview.com/news/zacks:242266f68094b:0-can-amkr-s-2-5d-packaging-pipeline-drive-long-term-growth/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.361779,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.490683",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.728880",
+        "ticker_sentiment_score": "0.293693",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.eejournal.com/industry_news/arrow-electronics-works-with-stmicroelectronics-to-accelerate-industrial-amr-development-with-a-new-reference-platform/",
+    "timestamp_utc": "2026-07-02T13:41:15+00:00",
+    "title": "Arrow Electronics Works with STMicroelectronics to Accelerate Industrial AMR Development with a New Reference Platform",
+    "url": "https://www.eejournal.com/industry_news/arrow-electronics-works-with-stmicroelectronics-to-accelerate-industrial-amr-development-with-a-new-reference-platform/",
+    "source": "EEJournal",
+    "source_domain": "EEJournal",
+    "overall_sentiment_score": 0.401058,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "STM",
+        "relevance_score": "0.927508",
+        "ticker_sentiment_score": "0.735992",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.600278",
+        "ticker_sentiment_score": "0.327767",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.628075",
+        "ticker_sentiment_score": "0.305814",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.617525",
+        "ticker_sentiment_score": "0.334158",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.648908",
+        "ticker_sentiment_score": "0.301808",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  }
+]

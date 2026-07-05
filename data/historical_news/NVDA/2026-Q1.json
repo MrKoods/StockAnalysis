@@ -1,0 +1,1634 @@
+[
+  {
+    "article_id": "https://www.stocktitan.net/news/SMCI/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-jrv4fykm7bfo.html",
+    "timestamp_utc": "2026-01-01T00:09:06+00:00",
+    "title": "New server design cuts data center cabling by 93% and space use by 50%",
+    "url": "https://www.stocktitan.net/news/SMCI/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-jrv4fykm7bfo.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.332838,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.444001",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.705626",
+        "ticker_sentiment_score": "0.335476",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.646964",
+        "ticker_sentiment_score": "0.213593",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.569261",
+        "ticker_sentiment_score": "0.298316",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.prnewswire.com/news-releases/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-superblade-powered-by-intel-xeon-6900-series-processors-for-maximum-performance-and-efficiency-302651427.html",
+    "timestamp_utc": "2026-01-01T00:09:21+00:00",
+    "title": "Supermicro Unveils High-Density, Liquid-Cooled and Air-Cooled 6U SuperBlade\u00ae Powered by Intel\u00ae Xeon\u00ae 6900 Series Processors for Maximum Performance and Efficiency",
+    "url": "https://www.prnewswire.com/news-releases/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-superblade-powered-by-intel-xeon-6900-series-processors-for-maximum-performance-and-efficiency-302651427.html",
+    "source": "PR Newswire",
+    "source_domain": "PR Newswire",
+    "overall_sentiment_score": 0.378298,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.516809",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.872067",
+        "ticker_sentiment_score": "0.323564",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.619410",
+        "ticker_sentiment_score": "0.296906",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/applied-digital-stock-slides-after-chronoscale-cloud-spinout-plan-with-ekso-apld-traders-eye-jan-7-earnings/",
+    "timestamp_utc": "2026-01-01T01:12:36+00:00",
+    "title": "Applied Digital stock slides after ChronoScale cloud spinout plan with Ekso; APLD traders eye Jan. 7 earnings",
+    "url": "https://ts2.tech/en/applied-digital-stock-slides-after-chronoscale-cloud-spinout-plan-with-ekso-apld-traders-eye-jan-7-earnings/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.158079,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "EKSO",
+        "relevance_score": "0.899733",
+        "ticker_sentiment_score": "0.124212",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.607579",
+        "ticker_sentiment_score": "0.238757",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.561743",
+        "ticker_sentiment_score": "0.094723",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/ekso-bionics-ekso-stock-slips-premarket-after-chronoscale-ai-deal-fueled-surge/",
+    "timestamp_utc": "2026-01-01T01:12:36+00:00",
+    "title": "Ekso Bionics (EKSO) stock slips premarket after ChronoScale AI deal-fueled surge",
+    "url": "https://ts2.tech/en/ekso-bionics-ekso-stock-slips-premarket-after-chronoscale-ai-deal-fueled-surge/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.064643,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "EKSO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.254080",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.626941",
+        "ticker_sentiment_score": "0.218277",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-dips-after-hours-on-year-end-selling-what-investors-are-watching-next/",
+    "timestamp_utc": "2026-01-01T02:08:25+00:00",
+    "title": "AMD stock dips after-hours on year-end selling \u2014 what investors are watching next",
+    "url": "https://ts2.tech/en/amd-stock-dips-after-hours-on-year-end-selling-what-investors-are-watching-next/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.114437,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.218339",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.617953",
+        "ticker_sentiment_score": "-0.230434",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.616183",
+        "ticker_sentiment_score": "0.130690",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/plusai-and-churchill-capital-file-amended-s4-for-merger-deal-93CH-4425510",
+    "timestamp_utc": "2026-01-01T02:28:17+00:00",
+    "title": "PlusAI and Churchill Capital file amended S-4 for merger deal",
+    "url": "https://www.investing.com/news/company-news/plusai-and-churchill-capital-file-amended-s4-for-merger-deal-93CH-4425510",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.256552,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CCIX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.327829",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.639935",
+        "ticker_sentiment_score": "0.239883",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/NVDA-Q/pressreleases/36841185/can-qualcomm-stock-benefit-from-a-foray-into-mid-range-ai-chips/",
+    "timestamp_utc": "2026-01-01T02:44:48+00:00",
+    "title": "Can Qualcomm Stock Benefit From a Foray Into Mid-Range AI Chips?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/NVDA-Q/pressreleases/36841185/can-qualcomm-stock-benefit-from-a-foray-into-mid-range-ai-chips/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.329786,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QCOM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.483710",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.731898",
+        "ticker_sentiment_score": "0.425200",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.691075",
+        "ticker_sentiment_score": "0.347171",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.586460",
+        "ticker_sentiment_score": "0.126211",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.streetinsider.com/SEC+Filings/Form+424B2+JPMORGAN+CHASE+%26amp%3B+CO/25794204.html",
+    "timestamp_utc": "2026-01-01T03:08:32+00:00",
+    "title": "Form 424B2 JPMORGAN CHASE & CO",
+    "url": "https://www.streetinsider.com/SEC+Filings/Form+424B2+JPMORGAN+CHASE+%26amp%3B+CO/25794204.html",
+    "source": "StreetInsider",
+    "source_domain": "StreetInsider",
+    "overall_sentiment_score": 0.116828,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "JPM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.119523",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.642272",
+        "ticker_sentiment_score": "0.115371",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.604972",
+        "ticker_sentiment_score": "0.128830",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.647761",
+        "ticker_sentiment_score": "0.119290",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tomshardware.com/pc-components/gpus/tiktok-owner-bytedance-to-reportedly-purchase-usd14-billion-worth-of-nvidia-ai-gpus-in-2026-company-betting-on-beijings-approval-following-trump-admins-ease-on-ai-export-controls",
+    "timestamp_utc": "2026-01-01T03:08:42+00:00",
+    "title": "TikTok owner ByteDance to reportedly purchase $14 billion worth of Nvidia AI GPUs in 2026 \u2014 Company betting on Beijing's approval following Trump admin's ease on AI export controls",
+    "url": "https://www.tomshardware.com/pc-components/gpus/tiktok-owner-bytedance-to-reportedly-purchase-usd14-billion-worth-of-nvidia-ai-gpus-in-2026-company-betting-on-beijings-approval-following-trump-admins-ease-on-ai-export-controls",
+    "source": "Tom's Hardware",
+    "source_domain": "Tom's Hardware",
+    "overall_sentiment_score": 0.259455,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.422000",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.635399",
+        "ticker_sentiment_score": "0.133567",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/FLEX-Q/pressreleases/36842017/flex-vs-jabil-which-ems-stock-is-the-better-buy-for-now/",
+    "timestamp_utc": "2026-01-01T04:08:17+00:00",
+    "title": "Flex vs. Jabil: Which EMS Stock Is the Better Buy for Now?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/FLEX-Q/pressreleases/36842017/flex-vs-jabil-which-ems-stock-is-the-better-buy-for-now/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.464415,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "JBL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414794",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.611443",
+        "ticker_sentiment_score": "0.528858",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2025/12/31/amazon-stock-amzn-price-prediction-and-forecast/",
+    "timestamp_utc": "2026-01-01T05:07:53+00:00",
+    "title": "Amazon Stock (NASDAQ: AMZN) Price Prediction and Forecast 2025-2030 for December 31",
+    "url": "https://247wallst.com/investing/2025/12/31/amazon-stock-amzn-price-prediction-and-forecast/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.292559,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMZN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.394061",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.634006",
+        "ticker_sentiment_score": "0.313596",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.595217",
+        "ticker_sentiment_score": "0.202269",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.523008",
+        "ticker_sentiment_score": "0.239316",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/amer-sports-inc-nyseas-receives-average-recommendation-of-buy-from-brokerages-2026-01-01/",
+    "timestamp_utc": "2026-01-01T06:09:14+00:00",
+    "title": "Amer Sports, Inc. (NYSE:AS) Receives Average Recommendation of \"Buy\" from Brokerages",
+    "url": "https://www.marketbeat.com/instant-alerts/amer-sports-inc-nyseas-receives-average-recommendation-of-buy-from-brokerages-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.193087,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AS",
+        "relevance_score": "0.979147",
+        "ticker_sentiment_score": "0.442760",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "LULU",
+        "relevance_score": "0.624336",
+        "ticker_sentiment_score": "0.117308",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NKE",
+        "relevance_score": "0.648662",
+        "ticker_sentiment_score": "0.133559",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.607357",
+        "ticker_sentiment_score": "0.100187",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.640606",
+        "ticker_sentiment_score": "0.139192",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/direxion-daily-nvda-bull-2x-shares-nasdaqnvdu-short-interest-up-296-in-december-2025-12-31/",
+    "timestamp_utc": "2026-01-01T06:09:23+00:00",
+    "title": "Direxion Daily NVDA Bull 2X Shares (NASDAQ:NVDU) Short Interest Up 29.6% in December",
+    "url": "https://www.marketbeat.com/instant-alerts/direxion-daily-nvda-bull-2x-shares-nasdaqnvdu-short-interest-up-296-in-december-2025-12-31/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.072401,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.207805",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.843216",
+        "ticker_sentiment_score": "0.274435",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/texas-roadhouse-txrh-is-operating-in-a-hard-market-says-jim-cramer-1668949/?amp=1",
+    "timestamp_utc": "2026-01-01T06:09:49+00:00",
+    "title": "Texas Roadhouse (TXRH) is Operating in a Hard Market, Says Jim Cramer",
+    "url": "https://www.insidermonkey.com/blog/texas-roadhouse-txrh-is-operating-in-a-hard-market-says-jim-cramer-1668949/?amp=1",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.086915,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXRH",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.199515",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.630003",
+        "ticker_sentiment_score": "0.105033",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.642584",
+        "ticker_sentiment_score": "0.125850",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.588374",
+        "ticker_sentiment_score": "0.143277",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.574215",
+        "ticker_sentiment_score": "0.126074",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265733/3-reasons-to-sell-cdw-and-1-stock-to-buy-instead",
+    "timestamp_utc": "2026-01-01T07:08:18+00:00",
+    "title": "3 Reasons to Sell CDW and 1 Stock to Buy Instead",
+    "url": "https://finviz.com/news/265733/3-reasons-to-sell-cdw-and-1-stock-to-buy-instead",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.094789,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "CDW",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.020586",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.686551",
+        "ticker_sentiment_score": "0.316644",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.535241",
+        "ticker_sentiment_score": "-0.055079",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "WDC",
+        "relevance_score": "0.521378",
+        "ticker_sentiment_score": "0.057538",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ADBE",
+        "relevance_score": "0.558500",
+        "ticker_sentiment_score": "0.029290",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/microchip-technology-stock-is-quietly-exploding-are-you-sleeping-on/68445792",
+    "timestamp_utc": "2026-01-01T07:08:40+00:00",
+    "title": "Microchip Technology Stock Is Quietly Exploding \u2013 Are You Sleeping on This Chip Giant?",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/microchip-technology-stock-is-quietly-exploding-are-you-sleeping-on/68445792",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.211402,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MCHP",
+        "relevance_score": "0.974422",
+        "ticker_sentiment_score": "0.405321",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.734998",
+        "ticker_sentiment_score": "0.289013",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.649437",
+        "ticker_sentiment_score": "0.148313",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.599597",
+        "ticker_sentiment_score": "0.066170",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-coherent-corp-cohr-is-this-laser-stock-about-to-go-full/68447388",
+    "timestamp_utc": "2026-01-01T07:09:20+00:00",
+    "title": "The Truth About Coherent Corp (COHR): Is This Laser Stock About To Go Full Viral Or Fade Out?",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-coherent-corp-cohr-is-this-laser-stock-about-to-go-full/68447388",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.198515,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "COHR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.292034",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.635737",
+        "ticker_sentiment_score": "0.212978",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.634925",
+        "ticker_sentiment_score": "0.107168",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/opendoor-stock-today-open-holds-5-83-as-new-cfo-starts-what-investors-watch-next/",
+    "timestamp_utc": "2026-01-01T07:09:27+00:00",
+    "title": "Opendoor stock today: OPEN holds $5.83 as new CFO starts \u2014 what investors watch next",
+    "url": "https://ts2.tech/en/opendoor-stock-today-open-holds-5-83-as-new-cfo-starts-what-investors-watch-next/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.029226,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "OPEN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.199004",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "COIN",
+        "relevance_score": "0.631653",
+        "ticker_sentiment_score": "0.110077",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.598876",
+        "ticker_sentiment_score": "0.055677",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.565295",
+        "ticker_sentiment_score": "0.053427",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265649/3-overrated-stocks-we-steer-clear-of",
+    "timestamp_utc": "2026-01-01T07:09:31+00:00",
+    "title": "3 Overrated Stocks We Steer Clear Of",
+    "url": "https://finviz.com/news/265649/3-overrated-stocks-we-steer-clear-of",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": -0.189284,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LASR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.489643",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "CRL",
+        "relevance_score": "0.852259",
+        "ticker_sentiment_score": "-0.434824",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.649241",
+        "ticker_sentiment_score": "0.329434",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synopsys-inc-the-invisible-engine-powering-the-ai-chip-arms-race/68447694",
+    "timestamp_utc": "2026-01-01T08:38:07+00:00",
+    "title": "Synopsys Inc.: The Invisible Engine Powering the AI Chip Arms Race",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synopsys-inc-the-invisible-engine-powering-the-ai-chip-arms-race/68447694",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.313751,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNPS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.482298",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CDNS",
+        "relevance_score": "0.821473",
+        "ticker_sentiment_score": "0.257308",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.630927",
+        "ticker_sentiment_score": "0.227406",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.636367",
+        "ticker_sentiment_score": "0.252505",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.618059",
+        "ticker_sentiment_score": "0.246617",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-baxter-bros-inc-buys-7635-shares-of-apple-inc-aapl-2026-01-01/",
+    "timestamp_utc": "2026-01-01T08:50:28+00:00",
+    "title": "Baxter Bros Inc. Buys 7,635 Shares of Apple Inc. $AAPL",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-baxter-bros-inc-buys-7635-shares-of-apple-inc-aapl-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.194328,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.995659",
+        "ticker_sentiment_score": "0.291392",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.630680",
+        "ticker_sentiment_score": "0.132528",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4856664-tecl-trading-leveraged-technology-during-ai-uncertainty",
+    "timestamp_utc": "2026-01-01T09:09:49+00:00",
+    "title": "TECL: Trading Leveraged Technology During AI Uncertainty",
+    "url": "https://seekingalpha.com/article/4856664-tecl-trading-leveraged-technology-during-ai-uncertainty",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.421833,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TECL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.261569",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.649478",
+        "ticker_sentiment_score": "0.522748",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.619074",
+        "ticker_sentiment_score": "0.549798",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/stocks/article/predictstreet-2026-1-1-the-architecture-of-ai-a-deep-dive-into-super-micro-computers-smci-resilience-and-future",
+    "timestamp_utc": "2026-01-01T09:39:00+00:00",
+    "title": "The Architecture of AI: A Deep Dive into Super Micro Computer\u2019s (SMCI) Resilience and Future",
+    "url": "https://markets.financialcontent.com/stocks/article/predictstreet-2026-1-1-the-architecture-of-ai-a-deep-dive-into-super-micro-computers-smci-resilience-and-future",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.221701,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.253113",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.870480",
+        "ticker_sentiment_score": "0.346071",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "DELL",
+        "relevance_score": "0.744763",
+        "ticker_sentiment_score": "0.145522",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "HPE",
+        "relevance_score": "0.640858",
+        "ticker_sentiment_score": "0.123813",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-architecture-of-ai-a-deep-dive-into-super-micro-computers-smci-resilience-and-future",
+    "timestamp_utc": "2026-01-01T09:39:00+00:00",
+    "title": "The Architecture of AI: A Deep Dive into Super Micro Computer\u2019s (SMCI) Resilience and Future",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-architecture-of-ai-a-deep-dive-into-super-micro-computers-smci-resilience-and-future",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.126421,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.331849",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.846570",
+        "ticker_sentiment_score": "0.305594",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "DELL",
+        "relevance_score": "0.722756",
+        "ticker_sentiment_score": "-0.143849",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "HPE",
+        "relevance_score": "0.643666",
+        "ticker_sentiment_score": "-0.100279",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-oracle-transfiguration-from-database-giant-to-ai-infrastructure-titan",
+    "timestamp_utc": "2026-01-01T09:54:00+00:00",
+    "title": "The Oracle Transfiguration: From Database Giant to AI Infrastructure Titan",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-oracle-transfiguration-from-database-giant-to-ai-infrastructure-titan",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.15108,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ORCL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.100440",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.749781",
+        "ticker_sentiment_score": "0.318767",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.626408",
+        "ticker_sentiment_score": "0.125470",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.647622",
+        "ticker_sentiment_score": "0.125256",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-microsoft-msft-the-ai-first-titan-of-the-21st-century",
+    "timestamp_utc": "2026-01-01T09:55:00+00:00",
+    "title": "Microsoft (MSFT): The AI-First Titan of the 21st Century",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-microsoft-msft-the-ai-first-titan-of-the-21st-century",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.2926,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MSFT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.524253",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.603005",
+        "ticker_sentiment_score": "0.316161",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.647215",
+        "ticker_sentiment_score": "0.240927",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.637510",
+        "ticker_sentiment_score": "0.117816",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/stocks/article/predictstreet-2026-1-1-the-essential-architect-a-deep-dive-analysis-of-broadcom-inc-avgo-in-2026",
+    "timestamp_utc": "2026-01-01T09:57:00+00:00",
+    "title": "The Essential Architect: A Deep-Dive Analysis of Broadcom Inc. (AVGO) in 2026",
+    "url": "https://markets.financialcontent.com/stocks/article/predictstreet-2026-1-1-the-essential-architect-a-deep-dive-analysis-of-broadcom-inc-avgo-in-2026",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.3875,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.975375",
+        "ticker_sentiment_score": "0.824828",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.893852",
+        "ticker_sentiment_score": "0.480612",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.719104",
+        "ticker_sentiment_score": "0.145594",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.601145",
+        "ticker_sentiment_score": "0.331882",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOG",
+        "relevance_score": "0.646022",
+        "ticker_sentiment_score": "0.349837",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-essential-architect-a-deep-dive-analysis-of-broadcom-inc-avgo-in-2026",
+    "timestamp_utc": "2026-01-01T09:57:00+00:00",
+    "title": "The Essential Architect: A Deep-Dive Analysis of Broadcom Inc. (AVGO) in 2026",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-1-the-essential-architect-a-deep-dive-analysis-of-broadcom-inc-avgo-in-2026",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.278694,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.500468",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.862312",
+        "ticker_sentiment_score": "0.310602",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.737834",
+        "ticker_sentiment_score": "0.078914",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "CSCO",
+        "relevance_score": "0.615614",
+        "ticker_sentiment_score": "0.108186",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.611448",
+        "ticker_sentiment_score": "0.311562",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265186/if-youd-invested-1000-in-costco-10-years-ago-heres-your-return-today",
+    "timestamp_utc": "2026-01-01T10:07:39+00:00",
+    "title": "If You'd Invested $1,000 in Costco 10 Years Ago, Here's Your Return Today",
+    "url": "https://finviz.com/news/265186/if-youd-invested-1000-in-costco-10-years-ago-heres-your-return-today",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.21375,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "COST",
+        "relevance_score": "0.997139",
+        "ticker_sentiment_score": "0.262409",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.646181",
+        "ticker_sentiment_score": "0.228291",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.637421",
+        "ticker_sentiment_score": "0.243380",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "WMT",
+        "relevance_score": "0.579492",
+        "ticker_sentiment_score": "0.090408",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-sitime-corporation-sitm-shares-sold-by-calamos-advisors-llc-2026-01-01/",
+    "timestamp_utc": "2026-01-01T10:14:10+00:00",
+    "title": "SiTime Corporation $SITM Shares Sold by Calamos Advisors LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-sitime-corporation-sitm-shares-sold-by-calamos-advisors-llc-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.17506,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SITM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.103763",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.637238",
+        "ticker_sentiment_score": "0.253153",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.jpost.com/business-and-innovation/energy-and-infrastructure/article-881981",
+    "timestamp_utc": "2026-01-01T10:26:00+00:00",
+    "title": "From gaming to infrastructure, Zoran Milosevic building Golden Matrix Group brick by brick",
+    "url": "https://www.jpost.com/business-and-innovation/energy-and-infrastructure/article-881981",
+    "source": "The Jerusalem Post",
+    "source_domain": "The Jerusalem Post",
+    "overall_sentiment_score": 0.388821,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GMGI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.426575",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648981",
+        "ticker_sentiment_score": "0.329295",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-strong-tower-advisory-services-trims-stake-in-nvidia-corporation-nvda-2026-01-01/",
+    "timestamp_utc": "2026-01-01T10:36:35+00:00",
+    "title": "Strong Tower Advisory Services Trims Stake in NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-strong-tower-advisory-services-trims-stake-in-nvidia-corporation-nvda-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.209994,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.293098",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.601243",
+        "ticker_sentiment_score": "0.100280",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.barchart.com/story/news/36842998/ovbc-vs-ubcp-which-bank-stock-deserves-a-spot-in-your-portfolio",
+    "timestamp_utc": "2026-01-01T10:59:04+00:00",
+    "title": "OVBC vs. UBCP: Which Bank Stock Deserves a Spot in Your Portfolio?",
+    "url": "https://www.barchart.com/story/news/36842998/ovbc-vs-ubcp-which-bank-stock-deserves-a-spot-in-your-portfolio",
+    "source": "Barchart.com",
+    "source_domain": "Barchart.com",
+    "overall_sentiment_score": 0.110198,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "OVBC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.506096",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.564740",
+        "ticker_sentiment_score": "-0.101074",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.555513",
+        "ticker_sentiment_score": "-0.166559",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/intel-stock-dips-in-year-end-trade-as-nvidias-5-billion-stake-stays-in-focus-for-intc/",
+    "timestamp_utc": "2026-01-01T11:08:09+00:00",
+    "title": "Intel stock dips in year-end trade as Nvidia\u2019s $5 billion stake stays in focus for INTC",
+    "url": "https://ts2.tech/en/intel-stock-dips-in-year-end-trade-as-nvidias-5-billion-stake-stays-in-focus-for-intc/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.025845,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.245542",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.837813",
+        "ticker_sentiment_score": "0.268991",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.566902",
+        "ticker_sentiment_score": "0.026802",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-symmetry-partners-llc-has-405-million-holdings-in-nvidia-corporation-nvda-2026-01-01/",
+    "timestamp_utc": "2026-01-01T11:08:28+00:00",
+    "title": "Symmetry Partners LLC Has $4.05 Million Holdings in NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-symmetry-partners-llc-has-405-million-holdings-in-nvidia-corporation-nvda-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.256222,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.314742",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.736135",
+        "ticker_sentiment_score": "0.101062",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.610992",
+        "ticker_sentiment_score": "0.311043",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synaptics-stock-in-focus-ai-hopes-rate-jitters-and-a-sideways-tape-test/68448105",
+    "timestamp_utc": "2026-01-01T11:09:44+00:00",
+    "title": "Synaptics Stock in Focus: AI Hopes, Rate Jitters and a Sideways Tape Test Investors\u2019 Nerves",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synaptics-stock-in-focus-ai-hopes-rate-jitters-and-a-sideways-tape-test/68448105",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.187305,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SYNA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.105105",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.722864",
+        "ticker_sentiment_score": "0.298412",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.606373",
+        "ticker_sentiment_score": "0.113006",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.636665",
+        "ticker_sentiment_score": "0.331217",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.626561",
+        "ticker_sentiment_score": "0.102653",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-microsoft-corporation-msft-is-true-north-advisors-llcs-7th-largest-position-2026-01-01/",
+    "timestamp_utc": "2026-01-01T11:12:46+00:00",
+    "title": "Microsoft Corporation $MSFT is True North Advisors LLC's 7th Largest Position",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-microsoft-corporation-msft-is-true-north-advisors-llcs-7th-largest-position-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.315176,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MSFT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.264413",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.608462",
+        "ticker_sentiment_score": "0.358268",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265601/goldman-sachs-downgrades-arm-holdings-arm-amid-limited-ai-cycle-exposure-and-non-traditional-market-challenges",
+    "timestamp_utc": "2026-01-01T12:09:29+00:00",
+    "title": "Goldman Sachs Downgrades Arm Holdings (ARM) Amid Limited AI Cycle Exposure and Non-Traditional Market Challenges",
+    "url": "https://finviz.com/news/265601/goldman-sachs-downgrades-arm-holdings-arm-amid-limited-ai-cycle-exposure-and-non-traditional-market-challenges",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.199458,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ARM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.481968",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.605950",
+        "ticker_sentiment_score": "0.337622",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.616127",
+        "ticker_sentiment_score": "0.332808",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.643242",
+        "ticker_sentiment_score": "0.302665",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.606465",
+        "ticker_sentiment_score": "0.318006",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-northwest-capital-management-inc-sells-13619-shares-of-intel-corporation-intc-2026-01-01/",
+    "timestamp_utc": "2026-01-01T13:08:33+00:00",
+    "title": "Northwest Capital Management Inc Sells 13,619 Shares of Intel Corporation $INTC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-northwest-capital-management-inc-sells-13619-shares-of-intel-corporation-intc-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.089852,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.955739",
+        "ticker_sentiment_score": "-0.142166",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.808158",
+        "ticker_sentiment_score": "0.263014",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/gurufocus:37daba735094b:0-nvidia-and-apple-orders-drive-tsmc-latest-chip-surge/",
+    "timestamp_utc": "2026-01-01T14:07:59+00:00",
+    "title": "Nvidia and Apple Orders Drive TSMC Latest Chip Surge",
+    "url": "https://www.tradingview.com/news/gurufocus:37daba735094b:0-nvidia-and-apple-orders-drive-tsmc-latest-chip-surge/",
+    "source": "TradingView \u2014 Track All Markets",
+    "source_domain": "TradingView \u2014 Track All Markets",
+    "overall_sentiment_score": 0.277653,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "FDS",
+        "relevance_score": "0.301527",
+        "ticker_sentiment_score": "0.037498",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.989035",
+        "ticker_sentiment_score": "0.417185",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.904263",
+        "ticker_sentiment_score": "0.346400",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.617032",
+        "ticker_sentiment_score": "0.346235",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.638926",
+        "ticker_sentiment_score": "0.322796",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://blogs.nvidia.com/blog/geforce-now-thursday-january-2026/",
+    "timestamp_utc": "2026-01-01T14:08:16+00:00",
+    "title": "GeForce NOW Rings In 2026 With 14 New Games in January",
+    "url": "https://blogs.nvidia.com/blog/geforce-now-thursday-january-2026/",
+    "source": "NVIDIA Blog",
+    "source_domain": "NVIDIA Blog",
+    "overall_sentiment_score": 0.639942,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.625188",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://timesofindia.indiatimes.com/technology/tech-news/this-japanese-tech-company-beat-nvidia-google-microsoft-and-all-other-silicon-valley-giants-to-become-the-best-performing-stock-of-2025/articleshow/126288708.cms",
+    "timestamp_utc": "2026-01-01T14:08:19+00:00",
+    "title": "This Japanese tech company beat Nvidia, Google, Microsoft and all other Silicon Valley giants to become the best-performing stock of 2025",
+    "url": "https://timesofindia.indiatimes.com/technology/tech-news/this-japanese-tech-company-beat-nvidia-google-microsoft-and-all-other-silicon-valley-giants-to-become-the-best-performing-stock-of-2025/articleshow/126288708.cms",
+    "source": "Times of India",
+    "source_domain": "Times of India",
+    "overall_sentiment_score": 0.183635,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.810334",
+        "ticker_sentiment_score": "0.114636",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.719584",
+        "ticker_sentiment_score": "0.218674",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.733678",
+        "ticker_sentiment_score": "0.234267",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.644501",
+        "ticker_sentiment_score": "0.214220",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.manilatimes.net/2025/12/31/tmt-newswire/globenewswire/graniteshares-announces-weekly-distributions-for-its-yieldboost-etfs-coyy-tsyy-nvyy-xbty-amyy-tqqy-azyy-yspy-mtyy-plyy-hoyy-smyy-bbyy-fbyy-ioyy-maay-nugy-semy-qby-rgyy-hmyy-and-rtyy/2251512",
+    "timestamp_utc": "2026-01-01T14:09:34+00:00",
+    "title": "GraniteShares Announces Weekly Distributions for its YieldBOOST ETFs: COYY, TSYY, NVYY, XBTY, AMYY, TQQY, AZYY, YSPY, MTYY, PLYY, HOYY, SMYY, BBYY, FBYY, IOYY, MAAY, NUGY, SEMY, QBY, RGYY, HMYY and RTYY",
+    "url": "https://www.manilatimes.net/2025/12/31/tmt-newswire/globenewswire/graniteshares-announces-weekly-distributions-for-its-yieldboost-etfs-coyy-tsyy-nvyy-xbty-amyy-tqqy-azyy-yspy-mtyy-plyy-hoyy-smyy-bbyy-fbyy-ioyy-maay-nugy-semy-qby-rgyy-hmyy-and-rtyy/2251512",
+    "source": "The Manila Times",
+    "source_domain": "The Manila Times",
+    "overall_sentiment_score": 0.406217,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "XBTY",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.444802",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.710905",
+        "ticker_sentiment_score": "0.400605",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.732325",
+        "ticker_sentiment_score": "0.441320",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.713994",
+        "ticker_sentiment_score": "0.444514",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.737136",
+        "ticker_sentiment_score": "0.412549",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/tokenring-2026-1-1-texas-instruments-ignites-the-reshoring-revolution-sm1-fab-in-sherman-begins-production-of-ai-and-automotive-silicon",
+    "timestamp_utc": "2026-01-01T14:23:00+00:00",
+    "title": "Texas Instruments Ignites the Reshoring Revolution: SM1 Fab in Sherman Begins Production of AI and Automotive Silicon",
+    "url": "https://markets.financialcontent.com/wral/article/tokenring-2026-1-1-texas-instruments-ignites-the-reshoring-revolution-sm1-fab-in-sherman-begins-production-of-ai-and-automotive-silicon",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.477484,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.870992",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.721351",
+        "ticker_sentiment_score": "0.468552",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.692692",
+        "ticker_sentiment_score": "0.422311",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "F",
+        "relevance_score": "0.615189",
+        "ticker_sentiment_score": "0.348668",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.589044",
+        "ticker_sentiment_score": "0.319929",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/marketminute-2026-1-1-quantum-chill-ionq-and-peers-face-new-year-slump-ahead-of-high-stakes-ces-2026",
+    "timestamp_utc": "2026-01-01T14:31:00+00:00",
+    "title": "Quantum Chill: IonQ and Peers Face New Year Slump Ahead of High-Stakes CES 2026",
+    "url": "https://markets.financialcontent.com/wral/article/marketminute-2026-1-1-quantum-chill-ionq-and-peers-face-new-year-slump-ahead-of-high-stakes-ces-2026",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.055213,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "IONQ",
+        "relevance_score": "0.994266",
+        "ticker_sentiment_score": "-0.321396",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.613528",
+        "ticker_sentiment_score": "0.279790",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.586896",
+        "ticker_sentiment_score": "0.130165",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/broadcom-stock-today-avgo-slips-into-new-years-market-closure-as-openai-chip-tie-up-stays-in-focus/",
+    "timestamp_utc": "2026-01-01T15:07:54+00:00",
+    "title": "Broadcom stock today: AVGO slips into New Year\u2019s market closure as OpenAI chip tie-up stays in focus",
+    "url": "https://ts2.tech/en/broadcom-stock-today-avgo-slips-into-new-years-market-closure-as-openai-chip-tie-up-stays-in-focus/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.146847,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.962273",
+        "ticker_sentiment_score": "-0.116535",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.734043",
+        "ticker_sentiment_score": "-0.202105",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.668922",
+        "ticker_sentiment_score": "-0.212938",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.565716",
+        "ticker_sentiment_score": "-0.075664",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/intel-stock-today-intc-dips-into-2026-as-nvidias-5b-stake-keeps-focus-on-whats-nextnew-york-january-1-2026-1013-et-market-closed/",
+    "timestamp_utc": "2026-01-01T15:08:07+00:00",
+    "title": "Intel stock today: INTC dips into 2026 as Nvidia\u2019s $5B stake keeps focus on what\u2019s next",
+    "url": "https://ts2.tech/en/intel-stock-today-intc-dips-into-2026-as-nvidias-5b-stake-keeps-focus-on-whats-nextnew-york-january-1-2026-1013-et-market-closed/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.164342,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.245114",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.835582",
+        "ticker_sentiment_score": "-0.144106",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.604362",
+        "ticker_sentiment_score": "-0.106261",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/onto-innovation-inc-is-quietly-exploding-is-this-under-the-radar-chip/68445013",
+    "timestamp_utc": "2026-01-01T15:10:11+00:00",
+    "title": "Onto Innovation Inc Is Quietly Exploding \u2014 Is This Under-the-Radar Chip Stock Your Next Power Play",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/onto-innovation-inc-is-quietly-exploding-is-this-under-the-radar-chip/68445013",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.436044,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ONTO",
+        "relevance_score": "0.967353",
+        "ticker_sentiment_score": "0.747441",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.636430",
+        "ticker_sentiment_score": "0.343687",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.592075",
+        "ticker_sentiment_score": "0.320961",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-today-advanced-micro-devices-slips-into-2026-as-traders-eye-ces-keynote-and-feb-earnings/",
+    "timestamp_utc": "2026-01-01T15:16:43+00:00",
+    "title": "AMD stock today: Advanced Micro Devices slips into 2026 as traders eye CES keynote and Feb. earnings",
+    "url": "https://ts2.tech/en/amd-stock-today-advanced-micro-devices-slips-into-2026-as-traders-eye-ces-keynote-and-feb-earnings/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.063573,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.085116",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.609309",
+        "ticker_sentiment_score": "0.061364",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.629853",
+        "ticker_sentiment_score": "0.082135",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/super-micro-smci-stock-dips-after-hours-after-liquid-cooled-superblade-launch/",
+    "timestamp_utc": "2026-01-01T15:42:00+00:00",
+    "title": "Super Micro (SMCI) stock dips after-hours after liquid\u2011cooled SuperBlade launch",
+    "url": "https://ts2.tech/en/super-micro-smci-stock-dips-after-hours-after-liquid-cooled-superblade-launch/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.101745,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.201457",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.618793",
+        "ticker_sentiment_score": "0.247242",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.647919",
+        "ticker_sentiment_score": "0.207980",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  }
+]

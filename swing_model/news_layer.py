@@ -18,6 +18,7 @@ def compute_news_score(
     yahoo_articles: list[dict],
     ticker: str,
     cfg: Optional[dict] = None,
+    reference_date: Optional[datetime] = None,
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -33,7 +34,7 @@ def compute_news_score(
     if cfg is None:
         cfg = {}
 
-    now = datetime.now(timezone.utc)
+    now = reference_date if reference_date is not None else datetime.now(timezone.utc)
     watchlist = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
 
     all_articles = list(alpha_vantage_articles) + list(yahoo_articles)

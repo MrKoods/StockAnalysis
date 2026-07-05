@@ -35,24 +35,25 @@ confidence:
 
 # Scoring weights (max contribution per category — must sum to 100)
 scoring_weights:
-  technical_max: 60
-  sentiment_max: 25
-  news_max: 15
+  technical_max: 50        # Updated from 60
+  sentiment_max: 20        # Updated from 25
+  news_max: 15             # Unchanged
+  fundamental_max: 15      # New
 
-# Technical sub-signal max points (5 sub-signals × 12 = 60)
+# Technical sub-signal max points (5 sub-signals × 10 = 50)
 technical_sub_signals:
-  breakout: 12
-  trend: 12
-  relative_strength: 12
-  rsi: 12
-  volume_profile: 12
+  breakout: 10             # Updated from 12
+  trend: 10                # Updated from 12
+  relative_strength: 10    # Updated from 12
+  rsi: 10                  # Updated from 12
+  volume_profile: 10       # Updated from 12
 
-# Sentiment sub-signal max points (sum = 25)
+# Sentiment sub-signal max points (sum = 20)
 sentiment_sub_signals:
-  trajectory: 10
-  velocity: 5
-  cross_platform_consistency: 5
-  spike_classification: 5
+  trajectory: 8            # Updated from 10
+  velocity: 4              # Updated from 5
+  cross_platform_consistency: 4  # Updated from 5
+  spike_classification: 4  # Updated from 5
 
 # News sub-signal max points (sum = 15)
 news_sub_signals:
@@ -244,6 +245,80 @@ black_swan:
   smh_drop_threshold_pct: -0.07     # SMH drops >7% in single session
   vix_spike_threshold_pct: 0.40     # VIX spikes >40% intraday
   resume_after_normal_days: 3       # Resume after 3 consecutive normal regime days
+
+# Fundamental analysis layer (weekly batch — does not consume daily AV budget)
+fundamental:
+  update_cadence: "weekly"
+  update_day: "Monday"
+  update_time_et: "17:00"
+  cache_file: "data/processed/fundamental_state.json"
+
+  # Alpha Vantage calls per week (weekly batch only — does not affect daily 25-call budget)
+  alpha_vantage_calls_per_week: 6
+
+  # Scoring maximums (must sum to 15)
+  earnings_momentum_max: 9
+  valuation_peers_max: 6
+
+  # Earnings momentum sub-maximums (must sum to 9)
+  eps_growth_max: 3
+  estimate_revisions_max: 2
+  earnings_surprise_max: 2
+  analyst_consensus_max: 2
+
+  # Valuation sub-maximums (must sum to 6)
+  pe_vs_sector_max: 2
+  forward_vs_trailing_pe_max: 2
+  ev_ebitda_vs_peers_max: 2
+
+  # Scoring thresholds for EPS growth
+  eps_accelerating_threshold: 0.10      # >10% average growth AND accelerating
+  eps_positive_threshold: 0.00          # >0% = positive
+  eps_flat_threshold: -0.05             # >-5% = flat
+  eps_negative_threshold: -0.05         # <-5% = negative contribution
+
+  # Valuation scoring thresholds
+  pe_premium_penalty_threshold: 0.50    # 50%+ premium vs sector = -1pt
+  pe_extreme_premium_threshold: 1.00    # 100%+ premium = -2pts
+  ev_ebitda_premium_threshold: 0.50     # 50%+ above sector average = -1pt
+  forward_trailing_tolerance: 0.05      # Within 5% = approximately equal
+
+  # Data quality handling
+  unavailable_score: 0                  # Score 0 (neutral) if data unavailable
+  suspect_field_score: 0                # Score 0 if field flagged as suspect
+
+  # Confidence scoring weights (updated for 4-category system)
+  technical_max: 50                     # Down from 60
+  sentiment_max: 20                     # Down from 25
+  news_max: 15                          # Unchanged
+  fundamental_max: 15                   # New
+
+# Confidence scoring (4-category system — maximums must sum to 100)
+confidence_scoring:
+  # Maximum contributions per category (must sum to 100)
+  technical_max: 50          # Updated from 60
+  sentiment_max: 20          # Updated from 25
+  news_max: 15               # Unchanged
+  fundamental_max: 15        # New
+
+  # Technical sub-signal maximums (must sum to 50)
+  breakout_max: 10           # Updated from 12
+  trend_max: 10              # Updated from 12
+  relative_strength_max: 10  # Updated from 12
+  rsi_max: 10                # Updated from 12
+  volume_profile_max: 10     # Updated from 12
+
+  # Sentiment sub-signal maximums (must sum to 20)
+  sentiment_trajectory_max: 8       # Updated from 10
+  sentiment_velocity_max: 4         # Updated from 5
+  cross_platform_consistency_max: 4  # Updated from 5
+  spike_classification_max: 4        # Updated from 5
+
+  # News sub-signal maximums (must sum to 15 — unchanged)
+  news_credibility_max: 6
+  theme_alignment_max: 4
+  news_clustering_max: 3
+  news_decay_max: 2
 
 # Feedback loop recalibration
 feedback_loop:

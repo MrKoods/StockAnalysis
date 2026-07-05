@@ -1,0 +1,84 @@
+{
+  "passed": false,
+  "win_rate": 0.1667,
+  "avg_rr": 0.68,
+  "sharpe_ratio": 6.39,
+  "max_drawdown_pct": 0.0743,
+  "qualifying_trades": 54,
+  "total_signals": 274,
+  "max_consecutive_losses": 11,
+  "per_regime": {
+    "trending_up": {
+      "win_rate": 0.16666666666666666,
+      "avg_rr": 0.6817301081106888,
+      "trade_count": 54
+    }
+  },
+  "walk_forward": [
+    {
+      "window": 1,
+      "train_through": "2023-01-03 00:00:00+00:00",
+      "validate_through": "2023-07-06 00:00:00+00:00",
+      "qualifying_trades": 1,
+      "win_rate": 0.0,
+      "avg_rr": 0.67,
+      "passed": false
+    },
+    {
+      "window": 2,
+      "train_through": "2023-07-06 00:00:00+00:00",
+      "validate_through": "2024-01-04 00:00:00+00:00",
+      "qualifying_trades": 21,
+      "win_rate": 0.0,
+      "avg_rr": 0.01,
+      "passed": false
+    },
+    {
+      "window": 3,
+      "train_through": "2024-01-04 00:00:00+00:00",
+      "validate_through": "2024-07-08 00:00:00+00:00",
+      "qualifying_trades": 4,
+      "win_rate": 0.25,
+      "avg_rr": 0.59,
+      "passed": false
+    },
+    {
+      "window": 4,
+      "train_through": "2024-07-08 00:00:00+00:00",
+      "validate_through": "2025-01-06 00:00:00+00:00",
+      "qualifying_trades": 7,
+      "win_rate": 0.0,
+      "avg_rr": -0.0,
+      "passed": false
+    },
+    {
+      "window": 5,
+      "train_through": "2025-01-06 00:00:00+00:00",
+      "validate_through": "2025-07-10 00:00:00+00:00",
+      "qualifying_trades": 3,
+      "win_rate": 0.0,
+      "avg_rr": 0.42,
+      "passed": false
+    },
+    {
+      "window": 6,
+      "train_through": "2025-07-10 00:00:00+00:00",
+      "validate_through": "2026-01-08 00:00:00+00:00",
+      "qualifying_trades": 18,
+      "win_rate": 0.0,
+      "avg_rr": -0.03,
+      "passed": false
+    },
+    {
+      "window": 7,
+      "train_through": "2026-01-08 00:00:00+00:00",
+      "validate_through": "2026-07-02 00:00:00+00:00",
+      "qualifying_trades": 5,
+      "win_rate": 0.0,
+      "avg_rr": -0.94,
+      "passed": false
+    }
+  ],
+  "train_period": "2021-07-06 00:00:00+00:00",
+  "test_period": "2024-12-30 00:00:00+00:00"
+}

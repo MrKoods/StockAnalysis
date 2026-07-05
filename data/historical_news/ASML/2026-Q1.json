@@ -1,0 +1,1256 @@
+[
+  {
+    "article_id": "https://ts2.tech/en/asml-stock-today-chinas-50-domestic-equipment-rule-in-focus-ahead-of-jan-28-results/",
+    "timestamp_utc": "2026-01-01T10:09:23+00:00",
+    "title": "ASML stock today: China\u2019s 50% domestic-equipment rule in focus ahead of Jan. 28 results",
+    "url": "https://ts2.tech/en/asml-stock-today-chinas-50-domestic-equipment-rule-in-focus-ahead-of-jan-28-results/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.213714,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.028618",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.733110",
+        "ticker_sentiment_score": "-0.262918",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.621606",
+        "ticker_sentiment_score": "-0.280131",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.607433",
+        "ticker_sentiment_score": "-0.257811",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-ninety-one-uk-ltd-sells-4235-shares-of-asml-holding-nv-asml-2026-01-01/",
+    "timestamp_utc": "2026-01-01T14:09:23+00:00",
+    "title": "Ninety One UK Ltd Sells 4,235 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-ninety-one-uk-ltd-sells-4235-shares-of-asml-holding-nv-asml-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.304136,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.340243",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.613018",
+        "ticker_sentiment_score": "0.329043",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/news/investing-asml-holding-ams-asml-070011232.html",
+    "timestamp_utc": "2026-01-02T02:00:00+00:00",
+    "title": "Investing in ASML Holding (AMS:ASML) five years ago would have delivered you a 132% gain",
+    "url": "https://finance.yahoo.com/news/investing-asml-holding-ams-asml-070011232.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.407668,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.403281",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/asml-stock-slips-in-premarket-after-aletheia-upgrade-lifts-target-to-1500/",
+    "timestamp_utc": "2026-01-02T05:46:00+00:00",
+    "title": "ASML stock slips in premarket after Aletheia upgrade lifts target to $1,500",
+    "url": "https://ts2.tech/en/asml-stock-slips-in-premarket-after-aletheia-upgrade-lifts-target-to-1500/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.166765,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.232044",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.607061",
+        "ticker_sentiment_score": "-0.128958",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/news/4536267-asml-pops-after-aletheia-capital-double-upgrades-euv-maker",
+    "timestamp_utc": "2026-01-02T08:54:00+00:00",
+    "title": "ASML pops after Aletheia Capital double upgrades EUV maker (ASML:NASDAQ)",
+    "url": "https://seekingalpha.com/news/4536267-asml-pops-after-aletheia-capital-double-upgrades-euv-maker",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.47907,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.465817",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-2-the-linchpin-of-the-ai-era-a-deep-dive-stock-research-report-on-asml-asml",
+    "timestamp_utc": "2026-01-02T09:36:00+00:00",
+    "title": "The Linchpin of the AI Era: A Deep-Dive Stock Research Report on ASML (ASML)",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-2-the-linchpin-of-the-ai-era-a-deep-dive-stock-research-report-on-asml-asml",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.643383,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.840216",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.617206",
+        "ticker_sentiment_score": "0.655535",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.610107",
+        "ticker_sentiment_score": "0.545960",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.575096",
+        "ticker_sentiment_score": "0.533149",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stocktwits.com/news-articles/markets/equity/asml-stock-in-spotlight-following-analyst-u-turn-whats-driving-double-upgrade/cmxNyDNRE6f",
+    "timestamp_utc": "2026-01-02T11:08:46+00:00",
+    "title": "ASML Stock In The Spotlight Following An Analyst U-Turn \u2014 Here\u2019s What\u2019s Driving The Double Upgrade",
+    "url": "https://stocktwits.com/news-articles/markets/equity/asml-stock-in-spotlight-following-analyst-u-turn-whats-driving-double-upgrade/cmxNyDNRE6f",
+    "source": "Stocktwits",
+    "source_domain": "Stocktwits",
+    "overall_sentiment_score": 0.400754,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.404975",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/asml-stock-today-chinas-50-homegrown-chip-tool-push-puts-2026-demand-in-focus/",
+    "timestamp_utc": "2026-01-02T18:05:00+00:00",
+    "title": "ASML stock today: China\u2019s 50% homegrown chip-tool push puts 2026 demand in focus",
+    "url": "https://ts2.tech/en/asml-stock-today-chinas-50-homegrown-chip-tool-push-puts-2026-demand-in-focus/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.139574,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.298598",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.616530",
+        "ticker_sentiment_score": "-0.136521",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.621159",
+        "ticker_sentiment_score": "-0.138656",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.607677",
+        "ticker_sentiment_score": "-0.106587",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.566593",
+        "ticker_sentiment_score": "0.124272",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://uk.finance.yahoo.com/news/investing-asml-holding-ams-asml-070011232.html",
+    "timestamp_utc": "2026-01-02T19:00:00+00:00",
+    "title": "Investing in ASML Holding (AMS:ASML) five years ago would have delivered you a 132% gain",
+    "url": "https://uk.finance.yahoo.com/news/investing-asml-holding-ams-asml-070011232.html",
+    "source": "Yahoo Finance UK",
+    "source_domain": "Yahoo Finance UK",
+    "overall_sentiment_score": 0.504832,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.535408",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.timothysykes.com/news/asmlholdingnv-asml-news-2026_01_02-2/",
+    "timestamp_utc": "2026-01-02T22:09:17+00:00",
+    "title": "ASML Stock Rises as Analyst Target Prices Surge Amid AI Infrastructure Growth",
+    "url": "https://www.timothysykes.com/news/asmlholdingnv-asml-news-2026_01_02-2/",
+    "source": "www.timothysykes.com",
+    "source_domain": "www.timothysykes.com",
+    "overall_sentiment_score": 0.634973,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.618330",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_02/",
+    "timestamp_utc": "2026-01-03T02:09:17+00:00",
+    "title": "ASML\u2019s Stock Soars with AI Demand: Analysts Boost Price Targets",
+    "url": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_02/",
+    "source": "StocksToTrade",
+    "source_domain": "StocksToTrade",
+    "overall_sentiment_score": 0.445318,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.856238",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.635441",
+        "ticker_sentiment_score": "0.326326",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.628408",
+        "ticker_sentiment_score": "0.323914",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.608953",
+        "ticker_sentiment_score": "0.330284",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.567846",
+        "ticker_sentiment_score": "0.274377",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_02-2/",
+    "timestamp_utc": "2026-01-03T03:09:17+00:00",
+    "title": "ASML\u2019s Price Target Soars Amid AI-Driven Demand Surge",
+    "url": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_02-2/",
+    "source": "StocksToTrade",
+    "source_domain": "StocksToTrade",
+    "overall_sentiment_score": 0.428884,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.426709",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/asml-stock-jumps-nearly-9-after-analyst-u-turn-doubles-target-to-1500/",
+    "timestamp_utc": "2026-01-03T09:09:17+00:00",
+    "title": "ASML stock jumps nearly 9% after analyst U-turn doubles target to $1,500",
+    "url": "https://ts2.tech/en/asml-stock-jumps-nearly-9-after-analyst-u-turn-doubles-target-to-1500/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.425794,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.709645",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.606123",
+        "ticker_sentiment_score": "0.311501",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.600595",
+        "ticker_sentiment_score": "0.321550",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.625460",
+        "ticker_sentiment_score": "0.331465",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-hedeker-wealth-llc-has-913-million-stock-holdings-in-asml-holding-nv-asml-2026-01-03/",
+    "timestamp_utc": "2026-01-03T14:09:17+00:00",
+    "title": "Hedeker Wealth LLC Has $9.13 Million Stock Holdings in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-hedeker-wealth-llc-has-913-million-stock-holdings-in-asml-holding-nv-asml-2026-01-03/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.318378,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.430667",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.639419",
+        "ticker_sentiment_score": "0.328189",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.624075",
+        "ticker_sentiment_score": "0.259180",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.558657",
+        "ticker_sentiment_score": "0.191118",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-unicom-systems-inc-has-2808-million-position-in-asml-holding-nv-asml-2026-01-03/",
+    "timestamp_utc": "2026-01-03T14:09:17+00:00",
+    "title": "UNICOM Systems Inc. Has $28.08 Million Position in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-unicom-systems-inc-has-2808-million-position-in-asml-holding-nv-asml-2026-01-03/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.378332,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.417330",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.643711",
+        "ticker_sentiment_score": "0.340229",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-allspring-global-investments-holdings-llc-buys-8039-shares-of-asml-holding-nv-asml-2026-01-04/",
+    "timestamp_utc": "2026-01-04T08:08:49+00:00",
+    "title": "Allspring Global Investments Holdings LLC Buys 8,039 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-allspring-global-investments-holdings-llc-buys-8039-shares-of-asml-holding-nv-asml-2026-01-04/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.293544,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.452809",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.606828",
+        "ticker_sentiment_score": "0.333877",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BEN",
+        "relevance_score": "0.647165",
+        "ticker_sentiment_score": "0.260584",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MA",
+        "relevance_score": "0.570928",
+        "ticker_sentiment_score": "0.223032",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.555833",
+        "ticker_sentiment_score": "0.225825",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-steelpeak-wealth-llc-sells-7601-shares-of-asml-holding-nv-asml-2026-01-04/",
+    "timestamp_utc": "2026-01-04T11:08:49+00:00",
+    "title": "SteelPeak Wealth LLC Sells 7,601 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-steelpeak-wealth-llc-sells-7601-shares-of-asml-holding-nv-asml-2026-01-04/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.420378,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.460677",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.604843",
+        "ticker_sentiment_score": "0.311879",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-1170-shares-in-asml-holding-nv-asml-bought-by-radnor-capital-management-llc-2026-01-04/",
+    "timestamp_utc": "2026-01-04T12:08:49+00:00",
+    "title": "1,170 Shares in ASML Holding N.V. $ASML Bought by Radnor Capital Management LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-1170-shares-in-asml-holding-nv-asml-bought-by-radnor-capital-management-llc-2026-01-04/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.320927,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.448118",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.640645",
+        "ticker_sentiment_score": "0.206569",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/asml-holding-n-v-the-secret-stock-behind-every-chip-and-why-wall/68458347",
+    "timestamp_utc": "2026-01-04T17:08:49+00:00",
+    "title": "ASML Holding N.V.: The Secret Stock Behind Every Chip\u2026 And Why Wall Street Can\u2019t Stop Staring",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/asml-holding-n-v-the-secret-stock-behind-every-chip-and-why-wall/68458347",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.370164,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.469828",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.615501",
+        "ticker_sentiment_score": "0.346832",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.591402",
+        "ticker_sentiment_score": "0.295788",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_04/",
+    "timestamp_utc": "2026-01-04T18:08:49+00:00",
+    "title": "ASML Rises as Analysts Boost Price Targets Amid AI Surge",
+    "url": "https://stockstotrade.com/news/asmlholdingnv-asml-news-2026_01_04/",
+    "source": "StocksToTrade",
+    "source_domain": "StocksToTrade",
+    "overall_sentiment_score": 0.749806,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.748649",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/nl/semiconductors/ams-asml/asml-holding-shares/news/why-investors-shouldnt-be-surprised-by-asml-holding-nvs-amsa/amp",
+    "timestamp_utc": "2026-01-05T04:09:04+00:00",
+    "title": "Why Investors Shouldn't Be Surprised By ASML Holding N.V.'s (AMS:ASML) P/E",
+    "url": "https://simplywall.st/stocks/nl/semiconductors/ams-asml/asml-holding-shares/news/why-investors-shouldnt-be-surprised-by-asml-holding-nvs-amsa/amp",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.33279,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.329985",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/analyst-ratings/bernstein-upgrades-asml-stock-rating-to-outperform-on-dram-cycle-benefits-93CH-4428717",
+    "timestamp_utc": "2026-01-05T05:09:04+00:00",
+    "title": "Bernstein upgrades ASML stock rating to Outperform on DRAM cycle benefits",
+    "url": "https://www.investing.com/news/analyst-ratings/bernstein-upgrades-asml-stock-rating-to-outperform-on-dram-cycle-benefits-93CH-4428717",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.042212,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.334473",
+        "ticker_sentiment_score": "0.015904",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/asml-stock-rises-after-bernstein-upgrade-dram-upcycle-thesis-back-in-play-ahead-of-earnings/",
+    "timestamp_utc": "2026-01-05T11:09:05+00:00",
+    "title": "ASML stock rises after Bernstein upgrade; DRAM upcycle thesis back in play ahead of earnings",
+    "url": "https://ts2.tech/en/asml-stock-rises-after-bernstein-upgrade-dram-upcycle-thesis-back-in-play-ahead-of-earnings/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.311016,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.458806",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.749572",
+        "ticker_sentiment_score": "0.256711",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.624404",
+        "ticker_sentiment_score": "0.249880",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.576972",
+        "ticker_sentiment_score": "0.199750",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-daymark-wealth-partners-llc-acquires-1452-shares-of-asml-holding-nv-asml-2026-01-05/",
+    "timestamp_utc": "2026-01-05T12:09:05+00:00",
+    "title": "Daymark Wealth Partners LLC Acquires 1,452 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-daymark-wealth-partners-llc-acquires-1452-shares-of-asml-holding-nv-asml-2026-01-05/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.536338,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.530158",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.643688",
+        "ticker_sentiment_score": "0.505144",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/analyst-stock-ratings/upgrades/26/01/49687838/this-intel-analyst-turns-bullish-here-are-top-5-upgrades-for-monday",
+    "timestamp_utc": "2026-01-05T12:09:05+00:00",
+    "title": "This Intel Analyst Turns Bullish; Here Are Top 5 Upgrades For Monday",
+    "url": "https://www.benzinga.com/analyst-stock-ratings/upgrades/26/01/49687838/this-intel-analyst-turns-bullish-here-are-top-5-upgrades-for-monday",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.331029,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.436334",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.909706",
+        "ticker_sentiment_score": "0.403772",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "ENPH",
+        "relevance_score": "0.721086",
+        "ticker_sentiment_score": "0.217055",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.622536",
+        "ticker_sentiment_score": "0.403921",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-kgl-capital-management-llc-sells-2015-shares-of-asml-holding-nv-asml-2026-01-05/",
+    "timestamp_utc": "2026-01-05T14:09:04+00:00",
+    "title": "KG&L Capital Management LLC Sells 2,015 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-kgl-capital-management-llc-sells-2015-shares-of-asml-holding-nv-asml-2026-01-05/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.279035,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.267263",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.579889",
+        "ticker_sentiment_score": "0.328496",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/nl/semiconductors/ams-asml/asml-holding-shares/news/why-investors-shouldnt-be-surprised-by-asml-holding-nvs-amsa",
+    "timestamp_utc": "2026-01-05T16:12:35+00:00",
+    "title": "Why Investors Shouldn't Be Surprised By ASML Holding N.V.'s (AMS:ASML) P/E",
+    "url": "https://simplywall.st/stocks/nl/semiconductors/ams-asml/asml-holding-shares/news/why-investors-shouldnt-be-surprised-by-asml-holding-nvs-amsa",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.306546,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.341395",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.economies.com/stocks/united-states-analysis/asml-price-soars---forecast-today---06-01-2026-123876",
+    "timestamp_utc": "2026-01-06T12:39:00+00:00",
+    "title": "ASML price soars - Forecast today - 06-01-2026",
+    "url": "https://www.economies.com/stocks/united-states-analysis/asml-price-soars---forecast-today---06-01-2026-123876",
+    "source": "Economies.com",
+    "source_domain": "Economies.com",
+    "overall_sentiment_score": 0.494139,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.499384",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-geneos-wealth-management-inc-increases-holdings-in-asml-holding-nv-asml-2026-01-06/",
+    "timestamp_utc": "2026-01-06T13:09:27+00:00",
+    "title": "Geneos Wealth Management Inc. Increases Holdings in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-geneos-wealth-management-inc-increases-holdings-in-asml-holding-nv-asml-2026-01-06/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.347569,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.497619",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.636460",
+        "ticker_sentiment_score": "0.246563",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/analysts-turn-bullish-on-asml-with-price-target-raised-to-1500-1670418/",
+    "timestamp_utc": "2026-01-06T16:12:35+00:00",
+    "title": "Analysts Turn Bullish on ASML With Price Target Raised to $1,500",
+    "url": "https://www.insidermonkey.com/blog/analysts-turn-bullish-on-asml-with-price-target-raised-to-1500-1670418/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.845558,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.817951",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-asml-holding-nv-asml-shares-sold-by-galvin-gaustad-stein-llc-2026-01-07/",
+    "timestamp_utc": "2026-01-07T10:12:35+00:00",
+    "title": "ASML Holding N.V. $ASML Shares Sold by Galvin Gaustad & Stein LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-asml-holding-nv-asml-shares-sold-by-galvin-gaustad-stein-llc-2026-01-07/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.316217,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.480091",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.642887",
+        "ticker_sentiment_score": "0.116354",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4857761-asml-ai-tailwinds-memory-upside-but-the-stock-looks-fully-priced",
+    "timestamp_utc": "2026-01-07T16:07:35+00:00",
+    "title": "ASML: AI Tailwinds, Memory Upside - But The Stock Looks Fully Priced (NASDAQ:ASML)",
+    "url": "https://seekingalpha.com/article/4857761-asml-ai-tailwinds-memory-upside-but-the-stock-looks-fully-priced",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.232032,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.105619",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.632551",
+        "ticker_sentiment_score": "0.332886",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.624689",
+        "ticker_sentiment_score": "0.248486",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.628104",
+        "ticker_sentiment_score": "0.220009",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.600738",
+        "ticker_sentiment_score": "0.219865",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-asml/asml-holding/news/assessing-asml-holding-nasdaqgsasml-valuation-after-strong-r",
+    "timestamp_utc": "2026-01-07T20:13:43+00:00",
+    "title": "Assessing ASML Holding (NasdaqGS:ASML) Valuation After Strong Recent Share Price Momentum",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-asml/asml-holding/news/assessing-asml-holding-nasdaqgsasml-valuation-after-strong-r",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": -0.421697,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.401005",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/36940243/asml-holding-nv-0qb8-receives-a-buy-from-berenberg-bank/",
+    "timestamp_utc": "2026-01-08T07:13:43+00:00",
+    "title": "ASML Holding NV (0QB8) Receives a Buy from Berenberg Bank",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/36940243/asml-holding-nv-0qb8-receives-a-buy-from-berenberg-bank/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.388331,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.447854",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.638352",
+        "ticker_sentiment_score": "0.316418",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fxempire.com/forecasts/article/see-how-asml-thrives-on-rare-bullish-inflows-1571678",
+    "timestamp_utc": "2026-01-08T11:13:43+00:00",
+    "title": "See How ASML Thrives on Rare Bullish Inflows",
+    "url": "https://www.fxempire.com/forecasts/article/see-how-asml-thrives-on-rare-bullish-inflows-1571678",
+    "source": "FXEmpire",
+    "source_domain": "FXEmpire",
+    "overall_sentiment_score": 0.747327,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.737665",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/why-bernstein-sees-2026-27-as-big-years-for-asml-1671815/",
+    "timestamp_utc": "2026-01-08T20:37:05+00:00",
+    "title": "Why Bernstein Sees 2026\u201327 as \u201cBig Years\u201d for ASML",
+    "url": "https://www.insidermonkey.com/blog/why-bernstein-sees-2026-27-as-big-years-for-asml-1671815/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.419403,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.440220",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML-Q/pressreleases/36940243/asml-holding-nv-0qb8-receives-a-buy-from-berenberg-bank/",
+    "timestamp_utc": "2026-01-08T20:37:05+00:00",
+    "title": "ASML Holding NV (0QB8) Receives a Buy from Berenberg Bank",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML-Q/pressreleases/36940243/asml-holding-nv-0qb8-receives-a-buy-from-berenberg-bank/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.382709,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.466845",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.607071",
+        "ticker_sentiment_score": "0.334629",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.592561",
+        "ticker_sentiment_score": "0.295122",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/if-you-invested-100-in-asml-holding-stock-15-years-ago-you-would-have-this-much-today-2026-01-03",
+    "timestamp_utc": "2026-01-09T05:37:05+00:00",
+    "title": "If You Invested $100 In ASML Holding Stock 15 Years Ago, You Would Have This Much Today",
+    "url": "https://www.sahmcapital.com/news/content/if-you-invested-100-in-asml-holding-stock-15-years-ago-you-would-have-this-much-today-2026-01-03",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.719854,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.723879",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-benjamin-edwards-inc-buys-909-shares-of-asml-holding-nv-asml-2026-01-09/",
+    "timestamp_utc": "2026-01-09T21:13:28+00:00",
+    "title": "Benjamin Edwards Inc. Buys 909 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-benjamin-edwards-inc-buys-909-shares-of-asml-holding-nv-asml-2026-01-09/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.30837,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.316900",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.634068",
+        "ticker_sentiment_score": "0.331519",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-corda-investment-management-llc-acquires-2378-shares-of-asml-holding-nv-asml-2026-01-11/",
+    "timestamp_utc": "2026-01-11T09:09:23+00:00",
+    "title": "CORDA Investment Management LLC. Acquires 2,378 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-corda-investment-management-llc-acquires-2378-shares-of-asml-holding-nv-asml-2026-01-11/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.307536,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.466404",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.558613",
+        "ticker_sentiment_score": "0.140852",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-solidarity-wealth-llc-cuts-stock-holdings-in-asml-holding-nv-asml-2026-01-11/",
+    "timestamp_utc": "2026-01-11T14:09:23+00:00",
+    "title": "Solidarity Wealth LLC Cuts Stock Holdings in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-solidarity-wealth-llc-cuts-stock-holdings-in-asml-holding-nv-asml-2026-01-11/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.435046,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.305317",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.628271",
+        "ticker_sentiment_score": "0.541968",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-hardman-johnston-global-advisors-llc-reduces-stake-in-asml-holding-nv-asml-2026-01-12/",
+    "timestamp_utc": "2026-01-12T09:57:54+00:00",
+    "title": "Hardman Johnston Global Advisors LLC Reduces Stake in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-hardman-johnston-global-advisors-llc-reduces-stake-in-asml-holding-nv-asml-2026-01-12/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.301553,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.429115",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.614376",
+        "ticker_sentiment_score": "0.328292",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BEN",
+        "relevance_score": "0.620115",
+        "ticker_sentiment_score": "0.233854",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-loring-wolcott-coolidge-fiduciary-advisors-llp-ma-buys-3092-shares-of-asml-holding-nv-asml-2026-01-12/",
+    "timestamp_utc": "2026-01-12T12:57:54+00:00",
+    "title": "Loring Wolcot & Coolidge Fiduciary Advisors LLP MA Buys 3,092 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-loring-wolcott-coolidge-fiduciary-advisors-llp-ma-buys-3092-shares-of-asml-holding-nv-asml-2026-01-12/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.411467,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.468543",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.612105",
+        "ticker_sentiment_score": "0.338473",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/36990289/new-buy-rating-for-asml-holding-nv-0qb8-the-technology-giant/",
+    "timestamp_utc": "2026-01-12T15:28:19+00:00",
+    "title": "New Buy Rating for ASML Holding NV (0QB8), the Technology Giant",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/36990289/new-buy-rating-for-asml-holding-nv-0qb8-the-technology-giant/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.432201,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.438435",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-bogart-wealth-llc-boosts-stake-in-asml-holding-nv-asml-2026-01-13/",
+    "timestamp_utc": "2026-01-13T08:27:48+00:00",
+    "title": "Bogart Wealth LLC Boosts Stake in ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-bogart-wealth-llc-boosts-stake-in-asml-holding-nv-asml-2026-01-13/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.4071,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.485413",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.635157",
+        "ticker_sentiment_score": "0.306935",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-grimes-co-wealth-management-llc-sells-1705-shares-of-asml-holding-nv-asml-2026-01-13/",
+    "timestamp_utc": "2026-01-13T09:27:48+00:00",
+    "title": "GRIMES & Co WEALTH MANAGEMENT LLC Sells 1,705 Shares of ASML Holding N.V. $ASML",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-grimes-co-wealth-management-llc-sells-1705-shares-of-asml-holding-nv-asml-2026-01-13/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.117596,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.118395",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/37012950/new-buy-rating-for-asml-holding-nv-0qb8-the-technology-giant/",
+    "timestamp_utc": "2026-01-13T10:27:48+00:00",
+    "title": "New Buy Rating for ASML Holding NV (0QB8), the Technology Giant",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/37012950/new-buy-rating-for-asml-holding-nv-0qb8-the-technology-giant/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.492155,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.452845",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://m.investing.com/news/analyst-ratings/asml-stock-price-target-raised-to-1250-by-rothschild-redburn-93CH-4443976?ampMode=1",
+    "timestamp_utc": "2026-01-13T10:27:48+00:00",
+    "title": "ASML stock price target raised to \u20ac1,250 by Rothschild Redburn",
+    "url": "https://m.investing.com/news/analyst-ratings/asml-stock-price-target-raised-to-1250-by-rothschild-redburn-93CH-4443976?ampMode=1",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.315848,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.462377",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.638971",
+        "ticker_sentiment_score": "0.106736",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ng.investing.com/news/analyst-ratings/asml-stock-price-target-raised-to-1250-by-rothschild-redburn-93CH-2286545",
+    "timestamp_utc": "2026-01-13T11:29:31+00:00",
+    "title": "ASML stock price target raised to \u20ac1,250 by Rothschild Redburn",
+    "url": "https://ng.investing.com/news/analyst-ratings/asml-stock-price-target-raised-to-1250-by-rothschild-redburn-93CH-2286545",
+    "source": "Investing.com Nigeria",
+    "source_domain": "Investing.com Nigeria",
+    "overall_sentiment_score": 0.293355,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.420643",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.618244",
+        "ticker_sentiment_score": "0.112526",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/37043394/asmls-installed-base-management-business-picks-up-whats-driving-it/",
+    "timestamp_utc": "2026-01-14T10:20:00+00:00",
+    "title": "ASML's Installed Base Management Business Picks Up: What's Driving it?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/37043394/asmls-installed-base-management-business-picks-up-whats-driving-it/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.348184,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.467059",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.603322",
+        "ticker_sentiment_score": "0.255748",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.622133",
+        "ticker_sentiment_score": "0.284081",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  }
+]

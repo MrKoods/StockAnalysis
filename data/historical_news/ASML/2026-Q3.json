@@ -1,0 +1,218 @@
+[
+  {
+    "article_id": "https://www.tradingview.com/symbols/LSE-0M42/financials-statistics-and-ratios/price-sales-fwd/",
+    "timestamp_utc": "2026-07-01T10:09:45+00:00",
+    "title": "Price to sales forward of ASML Holding NV Sponsored ADR \u2013 LSE:0M42",
+    "url": "https://www.tradingview.com/symbols/LSE-0M42/financials-statistics-and-ratios/price-sales-fwd/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.022668,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.319217",
+        "ticker_sentiment_score": "0.022410",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004606-market-movers-asml-20260701",
+    "timestamp_utc": "2026-07-01T15:09:45+00:00",
+    "title": "ASML Holding NV Stock (ASML) Moved Down by 6.02% on Jul 1: What Investors Need To Know",
+    "url": "https://www.tradingkey.com/news/market-movers/262004606-market-movers-asml-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.025699,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.453506",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.636035",
+        "ticker_sentiment_score": "-0.329722",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.634030",
+        "ticker_sentiment_score": "0.315509",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.616030",
+        "ticker_sentiment_score": "0.413471",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/3090806/asml-holding-nv-0qb8-gets-a-buy-from-ubs/",
+    "timestamp_utc": "2026-07-02T05:11:14+00:00",
+    "title": "ASML Holding NV (0QB8) Gets a Buy from UBS",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/3090806/asml-holding-nv-0qb8-gets-a-buy-from-ubs/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.120903,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.329315",
+        "ticker_sentiment_score": "0.042287",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.561563",
+        "ticker_sentiment_score": "0.185636",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.551193",
+        "ticker_sentiment_score": "0.176669",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/symbols/TSX-ASML/financials-statistics-and-ratios/price-earnings-fwd/",
+    "timestamp_utc": "2026-07-02T11:39:18+00:00",
+    "title": "Price to earnings forward of ASML Holding NV CAD Hedged CIBC CDR \u2013 TSX:ASML",
+    "url": "https://www.tradingview.com/symbols/TSX-ASML/financials-statistics-and-ratios/price-earnings-fwd/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.013677,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.000330",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/asml-asml-stock-moves-3-214504417.html",
+    "timestamp_utc": "2026-07-02T14:45:00+00:00",
+    "title": "ASML (ASML) Stock Moves -3.97%: What You Should Know",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/asml-asml-stock-moves-3-214504417.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.030702,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.319239",
+        "ticker_sentiment_score": "0.010307",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262007768-market-movers-asml-20260702",
+    "timestamp_utc": "2026-07-02T17:39:18+00:00",
+    "title": "ASML Holding NV Stock (ASML) Moved Down by 4.28% on Jul 2: What Signal Does It Send?",
+    "url": "https://www.tradingkey.com/news/market-movers/262007768-market-movers-asml-20260702",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.468325,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.745255",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.746112",
+        "ticker_sentiment_score": "-0.405693",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.605629",
+        "ticker_sentiment_score": "-0.333069",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/stock?t=ASML&ta=1&p=d&ty=lf&page=3",
+    "timestamp_utc": "2026-07-02T22:11:27+00:00",
+    "title": "ASML - ASML Holding NV Latest SEC Filings",
+    "url": "https://finviz.com/stock?t=ASML&ta=1&p=d&ty=lf&page=3",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.015265,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.349743",
+        "ticker_sentiment_score": "0.046698",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/3110610/asml-holding-nv-0qb8-gets-a-buy-from-goldman-sachs/",
+    "timestamp_utc": "2026-07-03T05:09:03+00:00",
+    "title": "ASML Holding NV (0QB8) Gets a Buy from Goldman Sachs",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/ASML/pressreleases/3110610/asml-holding-nv-0qb8-gets-a-buy-from-goldman-sachs/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.295613,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.993442",
+        "ticker_sentiment_score": "0.416975",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GS",
+        "relevance_score": "0.709994",
+        "ticker_sentiment_score": "0.339387",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.577470",
+        "ticker_sentiment_score": "0.122447",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/stock?t=ASML&ta=0&p=d&ty=ocv&r=ytd&ov=list_strike&s=1550",
+    "timestamp_utc": "2026-07-04T08:11:27+00:00",
+    "title": "ASML - ASML Holding NV Volatility & Greeks",
+    "url": "https://finviz.com/stock?t=ASML&ta=0&p=d&ty=ocv&r=ytd&ov=list_strike&s=1550",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.006271,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "0.329931",
+        "ticker_sentiment_score": "0.046978",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1622 @@
+[
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T03:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.36091,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.271971",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.716204",
+        "ticker_sentiment_score": "0.313681",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.732606",
+        "ticker_sentiment_score": "0.322512",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.845571",
+        "ticker_sentiment_score": "0.411797",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.wsj.com/finance/investing/kkr-sk-to-jointly-launch-1-30-billion-renewable-energy-platform-1f53dff2",
+    "timestamp_utc": "2026-07-01T03:37:57+00:00",
+    "title": "KKR, SK to Jointly Launch $1.30 Billion Renewable-Energy Platform",
+    "url": "https://www.wsj.com/finance/investing/kkr-sk-to-jointly-launch-1-30-billion-renewable-energy-platform-1f53dff2",
+    "source": "WSJ",
+    "source_domain": "WSJ",
+    "overall_sentiment_score": 0.342417,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.471937",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.606892",
+        "ticker_sentiment_score": "0.301860",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.637360",
+        "ticker_sentiment_score": "0.336620",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.642135",
+        "ticker_sentiment_score": "0.306522",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.624816",
+        "ticker_sentiment_score": "0.332716",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "timestamp_utc": "2026-07-01T04:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.343212,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.274852",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.833137",
+        "ticker_sentiment_score": "0.413039",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.722900",
+        "ticker_sentiment_score": "0.334359",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.646962",
+        "ticker_sentiment_score": "0.308982",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/stock?t=RMBS&ty=oc&ov=chain_strike&s=120",
+    "timestamp_utc": "2026-07-01T05:39:20+00:00",
+    "title": "RMBS - Rambus Inc Options",
+    "url": "https://finviz.com/stock?t=RMBS&ty=oc&ov=chain_strike&s=120",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": -0.056285,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.183388",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MCHP",
+        "relevance_score": "0.617169",
+        "ticker_sentiment_score": "0.023689",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.618973",
+        "ticker_sentiment_score": "0.044139",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ON",
+        "relevance_score": "0.614938",
+        "ticker_sentiment_score": "0.038656",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/stoneridge-added-to-russell-2000-index-93CH-4768619",
+    "timestamp_utc": "2026-07-01T06:39:29+00:00",
+    "title": "Stoneridge added to Russell 2000 index",
+    "url": "https://www.investing.com/news/company-news/stoneridge-added-to-russell-2000-index-93CH-4768619",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.05086,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SRI",
+        "relevance_score": "0.997401",
+        "ticker_sentiment_score": "0.226939",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.552401",
+        "ticker_sentiment_score": "-0.300711",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.552554",
+        "ticker_sentiment_score": "0.255383",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.561143",
+        "ticker_sentiment_score": "0.329224",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.590905",
+        "ticker_sentiment_score": "-0.295810",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.heygotrade.com/en/us-stock/slp/",
+    "timestamp_utc": "2026-07-01T06:40:19+00:00",
+    "title": "Simulations Plus, Inc. (SLP) Stock Price Today & Analysis",
+    "url": "https://www.heygotrade.com/en/us-stock/slp/",
+    "source": "Gotrade",
+    "source_domain": "Gotrade",
+    "overall_sentiment_score": 0.239431,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SLP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.100460",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.647991",
+        "ticker_sentiment_score": "0.386730",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.645979",
+        "ticker_sentiment_score": "0.144747",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.616725",
+        "ticker_sentiment_score": "0.379092",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.607206",
+        "ticker_sentiment_score": "0.119459",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/etfs/sector-etfs/26/07/60208442/apple-ceo-tim-cook-flags-extreme-shortage-while-dram-etf-smashes-25-billion-surging-over-170-since-listing",
+    "timestamp_utc": "2026-07-01T07:43:59+00:00",
+    "title": "Apple CEO Tim Cook Flags 'Extreme Shortage' While DRAM ETF Smashes $25 Billion, Surging Over 170% Since L",
+    "url": "https://www.benzinga.com/etfs/sector-etfs/26/07/60208442/apple-ceo-tim-cook-flags-extreme-shortage-while-dram-etf-smashes-25-billion-surging-over-170-since-listing",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.296469,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.936033",
+        "ticker_sentiment_score": "0.263643",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.724723",
+        "ticker_sentiment_score": "0.135625",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.802326",
+        "ticker_sentiment_score": "0.427930",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.605152",
+        "ticker_sentiment_score": "0.300069",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T08:39:25+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Motley Fool",
+    "source_domain": "The Motley Fool",
+    "overall_sentiment_score": 0.360037,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.307309",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.728573",
+        "ticker_sentiment_score": "0.418418",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.639821",
+        "ticker_sentiment_score": "0.345789",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.607999",
+        "ticker_sentiment_score": "0.321155",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cboe.com/insights/posts/quarter-ends-on-high-notes-across-the-board",
+    "timestamp_utc": "2026-07-01T09:37:15+00:00",
+    "title": "Quarter Ends on High Notes Across the Board",
+    "url": "https://www.cboe.com/insights/posts/quarter-ends-on-high-notes-across-the-board",
+    "source": "Cboe Global Markets",
+    "source_domain": "Cboe Global Markets",
+    "overall_sentiment_score": 0.318443,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CBOE",
+        "relevance_score": "0.831579",
+        "ticker_sentiment_score": "0.297496",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.710780",
+        "ticker_sentiment_score": "0.311155",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.611856",
+        "ticker_sentiment_score": "0.408942",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.600607",
+        "ticker_sentiment_score": "0.364645",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CMCSA",
+        "relevance_score": "0.573668",
+        "ticker_sentiment_score": "0.107305",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/SILC/effect-silicom-ltd-sec-filing-85ca92d678b4.html",
+    "timestamp_utc": "2026-07-01T09:42:14+00:00",
+    "title": "[EFFECT] SILICOM LTD. SEC Filing",
+    "url": "https://www.stocktitan.net/sec-filings/SILC/effect-silicom-ltd-sec-filing-85ca92d678b4.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.151207,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SILC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.249544",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.631505",
+        "ticker_sentiment_score": "0.128785",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GM",
+        "relevance_score": "0.629704",
+        "ticker_sentiment_score": "0.101958",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.606920",
+        "ticker_sentiment_score": "0.143784",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.morningstar.com/funds/how-micron-became-25-value-etf",
+    "timestamp_utc": "2026-07-01T10:10:19+00:00",
+    "title": "How Micron Became 25% of a Value ETF",
+    "url": "https://www.morningstar.com/funds/how-micron-became-25-value-etf",
+    "source": "Morningstar",
+    "source_domain": "Morningstar",
+    "overall_sentiment_score": 0.040787,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.344609",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BLK",
+        "relevance_score": "0.713346",
+        "ticker_sentiment_score": "0.131847",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.600116",
+        "ticker_sentiment_score": "-0.102225",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.620553",
+        "ticker_sentiment_score": "-0.132165",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.612401",
+        "ticker_sentiment_score": "-0.134625",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.morningstar.com/stocks/ai-stocks-fueled-markets-q2-comeback-now-investors-face-reality-check",
+    "timestamp_utc": "2026-07-01T10:11:11+00:00",
+    "title": "AI Stocks Fueled the Market\u2019s Q2 Comeback. Now Investors Face a Reality Check",
+    "url": "https://www.morningstar.com/stocks/ai-stocks-fueled-markets-q2-comeback-now-investors-face-reality-check",
+    "source": "Morningstar",
+    "source_domain": "Morningstar",
+    "overall_sentiment_score": 0.26745,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MORN",
+        "relevance_score": "0.823995",
+        "ticker_sentiment_score": "0.101046",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.748637",
+        "ticker_sentiment_score": "0.337747",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.703299",
+        "ticker_sentiment_score": "0.339324",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.716554",
+        "ticker_sentiment_score": "0.333954",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/invest-state-street-spdr-nyse-102001503.html",
+    "timestamp_utc": "2026-07-01T10:11:23+00:00",
+    "title": "Should You Invest in the State Street SPDR NYSE Technology ETF (XNTK)?",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/invest-state-street-spdr-nyse-102001503.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.256839,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "STT",
+        "relevance_score": "0.643582",
+        "ticker_sentiment_score": "0.130663",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.716075",
+        "ticker_sentiment_score": "0.314292",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.616891",
+        "ticker_sentiment_score": "0.312003",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.635204",
+        "ticker_sentiment_score": "0.323972",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:4077be4c2094b:0-seagate-vs-micron-which-ai-storage-stock-has-more-upside/",
+    "timestamp_utc": "2026-07-01T10:38:19+00:00",
+    "title": "Seagate vs. Micron: Which AI Storage Stock Has More Upside?",
+    "url": "https://www.tradingview.com/news/zacks:4077be4c2094b:0-seagate-vs-micron-which-ai-storage-stock-has-more-upside/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.346222,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.404256",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.919509",
+        "ticker_sentiment_score": "0.345742",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.635412",
+        "ticker_sentiment_score": "0.349957",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/07/60210847/5-stock-picks-last-quarter-from-wall-streets-most-accurate-analysts",
+    "timestamp_utc": "2026-07-01T10:53:33+00:00",
+    "title": "5 Stock Picks Last Quarter From Wall Street's Most Accurate Analysts",
+    "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/07/60210847/5-stock-picks-last-quarter-from-wall-streets-most-accurate-analysts",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.342032,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QCOM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.510557",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.835429",
+        "ticker_sentiment_score": "0.443999",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.783274",
+        "ticker_sentiment_score": "0.391572",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "C",
+        "relevance_score": "0.665964",
+        "ticker_sentiment_score": "0.006270",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/trading-ideas/long-ideas/26/07/60212456/apple-micron-palo-alto-health-care-stock-cnbc-final-trades",
+    "timestamp_utc": "2026-07-01T11:38:16+00:00",
+    "title": "Micron, Palo Alto And Apple: CNBC\u2019s \u2018Final Trades\u2019 - Micron Technology (NASDAQ:MU)",
+    "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/07/60212456/apple-micron-palo-alto-health-care-stock-cnbc-final-trades",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.319291,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.440478",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "PANW",
+        "relevance_score": "0.800958",
+        "ticker_sentiment_score": "0.402306",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.741953",
+        "ticker_sentiment_score": "0.302181",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMGN",
+        "relevance_score": "0.609180",
+        "ticker_sentiment_score": "0.144977",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/micron-technology-ceo-sanjay-mehrotra-sells-327m-in-stock-93CH-4715023",
+    "timestamp_utc": "2026-07-01T11:38:30+00:00",
+    "title": "Micron Technology CEO Sanjay Mehrotra sells $32.7m in stock By Investing.com",
+    "url": "https://ca.investing.com/news/stock-market-news/micron-technology-ceo-sanjay-mehrotra-sells-327m-in-stock-93CH-4715023",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": -0.217451,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.187741",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/TALO/8-k-talos-energy-inc-reports-material-event-a28f30dbd803.html",
+    "timestamp_utc": "2026-07-01T11:39:56+00:00",
+    "title": "[8-K] TALOS ENERGY INC. Reports Material Event",
+    "url": "https://www.stocktitan.net/sec-filings/TALO/8-k-talos-energy-inc-reports-material-event-a28f30dbd803.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.176423,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TALO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.291548",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.603800",
+        "ticker_sentiment_score": "0.125250",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/MU/micron-and-general-motors-sign-strategic-agreement-to-secure-supply-saivz0zt7g1n.html",
+    "timestamp_utc": "2026-07-01T12:08:46+00:00",
+    "title": "Micron locks in GM chip supply for next-gen vehicles",
+    "url": "https://www.stocktitan.net/news/MU/micron-and-general-motors-sign-strategic-agreement-to-secure-supply-saivz0zt7g1n.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.420598,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.416702",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://sg.finance.yahoo.com/news/micron-general-motors-sign-strategic-123000269.html",
+    "timestamp_utc": "2026-07-01T12:30:05+00:00",
+    "title": "Micron and General Motors Sign Strategic Agreement to Secure Supply and Accelerate Innovation",
+    "url": "https://sg.finance.yahoo.com/news/micron-general-motors-sign-strategic-123000269.html",
+    "source": "Yahoo Finance Singapore",
+    "source_domain": "Yahoo Finance Singapore",
+    "overall_sentiment_score": 0.039925,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "0.336684",
+        "ticker_sentiment_score": "0.033183",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "timestamp_utc": "2026-07-01T12:38:16+00:00",
+    "title": "Semiconductor ETFs to Buy as Micron Leads $2T AI-Led Chip Market Rally",
+    "url": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.659456,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.744016",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.873304",
+        "ticker_sentiment_score": "0.601812",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.883428",
+        "ticker_sentiment_score": "0.605886",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.715152",
+        "ticker_sentiment_score": "0.611930",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.finance.yahoo.com/news/heres-much-youd-invested-1000-123004131.html",
+    "timestamp_utc": "2026-07-01T12:39:08+00:00",
+    "title": "Here's How Much You'd Have If You Invested $1000 in Western Digital a Decade Ago",
+    "url": "https://ca.finance.yahoo.com/news/heres-much-youd-invested-1000-123004131.html",
+    "source": "Yahoo! Finance Canada",
+    "source_domain": "Yahoo! Finance Canada",
+    "overall_sentiment_score": 0.176676,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WDC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.415693",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.624586",
+        "ticker_sentiment_score": "0.143952",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.600509",
+        "ticker_sentiment_score": "0.113158",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "STX",
+        "relevance_score": "0.601977",
+        "ticker_sentiment_score": "0.114399",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.reuters.com/technology/micron-gm-sign-semiconductor-supply-agreement-vehicles-2026-07-01/",
+    "timestamp_utc": "2026-07-01T12:43:05+00:00",
+    "title": "Micron, GM sign semiconductor supply agreement for vehicles",
+    "url": "https://www.reuters.com/technology/micron-gm-sign-semiconductor-supply-agreement-vehicles-2026-07-01/",
+    "source": "Reuters",
+    "source_domain": "Reuters",
+    "overall_sentiment_score": 0.370381,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.432464",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GM",
+        "relevance_score": "0.935410",
+        "ticker_sentiment_score": "0.317119",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.foreignpolicyjournal.com/2026/07/01/rambus-nasdaq-rmbs-emerges-as-a-compelling-ai-infrastructure-play-amid-memory-boom/",
+    "timestamp_utc": "2026-07-01T13:11:09+00:00",
+    "title": "Rambus (NASDAQ: RMBS) Emerges As A Compelling AI Infrastructure Play Amid Memory Boom",
+    "url": "https://www.foreignpolicyjournal.com/2026/07/01/rambus-nasdaq-rmbs-emerges-as-a-compelling-ai-infrastructure-play-amid-memory-boom/",
+    "source": "Foreign Policy Journal",
+    "source_domain": "Foreign Policy Journal",
+    "overall_sentiment_score": 0.361485,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.404478",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.743578",
+        "ticker_sentiment_score": "0.329000",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.moomoo.com/community/feed/u-s-market-outlook-clarna-surges-as-a-swedish-court-116844982763526",
+    "timestamp_utc": "2026-07-01T13:38:09+00:00",
+    "title": "US market outlook: KLA rises; Swedish court orders Google to pay $1.97 billion in damages; Meta gains on reports of building a cloud business to sell excess AI computing capacity; Micron and GM sign agreement for automotive semiconductor supply",
+    "url": "https://www.moomoo.com/community/feed/u-s-market-outlook-clarna-surges-as-a-swedish-court-116844982763526",
+    "source": "Moomoo",
+    "source_domain": "Moomoo",
+    "overall_sentiment_score": 0.096169,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "KLAC",
+        "relevance_score": "0.310487",
+        "ticker_sentiment_score": "0.027492",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.845033",
+        "ticker_sentiment_score": "-0.545169",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.811994",
+        "ticker_sentiment_score": "0.447317",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.844686",
+        "ticker_sentiment_score": "0.316558",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GM",
+        "relevance_score": "0.713340",
+        "ticker_sentiment_score": "0.287475",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/zacks-analyst-blog-highlights-micron-131800011.html",
+    "timestamp_utc": "2026-07-01T13:38:58+00:00",
+    "title": "The Zacks Analyst Blog Highlights Micron Technology, FormFactor, Texas Instruments and Taiwan Semiconductor Manufacturing",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/zacks-analyst-blog-highlights-micron-131800011.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.459166,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.484544",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.931621",
+        "ticker_sentiment_score": "0.435670",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/trading-ideas/movers/26/07/60215576/why-is-sandisk-stock-falling-wednesday",
+    "timestamp_utc": "2026-07-01T13:42:26+00:00",
+    "title": "Why Is SanDisk Stock Falling Wednesday?",
+    "url": "https://www.benzinga.com/trading-ideas/movers/26/07/60215576/why-is-sandisk-stock-falling-wednesday",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.05846,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNDK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.228891",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.709383",
+        "ticker_sentiment_score": "0.316246",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://grafa.com/en/news/united-states/micron-gm-strategic-customer-agreement-memory-supply",
+    "timestamp_utc": "2026-07-01T13:50:17+00:00",
+    "title": "Micron signs long-term memory supply deal with GM",
+    "url": "https://grafa.com/en/news/united-states/micron-gm-strategic-customer-agreement-memory-supply",
+    "source": "grafa.com",
+    "source_domain": "grafa.com",
+    "overall_sentiment_score": 0.414073,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414129",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.395846",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/united-fire-group-stock-hits-52week-high-at-5346-93CH-4770716",
+    "timestamp_utc": "2026-07-01T14:09:55+00:00",
+    "title": "United Fire Group stock hits 52-week high at $53.46",
+    "url": "https://www.investing.com/news/company-news/united-fire-group-stock-hits-52week-high-at-5346-93CH-4770716",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.10832,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "UFCS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.486610",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GLW",
+        "relevance_score": "0.607227",
+        "ticker_sentiment_score": "-0.110633",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.567001",
+        "ticker_sentiment_score": "-0.325467",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NKE",
+        "relevance_score": "0.561152",
+        "ticker_sentiment_score": "0.247509",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004408-market-movers-tsm-20260701",
+    "timestamp_utc": "2026-07-01T14:15:00+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Co Ltd Stock (TSM) Moved Down by 3.51% on Jul 1: Facts Behind the Movement",
+    "url": "https://www.tradingkey.com/news/market-movers/262004408-market-movers-tsm-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.30799,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.272630",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.559704",
+        "ticker_sentiment_score": "-0.362536",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.555275",
+        "ticker_sentiment_score": "-0.201462",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/MU/pressreleases/3079136/the-zacks-analyst-blog-highlights-micron-technology-formfactor-texas-instruments-and-taiwan-semiconductor-manufacturing/",
+    "timestamp_utc": "2026-07-01T14:24:47+00:00",
+    "title": "The Zacks Analyst Blog Highlights Micron Technology, FormFactor, Texas Instruments and Taiwan Semiconductor Manufacturing",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/MU/pressreleases/3079136/the-zacks-analyst-blog-highlights-micron-technology-formfactor-texas-instruments-and-taiwan-semiconductor-manufacturing/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.34635,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.947278",
+        "ticker_sentiment_score": "0.325937",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.861241",
+        "ticker_sentiment_score": "0.444192",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.709708",
+        "ticker_sentiment_score": "0.343058",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.602757",
+        "ticker_sentiment_score": "0.348103",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/charles-river-laboratories-stock-hits-52week-high-at-22918-usd-93CH-4770759",
+    "timestamp_utc": "2026-07-01T14:37:23+00:00",
+    "title": "Charles River Laboratories stock hits 52-week high at 229.18 USD",
+    "url": "https://www.investing.com/news/company-news/charles-river-laboratories-stock-hits-52week-high-at-22918-usd-93CH-4770759",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.301056,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CRL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.604176",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MS",
+        "relevance_score": "0.721870",
+        "ticker_sentiment_score": "0.324047",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.613666",
+        "ticker_sentiment_score": "0.118676",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.646202",
+        "ticker_sentiment_score": "0.142144",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.643733",
+        "ticker_sentiment_score": "0.231394",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:f6d11f9bc094b:0-wall-street-upbeat-in-1h-2026-leveraged-etfs-that-are-up-at-least-500/",
+    "timestamp_utc": "2026-07-01T14:39:21+00:00",
+    "title": "Wall Street Upbeat in 1H 2026: Leveraged ETFs That Are Up At Least 500%",
+    "url": "https://www.tradingview.com/news/zacks:f6d11f9bc094b:0-wall-street-upbeat-in-1h-2026-leveraged-etfs-that-are-up-at-least-500/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.534527,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "BEG",
+        "relevance_score": "0.343512",
+        "ticker_sentiment_score": "0.014764",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.716858",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.724174",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "DELL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.724798",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://blockonomi.com/general-motors-gm-stock-climbs-on-micron-memory-chip-partnership/",
+    "timestamp_utc": "2026-07-01T15:06:48+00:00",
+    "title": "General Motors (GM) Stock Climbs on Micron Memory Chip Partnership",
+    "url": "https://blockonomi.com/general-motors-gm-stock-climbs-on-micron-memory-chip-partnership/",
+    "source": "Blockonomi",
+    "source_domain": "Blockonomi",
+    "overall_sentiment_score": 0.27305,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.391182",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.806369",
+        "ticker_sentiment_score": "0.103133",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/univest-corporation-pennsylvania-stock-hits-alltime-high-of-4484-usd-93CH-4770903",
+    "timestamp_utc": "2026-07-01T15:10:27+00:00",
+    "title": "Univest Corporation Pennsylvania stock hits all-time high of 44.84 USD",
+    "url": "https://www.investing.com/news/company-news/univest-corporation-pennsylvania-stock-hits-alltime-high-of-4484-usd-93CH-4770903",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.227254,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "UVSP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.464519",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "SPGI",
+        "relevance_score": "0.634476",
+        "ticker_sentiment_score": "0.327415",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.574540",
+        "ticker_sentiment_score": "0.144970",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.572186",
+        "ticker_sentiment_score": "-0.230668",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.574775",
+        "ticker_sentiment_score": "0.257043",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/RCUS/new-research-published-in-nature-links-clinical-activity-with-hif-2a-x90xpa3ikiee.html",
+    "timestamp_utc": "2026-07-01T15:10:52+00:00",
+    "title": "Nature study links a kidney-cancer biomarker to casdatifan benefit",
+    "url": "https://www.stocktitan.net/news/RCUS/new-research-published-in-nature-links-clinical-activity-with-hif-2a-x90xpa3ikiee.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.269112,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RCUS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.473709",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.645384",
+        "ticker_sentiment_score": "0.008580",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/07/01/micron-drops-8-sandisk-slumps-10-western-digital-falls-7-as-memory-stocks-pull-back-with-the-nasdaq/",
+    "timestamp_utc": "2026-07-01T15:20:54+00:00",
+    "title": "Micron Drops 8%, SanDisk Slumps 10%, Western Digital Falls 7% as Memory Stocks Pull Back With the NASDAQ",
+    "url": "https://247wallst.com/investing/2026/07/01/micron-drops-8-sandisk-slumps-10-western-digital-falls-7-as-memory-stocks-pull-back-with-the-nasdaq/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": -0.33398,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WDC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.436580",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.410573",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.600890",
+        "ticker_sentiment_score": "-0.232112",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.605165",
+        "ticker_sentiment_score": "-0.227510",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004608-market-movers-amd-20260701",
+    "timestamp_utc": "2026-07-01T15:22:02+00:00",
+    "title": "Advanced Micro Devices Inc Stock (AMD) Moved Down by 5.73% on Jul 1: Drivers Behind the Movement",
+    "url": "https://www.tradingkey.com/news/market-movers/262004608-market-movers-amd-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.349381,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.410463",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.600773",
+        "ticker_sentiment_score": "-0.436753",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.731456",
+        "ticker_sentiment_score": "-0.243826",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/cosmos-health-repurchases-265-million-shares-for-500000-93CH-4770932",
+    "timestamp_utc": "2026-07-01T15:39:39+00:00",
+    "title": "Cosmos Health repurchases 2.65 million shares for $500,000",
+    "url": "https://www.investing.com/news/company-news/cosmos-health-repurchases-265-million-shares-for-500000-93CH-4770932",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.129937,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "COSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.461229",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.614928",
+        "ticker_sentiment_score": "-0.316399",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.612677",
+        "ticker_sentiment_score": "0.338819",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.649431",
+        "ticker_sentiment_score": "-0.105389",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.moomoo.com/community/feed/graniteshares-2x-long-mu-daily-etf-mull-us-summoning-my-116845406781446",
+    "timestamp_utc": "2026-07-01T15:40:16+00:00",
+    "title": "$GraniteShares 2x Long MU Daily ETF (MULL.US)$ summoning my best card",
+    "url": "https://www.moomoo.com/community/feed/graniteshares-2x-long-mu-daily-etf-mull-us-summoning-my-116845406781446",
+    "source": "Moomoo",
+    "source_domain": "Moomoo",
+    "overall_sentiment_score": 0.105703,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MULL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.094582",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.609905",
+        "ticker_sentiment_score": "0.102349",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.moomoo.com/news/post/72344496/memory-chip-stocks-hit-the-brakes-at-elevated-levels-western",
+    "timestamp_utc": "2026-07-01T16:09:15+00:00",
+    "title": "Memory chip stocks hit the brakes at elevated levels: Western Digital dropped more than 10% intraday, and Micron fell nearly 9%.",
+    "url": "https://www.moomoo.com/news/post/72344496/memory-chip-stocks-hit-the-brakes-at-elevated-levels-western",
+    "source": "Moomoo",
+    "source_domain": "Moomoo",
+    "overall_sentiment_score": -0.433935,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WDC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.421610",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.913591",
+        "ticker_sentiment_score": "-0.422750",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004773-market-movers-sndk-20260701",
+    "timestamp_utc": "2026-07-01T17:16:08+00:00",
+    "title": "SanDisk Corporation Stock (SNDK) Moved Down by 9.91% on Jul 1: What Investors Need To Know",
+    "url": "https://www.tradingkey.com/news/market-movers/262004773-market-movers-sndk-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.175495,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNDKV",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.616273",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.738056",
+        "ticker_sentiment_score": "-0.431214",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.631958",
+        "ticker_sentiment_score": "-0.306287",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.607708",
+        "ticker_sentiment_score": "0.244593",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.637861",
+        "ticker_sentiment_score": "0.335615",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.aninews.in/news/world/us/us-president-says-micron-announced-investment-of-usd-250-million-in-trump-accounts20260701230426",
+    "timestamp_utc": "2026-07-01T17:38:15+00:00",
+    "title": "US President says Micron announced investment of USD 250 million in Trump Accounts",
+    "url": "https://www.aninews.in/news/world/us/us-president-says-micron-announced-investment-of-usd-250-million-in-trump-accounts20260701230426",
+    "source": "ANI News",
+    "source_domain": "ANI News",
+    "overall_sentiment_score": 0.741715,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.739986",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://cryptodaily.co.uk/index/graniteshares-2x-long-mrvl-daily-etf-derivaties",
+    "timestamp_utc": "2026-07-01T17:39:05+00:00",
+    "title": "Live GraniteShares 2x Long MRVL Daily ETF (Derivatives) Price Today: MVLL to USD, Market Cap & Charts",
+    "url": "https://cryptodaily.co.uk/index/graniteshares-2x-long-mrvl-daily-etf-derivaties",
+    "source": "Crypto Daily",
+    "source_domain": "Crypto Daily",
+    "overall_sentiment_score": 0.278448,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MVLL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.110142",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.733671",
+        "ticker_sentiment_score": "0.342668",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.645315",
+        "ticker_sentiment_score": "0.303738",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.612791",
+        "ticker_sentiment_score": "0.303247",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.financialcontent.com/article/stockstory-2026-7-1-why-kla-corporation-klac-stock-is-down-today",
+    "timestamp_utc": "2026-07-01T18:38:03+00:00",
+    "title": "Why KLA Corporation (KLAC) Stock Is Down Today",
+    "url": "https://www.financialcontent.com/article/stockstory-2026-7-1-why-kla-corporation-klac-stock-is-down-today",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": -0.279787,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KLAC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.438667",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.712296",
+        "ticker_sentiment_score": "-0.313016",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.603959",
+        "ticker_sentiment_score": "-0.133232",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/07/60230022/sandisk-sndk-bofa-price-target-2500-nand-pricing",
+    "timestamp_utc": "2026-07-01T19:09:29+00:00",
+    "title": "BofA Lifts SanDisk To $2,500: Memory Squeeze Isn't Done Yet - Micron Technology (NASDAQ:MU), SanDisk (NAS",
+    "url": "https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/07/60230022/sandisk-sndk-bofa-price-target-2500-nand-pricing",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.474893,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNDK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.600274",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.718720",
+        "ticker_sentiment_score": "0.318956",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/SOXX-Q/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T19:10:52+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/SOXX-Q/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.294663,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.287878",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.632579",
+        "ticker_sentiment_score": "0.291310",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.617638",
+        "ticker_sentiment_score": "0.329329",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.596465",
+        "ticker_sentiment_score": "0.299853",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/transportation/nyse-xpo/xpo/news/how-xpos-broad-russell-index-removal-could-reshape-the-inves",
+    "timestamp_utc": "2026-07-01T19:11:08+00:00",
+    "title": "How XPO\u2019s Broad Russell Index Removal Could Reshape the Investment Case for XPO (XPO) Investors",
+    "url": "https://simplywall.st/stocks/us/transportation/nyse-xpo/xpo/news/how-xpos-broad-russell-index-removal-could-reshape-the-inves",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.022479,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "XPO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.070977",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ODFL",
+        "relevance_score": "0.589070",
+        "ticker_sentiment_score": "-0.056551",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "JBHT",
+        "relevance_score": "0.581326",
+        "ticker_sentiment_score": "-0.054967",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.566633",
+        "ticker_sentiment_score": "0.089476",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.582449",
+        "ticker_sentiment_score": "0.051753",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004902-market-movers-wdc-20260701",
+    "timestamp_utc": "2026-07-01T19:17:53+00:00",
+    "title": "Western Digital Corp Stock (WDC) Moved Down by 7.03% on Jul 1: What Investors Need To Know",
+    "url": "https://www.tradingkey.com/news/market-movers/262004902-market-movers-wdc-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.353013,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WDC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.442787",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.648105",
+        "ticker_sentiment_score": "-0.455722",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.570191",
+        "ticker_sentiment_score": "-0.108493",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/market-movers/262004901-market-movers-stx-20260701",
+    "timestamp_utc": "2026-07-01T19:18:40+00:00",
+    "title": "Seagate Technology Holdings PLC Stock (STX) Moved Down by 4.80% on Jul 1: A Full Analysis",
+    "url": "https://www.tradingkey.com/news/market-movers/262004901-market-movers-stx-20260701",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": -0.426692,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "STX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.603396",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.621822",
+        "ticker_sentiment_score": "-0.442281",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "WDC",
+        "relevance_score": "0.636115",
+        "ticker_sentiment_score": "-0.245662",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  }
+]

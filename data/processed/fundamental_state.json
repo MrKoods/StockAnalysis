@@ -1,0 +1,130 @@
+{
+  "last_updated": "2026-07-05T00:43:35.402508+00:00",
+  "update_cadence": "weekly",
+  "update_day": "Monday",
+  "tickers": {
+    "NVDA": {
+      "ticker": "NVDA",
+      "valuation": {
+        "trailingPE": 29.83614,
+        "forwardPE": 15.26351,
+        "enterpriseToEbitda": 28.242,
+        "enterpriseToRevenue": 18.441,
+        "recommendationMean": 1.29508,
+        "targetMeanPrice": 301.6207,
+        "suspect_fields": []
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    },
+    "AMD": {
+      "ticker": "AMD",
+      "valuation": {
+        "trailingPE": 172.60667,
+        "forwardPE": 39.297142,
+        "enterpriseToEbitda": 112.501,
+        "enterpriseToRevenue": 22.318,
+        "recommendationMean": 1.45098,
+        "targetMeanPrice": 508.3125,
+        "suspect_fields": []
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    },
+    "AVGO": {
+      "ticker": "AVGO",
+      "valuation": {
+        "trailingPE": 59.875416,
+        "forwardPE": 18.583939,
+        "enterpriseToEbitda": 41.825,
+        "enterpriseToRevenue": 23.324,
+        "recommendationMean": 1.3125,
+        "targetMeanPrice": 523.72894,
+        "suspect_fields": []
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    },
+    "TSM": {
+      "ticker": "TSM",
+      "valuation": {
+        "trailingPE": 37.72024,
+        "forwardPE": 21.398586,
+        "enterpriseToEbitda": 5.52,
+        "enterpriseToRevenue": 3.842,
+        "recommendationMean": 1.47368,
+        "targetMeanPrice": 490.34027,
+        "suspect_fields": []
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    },
+    "MU": {
+      "ticker": "MU",
+      "valuation": {
+        "trailingPE": 22.076488,
+        "forwardPE": 6.519448,
+        "enterpriseToEbitda": 15.862,
+        "enterpriseToRevenue": 11.987,
+        "recommendationMean": 1.42222,
+        "targetMeanPrice": 1486.0,
+        "suspect_fields": []
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    },
+    "ASML": {
+      "ticker": "ASML",
+      "valuation": {
+        "trailingPE": 60.24242,
+        "forwardPE": 35.813248,
+        "enterpriseToEbitda": 2981.442,
+        "enterpriseToRevenue": 1124.203,
+        "recommendationMean": 1.44186,
+        "targetMeanPrice": 1782.8264,
+        "suspect_fields": [
+          "enterpriseToEbitda",
+          "enterpriseToRevenue"
+        ]
+      },
+      "earnings": null,
+      "revisions": {
+        "analyst_target_price": null,
+        "current_price": null,
+        "implied_upside_pct": null,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source."
+      }
+    }
+  }
+}

@@ -1,3 +1,115 @@
 2026-06-30 07:05:34,217 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
 2026-06-30 07:07:37,641 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
 2026-06-30 07:07:44,162 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-04 17:18:54,016 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 17:18:54,021 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 17:18:54,025 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 17:18:54,029 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 17:18:54,033 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 17:18:54,038 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 17:18:54,042 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 17:18:54,042 [__main__] INFO — Running sensitivity analysis across thresholds: 85, 87, 90, 92, 95
+2026-07-04 17:18:54,046 [__main__] INFO — Sensitivity analysis complete. Saved to backtesting/reports/sensitivity_analysis.csv
+2026-07-04 17:20:25,510 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 17:20:25,514 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 17:20:25,518 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 17:20:25,523 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 17:20:25,527 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 17:20:25,532 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 17:20:25,536 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 17:20:25,536 [__main__] INFO — Running sensitivity analysis across thresholds: 85, 87, 90, 92, 95
+2026-07-04 17:20:30,078 [__main__] INFO — Sensitivity analysis complete. Saved to backtesting/reports/sensitivity_analysis.csv
+2026-07-04 17:22:02,017 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 17:22:02,021 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 17:22:02,026 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 17:22:02,030 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 17:22:02,035 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 17:22:02,039 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 17:22:02,043 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 17:22:02,043 [__main__] INFO — Running sensitivity analysis across thresholds: 85, 87, 90, 92, 95
+2026-07-04 17:22:02,327 [__main__] INFO — Sensitivity analysis complete. Saved to backtesting/reports/sensitivity_analysis.csv
+2026-07-04 17:36:24,673 [shared.api_clients.fundamental_client] WARNING — NVDA: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-04 17:36:55,048 [shared.api_clients.fundamental_client] WARNING — NVDA: estimate_revisions attempt 2 failed — OVERVIEW response missing Symbol: [] — retrying in 60s
+2026-07-04 17:37:55,433 [shared.api_clients.fundamental_client] WARNING — NVDA: estimate_revisions attempt 3 failed — OVERVIEW response missing Symbol: [] — retrying in 120s
+2026-07-04 17:39:55,433 [shared.api_clients.fundamental_client] ERROR — NVDA: estimate_revisions failed after all retries — OVERVIEW response missing Symbol: []
+2026-07-04 17:41:09,675 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-04 17:41:54,425 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-04 17:43:34,001 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-04 17:43:34,338 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=194.83, rsi=41.2, atr=7.12)
+2026-07-04 17:43:34,342 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=517.82, rsi=52.3, atr=35.87)
+2026-07-04 17:43:34,346 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=360.45, rsi=39.7, atr=17.87)
+2026-07-04 17:43:34,351 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=434.16, rsi=50.2, atr=21.44)
+2026-07-04 17:43:34,356 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=975.56, rsi=48.5, atr=96.90)
+2026-07-04 17:43:34,360 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1769.32, rsi=49.7, atr=96.70)
+2026-07-04 17:43:34,361 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-04 17:43:34,361 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-07-04 17:43:34,361 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-04 17:43:34,557 [shared.api_clients.fundamental_client] WARNING — NVDA: skipping earnings history — no AV key
+2026-07-04 17:43:34,557 [shared.api_clients.fundamental_client] WARNING — NVDA: skipping estimate revisions — no AV key
+2026-07-04 17:43:34,557 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-04 17:43:34,712 [shared.api_clients.fundamental_client] WARNING — AMD: skipping earnings history — no AV key
+2026-07-04 17:43:34,712 [shared.api_clients.fundamental_client] WARNING — AMD: skipping estimate revisions — no AV key
+2026-07-04 17:43:34,712 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-04 17:43:34,872 [shared.api_clients.fundamental_client] WARNING — AVGO: skipping earnings history — no AV key
+2026-07-04 17:43:34,872 [shared.api_clients.fundamental_client] WARNING — AVGO: skipping estimate revisions — no AV key
+2026-07-04 17:43:34,872 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-04 17:43:35,026 [shared.api_clients.fundamental_client] WARNING — TSM: skipping earnings history — no AV key
+2026-07-04 17:43:35,026 [shared.api_clients.fundamental_client] WARNING — TSM: skipping estimate revisions — no AV key
+2026-07-04 17:43:35,026 [swing_model.indicator_pipeline] INFO —   TSM: fundamental data fetched OK
+2026-07-04 17:43:35,243 [shared.api_clients.fundamental_client] WARNING — MU: skipping earnings history — no AV key
+2026-07-04 17:43:35,243 [shared.api_clients.fundamental_client] WARNING — MU: skipping estimate revisions — no AV key
+2026-07-04 17:43:35,243 [swing_model.indicator_pipeline] INFO —   MU: fundamental data fetched OK
+2026-07-04 17:43:35,402 [shared.api_clients.fundamental_client] WARNING — ASML: skipping earnings history — no AV key
+2026-07-04 17:43:35,402 [shared.api_clients.fundamental_client] WARNING — ASML: skipping estimate revisions — no AV key
+2026-07-04 17:43:35,402 [swing_model.indicator_pipeline] INFO —   ASML: fundamental data fetched OK
+2026-07-04 17:43:35,403 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-04 17:43:35,404 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-04 17:43:35,418 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'SMH']
+2026-07-04 17:43:35,538 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=194.83, rsi=41.2, atr=7.12)
+2026-07-04 17:43:35,538 [swing_model.indicator_pipeline] ERROR — Fundamental layer failed — Simulated fundamental fetch failure. Proceeding with neutral scores.
+2026-07-04 17:43:35,539 [swing_model.indicator_pipeline] INFO — Pipeline complete: 1/1 tickers processed successfully.
+2026-07-04 17:44:29,437 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-04 17:44:29,771 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=194.83, rsi=41.2, atr=7.12)
+2026-07-04 17:44:29,775 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=517.82, rsi=52.3, atr=35.87)
+2026-07-04 17:44:29,780 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=360.45, rsi=39.7, atr=17.87)
+2026-07-04 17:44:29,784 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=434.16, rsi=50.2, atr=21.44)
+2026-07-04 17:44:29,788 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=975.56, rsi=48.5, atr=96.90)
+2026-07-04 17:44:29,792 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1769.32, rsi=49.7, atr=96.70)
+2026-07-04 17:44:29,793 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-05T00:43:35.402508+00:00)
+2026-07-04 17:44:29,793 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-04 18:31:09,559 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 18:31:09,565 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 18:31:09,569 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 18:31:09,574 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 18:31:09,579 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 18:31:09,584 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 18:31:09,588 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 18:31:09,588 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 18:31:12,695 [__main__] INFO — Backtest complete. Passed=False WinRate=0.0% Sharpe=0.00
+2026-07-04 18:36:41,535 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 18:36:41,539 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 18:36:41,543 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 18:36:41,548 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 18:36:41,552 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 18:36:41,556 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 18:36:41,560 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 18:36:41,560 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 18:36:44,505 [__main__] INFO — Backtest complete. Passed=False WinRate=20.2% Sharpe=5.53
+2026-07-04 18:38:12,640 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 18:38:12,644 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 18:38:12,649 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 18:38:12,653 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 18:38:12,657 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 18:38:12,661 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 18:38:12,665 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 18:38:12,665 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 18:38:15,649 [__main__] INFO — Backtest complete. Passed=False WinRate=20.2% Sharpe=5.84
+2026-07-04 19:34:52,524 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 19:34:52,529 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 19:34:52,533 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 19:34:52,538 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 19:34:52,543 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 19:34:52,547 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 19:34:52,551 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 19:34:52,552 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 19:34:55,653 [__main__] INFO — Backtest complete. Passed=False WinRate=16.7% Sharpe=6.39

@@ -1,0 +1,1364 @@
+[
+  {
+    "article_id": "https://theconversation.com/how-taiwan-came-to-dominate-the-global-chip-industry-276939",
+    "timestamp_utc": "2026-04-01T10:09:52+00:00",
+    "title": "How Taiwan came to dominate the global chip industry",
+    "url": "https://theconversation.com/how-taiwan-came-to-dominate-the-global-chip-industry-276939",
+    "source": "The Conversation",
+    "source_domain": "The Conversation",
+    "overall_sentiment_score": 0.301306,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.411187",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.723795",
+        "ticker_sentiment_score": "0.331518",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.616027",
+        "ticker_sentiment_score": "0.330996",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.646505",
+        "ticker_sentiment_score": "0.201273",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.574968",
+        "ticker_sentiment_score": "0.219527",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-pfg-private-wealth-management-llc-takes-643000-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-01/",
+    "timestamp_utc": "2026-04-01T11:09:52+00:00",
+    "title": "PFG Private Wealth Management LLC Takes $643,000 Position in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-pfg-private-wealth-management-llc-takes-643000-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.384408,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.424637",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.613493",
+        "ticker_sentiment_score": "0.341425",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-purchased-by-victory-financial-group-llc-2026-04-01/",
+    "timestamp_utc": "2026-04-01T13:09:52+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Shares Purchased by Victory Financial Group LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-purchased-by-victory-financial-group-llc-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.367208,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.431873",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.639817",
+        "ticker_sentiment_score": "0.326214",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.641258",
+        "ticker_sentiment_score": "0.326897",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.621224",
+        "ticker_sentiment_score": "0.331417",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-trust-co-of-vermont-has-2785-million-stake-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-02/",
+    "timestamp_utc": "2026-04-02T10:39:18+00:00",
+    "title": "Trust Co. of Vermont Has $27.85 Million Stake in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-trust-co-of-vermont-has-2785-million-stake-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-02/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.426451,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.406999",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:abdff4d4d094b:0-can-tsm-meet-fy26-margin-guidance-amid-fab-expansion-cost-pressures/",
+    "timestamp_utc": "2026-04-02T12:39:18+00:00",
+    "title": "Can TSM Meet FY26 Margin Guidance Amid Fab Expansion Cost Pressures?",
+    "url": "https://www.tradingview.com/news/zacks:abdff4d4d094b:0-can-tsm-meet-fy26-margin-guidance-amid-fab-expansion-cost-pressures/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.27317,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414868",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.710097",
+        "ticker_sentiment_score": "0.140665",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/04/02/how-big-will-taiwan-semiconductors-beat-be-on-april-16/",
+    "timestamp_utc": "2026-04-02T15:39:18+00:00",
+    "title": "How Big Will Taiwan Semiconductor\u2019s Beat Be on April 16?",
+    "url": "https://247wallst.com/investing/2026/04/02/how-big-will-taiwan-semiconductors-beat-be-on-april-16/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.440247,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.412513",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/assessing-taiwan-semiconductor-manufacturings-valuation-afte-1",
+    "timestamp_utc": "2026-04-03T02:40:44+00:00",
+    "title": "Assessing Taiwan Semiconductor Manufacturing\u2019s Valuation After A Year Of Strong Shareholder Returns",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/assessing-taiwan-semiconductor-manufacturings-valuation-afte-1",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.114104,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.256893",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.607665",
+        "ticker_sentiment_score": "0.040988",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.622235",
+        "ticker_sentiment_score": "0.039332",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-sells-1877-shares-of-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-04/",
+    "timestamp_utc": "2026-04-04T10:40:56+00:00",
+    "title": "Global Trust Asset Management LLC Sells 1,877 Shares of Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-sells-1877-shares-of-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-04/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.144487,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.275033",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "C",
+        "relevance_score": "0.602854",
+        "ticker_sentiment_score": "0.250695",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.518152",
+        "ticker_sentiment_score": "-0.083899",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-jb-capital-llc-cuts-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-05/",
+    "timestamp_utc": "2026-04-05T10:10:22+00:00",
+    "title": "JB Capital LLC Cuts Holdings in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-jb-capital-llc-cuts-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-05/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.30258,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.314030",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-is-princeton-global-asset-management-llcs-3rd-largest-position-2026-04-05/",
+    "timestamp_utc": "2026-04-05T10:10:22+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM is Princeton Global Asset Management LLC's 3rd Largest Position",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-is-princeton-global-asset-management-llcs-3rd-largest-position-2026-04-05/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.429878,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.406690",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-myriad-asset-management-us-lp-cuts-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-05/",
+    "timestamp_utc": "2026-04-05T11:10:22+00:00",
+    "title": "Myriad Asset Management US LP Cuts Holdings in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-myriad-asset-management-us-lp-cuts-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-05/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.165883,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.230201",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.641865",
+        "ticker_sentiment_score": "0.106766",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.indexbox.io/blog/ai-infrastructure-boom-drives-market-leaders-nvidia-and-tsmc/",
+    "timestamp_utc": "2026-04-05T18:39:33+00:00",
+    "title": "AI Infrastructure Leaders: Nvidia and TSMC Market Dominance - News and Statistics",
+    "url": "https://www.indexbox.io/blog/ai-infrastructure-boom-drives-market-leaders-nvidia-and-tsmc/",
+    "source": "IndexBox",
+    "source_domain": "IndexBox",
+    "overall_sentiment_score": 0.227257,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.302387",
+        "ticker_sentiment_score": "0.011235",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.451728",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.609527",
+        "ticker_sentiment_score": "0.248868",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-rathbones-group-plc-grows-stock-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-06/",
+    "timestamp_utc": "2026-04-06T11:09:20+00:00",
+    "title": "Rathbones Group PLC Grows Stock Position in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-rathbones-group-plc-grows-stock-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-06/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.303858,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.963755",
+        "ticker_sentiment_score": "0.340302",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.quiverquant.com/news/Taiwan+Semiconductor+Manufacturing+Company+Stock+%28TSM%29+Opinions+on+Pre-Earnings+Momentum",
+    "timestamp_utc": "2026-04-06T14:03:00+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Stock (TSM) Opinions on Pre-Earnings Momentum",
+    "url": "https://www.quiverquant.com/news/Taiwan+Semiconductor+Manufacturing+Company+Stock+%28TSM%29+Opinions+on+Pre-Earnings+Momentum",
+    "source": "Quiver Quantitative",
+    "source_domain": "Quiver Quantitative",
+    "overall_sentiment_score": 0.411402,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.411015",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.quiverquant.com/news/Taiwan%20Semiconductor%20Manufacturing%20Company%20Stock%20(TSM)%20Opinions%20on%20Pre-Earnings%20Momentum",
+    "timestamp_utc": "2026-04-06T14:03:00+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Stock (TSM) Opinions on Pre-Earnings Momentum",
+    "url": "https://www.quiverquant.com/news/Taiwan%20Semiconductor%20Manufacturing%20Company%20Stock%20(TSM)%20Opinions%20on%20Pre-Earnings%20Momentum",
+    "source": "Quiver Quantitative",
+    "source_domain": "Quiver Quantitative",
+    "overall_sentiment_score": 0.004263,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.313792",
+        "ticker_sentiment_score": "0.044689",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/TSM-N/pressreleases/1163057/got-1-000-the-best-pick-and-shovel-growth-stock-for-the-ai-supercycle-isn-t-american/",
+    "timestamp_utc": "2026-04-06T18:09:20+00:00",
+    "title": "Got $1,000? The Best Pick-and-Shovel Growth Stock for the AI Supercycle Isn't American.",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/TSM-N/pressreleases/1163057/got-1-000-the-best-pick-and-shovel-growth-stock-for-the-ai-supercycle-isn-t-american/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.340784,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.489465",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.724029",
+        "ticker_sentiment_score": "0.305209",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.606947",
+        "ticker_sentiment_score": "0.240014",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.636987",
+        "ticker_sentiment_score": "0.287975",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-aaron-wealth-advisors-llc-boosts-stock-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-07/",
+    "timestamp_utc": "2026-04-07T07:07:20+00:00",
+    "title": "Aaron Wealth Advisors LLC Boosts Stock Holdings in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-aaron-wealth-advisors-llc-boosts-stock-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-07/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.415536,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.408751",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/stocks/article/finterra-2026-4-7-the-sovereign-of-silicon-a-2026-deep-dive-into-tsmc-nyse-tsm",
+    "timestamp_utc": "2026-04-07T10:10:00+00:00",
+    "title": "The Sovereign of Silicon: A 2026 Deep-Dive into TSMC (NYSE: TSM)",
+    "url": "https://markets.financialcontent.com/stocks/article/finterra-2026-4-7-the-sovereign-of-silicon-a-2026-deep-dive-into-tsmc-nyse-tsm",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.303297,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.491575",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.722461",
+        "ticker_sentiment_score": "0.317431",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.659887",
+        "ticker_sentiment_score": "0.435214",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.612126",
+        "ticker_sentiment_score": "0.392240",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.649976",
+        "ticker_sentiment_score": "-0.247664",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/is-it-too-late-to-consider-taiwan-semiconductor-nysetsm-afte",
+    "timestamp_utc": "2026-04-07T10:10:51+00:00",
+    "title": "Is It Too Late To Consider Taiwan Semiconductor (NYSE:TSM) After Its 136% One Year Surge?",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/is-it-too-late-to-consider-taiwan-semiconductor-nysetsm-afte",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.058579,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.148135",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.609393",
+        "ticker_sentiment_score": "0.119253",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.640487",
+        "ticker_sentiment_score": "0.118115",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/TSM/form-4-taiwan-semiconductor-manufacturing-co-ltd-insider-trading-acti-b3240321cf2f.html",
+    "timestamp_utc": "2026-04-07T10:10:51+00:00",
+    "title": "TSMC (TSM) SVP Ho Li-Mei files Form 4 with no share changes",
+    "url": "https://www.stocktitan.net/sec-filings/TSM/form-4-taiwan-semiconductor-manufacturing-co-ltd-insider-trading-acti-b3240321cf2f.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.024351,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.312957",
+        "ticker_sentiment_score": "0.020974",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.eetasia.com/inside-taiwans-semiconductor-supremacy/",
+    "timestamp_utc": "2026-04-08T02:11:13+00:00",
+    "title": "Inside Taiwan\u2019s Semiconductor Supremacy",
+    "url": "https://www.eetasia.com/inside-taiwans-semiconductor-supremacy/",
+    "source": "EE Times Asia",
+    "source_domain": "EE Times Asia",
+    "overall_sentiment_score": 0.229283,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.457476",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.733725",
+        "ticker_sentiment_score": "0.314581",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.609581",
+        "ticker_sentiment_score": "0.293005",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.644710",
+        "ticker_sentiment_score": "-0.128725",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.637243",
+        "ticker_sentiment_score": "0.222790",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/citi-remains-bullish-on-taiwan-semiconductor-tsm-amid-growing-demand-for-ai-driven-chips-1734073/",
+    "timestamp_utc": "2026-04-08T10:23:00+00:00",
+    "title": "Citi Remains Bullish on Taiwan Semiconductor (TSM) Amid Growing Demand for AI-Driven Chips",
+    "url": "https://www.insidermonkey.com/blog/citi-remains-bullish-on-taiwan-semiconductor-tsm-amid-growing-demand-for-ai-driven-chips-1734073/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.456559,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.465384",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-intrinsic-value-partners-llc-trims-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-08/",
+    "timestamp_utc": "2026-04-08T10:40:27+00:00",
+    "title": "Intrinsic Value Partners LLC Trims Position in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-intrinsic-value-partners-llc-trims-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-08/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.206175,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.299872",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.632157",
+        "ticker_sentiment_score": "0.134646",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingkey.com/news/Market-Movers/261762128-market-movers-tsm-20260408",
+    "timestamp_utc": "2026-04-08T13:40:27+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Co Ltd Stock (TSM) Opened Up by 6.74% on Apr 8: What Signal Does It Send?",
+    "url": "https://www.tradingkey.com/news/Market-Movers/261762128-market-movers-tsm-20260408",
+    "source": "TradingKey",
+    "source_domain": "TradingKey",
+    "overall_sentiment_score": 0.348775,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.431426",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.636662",
+        "ticker_sentiment_score": "0.330400",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.703279",
+        "ticker_sentiment_score": "0.347387",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.636571",
+        "ticker_sentiment_score": "0.256836",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/geopolitical-tensions-put-tsmc-valuation-risk-and-momentum-i",
+    "timestamp_utc": "2026-04-08T23:40:56+00:00",
+    "title": "Geopolitical Tensions Put TSMC Valuation, Risk And Momentum In Spotlight",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/geopolitical-tensions-put-tsmc-valuation-risk-and-momentum-i",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": -0.13186,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.273323",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.602015",
+        "ticker_sentiment_score": "0.018933",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.609139",
+        "ticker_sentiment_score": "0.048316",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/taiwan-semiconductor-manufacturing-tsm-to-release-earnings-on-thursday-2026-04-09/",
+    "timestamp_utc": "2026-04-09T05:08:53+00:00",
+    "title": "Taiwan Semiconductor Manufacturing (TSM) to Release Earnings on Thursday",
+    "url": "https://www.marketbeat.com/instant-alerts/taiwan-semiconductor-manufacturing-tsm-to-release-earnings-on-thursday-2026-04-09/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.009205,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.345774",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.646037",
+        "ticker_sentiment_score": "-0.305904",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-yarger-wealth-strategies-llc-has-107-million-stock-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-09/",
+    "timestamp_utc": "2026-04-09T13:08:53+00:00",
+    "title": "Yarger Wealth Strategies LLC Has $1.07 Million Stock Holdings in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-yarger-wealth-strategies-llc-has-107-million-stock-holdings-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-09/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.423142,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414814",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fastcompany.com/91516051/silicon-valley-taiwan",
+    "timestamp_utc": "2026-04-09T16:08:53+00:00",
+    "title": "The U.S. and Silicon Valley may be running out of time to deal with Taiwan",
+    "url": "https://www.fastcompany.com/91516051/silicon-valley-taiwan",
+    "source": "Fast Company",
+    "source_domain": "Fast Company",
+    "overall_sentiment_score": -0.452816,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.837883",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.726735",
+        "ticker_sentiment_score": "-0.421843",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.711838",
+        "ticker_sentiment_score": "-0.407655",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.619164",
+        "ticker_sentiment_score": "-0.327172",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.555006",
+        "ticker_sentiment_score": "-0.315893",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-sold-by-flagship-harbor-advisors-llc-2026-04-10/",
+    "timestamp_utc": "2026-04-10T07:41:25+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Shares Sold by Flagship Harbor Advisors LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-sold-by-flagship-harbor-advisors-llc-2026-04-10/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.20146,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.341463",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.606586",
+        "ticker_sentiment_score": "-0.142027",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.647763",
+        "ticker_sentiment_score": "0.216395",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.649139",
+        "ticker_sentiment_score": "0.307979",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-position-increased-by-cardinal-capital-management-inc-2026-04-10/",
+    "timestamp_utc": "2026-04-10T09:10:46+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Position Increased by Cardinal Capital Management Inc.",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-position-increased-by-cardinal-capital-management-inc-2026-04-10/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.242734,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.427945",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.618009",
+        "ticker_sentiment_score": "0.067715",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.584242",
+        "ticker_sentiment_score": "0.268558",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cnbc.com/2026/04/10/tsmc-q1-record-revenue-ai-chip-demand-strong.html",
+    "timestamp_utc": "2026-04-10T09:53:00+00:00",
+    "title": "TSMC posts 35% jump in revenue to new record high as AI chip demand stays strong",
+    "url": "https://www.cnbc.com/2026/04/10/tsmc-q1-record-revenue-ai-chip-demand-strong.html",
+    "source": "CNBC",
+    "source_domain": "CNBC",
+    "overall_sentiment_score": 0.011243,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.308422",
+        "ticker_sentiment_score": "0.039214",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/TSM/6-k-taiwan-semiconductor-manufacturing-co-ltd-current-report-foreign--ad634bdd2780.html",
+    "timestamp_utc": "2026-04-10T10:10:46+00:00",
+    "title": "TSMC (NYSE: TSM) March revenue jumps 45% year over year",
+    "url": "https://www.stocktitan.net/sec-filings/TSM/6-k-taiwan-semiconductor-manufacturing-co-ltd-current-report-foreign--ad634bdd2780.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.734621,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.703872",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:cf61f87b4094b:0-taiwan-semiconductor-stock-soars-20-ytd-time-to-hold-or-book-profit/",
+    "timestamp_utc": "2026-04-10T13:10:46+00:00",
+    "title": "Taiwan Semiconductor Stock Soars 20% YTD: Time to Hold or Book Profit?",
+    "url": "https://www.tradingview.com/news/zacks:cf61f87b4094b:0-taiwan-semiconductor-stock-soars-20-ytd-time-to-hold-or-book-profit/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.290135,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.258842",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.732506",
+        "ticker_sentiment_score": "0.309295",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.620708",
+        "ticker_sentiment_score": "0.354332",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.630337",
+        "ticker_sentiment_score": "0.290521",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://qz.com/tsmc-q1-2026-record-revenue-ai-chip-demand-041026",
+    "timestamp_utc": "2026-04-10T13:10:46+00:00",
+    "title": "TSMC Q1 2026 earnings: Record revenue on strong AI chip demand",
+    "url": "https://qz.com/tsmc-q1-2026-record-revenue-ai-chip-demand-041026",
+    "source": "Quartz",
+    "source_domain": "Quartz",
+    "overall_sentiment_score": 0.561206,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.821964",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.713583",
+        "ticker_sentiment_score": "0.403971",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.727365",
+        "ticker_sentiment_score": "0.444643",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tikr.com/blog/taiwan-semiconductor-manufacturing-nyse-tsm-stock-climbs-as-record-q1-revenue-jumps-35",
+    "timestamp_utc": "2026-04-10T15:10:46+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Stock Climbs On Record Q1 Revenue Jump Of 35%",
+    "url": "https://www.tikr.com/blog/taiwan-semiconductor-manufacturing-nyse-tsm-stock-climbs-as-record-q1-revenue-jumps-35",
+    "source": "TIKR.com",
+    "source_domain": "TIKR.com",
+    "overall_sentiment_score": 0.714258,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.816304",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.647914",
+        "ticker_sentiment_score": "0.620212",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.626826",
+        "ticker_sentiment_score": "0.617038",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.taipeitimes.com/News/biz/archives/2026/04/11/2003855384",
+    "timestamp_utc": "2026-04-10T16:10:46+00:00",
+    "title": "TSMC sales beat estimates despite the conflict in Iran",
+    "url": "https://www.taipeitimes.com/News/biz/archives/2026/04/11/2003855384",
+    "source": "Taipei Times",
+    "source_domain": "Taipei Times",
+    "overall_sentiment_score": 0.337523,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.413934",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.733632",
+        "ticker_sentiment_score": "0.344612",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.621768",
+        "ticker_sentiment_score": "0.218934",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/04/10/this-semiconductor-stock-is-all-you-need-to-be-buying/",
+    "timestamp_utc": "2026-04-10T19:10:46+00:00",
+    "title": "This Semiconductor Stock Is All You Need To Be Buying",
+    "url": "https://247wallst.com/investing/2026/04/10/this-semiconductor-stock-is-all-you-need-to-be-buying/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.257814,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.414346",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.887504",
+        "ticker_sentiment_score": "0.223142",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.740292",
+        "ticker_sentiment_score": "0.229907",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.628781",
+        "ticker_sentiment_score": "0.123378",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/tsmcs-record-ai-revenue-and-exports-tested-against-valuation",
+    "timestamp_utc": "2026-04-11T06:39:40+00:00",
+    "title": "TSMC\u2019s Record AI Revenue And Exports Tested Against Valuation And Risk",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/tsmcs-record-ai-revenue-and-exports-tested-against-valuation",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.385462,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.622427",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.645088",
+        "ticker_sentiment_score": "0.115124",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-diversify-advisory-services-llc-sells-7638-shares-of-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-11/",
+    "timestamp_utc": "2026-04-11T08:40:09+00:00",
+    "title": "Diversify Advisory Services LLC Sells 7,638 Shares of Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-diversify-advisory-services-llc-sells-7638-shares-of-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-11/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.418875,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.425577",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-carnegie-investment-counsel-has-699-million-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-12/",
+    "timestamp_utc": "2026-04-12T08:09:18+00:00",
+    "title": "Carnegie Investment Counsel Has $6.99 Million Position in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-carnegie-investment-counsel-has-699-million-position-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-12/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.239948,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.422925",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.618957",
+        "ticker_sentiment_score": "0.120983",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.573398",
+        "ticker_sentiment_score": "0.138983",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/symbols/LSIN-0LCV/ideas//page-7/",
+    "timestamp_utc": "2026-04-12T16:10:05+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Co., Ltd. Sponsored ADR Trade Ideas \u2014 LSIN:0LCV",
+    "url": "https://www.tradingview.com/symbols/LSIN-0LCV/ideas//page-7/",
+    "source": "TradingView \u2014 Track All Markets",
+    "source_domain": "TradingView \u2014 Track All Markets",
+    "overall_sentiment_score": 0.034604,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.314785",
+        "ticker_sentiment_score": "0.012825",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-deprince-race-zollo-inc-decreases-stake-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-13/",
+    "timestamp_utc": "2026-04-13T09:08:00+00:00",
+    "title": "Deprince Race & Zollo Inc. Decreases Stake in Taiwan Semiconductor Manufacturing Company Ltd. $TSM",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-deprince-race-zollo-inc-decreases-stake-in-taiwan-semiconductor-manufacturing-company-ltd-tsm-2026-04-13/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.251435,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.240449",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://thehilltoponline.com/2026/04/13/taiwan-strait-tensions-push-countries-to-diversify-semiconductor-supply-chains/",
+    "timestamp_utc": "2026-04-13T12:39:16+00:00",
+    "title": "Taiwan Strait Tensions Push Countries to Diversify Semiconductor Supply Chains",
+    "url": "https://thehilltoponline.com/2026/04/13/taiwan-strait-tensions-push-countries-to-diversify-semiconductor-supply-chains/",
+    "source": "The Hilltop Online",
+    "source_domain": "The Hilltop Online",
+    "overall_sentiment_score": 0.247973,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.237956",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.728926",
+        "ticker_sentiment_score": "0.336046",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.810888",
+        "ticker_sentiment_score": "0.212530",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.813217",
+        "ticker_sentiment_score": "0.210199",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.714415",
+        "ticker_sentiment_score": "0.140786",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-is-ami-asset-management-corps-5th-largest-position-2026-04-14/",
+    "timestamp_utc": "2026-04-14T07:40:12+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM is AMI Asset Management Corp's 5th Largest Position",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-is-ami-asset-management-corps-5th-largest-position-2026-04-14/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.176118,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.450393",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.588220",
+        "ticker_sentiment_score": "0.008399",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "PEP",
+        "relevance_score": "0.553806",
+        "ticker_sentiment_score": "0.021012",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/assessing-taiwan-semiconductor-manufacturing-nysetsm-valuati-4",
+    "timestamp_utc": "2026-04-14T17:09:39+00:00",
+    "title": "Assessing Taiwan Semiconductor Manufacturing (NYSE:TSM) Valuation After Its Recent Share Price Momentum",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/assessing-taiwan-semiconductor-manufacturing-nysetsm-valuati-4",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.220802,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402917",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.604765",
+        "ticker_sentiment_score": "0.124033",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.626997",
+        "ticker_sentiment_score": "0.125281",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.reuters.com/world/asia-pacific/tsmc-q1-profit-jumps-58-record-beats-expectations-2026-04-16/",
+    "timestamp_utc": "2026-04-16T05:33:00+00:00",
+    "title": "TSMC Q1 profit jumps 58% to record, beats expectations",
+    "url": "https://www.reuters.com/world/asia-pacific/tsmc-q1-profit-jumps-58-record-beats-expectations-2026-04-16/",
+    "source": "Reuters",
+    "source_domain": "Reuters",
+    "overall_sentiment_score": 0.548828,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.820259",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.718063",
+        "ticker_sentiment_score": "0.521790",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.624324",
+        "ticker_sentiment_score": "0.200636",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.msn.com/en-us/money/savingandinvesting/earnings-snapshot-taiwan-semiconductor-manufacturing-tops-q1-estimates-guides-q2-revenue-above-consensus/ar-AA210R1W?ocid=finance-verthp-feeds",
+    "timestamp_utc": "2026-04-16T08:39:53+00:00",
+    "title": "Earnings snapshot: Taiwan Semiconductor Manufacturing tops Q1 estimates; guides Q2 revenue above consensus",
+    "url": "https://www.msn.com/en-us/money/savingandinvesting/earnings-snapshot-taiwan-semiconductor-manufacturing-tops-q1-estimates-guides-q2-revenue-above-consensus/ar-AA210R1W?ocid=finance-verthp-feeds",
+    "source": "MSN",
+    "source_domain": "MSN",
+    "overall_sentiment_score": 0.4665,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.498008",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.daytondailynews.com/nation-world/taiwans-chipmaker-tsmc-reports-58-jump-in-profit-warns-about-iran-war-impacts/article_327d1226-6eff-5237-974a-3d0191013a78.html",
+    "timestamp_utc": "2026-04-16T10:18:53+00:00",
+    "title": "Taiwan's chipmaker TSMC reports 58% jump in profit, warns about Iran war impacts",
+    "url": "https://www.daytondailynews.com/nation-world/taiwans-chipmaker-tsmc-reports-58-jump-in-profit-warns-about-iran-war-impacts/article_327d1226-6eff-5237-974a-3d0191013a78.html",
+    "source": "Dayton Daily News",
+    "source_domain": "Dayton Daily News",
+    "overall_sentiment_score": 0.30889,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.439247",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.710506",
+        "ticker_sentiment_score": "0.332228",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.714439",
+        "ticker_sentiment_score": "0.329970",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.626595",
+        "ticker_sentiment_score": "0.235124",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "LRCX",
+        "relevance_score": "0.622807",
+        "ticker_sentiment_score": "0.242321",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/is-it-too-late-to-consider-taiwan-semiconductor-manufacturin-8",
+    "timestamp_utc": "2026-04-16T12:38:52+00:00",
+    "title": "Is It Too Late To Consider Taiwan Semiconductor Manufacturing (NYSE:TSM) After Its 1-Year Surge?",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nyse-tsm/taiwan-semiconductor-manufacturing/news/is-it-too-late-to-consider-taiwan-semiconductor-manufacturin-8",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": -0.056913,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.102999",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.700690",
+        "ticker_sentiment_score": "-0.098132",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.622223",
+        "ticker_sentiment_score": "-0.085112",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.taipeitimes.com/News/biz/archives/2026/04/17/2003855728",
+    "timestamp_utc": "2026-04-17T12:09:07+00:00",
+    "title": "TSMC projects over 30% sales growth",
+    "url": "https://www.taipeitimes.com/News/biz/archives/2026/04/17/2003855728",
+    "source": "Taipei Times",
+    "source_domain": "Taipei Times",
+    "overall_sentiment_score": 0.476037,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.876534",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.635767",
+        "ticker_sentiment_score": "0.142291",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  }
+]

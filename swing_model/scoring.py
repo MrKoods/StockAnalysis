@@ -1,14 +1,21 @@
 """
 Master confidence scorer — combines all inputs + applies all modifiers.
-Formula (exact per scope — must not be approximated):
+Formula (exact per scope — updated for 4-category system):
 
-  Base Score = (Technical Score × 60%) + (Sentiment Score × 25%) + (News Score × 15%)
+  Base Score = (Technical Score × 50%) + (Sentiment Score × 20%)
+             + (News Score × 15%) + (Fundamental Score × 15%)
   Final Score = Base Score + Sum(all applicable modifiers)
   Final Score = min(100, max(0, Final Score))
 
-Technical max: 60 (5 sub-signals × 12 each)
-Sentiment max: 25 (trajectory 0-10, velocity 0-5, consistency 0-5, spike 0-5)
-News max:      15 (credibility 0-6, theme 0-4, clustering 0-3, decay 0-2)
+Technical max:    50 (5 sub-signals × 10 each)
+Sentiment max:    20 (trajectory 0-8, velocity 0-4, consistency 0-4, spike 0-4)
+News max:         15 (credibility 0-6, theme 0-4, clustering 0-3, decay 0-2)
+Fundamental max:  15 (earnings_momentum -9..+9 + valuation -6..+6, combined -15..+15,
+                      scaled to -15..+15 contribution; 0 when data unavailable)
+
+Note on fundamental contribution: the fundamental_score from FundamentalScorer is already
+on a -15..+15 scale, so it is added directly to the base score (contributing up to +15 or
+as low as -15). The base score is clamped 0-100 after summing all four categories.
 
 Modifier bounds (applied after base score):
   Regime:          -15 to +10
@@ -28,6 +35,12 @@ import yaml
 # Minimum final score to surface a trade recommendation
 CONFIDENCE_THRESHOLD = 90
 
+# Category maximums (updated for 4-category system)
+TECHNICAL_MAX = 50
+SENTIMENT_MAX = 20
+NEWS_MAX = 15
+FUNDAMENTAL_MAX = 15
+
 
 def compute_confidence_score(
     technical: dict,
@@ -44,51 +57,65 @@ def compute_confidence_score(
     live_weights: Optional[dict] = None,
     volume_profile_score: Optional[float] = None,
     regime: Optional[str] = None,
+    fundamental: Optional[dict] = None,
 ) -> dict:
     """
     Compute final confidence score for one ticker.
 
-    technical: output from technical_common.compute_technical_indicators()
-    sentiment: output from sentiment_layer.compute_sentiment_score()
-    news: output from news_layer.compute_news_score()
+    technical:   output from technical_common.compute_technical_indicators()
+    sentiment:   output from sentiment_layer.compute_sentiment_score()
+    news:        output from news_layer.compute_news_score()
+    fundamental: output from FundamentalScorer.compute_fundamental_score(); pass None
+                 to use neutral 0 contribution (data unavailable behavior)
     live_weights: calibrated weights from data/processed/live_weights.json;
-                  if None, uses spec weights (technical_max=60, sentiment_max=25, news_max=15)
+                  if None, uses spec weights
 
     Returns full score breakdown dict for audit_log and Discord alert.
     """
     if cfg is None:
         cfg = {}
+    if fundamental is None:
+        fundamental = {}
 
     # ---------------------------------------------------------------------------
-    # Step 1: Technical sub-scores
+    # Step 1: Technical sub-scores (0-50)
     # ---------------------------------------------------------------------------
     tech_sub = compute_technical_sub_scores(technical, cfg, volume_profile_score)
-    technical_total = tech_sub["technical_total"]  # 0-60
+    technical_total = tech_sub["technical_total"]  # 0-50
 
     # ---------------------------------------------------------------------------
-    # Step 2: Sentiment total (already 0-25 from sentiment_layer)
+    # Step 2: Sentiment total (already 0-20 from sentiment_layer)
     # ---------------------------------------------------------------------------
-    # If sentiment is offline, cap at 70 is handled post-final-score
     sentiment_total = float(sentiment.get("sentiment_score_total", 0.0))
-    sentiment_total = min(25.0, max(0.0, sentiment_total))
+    sentiment_total = min(float(SENTIMENT_MAX), max(0.0, sentiment_total))
 
     # ---------------------------------------------------------------------------
     # Step 3: News total (already 0-15 from news_layer)
     # ---------------------------------------------------------------------------
     news_total = float(news.get("news_score_total", 0.0))
-    news_total = min(15.0, max(0.0, news_total))
+    news_total = min(float(NEWS_MAX), max(0.0, news_total))
 
     # ---------------------------------------------------------------------------
-    # Step 4: Base Score = technical_total + sentiment_total + news_total
-    #   Components ARE the scores (already scaled by their max weights)
-    #   Technical is already in [0,60], Sentiment in [0,25], News in [0,15]
-    #   So base_score = sum = [0, 100] — matches spec exactly
+    # Step 4: Fundamental contribution
+    #   fundamental_score is on -15..+15 scale from FundamentalScorer.
+    #   data_quality == 'unavailable' → score was already set to 0 by scorer.
+    #   We add it directly; base_score is clamped 0-100 after summing.
     # ---------------------------------------------------------------------------
-    base_score = technical_total + sentiment_total + news_total
+    fundamental_score_raw = float(fundamental.get("fundamental_score", 0.0))
+    fundamental_score_raw = max(-float(FUNDAMENTAL_MAX), min(float(FUNDAMENTAL_MAX), fundamental_score_raw))
+    fundamental_data_quality = fundamental.get("data_quality", "unavailable")
+
+    # ---------------------------------------------------------------------------
+    # Step 5: Base Score = technical + sentiment + news + fundamental
+    #   technical [0,50] + sentiment [0,20] + news [0,15] = [0,85] before fundamental.
+    #   fundamental [-15,+15] shifts the total to [-15,100].
+    #   Clamped to [0,100] after summing.
+    # ---------------------------------------------------------------------------
+    base_score = technical_total + sentiment_total + news_total + fundamental_score_raw
     base_score = min(100.0, max(0.0, base_score))
 
     # ---------------------------------------------------------------------------
-    # Step 5: Clamp each modifier to its spec bounds before summing
+    # Step 6: Clamp each modifier to its spec bounds before summing
     # ---------------------------------------------------------------------------
     r_mod = max(-15.0, min(10.0, float(regime_modifier)))
     sr_mod = max(-15.0, min(5.0, float(sector_rotation_modifier)))
@@ -101,7 +128,7 @@ def compute_confidence_score(
     total_modifier = r_mod + sr_mod + e_mod + ct_mod + ins_mod + seas_mod + mac_mod
 
     # ---------------------------------------------------------------------------
-    # Step 6: Final Score = Base Score + Sum(modifiers), clamped [0, 100]
+    # Step 7: Final Score = Base Score + Sum(modifiers), clamped [0, 100]
     # ---------------------------------------------------------------------------
     final_score = base_score + total_modifier
     final_score = min(100.0, max(0.0, final_score))
@@ -140,6 +167,24 @@ def compute_confidence_score(
         "decay_score": float(news.get("decay_score", 0.0)),
         "news_total": round(news_total, 2),
 
+        # Fundamental sub-scores
+        "fundamental_score": round(fundamental_score_raw, 2),
+        "earnings_momentum_score": fundamental.get("earnings_momentum_score", 0),
+        "valuation_score": fundamental.get("valuation_score", 0),
+        "eps_growth_score": fundamental.get("eps_growth_score", 0),
+        "estimate_revisions_score": fundamental.get("estimate_revisions_score", 0),
+        "earnings_surprise_score": fundamental.get("earnings_surprise_score", 0),
+        "analyst_consensus_score": fundamental.get("analyst_consensus_score", 0),
+        "pe_vs_sector_score": fundamental.get("pe_vs_sector_score", 0),
+        "forward_vs_trailing_pe_score": fundamental.get("forward_vs_trailing_pe_score", 0),
+        "ev_ebitda_vs_peers_score": fundamental.get("ev_ebitda_vs_peers_score", 0),
+        "fundamental_data_quality": fundamental_data_quality,
+        "fundamental_breakdown": {
+            "earnings": fundamental.get("earnings_breakdown", {}),
+            "valuation": fundamental.get("valuation_breakdown", {}),
+            "sector_averages": fundamental.get("sector_averages", {}),
+        },
+
         # Scoring breakdown
         "base_score": round(base_score, 2),
         "regime_modifier": r_mod,
@@ -162,38 +207,37 @@ def compute_technical_sub_scores(
     volume_profile_score_override: Optional[float] = None,
 ) -> dict:
     """
-    Map raw technical indicator values to 0-12 sub-scores.
+    Map raw technical indicator values to 0-10 sub-scores.
 
-    5 sub-signals × 12 points max = 60 total:
-    - breakout_score:       volume z-score × 12 (clamped 0-12)
-    - trend_score:          MA alignment + price positioning (0-12)
-    - rs_score:             RS vs. SMH z-score (0-12)
-    - rsi_score:            RSI position mapping (0-12)
-    - volume_profile_score: supplied from volume_profile.py (0-12)
+    5 sub-signals × 10 points max = 50 total (updated from 5×12=60):
+    - breakout_score:       volume z-score × 10 (clamped 0-10)
+    - trend_score:          MA alignment + price positioning (0-10)
+    - rs_score:             RS vs. SMH z-score (0-10)
+    - rsi_score:            RSI position mapping (0-10)
+    - volume_profile_score: supplied from volume_profile.py (0-10)
     """
     if cfg is None:
         cfg = {}
 
     # ---------------------------------------------------------------------------
-    # Breakout score (0-12): volume z-score signals unusual activity at breakout
-    # Clamp z-score to [-3, +3] range, then scale to 0-12
-    # z=0 (average volume) → 6; z=+2 (strong breakout volume) → 10; z=+3 → 12
+    # Breakout score (0-10): volume z-score signals unusual activity at breakout
+    # Clamp z-score to [-3, +3] range, then scale to 0-10
+    # z=0 (average volume) → 5; z=+2 (strong breakout volume) → 8.3; z=+3 → 10
     # ---------------------------------------------------------------------------
     vol_z = float(technical.get("breakout_volume_zscore", 0.0))
     vol_z_clamp = max(-3.0, min(3.0, vol_z))
-    breakout_raw = 6.0 + vol_z_clamp * 2.0  # z=0→6, z=+3→12, z=-3→0
-    # Only award breakout score if breakout is confirmed
+    breakout_raw = 5.0 + vol_z_clamp * (5.0 / 3.0)  # z=0→5, z=+3→10, z=-3→0
     breakout_confirmed = bool(technical.get("breakout_confirmed", False))
     if not breakout_confirmed:
-        breakout_raw = min(breakout_raw, 6.0)  # Cap at neutral if no breakout
-    breakout_score = round(max(0.0, min(12.0, breakout_raw)), 2)
+        breakout_raw = min(breakout_raw, 5.0)  # Cap at neutral if no breakout
+    breakout_score = round(max(0.0, min(10.0, breakout_raw)), 2)
 
     # ---------------------------------------------------------------------------
-    # Trend score (0-12): 3-tier scoring
-    #   sma20 > sma50 AND close > sma50 AND MACD bullish → 12
-    #   sma20 > sma50 AND close > sma50 → 8
-    #   close > sma50 only → 5
-    #   close < sma50 → 2
+    # Trend score (0-10): 3-tier scoring (scaled from 0-12 to 0-10)
+    #   sma20 > sma50 AND close > sma50 AND MACD bullish → 10
+    #   sma20 > sma50 AND close > sma50 → 7.5
+    #   close > sma50 only → 4
+    #   close < sma50 → 1.5
     # ---------------------------------------------------------------------------
     trend_intact = bool(technical.get("trend_intact", False))
     sma20_above_50 = bool(technical.get("sma_20_above_sma_50", False))
@@ -201,62 +245,58 @@ def compute_technical_sub_scores(
     macd_bullish = bool(technical.get("macd_bullish", False))
 
     if trend_intact and macd_bullish:
-        trend_score = 12.0
+        trend_score = 10.0
     elif trend_intact:
-        trend_score = 9.0
+        trend_score = 7.5
     elif sma20_above_50 and price_above_50:
-        trend_score = 7.0
+        trend_score = 5.8
     elif price_above_50:
-        trend_score = 5.0
+        trend_score = 4.0
     else:
-        trend_score = 2.0
+        trend_score = 1.5
     trend_score = round(trend_score, 2)
 
     # ---------------------------------------------------------------------------
-    # RS score (0-12): RS z-score maps relative strength vs. SMH
-    # rs_z=+2 → 12 (strongly outperforming), rs_z=-2 → 0 (underperforming)
+    # RS score (0-10): RS z-score maps relative strength vs. SMH
+    # rs_z=+3 → 10 (strongly outperforming), rs_z=-3 → 0 (underperforming)
     # ---------------------------------------------------------------------------
     rs_z = float(technical.get("rs_zscore", 0.0))
     rs_z_clamp = max(-3.0, min(3.0, rs_z))
-    rs_score = round(max(0.0, min(12.0, 6.0 + rs_z_clamp * 2.0)), 2)
+    rs_score = round(max(0.0, min(10.0, 5.0 + rs_z_clamp * (5.0 / 3.0))), 2)
 
     # ---------------------------------------------------------------------------
-    # RSI score (0-12): RSI position mapping
-    #   50-65: sweet spot for entry (uptrend not overbought) → 8-12
-    #   65-80: overbought — slightly extended → 6-8
-    #   80+:   very overbought → 2
-    #   40-50: building momentum → 5-8
-    #   <40:   weak/downtrend → 0-4
+    # RSI score (0-10): RSI position mapping (scaled from 0-12 to 0-10)
     # ---------------------------------------------------------------------------
     rsi_val = float(technical.get("rsi_14", 50.0))
     if 55 <= rsi_val <= 65:
-        rsi_score = 12.0
+        rsi_score = 10.0
     elif 50 <= rsi_val < 55:
-        rsi_score = 9.0
+        rsi_score = 7.5
     elif 65 < rsi_val <= 72:
-        rsi_score = 7.0
+        rsi_score = 5.8
     elif 72 < rsi_val <= 80:
-        rsi_score = 5.0
+        rsi_score = 4.2
     elif rsi_val > 80:
-        rsi_score = 2.0
+        rsi_score = 1.7
     elif 45 <= rsi_val < 50:
-        rsi_score = 6.0
+        rsi_score = 5.0
     elif 35 <= rsi_val < 45:
-        rsi_score = 3.0
+        rsi_score = 2.5
     else:
-        rsi_score = 1.0
+        rsi_score = 0.8
     rsi_score = round(rsi_score, 2)
 
     # ---------------------------------------------------------------------------
-    # Volume profile score (0-12): supplied by volume_profile.py, or neutral=6
+    # Volume profile score (0-10): supplied by volume_profile.py, or neutral=5
     # ---------------------------------------------------------------------------
     if volume_profile_score_override is not None:
-        vp_score = round(max(0.0, min(12.0, float(volume_profile_score_override))), 2)
+        vp_score = round(max(0.0, min(10.0, float(volume_profile_score_override))), 2)
     else:
-        vp_score = float(technical.get("volume_profile_score", 6.0))
-        vp_score = round(max(0.0, min(12.0, vp_score)), 2)
+        vp_score = float(technical.get("volume_profile_score", 5.0))
+        vp_score = round(max(0.0, min(10.0, vp_score)), 2)
 
     technical_total = round(breakout_score + trend_score + rs_score + rsi_score + vp_score, 2)
+    technical_total = min(float(TECHNICAL_MAX), technical_total)
 
     return {
         "breakout_score": breakout_score,

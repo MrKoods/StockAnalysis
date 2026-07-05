@@ -1,0 +1,1628 @@
+[
+  {
+    "article_id": "https://ir.supermicro.com/news/news-details/2025/Supermicro-Unveils-High-Density-Liquid-Cooled-and-Air-Cooled-6U-SuperBlade-Powered-by-Intel-Xeon-6900-Series-Processors-for-Maximum-Performance-and-Efficiency/default.aspx",
+    "timestamp_utc": "2026-01-01T00:04:35+00:00",
+    "title": "Supermicro Unveils High-Density, Liquid-Cooled and Air-Cooled 6U SuperBlade\u00ae Powered by Intel\u00ae Xeon\u00ae 6900 Series Processors for Maximum Performance and Efficiency",
+    "url": "https://ir.supermicro.com/news/news-details/2025/Supermicro-Unveils-High-Density-Liquid-Cooled-and-Air-Cooled-6U-SuperBlade-Powered-by-Intel-Xeon-6900-Series-Processors-for-Maximum-Performance-and-Efficiency/default.aspx",
+    "source": "Supermicro",
+    "source_domain": "Supermicro",
+    "overall_sentiment_score": 0.325387,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.449563",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.805427",
+        "ticker_sentiment_score": "0.340525",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.642761",
+        "ticker_sentiment_score": "0.233128",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/SMCI/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-jrv4fykm7bfo.html",
+    "timestamp_utc": "2026-01-01T00:09:06+00:00",
+    "title": "New server design cuts data center cabling by 93% and space use by 50%",
+    "url": "https://www.stocktitan.net/news/SMCI/supermicro-unveils-high-density-liquid-cooled-and-air-cooled-6u-jrv4fykm7bfo.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.309341,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.449493",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.734989",
+        "ticker_sentiment_score": "0.313889",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.610764",
+        "ticker_sentiment_score": "0.245036",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.556857",
+        "ticker_sentiment_score": "0.282657",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-dips-after-hours-on-year-end-selling-what-investors-are-watching-next/",
+    "timestamp_utc": "2026-01-01T02:08:25+00:00",
+    "title": "AMD stock dips after-hours on year-end selling \u2014 what investors are watching next",
+    "url": "https://ts2.tech/en/amd-stock-dips-after-hours-on-year-end-selling-what-investors-are-watching-next/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.140028,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.220436",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.624713",
+        "ticker_sentiment_score": "-0.228604",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.609691",
+        "ticker_sentiment_score": "0.142182",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/microchip-technology-stock-is-quietly-exploding-are-you-sleeping-on/68445792",
+    "timestamp_utc": "2026-01-01T07:08:40+00:00",
+    "title": "Microchip Technology Stock Is Quietly Exploding \u2013 Are You Sleeping on This Chip Giant?",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/microchip-technology-stock-is-quietly-exploding-are-you-sleeping-on/68445792",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.241394,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MCHP",
+        "relevance_score": "0.955650",
+        "ticker_sentiment_score": "0.449818",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.745596",
+        "ticker_sentiment_score": "0.266496",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.630698",
+        "ticker_sentiment_score": "0.138844",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.564454",
+        "ticker_sentiment_score": "0.091760",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synopsys-inc-the-invisible-engine-powering-the-ai-chip-arms-race/68447694",
+    "timestamp_utc": "2026-01-01T08:38:07+00:00",
+    "title": "Synopsys Inc.: The Invisible Engine Powering the AI Chip Arms Race",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synopsys-inc-the-invisible-engine-powering-the-ai-chip-arms-race/68447694",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.285558,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SNPS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.494023",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CDNS",
+        "relevance_score": "0.818531",
+        "ticker_sentiment_score": "0.273380",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.611046",
+        "ticker_sentiment_score": "0.246621",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.635659",
+        "ticker_sentiment_score": "0.241087",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.629448",
+        "ticker_sentiment_score": "0.267773",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-strong-tower-advisory-services-trims-stake-in-nvidia-corporation-nvda-2026-01-01/",
+    "timestamp_utc": "2026-01-01T10:36:35+00:00",
+    "title": "Strong Tower Advisory Services Trims Stake in NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-strong-tower-advisory-services-trims-stake-in-nvidia-corporation-nvda-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.198746,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.298822",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.602440",
+        "ticker_sentiment_score": "0.120179",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/intel-stock-dips-in-year-end-trade-as-nvidias-5-billion-stake-stays-in-focus-for-intc/",
+    "timestamp_utc": "2026-01-01T11:08:09+00:00",
+    "title": "Intel stock dips in year-end trade as Nvidia\u2019s $5 billion stake stays in focus for INTC",
+    "url": "https://ts2.tech/en/intel-stock-dips-in-year-end-trade-as-nvidias-5-billion-stake-stays-in-focus-for-intc/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.062459,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.220280",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.814957",
+        "ticker_sentiment_score": "0.288998",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.550890",
+        "ticker_sentiment_score": "0.049021",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-symmetry-partners-llc-has-405-million-holdings-in-nvidia-corporation-nvda-2026-01-01/",
+    "timestamp_utc": "2026-01-01T11:08:28+00:00",
+    "title": "Symmetry Partners LLC Has $4.05 Million Holdings in NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-symmetry-partners-llc-has-405-million-holdings-in-nvidia-corporation-nvda-2026-01-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.251869,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.325609",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.725734",
+        "ticker_sentiment_score": "0.129675",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.635198",
+        "ticker_sentiment_score": "0.300262",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synaptics-stock-in-focus-ai-hopes-rate-jitters-and-a-sideways-tape-test/68448105",
+    "timestamp_utc": "2026-01-01T11:09:44+00:00",
+    "title": "Synaptics Stock in Focus: AI Hopes, Rate Jitters and a Sideways Tape Test Investors\u2019 Nerves",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/synaptics-stock-in-focus-ai-hopes-rate-jitters-and-a-sideways-tape-test/68448105",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.197033,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SYNA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.133312",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.738177",
+        "ticker_sentiment_score": "0.290632",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.642817",
+        "ticker_sentiment_score": "0.108081",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.629049",
+        "ticker_sentiment_score": "0.316640",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.615043",
+        "ticker_sentiment_score": "0.103759",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265615/heres-why-bofa-has-a-buy-rating-on-teradyne-inc-ter",
+    "timestamp_utc": "2026-01-01T12:08:40+00:00",
+    "title": "Here's Why BofA Has a Buy Rating on Teradyne, Inc. (TER)",
+    "url": "https://finviz.com/news/265615/heres-why-bofa-has-a-buy-rating-on-teradyne-inc-ter",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.31129,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TER",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.449373",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "BAC",
+        "relevance_score": "0.720175",
+        "ticker_sentiment_score": "0.324954",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.604664",
+        "ticker_sentiment_score": "0.237187",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.manilatimes.net/2025/12/31/tmt-newswire/globenewswire/graniteshares-announces-weekly-distributions-for-its-yieldboost-etfs-coyy-tsyy-nvyy-xbty-amyy-tqqy-azyy-yspy-mtyy-plyy-hoyy-smyy-bbyy-fbyy-ioyy-maay-nugy-semy-qby-rgyy-hmyy-and-rtyy/2251512",
+    "timestamp_utc": "2026-01-01T14:09:34+00:00",
+    "title": "GraniteShares Announces Weekly Distributions for its YieldBOOST ETFs: COYY, TSYY, NVYY, XBTY, AMYY, TQQY, AZYY, YSPY, MTYY, PLYY, HOYY, SMYY, BBYY, FBYY, IOYY, MAAY, NUGY, SEMY, QBY, RGYY, HMYY and RTYY",
+    "url": "https://www.manilatimes.net/2025/12/31/tmt-newswire/globenewswire/graniteshares-announces-weekly-distributions-for-its-yieldboost-etfs-coyy-tsyy-nvyy-xbty-amyy-tqqy-azyy-yspy-mtyy-plyy-hoyy-smyy-bbyy-fbyy-ioyy-maay-nugy-semy-qby-rgyy-hmyy-and-rtyy/2251512",
+    "source": "The Manila Times",
+    "source_domain": "The Manila Times",
+    "overall_sentiment_score": 0.413344,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "XBTY",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.438936",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.729559",
+        "ticker_sentiment_score": "0.413485",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.722362",
+        "ticker_sentiment_score": "0.441999",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.701707",
+        "ticker_sentiment_score": "0.449021",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.737577",
+        "ticker_sentiment_score": "0.434305",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/tokenring-2026-1-1-texas-instruments-ignites-the-reshoring-revolution-sm1-fab-in-sherman-begins-production-of-ai-and-automotive-silicon",
+    "timestamp_utc": "2026-01-01T14:23:00+00:00",
+    "title": "Texas Instruments Ignites the Reshoring Revolution: SM1 Fab in Sherman Begins Production of AI and Automotive Silicon",
+    "url": "https://markets.financialcontent.com/wral/article/tokenring-2026-1-1-texas-instruments-ignites-the-reshoring-revolution-sm1-fab-in-sherman-begins-production-of-ai-and-automotive-silicon",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.488589,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TXN",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.881223",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.716357",
+        "ticker_sentiment_score": "0.491553",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.658470",
+        "ticker_sentiment_score": "0.422099",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "F",
+        "relevance_score": "0.622384",
+        "ticker_sentiment_score": "0.303159",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.562973",
+        "ticker_sentiment_score": "0.336726",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/broadcom-stock-today-avgo-slips-into-new-years-market-closure-as-openai-chip-tie-up-stays-in-focus/",
+    "timestamp_utc": "2026-01-01T15:07:54+00:00",
+    "title": "Broadcom stock today: AVGO slips into New Year\u2019s market closure as OpenAI chip tie-up stays in focus",
+    "url": "https://ts2.tech/en/broadcom-stock-today-avgo-slips-into-new-years-market-closure-as-openai-chip-tie-up-stays-in-focus/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.160048,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.986165",
+        "ticker_sentiment_score": "-0.106523",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.716446",
+        "ticker_sentiment_score": "-0.204026",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.693296",
+        "ticker_sentiment_score": "-0.201086",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.584130",
+        "ticker_sentiment_score": "-0.061585",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/intel-stock-today-intc-dips-into-2026-as-nvidias-5b-stake-keeps-focus-on-whats-nextnew-york-january-1-2026-1013-et-market-closed/",
+    "timestamp_utc": "2026-01-01T15:08:07+00:00",
+    "title": "Intel stock today: INTC dips into 2026 as Nvidia\u2019s $5B stake keeps focus on what\u2019s next",
+    "url": "https://ts2.tech/en/intel-stock-today-intc-dips-into-2026-as-nvidias-5b-stake-keeps-focus-on-whats-nextnew-york-january-1-2026-1013-et-market-closed/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.154059,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.238451",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.831086",
+        "ticker_sentiment_score": "-0.124503",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.620857",
+        "ticker_sentiment_score": "-0.135828",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/onto-innovation-inc-is-quietly-exploding-is-this-under-the-radar-chip/68445013",
+    "timestamp_utc": "2026-01-01T15:10:11+00:00",
+    "title": "Onto Innovation Inc Is Quietly Exploding \u2014 Is This Under-the-Radar Chip Stock Your Next Power Play",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/onto-innovation-inc-is-quietly-exploding-is-this-under-the-radar-chip/68445013",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.437273,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ONTO",
+        "relevance_score": "0.993447",
+        "ticker_sentiment_score": "0.707536",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.606164",
+        "ticker_sentiment_score": "0.326417",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.563246",
+        "ticker_sentiment_score": "0.342337",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-today-advanced-micro-devices-slips-into-2026-as-traders-eye-ces-keynote-and-feb-earnings/",
+    "timestamp_utc": "2026-01-01T15:16:43+00:00",
+    "title": "AMD stock today: Advanced Micro Devices slips into 2026 as traders eye CES keynote and Feb. earnings",
+    "url": "https://ts2.tech/en/amd-stock-today-advanced-micro-devices-slips-into-2026-as-traders-eye-ces-keynote-and-feb-earnings/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.090348,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.069038",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.611669",
+        "ticker_sentiment_score": "0.072925",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.648616",
+        "ticker_sentiment_score": "0.087749",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-quicklogic-corp-quik-tiny-chip-stock-massive-hype/68445329",
+    "timestamp_utc": "2026-01-01T17:09:36+00:00",
+    "title": "The Truth About QuickLogic Corp (QUIK): Tiny Chip Stock, Massive Hype \u2013 Is It Worth the Risk?",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-quicklogic-corp-quik-tiny-chip-stock-massive-hype/68445329",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.161692,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "QUIK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.283891",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.724666",
+        "ticker_sentiment_score": "0.118065",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.577780",
+        "ticker_sentiment_score": "0.002756",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/if-you-invested-1000-in-advanced-micro-devices-stock-10-years-ago-you-would-have-this-much-today-2026-01-01",
+    "timestamp_utc": "2026-01-01T20:07:22+00:00",
+    "title": "If You Invested $1000 In Advanced Micro Devices Stock 10 Years Ago, You Would Have This Much Today",
+    "url": "https://www.sahmcapital.com/news/content/if-you-invested-1000-in-advanced-micro-devices-stock-10-years-ago-you-would-have-this-much-today-2026-01-01",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.46272,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.480479",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-intel-corp-why-everyone-is-suddenly-watching-this-stock/68449647",
+    "timestamp_utc": "2026-01-01T22:06:25+00:00",
+    "title": "The Truth About Intel Corp: Why Everyone Is Suddenly Watching This Stock",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/the-truth-about-intel-corp-why-everyone-is-suddenly-watching-this-stock/68449647",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.161377,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.297783",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.709130",
+        "ticker_sentiment_score": "0.140399",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.721070",
+        "ticker_sentiment_score": "0.143181",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.618274",
+        "ticker_sentiment_score": "0.091836",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-forecast-2026-wall-street-sees-32-upside-as-ces-keynote-nears/",
+    "timestamp_utc": "2026-01-02T00:07:44+00:00",
+    "title": "AMD Stock Forecast 2026: Wall Street Sees 32% Upside as CES Keynote Nears",
+    "url": "https://ts2.tech/en/amd-stock-forecast-2026-wall-street-sees-32-upside-as-ces-keynote-nears/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.014815,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.345255",
+        "ticker_sentiment_score": "0.046936",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/tradingview:7ccb27a2dd77c:0-key-facts-dogecoin-price-pullback-signals-trading-opportunity-etfs-struggle/",
+    "timestamp_utc": "2026-01-02T00:10:58+00:00",
+    "title": "Key facts: Dogecoin price pullback signals trading opportunity; ETFs struggle",
+    "url": "https://www.tradingview.com/news/tradingview:7ccb27a2dd77c:0-key-facts-dogecoin-price-pullback-signals-trading-opportunity-etfs-struggle/",
+    "source": "TradingView \u2014 Track All Markets",
+    "source_domain": "TradingView \u2014 Track All Markets",
+    "overall_sentiment_score": 0.066609,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "FDS",
+        "relevance_score": "0.322100",
+        "ticker_sentiment_score": "0.028530",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.637844",
+        "ticker_sentiment_score": "0.104234",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/salesforce-stock-today-benioffs-mrbeast-super-bowl-pitch-keeps-crm-in-focus-as-markets-shut-for-new-years/",
+    "timestamp_utc": "2026-01-02T00:16:49+00:00",
+    "title": "Salesforce stock today: Benioff\u2019s MrBeast Super Bowl pitch keeps CRM in focus as markets shut for New Year\u2019s",
+    "url": "https://ts2.tech/en/salesforce-stock-today-benioffs-mrbeast-super-bowl-pitch-keeps-crm-in-focus-as-markets-shut-for-new-years/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.173121,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CRM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.274976",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.591799",
+        "ticker_sentiment_score": "0.139512",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.560529",
+        "ticker_sentiment_score": "0.115455",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/the-truth-about-advanced-micro-devices-inc-why-everyone-is-betting-big-on/68450027",
+    "timestamp_utc": "2026-01-02T00:27:38+00:00",
+    "title": "The Truth About Advanced Micro Devices Inc: Why Everyone Is Betting Big On AMD Right Now",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/the-truth-about-advanced-micro-devices-inc-why-everyone-is-betting-big-on/68450027",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.253941,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.488878",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.870178",
+        "ticker_sentiment_score": "0.323678",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.740934",
+        "ticker_sentiment_score": "0.138014",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.692554",
+        "ticker_sentiment_score": "0.237904",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.584146",
+        "ticker_sentiment_score": "0.137281",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/starbucks-stock-today-why-sbux-closed-at-84-and-what-wall-street-watches-next/",
+    "timestamp_utc": "2026-01-02T00:29:30+00:00",
+    "title": "Starbucks stock today: Why SBUX closed at $84 and what Wall Street watches next",
+    "url": "https://ts2.tech/en/starbucks-stock-today-why-sbux-closed-at-84-and-what-wall-street-watches-next/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.09014,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SBUX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.178765",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "KO",
+        "relevance_score": "0.646537",
+        "ticker_sentiment_score": "0.054693",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "PEP",
+        "relevance_score": "0.613209",
+        "ticker_sentiment_score": "0.055432",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MCD",
+        "relevance_score": "0.628817",
+        "ticker_sentiment_score": "0.065336",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.610435",
+        "ticker_sentiment_score": "0.263408",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/sec-filings/super-micro-computer-secures-2-billion-credit-facility-with-jpmorgan-chase-93CH-4428286",
+    "timestamp_utc": "2026-01-02T04:39:00+00:00",
+    "title": "Super Micro Computer secures $2 billion credit facility with JPMorgan Chase",
+    "url": "https://www.investing.com/news/sec-filings/super-micro-computer-secures-2-billion-credit-facility-with-jpmorgan-chase-93CH-4428286",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.253047,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.336689",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.731475",
+        "ticker_sentiment_score": "0.250341",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.621845",
+        "ticker_sentiment_score": "0.240746",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/advanced-micro-devices-amd-is-gaining-on-several-fronts-1669449/",
+    "timestamp_utc": "2026-01-02T07:54:00+00:00",
+    "title": "Advanced Micro Devices (AMD) is Gaining on Several Fronts",
+    "url": "https://www.insidermonkey.com/blog/advanced-micro-devices-amd-is-gaining-on-several-fronts-1669449/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.08399,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.325191",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.626624",
+        "ticker_sentiment_score": "0.146896",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.574192",
+        "ticker_sentiment_score": "0.031009",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.587464",
+        "ticker_sentiment_score": "0.034996",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.586683",
+        "ticker_sentiment_score": "0.000490",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/stock-market-news/big-tree-cloud-stock-surges-after-ai-business-expansion-and-key-talent-appointments-93CH-4383466",
+    "timestamp_utc": "2026-01-02T08:58:00+00:00",
+    "title": "Big Tree Cloud stock surges after AI business expansion and key talent appointments",
+    "url": "https://ca.investing.com/news/stock-market-news/big-tree-cloud-stock-surges-after-ai-business-expansion-and-key-talent-appointments-93CH-4383466",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.558533,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "DSY",
+        "relevance_score": "0.961019",
+        "ticker_sentiment_score": "0.800860",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.564753",
+        "ticker_sentiment_score": "0.429264",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.551837",
+        "ticker_sentiment_score": "0.457851",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-price-today-ces-2026-keynote-looms-after-year-end-dip/",
+    "timestamp_utc": "2026-01-02T09:07:46+00:00",
+    "title": "AMD stock price today: CES 2026 keynote looms after year-end dip",
+    "url": "https://ts2.tech/en/amd-stock-price-today-ces-2026-keynote-looms-after-year-end-dip/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": -0.136709,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.202630",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.614892",
+        "ticker_sentiment_score": "-0.224930",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.609282",
+        "ticker_sentiment_score": "-0.180347",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.614369",
+        "ticker_sentiment_score": "0.119731",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-bar-harbor-wealth-management-buys-6887-shares-of-nvidia-corporation-nvda-2026-01-02/",
+    "timestamp_utc": "2026-01-02T09:08:08+00:00",
+    "title": "Bar Harbor Wealth Management Buys 6,887 Shares of NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-bar-harbor-wealth-management-buys-6887-shares-of-nvidia-corporation-nvda-2026-01-02/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.249012,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.451370",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.608996",
+        "ticker_sentiment_score": "0.120339",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.600809",
+        "ticker_sentiment_score": "0.136567",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/265961/td-cowen-names-advanced-micro-devices-amd-one-of-its-best-ideas-for-2026",
+    "timestamp_utc": "2026-01-02T09:10:00+00:00",
+    "title": "TD Cowen Names Advanced Micro Devices (AMD) One of its Best Ideas for 2026",
+    "url": "https://finviz.com/news/265961/td-cowen-names-advanced-micro-devices-amd-one-of-its-best-ideas-for-2026",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.26369,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.470666",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.625862",
+        "ticker_sentiment_score": "0.144506",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.637547",
+        "ticker_sentiment_score": "0.147412",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/td-cowen-names-advanced-micro-devices-amd-one-of-its-best-ideas-for-2026-1668992/",
+    "timestamp_utc": "2026-01-02T09:10:00+00:00",
+    "title": "TD Cowen Names Advanced Micro Devices (AMD) One of its Best Ideas for 2026",
+    "url": "https://www.insidermonkey.com/blog/td-cowen-names-advanced-micro-devices-amd-one-of-its-best-ideas-for-2026-1668992/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.444615,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.403569",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-2-the-linchpin-of-the-ai-era-a-deep-dive-stock-research-report-on-asml-asml",
+    "timestamp_utc": "2026-01-02T09:36:00+00:00",
+    "title": "The Linchpin of the AI Era: A Deep-Dive Stock Research Report on ASML (ASML)",
+    "url": "https://markets.financialcontent.com/wral/article/predictstreet-2026-1-2-the-linchpin-of-the-ai-era-a-deep-dive-stock-research-report-on-asml-asml",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.624185,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ASML",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.836560",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.626467",
+        "ticker_sentiment_score": "0.680988",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.643000",
+        "ticker_sentiment_score": "0.540938",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.559896",
+        "ticker_sentiment_score": "0.543057",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-is-robbins-farleys-largest-position-2026-01-02/",
+    "timestamp_utc": "2026-01-02T10:08:22+00:00",
+    "title": "NVIDIA Corporation $NVDA is Robbins Farley's Largest Position",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-is-robbins-farleys-largest-position-2026-01-02/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.285942,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.409143",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.630288",
+        "ticker_sentiment_score": "0.132708",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.556497",
+        "ticker_sentiment_score": "0.280266",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/tsmc-stock-today-u-s-china-tool-licence-and-nvidia-h200-talks-put-taiwan-semiconductor-in-focus/",
+    "timestamp_utc": "2026-01-02T10:08:46+00:00",
+    "title": "TSMC stock today: U.S. China-tool licence and Nvidia H200 talks put Taiwan Semiconductor in focus",
+    "url": "https://ts2.tech/en/tsmc-stock-today-u-s-china-tool-licence-and-nvidia-h200-talks-put-taiwan-semiconductor-in-focus/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.130639,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "0.984528",
+        "ticker_sentiment_score": "0.284492",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.839965",
+        "ticker_sentiment_score": "0.207434",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.632987",
+        "ticker_sentiment_score": "0.051457",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.555862",
+        "ticker_sentiment_score": "0.088966",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.559224",
+        "ticker_sentiment_score": "0.063443",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-jumps-6-as-chip-rally-kicks-off-2026-ahead-of-lisa-sus-ces-keynote/",
+    "timestamp_utc": "2026-01-02T10:18:00+00:00",
+    "title": "AMD stock jumps 6% as chip rally kicks off 2026 ahead of Lisa Su\u2019s CES keynote",
+    "url": "https://ts2.tech/en/amd-stock-jumps-6-as-chip-rally-kicks-off-2026-ahead-of-lisa-sus-ces-keynote/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.772986,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.827970",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.829569",
+        "ticker_sentiment_score": "0.731499",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.711119",
+        "ticker_sentiment_score": "0.748191",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.607295",
+        "ticker_sentiment_score": "0.666266",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.586758",
+        "ticker_sentiment_score": "0.765841",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/kla-corporation-stock-is-quietly-going-off-are-you-sleeping-on-this/68451398",
+    "timestamp_utc": "2026-01-02T10:51:12+00:00",
+    "title": "KLA Corporation Stock Is Quietly Going Off \u2013 Are You Sleeping On This Chip Power Play?",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/kla-corporation-stock-is-quietly-going-off-are-you-sleeping-on-this/68451398",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.215589,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KLAC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.458689",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.623193",
+        "ticker_sentiment_score": "0.100303",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.559285",
+        "ticker_sentiment_score": "0.127005",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.589091",
+        "ticker_sentiment_score": "0.114942",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/kla-corporation-stock-is-quietly-going-off-are-you-sleeping-on-this/68451398",
+    "timestamp_utc": "2026-01-02T11:07:38+00:00",
+    "title": "KLA Corporation Stock Is Quietly Going Off \u2013 Are You Sleeping On This Chip Power Play?",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/kla-corporation-stock-is-quietly-going-off-are-you-sleeping-on-this/68451398",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.392489,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KLAC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.614573",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.614362",
+        "ticker_sentiment_score": "0.416461",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.562299",
+        "ticker_sentiment_score": "0.300785",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.565010",
+        "ticker_sentiment_score": "0.268212",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/news/4536342-micron-intel-amd-lead-chip-stocks-higher-to-kick-off-2026",
+    "timestamp_utc": "2026-01-02T12:06:00+00:00",
+    "title": "Micron, Intel, AMD lead chip stocks higher to kick off 2026 (MU:NASDAQ)",
+    "url": "https://seekingalpha.com/news/4536342-micron-intel-amd-lead-chip-stocks-higher-to-kick-off-2026",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.315669,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.428933",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.823734",
+        "ticker_sentiment_score": "0.344194",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.834563",
+        "ticker_sentiment_score": "0.341255",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.617154",
+        "ticker_sentiment_score": "0.208049",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.633058",
+        "ticker_sentiment_score": "0.247925",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://privatebank.jpmorgan.com/nam/en/insights/latest-and-featured/eotm/outlook",
+    "timestamp_utc": "2026-01-02T12:08:12+00:00",
+    "title": "Eye on the Market Outlook 2026: Smothering Heights",
+    "url": "https://privatebank.jpmorgan.com/nam/en/insights/latest-and-featured/eotm/outlook",
+    "source": "J.P. Morgan Private Bank",
+    "source_domain": "J.P. Morgan Private Bank",
+    "overall_sentiment_score": 0.090822,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.648857",
+        "ticker_sentiment_score": "-0.109489",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.926618",
+        "ticker_sentiment_score": "0.235359",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.740030",
+        "ticker_sentiment_score": "0.126851",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.708252",
+        "ticker_sentiment_score": "0.000556",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/why-vicor-vicr-stock-is-up-today-chip-rally-court-calendar-and-earnings-date-in-focus/",
+    "timestamp_utc": "2026-01-02T13:41:00+00:00",
+    "title": "Why Vicor (VICR) stock is up today: chip rally, court calendar and earnings date in focus",
+    "url": "https://ts2.tech/en/why-vicor-vicr-stock-is-up-today-chip-rally-court-calendar-and-earnings-date-in-focus/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.339902,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VICR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.426931",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.622705",
+        "ticker_sentiment_score": "0.317637",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.600482",
+        "ticker_sentiment_score": "0.336539",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/stocks/NYSE/TNET/",
+    "timestamp_utc": "2026-01-02T14:09:12+00:00",
+    "title": "TriNet Group (TNET) Stock Price, News & Analysis",
+    "url": "https://www.marketbeat.com/stocks/NYSE/TNET/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.086178,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TNET",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.226567",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.629456",
+        "ticker_sentiment_score": "0.137082",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.605437",
+        "ticker_sentiment_score": "0.136321",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.639780",
+        "ticker_sentiment_score": "0.149418",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.632120",
+        "ticker_sentiment_score": "0.139377",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4856640-intel-stock-comeback-not-happening",
+    "timestamp_utc": "2026-01-02T14:46:44+00:00",
+    "title": "Intel: Time To Get Out Before 2026 (NASDAQ:INTC)",
+    "url": "https://seekingalpha.com/article/4856640-intel-stock-comeback-not-happening",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": -0.252426,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "INTC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.603713",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.701944",
+        "ticker_sentiment_score": "-0.245143",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.623451",
+        "ticker_sentiment_score": "0.146027",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstotrade.com/news/astera-labs-inc-alab-news-2026_01_02/",
+    "timestamp_utc": "2026-01-02T15:02:00+00:00",
+    "title": "Astera Labs Surge: Analyzing the Boost",
+    "url": "https://stockstotrade.com/news/astera-labs-inc-alab-news-2026_01_02/",
+    "source": "StocksToTrade",
+    "source_domain": "StocksToTrade",
+    "overall_sentiment_score": 0.411533,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ALAB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.450630",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.600027",
+        "ticker_sentiment_score": "0.347898",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.barrons.com/articles/nvidia-stock-price-broadcom-amd-intel-ai-chips-e314ad43?gaa_at=eafs&gaa_n=AWEtsqfR9gQOwA4CrrKGxDjY_ems0fP1hc5qbBiM7eDa2blxF4RFkDubqjcW&gaa_ts=6957f051&gaa_sig=ZvPk3HK5maj4tilwcD2J8Fvw8ewKRyPsQpO1iGyV4Au7oZULCHh5NhX1QHEwzbd0VREWvdjFj23jL2WwC78W8g%3D%3D",
+    "timestamp_utc": "2026-01-02T15:07:28+00:00",
+    "title": "Nvidia, AMD, Broadcom Stocks Rise. How the 2026 AI Chips Battle Will Play Out.",
+    "url": "https://www.barrons.com/articles/nvidia-stock-price-broadcom-amd-intel-ai-chips-e314ad43?gaa_at=eafs&gaa_n=AWEtsqfR9gQOwA4CrrKGxDjY_ems0fP1hc5qbBiM7eDa2blxF4RFkDubqjcW&gaa_ts=6957f051&gaa_sig=ZvPk3HK5maj4tilwcD2J8Fvw8ewKRyPsQpO1iGyV4Au7oZULCHh5NhX1QHEwzbd0VREWvdjFj23jL2WwC78W8g%3D%3D",
+    "source": "Barron's",
+    "source_domain": "Barron's",
+    "overall_sentiment_score": 0.00774,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.307146",
+        "ticker_sentiment_score": "0.026790",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4856868-altria-a-turnaround-stock-for-2026-rating-upgrade",
+    "timestamp_utc": "2026-01-02T15:29:00+00:00",
+    "title": "Altria: A Turnaround Stock For 2026 (Rating Upgrade) (NYSE:MO)",
+    "url": "https://seekingalpha.com/article/4856868-altria-a-turnaround-stock-for-2026-rating-upgrade",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.18432,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.433108",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GOOG",
+        "relevance_score": "0.608221",
+        "ticker_sentiment_score": "0.147227",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.583583",
+        "ticker_sentiment_score": "0.102773",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.578231",
+        "ticker_sentiment_score": "0.111104",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.594679",
+        "ticker_sentiment_score": "0.108868",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://tokenist.com/why-is-advanced-micro-devices-amd-stock-up-today/",
+    "timestamp_utc": "2026-01-02T15:30:28+00:00",
+    "title": "Why Is Advanced Micro Devices (AMD) Stock Up Today?",
+    "url": "https://tokenist.com/why-is-advanced-micro-devices-amd-stock-up-today/",
+    "source": "Tokenist",
+    "source_domain": "Tokenist",
+    "overall_sentiment_score": 0.485456,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.475336",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ts2.tech/en/amd-stock-jumps-to-start-2026-as-mi450-ai-chips-and-helios-racks-draw-fresh-attention/",
+    "timestamp_utc": "2026-01-02T16:07:10+00:00",
+    "title": "AMD stock jumps to start 2026 as MI450 AI chips and Helios racks draw fresh attention",
+    "url": "https://ts2.tech/en/amd-stock-jumps-to-start-2026-as-mi450-ai-chips-and-helios-racks-draw-fresh-attention/",
+    "source": "ts2.tech",
+    "source_domain": "ts2.tech",
+    "overall_sentiment_score": 0.105067,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.524019",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.649740",
+        "ticker_sentiment_score": "-0.302677",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/36861149/mrvls-custom-silicon-business-scales-up-whats-coming-next/",
+    "timestamp_utc": "2026-01-02T16:11:18+00:00",
+    "title": "MRVL's Custom Silicon Business Scales Up: What's Coming Next?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/36861149/mrvls-custom-silicon-business-scales-up-whats-coming-next/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.2737,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MRVL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.470498",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.713003",
+        "ticker_sentiment_score": "0.111023",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.721888",
+        "ticker_sentiment_score": "0.089239",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.608725",
+        "ticker_sentiment_score": "0.314502",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finviz.com/news/266138/why-are-amd-amd-shares-soaring-today",
+    "timestamp_utc": "2026-01-02T16:27:10+00:00",
+    "title": "Why Are AMD (AMD) Shares Soaring Today",
+    "url": "https://finviz.com/news/266138/why-are-amd-amd-shares-soaring-today",
+    "source": "Finviz",
+    "source_domain": "Finviz",
+    "overall_sentiment_score": 0.447355,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.617786",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.644841",
+        "ticker_sentiment_score": "0.333904",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.649717",
+        "ticker_sentiment_score": "0.304297",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.indexbox.io/blog/ambarella-stock-options-opportunity-in-edge-ai-market-pause/",
+    "timestamp_utc": "2026-01-02T18:08:27+00:00",
+    "title": "Ambarella Edge AI Stock: Options Strategy for Contrarian Traders - News and Statistics",
+    "url": "https://www.indexbox.io/blog/ambarella-stock-options-opportunity-in-edge-ai-market-pause/",
+    "source": "IndexBox",
+    "source_domain": "IndexBox",
+    "overall_sentiment_score": 0.142262,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMBA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.270720",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.639456",
+        "ticker_sentiment_score": "0.115633",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.636278",
+        "ticker_sentiment_score": "0.105509",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648740",
+        "ticker_sentiment_score": "0.134356",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  }
+]

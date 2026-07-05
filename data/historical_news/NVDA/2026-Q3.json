@@ -1,0 +1,1622 @@
+[
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/is-rambus-rmbs-cheap-on-its-russell-index-reshuffle",
+    "timestamp_utc": "2026-07-01T00:09:30+00:00",
+    "title": "Is Rambus (RMBS) Cheap On Its Russell Index Reshuffle?",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/is-rambus-rmbs-cheap-on-its-russell-index-reshuffle",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.260494,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.289587",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.609595",
+        "ticker_sentiment_score": "0.224343",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.572909",
+        "ticker_sentiment_score": "0.244362",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/06/30/fuelcell-energy-soars-23-on-russell-index-inclusion-bloom-energy-climbs-7-plug-power-gains-5/",
+    "timestamp_utc": "2026-07-01T00:42:39+00:00",
+    "title": "FuelCell Energy Soars 23% on Russell Index Inclusion, Bloom Energy Climbs 7%, Plug Power Gains 5%",
+    "url": "https://247wallst.com/investing/2026/06/30/fuelcell-energy-soars-23-on-russell-index-inclusion-bloom-energy-climbs-7-plug-power-gains-5/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.175024,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "FCEL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.438673",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.583567",
+        "ticker_sentiment_score": "-0.122992",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://cryptorank.io/news/feed/42a32-empery-digital-pivots-from-bitcoin-treasury",
+    "timestamp_utc": "2026-07-01T01:10:01+00:00",
+    "title": "Empery Digital pivots from Bitcoin treasury with $65 million AI data center deal",
+    "url": "https://cryptorank.io/news/feed/42a32-empery-digital-pivots-from-bitcoin-treasury",
+    "source": "CryptoRank",
+    "source_domain": "CryptoRank",
+    "overall_sentiment_score": 0.10815,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "VLCN",
+        "relevance_score": "0.335626",
+        "ticker_sentiment_score": "0.015598",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.603303",
+        "ticker_sentiment_score": "0.249515",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-palantir-pltr-partner-133652471.html",
+    "timestamp_utc": "2026-07-01T01:38:12+00:00",
+    "title": "NVIDIA (NVDA), Palantir (PLTR) Partner to Deploy Secure AI Models for Government and Infrastructure",
+    "url": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-palantir-pltr-partner-133652471.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.371755,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.410244",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "PLTR",
+        "relevance_score": "0.911571",
+        "ticker_sentiment_score": "0.336052",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://m.au.investing.com/news/stock-market-news/silver-lake-director-egon-durban-sell-661m-dell-shares-93CH-4512151?ampMode=1",
+    "timestamp_utc": "2026-07-01T02:07:26+00:00",
+    "title": "Silver Lake, director Egon Durban sell $6.61m Dell shares By Investing.com",
+    "url": "https://m.au.investing.com/news/stock-market-news/silver-lake-director-egon-durban-sell-661m-dell-shares-93CH-4512151?ampMode=1",
+    "source": "Investing.com Australia",
+    "source_domain": "Investing.com Australia",
+    "overall_sentiment_score": 0.251122,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "DELL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.137023",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.618183",
+        "ticker_sentiment_score": "0.305854",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.600759",
+        "ticker_sentiment_score": "0.346016",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AAPL/pressreleases/3048042/prediction-this-overlooked-etf-could-be-the-smartest-buy-of-2026/",
+    "timestamp_utc": "2026-07-01T02:39:23+00:00",
+    "title": "Prediction: This Overlooked ETF Could Be the Smartest Buy of 2026",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AAPL/pressreleases/3048042/prediction-this-overlooked-etf-could-be-the-smartest-buy-of-2026/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.346938,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "IXUS",
+        "relevance_score": "0.973893",
+        "ticker_sentiment_score": "0.639081",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.631096",
+        "ticker_sentiment_score": "0.229612",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.645845",
+        "ticker_sentiment_score": "0.219162",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.640242",
+        "ticker_sentiment_score": "0.209137",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.583612",
+        "ticker_sentiment_score": "0.448435",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/tech/nasdaq-lite/lumentum-holdings/news/did-broad-russell-index-removal-just-reframe-lumentum-holdin",
+    "timestamp_utc": "2026-07-01T02:39:53+00:00",
+    "title": "Did Broad Russell Index Removal Just Reframe Lumentum Holdings' (LITE) AI-Focused Investment Narrative?",
+    "url": "https://simplywall.st/stocks/us/tech/nasdaq-lite/lumentum-holdings/news/did-broad-russell-index-removal-just-reframe-lumentum-holdin",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.201442,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LITE",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.120206",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.606734",
+        "ticker_sentiment_score": "0.322182",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.635105",
+        "ticker_sentiment_score": "0.308026",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://theinvestor.vn/leading-global-tech-supplier-coherent-plans-to-expand-investment-in-hcmc-d19437.html",
+    "timestamp_utc": "2026-07-01T03:12:33+00:00",
+    "title": "Leading global tech supplier Coherent plans to expand investment in HCMC",
+    "url": "https://theinvestor.vn/leading-global-tech-supplier-coherent-plans-to-expand-investment-in-hcmc-d19437.html",
+    "source": "Theinvestor",
+    "source_domain": "Theinvestor",
+    "overall_sentiment_score": 0.320819,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "COHR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.499636",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.631601",
+        "ticker_sentiment_score": "0.341415",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.559361",
+        "ticker_sentiment_score": "0.259103",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.598882",
+        "ticker_sentiment_score": "0.272616",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T03:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/MSFT/pressreleases/3070793/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.356994,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.255061",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.749602",
+        "ticker_sentiment_score": "0.349766",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.736179",
+        "ticker_sentiment_score": "0.325958",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.844303",
+        "ticker_sentiment_score": "0.434596",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/michael-burry-short-nvda-amat-035514726.html",
+    "timestamp_utc": "2026-07-01T03:37:01+00:00",
+    "title": "Michael Burry Is Short NVDA, AMAT, SOXX \u2014 Sees Big Korea Chip Spending As \u2018Beginning Of The End\u2019",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/michael-burry-short-nvda-amat-035514726.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": -0.408417,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMAT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.441530",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.913471",
+        "ticker_sentiment_score": "-0.403736",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "CAT",
+        "relevance_score": "0.735675",
+        "ticker_sentiment_score": "-0.415594",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.610523",
+        "ticker_sentiment_score": "-0.402818",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.wsj.com/finance/investing/kkr-sk-to-jointly-launch-1-30-billion-renewable-energy-platform-1f53dff2",
+    "timestamp_utc": "2026-07-01T03:37:57+00:00",
+    "title": "KKR, SK to Jointly Launch $1.30 Billion Renewable-Energy Platform",
+    "url": "https://www.wsj.com/finance/investing/kkr-sk-to-jointly-launch-1-30-billion-renewable-energy-platform-1f53dff2",
+    "source": "WSJ",
+    "source_domain": "WSJ",
+    "overall_sentiment_score": 0.376966,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.491075",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.641145",
+        "ticker_sentiment_score": "0.319737",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.643255",
+        "ticker_sentiment_score": "0.306681",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.633861",
+        "ticker_sentiment_score": "0.339583",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.608232",
+        "ticker_sentiment_score": "0.333310",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "timestamp_utc": "2026-07-01T04:20:00+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/soxx-vs-iyw-ishares-semiconductor-082001309.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.315021,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.279661",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.842919",
+        "ticker_sentiment_score": "0.412228",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.709302",
+        "ticker_sentiment_score": "0.309204",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.619895",
+        "ticker_sentiment_score": "0.326196",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-adi/analog-devices/news/analog-devices-adi-after-strong-earnings-and-growth-signals",
+    "timestamp_utc": "2026-07-01T04:43:57+00:00",
+    "title": "Analog Devices (ADI) After Strong Earnings And Growth Signals Looks Undervalued",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-adi/analog-devices/news/analog-devices-adi-after-strong-earnings-and-growth-signals",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.336268,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ADI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402973",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.618895",
+        "ticker_sentiment_score": "0.335183",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.639496",
+        "ticker_sentiment_score": "0.227000",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.cnbc.com/2026/07/01/kkr-sk-launch-1-3-billion-south-korea-renewable-energy-platform-ai-data-centers.html",
+    "timestamp_utc": "2026-07-01T06:11:04+00:00",
+    "title": "KKR to control South Korea's $1.3 billion renewables platform with SK as AI power demand rises",
+    "url": "https://www.cnbc.com/2026/07/01/kkr-sk-launch-1-3-billion-south-korea-renewable-energy-platform-ai-data-centers.html",
+    "source": "CNBC",
+    "source_domain": "CNBC",
+    "overall_sentiment_score": 0.341608,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "KKR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.402448",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.614112",
+        "ticker_sentiment_score": "0.320989",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.602185",
+        "ticker_sentiment_score": "0.322043",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.611907",
+        "ticker_sentiment_score": "0.339890",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.635354",
+        "ticker_sentiment_score": "0.318977",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/arrow-electronics-arw-launches-global-experience-centers-to-accelerate-ai-and-cloud-adoption-1793279/?amp=1",
+    "timestamp_utc": "2026-07-01T06:20:00+00:00",
+    "title": "Arrow Electronics (ARW) Launches Global Experience Centers to Accelerate AI and Cloud Adoption",
+    "url": "https://www.insidermonkey.com/blog/arrow-electronics-arw-launches-global-experience-centers-to-accelerate-ai-and-cloud-adoption-1793279/?amp=1",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.382786,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ARW",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.440849",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.604563",
+        "ticker_sentiment_score": "0.311413",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/stoneridge-added-to-russell-2000-index-93CH-4768619",
+    "timestamp_utc": "2026-07-01T06:39:29+00:00",
+    "title": "Stoneridge added to Russell 2000 index",
+    "url": "https://www.investing.com/news/company-news/stoneridge-added-to-russell-2000-index-93CH-4768619",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.056161,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SRI",
+        "relevance_score": "0.953980",
+        "ticker_sentiment_score": "0.192488",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.562681",
+        "ticker_sentiment_score": "-0.320234",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.566210",
+        "ticker_sentiment_score": "0.261842",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.592843",
+        "ticker_sentiment_score": "0.331017",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.580044",
+        "ticker_sentiment_score": "-0.267294",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.heygotrade.com/en/us-stock/slp/",
+    "timestamp_utc": "2026-07-01T06:40:19+00:00",
+    "title": "Simulations Plus, Inc. (SLP) Stock Price Today & Analysis",
+    "url": "https://www.heygotrade.com/en/us-stock/slp/",
+    "source": "Gotrade",
+    "source_domain": "Gotrade",
+    "overall_sentiment_score": 0.207295,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SLP",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.104979",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.604838",
+        "ticker_sentiment_score": "0.350421",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.617224",
+        "ticker_sentiment_score": "0.130736",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.619664",
+        "ticker_sentiment_score": "0.362334",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.628085",
+        "ticker_sentiment_score": "0.102744",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://fortune.com/2026/07/01/nvidia-no-free-lunch-employee-perks-silicon-valley-frugal-culture-jensen-huang-employees-company-culture/",
+    "timestamp_utc": "2026-07-01T07:00:16+00:00",
+    "title": "Nvidia built a nearly $5 trillion company by making people pay for their own lunch",
+    "url": "https://fortune.com/2026/07/01/nvidia-no-free-lunch-employee-perks-silicon-valley-frugal-culture-jensen-huang-employees-company-culture/",
+    "source": "Fortune",
+    "source_domain": "Fortune",
+    "overall_sentiment_score": 0.020934,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.305732",
+        "ticker_sentiment_score": "0.000257",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/analyst-ratings/needham-reiterates-sps-commerce-stock-rating-after-divestiture-93CH-4770108",
+    "timestamp_utc": "2026-07-01T07:08:00+00:00",
+    "title": "Needham reiterates SPS Commerce stock rating after divestiture",
+    "url": "https://www.investing.com/news/analyst-ratings/needham-reiterates-sps-commerce-stock-rating-after-divestiture-93CH-4770108",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": -0.024171,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "SPSC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.426837",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.532552",
+        "ticker_sentiment_score": "-0.142569",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.533790",
+        "ticker_sentiment_score": "-0.137646",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.542640",
+        "ticker_sentiment_score": "-0.120296",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.556660",
+        "ticker_sentiment_score": "-0.106896",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://intellectia.ai/news/stock/could-lam-research-be-the-next-1-trillion-company",
+    "timestamp_utc": "2026-07-01T07:08:55+00:00",
+    "title": "Could Lam Research Be the Next $1 Trillion Company?",
+    "url": "https://intellectia.ai/news/stock/could-lam-research-be-the-next-1-trillion-company",
+    "source": "Intellectia AI",
+    "source_domain": "Intellectia AI",
+    "overall_sentiment_score": 0.511982,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LRCX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.612105",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.730888",
+        "ticker_sentiment_score": "0.400149",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/earnings/general-mills-stock-rises-4-on-earnings-beat-despite-weak-guidance-93CH-4770138",
+    "timestamp_utc": "2026-07-01T07:23:00+00:00",
+    "title": "General Mills stock rises 4% on earnings beat despite weak guidance",
+    "url": "https://www.investing.com/news/earnings/general-mills-stock-rises-4-on-earnings-beat-despite-weak-guidance-93CH-4770138",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.265351,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GIS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.189513",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.673721",
+        "ticker_sentiment_score": "0.340973",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.647882",
+        "ticker_sentiment_score": "0.301654",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.634982",
+        "ticker_sentiment_score": "0.211012",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.608713",
+        "ticker_sentiment_score": "0.257767",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-algm/allegro-microsystems/news/allegro-microsystems-algm-could-be-28-overvalued-following-i",
+    "timestamp_utc": "2026-07-01T07:47:50+00:00",
+    "title": "Allegro MicroSystems (ALGM) Could Be 28% Overvalued Following Its Record Rally",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-algm/allegro-microsystems/news/allegro-microsystems-algm-could-be-28-overvalued-following-i",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.066901,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ALGM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.411596",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.630920",
+        "ticker_sentiment_score": "0.134510",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.628339",
+        "ticker_sentiment_score": "0.138553",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.632021",
+        "ticker_sentiment_score": "0.143673",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.640396",
+        "ticker_sentiment_score": "0.240403",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/gurufocus:8c7aafedb094b:0-wells-fargo-issues-bold-call-on-s-p-500/",
+    "timestamp_utc": "2026-07-01T07:51:50+00:00",
+    "title": "Wells Fargo Issues Bold Call on S&P 500",
+    "url": "https://www.tradingview.com/news/gurufocus:8c7aafedb094b:0-wells-fargo-issues-bold-call-on-s-p-500/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.329088,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "WFC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.202880",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SPGI",
+        "relevance_score": "0.706632",
+        "ticker_sentiment_score": "0.317745",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.615865",
+        "ticker_sentiment_score": "0.325875",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.633841",
+        "ticker_sentiment_score": "0.318193",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648497",
+        "ticker_sentiment_score": "0.337932",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://semiengineering.com/securing-the-software-defined-vehicle-how-rambus-and-telechips-enable-safe-scalable-automotive-soc/",
+    "timestamp_utc": "2026-07-01T08:11:09+00:00",
+    "title": "Securing the Software Defined Vehicle: How Rambus and Telechips Enable Safe, Scalable Automotive SoC",
+    "url": "https://semiengineering.com/securing-the-software-defined-vehicle-how-rambus-and-telechips-enable-safe-scalable-automotive-soc/",
+    "source": "Semiconductor Engineering",
+    "source_domain": "Semiconductor Engineering",
+    "overall_sentiment_score": 0.341031,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.425160",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.748335",
+        "ticker_sentiment_score": "0.326695",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.728960",
+        "ticker_sentiment_score": "0.318617",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.615649",
+        "ticker_sentiment_score": "0.326336",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.635473",
+        "ticker_sentiment_score": "0.236915",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-increases-stake-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T08:19:03+00:00",
+    "title": "Global Trust Asset Management LLC Increases Stake in Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-global-trust-asset-management-llc-increases-stake-in-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.194708,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.268390",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.620084",
+        "ticker_sentiment_score": "0.149501",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "timestamp_utc": "2026-07-01T08:39:25+00:00",
+    "title": "SOXX vs. IYW: Is the iShares Semiconductor ETF or Tech ETF the Better Buy for Investors?",
+    "url": "https://www.fool.com/coverage/etfs/2026/07/01/soxx-vs-iyw-is-the-ishares-semiconductor-etf-or-tech-etf-the-better-buy-for-investors/",
+    "source": "The Motley Fool",
+    "source_domain": "The Motley Fool",
+    "overall_sentiment_score": 0.349442,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SOXX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.331967",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.704172",
+        "ticker_sentiment_score": "0.423835",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.642685",
+        "ticker_sentiment_score": "0.333750",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.617897",
+        "ticker_sentiment_score": "0.322269",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/markets/equities/26/07/60208797/bit-origin-stock-rallies-over-30-pre-market-heres-what-you-should-know",
+    "timestamp_utc": "2026-07-01T08:41:11+00:00",
+    "title": "Bit Origin Stock Rallies Over 30% Pre-Market: Here's What You Should Know",
+    "url": "https://www.benzinga.com/markets/equities/26/07/60208797/bit-origin-stock-rallies-over-30-pre-market-heres-what-you-should-know",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.402794,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "BTOG",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.542650",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.711432",
+        "ticker_sentiment_score": "0.329476",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "timestamp_utc": "2026-07-01T09:07:12+00:00",
+    "title": "Element Squared LLC Sells 1,572 Shares of Advanced Micro Devices, Inc. $AMD",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-element-squared-llc-sells-1572-shares-of-advanced-micro-devices-inc-amd-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.327103,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.329686",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SMCI",
+        "relevance_score": "0.743263",
+        "ticker_sentiment_score": "0.385819",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.645246",
+        "ticker_sentiment_score": "0.306978",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.563027",
+        "ticker_sentiment_score": "0.294098",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.529992",
+        "ticker_sentiment_score": "0.239628",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/GOOGL/pressreleases/3071400/bull-of-the-day-quanta-services-pwr/",
+    "timestamp_utc": "2026-07-01T09:11:11+00:00",
+    "title": "Bull of the Day: Quanta Services (PWR)",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/GOOGL/pressreleases/3071400/bull-of-the-day-quanta-services-pwr/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.444864,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "PWR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.822949",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.600074",
+        "ticker_sentiment_score": "0.320977",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.646117",
+        "ticker_sentiment_score": "0.305604",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOGL",
+        "relevance_score": "0.626342",
+        "ticker_sentiment_score": "0.323809",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.602745",
+        "ticker_sentiment_score": "0.313020",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstory.org/us/stocks/nasdaq/khc/news/buy-or-sell/3-reasons-to-sell-khc-and-1-stock-to-buy-instead-3",
+    "timestamp_utc": "2026-07-01T09:23:06+00:00",
+    "title": "3 Reasons to Sell KHC and 1 Stock to Buy Instead",
+    "url": "https://stockstory.org/us/stocks/nasdaq/khc/news/buy-or-sell/3-reasons-to-sell-khc-and-1-stock-to-buy-instead-3",
+    "source": "StockStory",
+    "source_domain": "StockStory",
+    "overall_sentiment_score": -0.085212,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "KHC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.400532",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.612830",
+        "ticker_sentiment_score": "0.301279",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstory.org/us/stocks/nyse/vmc/news/buy-or-sell/vulcan-materials-vmc-buy-sell-or-hold-post-q1-earnings",
+    "timestamp_utc": "2026-07-01T09:38:55+00:00",
+    "title": "Vulcan Materials (VMC): Buy, Sell, or Hold Post Q1 Earnings?",
+    "url": "https://stockstory.org/us/stocks/nyse/vmc/news/buy-or-sell/vulcan-materials-vmc-buy-sell-or-hold-post-q1-earnings",
+    "source": "StockStory",
+    "source_domain": "StockStory",
+    "overall_sentiment_score": 0.24521,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VMC",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.131639",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.614433",
+        "ticker_sentiment_score": "0.304860",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/BYND/pressreleases/3064995/why-beyond-meat-stock-is-up-today/",
+    "timestamp_utc": "2026-07-01T09:41:00+00:00",
+    "title": "Why Beyond Meat Stock Is Up Today",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/BYND/pressreleases/3064995/why-beyond-meat-stock-is-up-today/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.259494,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "BYND",
+        "relevance_score": "0.980517",
+        "ticker_sentiment_score": "0.295697",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NFLX",
+        "relevance_score": "0.607255",
+        "ticker_sentiment_score": "0.220237",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.607216",
+        "ticker_sentiment_score": "0.248954",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.morningstar.com/funds/how-micron-became-25-value-etf",
+    "timestamp_utc": "2026-07-01T10:10:19+00:00",
+    "title": "How Micron Became 25% of a Value ETF",
+    "url": "https://www.morningstar.com/funds/how-micron-became-25-value-etf",
+    "source": "Morningstar",
+    "source_domain": "Morningstar",
+    "overall_sentiment_score": 0.062094,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.333956",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "BLK",
+        "relevance_score": "0.730819",
+        "ticker_sentiment_score": "0.118102",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.639633",
+        "ticker_sentiment_score": "-0.137044",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.645057",
+        "ticker_sentiment_score": "-0.108469",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.602687",
+        "ticker_sentiment_score": "-0.131312",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/SUPX/super-x-partners-with-tfc-to-build-a-core-ecosystem-for-global-ai-g400coqywkro.html",
+    "timestamp_utc": "2026-07-01T10:39:11+00:00",
+    "title": "SuperX joint venture starts making 800G and 1.6T optical modules",
+    "url": "https://www.stocktitan.net/news/SUPX/super-x-partners-with-tfc-to-build-a-core-ecosystem-for-global-ai-g400coqywkro.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.320337,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SUPX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.407367",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TFC",
+        "relevance_score": "0.642209",
+        "ticker_sentiment_score": "0.347946",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.561196",
+        "ticker_sentiment_score": "0.218438",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.prnewswire.com/news-releases/superx-partners-with-tfc-to-build-a-core-ecosystem-for-global-ai-optical-interconnect-with-strategic-joint-venture-fully-launched-302815757.html",
+    "timestamp_utc": "2026-07-01T10:39:11+00:00",
+    "title": "SuperX Partners with TFC to Build a Core Ecosystem for Global AI Optical Interconnect, with Strategic Joint Venture Fully Launched",
+    "url": "https://www.prnewswire.com/news-releases/superx-partners-with-tfc-to-build-a-core-ecosystem-for-global-ai-optical-interconnect-with-strategic-joint-venture-fully-launched-302815757.html",
+    "source": "PR Newswire",
+    "source_domain": "PR Newswire",
+    "overall_sentiment_score": 0.354488,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SUPX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.486600",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TFC",
+        "relevance_score": "0.742184",
+        "ticker_sentiment_score": "0.311936",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.629508",
+        "ticker_sentiment_score": "0.254924",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/VFS/why-green-mobility-has-to-go-beyond-ev-6lm1ffegh0km.html",
+    "timestamp_utc": "2026-07-01T10:39:25+00:00",
+    "title": "VinFast pairs EVs, scooters and charging in mobility push",
+    "url": "https://www.stocktitan.net/news/VFS/why-green-mobility-has-to-go-beyond-ev-6lm1ffegh0km.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.373723,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "VFS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.442017",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.703704",
+        "ticker_sentiment_score": "0.322123",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-peregrine-capital-management-llc-has-1490-million-stock-holdings-in-synaptics-incorporated-syna-2026-07-01/",
+    "timestamp_utc": "2026-07-01T10:39:44+00:00",
+    "title": "Peregrine Capital Management LLC Has $14.90 Million Stock Holdings in Synaptics Incorporated $SYNA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-peregrine-capital-management-llc-has-1490-million-stock-holdings-in-synaptics-incorporated-syna-2026-07-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.266796,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SYNA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.070139",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.610573",
+        "ticker_sentiment_score": "0.346183",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.586801",
+        "ticker_sentiment_score": "0.300279",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fool.com/investing/2026/07/01/nvidias-ceo-jensen-huang-just-called-marvell-techn/",
+    "timestamp_utc": "2026-07-01T10:48:23+00:00",
+    "title": "Nvidia's CEO Jensen Huang Just Called Marvell Technology The Next Trillion-Dollar Company. But Is It the Better Stock to Buy?",
+    "url": "https://www.fool.com/investing/2026/07/01/nvidias-ceo-jensen-huang-just-called-marvell-techn/",
+    "source": "The Motley Fool",
+    "source_domain": "The Motley Fool",
+    "overall_sentiment_score": 0.363302,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.472064",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.648829",
+        "ticker_sentiment_score": "0.317368",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.649574",
+        "ticker_sentiment_score": "0.310582",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.bloomberg.com/news/articles/2026-07-01/video-search-startup-raises-100-million-from-amazon-vc-funds",
+    "timestamp_utc": "2026-07-01T11:00:00+00:00",
+    "title": "Video Search Startup Raises $100 Million From Amazon and VCs",
+    "url": "https://www.bloomberg.com/news/articles/2026-07-01/video-search-startup-raises-100-million-from-amazon-vc-funds",
+    "source": "Bloomberg.com",
+    "source_domain": "Bloomberg.com",
+    "overall_sentiment_score": 0.342419,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.906315",
+        "ticker_sentiment_score": "0.311733",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.746207",
+        "ticker_sentiment_score": "0.310236",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/07/60212321/whats-going-on-with-marvell-technology-stock-wednesday-3",
+    "timestamp_utc": "2026-07-01T11:39:54+00:00",
+    "title": "What's Going on With Marvell Technology Stock Wednesday?",
+    "url": "https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/07/60212321/whats-going-on-with-marvell-technology-stock-wednesday-3",
+    "source": "Benzinga",
+    "source_domain": "Benzinga",
+    "overall_sentiment_score": 0.419318,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MRVL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.429021",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.621332",
+        "ticker_sentiment_score": "0.389878",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/news/LHAI/linkhome-holdings-completes-acquisition-of-mortgage-one-group-and-sf0av9f3tbgq.html",
+    "timestamp_utc": "2026-07-01T11:40:36+00:00",
+    "title": "Linkhome Holdings Completes Acquisition of Mortgage One Group and Launches GPU Financing Business",
+    "url": "https://www.stocktitan.net/news/LHAI/linkhome-holdings-completes-acquisition-of-mortgage-one-group-and-sf0av9f3tbgq.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.583844,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LHAI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.886573",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.648466",
+        "ticker_sentiment_score": "0.307580",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/technology/ai/articles/linkhome-holdings-completes-acquisition-mortgage-120000533.html",
+    "timestamp_utc": "2026-07-01T11:40:36+00:00",
+    "title": "Linkhome Holdings Completes Acquisition of Mortgage One Group and Launches GPU Financing Business",
+    "url": "https://finance.yahoo.com/technology/ai/articles/linkhome-holdings-completes-acquisition-mortgage-120000533.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.398055,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "LHAI",
+        "relevance_score": "0.981582",
+        "ticker_sentiment_score": "0.816130",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.610376",
+        "ticker_sentiment_score": "0.316071",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.628641",
+        "ticker_sentiment_score": "0.340936",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.573565",
+        "ticker_sentiment_score": "0.209065",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "IBM",
+        "relevance_score": "0.572698",
+        "ticker_sentiment_score": "0.204600",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.bloomberg.com/news/articles/2026-07-01/taiwan-detains-super-micro-workers-probing-smuggling-of-nvidia-chips-to-china",
+    "timestamp_utc": "2026-07-01T12:02:21+00:00",
+    "title": "Taiwan Detains Super Micro Workers in China Chip Smuggling Probe",
+    "url": "https://www.bloomberg.com/news/articles/2026-07-01/taiwan-detains-super-micro-workers-probing-smuggling-of-nvidia-chips-to-china",
+    "source": "Bloomberg.com",
+    "source_domain": "Bloomberg.com",
+    "overall_sentiment_score": -0.315543,
+    "overall_sentiment_label": "Somewhat-Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SMCI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.405169",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.835628",
+        "ticker_sentiment_score": "-0.239312",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/invesco-qqq-trust-from-invesco-ltd-tech-heavy-etf-quietly-anchors-many/69667261",
+    "timestamp_utc": "2026-07-01T12:06:41+00:00",
+    "title": "Invesco QQQ Trust from Invesco Ltd. - tech-heavy ETF quietly anchors many US portfolios",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/invesco-qqq-trust-from-invesco-ltd-tech-heavy-etf-quietly-anchors-many/69667261",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.319111,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "IVZ",
+        "relevance_score": "0.977696",
+        "ticker_sentiment_score": "0.403795",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.637943",
+        "ticker_sentiment_score": "0.269192",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.605627",
+        "ticker_sentiment_score": "0.287224",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.618876",
+        "ticker_sentiment_score": "0.255466",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fastcompany.com/91563944/nvidia-says-it-can-cut-data-center-water-use-the-ai-boom-has-a-bigger-problem",
+    "timestamp_utc": "2026-07-01T12:08:59+00:00",
+    "title": "Nvidia says it can cut data center water use. The AI boom has a bigger problem",
+    "url": "https://www.fastcompany.com/91563944/nvidia-says-it-can-cut-data-center-water-use-the-ai-boom-has-a-bigger-problem",
+    "source": "Fast Company",
+    "source_domain": "Fast Company",
+    "overall_sentiment_score": 0.231743,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.210439",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/company-news/nn-inc-announces-75-million-private-equity-financing-93CH-4770090",
+    "timestamp_utc": "2026-07-01T12:10:13+00:00",
+    "title": "NN Inc. announces $75 million private equity financing",
+    "url": "https://www.investing.com/news/company-news/nn-inc-announces-75-million-private-equity-financing-93CH-4770090",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": 0.345546,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NNBR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.425950",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.645800",
+        "ticker_sentiment_score": "0.282670",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/insider-trading-news/world-acceptance-director-charles-way-sells-187425-in-stock-93CH-4771057",
+    "timestamp_utc": "2026-07-01T12:18:00+00:00",
+    "title": "World acceptance director Charles Way sells $187,425 in stock",
+    "url": "https://www.investing.com/news/insider-trading-news/world-acceptance-director-charles-way-sells-187425-in-stock-93CH-4771057",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": -0.139989,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "WRLD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.286269",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "EFX",
+        "relevance_score": "0.584857",
+        "ticker_sentiment_score": "0.022691",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.585982",
+        "ticker_sentiment_score": "-0.205121",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.571635",
+        "ticker_sentiment_score": "0.251968",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.550375",
+        "ticker_sentiment_score": "-0.336197",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.investing.com/news/stock-market-news/unity-software-options-trading-surges-to-30225-contracts-93CH-4771062",
+    "timestamp_utc": "2026-07-01T12:22:00+00:00",
+    "title": "Unity Software options trading surges to 30,225 contracts",
+    "url": "https://www.investing.com/news/stock-market-news/unity-software-options-trading-surges-to-30225-contracts-93CH-4771062",
+    "source": "Investing.com",
+    "source_domain": "Investing.com",
+    "overall_sentiment_score": -0.097772,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "U",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.122818",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.644981",
+        "ticker_sentiment_score": "-0.215328",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.621178",
+        "ticker_sentiment_score": "-0.222040",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.607499",
+        "ticker_sentiment_score": "-0.391016",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.641601",
+        "ticker_sentiment_score": "0.229011",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "timestamp_utc": "2026-07-01T12:38:16+00:00",
+    "title": "Semiconductor ETFs to Buy as Micron Leads $2T AI-Led Chip Market Rally",
+    "url": "https://www.tradingview.com/news/zacks:62574a779094b:0-semiconductor-etfs-to-buy-as-micron-leads-2t-ai-led-chip-market-rally/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.659713,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MU",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.701402",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.877331",
+        "ticker_sentiment_score": "0.648227",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.893823",
+        "ticker_sentiment_score": "0.625167",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.718421",
+        "ticker_sentiment_score": "0.645949",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+    "timestamp_utc": "2026-07-01T12:38:22+00:00",
+    "title": "NVIDIA and Partners Build in America, for America",
+    "url": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+    "source": "NVIDIA Blog",
+    "source_domain": "NVIDIA Blog",
+    "overall_sentiment_score": 0.740185,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.937237",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GLW",
+        "relevance_score": "0.616981",
+        "ticker_sentiment_score": "0.708585",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "J",
+        "relevance_score": "0.576733",
+        "ticker_sentiment_score": "0.617010",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  }
+]

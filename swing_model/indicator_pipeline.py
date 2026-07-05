@@ -2,12 +2,18 @@
 Orchestrates all data pulls + indicator calculations for the semiconductor watchlist.
 Produces a normalized output table per ticker — one row per ticker with all indicator
 values needed by scoring.py. Runs 2-3x daily (pre-market, mid-session, post-close).
+
+Fundamental data is fetched weekly (Monday 17:00 ET) and cached in
+data/processed/fundamental_state.json. On non-update days the cached data is loaded
+so fundamental scores are available every scan without API calls.
 """
 
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yaml
@@ -15,8 +21,13 @@ import yaml
 from shared.api_clients.market_data_client import fetch_ohlcv_batch, fetch_vix
 from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
+from shared.api_clients.fundamental_client import FundamentalClient
+from swing_model.fundamental_layer import FundamentalScorer
 
 logger = get_logger(__name__)
+
+_ET = ZoneInfo("America/New_York")
+_FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
 
 
 def run_pipeline(
@@ -32,7 +43,10 @@ def run_pipeline(
     1. Fetch OHLCV for all tickers + benchmark (batch call)
     2. Run basic validation on each ticker's data
     3. Compute technical indicators for each valid ticker
-    4. Return dict mapping ticker → indicator_dict (or None if excluded)
+    4. Fetch or load cached fundamental data (weekly cadence)
+    5. Score fundamental data for all tickers
+    6. Attach fundamental scores to indicator output
+    7. Return dict mapping ticker → indicator_dict (or None if excluded)
 
     Returns dict: {ticker → indicator_dict or None}
     Tickers excluded by validation are logged to validation_log.csv.
@@ -92,9 +106,130 @@ def run_pipeline(
             write_validation_entry(ticker, "indicator_error", str(exc))
             results[ticker] = None
 
+    # 4-6. Fundamental data fetch + scoring
+    try:
+        fundamental_state = fetch_fundamental_data(tickers, cfg)
+        scorer = FundamentalScorer(cfg)
+        fundamental_scores = scorer.score_all_tickers(tickers, fundamental_state)
+    except Exception as exc:
+        logger.error(f"Fundamental layer failed — {exc}. Proceeding with neutral scores.")
+        write_validation_entry("ALL", "fundamental_layer_error", str(exc))
+        scorer = FundamentalScorer(cfg)
+        fundamental_scores = {t: scorer._unavailable_score(t) for t in tickers}
+
+    # Attach fundamental scores to each ticker's indicator dict
+    for ticker in tickers:
+        if results.get(ticker) is not None:
+            fs = fundamental_scores.get(ticker, scorer._unavailable_score(ticker))
+            results[ticker]["fundamental_score"] = fs.get("fundamental_score", 0)
+            results[ticker]["earnings_momentum_score"] = fs.get("earnings_momentum_score", 0)
+            results[ticker]["valuation_score"] = fs.get("valuation_score", 0)
+            results[ticker]["fundamental_data_quality"] = fs.get("data_quality", "unavailable")
+            results[ticker]["_fundamental_full"] = fs
+
     valid_count = sum(1 for v in results.values() if v is not None)
     logger.info(f"Pipeline complete: {valid_count}/{len(tickers)} tickers processed successfully.")
     return results
+
+
+def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> dict:
+    """
+    Fetch or load fundamental data for all watchlist tickers.
+
+    Cadence logic:
+    - Load fundamental_state.json to check last_updated timestamp.
+    - If last_updated is None OR (today is Monday AND current ET time >= 17:00
+      AND last_updated is not today): fetch fresh data from FundamentalClient.
+    - Otherwise: return cached data from fundamental_state.json.
+
+    Writes fresh data to fundamental_state.json when fetched.
+    Logs any fetch failures to validation_log.csv without crashing.
+
+    Returns dict with structure: {"last_updated": ..., "tickers": {ticker: data}}
+    """
+    if cfg is None:
+        cfg = {}
+
+    state = _load_fundamental_state()
+    last_updated_str = state.get("last_updated")
+    now_et = datetime.now(_ET)
+    today_str = now_et.strftime("%Y-%m-%d")
+
+    # Determine if a fresh fetch is needed
+    needs_fetch = False
+    if last_updated_str is None:
+        needs_fetch = True
+        logger.info("Fundamental state has no last_updated — fetching fresh data.")
+    else:
+        # Parse the stored date
+        try:
+            last_date = last_updated_str[:10]  # YYYY-MM-DD
+        except Exception:
+            last_date = None
+
+        if last_date != today_str:
+            # Monday after 17:00 ET → scheduled weekly update
+            if now_et.weekday() == 0 and now_et.hour >= 17:
+                needs_fetch = True
+                logger.info("Monday post-17:00 ET — fetching fresh fundamental data.")
+        # On same day, no re-fetch needed (data is from earlier today)
+
+    if not needs_fetch:
+        logger.info(f"Loading cached fundamental data (last_updated: {last_updated_str})")
+        return state
+
+    logger.info(f"Fetching fundamental data for: {tickers}")
+    client = FundamentalClient()
+    new_tickers = {}
+    for ticker in tickers:
+        try:
+            new_tickers[ticker] = client.get_all_fundamentals(ticker)
+            logger.info(f"  {ticker}: fundamental data fetched OK")
+        except Exception as exc:
+            logger.error(f"  {ticker}: fundamental fetch failed — {exc}")
+            write_validation_entry(ticker, "fundamental_fetch_error", str(exc))
+            new_tickers[ticker] = None
+
+    state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    state["tickers"].update(new_tickers)
+
+    _save_fundamental_state(state)
+    return state
+
+
+def _load_fundamental_state() -> dict:
+    """Load fundamental_state.json, returning default structure if missing/corrupt."""
+    default = {
+        "last_updated": None,
+        "update_cadence": "weekly",
+        "update_day": "Monday",
+        "tickers": {t: None for t in ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]},
+    }
+    if not _FUNDAMENTAL_STATE_PATH.exists():
+        return default
+    try:
+        with open(_FUNDAMENTAL_STATE_PATH, "r") as f:
+            data = json.load(f)
+        # Ensure tickers key exists
+        if "tickers" not in data:
+            data["tickers"] = default["tickers"]
+        return data
+    except Exception as exc:
+        logger.warning(f"Could not load fundamental_state.json — {exc}. Using defaults.")
+        return default
+
+
+def _save_fundamental_state(state: dict) -> None:
+    """Write fundamental_state.json atomically."""
+    try:
+        _FUNDAMENTAL_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = _FUNDAMENTAL_STATE_PATH.with_suffix(".tmp")
+        with open(tmp, "w") as f:
+            json.dump(state, f, indent=2, default=str)
+        tmp.replace(_FUNDAMENTAL_STATE_PATH)
+        logger.info("fundamental_state.json updated.")
+    except Exception as exc:
+        logger.error(f"Could not save fundamental_state.json — {exc}")
 
 
 def _basic_validate(ticker: str, df: pd.DataFrame) -> bool:

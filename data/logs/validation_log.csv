@@ -51,3 +51,5 @@ timestamp_utc,ticker,failure_type,detail
 2026-06-30T14:07:44.239199+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-06-30T14:07:44.239944+00:00,NVDA,news,news_future_timestamp
 2026-06-30T14:07:44.242319+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-05T00:39:55.438244+00:00,NVDA,fundamental_estimate_revisions_error,OVERVIEW response missing Symbol: []
+2026-07-05T00:43:35.539195+00:00,ALL,fundamental_layer_error,Simulated fundamental fetch failure

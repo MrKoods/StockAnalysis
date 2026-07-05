@@ -1,0 +1,1526 @@
+[
+  {
+    "article_id": "https://qz.com/alab-rides-on-strong-demand-for-pcie-solution-a-sign-for-more-upside",
+    "timestamp_utc": "2026-04-01T00:10:48+00:00",
+    "title": "ALAB Rides on Strong Demand for PCIe Solution: A Sign for More Upside?",
+    "url": "https://qz.com/alab-rides-on-strong-demand-for-pcie-solution-a-sign-for-more-upside",
+    "source": "qz.com",
+    "source_domain": "qz.com",
+    "overall_sentiment_score": 0.207409,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ALAB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.408446",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.710904",
+        "ticker_sentiment_score": "0.184387",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.573927",
+        "ticker_sentiment_score": "0.013949",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.bitget.com/amp/news/detail/12560605322280",
+    "timestamp_utc": "2026-04-01T01:07:10+00:00",
+    "title": "Broadcom Inc. (AVGO) is Drawing Interest from Investors: Essential Information You Need to Know",
+    "url": "https://www.bitget.com/amp/news/detail/12560605322280",
+    "source": "Bitget",
+    "source_domain": "Bitget",
+    "overall_sentiment_score": 0.515209,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.514296",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/1069765/avgos-gross-margin-contracts-sequentially-is-growth-getting-harder/",
+    "timestamp_utc": "2026-04-01T02:07:06+00:00",
+    "title": "AVGO's Gross Margin Contracts Sequentially: Is Growth Getting Harder?",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AMD/pressreleases/1069765/avgos-gross-margin-contracts-sequentially-is-growth-getting-harder/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.037416,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.149219",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.727742",
+        "ticker_sentiment_score": "-0.057661",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.660318",
+        "ticker_sentiment_score": "0.021900",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/AVGO/pressreleases/1085188/zackscom-featured-highlights-include-ross-stores-broadcom-corning-and-constellation/",
+    "timestamp_utc": "2026-04-01T05:36:00+00:00",
+    "title": "Zacks.com featured highlights include Ross Stores, Broadcom, Corning and Constellation",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/AVGO/pressreleases/1085188/zackscom-featured-highlights-include-ross-stores-broadcom-corning-and-constellation/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.421059,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ROST",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.396648",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GL",
+        "relevance_score": "0.742335",
+        "ticker_sentiment_score": "0.408123",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.973701",
+        "ticker_sentiment_score": "0.414755",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GLW",
+        "relevance_score": "0.949376",
+        "ticker_sentiment_score": "0.438490",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "STZ",
+        "relevance_score": "0.882976",
+        "ticker_sentiment_score": "0.409651",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.trefis.com/stock/caci/articles2/595434/time-to-buy-the-dip-in-caci-international-stock/2026-04-01",
+    "timestamp_utc": "2026-04-01T06:09:46+00:00",
+    "title": "Time To Buy The Dip In CACI International Stock?",
+    "url": "https://www.trefis.com/stock/caci/articles2/595434/time-to-buy-the-dip-in-caci-international-stock/2026-04-01",
+    "source": "Trefis",
+    "source_domain": "Trefis",
+    "overall_sentiment_score": 0.301008,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CACI",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.336626",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.636745",
+        "ticker_sentiment_score": "0.319505",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.644407",
+        "ticker_sentiment_score": "0.201776",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://intellectia.ai/en/stock/KNCT/news",
+    "timestamp_utc": "2026-04-01T06:39:36+00:00",
+    "title": "KNCT Stock News Today | Earnings, Events & Price Alerts",
+    "url": "https://intellectia.ai/en/stock/KNCT/news",
+    "source": "Intellectia AI",
+    "source_domain": "Intellectia AI",
+    "overall_sentiment_score": 0.143566,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "KNCT",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.112492",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.608208",
+        "ticker_sentiment_score": "0.118787",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.trefis.com/stock/gis/articles2/595447/strong-cash-yield-is-general-mills-stock-a-buy/2026-04-01",
+    "timestamp_utc": "2026-04-01T07:07:56+00:00",
+    "title": "Strong Cash Yield: Is General Mills Stock A Buy?",
+    "url": "https://www.trefis.com/stock/gis/articles2/595447/strong-cash-yield-is-general-mills-stock-a-buy/2026-04-01",
+    "source": "Trefis",
+    "source_domain": "Trefis",
+    "overall_sentiment_score": 0.240144,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GIS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.404586",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "BR",
+        "relevance_score": "0.648585",
+        "ticker_sentiment_score": "0.316757",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVR",
+        "relevance_score": "0.627182",
+        "ticker_sentiment_score": "0.338508",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "PTC",
+        "relevance_score": "0.620963",
+        "ticker_sentiment_score": "0.338892",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.633958",
+        "ticker_sentiment_score": "-0.237639",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/sec-filings/yunhong-green-cti-appoints-fred-hf-chak-to-board-of-directors-93CH-4543075",
+    "timestamp_utc": "2026-04-01T07:10:19+00:00",
+    "title": "Yunhong Green CTI appoints Fred H.F. Chak to board of directors",
+    "url": "https://ca.investing.com/news/sec-filings/yunhong-green-cti-appoints-fred-hf-chak-to-board-of-directors-93CH-4543075",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.072798,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "YHGJ",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.221829",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.604364",
+        "ticker_sentiment_score": "-0.141651",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-allspring-global-investments-holdings-llc-has-9013-million-stock-holdings-in-nucor-corporation-nue-2026-04-01/",
+    "timestamp_utc": "2026-04-01T07:10:29+00:00",
+    "title": "Allspring Global Investments Holdings LLC Has $90.13 Million Stock Holdings in Nucor Corporation $NUE",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-allspring-global-investments-holdings-llc-has-9013-million-stock-holdings-in-nucor-corporation-nue-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.332309,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NUE",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.432403",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.639947",
+        "ticker_sentiment_score": "0.340130",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ALL",
+        "relevance_score": "0.645705",
+        "ticker_sentiment_score": "0.202227",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/TD/424b2-toronto-dominion-bank-prospectus-supplement-0dcf86d07aee.html",
+    "timestamp_utc": "2026-04-01T07:33:45+00:00",
+    "title": "TD (TD) offers $1,000 auto\u2011callable, contingent\u2011coupon notes linked to AVGO/META/NVDA/TSLA",
+    "url": "https://www.stocktitan.net/sec-filings/TD/424b2-toronto-dominion-bank-prospectus-supplement-0dcf86d07aee.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": -0.073583,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "TD",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.107152",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.897219",
+        "ticker_sentiment_score": "-0.113627",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "META",
+        "relevance_score": "0.891649",
+        "ticker_sentiment_score": "-0.133754",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.859791",
+        "ticker_sentiment_score": "-0.149225",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.868458",
+        "ticker_sentiment_score": "-0.112301",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-assenagon-asset-management-sa-has-120-million-stock-holdings-in-broadridge-financial-solutions-inc-br-2026-04-01/",
+    "timestamp_utc": "2026-04-01T07:37:20+00:00",
+    "title": "Assenagon Asset Management S.A. Has $1.20 Million Stock Holdings in Broadridge Financial Solutions, Inc. $BR",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-assenagon-asset-management-sa-has-120-million-stock-holdings-in-broadridge-financial-solutions-inc-br-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.224811,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "BR",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.283940",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.615021",
+        "ticker_sentiment_score": "0.386813",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.627831",
+        "ticker_sentiment_score": "0.141688",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.577300",
+        "ticker_sentiment_score": "0.030799",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/rambus-rmbs-insider-stock-sales-what-do-they-signal-about-it",
+    "timestamp_utc": "2026-04-01T08:39:38+00:00",
+    "title": "Rambus (RMBS) Insider Stock Sales: What Do They Signal About Its AI Memory Strategy?",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-rmbs/rambus/news/rambus-rmbs-insider-stock-sales-what-do-they-signal-about-it",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.107587,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "RMBS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.220341",
+        "ticker_sentiment_label": "Somewhat-Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.633582",
+        "ticker_sentiment_score": "0.205647",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.632443",
+        "ticker_sentiment_score": "0.231997",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.trefis.com/stock/aeis/articles/595463/advanced-energy-aeis-rises-8-2-on-semiconductor-sector-surge/2026-04-01",
+    "timestamp_utc": "2026-04-01T09:10:11+00:00",
+    "title": "Advanced Energy (AEIS) Rises 8.2% on Semiconductor Sector Surge",
+    "url": "https://www.trefis.com/stock/aeis/articles/595463/advanced-energy-aeis-rises-8-2-on-semiconductor-sector-surge/2026-04-01",
+    "source": "Trefis",
+    "source_domain": "Trefis",
+    "overall_sentiment_score": 0.384701,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AEIS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.408632",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.615700",
+        "ticker_sentiment_score": "0.342243",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fool.com/investing/2026/04/01/nvidia-vs-broadcom-the-smarter-ai-stock-to-buy-in/",
+    "timestamp_utc": "2026-04-01T09:37:08+00:00",
+    "title": "Nvidia vs. Broadcom: The Smarter AI Stock to Buy in April",
+    "url": "https://www.fool.com/investing/2026/04/01/nvidia-vs-broadcom-the-smarter-ai-stock-to-buy-in/",
+    "source": "The Motley Fool",
+    "source_domain": "The Motley Fool",
+    "overall_sentiment_score": 0.502131,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.483714",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.997362",
+        "ticker_sentiment_score": "0.576672",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.theglobeandmail.com/investing/markets/stocks/STZ/pressreleases/1085188/zackscom-featured-highlights-include-ross-stores-broadcom-corning-and-constellation/",
+    "timestamp_utc": "2026-04-01T11:07:55+00:00",
+    "title": "Zacks.com featured highlights include Ross Stores, Broadcom, Corning and Constellation",
+    "url": "https://www.theglobeandmail.com/investing/markets/stocks/STZ/pressreleases/1085188/zackscom-featured-highlights-include-ross-stores-broadcom-corning-and-constellation/",
+    "source": "The Globe and Mail",
+    "source_domain": "The Globe and Mail",
+    "overall_sentiment_score": 0.317475,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GLW",
+        "relevance_score": "0.938153",
+        "ticker_sentiment_score": "0.312825",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ROST",
+        "relevance_score": "0.885887",
+        "ticker_sentiment_score": "0.308226",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.833489",
+        "ticker_sentiment_score": "0.334614",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GL",
+        "relevance_score": "0.799128",
+        "ticker_sentiment_score": "0.321148",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "STZ",
+        "relevance_score": "0.727223",
+        "ticker_sentiment_score": "0.331772",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-willner-heller-llc-increases-stock-position-in-nvidia-corporation-nvda-2026-04-01/",
+    "timestamp_utc": "2026-04-01T11:38:35+00:00",
+    "title": "Willner & Heller LLC Increases Stock Position in NVIDIA Corporation $NVDA",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-willner-heller-llc-increases-stock-position-in-nvidia-corporation-nvda-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.21865,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.103849",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.628231",
+        "ticker_sentiment_score": "0.304096",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.603646",
+        "ticker_sentiment_score": "0.200498",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://markets.financialcontent.com/stocks/article/stockstory-2026-4-1-stocks-making-big-moves-yesterday-chewy-broadcom-microsoft-rxo-and-jpmorgan-chase",
+    "timestamp_utc": "2026-04-01T12:39:53+00:00",
+    "title": "Stocks making big moves yesterday: Chewy, Broadcom, Microsoft, RXO, and JPMorgan Chase",
+    "url": "https://markets.financialcontent.com/stocks/article/stockstory-2026-4-1-stocks-making-big-moves-yesterday-chewy-broadcom-microsoft-rxo-and-jpmorgan-chase",
+    "source": "FinancialContent",
+    "source_domain": "FinancialContent",
+    "overall_sentiment_score": 0.365586,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RXO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.381413",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.821754",
+        "ticker_sentiment_score": "0.385395",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.782115",
+        "ticker_sentiment_score": "0.392829",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.731514",
+        "ticker_sentiment_score": "0.360404",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-purchased-by-victory-financial-group-llc-2026-04-01/",
+    "timestamp_utc": "2026-04-01T13:09:52+00:00",
+    "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Shares Purchased by Victory Financial Group LLC",
+    "url": "https://www.marketbeat.com/instant-alerts/filing-taiwan-semiconductor-manufacturing-company-ltd-tsm-shares-purchased-by-victory-financial-group-llc-2026-04-01/",
+    "source": "MarketBeat",
+    "source_domain": "MarketBeat",
+    "overall_sentiment_score": 0.353957,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TSM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.438671",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.636798",
+        "ticker_sentiment_score": "0.327586",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.618306",
+        "ticker_sentiment_score": "0.308876",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.639312",
+        "ticker_sentiment_score": "0.318653",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://stockstory.org/us/stocks/nyse/chwy/news/why-it-moves-summary/stocks-making-big-moves-yesterday-chewy-broadcom-microsoft-rxo-and-jpmorgan-chase",
+    "timestamp_utc": "2026-04-01T13:20:56+00:00",
+    "title": "Stocks making big moves yesterday: Chewy, Broadcom, Microsoft, RXO, and JPMorgan Chase",
+    "url": "https://stockstory.org/us/stocks/nyse/chwy/news/why-it-moves-summary/stocks-making-big-moves-yesterday-chewy-broadcom-microsoft-rxo-and-jpmorgan-chase",
+    "source": "StockStory",
+    "source_domain": "StockStory",
+    "overall_sentiment_score": 0.373675,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "JPM",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.405218",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.721659",
+        "ticker_sentiment_score": "0.377014",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.738865",
+        "ticker_sentiment_score": "0.375592",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:f4a347f2a094b:0-qualcomm-declines-25-5-in-past-3-months-should-investors-worry/",
+    "timestamp_utc": "2026-04-01T13:37:06+00:00",
+    "title": "Qualcomm Declines 25.5% in Past 3 Months: Should Investors Worry?",
+    "url": "https://www.tradingview.com/news/zacks:f4a347f2a094b:0-qualcomm-declines-25-5-in-past-3-months-should-investors-worry/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.035305,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.327346",
+        "ticker_sentiment_score": "0.019700",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://ca.investing.com/news/analyst-ratings/stifel-reiterates-target-hospitality-stock-rating-on-data-center-deal-93CH-4545381",
+    "timestamp_utc": "2026-04-01T13:40:54+00:00",
+    "title": "Stifel reiterates Target Hospitality stock rating on data center deal By Investing.com",
+    "url": "https://ca.investing.com/news/analyst-ratings/stifel-reiterates-target-hospitality-stock-rating-on-data-center-deal-93CH-4545381",
+    "source": "Investing.com Canada",
+    "source_domain": "Investing.com Canada",
+    "overall_sentiment_score": 0.192598,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TH",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.484420",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.610457",
+        "ticker_sentiment_score": "0.112587",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.611942",
+        "ticker_sentiment_score": "0.130670",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "TSLA",
+        "relevance_score": "0.626227",
+        "ticker_sentiment_score": "0.126704",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/AMUB/424b2-ubs-ag-prospectus-supplement-6384b1d09a45.html",
+    "timestamp_utc": "2026-04-01T15:10:06+00:00",
+    "title": "UBS notes tied to Broadcom (AMUB) \u2014 $974,000 offering, 17.33% coupon",
+    "url": "https://www.stocktitan.net/sec-filings/AMUB/424b2-ubs-ag-prospectus-supplement-6384b1d09a45.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.032156,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.027632",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/broadcom-inc-avgo-unveils-symantec-cbx-for-enterprise-grade-network-security-1730278/?amp=1",
+    "timestamp_utc": "2026-04-01T15:42:00+00:00",
+    "title": "Broadcom Inc. (AVGO) Unveils Symantec CBX for Enterprise-Grade Network Security",
+    "url": "https://www.insidermonkey.com/blog/broadcom-inc-avgo-unveils-symantec-cbx-for-enterprise-grade-network-security-1730278/?amp=1",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.15537,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.303796",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMZN",
+        "relevance_score": "0.709918",
+        "ticker_sentiment_score": "0.109021",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.604085",
+        "ticker_sentiment_score": "0.196710",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.823097",
+        "ticker_sentiment_score": "0.130237",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.615136",
+        "ticker_sentiment_score": "0.129963",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.tradingview.com/news/zacks:1bd7cb5ba094b:0-broadcom-drops-11-year-to-date-should-you-buy-the-stock-on-the-dip/",
+    "timestamp_utc": "2026-04-01T16:37:08+00:00",
+    "title": "Broadcom Drops 11% Year to Date: Should You Buy the Stock on the Dip?",
+    "url": "https://www.tradingview.com/news/zacks:1bd7cb5ba094b:0-broadcom-drops-11-year-to-date-should-you-buy-the-stock-on-the-dip/",
+    "source": "TradingView",
+    "source_domain": "TradingView",
+    "overall_sentiment_score": 0.267898,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.308165",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.725437",
+        "ticker_sentiment_score": "0.340741",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.628676",
+        "ticker_sentiment_score": "0.255627",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "SWKS",
+        "relevance_score": "0.594060",
+        "ticker_sentiment_score": "0.243871",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/broadcom-inc-stock-ai-growth-momentum-amid-margin-pressures/69050174",
+    "timestamp_utc": "2026-04-01T18:02:09+00:00",
+    "title": "Broadcom Inc. Stock: AI Growth Momentum Amid Margin Pressures",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/broadcom-inc-stock-ai-growth-momentum-amid-margin-pressures/69050174",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.047031,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.300360",
+        "ticker_sentiment_score": "0.019280",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/stocks-making-big-moves-yesterday-223126314.html",
+    "timestamp_utc": "2026-04-01T18:31:00+00:00",
+    "title": "Stocks making big moves yesterday: Chewy, Broadcom, Microsoft, RXO, and JPMorgan Chase",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/stocks-making-big-moves-yesterday-223126314.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.353744,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RXO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.326736",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.731959",
+        "ticker_sentiment_score": "0.305876",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.817962",
+        "ticker_sentiment_score": "0.334956",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "JPM",
+        "relevance_score": "0.713409",
+        "ticker_sentiment_score": "0.440899",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.prnewswire.com/ae/news-releases/rockwell-automation-announces-rokstudios-video-series-launches-a-new-season-exploring-the-journey-from-automation-to-autonomy-302729726.html",
+    "timestamp_utc": "2026-04-01T19:38:32+00:00",
+    "title": "Rockwell Automation Announces ROKStudios Video Series Launches a New Season Exploring the Journey from Automation to Autonomy",
+    "url": "https://www.prnewswire.com/ae/news-releases/rockwell-automation-announces-rokstudios-video-series-launches-a-new-season-exploring-the-journey-from-automation-to-autonomy-302729726.html",
+    "source": "PR Newswire",
+    "source_domain": "PR Newswire",
+    "overall_sentiment_score": 0.363119,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ROK",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.422621",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.623159",
+        "ticker_sentiment_score": "0.341822",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://uk.finance.yahoo.com/news/broadcom-inc-avgo-unveils-symantec-194225118.html",
+    "timestamp_utc": "2026-04-01T19:42:06+00:00",
+    "title": "Broadcom Inc. (AVGO) Unveils Symantec CBX for Enterprise-Grade Network Security",
+    "url": "https://uk.finance.yahoo.com/news/broadcom-inc-avgo-unveils-symantec-194225118.html",
+    "source": "Yahoo Finance UK",
+    "source_domain": "Yahoo Finance UK",
+    "overall_sentiment_score": 0.444028,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.991246",
+        "ticker_sentiment_score": "0.407976",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://finance.yahoo.com/markets/stocks/articles/apple-inc-aapl-expands-u-194134082.html",
+    "timestamp_utc": "2026-04-01T20:06:59+00:00",
+    "title": "Apple Inc. (AAPL) Expands U.S. Manufacturing Program with $400M Investment",
+    "url": "https://finance.yahoo.com/markets/stocks/articles/apple-inc-aapl-expands-u-194134082.html",
+    "source": "Yahoo Finance",
+    "source_domain": "Yahoo Finance",
+    "overall_sentiment_score": 0.49695,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AAPL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.612710",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.608202",
+        "ticker_sentiment_score": "0.418383",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GLW",
+        "relevance_score": "0.619534",
+        "ticker_sentiment_score": "0.410083",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "TXN",
+        "relevance_score": "0.614660",
+        "ticker_sentiment_score": "0.444737",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.fxleaders.com/news/2026/04/01/avgo-stock-rebounds-after-breakdown-but-buyers-need-to-clear-350-resistance/",
+    "timestamp_utc": "2026-04-01T20:07:06+00:00",
+    "title": "AVGO Stock Rebounds After Breakdown but Buyers Need to Clear $350 Resistance",
+    "url": "https://www.fxleaders.com/news/2026/04/01/avgo-stock-rebounds-after-breakdown-but-buyers-need-to-clear-350-resistance/",
+    "source": "FXLeaders",
+    "source_domain": "FXLeaders",
+    "overall_sentiment_score": 0.239452,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.281015",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "GOOG",
+        "relevance_score": "0.648173",
+        "ticker_sentiment_score": "0.210214",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "MSFT",
+        "relevance_score": "0.633490",
+        "ticker_sentiment_score": "0.215158",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.641019",
+        "ticker_sentiment_score": "0.239775",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/ueberblick/richardson-electronics-stock-powering-critical-industries-amid-market/69050338",
+    "timestamp_utc": "2026-04-01T20:40:00+00:00",
+    "title": "Richardson Electronics Stock: Powering Critical Industries Amid Market Volatility",
+    "url": "https://www.ad-hoc-news.de/boerse/ueberblick/richardson-electronics-stock-powering-critical-industries-amid-market/69050338",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.20689,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "RELL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.540246",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.606015",
+        "ticker_sentiment_score": "0.120732",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.610828",
+        "ticker_sentiment_score": "0.105421",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "ADI",
+        "relevance_score": "0.635335",
+        "ticker_sentiment_score": "0.112603",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NXPI",
+        "relevance_score": "0.600217",
+        "ticker_sentiment_score": "0.102004",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.msn.com/en-us/money/markets/broadcom-inc-avgo-unveils-symantec-cbx-for-enterprise-grade-network-security/ar-AA1ZW3QD",
+    "timestamp_utc": "2026-04-01T21:07:05+00:00",
+    "title": "Broadcom Inc. (AVGO) unveils Symantec CBX for enterprise-grade network security",
+    "url": "https://www.msn.com/en-us/money/markets/broadcom-inc-avgo-unveils-symantec-cbx-for-enterprise-grade-network-security/ar-AA1ZW3QD",
+    "source": "MSN",
+    "source_domain": "MSN",
+    "overall_sentiment_score": 0.549127,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.538987",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-simo/silicon-motion-technology/news/silicon-motion-targets-auto-grade-nand-to-balance-ai-and-pc",
+    "timestamp_utc": "2026-04-01T21:10:48+00:00",
+    "title": "Silicon Motion Targets Auto Grade NAND To Balance AI And PC Cycles",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-simo/silicon-motion-technology/news/silicon-motion-targets-auto-grade-nand-to-balance-ai-and-pc",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.152801,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SIMO",
+        "relevance_score": "0.972575",
+        "ticker_sentiment_score": "0.259553",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.625350",
+        "ticker_sentiment_score": "0.123012",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.586358",
+        "ticker_sentiment_score": "0.143008",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.562675",
+        "ticker_sentiment_score": "0.141706",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "WDC",
+        "relevance_score": "0.568886",
+        "ticker_sentiment_score": "0.130102",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://247wallst.com/investing/2026/04/03/investors-chasing-ai-hardware-gains-may-want-to-rethink-arty-before-adding-more-exposure/",
+    "timestamp_utc": "2026-04-02T00:39:28+00:00",
+    "title": "Investors Chasing AI Hardware Gains May Want to Rethink ARTY Before Adding More Exposure",
+    "url": "https://247wallst.com/investing/2026/04/03/investors-chasing-ai-hardware-gains-may-want-to-rethink-arty-before-adding-more-exposure/",
+    "source": "24/7 Wall St.",
+    "source_domain": "24/7 Wall St.",
+    "overall_sentiment_score": 0.422185,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "ARTY",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.393501",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.862504",
+        "ticker_sentiment_score": "0.737057",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "MU",
+        "relevance_score": "0.759745",
+        "ticker_sentiment_score": "0.689351",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.706711",
+        "ticker_sentiment_score": "0.633733",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.624845",
+        "ticker_sentiment_score": "0.338655",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://qz.com/is-broadcom-inc-avgo-a-buy-as-wall-street-analysts-look-optimistic",
+    "timestamp_utc": "2026-04-02T01:55:06+00:00",
+    "title": "Is Broadcom Inc. (AVGO) a Buy as Wall Street Analysts Look Optimistic?",
+    "url": "https://qz.com/is-broadcom-inc-avgo-a-buy-as-wall-street-analysts-look-optimistic",
+    "source": "qz.com",
+    "source_domain": "qz.com",
+    "overall_sentiment_score": 0.444701,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.420238",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/skyworks-solutions-inc-stock-key-insights-into-semiconductor-innovation/69052767",
+    "timestamp_utc": "2026-04-02T02:50:52+00:00",
+    "title": "Skyworks Solutions Inc Stock: Key Insights into Semiconductor Innovation and Investor Opportunities",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/skyworks-solutions-inc-stock-key-insights-into-semiconductor-innovation/69052767",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.3319,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "SWKS",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.448105",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.605305",
+        "ticker_sentiment_score": "0.303913",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "QCOM",
+        "relevance_score": "0.635370",
+        "ticker_sentiment_score": "0.225840",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AAPL",
+        "relevance_score": "0.603743",
+        "ticker_sentiment_score": "0.339044",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.ad-hoc-news.de/boerse/news/ueberblick/will-seasonal-trends-propel-the-ishares-msci-acwi-etf-forward/69053107",
+    "timestamp_utc": "2026-04-02T03:09:29+00:00",
+    "title": "Will Seasonal Trends Propel the iShares MSCI ACWI ETF Forward?",
+    "url": "https://www.ad-hoc-news.de/boerse/news/ueberblick/will-seasonal-trends-propel-the-ishares-msci-acwi-etf-forward/69053107",
+    "source": "AD HOC NEWS",
+    "source_domain": "AD HOC NEWS",
+    "overall_sentiment_score": 0.14079,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ACWI",
+        "relevance_score": "0.318354",
+        "ticker_sentiment_score": "0.046545",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.775169",
+        "ticker_sentiment_score": "0.399087",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "BAC",
+        "relevance_score": "0.608845",
+        "ticker_sentiment_score": "0.030592",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.bitget.com/amp/news/detail/12560605326048",
+    "timestamp_utc": "2026-04-02T03:37:51+00:00",
+    "title": "Zacks.com spotlights Ross Stores, Broadcom, Corning, and Constellation as key highlights",
+    "url": "https://www.bitget.com/amp/news/detail/12560605326048",
+    "source": "Bitget",
+    "source_domain": "Bitget",
+    "overall_sentiment_score": 0.411547,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "GLW",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.425988",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "ROST",
+        "relevance_score": "0.985759",
+        "ticker_sentiment_score": "0.404517",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.968448",
+        "ticker_sentiment_score": "0.407579",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "STZ",
+        "relevance_score": "0.970032",
+        "ticker_sentiment_score": "0.408227",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "GL",
+        "relevance_score": "0.980132",
+        "ticker_sentiment_score": "0.443665",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4888007-broadcom-moat-still-holds",
+    "timestamp_utc": "2026-04-02T04:16:07+00:00",
+    "title": "Broadcom: The Moat Still Holds (NASDAQ:AVGO)",
+    "url": "https://seekingalpha.com/article/4888007-broadcom-moat-still-holds",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.00326,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.018165",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.sahmcapital.com/news/content/taiwan-semiconductor-wins-approval-for-ultra-efficient-ai-chip-mega-factory-in-japan-2026-03-31",
+    "timestamp_utc": "2026-04-02T05:09:13+00:00",
+    "title": "Taiwan Semiconductor Wins Approval For Ultra-Efficient AI Chip Mega-Factory In Japan",
+    "url": "https://www.sahmcapital.com/news/content/taiwan-semiconductor-wins-approval-for-ultra-efficient-ai-chip-mega-factory-in-japan-2026-03-31",
+    "source": "Sahm",
+    "source_domain": "Sahm",
+    "overall_sentiment_score": 0.262847,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "OSEA",
+        "relevance_score": "0.917798",
+        "ticker_sentiment_score": "0.342013",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.635303",
+        "ticker_sentiment_score": "0.235917",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://sg.finance.yahoo.com/quote/TEL/news/",
+    "timestamp_utc": "2026-04-02T06:38:54+00:00",
+    "title": "TE Connectivity plc (TEL) latest stock news and headlines",
+    "url": "https://sg.finance.yahoo.com/quote/TEL/news/",
+    "source": "Yahoo Finance Singapore",
+    "source_domain": "Yahoo Finance Singapore",
+    "overall_sentiment_score": 0.203562,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "TEL",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.291035",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.616760",
+        "ticker_sentiment_score": "0.104058",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://qz.com/what-is-driving-credo-technology-s-growth-in-ai-interconnects",
+    "timestamp_utc": "2026-04-02T07:10:45+00:00",
+    "title": "What Is Driving Credo Technology's Growth in AI Interconnects?",
+    "url": "https://qz.com/what-is-driving-credo-technology-s-growth-in-ai-interconnects",
+    "source": "qz.com",
+    "source_domain": "qz.com",
+    "overall_sentiment_score": 0.28728,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "CRDO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.477560",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.606944",
+        "ticker_sentiment_score": "0.136730",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.morningstar.com/stocks/33-undervalued-stocks-buy-volatile-market",
+    "timestamp_utc": "2026-04-02T09:40:42+00:00",
+    "title": "33 Undervalued Stocks to Buy in a Volatile Market",
+    "url": "https://www.morningstar.com/stocks/33-undervalued-stocks-buy-volatile-market",
+    "source": "Morningstar",
+    "source_domain": "Morningstar",
+    "overall_sentiment_score": 0.351354,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MORN",
+        "relevance_score": "0.338422",
+        "ticker_sentiment_score": "0.040457",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "BX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.431401",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.404336",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "KMX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.441125",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "CLX",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.431744",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/ESAB/8-k-esab-corp-reports-material-event-91274e1fc281.html",
+    "timestamp_utc": "2026-04-02T10:38:53+00:00",
+    "title": "New ESAB (NYSE: ESAB) CFO joins as 2026 outlook reaffirmed",
+    "url": "https://www.stocktitan.net/sec-filings/ESAB/8-k-esab-corp-reports-material-event-91274e1fc281.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.127051,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "ESAB",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.252785",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.622767",
+        "ticker_sentiment_score": "0.136421",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.622767",
+        "ticker_sentiment_score": "-0.147315",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.stocktitan.net/sec-filings/INO/424b5-inovio-pharmaceuticals-inc-prospectus-supplement-debt-securitie-405c0b267a18.html",
+    "timestamp_utc": "2026-04-02T10:39:29+00:00",
+    "title": "[424B5] INOVIO PHARMACEUTICALS, INC. Prospectus Supplement (Debt Securities)",
+    "url": "https://www.stocktitan.net/sec-filings/INO/424b5-inovio-pharmaceuticals-inc-prospectus-supplement-debt-securitie-405c0b267a18.html",
+    "source": "Stock Titan",
+    "source_domain": "Stock Titan",
+    "overall_sentiment_score": 0.084773,
+    "overall_sentiment_label": "Neutral",
+    "ticker_sentiment": [
+      {
+        "ticker": "INO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.007386",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.638381",
+        "ticker_sentiment_score": "0.144899",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "INTC",
+        "relevance_score": "0.626383",
+        "ticker_sentiment_score": "0.131898",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.insidermonkey.com/blog/broadcom-inc-avgo-billionaire-ray-dalio-continues-to-be-bullish-1730311/",
+    "timestamp_utc": "2026-04-02T11:31:15+00:00",
+    "title": "Broadcom Inc. (AVGO): Billionaire Ray Dalio Continues to Be Bullish",
+    "url": "https://www.insidermonkey.com/blog/broadcom-inc-avgo-billionaire-ray-dalio-continues-to-be-bullish-1730311/",
+    "source": "Insider Monkey",
+    "source_domain": "Insider Monkey",
+    "overall_sentiment_score": 0.343012,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.507634",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.638638",
+        "ticker_sentiment_score": "0.146725",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/assessing-microchip-technology-mchp-valuation-after-ai-secto",
+    "timestamp_utc": "2026-04-02T13:33:26+00:00",
+    "title": "Assessing Microchip Technology (MCHP) Valuation After AI Sector Rally And Options-Driven Price Surge",
+    "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/assessing-microchip-technology-mchp-valuation-after-ai-secto",
+    "source": "Simply Wall Street",
+    "source_domain": "Simply Wall Street",
+    "overall_sentiment_score": 0.176849,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "MCHP",
+        "relevance_score": "0.984881",
+        "ticker_sentiment_score": "0.093327",
+        "ticker_sentiment_label": "Neutral"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "0.605813",
+        "ticker_sentiment_score": "0.285226",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.561503",
+        "ticker_sentiment_score": "0.100817",
+        "ticker_sentiment_label": "Neutral"
+      }
+    ]
+  },
+  {
+    "article_id": "https://www.barrons.com/articles/nvidia-stock-price-broadcom-tsmc-5d44d36d?gaa_at=eafs&gaa_n=AWEtsqf5pLrwpS3MyhBuONuotC246QvFv1z11BjKdKk7HKhF8OoJydY8xvlt&gaa_ts=69ce899f&gaa_sig=iHUQ9ehnNTUoW66k1W01M3kUycCIOjc8oydAVnsa1eOAXPYXOjY_m-RonaSeI0ztAl1Caf8jEGdurosgw1YvdQ%3D%3D",
+    "timestamp_utc": "2026-04-02T14:07:08+00:00",
+    "title": "Nvidia, Broadcom Drop as Chip Stocks Sell Off. Why War Is Hitting Them So Hard.",
+    "url": "https://www.barrons.com/articles/nvidia-stock-price-broadcom-tsmc-5d44d36d?gaa_at=eafs&gaa_n=AWEtsqf5pLrwpS3MyhBuONuotC246QvFv1z11BjKdKk7HKhF8OoJydY8xvlt&gaa_ts=69ce899f&gaa_sig=iHUQ9ehnNTUoW66k1W01M3kUycCIOjc8oydAVnsa1eOAXPYXOjY_m-RonaSeI0ztAl1Caf8jEGdurosgw1YvdQ%3D%3D",
+    "source": "Barron's",
+    "source_domain": "Barron's",
+    "overall_sentiment_score": -0.587533,
+    "overall_sentiment_label": "Bearish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.730389",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "NVDA",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "-0.675716",
+        "ticker_sentiment_label": "Bearish"
+      },
+      {
+        "ticker": "AMD",
+        "relevance_score": "0.743006",
+        "ticker_sentiment_score": "-0.427954",
+        "ticker_sentiment_label": "Bearish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://coincentral.com/broadcom-avgo-and-applied-materials-amat-added-to-deutsche-banks-top-tech-picks/",
+    "timestamp_utc": "2026-04-02T14:08:03+00:00",
+    "title": "Broadcom (AVGO) and Applied Materials (AMAT) Added to Deutsche Bank\u2019s Top Tech Picks",
+    "url": "https://coincentral.com/broadcom-avgo-and-applied-materials-amat-added-to-deutsche-banks-top-tech-picks/",
+    "source": "CoinCentral",
+    "source_domain": "CoinCentral",
+    "overall_sentiment_score": 0.290696,
+    "overall_sentiment_label": "Somewhat-Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AMAT",
+        "relevance_score": "0.994979",
+        "ticker_sentiment_score": "0.464014",
+        "ticker_sentiment_label": "Bullish"
+      },
+      {
+        "ticker": "AVGO",
+        "relevance_score": "0.917385",
+        "ticker_sentiment_score": "0.348307",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "TMUS",
+        "relevance_score": "0.602387",
+        "ticker_sentiment_score": "0.230947",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "ORCL",
+        "relevance_score": "0.638340",
+        "ticker_sentiment_score": "0.296156",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      },
+      {
+        "ticker": "DLR",
+        "relevance_score": "0.597188",
+        "ticker_sentiment_score": "0.247910",
+        "ticker_sentiment_label": "Somewhat-Bullish"
+      }
+    ]
+  },
+  {
+    "article_id": "https://seekingalpha.com/article/4888147-broadcom-ai-story-is-still-early",
+    "timestamp_utc": "2026-04-02T17:45:07+00:00",
+    "title": "Broadcom\u2019s AI Story Is Still Early (NASDAQ:AVGO)",
+    "url": "https://seekingalpha.com/article/4888147-broadcom-ai-story-is-still-early",
+    "source": "Seeking Alpha",
+    "source_domain": "Seeking Alpha",
+    "overall_sentiment_score": 0.417824,
+    "overall_sentiment_label": "Bullish",
+    "ticker_sentiment": [
+      {
+        "ticker": "AVGO",
+        "relevance_score": "1.000000",
+        "ticker_sentiment_score": "0.391061",
+        "ticker_sentiment_label": "Bullish"
+      }
+    ]
+  }
+]
