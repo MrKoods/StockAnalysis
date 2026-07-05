@@ -1,0 +1,299 @@
+"""
+Paper trading signal runner. Run post-close each session day to detect qualifying
+signals (confidence >= 90) and log them to paper_trading/paper_trades.csv.
+
+Records every layer's raw scores, regime state, and trade parameters so the paper
+trading period produces a rich dataset for model calibration.
+
+Does NOT enforce circuit breakers or position size limits — all qualifying signals
+are logged regardless of portfolio state, giving an unfiltered view of model accuracy.
+
+Discord alerts fire separately from the live model alerts (different embed format,
+clearly labeled as paper trading).
+
+Usage:
+    python -m paper_trading.paper_runner
+    python -m paper_trading.paper_runner --scan-type post_close
+"""
+
+import argparse
+import csv
+import sys
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+# Load .env before any imports that read environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+from swing_model.indicator_pipeline import run_pipeline, load_config
+from swing_model.sentiment_layer import compute_sentiment_score
+from swing_model.news_layer import compute_news_score
+from swing_model.scoring import compute_confidence_score
+from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
+from shared.utils.regime_detection import get_regime_modifiers
+from shared.utils.earnings_calendar import get_earnings_modifier
+from shared.utils.seasonality import get_seasonality_modifier
+from shared.utils.logger import get_logger
+from shared.utils.discord_alerts import send_paper_signal_alert
+
+# Reuse all pipeline helpers from run_swing_model to avoid duplication
+from swing_model.run_swing_model import (
+    _fetch_market_context,
+    _compute_regime_safe,
+    _compute_macro_safe,
+    _compute_rotation_safe,
+    _compute_cross_ticker_safe,
+    _fetch_stocktwits_safe,
+    _fetch_reddit_safe,
+    _fetch_av_news_safe,
+    _fetch_yahoo_news_safe,
+    _fetch_earnings_safe,
+    _get_insider_safe,
+    get_model_version,
+)
+
+logger = get_logger(__name__)
+
+PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
+CONFIDENCE_THRESHOLD = 90
+
+_CSV_COLUMNS = [
+    "signal_date", "ticker", "confidence",
+    "technical_score", "sentiment_score", "news_score", "fundamental_score",
+    "regime", "vix_at_signal",
+    "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
+    "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
+    "stocktwits_bullish_pct", "stocktwits_message_count",
+    "news_article_count", "dominant_news_theme", "fundamental_data_quality",
+    # Outcome fields — blank until paper_updater.py fills them in
+    "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
+]
+
+
+def _load_logged_keys() -> set[tuple[str, str]]:
+    """Return set of (signal_date, ticker) pairs already in paper_trades.csv."""
+    if not PAPER_TRADES_CSV.exists():
+        return set()
+    seen: set[tuple[str, str]] = set()
+    try:
+        with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                seen.add((row.get("signal_date", ""), row.get("ticker", "")))
+    except Exception as exc:
+        logger.warning(f"Could not read paper_trades.csv: {exc}")
+    return seen
+
+
+def _append_row(row: dict) -> None:
+    """Append one signal row to paper_trades.csv, creating header on first write."""
+    PAPER_TRADES_CSV.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not PAPER_TRADES_CSV.exists()
+    with open(PAPER_TRADES_CSV, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
+
+
+def _compute_st_stats(st_posts: list[dict]) -> tuple[float, int]:
+    """Return (bullish_pct, message_count) from raw StockTwits posts."""
+    count = len(st_posts)
+    if count == 0:
+        return 0.0, 0
+    bullish = sum(
+        1 for p in st_posts
+        if (p.get("entities", {}).get("sentiment", {}) or {}).get("basic", "") == "Bullish"
+    )
+    return round(bullish / count * 100, 1), count
+
+
+def run_paper_scan(scan_type: str = "post_close") -> int:
+    """
+    Run the full swing model pipeline and log qualifying signals to paper_trades.csv.
+    Returns number of new signals logged this session.
+    """
+    cfg = load_config()
+    model_version = get_model_version()
+    today_str = date.today().isoformat()
+    already_logged = _load_logged_keys()
+
+    watchlist: list[str] = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
+    rr_cfg: dict = cfg.get("risk_reward", {})
+
+    # --- Technical indicators (single batch yfinance fetch) ---
+    indicators_by_ticker = run_pipeline(watchlist, scan_type=scan_type, cfg=cfg)
+
+    # --- Shared market context ---
+    mkt = _fetch_market_context(watchlist)
+    vix_val = float(mkt["vix"]) if mkt["vix"] is not None else 15.0
+    regime = _compute_regime_safe(mkt["vix"], mkt["smh_df"])
+    regime_mod = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+    macro_mod = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg).get("confidence_modifier", 0.0)
+    rotation_mod = _compute_rotation_safe(mkt["smh_df"], mkt["spy_df"]).get("confidence_modifier", 0.0)
+    seasonality_mod = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
+    cross_ticker = _compute_cross_ticker_safe(indicators_by_ticker, mkt["ticker_ohlcv"], cfg)
+
+    signals_logged = 0
+
+    for ticker in watchlist:
+        try:
+            indicators = indicators_by_ticker.get(ticker)
+            if indicators is None:
+                logger.debug(f"{ticker}: no indicators — skipped")
+                continue
+
+            if (today_str, ticker) in already_logged:
+                logger.info(f"{ticker}: already logged today — skipped")
+                continue
+
+            # Sentiment
+            st_posts = _fetch_stocktwits_safe(ticker)
+            reddit_posts = _fetch_reddit_safe(ticker)
+            price_data = {
+                "price_change_5d_pct": (
+                    indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
+                )
+            }
+            sentiment = compute_sentiment_score(st_posts, reddit_posts, ticker, price_data, cfg)
+
+            # News
+            av_articles = _fetch_av_news_safe(ticker)
+            yahoo_articles = _fetch_yahoo_news_safe(ticker)
+            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg)
+
+            # Earnings + insider + cross-ticker modifiers
+            earnings_info = _fetch_earnings_safe(ticker)
+            earnings_date = (earnings_info or {}).get("next_earnings_date")
+            earnings_mod = get_earnings_modifier(ticker, earnings_date, cfg=cfg).get("confidence_modifier", 0.0)
+            insider_mod = _get_insider_safe(ticker).get("confidence_modifier", 0.0)
+            ct_mod = cross_ticker.get(ticker, {}).get("confidence_modifier", 0.0)
+
+            # Fundamental
+            fundamental = indicators.get("_fundamental_full") or {}
+
+            # Full confidence score
+            score = compute_confidence_score(
+                technical=indicators,
+                sentiment=sentiment,
+                news=news,
+                regime_modifier=regime_mod,
+                sector_rotation_modifier=rotation_mod,
+                earnings_modifier=earnings_mod,
+                cross_ticker_modifier=ct_mod,
+                insider_modifier=insider_mod,
+                seasonality_modifier=seasonality_mod,
+                macro_modifier=macro_mod,
+                cfg=cfg,
+                regime=regime,
+                fundamental=fundamental,
+            )
+
+            final_score = float(score.get("final_score", 0.0))
+            if final_score < CONFIDENCE_THRESHOLD:
+                continue
+
+            # Entry/stop/target
+            close_px = float(indicators.get("close", 0.0))
+            atr = float(indicators.get("atr_14", close_px * 0.02))
+            breakout_level = float(indicators.get("rolling_high_20", close_px))
+
+            entry_lower, entry_upper = compute_entry_zone(
+                close_px, breakout_level, atr,
+                rr_cfg.get("entry_zone_half_width_atr", 0.25),
+            )
+            entry_mid = (entry_lower + entry_upper) / 2.0
+            stop_loss = compute_stop_loss(
+                entry_lower, atr,
+                stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+            )
+            target_px = compute_target(entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
+            risk = entry_mid - stop_loss
+            rr_ratio = round((target_px - entry_mid) / risk, 2) if (target_px and risk > 0) else 0.0
+
+            # StockTwits metadata
+            st_bullish_pct, st_count = _compute_st_stats(st_posts)
+            news_count = len(av_articles) + len(yahoo_articles)
+            dominant_theme = str(news.get("dominant_theme", "")) if isinstance(news, dict) else ""
+
+            row: dict = {
+                "signal_date": today_str,
+                "ticker": ticker,
+                "confidence": f"{final_score:.1f}",
+                "technical_score": f"{score.get('technical_total', 0.0):.1f}",
+                "sentiment_score": f"{score.get('sentiment_total', 0.0):.1f}",
+                "news_score": f"{score.get('news_total', 0.0):.1f}",
+                "fundamental_score": f"{score.get('fundamental_score', 0.0):.1f}",
+                "regime": regime,
+                "vix_at_signal": f"{vix_val:.1f}",
+                "rsi_14": f"{float(indicators.get('rsi_14', 0.0)):.1f}",
+                "rs_zscore": f"{float(indicators.get('rs_zscore', 0.0)):.3f}",
+                "mom_5d": f"{float(indicators.get('mom_5d', 0.0)):.4f}",
+                "trend_intact": str(bool(indicators.get("trend_intact", False))),
+                "entry_zone_lower": f"{entry_lower:.2f}",
+                "entry_zone_upper": f"{entry_upper:.2f}",
+                "entry_price": f"{entry_mid:.2f}",
+                "stop_loss": f"{stop_loss:.2f}",
+                "target": f"{target_px:.2f}" if target_px else "",
+                "rr_ratio": f"{rr_ratio:.2f}",
+                "stocktwits_bullish_pct": f"{st_bullish_pct:.1f}",
+                "stocktwits_message_count": str(st_count),
+                "news_article_count": str(news_count),
+                "dominant_news_theme": dominant_theme,
+                "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
+                # Outcome fields filled by paper_updater.py
+                "outcome": "",
+                "exit_date": "",
+                "exit_price": "",
+                "pnl_pct": "",
+                "achieved_rr": "",
+                "holding_days": "",
+            }
+
+            _append_row(row)
+            signals_logged += 1
+            logger.info(f"{ticker}: PAPER signal logged — confidence {final_score:.1f}")
+
+            # Paper-specific Discord alert (separate from live model alert)
+            try:
+                send_paper_signal_alert(
+                    {
+                        **row,
+                        "entry_zone_lower": entry_lower,
+                        "entry_zone_upper": entry_upper,
+                        "stop_loss": stop_loss,
+                        "target": float(target_px) if target_px else 0.0,
+                        "rr_ratio": rr_ratio,
+                        "technical_score": score.get("technical_total", 0.0),
+                        "sentiment_score": score.get("sentiment_total", 0.0),
+                        "news_score": score.get("news_total", 0.0),
+                        "fundamental_score": score.get("fundamental_score", 0.0),
+                    },
+                    model_version=model_version,
+                )
+            except Exception as exc:
+                logger.warning(f"{ticker}: paper Discord alert failed — {exc}")
+
+        except Exception as exc:
+            logger.error(f"{ticker}: paper_runner error — {exc}")
+
+    logger.info(f"Paper scan complete — {signals_logged} new signals logged to {PAPER_TRADES_CSV}")
+    return signals_logged
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Paper trading signal runner")
+    parser.add_argument(
+        "--scan-type",
+        choices=["pre_market", "mid_session", "post_close"],
+        default="post_close",
+        help="Which scan window (default: post_close)",
+    )
+    args = parser.parse_args()
+    count = run_paper_scan(scan_type=args.scan_type)
+    print(f"Done — {count} paper signal(s) logged.")
+    sys.exit(0)

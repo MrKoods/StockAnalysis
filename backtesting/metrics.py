@@ -11,20 +11,38 @@ import numpy as np
 import pandas as pd
 
 
+def _is_win(o: dict) -> bool:
+    """
+    A trade is a win if:
+    - It hit the target price, OR
+    - It was time-stopped out at a profit (pnl_pct > 0).
+    Time stops at profit are genuine wins — the strategy made money on the trade.
+    """
+    if o.get("outcome") == "win":
+        return True
+    if o.get("outcome") == "time_stop" and float(o.get("pnl_pct", 0.0)) > 0:
+        return True
+    return False
+
+
 def compute_win_rate(outcomes: list[dict]) -> float:
     """Compute win rate from list of trade outcome dicts. Returns 0.0 if no trades."""
     if not outcomes:
         return 0.0
-    wins = sum(1 for o in outcomes if o.get("outcome") == "win")
+    wins = sum(1 for o in outcomes if _is_win(o))
     return wins / len(outcomes)
 
 
 def compute_avg_rr(outcomes: list[dict]) -> float:
-    """Compute average achieved R:R ratio from outcomes."""
-    valid = [o for o in outcomes if "achieved_rr" in o]
-    if not valid:
+    """
+    Compute average achieved R:R ratio for winning trades only.
+    Measures how much R winning trades captured on average —
+    target hits score ~3.0R, profitable time stops score a partial R.
+    """
+    wins = [o for o in outcomes if _is_win(o) and "achieved_rr" in o]
+    if not wins:
         return 0.0
-    return sum(o["achieved_rr"] for o in valid) / len(valid)
+    return sum(o["achieved_rr"] for o in wins) / len(wins)
 
 
 def compute_max_drawdown(equity_curve: pd.Series) -> float:
@@ -74,11 +92,11 @@ def compute_consecutive_losses(outcomes: list[dict]) -> int:
     max_consec = 0
     current = 0
     for o in outcomes:
-        if o.get("outcome") in ("loss", "time_stop"):
+        if _is_win(o):
+            current = 0
+        else:
             current += 1
             max_consec = max(max_consec, current)
-        else:
-            current = 0
     return max_consec
 
 

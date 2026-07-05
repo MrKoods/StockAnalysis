@@ -260,6 +260,97 @@ def send_macro_warning(macro_state: dict) -> bool:
     return _post_to_webhook({"embeds": [embed]})
 
 
+def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
+    """PAPER TRADE OPENED embed — clearly labeled as simulated, not live capital."""
+    ticker = trade.get("ticker", "?")
+    confidence = float(trade.get("confidence", 0.0))
+    entry_lower = float(trade.get("entry_zone_lower", 0.0))
+    entry_upper = float(trade.get("entry_zone_upper", entry_lower))
+    stop = float(trade.get("stop_loss", 0.0))
+    target = float(trade.get("target", 0.0))
+    rr = float(trade.get("rr_ratio", 0.0))
+    regime = str(trade.get("regime", ""))
+    technical_score = float(trade.get("technical_score", 0.0))
+    sentiment_score = float(trade.get("sentiment_score", 0.0))
+    news_score = float(trade.get("news_score", 0.0))
+    fundamental_score = float(trade.get("fundamental_score", 0.0))
+    st_bullish_pct = trade.get("stocktwits_bullish_pct", "—")
+    st_count = trade.get("stocktwits_message_count", "0")
+    news_count = trade.get("news_article_count", "0")
+    vix_val = trade.get("vix_at_signal", "—")
+
+    embed = {
+        "title": f"📋 PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
+        "color": _COLORS["blue"],
+        "description": "**PAPER TRADING ONLY** — no live capital",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Entry Zone", "value": f"${entry_lower:.2f} – ${entry_upper:.2f}", "inline": True},
+            {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
+            {"name": "Target", "value": f"${target:.2f}  (1:{rr:.1f}R)", "inline": True},
+            {"name": "Regime", "value": regime.replace("_", " ").title() if regime else "—", "inline": True},
+            {"name": "VIX", "value": str(vix_val), "inline": True},
+            {"name": "StockTwits", "value": f"{st_count} msgs  |  {st_bullish_pct}% bullish", "inline": True},
+            {
+                "name": "Score Breakdown",
+                "value": (
+                    f"Tech: **{technical_score:.1f}**/50  |  "
+                    f"Sent: **{sentiment_score:.1f}**/20  |  "
+                    f"News: **{news_score:.1f}**/15  |  "
+                    f"Fund: **{fundamental_score:.1f}**/15\n"
+                    f"News articles: {news_count}"
+                ),
+                "inline": False,
+            },
+        ],
+        "footer": {"text": f"StockAnalysis {model_version} | Paper Trading"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
+def send_paper_outcome_alert(trade: dict) -> bool:
+    """PAPER TRADE CLOSED embed — sends when stop, target, or time stop triggers."""
+    ticker = trade.get("ticker", "?")
+    outcome = str(trade.get("outcome", "unknown"))
+    signal_date = trade.get("signal_date", "—")
+    exit_date = trade.get("exit_date", "—")
+    pnl_pct = float(trade.get("pnl_pct", 0.0))
+    achieved_rr = float(trade.get("achieved_rr", 0.0))
+    holding_days = int(trade.get("holding_days", 0))
+    entry_price = float(trade.get("entry_price", 0.0))
+    exit_price = float(trade.get("exit_price", 0.0))
+    confidence = float(trade.get("confidence", 0.0))
+
+    is_win = (outcome == "win") or (outcome == "time_stop" and pnl_pct > 0)
+
+    _outcome_labels = {
+        "win": "TARGET HIT",
+        "loss": "STOPPED OUT",
+        "time_stop": f"TIME STOP  ({pnl_pct * 100:+.1f}%)",
+    }
+    label = _outcome_labels.get(outcome, outcome.upper())
+    emoji = "✅" if is_win else ("⏱️" if outcome == "time_stop" else "❌")
+    color = _COLORS["green"] if is_win else (_COLORS["yellow"] if outcome == "time_stop" else _COLORS["red"])
+
+    embed = {
+        "title": f"{emoji} PAPER CLOSE — {ticker}  |  {label}",
+        "color": color,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Signal Date", "value": signal_date, "inline": True},
+            {"name": "Exit Date", "value": exit_date, "inline": True},
+            {"name": "Holding Days", "value": str(holding_days), "inline": True},
+            {"name": "Entry Price", "value": f"${entry_price:.2f}", "inline": True},
+            {"name": "Exit Price", "value": f"${exit_price:.2f}", "inline": True},
+            {"name": "P&L", "value": f"{pnl_pct * 100:+.2f}%", "inline": True},
+            {"name": "Achieved R:R", "value": f"{achieved_rr:+.2f}R", "inline": True},
+            {"name": "Signal Confidence", "value": f"{confidence:.0f}/100", "inline": True},
+        ],
+        "footer": {"text": "Paper trade closed — outcome logged for model calibration"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
 def _post_to_webhook(payload: dict, webhook_url: Optional[str] = None) -> bool:
     """POST JSON payload to Discord webhook. Returns True on 204 response."""
     url = webhook_url or os.getenv("DISCORD_WEBHOOK_URL")
