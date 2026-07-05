@@ -40,6 +40,8 @@ from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_signal_alert
+from swing_model.trade_selector import rank_trade_structures
+from shared.utils.regime_detection import REGIME_HIGH_VOL
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
@@ -70,6 +72,7 @@ _CSV_COLUMNS = [
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
     "stocktwits_bullish_pct", "stocktwits_message_count",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
+    "structure_recommended", "ev_per_dollar",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
 ]
@@ -215,6 +218,36 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             risk = entry_mid - stop_loss
             rr_ratio = round((target_px - entry_mid) / risk, 2) if (target_px and risk > 0) else 0.0
 
+            # Trade structure ranking
+            structure_recommended = ""
+            ev_per_dollar = ""
+            try:
+                force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
+                trade_result = rank_trade_structures(
+                    {
+                        "ticker": ticker,
+                        "direction": score.get("direction", "bullish"),
+                        "confidence": final_score,
+                        "entry": entry_mid,
+                        "entry_mid": entry_mid,
+                        "stop_loss": stop_loss,
+                        "target": target_px,
+                        "atr_14": atr,
+                        "force_defined_risk": force_defined_risk,
+                    },
+                    account_equity=15000.0,
+                    options_approval_level=int(cfg.get("options_approval_level", 2)),
+                    iv_percentile=50.0,
+                    cfg=cfg,
+                )
+                ranked = trade_result.get("ranked_structures", [])
+                if ranked:
+                    best = ranked[0]
+                    structure_recommended = best.get("name", "")
+                    ev_per_dollar = f"{best.get('ev_per_dollar_risked', 0.0):.3f}"
+            except Exception as exc:
+                logger.warning(f"{ticker}: structure ranking failed — {exc}")
+
             # StockTwits metadata
             st_bullish_pct, st_count = _compute_st_stats(st_posts)
             news_count = len(av_articles) + len(yahoo_articles)
@@ -245,6 +278,8 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 "news_article_count": str(news_count),
                 "dominant_news_theme": dominant_theme,
                 "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
+                "structure_recommended": structure_recommended,
+                "ev_per_dollar": ev_per_dollar,
                 # Outcome fields filled by paper_updater.py
                 "outcome": "",
                 "exit_date": "",
