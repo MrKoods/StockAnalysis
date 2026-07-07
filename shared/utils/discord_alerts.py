@@ -274,8 +274,6 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     sentiment_score = float(trade.get("sentiment_score", 0.0))
     news_score = float(trade.get("news_score", 0.0))
     fundamental_score = float(trade.get("fundamental_score", 0.0))
-    st_bullish_pct = trade.get("stocktwits_bullish_pct", "—")
-    st_count = trade.get("stocktwits_message_count", "0")
     news_count = trade.get("news_article_count", "0")
     vix_val = trade.get("vix_at_signal", "—")
 
@@ -290,7 +288,6 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             {"name": "Target", "value": f"${target:.2f}  (1:{rr:.1f}R)", "inline": True},
             {"name": "Regime", "value": regime.replace("_", " ").title() if regime else "—", "inline": True},
             {"name": "VIX", "value": str(vix_val), "inline": True},
-            {"name": "StockTwits", "value": f"{st_count} msgs  |  {st_bullish_pct}% bullish", "inline": True},
             {
                 "name": "Score Breakdown",
                 "value": (

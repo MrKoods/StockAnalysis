@@ -1,28 +1,27 @@
 """
-Credibility-weighted sentiment trajectory + velocity; leading/lagging classification;
-divergence flagging; cross-platform consistency; spike detection.
-Combines StockTwits + Reddit signals with timezone-aware windowing.
+Sentiment trajectory + velocity; leading/lagging classification; divergence
+flagging; cross-subreddit consistency; spike detection.
+Reddit (PRAW) is the sole sentiment source — timezone-aware windowing.
 Output used by scoring.py for the Sentiment component (max 25 points).
 """
 
 from datetime import datetime, timezone
 from typing import Optional
 
-from shared.utils.source_credibility import score_stocktwits_author
 from shared.utils.temporal_alignment import (
     compute_sentiment_trajectory,
     compute_sentiment_velocity,
     detect_price_sentiment_divergence,
-    classify_lead_lag,
-    news_decay_weight,
 )
 
-# Sentiment offline cap: if both StockTwits and Reddit unavailable, cap at 70
+# Sentiment offline cap: if Reddit is unavailable, cap confidence at 70
 SENTIMENT_OFFLINE_CAP = 70
+
+# "Hype" subreddit vs. the rest — used for cross-subreddit consistency below
+_HYPE_SUBREDDITS = {"wallstreetbets"}
 
 
 def compute_sentiment_score(
-    stocktwits_posts: list[dict],
     reddit_posts: list[dict],
     ticker: str,
     price_data: dict,
@@ -34,7 +33,7 @@ def compute_sentiment_score(
     Scoring spec (sum = 25):
     - trajectory_score:        0-10  (building vs. declining)
     - velocity_score:          0-5   (acceleration)
-    - cross_platform_score:    0-5   (StockTwits vs. Reddit agreement)
+    - cross_platform_score:    0-5   (WSB vs. other subreddits agreement)
     - spike_score:             0-5   (organic vs. manufactured)
 
     Returns dict with all fields required by scoring.py.
@@ -42,52 +41,30 @@ def compute_sentiment_score(
     if cfg is None:
         cfg = {}
 
-    now = datetime.now(timezone.utc)
-    sentiment_offline = (not stocktwits_posts) and (not reddit_posts)
+    sentiment_offline = not reddit_posts
 
     # ---------------------------------------------------------------------------
-    # 1. Build credibility-weighted bullish ratios per day from StockTwits
-    # ---------------------------------------------------------------------------
-    st_bull_total_w = 0.0
-    st_bear_total_w = 0.0
-    st_total_w = 0.0
-    st_post_timestamps = []
-    st_author_ids = []
-
-    for post in stocktwits_posts:
-        credibility = score_stocktwits_author(post, now_utc=now)
-        decay = news_decay_weight(
-            _parse_ts(post.get("timestamp_utc", "")),
-            now_utc=now,
-            halflife_hours=12.0,
-            zero_at_days=5.0,
-        )
-        w = credibility * decay
-        sentiment = post.get("sentiment")
-        if sentiment == "bullish":
-            st_bull_total_w += w
-        elif sentiment == "bearish":
-            st_bear_total_w += w
-        st_total_w += w
-        st_post_timestamps.append(_parse_ts(post.get("timestamp_utc", "")).timestamp())
-        st_author_ids.append(str(post.get("author_id", "")))
-
-    bullish_ratio_st = (st_bull_total_w / st_total_w) if st_total_w > 0 else 0.5
-
-    # ---------------------------------------------------------------------------
-    # 2. Reddit — simple keyword sentiment (no credibility weights — author data limited)
+    # 1. Reddit — simple keyword sentiment (no credibility weights — author data limited)
     # ---------------------------------------------------------------------------
     reddit_bull = sum(1 for p in reddit_posts if p.get("sentiment") == "bullish")
     reddit_bear = sum(1 for p in reddit_posts if p.get("sentiment") == "bearish")
     reddit_total = len(reddit_posts)
     bullish_ratio_reddit = (reddit_bull / reddit_total) if reddit_total > 0 else 0.5
 
+    # Split by subreddit: WSB (hype/degen) vs. the rest (measured communities)
+    wsb_posts = [p for p in reddit_posts if p.get("subreddit") in _HYPE_SUBREDDITS]
+    other_posts = [p for p in reddit_posts if p.get("subreddit") not in _HYPE_SUBREDDITS]
+    bullish_ratio_wsb = _bullish_ratio(wsb_posts)
+    bullish_ratio_other_subs = _bullish_ratio(other_posts)
+
+    post_timestamps = [_parse_ts(p.get("timestamp_utc", "")).timestamp() for p in reddit_posts]
+    author_ids = [str(p.get("author_name", "")) for p in reddit_posts]
+
     # ---------------------------------------------------------------------------
-    # 3. Trajectory (0-10): slope of bullish ratio from daily aggregation
+    # 2. Trajectory (0-10): slope of bullish ratio from daily aggregation
     #    Approximate with a 5-point series decayed over time buckets
     # ---------------------------------------------------------------------------
-    # Build a 5-day series of bullish ratios from posts
-    daily_ratios = _build_daily_bullish_ratios(stocktwits_posts + reddit_posts, days=5)
+    daily_ratios = _build_daily_bullish_ratios(reddit_posts, days=5)
     trajectory = compute_sentiment_trajectory(daily_ratios)
     velocity = compute_sentiment_velocity(daily_ratios)
 
@@ -95,20 +72,21 @@ def compute_sentiment_score(
     trajectory_score = min(10.0, max(0.0, 5.0 + trajectory * 50.0))
 
     # ---------------------------------------------------------------------------
-    # 4. Velocity (0-5)
+    # 3. Velocity (0-5)
     # ---------------------------------------------------------------------------
     velocity_score = min(5.0, max(0.0, 2.5 + velocity * 25.0))
 
     # ---------------------------------------------------------------------------
-    # 5. Cross-platform consistency (0-5)
+    # 4. Cross-subreddit consistency (0-5): does WSB hype agree with the more
+    #    measured subreddits, or is it isolated to one echo chamber?
     # ---------------------------------------------------------------------------
-    cross_consistency = compute_cross_platform_consistency(bullish_ratio_st, bullish_ratio_reddit)
+    cross_consistency = compute_cross_platform_consistency(bullish_ratio_wsb, bullish_ratio_other_subs)
     cross_platform_score = round(cross_consistency * 5.0, 2)
 
     # ---------------------------------------------------------------------------
-    # 6. Spike classification (0-5): organic buildup > manufactured spike
+    # 5. Spike classification (0-5): organic buildup > manufactured spike
     # ---------------------------------------------------------------------------
-    spike_type = detect_spike_type(daily_ratios, st_post_timestamps, st_author_ids)
+    spike_type = detect_spike_type(daily_ratios, post_timestamps, author_ids)
     if spike_type == "organic":
         spike_score = 5.0
     elif spike_type == "manufactured":
@@ -117,7 +95,7 @@ def compute_sentiment_score(
         spike_score = 3.0
 
     # ---------------------------------------------------------------------------
-    # 7. Aggregate
+    # 6. Aggregate
     # ---------------------------------------------------------------------------
     sentiment_score_total = trajectory_score + velocity_score + cross_platform_score + spike_score
 
@@ -126,9 +104,9 @@ def compute_sentiment_score(
     divergence_flag = detect_price_sentiment_divergence(price_change, trajectory)
 
     # Dominant sentiment
-    if bullish_ratio_st > 0.55 or bullish_ratio_reddit > 0.55:
+    if bullish_ratio_reddit > 0.55:
         dominant_sentiment = "bullish"
-    elif bullish_ratio_st < 0.45 or bullish_ratio_reddit < 0.45:
+    elif bullish_ratio_reddit < 0.45:
         dominant_sentiment = "bearish"
     else:
         dominant_sentiment = "neutral"
@@ -149,14 +127,23 @@ def compute_sentiment_score(
         "cross_platform_consistency_score": round(cross_consistency, 3),
         "spike_type": spike_type,
         "dominant_sentiment": dominant_sentiment,
-        "bullish_ratio_st": round(bullish_ratio_st, 3),
+        "bullish_ratio_wsb": round(bullish_ratio_wsb, 3),
+        "bullish_ratio_other_subs": round(bullish_ratio_other_subs, 3),
         "bullish_ratio_reddit": round(bullish_ratio_reddit, 3),
-        "mention_volume_st": len(stocktwits_posts),
         "mention_volume_reddit": len(reddit_posts),
         "sentiment_offline": sentiment_offline,
         "sentiment_offline_cap": SENTIMENT_OFFLINE_CAP if sentiment_offline else None,
         "timezone_window_signals": {},  # Populated per-window if needed by scoring.py
     }
+
+
+def _bullish_ratio(posts: list[dict]) -> float:
+    """Fraction of posts labeled bullish. Neutral (0.5) if empty."""
+    total = len(posts)
+    if total == 0:
+        return 0.5
+    bull = sum(1 for p in posts if p.get("sentiment") == "bullish")
+    return bull / total
 
 
 def detect_spike_type(

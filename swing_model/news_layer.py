@@ -19,6 +19,7 @@ def compute_news_score(
     ticker: str,
     cfg: Optional[dict] = None,
     reference_date: Optional[datetime] = None,
+    finnhub_articles: Optional[list[dict]] = None,
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -37,7 +38,7 @@ def compute_news_score(
     now = reference_date if reference_date is not None else datetime.now(timezone.utc)
     watchlist = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
 
-    all_articles = list(alpha_vantage_articles) + list(yahoo_articles)
+    all_articles = list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
 
     # ---------------------------------------------------------------------------
     # Filter to relevant articles only (NER confirms ticker mention)

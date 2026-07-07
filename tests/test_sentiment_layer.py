@@ -22,7 +22,6 @@ from shared.utils.temporal_alignment import (
     compute_sentiment_velocity,
 )
 from shared.utils.source_credibility import (
-    score_stocktwits_author,
     score_news_outlet,
     weight_by_credibility,
 )
@@ -99,33 +98,6 @@ class TestTemporalAlignment:
 # ---------------------------------------------------------------------------
 
 class TestSourceCredibility:
-    def test_verified_author_scores_higher(self):
-        verified = {"author_followers": 500, "author_following": 100,
-                    "author_join_date": "2018-01-01", "author_verified": True}
-        unverified = {"author_followers": 500, "author_following": 100,
-                      "author_join_date": "2018-01-01", "author_verified": False}
-        assert score_stocktwits_author(verified) > score_stocktwits_author(unverified)
-
-    def test_older_account_scores_higher(self):
-        old = {"author_followers": 100, "author_following": 50,
-               "author_join_date": "2015-01-01", "author_verified": False}
-        new = {"author_followers": 100, "author_following": 50,
-               "author_join_date": "2023-01-01", "author_verified": False}
-        assert score_stocktwits_author(old) > score_stocktwits_author(new)
-
-    def test_high_follower_count_boosts_score(self):
-        high = {"author_followers": 10000, "author_following": 100,
-                "author_join_date": "2019-01-01", "author_verified": False}
-        low = {"author_followers": 10, "author_following": 100,
-               "author_join_date": "2019-01-01", "author_verified": False}
-        assert score_stocktwits_author(high) > score_stocktwits_author(low)
-
-    def test_score_clamped_0_to_1(self):
-        author = {"author_followers": 999999, "author_following": 5,
-                  "author_join_date": "2010-01-01", "author_verified": True}
-        s = score_stocktwits_author(author)
-        assert 0.0 <= s <= 1.0
-
     def test_reuters_high_credibility(self):
         assert score_news_outlet("reuters.com") >= 0.90
 
@@ -226,41 +198,39 @@ class TestSentimentLayer:
         posts = []
         ts = (now - timedelta(hours=hours_ago)).isoformat()
         for i in range(n_bullish):
-            posts.append({"post_id": str(i), "timestamp_utc": ts, "body": "bullish",
-                          "sentiment": "bullish", "author_id": str(i),
-                          "author_followers": 100, "author_following": 50,
-                          "author_join_date": "2020-01-01", "author_verified": False})
+            posts.append({"post_id": str(i), "timestamp_utc": ts,
+                          "sentiment": "bullish", "author_name": f"user{i}",
+                          "subreddit": "stocks"})
         for i in range(n_bearish):
-            posts.append({"post_id": str(n_bullish + i), "timestamp_utc": ts, "body": "bearish",
-                          "sentiment": "bearish", "author_id": str(n_bullish + i),
-                          "author_followers": 100, "author_following": 50,
-                          "author_join_date": "2020-01-01", "author_verified": False})
+            posts.append({"post_id": str(n_bullish + i), "timestamp_utc": ts,
+                          "sentiment": "bearish", "author_name": f"user{n_bullish + i}",
+                          "subreddit": "stocks"})
         return posts
 
     def test_bullish_dominance_gives_high_score(self):
         posts = self._make_posts(20, 2)
-        result = compute_sentiment_score(posts, [], "NVDA", {})
+        result = compute_sentiment_score(posts, "NVDA", {})
         assert result["dominant_sentiment"] == "bullish"
         assert result["sentiment_score_total"] > 10
 
     def test_offline_when_no_posts(self):
-        result = compute_sentiment_score([], [], "NVDA", {})
+        result = compute_sentiment_score([], "NVDA", {})
         assert result["sentiment_offline"]
         assert result["sentiment_offline_cap"] == 70
 
     def test_score_total_capped_at_25(self):
         posts = self._make_posts(50, 0)
-        result = compute_sentiment_score(posts, [], "NVDA", {})
+        result = compute_sentiment_score(posts, "NVDA", {})
         assert result["sentiment_score_total"] <= 25.0
 
     def test_all_required_keys_present(self):
-        result = compute_sentiment_score([], [], "NVDA", {})
+        result = compute_sentiment_score([], "NVDA", {})
         required = [
             "trajectory_score", "velocity_score", "cross_platform_score", "spike_score",
             "sentiment_score_total", "sentiment_trajectory", "sentiment_velocity",
             "divergence_flag", "cross_platform_consistency_score", "spike_type",
-            "dominant_sentiment", "bullish_ratio_st", "bullish_ratio_reddit",
-            "mention_volume_st", "mention_volume_reddit",
+            "dominant_sentiment", "bullish_ratio_wsb", "bullish_ratio_other_subs",
+            "bullish_ratio_reddit", "mention_volume_reddit",
         ]
         for key in required:
             assert key in result, f"Missing key: {key}"

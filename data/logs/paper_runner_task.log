@@ -1,0 +1,10 @@
+2026-07-06 16:32:01,678 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 16:32:02,066 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=42.0, atr=6.87)
+2026-07-06 16:32:02,071 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 16:32:02,075 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 16:32:02,079 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 16:32:02,084 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 16:32:02,089 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Monday post-17:00 ET — fetching fresh fundamental data.
+2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+^C

@@ -118,27 +118,43 @@ def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
     def _fetch():
         t = yf.Ticker(ticker)
         cal = t.calendar
-        if cal is None or cal.empty:
-            return None
-        # yfinance returns calendar as a DataFrame with dates as column headers
-        # Structure varies by yfinance version — handle both
-        if hasattr(cal, "columns"):
-            dates = cal.columns.tolist()
-        elif hasattr(cal, "index"):
-            dates = cal.index.tolist()
-        else:
+        if cal is None:
             return None
 
-        if not dates:
-            return None
+        next_date = None
 
-        # Take the first (earliest upcoming) earnings date
         try:
-            next_date = pd.Timestamp(dates[0]).to_pydatetime()
-        except Exception:
+            # yfinance >= 0.2.x returns a dict; older versions return a DataFrame
+            if isinstance(cal, dict):
+                earnings_dates = cal.get("Earnings Date") or cal.get("earningsDate") or []
+                if not earnings_dates:
+                    return None
+                first = earnings_dates[0] if hasattr(earnings_dates, "__getitem__") else None
+                if first is None:
+                    return None
+                # Newer yfinance may return list of dicts with raw (unix ts) or fmt (string)
+                if isinstance(first, dict):
+                    raw = first.get("raw") or first.get("timestamp")
+                    fmt = first.get("fmt") or first.get("date")
+                    if raw:
+                        next_date = pd.Timestamp(raw, unit="s").to_pydatetime()
+                    elif fmt:
+                        next_date = pd.Timestamp(fmt).to_pydatetime()
+                else:
+                    next_date = pd.Timestamp(first).to_pydatetime()
+            elif hasattr(cal, "empty"):
+                if cal.empty:
+                    return None
+                dates = cal.columns.tolist() if hasattr(cal, "columns") else cal.index.tolist()
+                if dates:
+                    next_date = pd.Timestamp(dates[0]).to_pydatetime()
+        except Exception as exc:
+            logger.warning(f"[fetch_earnings_calendar({ticker})] Parse error: {exc} — skipping.")
             return None
 
-        # Ensure UTC
+        if next_date is None:
+            return None
+
         if next_date.tzinfo is None:
             next_date = next_date.replace(tzinfo=timezone.utc)
 
@@ -162,7 +178,13 @@ def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
         df = yf.download("^VIX", period=period, interval="1d", progress=False, auto_adjust=True)
         if df.empty:
             raise ValueError("Empty VIX response")
-        return float(df["Close"].iloc[-1])
+        # yfinance >= 0.2.x returns MultiIndex columns for single-ticker downloads
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        close = df["Close"]
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        return float(close.iloc[-1])
 
     return _fetch_with_backoff(_fetch, retries=retries, label="fetch_vix")
 
@@ -176,6 +198,8 @@ def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
         df = yf.download("^TNX", period=period, interval="1d", progress=False, auto_adjust=True)
         if df.empty:
             raise ValueError("Empty TNX response")
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
         if df.index.tz is None:
             df.index = df.index.tz_localize("UTC")
         else:
@@ -194,6 +218,8 @@ def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
         df = yf.download("DX-Y.NYB", period=period, interval="1d", progress=False, auto_adjust=True)
         if df.empty:
             raise ValueError("Empty DXY response")
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
         if df.index.tz is None:
             df.index = df.index.tz_localize("UTC")
         else:

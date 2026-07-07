@@ -1,6 +1,8 @@
 """
-SHARED: Wraps Alpha Vantage News & Sentiment + Yahoo Finance headlines.
-Produces timestamped articles with pre-computed sentiment scores.
+SHARED: Wraps Alpha Vantage News & Sentiment + Yahoo Finance + Finnhub headlines.
+Produces timestamped articles; Alpha Vantage articles carry pre-computed sentiment
+scores, Yahoo and Finnhub articles do not (NER-based sentiment applied downstream
+by news_layer.py for those).
 Enforces the 20-call/day Alpha Vantage budget (tracked in data/processed/av_call_count.json).
 All timestamps normalized to UTC. Implements exponential backoff.
 """
@@ -8,7 +10,7 @@ All timestamps normalized to UTC. Implements exponential backoff.
 import os
 import time
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -21,6 +23,7 @@ logger = get_logger(__name__)
 
 _AV_BASE_URL = "https://www.alphavantage.co/query"
 _AV_COUNTER_FILE = Path("data/processed/av_call_count.json")
+_FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 
 
 def fetch_news_alpha_vantage(
@@ -135,6 +138,58 @@ def fetch_news_yahoo(ticker: str, limit: int = 10) -> list[dict]:
         return []
 
 
+def fetch_news_finnhub(ticker: str, lookback_days: int = 7) -> list[dict]:
+    """
+    Fetch company news headlines from Finnhub's free-tier /company-news endpoint.
+
+    Returns list of dicts (same shape as fetch_news_yahoo):
+    {article_id, timestamp_utc, title, url, source, source_domain}
+    No pre-computed sentiment scores — NER applied downstream.
+    """
+    api_key = os.environ.get("FINNHUB_API_KEY", "")
+    if not api_key:
+        logger.warning("FINNHUB_API_KEY not set — Finnhub news unavailable.")
+        return []
+
+    to_date = datetime.now(timezone.utc).date()
+    from_date = to_date - timedelta(days=lookback_days)
+    params = {
+        "symbol": ticker,
+        "from": from_date.isoformat(),
+        "to": to_date.isoformat(),
+        "token": api_key,
+    }
+
+    data = _backoff_get(f"{_FINNHUB_BASE_URL}/company-news", params)
+    if not isinstance(data, list):
+        logger.warning(f"Finnhub news: unexpected response for {ticker}: {data}")
+        return []
+
+    articles = []
+    for item in data:
+        ts_raw = item.get("datetime", 0)
+        try:
+            ts = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc)
+        except (ValueError, TypeError, OSError):
+            ts = datetime.now(timezone.utc)
+
+        source = item.get("source", "")
+        articles.append({
+            "article_id": str(item.get("id") or item.get("url", ts_raw)),
+            "timestamp_utc": ts.isoformat(),
+            "title": item.get("headline", ""),
+            "url": item.get("url", ""),
+            "source": source,
+            "source_domain": source.lower().replace(" ", "") + ".com" if source else "",
+            "overall_sentiment_score": None,
+            "overall_sentiment_label": None,
+            "ticker_sentiment": [],
+        })
+
+    logger.info(f"Finnhub: fetched {len(articles)} articles for {ticker}.")
+    return articles
+
+
 def get_av_call_count() -> dict:
     """Load today's Alpha Vantage call count from persistent counter file."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -172,7 +227,7 @@ def _backoff_get(url: str, params: dict, retries: int = 3) -> Optional[dict]:
             return resp.json()
         except Exception as exc:
             if attempt < len(delays):
-                logger.warning(f"AV request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
+                logger.warning(f"Request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
                 time.sleep(delays[attempt])
-    logger.error("All Alpha Vantage retries exhausted.")
+    logger.error(f"All retries exhausted for {url}")
     return None

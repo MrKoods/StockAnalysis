@@ -114,8 +114,8 @@ StockAnalysis/
 ├── shared/
 │   ├── api_clients/
 │   │   ├── market_data_client.py      # SHARED: wraps yfinance — pulls daily OHLCV + earnings calendar data (BUILT)
-│   │   ├── sentiment_client.py        # SHARED: wraps StockTwits API + Reddit via PRAW — timestamped posts, bullish/bearish labels
-│   │   └── news_client.py             # SHARED: wraps Alpha Vantage News & Sentiment + Yahoo Finance headlines — timestamped, decay-weighted
+│   │   ├── sentiment_client.py        # SHARED: wraps Reddit via PRAW — timestamped posts, keyword-classified bullish/bearish labels
+│   │   └── news_client.py             # SHARED: wraps Alpha Vantage News & Sentiment + Yahoo Finance + Finnhub headlines — timestamped, decay-weighted
 │   │
 │   ├── indicators/
 │   │   └── technical_common.py        # SHARED: MA, breakout, RS, RSI, ATR, MACD + z-score normalization (BUILT)
@@ -128,7 +128,7 @@ StockAnalysis/
 │       ├── sector_rotation.py         # SHARED: tracks SMH vs. SPY flows across 5/20/60-day windows; outputs rotation state + modifier
 │       ├── volume_profile.py          # SHARED: computes high/low volume nodes at price levels for target + stop placement
 │       ├── earnings_calendar.py       # SHARED: fetches upcoming earnings dates via yfinance; outputs days-to-earnings + confidence penalty
-│       ├── source_credibility.py      # SHARED: scores StockTwits authors + news outlets by account age, follower count, historical accuracy, posting frequency
+│       ├── source_credibility.py      # SHARED: scores news outlets by historical accuracy and reputation
 │       ├── ner_extractor.py           # SHARED: named entity recognition on news headlines — extracts ticker-specific sentiment from multi-company articles
 │       ├── narrative_tracker.py       # SHARED: clusters news/social keywords into dominant themes per ticker; tracks theme momentum over time
 │       ├── insider_tracker.py         # SHARED: fetches SEC Form 4 insider transactions via yfinance; flags unusual buying/selling clusters
@@ -211,12 +211,11 @@ StockAnalysis/
 | Category | Indicators | Source | Cost |
 |---|---|---|---|
 | Technical | 20/50-day MAs, 20/50-day breakout levels, 20-day avg volume, relative strength vs. SMH/SOXX, RSI, ATR, MACD, volume profile | yfinance | Free |
-| Social/Sentiment (primary) | Timestamped posts, credibility-weighted bullish/bearish labels, mention volume, sentiment trajectory, velocity, unusual spike detection | StockTwits free API | Free |
-| Social/Sentiment (secondary) | Subreddit discussion volume, community momentum (r/wallstreetbets, r/stocks, r/semiconductors); cross-platform consistency vs. StockTwits | Reddit API via PRAW | Free |
+| Social/Sentiment | Timestamped posts, keyword-classified bullish/bearish labels, mention volume, sentiment trajectory, velocity, unusual spike detection, cross-subreddit consistency (r/wallstreetbets vs. r/stocks, r/investing, r/semiconductors) | Reddit API via PRAW | Free |
 | News (primary) | Timestamped articles, NER-extracted ticker-specific sentiment, pre-computed scores, source credibility weighting, narrative theme tracking | Alpha Vantage News & Sentiment (25 calls/day free tier) | Free |
-| News (secondary) | Recent headlines with timestamps; NER applied for ticker precision | Yahoo Finance via yfinance | Free |
+| News (secondary) | Recent headlines with timestamps; NER applied for ticker precision | Yahoo Finance via yfinance + Finnhub `/company-news` (free tier) | Free |
 | Insider/Institutional | SEC Form 4 insider buying/selling; institutional commentary appearing in social discussion | yfinance calendar data | Free |
-| Geographic/Timezone | Pre-market Asian + European social/news signals as leading indicators for US session open | StockTwits + Alpha Vantage (timezone-filtered) | Free |
+| Geographic/Timezone | Pre-market Asian + European social/news signals as leading indicators for US session open | Reddit + Alpha Vantage (timezone-filtered) | Free |
 
 ### Statistical Methods (How Confidence Is Actually Computed)
 
@@ -275,8 +274,8 @@ A macro-level filter that sits above individual ticker scoring. Tracks whether i
 | Signal Category | Starting Weight | Statistical Method |
 |---|---|---|
 | Technical (breakout, trend, RS, RSI, ATR, MACD, volume profile) | 50-60% | Z-score normalized; volume profile levels for target/stop precision |
-| Social/Sentiment (StockTwits + Reddit) | 20-25% | Credibility-weighted trajectory + velocity over rolling 3-5 day window; cross-platform consistency multiplier; spike type classification |
-| News (Alpha Vantage + Yahoo Finance) | 15-20% | NER ticker-specific sentiment; source credibility weighted; time-decayed; narrative theme alignment; news clustering |
+| Social/Sentiment (Reddit) | 20-25% | Trajectory + velocity over rolling 3-5 day window; cross-subreddit consistency multiplier; spike type classification |
+| News (Alpha Vantage + Yahoo Finance + Finnhub) | 15-20% | NER ticker-specific sentiment; source credibility weighted; time-decayed; narrative theme alignment; news clustering |
 
 **Modifiers applied after base score is computed:**
 | Modifier | Effect |
@@ -292,8 +291,8 @@ A macro-level filter that sits above individual ticker scoring. Tracks whether i
 | Insider selling cluster detected | Bearish modifier applied regardless of technical signal |
 | Narrative theme aligned with trade thesis | Sentiment/news contribution weighted up |
 | Narrative theme opposed to trade thesis | Sentiment/news contribution weighted down |
-| Cross-platform inconsistency (StockTwits vs. Reddit diverge) | Social confidence contribution reduced |
-| Manufactured spike detected (sudden, low-diversity accounts) | Social contribution flagged; confidence held pending cross-platform validation |
+| Cross-subreddit inconsistency (WSB vs. other subreddits diverge) | Social confidence contribution reduced |
+| Manufactured spike detected (sudden, low-diversity accounts) | Social contribution flagged; confidence held pending cross-subreddit validation |
 | Pre-market Asian/European signal contradicts US thesis | Confidence reduced; flagged for review |
 | Seasonality: historically strong period for semis (e.g., Q4) | Confidence boosted by configurable seasonal modifier |
 | Seasonality: historically weak period for semis (e.g., post-Q1) | Confidence reduced by configurable seasonal modifier |
@@ -372,10 +371,10 @@ Final Score = min(100, max(0, Final Score))  # clamped to 0-100
 ### Social & News Signal Enhancements
 
 **1. Source credibility scoring**
-Not all social posts carry equal weight. Each StockTwits post is weighted by the author's account age, follower count, historical accuracy (where available), and posting frequency. A post from a verified, high-follower account with a track record of accurate calls contributes significantly more to the sentiment signal than one from a 3-day-old account with 12 followers. This directly suppresses coordinated pump attempts, which typically originate from low-credibility accounts. Same principle applies to news — a Reuters article about NVDA carries more weight than an obscure financial blog. Source credibility scores are stored per author/outlet and updated on each data pull.
+Not all news outlets carry equal weight. A Reuters article about NVDA carries more weight than an obscure financial blog. Source credibility scores are stored per outlet and updated on each data pull.
 
 **2. Named entity recognition (NER) on news headlines**
-Many semiconductor articles mention multiple companies simultaneously. An article saying "NVDA gains market share as AMD struggles with supply chain" is bullish for NVDA and bearish for AMD — without NER, this could be tagged as generically positive semiconductor news and applied equally to both. NER extracts which specific company names appear in each article and what sentiment is directed at each one individually, making news signals ticker-precise rather than sector-wide. Applied to both Alpha Vantage articles and Yahoo Finance headlines.
+Many semiconductor articles mention multiple companies simultaneously. An article saying "NVDA gains market share as AMD struggles with supply chain" is bullish for NVDA and bearish for AMD — without NER, this could be tagged as generically positive semiconductor news and applied equally to both. NER extracts which specific company names appear in each article and what sentiment is directed at each one individually, making news signals ticker-precise rather than sector-wide. Applied to Alpha Vantage, Yahoo Finance, and Finnhub headlines alike.
 
 **3. Narrative theme tracking**
 Beyond individual post/article sentiment, the model tracks which themes dominate semiconductor discussion at any given time — AI demand, supply chain constraints, China export restrictions, earnings expectations, competitive dynamics (NVDA vs. AMD), memory pricing cycles, etc. A bullish breakout in NVDA during a period when "AI demand" is the dominant narrative has more conviction than the same setup when "supply chain uncertainty" dominates. Themes are extracted from news headlines and social posts using keyword clustering. Current dominant theme per ticker is stored as a field and used to weight the news/sentiment confidence contribution up or down depending on whether the trade thesis aligns with or runs against the prevailing narrative.
@@ -383,11 +382,11 @@ Beyond individual post/article sentiment, the model tracks which themes dominate
 **4. Unusual social volume spike detection**
 Extends basic mention-volume tracking to distinguish between two types of spikes:
 - Organic acceleration: mention volume building gradually over multiple days — typical of legitimate momentum building; treated as a confirmatory signal
-- Sudden manufactured spike: volume appearing suddenly within minutes/hours from a small number of accounts — typical of coordinated activity or a breaking news catalyst; treated as a warning flag requiring cross-platform validation before contributing to confidence
+- Sudden manufactured spike: volume appearing suddenly within minutes/hours from a small number of accounts — typical of coordinated activity or a breaking news catalyst; treated as a warning flag requiring cross-subreddit validation before contributing to confidence
 Spike type classification uses rate-of-change of mention volume (acceleration, not just level) and account diversity analysis (are the spike posts coming from many independent accounts or a cluster of similar ones?).
 
-**5. Cross-platform sentiment consistency**
-StockTwits and Reddit signals are cross-validated against each other rather than simply summed. When both platforms show bullish sentiment independently and simultaneously, that's a much stronger signal than either alone. When they diverge (StockTwits strongly bullish, Reddit neutral or bearish on the same ticker at the same time), confidence is reduced — one platform may be experiencing manipulation or one community may have information the other lacks. Cross-platform consistency score is a multiplier applied to the combined social sentiment contribution.
+**5. Cross-subreddit sentiment consistency**
+r/wallstreetbets (hype/degen) and the more measured subreddits (r/investing, r/stocks, r/semiconductors) are cross-validated against each other rather than simply summed. When both show bullish sentiment independently and simultaneously, that's a much stronger signal than either alone. When they diverge (WSB strongly bullish, the rest neutral or bearish on the same ticker at the same time), confidence is reduced — WSB may be experiencing hype/manipulation isolated to one community. Cross-subreddit consistency score is a multiplier applied to the combined social sentiment contribution.
 
 **6. Insider and institutional signal detection**
 Two sub-components: SEC Form 4 insider transactions (executives buying/selling shares on the open market — sourced free from yfinance) and social discussion patterns suggesting institutional awareness (references to unusual options activity, acquisition rumors, or large block trades appearing in social before price moves). Insider buying by executives is one of the highest-conviction bullish signals available and is systematically underused in retail systems. Insider selling is treated as a bearish modifier, especially when clustered across multiple executives in a short window.
@@ -648,9 +647,9 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 | API | Purpose | Cost | Notes |
 |---|---|---|---|
 | yfinance | Daily OHLCV price data, Yahoo Finance news headlines, earnings calendar, insider transactions | Free | No API key needed; unofficial |
-| StockTwits API | Social sentiment — timestamped posts, bullish/bearish labels, credibility scoring | Free | Developer account required |
-| Reddit API via PRAW | Social momentum — community discussion volume | Free | Rate limits manageable for 6-ticker watchlist |
+| Reddit API via PRAW | Social sentiment — timestamped posts, keyword-classified bullish/bearish labels, community discussion volume | Free | Rate limits manageable for 6-ticker watchlist |
 | Alpha Vantage | News sentiment with pre-computed scores | Free | 25 calls/day free tier; 20 used per day per budget |
+| Finnhub | Company news headlines (`/company-news`) | Free | Social-sentiment endpoint is paid-only, not used |
 | Discord Webhook | Primary alert delivery for all signal types | Free | Webhook URL stored in .env |
 | SMTP email | Secondary alert delivery for critical alerts only (circuit breakers, Black Swan, open position stops) | Free | Gmail SMTP or similar; backup when Discord unavailable |
 | Twilio SMS (optional) | Tertiary alert for highest-priority alerts only (Black Swan, Red circuit breaker) | Free tier available | Twilio free tier: 3 numbers, ~$15 free credit; optional but recommended |
@@ -685,7 +684,7 @@ Win rate and R:R are reported separately for each of the four market regimes (tr
 
 Price data: yfinance (primary) → Alpha Vantage daily endpoint (fallback) → data-unavailable mode. In data-unavailable mode: all new signals frozen, immediate Discord alert sent, open positions managed using last-known cached data flagged as stale.
 
-Sentiment data: StockTwits (primary) → Reddit (secondary) → sentiment-offline mode. In sentiment-offline mode: sentiment layer contributes zero to confidence score, maximum confidence capped at 70 (below the 90 threshold, preventing new trades from firing), Discord alert sent flagging sentiment layer offline.
+Sentiment data: Reddit → sentiment-offline mode. In sentiment-offline mode: sentiment layer contributes zero to confidence score, maximum confidence capped at 70 (below the 90 threshold, preventing new trades from firing), Discord alert sent flagging sentiment layer offline.
 
 News data: Alpha Vantage (primary) → Yahoo Finance (secondary) → news-offline mode. Same cap behavior as sentiment-offline mode.
 
@@ -754,7 +753,7 @@ Sent at 4:30pm ET after every post-close scan regardless of whether candidates w
 ```
 ✅ SYSTEM HEALTH — 4:30pm ET
 Scan completed:      6/6 tickers processed
-Data sources:        yfinance ✅ | StockTwits ✅ | Reddit ✅ | Alpha Vantage ✅
+Data sources:        yfinance ✅ | Reddit ✅ | Alpha Vantage ✅ | Finnhub ✅
 Alpha Vantage calls: 20/25 used today
 Candidates found:    0 (threshold: 90/100)
 Open positions:      1 (NVDA — Day 4, confidence: 88, trailing stop: $112.00)
@@ -1077,7 +1076,7 @@ If you reply "details" to the alert, a follow-up message sends the complete excl
 ## Open Decisions for Team Discussion
 
 1. ~~Confirm watchlist~~ ✅ Resolved: NVDA, AMD, AVGO, TSM, MU, ASML with SMH as benchmark
-2. ~~Confirm API stack~~ ✅ Resolved: yfinance, StockTwits, Reddit/PRAW, Alpha Vantage (all free)
+2. ~~Confirm API stack~~ ✅ Resolved: yfinance, Reddit/PRAW, Alpha Vantage, Finnhub (all free)
 3. ~~Define holding period~~ ✅ Resolved: 5-15 trading days
 4. ~~Define backtesting success metrics~~ ✅ Resolved (see Performance Thresholds below)
 5. ~~Define minimum confidence threshold~~ ✅ Resolved: 90/100 minimum confidence required before any trade is surfaced

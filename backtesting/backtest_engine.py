@@ -320,7 +320,7 @@ def _simulate_test_signals(
 
     All 3 scoring layers are applied:
     - Technical: real historical OHLCV via compute_technical_indicators
-    - Sentiment: price-momentum proxy (5-day return → StockTwits correlation)
+    - Sentiment: price-momentum proxy (5-day return → retail sentiment correlation)
     - News: real Alpha Vantage historical articles where available; neutral fallback
     - Fundamental: static snapshot from fundamental_state.json (slow-moving, weekly cadence)
 
@@ -465,9 +465,9 @@ def _simulate_test_signals(
                         pass
 
             # Price-momentum sentiment proxy: when price is trending up,
-            # retail sentiment (StockTwits) tends to be bullish. This is
-            # a documented phenomenon at short horizons and better than
-            # a flat neutral mid-point.
+            # retail sentiment tends to be bullish. This is a documented
+            # phenomenon at short horizons and better than a flat neutral
+            # mid-point.
             sentiment = _sentiment_from_price_momentum(df_slice)
 
             # Historical news: use real AV articles when downloaded,
@@ -573,9 +573,9 @@ def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
     """
     Derive a proxy sentiment dict from 5-day price momentum.
 
-    At short horizons, retail sentiment on StockTwits is strongly correlated
-    with recent price performance. This gives a more realistic sentiment proxy
-    than a flat neutral mid-point, without requiring historical social data.
+    At short horizons, retail sentiment is strongly correlated with recent
+    price performance. This gives a more realistic sentiment proxy than a
+    flat neutral mid-point, without requiring historical social data.
 
     Maps to the same dict structure expected by compute_confidence_score():
     sentiment_score_total, trajectory_score, velocity_score,
@@ -599,7 +599,7 @@ def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
     else:
         total, dom = 6.5, "bearish"
 
-    # Add intraday momentum bonus (strong green day often spikes StockTwits)
+    # Add intraday momentum bonus (strong green day often spikes retail chatter)
     if mom_1d > 0.03:
         total = min(20.0, total + 1.5)
     elif mom_1d < -0.03:

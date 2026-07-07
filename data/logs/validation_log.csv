@@ -53,3 +53,29 @@ timestamp_utc,ticker,failure_type,detail
 2026-06-30T14:07:44.242319+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
 2026-07-05T00:39:55.438244+00:00,NVDA,fundamental_estimate_revisions_error,OVERVIEW response missing Symbol: []
 2026-07-05T00:43:35.539195+00:00,ALL,fundamental_layer_error,Simulated fundamental fetch failure
+2026-07-07T05:08:33.624802+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-07T05:08:33.627354+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-07T05:08:33.631949+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-07T05:08:33.644255+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-07T05:08:33.648347+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-07T05:08:33.655862+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-07T05:08:33.664985+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-07T05:08:33.669559+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-07T05:08:33.670715+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-07T05:08:33.674512+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-07T05:08:33.677577+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-07T05:08:33.678938+00:00,NVDA,news,news_future_timestamp
+2026-07-07T05:08:33.688555+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-07T05:23:02.144618+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-07T05:23:02.146626+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-07T05:23:02.148655+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-07T05:23:02.152426+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-07T05:23:02.155098+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-07T05:23:02.158436+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-07T05:23:02.162271+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-07T05:23:02.165200+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-07T05:23:02.166267+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-07T05:23:02.167115+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-07T05:23:02.170115+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-07T05:23:02.171271+00:00,NVDA,news,news_future_timestamp
+2026-07-07T05:23:02.175495+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']

@@ -22,10 +22,8 @@ A swing trading decision-support system for the semiconductor sector (NVDA, AMD,
 | Key | Where to Get It | `.env` Variable |
 |---|---|---|
 | Alpha Vantage | [alphavantage.co](https://www.alphavantage.co/support/#api-key) — free tier | `ALPHA_VANTAGE_API_KEY` |
-| StockTwits | [stocktwits.com/developers](https://stocktwits.com/developers) — developer account | `STOCKTWITS_ACCESS_TOKEN` |
 | Reddit (PRAW) | [reddit.com/prefs/apps](https://www.reddit.com/prefs/apps) — create script app | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` |
-| Finnhub | [finnhub.io](https://finnhub.io) — free tier | `FINNHUB_API_KEY` |
-| FMP | [financialmodelingprep.com](https://financialmodelingprep.com) — free tier | `FMP_API_KEY` |
+| Finnhub | [finnhub.io](https://finnhub.io) — free tier; used for `/company-news` headlines only (social-sentiment requires a paid plan) | `FINNHUB_API_KEY` |
 | Discord Webhook | Discord server → Edit Channel → Integrations → Webhooks | `DISCORD_WEBHOOK_URL` |
 | Gmail SMTP (optional) | Gmail account + App Password | `SMTP_USER`, `SMTP_PASSWORD`, `ALERT_EMAIL_TO` |
 | Twilio SMS (optional) | [twilio.com](https://twilio.com) — free trial | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `TWILIO_TO_NUMBER` |

@@ -24,8 +24,8 @@ from shared.api_clients.market_data_client import (
     fetch_ohlcv_batch, fetch_vix, fetch_treasury_yield, fetch_dxy,
     fetch_earnings_calendar,
 )
-from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_reddit
-from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo
+from shared.api_clients.sentiment_client import fetch_reddit
+from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state
 from shared.utils.sector_rotation import compute_rotation_state
@@ -105,7 +105,7 @@ def main(scan_type: str = "post_close") -> None:
     # Step 8-9: Per-ticker scoring and signal evaluation
     tickers_processed = 0
     candidates = []
-    data_sources = {"yfinance": True, "StockTwits": False, "Reddit": False, "Alpha Vantage": True}
+    data_sources = {"yfinance": True, "Reddit": False, "Alpha Vantage": True, "Finnhub": False}
 
     for ticker in watchlist:
         try:
@@ -115,10 +115,7 @@ def main(scan_type: str = "post_close") -> None:
             tickers_processed += 1
 
             # Sentiment layer
-            st_posts = _fetch_stocktwits_safe(ticker)
             reddit_posts = _fetch_reddit_safe(ticker)
-            if st_posts:
-                data_sources["StockTwits"] = True
             if reddit_posts:
                 data_sources["Reddit"] = True
             price_data = {
@@ -126,12 +123,15 @@ def main(scan_type: str = "post_close") -> None:
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(st_posts, reddit_posts, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(reddit_posts, ticker, price_data, cfg)
 
             # News layer
             av_articles = _fetch_av_news_safe(ticker)
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg)
+            finnhub_articles = _fetch_finnhub_news_safe(ticker)
+            if finnhub_articles:
+                data_sources["Finnhub"] = True
+            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles)
 
             # Earnings proximity modifier
             earnings_info = _fetch_earnings_safe(ticker)
@@ -546,14 +546,6 @@ def _compute_cross_ticker_safe(
 # scoring pipeline can continue with neutral values.
 # ---------------------------------------------------------------------------
 
-def _fetch_stocktwits_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_stocktwits(ticker) or []
-    except Exception as exc:
-        logger.warning(f"{ticker}: StockTwits fetch failed — {exc}")
-        return []
-
-
 def _fetch_reddit_safe(ticker: str) -> list[dict]:
     try:
         return fetch_reddit(ticker) or []
@@ -575,6 +567,14 @@ def _fetch_yahoo_news_safe(ticker: str) -> list[dict]:
         return fetch_news_yahoo(ticker) or []
     except Exception as exc:
         logger.warning(f"{ticker}: Yahoo news fetch failed — {exc}")
+        return []
+
+
+def _fetch_finnhub_news_safe(ticker: str) -> list[dict]:
+    try:
+        return fetch_news_finnhub(ticker) or []
+    except Exception as exc:
+        logger.warning(f"{ticker}: Finnhub news fetch failed — {exc}")
         return []
 
 

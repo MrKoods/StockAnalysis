@@ -113,3 +113,604 @@
 2026-07-04 19:34:52,551 [__main__] INFO — Loaded 1254 bars for TSM
 2026-07-04 19:34:52,552 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
 2026-07-04 19:34:55,653 [__main__] INFO — Backtest complete. Passed=False WinRate=16.7% Sharpe=6.39
+2026-07-04 19:48:55,497 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 19:48:55,501 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 19:48:55,505 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 19:48:55,509 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 19:48:55,514 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 19:48:55,518 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 19:48:55,522 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 19:48:55,522 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 19:48:58,559 [__main__] INFO — Backtest complete. Passed=False WinRate=16.7% Sharpe=6.39
+2026-07-04 22:01:50,486 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:01:50,491 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:01:50,496 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:01:50,500 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:01:50,504 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:01:50,508 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:01:50,512 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:01:50,512 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:01:53,511 [__main__] INFO — Backtest complete. Passed=False WinRate=53.8% Sharpe=5.52
+2026-07-04 22:02:36,564 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:02:36,568 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:02:36,573 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:02:36,577 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:02:36,581 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:02:36,585 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:02:36,590 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:02:36,590 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:02:39,530 [__main__] INFO — Backtest complete. Passed=True WinRate=55.6% Sharpe=6.28
+2026-07-04 22:15:01,375 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:15:01,382 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:15:01,386 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:15:01,391 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:15:01,396 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:15:01,401 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:15:01,405 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:15:01,405 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:15:05,224 [__main__] INFO — Backtest complete. Passed=False WinRate=56.0% Sharpe=6.24
+2026-07-04 22:16:11,704 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:16:11,709 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:16:11,713 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:16:11,717 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:16:11,721 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:16:11,725 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:16:11,729 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:16:11,729 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:16:14,509 [__main__] INFO — Backtest complete. Passed=False WinRate=52.2% Sharpe=4.64
+2026-07-04 22:16:58,420 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:16:58,425 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:16:58,429 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:16:58,433 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:16:58,437 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:16:58,441 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:16:58,446 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:16:58,446 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:17:01,301 [__main__] INFO — Backtest complete. Passed=False WinRate=59.5% Sharpe=7.03
+2026-07-04 22:17:17,858 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:17:17,863 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:17:17,867 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:17:17,871 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:17:17,875 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:17:17,879 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:17:17,883 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:17:17,883 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:17:20,682 [__main__] INFO — Backtest complete. Passed=False WinRate=55.9% Sharpe=5.98
+2026-07-04 22:17:49,048 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:17:49,053 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:17:49,057 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:17:49,062 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:17:49,066 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:17:49,071 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:17:49,075 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:17:49,075 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:18:25,379 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:18:25,383 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:18:25,387 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:18:25,391 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:18:25,395 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:18:25,400 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:18:25,403 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:18:25,403 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:18:28,551 [__main__] INFO — Backtest complete. Passed=False WinRate=57.6% Sharpe=6.47
+2026-07-04 22:18:54,091 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:18:54,095 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:18:54,099 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:18:54,103 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:18:54,107 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:18:54,111 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:18:54,115 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:18:54,115 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:18:57,205 [__main__] INFO — Backtest complete. Passed=False WinRate=55.0% Sharpe=6.17
+2026-07-04 22:19:42,371 [__main__] INFO — Loaded 1254 bars for AMD
+2026-07-04 22:19:42,375 [__main__] INFO — Loaded 1254 bars for ASML
+2026-07-04 22:19:42,379 [__main__] INFO — Loaded 1254 bars for AVGO
+2026-07-04 22:19:42,383 [__main__] INFO — Loaded 1254 bars for MU
+2026-07-04 22:19:42,387 [__main__] INFO — Loaded 1254 bars for NVDA
+2026-07-04 22:19:42,391 [__main__] INFO — Loaded 1254 bars for SMH
+2026-07-04 22:19:42,396 [__main__] INFO — Loaded 1254 bars for TSM
+2026-07-04 22:19:42,396 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:19:45,303 [__main__] INFO — Backtest complete. Passed=False WinRate=58.8% Sharpe=6.64
+2026-07-04 22:28:55,225 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:28:55,230 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:28:55,237 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:28:55,242 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:28:55,248 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:28:55,254 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:28:55,262 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:28:55,262 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:29:00,119 [__main__] INFO — Backtest complete. Passed=False WinRate=48.6% Sharpe=3.94
+2026-07-04 22:49:55,401 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:49:55,407 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:49:55,413 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:49:55,420 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:49:55,426 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:49:55,432 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:49:55,439 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:49:55,440 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:49:59,943 [__main__] INFO — Backtest complete. Passed=False WinRate=55.0% Sharpe=5.87
+2026-07-04 22:50:44,162 [backtesting.run_backtest] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:50:44,177 [backtesting.run_backtest] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:50:44,184 [backtesting.run_backtest] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:50:44,191 [backtesting.run_backtest] INFO — Loaded 2136 bars for MU
+2026-07-04 22:50:44,197 [backtesting.run_backtest] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:50:44,208 [backtesting.run_backtest] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:50:44,215 [backtesting.run_backtest] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:54:28,060 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:54:28,065 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:54:28,071 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:54:28,077 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:54:28,083 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:54:28,089 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:54:28,095 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:54:28,096 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:54:32,718 [__main__] INFO — Backtest complete. Passed=False WinRate=62.7% Sharpe=8.67
+2026-07-04 22:55:25,938 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:55:25,944 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:55:25,951 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:55:25,958 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:55:25,964 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:55:25,972 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:55:25,980 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:55:25,980 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:55:31,427 [__main__] INFO — Backtest complete. Passed=False WinRate=54.3% Sharpe=5.91
+2026-07-04 22:55:59,602 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:55:59,608 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:55:59,614 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:55:59,621 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:55:59,627 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:55:59,633 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:55:59,640 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:55:59,640 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:56:04,942 [__main__] INFO — Backtest complete. Passed=False WinRate=55.5% Sharpe=6.53
+2026-07-04 22:56:40,979 [backtesting.run_backtest] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:56:40,986 [backtesting.run_backtest] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:56:40,992 [backtesting.run_backtest] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:56:40,998 [backtesting.run_backtest] INFO — Loaded 2136 bars for MU
+2026-07-04 22:56:41,004 [backtesting.run_backtest] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:56:41,011 [backtesting.run_backtest] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:56:41,018 [backtesting.run_backtest] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:59:02,425 [__main__] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:59:02,432 [__main__] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:59:02,439 [__main__] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:59:02,446 [__main__] INFO — Loaded 2136 bars for MU
+2026-07-04 22:59:02,453 [__main__] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:59:02,460 [__main__] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:59:02,470 [__main__] INFO — Loaded 2136 bars for TSM
+2026-07-04 22:59:02,470 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 22:59:08,645 [__main__] INFO — Backtest complete. Passed=False WinRate=55.6% Sharpe=6.68
+2026-07-04 22:59:37,060 [backtesting.run_backtest] INFO — Loaded 2136 bars for AMD
+2026-07-04 22:59:37,068 [backtesting.run_backtest] INFO — Loaded 2136 bars for ASML
+2026-07-04 22:59:37,077 [backtesting.run_backtest] INFO — Loaded 2136 bars for AVGO
+2026-07-04 22:59:37,085 [backtesting.run_backtest] INFO — Loaded 2136 bars for MU
+2026-07-04 22:59:37,094 [backtesting.run_backtest] INFO — Loaded 2136 bars for NVDA
+2026-07-04 22:59:37,102 [backtesting.run_backtest] INFO — Loaded 2136 bars for SMH
+2026-07-04 22:59:37,109 [backtesting.run_backtest] INFO — Loaded 2136 bars for TSM
+2026-07-04 23:00:22,167 [backtesting.run_backtest] INFO — Loaded 2136 bars for AMD
+2026-07-04 23:00:22,173 [backtesting.run_backtest] INFO — Loaded 2136 bars for ASML
+2026-07-04 23:00:22,179 [backtesting.run_backtest] INFO — Loaded 2136 bars for AVGO
+2026-07-04 23:00:22,186 [backtesting.run_backtest] INFO — Loaded 2136 bars for MU
+2026-07-04 23:00:22,192 [backtesting.run_backtest] INFO — Loaded 2136 bars for NVDA
+2026-07-04 23:00:22,198 [backtesting.run_backtest] INFO — Loaded 2136 bars for SMH
+2026-07-04 23:00:22,207 [backtesting.run_backtest] INFO — Loaded 2136 bars for TSM
+2026-07-04 23:02:48,191 [backtesting.run_backtest] INFO — Loaded 2136 bars for AMD
+2026-07-04 23:02:48,198 [backtesting.run_backtest] INFO — Loaded 2136 bars for ASML
+2026-07-04 23:02:48,206 [backtesting.run_backtest] INFO — Loaded 2136 bars for AVGO
+2026-07-04 23:02:48,214 [backtesting.run_backtest] INFO — Loaded 2136 bars for MU
+2026-07-04 23:02:48,222 [backtesting.run_backtest] INFO — Loaded 2136 bars for NVDA
+2026-07-04 23:02:48,230 [backtesting.run_backtest] INFO — Loaded 2136 bars for SMH
+2026-07-04 23:02:48,239 [backtesting.run_backtest] INFO — Loaded 2136 bars for TSM
+2026-07-04 23:03:56,946 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:03:56,956 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:03:56,967 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:03:56,980 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:03:56,990 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:03:57,001 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:03:57,012 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:03:57,012 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:04:06,125 [__main__] INFO — Backtest complete. Passed=False WinRate=58.8% Sharpe=7.85
+2026-07-04 23:04:22,655 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:04:22,667 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:04:22,676 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:04:22,689 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-07-04 23:04:22,702 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:04:22,714 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:04:22,725 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:06:26,411 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:06:26,420 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:06:26,430 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:06:26,440 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:06:26,451 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:06:26,463 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:06:26,474 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:06:26,474 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:06:36,192 [__main__] INFO — Backtest complete. Passed=False WinRate=62.2% Sharpe=8.97
+2026-07-04 23:06:45,926 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:06:45,934 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:06:45,943 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:06:45,951 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-07-04 23:06:45,962 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:06:45,972 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:06:45,981 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:07:56,103 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:07:56,112 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:07:56,121 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:07:56,132 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:07:56,143 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:07:56,157 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:07:56,169 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:07:56,169 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:08:04,152 [__main__] INFO — Backtest complete. Passed=False WinRate=62.0% Sharpe=9.31
+2026-07-04 23:08:20,189 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:08:20,200 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:08:20,209 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:08:20,219 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:08:20,229 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:08:20,239 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:08:20,249 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:08:20,249 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:08:28,610 [__main__] INFO — Backtest complete. Passed=False WinRate=61.8% Sharpe=8.99
+2026-07-04 23:09:29,790 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:09:29,800 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:09:29,810 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:09:29,818 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:09:29,828 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:09:29,837 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:09:29,847 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:09:29,847 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:09:40,178 [__main__] INFO — Backtest complete. Passed=False WinRate=62.2% Sharpe=8.97
+2026-07-04 23:11:04,928 [__main__] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:11:04,936 [__main__] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:11:04,946 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:11:04,956 [__main__] INFO — Loaded 3395 bars for MU
+2026-07-04 23:11:04,967 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:11:04,975 [__main__] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:11:04,984 [__main__] INFO — Loaded 3395 bars for TSM
+2026-07-04 23:11:04,984 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-07-04 23:11:12,551 [__main__] INFO — Backtest complete. Passed=False WinRate=63.1% Sharpe=9.10
+2026-07-04 23:11:37,185 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-07-04 23:11:37,194 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-07-04 23:11:37,202 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-07-04 23:11:37,210 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-07-04 23:11:37,218 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-07-04 23:11:37,225 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-07-04 23:11:37,233 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-07-06 08:07:02,305 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-06 08:07:02,305 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-06 08:37:09,317 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-06 08:37:09,317 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-06 16:32:01,678 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 16:32:02,066 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=42.0, atr=6.87)
+2026-07-06 16:32:02,071 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 16:32:02,075 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 16:32:02,079 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 16:32:02,084 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 16:32:02,089 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Monday post-17:00 ET — fetching fresh fundamental data.
+2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-07-06 16:33:11,242 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 16:33:11,567 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=42.0, atr=6.87)
+2026-07-06 16:33:11,572 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 16:33:11,577 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 16:33:11,583 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 16:33:11,588 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 16:33:11,593 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 16:33:11,593 [swing_model.indicator_pipeline] INFO — Monday post-17:00 ET — fetching fresh fundamental data.
+2026-07-06 16:33:11,593 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-07-06 16:33:12,499 [shared.api_clients.fundamental_client] WARNING — NVDA: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-06 16:33:43,010 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-06 16:33:43,525 [shared.api_clients.fundamental_client] WARNING — AMD: earnings_history attempt 1 failed — No quarterlyEarnings key in response: ['Information'] — retrying in 30s
+2026-07-06 16:34:15,047 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-06 16:34:15,628 [shared.api_clients.fundamental_client] WARNING — AVGO: earnings_history attempt 1 failed — No quarterlyEarnings key in response: ['Information'] — retrying in 30s
+2026-07-06 16:34:46,846 [shared.api_clients.fundamental_client] WARNING — AVGO: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-06 16:35:18,122 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-06 16:35:19,551 [shared.api_clients.fundamental_client] WARNING — TSM: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-06 16:35:50,069 [swing_model.indicator_pipeline] INFO —   TSM: fundamental data fetched OK
+2026-07-06 16:35:50,618 [shared.api_clients.fundamental_client] WARNING — MU: earnings_history attempt 1 failed — No quarterlyEarnings key in response: ['Information'] — retrying in 30s
+2026-07-06 16:36:23,606 [swing_model.indicator_pipeline] INFO —   MU: fundamental data fetched OK
+2026-07-06 16:36:25,177 [shared.api_clients.fundamental_client] WARNING — ASML: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-06 16:36:55,801 [swing_model.indicator_pipeline] INFO —   ASML: fundamental data fetched OK
+2026-07-06 16:36:55,803 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-06 16:36:55,803 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 16:36:56,229 [shared.api_clients.market_data_client] WARNING — [fetch_vix] Attempt 1 failed: float() argument must be a string or a real number, not 'Series'. Retrying in 30s.
+2026-07-06 16:37:26,325 [shared.api_clients.market_data_client] WARNING — [fetch_vix] Attempt 2 failed: float() argument must be a string or a real number, not 'Series'. Retrying in 60s.
+2026-07-06 16:38:26,421 [shared.api_clients.market_data_client] WARNING — [fetch_vix] Attempt 3 failed: float() argument must be a string or a real number, not 'Series'. Retrying in 120s.
+2026-07-06 16:40:26,422 [shared.api_clients.market_data_client] ERROR — [fetch_vix] All 3 retries exhausted. Last error: float() argument must be a string or a real number, not 'Series'
+2026-07-06 16:40:27,016 [swing_model.run_swing_model] WARNING — Macro overlay failed — float() argument must be a string or a real number, not 'Series'. Using neutral modifier.
+2026-07-06 16:40:27,371 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30. Retry in 30s.
+2026-07-06 16:40:57,646 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30. Retry in 60s.
+2026-07-06 16:41:57,970 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30. Retry in 120s.
+2026-07-06 16:43:57,970 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/NVDA.json
+2026-07-06 16:43:57,971 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 16:43:57,972 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 16:43:58,526 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-06 16:43:58,750 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 16:43:59,005 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(NVDA)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 16:44:29,055 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(NVDA)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 16:45:29,107 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(NVDA)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 16:47:29,107 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(NVDA)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 16:47:29,608 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30. Retry in 30s.
+2026-07-06 16:47:59,907 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30. Retry in 60s.
+2026-07-06 16:49:00,227 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30. Retry in 120s.
+2026-07-06 16:51:00,227 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/AMD.json
+2026-07-06 16:51:00,228 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 16:51:00,229 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 16:51:00,853 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-06 16:51:01,020 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 16:51:01,114 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AMD)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 16:51:31,229 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AMD)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 16:52:31,287 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AMD)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 16:54:31,288 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(AMD)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 16:54:31,797 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30. Retry in 30s.
+2026-07-06 16:55:02,104 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30. Retry in 60s.
+2026-07-06 16:56:02,370 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30. Retry in 120s.
+2026-07-06 16:58:02,370 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/AVGO.json
+2026-07-06 16:58:02,371 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 16:58:02,371 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 16:58:02,945 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-06 16:58:03,113 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 16:58:03,215 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AVGO)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 16:58:33,329 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AVGO)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 16:59:33,382 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(AVGO)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 17:01:33,382 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(AVGO)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 17:01:33,862 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30. Retry in 30s.
+2026-07-06 17:02:04,116 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30. Retry in 60s.
+2026-07-06 17:03:04,386 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30. Retry in 120s.
+2026-07-06 17:05:04,386 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/TSM.json
+2026-07-06 17:05:04,387 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:05:04,388 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:05:04,941 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-06 17:05:05,135 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:05:05,221 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(TSM)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 17:05:35,279 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(TSM)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 17:06:35,415 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(TSM)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 17:08:35,415 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(TSM)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 17:08:35,777 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30. Retry in 30s.
+2026-07-06 17:09:06,032 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30. Retry in 60s.
+2026-07-06 17:10:06,284 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30. Retry in 120s.
+2026-07-06 17:12:06,284 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/MU.json
+2026-07-06 17:12:06,286 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:12:06,286 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:12:06,894 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-06 17:12:07,118 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:12:07,228 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(MU)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 17:12:37,283 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(MU)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 17:13:37,337 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(MU)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 17:15:37,338 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(MU)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 17:15:37,752 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 1): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30. Retry in 30s.
+2026-07-06 17:16:08,013 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 2): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30. Retry in 60s.
+2026-07-06 17:17:08,321 [shared.api_clients.sentiment_client] WARNING — Request failed (attempt 3): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30. Retry in 120s.
+2026-07-06 17:19:03,568 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:19:04,006 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:19:04,014 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:19:04,020 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:19:04,026 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:19:04,033 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:19:04,039 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:19:04,039 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:19:04,040 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:19:04,867 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30
+2026-07-06 17:19:04,869 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 17:19:04,869 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:05,476 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-06 17:19:05,672 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 17:19:06,254 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30
+2026-07-06 17:19:06,255 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 17:19:06,256 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:06,817 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-06 17:19:06,963 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 17:19:07,447 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30
+2026-07-06 17:19:07,448 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 17:19:07,448 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:08,029 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-06 17:19:08,173 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 17:19:08,321 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://api.stocktwits.com/api/2/streams/symbol/ASML.json
+2026-07-06 17:19:08,323 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:19:08,323 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:08,676 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30
+2026-07-06 17:19:08,677 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:19:08,678 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:08,745 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for ASML: ['Information']
+2026-07-06 17:19:08,934 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:19:08,998 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(ASML)] Attempt 1 failed: 'dict' object has no attribute 'empty'. Retrying in 30s.
+2026-07-06 17:19:09,324 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-06 17:19:09,482 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:19:09,966 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30
+2026-07-06 17:19:09,967 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:19:09,967 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:10,555 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-06 17:19:10,701 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:19:11,274 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30
+2026-07-06 17:19:11,275 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:19:11,276 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:19:11,889 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for ASML.
+2026-07-06 17:19:12,047 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:19:12,156 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 17:19:39,049 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(ASML)] Attempt 2 failed: 'dict' object has no attribute 'empty'. Retrying in 60s.
+2026-07-06 17:20:39,102 [shared.api_clients.market_data_client] WARNING — [fetch_earnings_calendar(ASML)] Attempt 3 failed: 'dict' object has no attribute 'empty'. Retrying in 120s.
+2026-07-06 17:22:39,102 [shared.api_clients.market_data_client] ERROR — [fetch_earnings_calendar(ASML)] All 3 retries exhausted. Last error: 'dict' object has no attribute 'empty'
+2026-07-06 17:22:39,232 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 17:22:59,584 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:22:59,918 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:22:59,924 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:22:59,928 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:22:59,933 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:22:59,942 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:22:59,948 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:22:59,949 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:22:59,950 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:23:00,707 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30
+2026-07-06 17:23:00,707 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 17:23:00,708 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:01,288 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-06 17:23:01,483 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 17:23:01,964 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30
+2026-07-06 17:23:01,965 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 17:23:01,965 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:02,497 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for AMD: ['Information']
+2026-07-06 17:23:02,716 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 17:23:03,088 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30
+2026-07-06 17:23:03,089 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 17:23:03,089 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:03,458 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for AVGO: ['Information']
+2026-07-06 17:23:03,698 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 17:23:04,042 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30
+2026-07-06 17:23:04,043 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:23:04,043 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:04,387 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for TSM: ['Information']
+2026-07-06 17:23:04,519 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:23:04,860 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30
+2026-07-06 17:23:04,861 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:23:04,861 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:05,193 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for MU: ['Information']
+2026-07-06 17:23:05,308 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:23:05,745 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30
+2026-07-06 17:23:05,745 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:23:05,746 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:23:06,069 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for ASML: ['Information']
+2026-07-06 17:23:06,297 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:23:06,400 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 17:24:08,831 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:24:09,275 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:24:09,283 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:24:09,289 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:24:09,294 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:24:09,301 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:24:09,308 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:24:09,309 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:24:09,309 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:24:10,021 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30
+2026-07-06 17:24:10,022 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 17:24:10,023 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:10,380 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for NVDA: ['Information']
+2026-07-06 17:24:10,577 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 17:24:11,162 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30
+2026-07-06 17:24:11,163 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 17:24:11,164 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:11,519 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for AMD: ['Information']
+2026-07-06 17:24:11,690 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 17:24:12,029 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30
+2026-07-06 17:24:12,030 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 17:24:12,031 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:12,361 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for AVGO: ['Information']
+2026-07-06 17:24:12,516 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 17:24:12,940 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30
+2026-07-06 17:24:12,941 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:24:12,941 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:13,309 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for TSM: ['Information']
+2026-07-06 17:24:13,466 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:24:13,826 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30
+2026-07-06 17:24:13,827 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:24:13,827 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:14,217 [shared.api_clients.news_client] WARNING — AV news: unexpected response structure for MU: ['Information']
+2026-07-06 17:24:14,365 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:24:14,762 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30
+2026-07-06 17:24:14,763 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:24:14,763 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:24:14,764 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for ASML.
+2026-07-06 17:24:14,910 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:24:15,016 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 17:28:12,965 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:28:13,354 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:28:13,363 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:28:13,371 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:28:13,378 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:28:13,385 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:28:13,393 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:28:13,393 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:28:13,394 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:28:14,234 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30
+2026-07-06 17:28:14,235 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 17:28:14,236 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:14,237 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for NVDA.
+2026-07-06 17:28:14,496 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 17:28:15,128 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30
+2026-07-06 17:28:15,129 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 17:28:15,129 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:15,130 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for AMD.
+2026-07-06 17:28:15,283 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 17:28:15,718 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30
+2026-07-06 17:28:15,719 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 17:28:15,719 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:15,720 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for AVGO.
+2026-07-06 17:28:15,942 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 17:28:16,330 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30
+2026-07-06 17:28:16,332 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:28:16,332 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:16,333 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for TSM.
+2026-07-06 17:28:16,485 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:28:16,919 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30
+2026-07-06 17:28:16,920 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:28:16,921 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:16,922 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for MU.
+2026-07-06 17:28:17,048 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:28:17,518 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30
+2026-07-06 17:28:17,519 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:28:17,520 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:28:17,520 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for ASML.
+2026-07-06 17:28:17,638 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:28:17,810 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 17:29:31,875 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:29:32,261 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:29:32,267 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:29:32,273 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:29:32,280 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:29:32,287 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:29:32,293 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:29:32,293 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:29:32,293 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:30:07,464 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-06 17:30:07,821 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=195.55, rsi=41.9, atr=6.87)
+2026-07-06 17:30:07,827 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=552.05, rsi=57.4, atr=37.21)
+2026-07-06 17:30:07,832 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=373.90, rsi=44.8, atr=18.21)
+2026-07-06 17:30:07,837 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.79, rsi=54.7, atr=21.75)
+2026-07-06 17:30:07,842 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=984.75, rsi=49.0, atr=93.08)
+2026-07-06 17:30:07,848 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
+2026-07-06 17:30:07,848 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-06 17:30:07,849 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-06 17:30:08,586 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/NVDA.json?limit=30
+2026-07-06 17:30:08,587 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for NVDA — sentiment-offline mode.
+2026-07-06 17:30:08,588 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:08,588 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for NVDA.
+2026-07-06 17:30:08,745 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-06 17:30:09,046 [__main__] INFO — NVDA: final=33.2  tech=0.0  sent=0.0  news=0.0  fund=15.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:09,332 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AMD.json?limit=30
+2026-07-06 17:30:09,333 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AMD — sentiment-offline mode.
+2026-07-06 17:30:09,334 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:09,334 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for AMD.
+2026-07-06 17:30:09,612 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-06 17:30:09,795 [__main__] INFO — AMD: final=40.2  tech=0.0  sent=0.0  news=0.0  fund=4.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:10,129 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/AVGO.json?limit=30
+2026-07-06 17:30:10,130 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for AVGO — sentiment-offline mode.
+2026-07-06 17:30:10,131 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:10,131 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for AVGO.
+2026-07-06 17:30:10,288 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-06 17:30:10,402 [__main__] INFO — AVGO: final=32.7  tech=0.0  sent=0.0  news=0.0  fund=15.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:10,689 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/TSM.json?limit=30
+2026-07-06 17:30:10,690 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for TSM — sentiment-offline mode.
+2026-07-06 17:30:10,691 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:10,691 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for TSM.
+2026-07-06 17:30:10,839 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-06 17:30:10,951 [__main__] INFO — TSM: final=41.7  tech=0.0  sent=0.0  news=0.0  fund=13.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:11,232 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/MU.json?limit=30
+2026-07-06 17:30:11,233 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for MU — sentiment-offline mode.
+2026-07-06 17:30:11,233 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:11,233 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for MU.
+2026-07-06 17:30:11,385 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-06 17:30:11,565 [__main__] INFO — MU: final=28.8  tech=0.0  sent=0.0  news=0.0  fund=15.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:11,847 [shared.api_clients.sentiment_client] WARNING — Request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://api.stocktwits.com/api/2/streams/symbol/ASML.json?limit=30
+2026-07-06 17:30:11,848 [shared.api_clients.sentiment_client] WARNING — StockTwits: no response for ASML — sentiment-offline mode.
+2026-07-06 17:30:11,849 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-06 17:30:11,849 [shared.api_clients.news_client] WARNING — Alpha Vantage budget exhausted for today — skipping news fetch for ASML.
+2026-07-06 17:30:11,970 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-06 17:30:12,073 [__main__] INFO — ASML: final=31.2  tech=0.0  sent=0.0  news=0.0  fund=10.0  dir=bullish  (threshold=65)
+2026-07-06 17:30:12,074 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-06 22:08:33,409 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-06 22:23:02,001 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-06 22:23:20,262 [shared.api_clients.news_client] WARNING — AV request failed (attempt 1): 401 Client Error: Unauthorized for url: https://finnhub.io/api/v1/company-news?symbol=NVDA&from=2026-06-30&to=2026-07-07&token=d8u9pqhr01qinhugmfg0d8u9pqhr01qinhugmfgg. Retry in 30s.
+2026-07-06 22:23:50,866 [shared.api_clients.news_client] WARNING — AV request failed (attempt 2): 401 Client Error: Unauthorized for url: https://finnhub.io/api/v1/company-news?symbol=NVDA&from=2026-06-30&to=2026-07-07&token=d8u9pqhr01qinhugmfg0d8u9pqhr01qinhugmfgg. Retry in 60s.
+2026-07-06 22:24:51,221 [shared.api_clients.news_client] WARNING — AV request failed (attempt 3): 401 Client Error: Unauthorized for url: https://finnhub.io/api/v1/company-news?symbol=NVDA&from=2026-06-30&to=2026-07-07&token=d8u9pqhr01qinhugmfg0d8u9pqhr01qinhugmfgg. Retry in 120s.
+2026-07-06 22:26:51,225 [shared.api_clients.news_client] ERROR — All Alpha Vantage retries exhausted.
+2026-07-06 22:26:51,226 [shared.api_clients.news_client] WARNING — Finnhub news: unexpected response for NVDA: None
+2026-07-06 22:27:18,268 [shared.api_clients.news_client] INFO — Finnhub: fetched 246 articles for NVDA.
+2026-07-06 22:30:02,123 [shared.api_clients.news_client] INFO — Finnhub: fetched 246 articles for NVDA.

@@ -17,9 +17,9 @@ api:
     timeout_seconds: 30
     max_retries: 3
 
-  stocktwits:
-    base_url: "https://api.stocktwits.com/api/2"
-    rate_limit_per_hour: 200
+  finnhub:
+    base_url: "https://finnhub.io/api/v1"
+    rate_limit_per_minute: 60
 
   reddit:
     subreddits:

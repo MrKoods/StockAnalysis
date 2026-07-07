@@ -50,10 +50,10 @@ from swing_model.run_swing_model import (
     _compute_macro_safe,
     _compute_rotation_safe,
     _compute_cross_ticker_safe,
-    _fetch_stocktwits_safe,
     _fetch_reddit_safe,
     _fetch_av_news_safe,
     _fetch_yahoo_news_safe,
+    _fetch_finnhub_news_safe,
     _fetch_earnings_safe,
     _get_insider_safe,
     get_model_version,
@@ -70,7 +70,6 @@ _CSV_COLUMNS = [
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
-    "stocktwits_bullish_pct", "stocktwits_message_count",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "structure_recommended", "ev_per_dollar",
     # Outcome fields — blank until paper_updater.py fills them in
@@ -101,18 +100,6 @@ def _append_row(row: dict) -> None:
         if write_header:
             writer.writeheader()
         writer.writerow(row)
-
-
-def _compute_st_stats(st_posts: list[dict]) -> tuple[float, int]:
-    """Return (bullish_pct, message_count) from raw StockTwits posts."""
-    count = len(st_posts)
-    if count == 0:
-        return 0.0, 0
-    bullish = sum(
-        1 for p in st_posts
-        if (p.get("entities", {}).get("sentiment", {}) or {}).get("basic", "") == "Bullish"
-    )
-    return round(bullish / count * 100, 1), count
 
 
 def run_paper_scan(scan_type: str = "post_close") -> int:
@@ -155,19 +142,19 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 continue
 
             # Sentiment
-            st_posts = _fetch_stocktwits_safe(ticker)
             reddit_posts = _fetch_reddit_safe(ticker)
             price_data = {
                 "price_change_5d_pct": (
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(st_posts, reddit_posts, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(reddit_posts, ticker, price_data, cfg)
 
             # News
             av_articles = _fetch_av_news_safe(ticker)
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg)
+            finnhub_articles = _fetch_finnhub_news_safe(ticker)
+            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles)
 
             # Earnings + insider + cross-ticker modifiers
             earnings_info = _fetch_earnings_safe(ticker)
@@ -248,9 +235,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             except Exception as exc:
                 logger.warning(f"{ticker}: structure ranking failed — {exc}")
 
-            # StockTwits metadata
-            st_bullish_pct, st_count = _compute_st_stats(st_posts)
-            news_count = len(av_articles) + len(yahoo_articles)
+            news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles)
             dominant_theme = str(news.get("dominant_theme", "")) if isinstance(news, dict) else ""
 
             row: dict = {
@@ -273,8 +258,6 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 "stop_loss": f"{stop_loss:.2f}",
                 "target": f"{target_px:.2f}" if target_px else "",
                 "rr_ratio": f"{rr_ratio:.2f}",
-                "stocktwits_bullish_pct": f"{st_bullish_pct:.1f}",
-                "stocktwits_message_count": str(st_count),
                 "news_article_count": str(news_count),
                 "dominant_news_theme": dominant_theme,
                 "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),

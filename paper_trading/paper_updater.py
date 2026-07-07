@@ -42,7 +42,6 @@ _CSV_COLUMNS = [
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
-    "stocktwits_bullish_pct", "stocktwits_message_count",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
 ]

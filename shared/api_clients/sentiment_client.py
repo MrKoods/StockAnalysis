@@ -1,6 +1,6 @@
 """
-SHARED: Wraps StockTwits API + Reddit via PRAW.
-Produces timestamped posts with bullish/bearish labels and credibility metadata.
+SHARED: Wraps Reddit via PRAW.
+Produces timestamped posts with keyword-classified bullish/bearish labels.
 All timestamps normalized to UTC immediately on ingestion.
 Implements exponential backoff on all API calls.
 """
@@ -17,7 +17,6 @@ from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_STOCKTWITS_BASE = "https://api.stocktwits.com/api/2"
 _DEFAULT_SUBREDDITS = ["wallstreetbets", "investing", "stocks", "StockMarket", "semiconductors"]
 
 _BULLISH_REDDIT_KEYWORDS = [
@@ -28,70 +27,6 @@ _BEARISH_REDDIT_KEYWORDS = [
     "sell", "short", "puts", "bear", "bearish", "dump", "crash", "down",
     "avoid", "weak", "overvalued", "exit", "reduce",
 ]
-
-
-def fetch_stocktwits(ticker: str, limit: int = 30) -> list[dict]:
-    """
-    Fetch recent StockTwits posts for a ticker.
-
-    Returns list of dicts:
-    {
-        post_id, timestamp_utc, body, sentiment (bullish/bearish/None),
-        author_id, author_username, author_followers, author_following,
-        author_join_date, author_verified
-    }
-    """
-    access_token = os.environ.get("STOCKTWITS_ACCESS_TOKEN")
-    params: dict = {"limit": limit}
-    if access_token:
-        params["access_token"] = access_token
-
-    url = f"{_STOCKTWITS_BASE}/streams/symbol/{ticker}.json"
-    resp = _backoff_get(url, params)
-    if resp is None:
-        logger.warning(f"StockTwits: no response for {ticker} — sentiment-offline mode.")
-        return []
-
-    try:
-        data = resp.json()
-    except Exception as exc:
-        logger.error(f"StockTwits: JSON parse error for {ticker}: {exc}")
-        return []
-
-    messages = data.get("messages", [])
-    posts = []
-    for msg in messages:
-        ts_raw = msg.get("created_at", "")
-        try:
-            ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
-        except (ValueError, AttributeError):
-            ts = datetime.now(timezone.utc)
-        if ts.tzinfo is None:
-            ts = ts.replace(tzinfo=timezone.utc)
-
-        sentiment_raw = msg.get("entities", {}).get("sentiment")
-        if isinstance(sentiment_raw, dict):
-            label = sentiment_raw.get("basic", "").lower()
-            sentiment = label if label in ("bullish", "bearish") else None
-        else:
-            sentiment = None
-
-        user = msg.get("user", {})
-        posts.append({
-            "post_id": str(msg.get("id", "")),
-            "timestamp_utc": ts.isoformat(),
-            "body": msg.get("body", ""),
-            "sentiment": sentiment,
-            "author_id": str(user.get("id", "")),
-            "author_username": user.get("username", ""),
-            "author_followers": int(user.get("followers", 0)),
-            "author_following": int(user.get("following", 0)),
-            "author_join_date": user.get("join_date", None),
-            "author_verified": bool(user.get("official", False)),
-        })
-
-    logger.info(f"StockTwits: fetched {len(posts)} posts for {ticker}.")
-    return posts
 
 
 def fetch_reddit(
@@ -189,13 +124,22 @@ def classify_sentiment_reddit(text: str) -> Optional[str]:
 
 
 def _backoff_get(url: str, params: dict, retries: int = 3, **kwargs) -> Optional[requests.Response]:
-    """GET request with exponential backoff (30s → 60s → 120s → None)."""
+    """GET request with exponential backoff (30s → 60s → 120s → None).
+    4xx client errors (except 429) are not retried — server is rejecting the request."""
     delays = [30, 60, 120]
     for attempt in range(retries):
         try:
             resp = requests.get(url, params=params, timeout=10, **kwargs)
             resp.raise_for_status()
             return resp
+        except requests.exceptions.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else 0
+            if 400 <= status < 500 and status != 429:
+                logger.warning(f"Request rejected with HTTP {status} (no retry): {exc}")
+                return None
+            if attempt < len(delays):
+                logger.warning(f"Request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
+                time.sleep(delays[attempt])
         except Exception as exc:
             if attempt < len(delays):
                 logger.warning(f"Request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
