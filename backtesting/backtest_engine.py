@@ -318,8 +318,11 @@ def _simulate_test_signals(
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.
 
-    All 3 scoring layers are applied:
+    All scoring layers are applied:
     - Technical: real historical OHLCV via compute_technical_indicators
+    - Positioning: static neutral proxy (no historical StockTwits/options/short-interest
+      archive exists yet — accumulates from the first live scan onward, same caveat as
+      Fundamental below)
     - Sentiment: price-momentum proxy (5-day return → retail sentiment correlation)
     - News: real Alpha Vantage historical articles where available; neutral fallback
     - Fundamental: static snapshot from fundamental_state.json (slow-moving, weekly cadence)
@@ -358,15 +361,26 @@ def _simulate_test_signals(
         "decay_score": 1.0,
     }
 
-    # Max achievable raw score with all layers active:
-    # technical ≤ 45, price-momentum sentiment ≤ 16, real news ≤ 15,
-    # fundamental (avg qualifying tickers, +8 NVDA/MU/TSM, +1 AMD) ≤ 8,
-    # regime +5, seasonality +5 → ~94 theoretical.
-    # At 72 the floor to qualify (confidence=90) is raw >= 64.8.
-    # With fundamentals (+7 avg), bars need pre-fundamental score >= 57.8 to qualify —
-    # a genuine quality bar in trending conditions.  This retains 100+ qualifying trades
-    # across a 4-year test window while filtering the weakest setups.
-    _BACKTEST_SCORE_MAX = 72.0
+    # No historical StockTwits/options/institutional/short-interest archive exists yet
+    # (same forward-building-history caveat as Fundamental) — Positioning contributes a
+    # fixed neutral midpoint (10 of 20: options 3, institutional 2.5, short_interest 2,
+    # insider 1.5, analyst 1) to every backtested bar rather than a data-derived proxy.
+    _neutral_positioning = {
+        "positioning_score_total": 10.0,
+        "options_score": 3.0, "institutional_score": 2.5,
+        "short_interest_score": 2.0, "insider_score": 1.5, "analyst_score": 1.0,
+        "positioning_offline": False, "data_quality": "unavailable",
+    }
+
+    # Max achievable raw score with all layers active (5-category system):
+    # technical ≤ 36, positioning fixed at 10 (neutral proxy, not variable),
+    # price-momentum sentiment ≤ 14, real news ≤ 15,
+    # fundamental (avg qualifying tickers, rescaled to the new 10-pt contribution) ≤ 5,
+    # regime +5, seasonality +5 → ~90 theoretical.
+    # Rescaled proportionally from the pre-redesign calibrated value (72/94 ratio) pending
+    # a full Phase 12 re-backtest against real historical Positioning/StockTwits data —
+    # this constant should be re-validated once that data exists, not treated as final.
+    _BACKTEST_SCORE_MAX = 69.0
 
     # Load real fundamental scores once — static proxy for the full period
     fundamental_scores = _load_backtest_fundamentals(list(test_data.keys()), cfg)
@@ -491,13 +505,13 @@ def _simulate_test_signals(
             try:
                 score = compute_confidence_score(
                     technical=indicators,
+                    positioning=_neutral_positioning,
                     sentiment=sentiment,
                     news=news,
                     regime_modifier=regime_mod,
                     sector_rotation_modifier=0.0,
                     earnings_modifier=0.0,
                     cross_ticker_modifier=0.0,
-                    insider_modifier=0.0,
                     seasonality_modifier=seas_mod,
                     macro_modifier=0.0,
                     cfg=cfg,
@@ -575,48 +589,47 @@ def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
 
     At short horizons, retail sentiment is strongly correlated with recent
     price performance. This gives a more realistic sentiment proxy than a
-    flat neutral mid-point, without requiring historical social data.
+    flat neutral mid-point, without requiring historical StockTwits/Seeking
+    Alpha data (none exists prior to this redesign's first live scan).
 
     Maps to the same dict structure expected by compute_confidence_score():
-    sentiment_score_total, trajectory_score, velocity_score,
-    cross_platform_score, spike_score, dominant_sentiment, sentiment_offline.
+    sentiment_score_total, ratio_score, velocity_score, engagement_score,
+    dominant_sentiment, sentiment_offline.
     """
     close = df_slice["Close"].values
     mom_5d = (close[-1] - close[-6]) / close[-6] if len(close) >= 6 else 0.0
     mom_1d = (close[-1] - close[-2]) / close[-2] if len(close) >= 2 else 0.0
 
-    # Map 5-day momentum to total sentiment score (0-20 scale)
+    # Map 5-day momentum to total sentiment score (0-15 scale)
     if mom_5d > 0.07:
-        total, dom = 17.0, "bullish"
-    elif mom_5d > 0.04:
-        total, dom = 15.0, "bullish"
-    elif mom_5d > 0.015:
         total, dom = 13.0, "bullish"
+    elif mom_5d > 0.04:
+        total, dom = 11.5, "bullish"
+    elif mom_5d > 0.015:
+        total, dom = 9.5, "bullish"
     elif mom_5d > -0.005:
-        total, dom = 10.5, "neutral"
+        total, dom = 8.0, "neutral"
     elif mom_5d > -0.025:
-        total, dom = 8.5, "neutral"
+        total, dom = 6.5, "neutral"
     else:
-        total, dom = 6.5, "bearish"
+        total, dom = 5.0, "bearish"
 
     # Add intraday momentum bonus (strong green day often spikes retail chatter)
     if mom_1d > 0.03:
-        total = min(20.0, total + 1.5)
+        total = min(15.0, total + 1.1)
     elif mom_1d < -0.03:
-        total = max(0.0, total - 1.5)
+        total = max(0.0, total - 1.1)
 
-    # Break total into sub-scores proportionally (trajectory carries most weight)
-    traj = round(total * 0.40, 2)   # 0-8
-    vel = round(total * 0.20, 2)    # 0-4
-    cross = round(total * 0.20, 2)  # 0-4
-    spike = round(total * 0.20, 2)  # 0-4
+    # Break total into sub-scores proportionally (ratio carries most weight)
+    ratio = round(total * (7.0 / 15.0), 2)       # 0-7
+    velocity = round(total * (5.0 / 15.0), 2)    # 0-5
+    engagement = round(total * (3.0 / 15.0), 2)  # 0-3
 
     return {
         "sentiment_score_total": round(total, 2),
-        "trajectory_score": traj,
-        "velocity_score": vel,
-        "cross_platform_score": cross,
-        "spike_score": spike,
+        "ratio_score": ratio,
+        "velocity_score": velocity,
+        "engagement_score": engagement,
         "dominant_sentiment": dom,
         "sentiment_offline": False,
     }

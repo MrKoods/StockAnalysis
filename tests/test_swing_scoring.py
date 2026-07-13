@@ -1,7 +1,7 @@
 """
 Tests for swing_model/scoring.py.
-Verifies the exact confidence scoring formula from the scope:
-  Technical 60 / Sentiment 25 / News 15
+Verifies the confidence scoring formula for the 5-category system:
+  Technical 40 / Positioning 20 / Sentiment 15 / News 15 / Fundamental 10
   Modifier bounds and clamping 0-100
   High-vol regime cap at 70
 """
@@ -13,6 +13,11 @@ from swing_model.scoring import (
     compute_technical_sub_scores,
     apply_high_vol_regime_cap,
     CONFIDENCE_THRESHOLD,
+    TECHNICAL_MAX,
+    POSITIONING_MAX,
+    SENTIMENT_MAX,
+    NEWS_MAX,
+    FUNDAMENTAL_MAX,
 )
 
 
@@ -22,18 +27,21 @@ from swing_model.scoring import (
 
 def _zero_sent():
     return {"sentiment_score_total": 0.0, "dominant_sentiment": "neutral",
-            "trajectory_score": 0, "velocity_score": 0,
-            "cross_platform_score": 0, "spike_score": 0}
+            "ratio_score": 0, "velocity_score": 0, "engagement_score": 0}
 
 
 def _zero_news():
     return {"news_score_total": 0.0}
 
 
+def _zero_positioning():
+    return {"positioning_score_total": 0.0, "options_score": 0, "institutional_score": 0,
+            "short_interest_score": 0, "insider_score": 0, "analyst_score": 0}
+
+
 def _max_sent():
-    return {"sentiment_score_total": 25.0, "dominant_sentiment": "bullish",
-            "trajectory_score": 10, "velocity_score": 5,
-            "cross_platform_score": 5, "spike_score": 5}
+    return {"sentiment_score_total": 15.0, "dominant_sentiment": "bullish",
+            "ratio_score": 7, "velocity_score": 5, "engagement_score": 3}
 
 
 def _max_news():
@@ -42,8 +50,13 @@ def _max_news():
             "clustering_score": 3, "decay_score": 2}
 
 
+def _max_positioning():
+    return {"positioning_score_total": 20.0, "options_score": 6, "institutional_score": 5,
+            "short_interest_score": 4, "insider_score": 3, "analyst_score": 2}
+
+
 def _max_technical():
-    """Inputs that produce breakout=12, trend=12, rs=12, rsi=12, vp=12 → total 60."""
+    """Inputs that produce breakout=8, trend=8, rs=8, rsi=8, vp=8 → total 40."""
     return {
         "breakout_volume_zscore": 3.0,
         "rs_zscore": 3.0,
@@ -61,36 +74,36 @@ def _max_technical():
 # ---------------------------------------------------------------------------
 
 class TestTechnicalSubScores:
-    def test_max_inputs_yield_60(self):
-        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=12.0)
-        assert sub["technical_total"] == pytest.approx(60.0)
+    def test_max_inputs_yield_40(self):
+        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=8.0)
+        assert sub["technical_total"] == pytest.approx(40.0)
 
-    def test_each_sub_score_bounded_0_to_12(self):
-        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=12.0)
+    def test_each_sub_score_bounded_0_to_8(self):
+        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=8.0)
         for key in ("breakout_score", "trend_score", "rs_score", "rsi_score", "volume_profile_score"):
-            assert 0.0 <= sub[key] <= 12.0, f"{key} = {sub[key]} out of [0,12]"
+            assert 0.0 <= sub[key] <= 8.0, f"{key} = {sub[key]} out of [0,8]"
 
     def test_zero_inputs_yield_low_score(self):
         zero = {"breakout_volume_zscore": -3.0, "rs_zscore": -3.0, "rsi_14": 20.0,
                 "breakout_confirmed": False, "trend_intact": False,
                 "sma_20_above_sma_50": False, "price_above_sma_50": False, "macd_bullish": False}
         sub = compute_technical_sub_scores(zero, volume_profile_score_override=0.0)
-        assert sub["technical_total"] < 15  # Weak inputs → low score
+        assert sub["technical_total"] < 12  # Weak inputs → low score
 
     def test_breakout_capped_at_neutral_when_no_breakout(self):
         technical = {"breakout_volume_zscore": 3.0, "breakout_confirmed": False}
         sub = compute_technical_sub_scores(technical)
-        assert sub["breakout_score"] <= 6.0
+        assert sub["breakout_score"] <= 4.0
 
-    def test_trend_score_12_when_trend_intact_and_macd_bullish(self):
+    def test_trend_score_8_when_trend_intact_and_macd_bullish(self):
         technical = {"trend_intact": True, "macd_bullish": True,
                      "sma_20_above_sma_50": True, "price_above_sma_50": True}
         sub = compute_technical_sub_scores(technical)
-        assert sub["trend_score"] == 12.0
+        assert sub["trend_score"] == 8.0
 
     def test_rsi_60_yields_max_rsi_score(self):
         sub = compute_technical_sub_scores({"rsi_14": 60.0})
-        assert sub["rsi_score"] == 12.0
+        assert sub["rsi_score"] == 8.0
 
     def test_rsi_overbought_penalized(self):
         sub_normal = compute_technical_sub_scores({"rsi_14": 60.0})
@@ -99,15 +112,15 @@ class TestTechnicalSubScores:
 
     def test_rs_zscore_positive_gives_high_rs_score(self):
         sub = compute_technical_sub_scores({"rs_zscore": 2.0})
-        assert sub["rs_score"] > 9.0
+        assert sub["rs_score"] > 6.0
 
     def test_rs_zscore_negative_gives_low_rs_score(self):
         sub = compute_technical_sub_scores({"rs_zscore": -2.0})
-        assert sub["rs_score"] < 3.0
+        assert sub["rs_score"] < 2.0
 
     def test_volume_profile_override_used(self):
-        sub = compute_technical_sub_scores({}, volume_profile_score_override=9.0)
-        assert sub["volume_profile_score"] == 9.0
+        sub = compute_technical_sub_scores({}, volume_profile_score_override=6.0)
+        assert sub["volume_profile_score"] == 6.0
 
 
 # ---------------------------------------------------------------------------
@@ -118,12 +131,14 @@ class TestBaseScore:
     def test_max_base_score_is_100(self):
         result = compute_confidence_score(
             technical=_max_technical(),
+            positioning=_max_positioning(),
             sentiment=_max_sent(),
             news=_max_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0,
             macro_modifier=0,
-            volume_profile_score=12.0,
+            volume_profile_score=8.0,
+            fundamental={"fundamental_score": 15.0, "data_quality": "complete"},
         )
         assert result["base_score"] == pytest.approx(100.0)
 
@@ -132,24 +147,47 @@ class TestBaseScore:
                      "breakout_confirmed": False, "trend_intact": False,
                      "sma_20_above_sma_50": False, "price_above_sma_50": False, "macd_bullish": False}
         result = compute_confidence_score(
-            technical=zero_tech, sentiment=_zero_sent(), news=_zero_news(),
+            technical=zero_tech, positioning=_zero_positioning(), sentiment=_zero_sent(), news=_zero_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0,
             macro_modifier=0, volume_profile_score=0.0,
         )
         assert result["base_score"] < 20.0  # Some floor due to RSI/trend defaults
 
-    def test_base_score_equals_technical_plus_sentiment_plus_news(self):
+    def test_base_score_equals_sum_of_categories(self):
         result = compute_confidence_score(
             technical=_max_technical(),
+            positioning=_max_positioning(),
             sentiment=_max_sent(),
             news=_max_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0,
-            macro_modifier=0, volume_profile_score=12.0,
+            cross_ticker_modifier=0, seasonality_modifier=0,
+            macro_modifier=0, volume_profile_score=8.0,
         )
-        expected = result["technical_total"] + result["sentiment_total"] + result["news_total"]
+        expected = (
+            result["technical_total"] + result["positioning_total"]
+            + result["sentiment_total"] + result["news_total"]
+        )
         assert result["base_score"] == pytest.approx(expected, abs=0.01)
+
+    def test_positioning_none_defaults_to_zero_contribution(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), positioning=None, sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
+        )
+        assert result["positioning_total"] == 0.0
+
+    def test_fundamental_rescaled_from_internal_15_scale_to_10(self):
+        max_fundamental = {"fundamental_score": 15.0, "data_quality": "complete"}
+        result = compute_confidence_score(
+            technical={}, positioning=_zero_positioning(), sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            fundamental=max_fundamental,
+        )
+        assert result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX)
 
 
 # ---------------------------------------------------------------------------
@@ -159,10 +197,10 @@ class TestBaseScore:
 class TestModifiers:
     def test_final_score_clamped_at_100(self):
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
             regime_modifier=10, sector_rotation_modifier=5, earnings_modifier=0,
-            cross_ticker_modifier=5, insider_modifier=8, seasonality_modifier=5, macro_modifier=3,
-            volume_profile_score=12.0,
+            cross_ticker_modifier=5, seasonality_modifier=5, macro_modifier=3,
+            volume_profile_score=8.0,
         )
         assert result["final_score"] <= 100.0
 
@@ -170,47 +208,46 @@ class TestModifiers:
         zero_tech = {"breakout_volume_zscore": 0, "rs_zscore": 0, "rsi_14": 50,
                      "breakout_confirmed": False, "trend_intact": False}
         result = compute_confidence_score(
-            technical=zero_tech, sentiment=_zero_sent(), news=_zero_news(),
+            technical=zero_tech, positioning=_zero_positioning(), sentiment=_zero_sent(), news=_zero_news(),
             regime_modifier=-15, sector_rotation_modifier=-15, earnings_modifier=-20,
-            cross_ticker_modifier=-10, insider_modifier=-8, seasonality_modifier=-5, macro_modifier=-10,
+            cross_ticker_modifier=-10, seasonality_modifier=-5, macro_modifier=-10,
         )
         assert result["final_score"] >= 0.0
 
     def test_modifiers_are_clamped_to_bounds(self):
         """Passing out-of-bound modifiers: they should be silently clamped."""
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
             regime_modifier=-100,   # should be clamped to -15
             sector_rotation_modifier=-100,  # clamped to -15
             earnings_modifier=-100,  # clamped to -20
-            cross_ticker_modifier=100, insider_modifier=100,
+            cross_ticker_modifier=100,
             seasonality_modifier=100, macro_modifier=100,
-            volume_profile_score=12.0,
+            volume_profile_score=8.0,
         )
         assert result["regime_modifier"] == -15.0
         assert result["sector_rotation_modifier"] == -15.0
         assert result["earnings_modifier"] == -20.0
         assert result["cross_ticker_modifier"] == 5.0
-        assert result["insider_modifier"] == 8.0
         assert result["seasonality_modifier"] == 5.0
         assert result["macro_modifier"] == 3.0
 
     def test_total_modifier_is_sum_of_all_modifiers(self):
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
             regime_modifier=5, sector_rotation_modifier=3, earnings_modifier=-10,
-            cross_ticker_modifier=2, insider_modifier=4, seasonality_modifier=3, macro_modifier=2,
-            volume_profile_score=12.0,
+            cross_ticker_modifier=2, seasonality_modifier=3, macro_modifier=2,
+            volume_profile_score=8.0,
         )
-        expected_mod = 5 + 3 + (-10) + 2 + 4 + 3 + 2
+        expected_mod = 5 + 3 + (-10) + 2 + 3 + 2
         assert result["total_modifier"] == pytest.approx(expected_mod, abs=0.01)
 
     def test_final_score_equals_base_plus_total_modifier(self):
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
             regime_modifier=5, sector_rotation_modifier=0, earnings_modifier=-15,
-            cross_ticker_modifier=2, insider_modifier=0, seasonality_modifier=2, macro_modifier=0,
-            volume_profile_score=12.0,
+            cross_ticker_modifier=2, seasonality_modifier=2, macro_modifier=0,
+            volume_profile_score=8.0,
         )
         expected = min(100.0, max(0.0, result["base_score"] + result["total_modifier"]))
         assert result["final_score"] == pytest.approx(expected, abs=0.01)
@@ -240,10 +277,10 @@ class TestRegimeCap:
 
     def test_high_vol_regime_via_compute_score(self):
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=_max_sent(), news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
-            volume_profile_score=12.0, regime="high_vol",
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0, regime="high_vol",
         )
         assert result["final_score"] <= 70.0
 
@@ -254,86 +291,85 @@ class TestRegimeCap:
 
 class TestScopeFormula:
     """
-    Verify the scope's base formula: base = tech_total + sent_total + news_total
-    and final = base + sum(modifiers), clamped [0, 100].
-    Uses inputs engineered to produce a target 90/100 final score.
+    Verify the scope's base formula:
+      base = tech_total + positioning_total + sent_total + news_total + fundamental_contribution
+      final = base + sum(modifiers), clamped [0, 100].
     """
 
     def test_90_score_achievable(self):
-        # Technical sub-scores: breakout=11, trend=9, rs=9, rsi=9, vp=9 → total=47
-        # (vol_z=2.5→11, trend_intact+no_macd→9, rs_z=1.5→9, rsi=52→9, vp=9)
-        technical = {
-            "breakout_volume_zscore": 2.5,
-            "rs_zscore": 1.5,
-            "rsi_14": 52.0,
-            "breakout_confirmed": True,
-            "trend_intact": True,
-            "sma_20_above_sma_50": True,
-            "price_above_sma_50": True,
-            "macd_bullish": False,
-        }
-        # Sentiment: total=20
-        sentiment = {
-            "sentiment_score_total": 20.0,
-            "dominant_sentiment": "bullish",
-            "trajectory_score": 8, "velocity_score": 4,
-            "cross_platform_score": 4, "spike_score": 4,
-        }
-        # News: total=13
-        news = {
-            "news_score_total": 13.0,
-            "credibility_weighted_score": 5, "theme_alignment_score": 4,
-            "clustering_score": 2, "decay_score": 2,
-        }
+        # Technical=40 (max), Positioning=15, Sentiment=8, News=7, Fundamental internal=15 (->10
+        # contribution) → base=80; regime+cross_ticker modifiers=+10 → final=90.
+        positioning = {"positioning_score_total": 15.0}
+        sentiment = {"sentiment_score_total": 8.0, "dominant_sentiment": "bullish"}
+        news = {"news_score_total": 7.0}
+        fundamental = {"fundamental_score": 15.0, "data_quality": "complete"}
         result = compute_confidence_score(
-            technical=technical, sentiment=sentiment, news=news,
+            technical=_max_technical(), positioning=positioning, sentiment=sentiment, news=news,
             regime_modifier=5, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=5, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
-            volume_profile_score=9.0,
+            cross_ticker_modifier=5, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0, fundamental=fundamental,
         )
-        # base_score = 47 + 20 + 13 = 80; modifiers = 5 + 5 = 10; final = 90
-        assert result["base_score"] == pytest.approx(80.0, abs=1.0)
-        assert result["final_score"] == pytest.approx(90.0, abs=1.0)
+        assert result["base_score"] == pytest.approx(80.0, abs=0.5)
+        assert result["final_score"] == pytest.approx(90.0, abs=0.5)
         assert result["meets_threshold"] is True
 
     def test_meets_threshold_is_false_below_90(self):
         result = compute_confidence_score(
             technical={"rsi_14": 50.0, "trend_intact": False},
-            sentiment={"sentiment_score_total": 5.0, "dominant_sentiment": "neutral"},
-            news={"news_score_total": 3.0},
+            positioning={"positioning_score_total": 2.0},
+            sentiment={"sentiment_score_total": 3.0, "dominant_sentiment": "neutral"},
+            news={"news_score_total": 2.0},
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=-15,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
         )
         assert result["meets_threshold"] is False
 
     def test_sentiment_offline_cap_at_70(self):
         sentiment_offline = {
-            "sentiment_score_total": 25.0,
+            "sentiment_score_total": 15.0,
             "dominant_sentiment": "bullish",
             "sentiment_offline": True,
             "sentiment_offline_cap": 70,
         }
         result = compute_confidence_score(
-            technical=_max_technical(), sentiment=sentiment_offline, news=_max_news(),
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=sentiment_offline, news=_max_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
-            volume_profile_score=12.0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
+        )
+        assert result["final_score"] <= 70.0
+
+    def test_positioning_offline_cap_at_70(self):
+        positioning_offline = {
+            "positioning_score_total": 0.0,
+            "positioning_offline": True,
+            "positioning_offline_cap": 70,
+        }
+        result = compute_confidence_score(
+            technical=_max_technical(), positioning=positioning_offline, sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
         )
         assert result["final_score"] <= 70.0
 
     def test_all_required_keys_present(self):
         result = compute_confidence_score(
-            technical={}, sentiment=_zero_sent(), news=_zero_news(),
+            technical={}, positioning=_zero_positioning(), sentiment=_zero_sent(), news=_zero_news(),
             regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
-            cross_ticker_modifier=0, insider_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
         )
         for key in (
             "breakout_score", "trend_score", "rs_score", "rsi_score", "volume_profile_score",
-            "technical_total", "trajectory_score", "velocity_score", "cross_platform_score",
-            "spike_score", "sentiment_total", "credibility_score", "theme_score",
-            "clustering_score", "decay_score", "news_total", "base_score",
-            "regime_modifier", "sector_rotation_modifier", "earnings_modifier",
-            "cross_ticker_modifier", "insider_modifier", "seasonality_modifier",
+            "technical_total", "options_score", "institutional_score", "short_interest_score",
+            "insider_score", "analyst_score", "positioning_total",
+            "ratio_score", "velocity_score", "engagement_score", "sentiment_total",
+            "credibility_score", "theme_score", "clustering_score", "decay_score", "news_total",
+            "base_score", "regime_modifier", "sector_rotation_modifier", "earnings_modifier",
+            "cross_ticker_modifier", "seasonality_modifier",
             "macro_modifier", "total_modifier", "final_score", "direction", "meets_threshold",
         ):
             assert key in result, f"Missing key: {key}"
+
+    def test_category_maxes_sum_to_100(self):
+        assert TECHNICAL_MAX + POSITIONING_MAX + SENTIMENT_MAX + NEWS_MAX + FUNDAMENTAL_MAX == 100

@@ -55,8 +55,10 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     ev = candidate.get("ev_per_dollar", 0.0)
     dollar_risk = candidate.get("dollar_risk", 0.0)
     technical_score = candidate.get("technical_total", 0.0)
+    positioning_score = candidate.get("positioning_total", 0.0)
     sentiment_score = candidate.get("sentiment_total", 0.0)
     news_score = candidate.get("news_total", 0.0)
+    fundamental_score = candidate.get("fundamental_score", 0.0)
     regime = candidate.get("regime", "")
     dominant_theme = candidate.get("dominant_theme", "")
 
@@ -75,7 +77,11 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
             {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
             {"name": "Target", "value": f"${target:.2f}  (R:R 1:{rr:.1f})", "inline": True},
             {"name": "Signal Breakdown",
-             "value": f"Technical: {technical_score:.1f}/60\nSentiment: {sentiment_score:.1f}/25\nNews: {news_score:.1f}/15",
+             "value": (
+                 f"Technical: {technical_score:.1f}/40\nPositioning: {positioning_score:.1f}/20\n"
+                 f"Sentiment: {sentiment_score:.1f}/15\nNews: {news_score:.1f}/15\n"
+                 f"Fundamental: {fundamental_score:.1f}/10"
+             ),
              "inline": True},
             {"name": "EV / $$ Risked", "value": f"${ev:.4f}", "inline": True},
             {"name": "Dollar Risk", "value": f"${dollar_risk:.2f}", "inline": True},
@@ -271,6 +277,7 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     rr = float(trade.get("rr_ratio", 0.0))
     regime = str(trade.get("regime", ""))
     technical_score = float(trade.get("technical_score", 0.0))
+    positioning_score = float(trade.get("positioning_score", 0.0))
     sentiment_score = float(trade.get("sentiment_score", 0.0))
     news_score = float(trade.get("news_score", 0.0))
     fundamental_score = float(trade.get("fundamental_score", 0.0))
@@ -291,10 +298,11 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             {
                 "name": "Score Breakdown",
                 "value": (
-                    f"Tech: **{technical_score:.1f}**/50  |  "
-                    f"Sent: **{sentiment_score:.1f}**/20  |  "
+                    f"Tech: **{technical_score:.1f}**/40  |  "
+                    f"Pos: **{positioning_score:.1f}**/20  |  "
+                    f"Sent: **{sentiment_score:.1f}**/15  |  "
                     f"News: **{news_score:.1f}**/15  |  "
-                    f"Fund: **{fundamental_score:.1f}**/15\n"
+                    f"Fund: **{fundamental_score:.1f}**/10\n"
                     f"News articles: {news_count}"
                 ),
                 "inline": False,

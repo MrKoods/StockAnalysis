@@ -24,7 +24,7 @@ from shared.api_clients.market_data_client import (
     fetch_ohlcv_batch, fetch_vix, fetch_treasury_yield, fetch_dxy,
     fetch_earnings_calendar,
 )
-from shared.api_clients.sentiment_client import fetch_reddit
+from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state
@@ -32,7 +32,6 @@ from shared.utils.sector_rotation import compute_rotation_state
 from shared.utils.earnings_calendar import get_earnings_modifier
 from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
-from shared.utils.insider_tracker import get_insider_signal
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score
@@ -55,7 +54,7 @@ def main(scan_type: str = "post_close") -> None:
     5.  Fetch shared market context (VIX, SMH, SPY, TNX, DXY)
     6.  Compute shared modifiers: regime, macro overlay, sector rotation, seasonality
     7.  Compute cross-ticker correlation analysis
-    8.  Per-ticker: sentiment, news, earnings, insider, full confidence score
+    8.  Per-ticker: sentiment, news, earnings, positioning (incl. insider), full confidence score
     9.  Evaluate trade structures for candidates meeting threshold (>=90)
     10. Send Discord alerts (new candidates + management alerts)
     11. Write audit log entries
@@ -105,7 +104,10 @@ def main(scan_type: str = "post_close") -> None:
     # Step 8-9: Per-ticker scoring and signal evaluation
     tickers_processed = 0
     candidates = []
-    data_sources = {"yfinance": True, "Reddit": False, "Alpha Vantage": True, "Finnhub": False}
+    data_sources = {
+        "yfinance": True, "StockTwits": False, "SeekingAlpha": False,
+        "Alpha Vantage": True, "Finnhub": False,
+    }
 
     for ticker in watchlist:
         try:
@@ -114,16 +116,19 @@ def main(scan_type: str = "post_close") -> None:
                 continue
             tickers_processed += 1
 
-            # Sentiment layer
-            reddit_posts = _fetch_reddit_safe(ticker)
-            if reddit_posts:
-                data_sources["Reddit"] = True
+            # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy
+            stocktwits_messages = _fetch_stocktwits_safe(ticker)
+            if stocktwits_messages:
+                data_sources["StockTwits"] = True
+            sa_engagement_items = _fetch_sa_engagement_safe(ticker)
+            if sa_engagement_items:
+                data_sources["SeekingAlpha"] = True
             price_data = {
                 "price_change_5d_pct": (
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(reddit_posts, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
             # News layer
             av_articles = _fetch_av_news_safe(ticker)
@@ -138,25 +143,26 @@ def main(scan_type: str = "post_close") -> None:
             earnings_date = (earnings_info or {}).get("next_earnings_date")
             earnings_result = get_earnings_modifier(ticker, earnings_date, cfg=cfg)
 
-            # Insider signal
-            insider_result = _get_insider_safe(ticker)
-
             # Cross-ticker modifier for this specific ticker
             ct_modifier = cross_ticker_results.get(ticker, {}).get("confidence_modifier", 0.0)
 
             # Fundamental data (fetched weekly inside run_pipeline, cached in fundamental_state.json)
             fundamental = indicators.get("_fundamental_full") or {}
 
+            # Market Positioning data (fetched daily inside run_pipeline, cached in positioning_state.json —
+            # includes insider transactions, which are scored here instead of as a standalone modifier)
+            positioning = indicators.get("_positioning_full") or {}
+
             # Full confidence score — all layers combined
             score = compute_confidence_score(
                 technical=indicators,
+                positioning=positioning,
                 sentiment=sentiment,
                 news=news,
                 regime_modifier=regime_modifier_val,
                 sector_rotation_modifier=rotation_modifier_val,
                 earnings_modifier=earnings_result.get("confidence_modifier", 0.0),
                 cross_ticker_modifier=ct_modifier,
-                insider_modifier=insider_result.get("confidence_modifier", 0.0),
                 seasonality_modifier=seasonality_modifier_val,
                 macro_modifier=macro_modifier_val,
                 cfg=cfg,
@@ -229,6 +235,7 @@ def main(scan_type: str = "post_close") -> None:
                 "scan_type": scan_type,
                 "ticker": ticker,
                 "technical_score": score.get("technical_total", 0.0),
+                "positioning_score": score.get("positioning_total", 0.0),
                 "sentiment_score": score.get("sentiment_total", 0.0),
                 "news_score": score.get("news_total", 0.0),
                 "base_score": score.get("base_score", 0.0),
@@ -236,7 +243,6 @@ def main(scan_type: str = "post_close") -> None:
                 "sector_rotation_modifier": score.get("sector_rotation_modifier", 0.0),
                 "earnings_modifier": score.get("earnings_modifier", 0.0),
                 "cross_ticker_modifier": score.get("cross_ticker_modifier", 0.0),
-                "insider_modifier": score.get("insider_modifier", 0.0),
                 "seasonality_modifier": score.get("seasonality_modifier", 0.0),
                 "macro_modifier": score.get("macro_modifier", 0.0),
                 "final_score": final_score,
@@ -546,11 +552,19 @@ def _compute_cross_ticker_safe(
 # scoring pipeline can continue with neutral values.
 # ---------------------------------------------------------------------------
 
-def _fetch_reddit_safe(ticker: str) -> list[dict]:
+def _fetch_stocktwits_safe(ticker: str) -> list[dict]:
     try:
-        return fetch_reddit(ticker) or []
+        return fetch_stocktwits(ticker) or []
     except Exception as exc:
-        logger.debug(f"{ticker}: Reddit fetch skipped — {exc}")
+        logger.debug(f"{ticker}: StockTwits fetch skipped — {exc}")
+        return []
+
+
+def _fetch_sa_engagement_safe(ticker: str) -> list[dict]:
+    try:
+        return fetch_seeking_alpha_engagement(ticker) or []
+    except Exception as exc:
+        logger.debug(f"{ticker}: Seeking Alpha engagement fetch skipped — {exc}")
         return []
 
 
@@ -584,15 +598,6 @@ def _fetch_earnings_safe(ticker: str) -> Optional[dict]:
     except Exception as exc:
         logger.warning(f"{ticker}: Earnings calendar fetch failed — {exc}")
         return None
-
-
-def _get_insider_safe(ticker: str) -> dict:
-    try:
-        result = get_insider_signal(ticker)
-        return result if isinstance(result, dict) else {"confidence_modifier": 0.0}
-    except Exception as exc:
-        logger.warning(f"{ticker}: Insider signal fetch failed — {exc}")
-        return {"confidence_modifier": 0.0}
 
 
 if __name__ == "__main__":

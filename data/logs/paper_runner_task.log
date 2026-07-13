@@ -7,4 +7,109 @@
 2026-07-06 16:32:02,089 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1825.07, rsi=52.7, atr=96.89)
 2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Monday post-17:00 ET — fetching fresh fundamental data.
 2026-07-06 16:32:02,090 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+^C2026-07-07 23:11:38,777 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-07 23:11:39,247 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=196.93, rsi=43.5, atr=6.90)
+2026-07-07 23:11:39,252 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=516.11, rsi=51.2, atr=38.05)
+2026-07-07 23:11:39,256 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=370.78, rsi=43.9, atr=17.76)
+2026-07-07 23:11:39,261 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=432.57, rsi=49.5, atr=21.89)
+2026-07-07 23:11:39,268 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=938.38, rsi=46.3, atr=93.08)
+2026-07-07 23:11:39,273 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1747.28, rsi=48.4, atr=97.67)
+2026-07-07 23:11:39,273 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-07 23:11:39,274 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-07 23:11:39,742 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:40,320 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-07 23:11:40,619 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-07 23:11:41,096 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for NVDA.
+2026-07-07 23:11:41,350 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:41,898 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-07 23:11:42,110 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-07 23:11:42,520 [shared.api_clients.news_client] INFO — Finnhub: fetched 248 articles for AMD.
+2026-07-07 23:11:42,641 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:43,190 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-07 23:11:43,306 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-07 23:11:43,682 [shared.api_clients.news_client] INFO — Finnhub: fetched 218 articles for AVGO.
+2026-07-07 23:11:43,801 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:44,332 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-07 23:11:44,487 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-07 23:11:45,497 [shared.api_clients.news_client] INFO — Finnhub: fetched 20 articles for TSM.
+2026-07-07 23:11:45,687 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:46,248 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-07 23:11:46,404 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-07 23:11:46,880 [shared.api_clients.news_client] INFO — Finnhub: fetched 249 articles for MU.
+2026-07-07 23:11:47,005 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-07 23:11:48,703 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for ASML.
+2026-07-07 23:11:48,857 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-07 23:11:49,210 [shared.api_clients.news_client] INFO — Finnhub: fetched 38 articles for ASML.
+2026-07-07 23:11:49,386 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+Done — 0 paper signal(s) logged.
+2026-07-08 23:07:45,259 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-08 23:07:45,907 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=204.12, rsi=51.0, atr=7.13)
+2026-07-08 23:07:45,911 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=517.41, rsi=51.4, atr=37.10)
+2026-07-08 23:07:45,916 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=388.69, rsi=50.3, atr=18.23)
+2026-07-08 23:07:45,920 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=436.98, rsi=50.6, atr=21.17)
+2026-07-08 23:07:45,924 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=948.80, rsi=47.0, atr=90.61)
+2026-07-08 23:07:45,928 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1768.65, rsi=49.6, atr=94.35)
+2026-07-08 23:07:45,943 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-08 23:07:45,943 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-08 23:07:46,486 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:47,078 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-08 23:07:47,314 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-08 23:07:47,705 [shared.api_clients.news_client] INFO — Finnhub: fetched 249 articles for NVDA.
+2026-07-08 23:07:47,987 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:48,540 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-08 23:07:48,683 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-08 23:07:49,033 [shared.api_clients.news_client] INFO — Finnhub: fetched 220 articles for AMD.
+2026-07-08 23:07:49,157 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:49,702 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-08 23:07:49,924 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-08 23:07:50,285 [shared.api_clients.news_client] INFO — Finnhub: fetched 247 articles for AVGO.
+2026-07-08 23:07:50,406 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:50,955 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-08 23:07:51,112 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-08 23:07:51,488 [shared.api_clients.news_client] INFO — Finnhub: fetched 14 articles for TSM.
+2026-07-08 23:07:51,609 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:52,077 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-08 23:07:52,288 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-08 23:07:52,655 [shared.api_clients.news_client] INFO — Finnhub: fetched 248 articles for MU.
+2026-07-08 23:07:52,785 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-08 23:07:53,307 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for ASML.
+2026-07-08 23:07:53,466 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-08 23:07:53,820 [shared.api_clients.news_client] INFO — Finnhub: fetched 46 articles for ASML.
+2026-07-08 23:07:53,930 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+Done — 0 paper signal(s) logged.
+2026-07-09 20:55:57,180 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-09 20:55:57,603 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=202.78, rsi=49.7, atr=7.02)
+2026-07-09 20:55:57,607 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=546.72, rsi=55.9, atr=37.46)
+2026-07-09 20:55:57,611 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=401.11, rsi=54.1, atr=18.32)
+2026-07-09 20:55:57,615 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=436.96, rsi=50.6, atr=20.45)
+2026-07-09 20:55:57,619 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=991.64, rsi=50.0, atr=90.33)
+2026-07-09 20:55:57,623 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1804.25, rsi=51.7, atr=94.03)
+2026-07-09 20:55:57,624 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-09 20:55:57,624 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-09 20:55:58,043 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:55:58,570 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-09 20:55:58,726 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-09 20:55:59,119 [shared.api_clients.news_client] INFO — Finnhub: fetched 249 articles for NVDA.
+2026-07-09 20:55:59,370 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:55:59,872 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-09 20:55:59,988 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-09 20:56:00,326 [shared.api_clients.news_client] INFO — Finnhub: fetched 237 articles for AMD.
+2026-07-09 20:56:00,448 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:56:00,966 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-09 20:56:01,131 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-09 20:56:01,444 [shared.api_clients.news_client] INFO — Finnhub: fetched 247 articles for AVGO.
+2026-07-09 20:56:01,626 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:56:02,133 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-09 20:56:02,371 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-09 20:56:02,686 [shared.api_clients.news_client] INFO — Finnhub: fetched 15 articles for TSM.
+2026-07-09 20:56:02,904 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:56:03,415 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-09 20:56:03,563 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-09 20:56:03,895 [shared.api_clients.news_client] INFO — Finnhub: fetched 247 articles for MU.
+2026-07-09 20:56:04,016 [shared.api_clients.sentiment_client] WARNING — praw not installed — Reddit sentiment unavailable.
+2026-07-09 20:56:04,545 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for ASML.
+2026-07-09 20:56:04,734 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-09 20:56:05,144 [shared.api_clients.news_client] INFO — Finnhub: fetched 47 articles for ASML.
+2026-07-09 20:56:05,252 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+Done — 0 paper signal(s) logged.
 ^C

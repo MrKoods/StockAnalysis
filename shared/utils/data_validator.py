@@ -2,7 +2,7 @@
 SHARED: Pre-flight validation of all incoming data before indicator calculation.
 Excludes corrupt tickers from current scan. Logs failures to validation_log.csv.
 Checks: price gaps, OHLC sanity, volume, single-day moves, sentiment ratio bounds,
-news score ranges, timestamp validity.
+news score ranges, positioning field bounds, timestamp validity.
 """
 
 from datetime import datetime, timezone
@@ -191,11 +191,54 @@ def validate_news_data(
     return len(reasons) == 0, reasons
 
 
+def validate_positioning_data(
+    ticker: str,
+    positioning_data: Optional[dict],
+) -> tuple[bool, list[str]]:
+    """
+    Validate Market Positioning data for a ticker.
+
+    Checks:
+    - held_percent_institutions in [0.0, 1.0]
+    - short interest fields non-negative
+    - put/call ratio non-negative
+
+    Empty/None is valid — offline mode (positioning_offline) is handled by the caller,
+    same convention as validate_sentiment_data/validate_news_data.
+
+    Returns (is_valid: bool, failure_reasons: list[str]).
+    """
+    reasons = []
+    if not positioning_data:
+        return True, []
+
+    institutional = positioning_data.get("institutional") or {}
+    held_pct = institutional.get("held_percent_institutions")
+    if held_pct is not None and not (0.0 <= float(held_pct) <= 1.0):
+        reasons.append(f"positioning_held_percent_institutions_out_of_bounds_{held_pct}")
+
+    short_interest = positioning_data.get("short_interest") or {}
+    for field in ("shares_short", "shares_short_prior_month", "short_ratio", "short_percent_of_float"):
+        val = short_interest.get(field)
+        if val is not None and float(val) < 0:
+            reasons.append(f"positioning_negative_{field}_{val}")
+
+    options = positioning_data.get("options") or {}
+    ratio = options.get("put_call_ratio")
+    if ratio is not None and float(ratio) < 0:
+        reasons.append(f"positioning_negative_put_call_ratio_{ratio}")
+
+    if reasons:
+        write_validation_entry(ticker, "positioning", "; ".join(reasons))
+    return len(reasons) == 0, reasons
+
+
 def run_preflight_validation(
     ticker: str,
     ohlcv: Optional[pd.DataFrame],
     posts: Optional[list[dict]],
     articles: Optional[list[dict]],
+    positioning_data: Optional[dict] = None,
 ) -> dict:
     """
     Run all validation checks for a ticker before processing.
@@ -206,6 +249,7 @@ def run_preflight_validation(
         ohlcv_valid: bool,
         sentiment_valid: bool,
         news_valid: bool,
+        positioning_valid: bool,
         failures: list[str],
     }
     On any failure, logs to validation_log.csv and returns ticker_valid=False.
@@ -214,13 +258,15 @@ def run_preflight_validation(
     ohlcv_ok, ohlcv_failures = validate_ohlcv(ticker, ohlcv) if ohlcv is not None else (True, [])
     sent_ok, sent_failures = validate_sentiment_data(ticker, posts or [])
     news_ok, news_failures = validate_news_data(ticker, articles or [])
+    positioning_ok, positioning_failures = validate_positioning_data(ticker, positioning_data)
 
-    all_failures = ohlcv_failures + sent_failures + news_failures
+    all_failures = ohlcv_failures + sent_failures + news_failures + positioning_failures
 
     return {
-        "ticker_valid": ohlcv_ok and sent_ok and news_ok,
+        "ticker_valid": ohlcv_ok and sent_ok and news_ok and positioning_ok,
         "ohlcv_valid": ohlcv_ok,
         "sentiment_valid": sent_ok,
         "news_valid": news_ok,
+        "positioning_valid": positioning_ok,
         "failures": all_failures,
     }

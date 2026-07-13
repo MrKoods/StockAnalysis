@@ -21,14 +21,17 @@ api:
     base_url: "https://finnhub.io/api/v1"
     rate_limit_per_minute: 60
 
-  reddit:
-    subreddits:
-      - wallstreetbets
-      - stocks
-      - semiconductors
-      - investing
-    posts_per_ticker: 50
-    time_filter: "week"
+  stocktwits:
+    base_url: "https://stocktwits.p.rapidapi.com"
+    rapidapi_host: "stocktwits.p.rapidapi.com"
+    messages_per_ticker: 30
+    # Paid RapidAPI subscription — RAPIDAPI_KEY in .env (shared with seeking_alpha below)
+
+  seeking_alpha:
+    base_url: "https://seeking-alpha-finance.p.rapidapi.com"
+    rapidapi_host: "seeking-alpha-finance.p.rapidapi.com"
+    items_per_ticker: 10
+    # Paid RapidAPI subscription — RAPIDAPI_KEY in .env (shared with stocktwits above)
 
 retry:
   backoff_base_seconds: 30          # fail → wait 30s → retry → 60s → retry → 120s → fallback

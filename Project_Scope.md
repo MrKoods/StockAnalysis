@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-**What this is:** A swing trading decision-support system for the semiconductor sector. It pulls technical, sentiment, and news data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score, evaluates 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts.
+**What this is:** A swing trading decision-support system for the semiconductor sector. It pulls technical, market positioning, sentiment, news, and fundamental data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score, evaluates 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts.
 
 **What it is not:** An autonomous trading system. Every recommendation requires your review and manual execution.
 
@@ -14,12 +14,17 @@
 
 **Build status:** Phase 1 complete (market data + technical indicators). Phase 2 in progress. 16 phases total.
 
+**Scoring model (v2.0.0 — Five-Category System):** Technical (40pts) + Market Positioning (20pts) + Sentiment (15pts) + News (15pts) + Fundamental (10pts). Sentiment is StockTwits crowd sentiment plus a Seeking Alpha engagement proxy (Reddit/PRAW has been fully removed — see *API Stack* and *Sentiment Layer* for why). Market Positioning and Fundamental are both new categories versus the original v1.0.0 design — see *What Changed From v1.0.0* below.
+
 **Quick reference — where to find things:**
 | Topic | Section |
 |---|---|
 | Watchlist and sector focus | Watchlist & Niche Focus |
 | File structure and build status | File Structure |
 | How confidence is calculated | Statistical Methods |
+| Market Positioning sub-signals (options, institutional, short interest, insider, analyst trend) | Market Positioning Layer |
+| Sentiment sub-signals (StockTwits + Seeking Alpha engagement) | Sentiment Layer — StockTwits Reintegration |
+| Fundamental sub-signals (earnings momentum, valuation vs. peers) | Fundamental Layer |
 | All 42 trade structures | Trade Selector — EV Framework |
 | Discord alert format | Output & Alerts |
 | Performance thresholds and backtesting rules | Performance Thresholds |
@@ -28,6 +33,27 @@
 | Paper trading protocol | System Enhancements — Enhancement 1 |
 | Model versioning rules | System Enhancements — Enhancement 2 |
 | Full 16-phase roadmap | Implementation Roadmap |
+
+---
+
+## What Changed From v1.0.0
+
+The original design (v1.0.0) scored three categories: Technical (60pts), Sentiment via Reddit/PRAW (25pts), and News (15pts). Two things changed independently since then, and this document now reflects both together for the first time:
+
+1. **A Fundamental layer was built** (earnings momentum + valuation vs. sector peers, `swing_model/fundamental_layer.py`) and wired into `scoring.py` as a real 4th category, rebalancing weights to Technical 50 / Sentiment 20 / News 15 / Fundamental 10-15. This had already shipped in the codebase but was never reflected in this document — a gap this rewrite closes.
+2. **Reddit/PRAW is now fully removed**, replaced by **StockTwits** (real-time, explicitly-tagged Bullish/Bearish messages) and a **Seeking Alpha** comment-count engagement proxy, both via a paid RapidAPI subscription. Reddit access had stalled (dev app pending, no auto-approval) and offered weaker signal quality (keyword-inferred sentiment, manufactured-spike risk) than StockTwits' structured tagging.
+3. **A genuine Market Positioning category was added** — options positioning (put/call ratio, IV skew), institutional ownership change, short interest trend, insider transactions, and analyst rating trend — all sourced free via yfinance. Insider transactions moved here from a standalone scoring modifier (they were double-counted otherwise).
+
+**Net effect on scoring model:** three categories become five. Category weights are rebalanced (not simply added on top) so the base score still sums to 100.
+
+| | v1.0.0 (original) | v2.0.0 (this document) |
+|---|---|---|
+| Technical | 60 | 40 |
+| Market Positioning | — | 20 |
+| Sentiment | 25 (Reddit) | 15 (StockTwits + Seeking Alpha engagement) |
+| News | 15 | 15 |
+| Fundamental | — | 10 |
+| **Total** | **100** | **100** |
 
 ---
 
@@ -55,7 +81,7 @@ The `README.md` file in the `StockAnalysis/` project root must contain the follo
 
 ## Overview
 
-This project builds a **swing trading decision-support system** for the semiconductor sector, combining a technical indicator layer (price/volume, statistical analysis) with a sentiment/news layer (social media, news feeds) to produce a confidence-scored recommendation — including optimal trade structure (long/short equity, calls, puts, spreads) — for each ticker in the watchlist.
+This project builds a **swing trading decision-support system** for the semiconductor sector, combining a technical indicator layer (price/volume, statistical analysis), a market positioning layer (options positioning, short interest, institutional and insider activity, analyst rating trend), a sentiment layer (real-time StockTwits crowd sentiment + Seeking Alpha engagement proxy), a news layer (NER-extracted, credibility-weighted editorial news flow), and a fundamental layer (earnings momentum + valuation vs. sector peers) to produce a confidence-scored recommendation — including optimal trade structure (long/short equity, calls, puts, spreads) — for each ticker in the watchlist.
 
 **Important framing:** this is a decision-support tool, not an autonomous trading system. No component should be trusted to execute trades without backtesting and human review.
 
@@ -90,7 +116,7 @@ The system is semiconductor-sector focused rather than broad-market, so indicato
 
 The system follows a two-layer pattern:
 
-1. **Indicator Layer** — pulls and computes all relevant metrics (technical, sentiment, news) with full timestamp precision for temporal alignment
+1. **Indicator Layer** — pulls and computes all relevant metrics (technical, market positioning, sentiment, news, fundamental) with full timestamp precision for temporal alignment
 2. **Analysis/Decision Layer** — statistically combines indicator data into a 0-100 confidence score and recommends a trade structure optimized for risk/reward
 
 Decision logic is rules-based and statistically grounded (z-score normalization, rolling win rates) for transparency and backtestability.
@@ -114,7 +140,9 @@ StockAnalysis/
 ├── shared/
 │   ├── api_clients/
 │   │   ├── market_data_client.py      # SHARED: wraps yfinance — pulls daily OHLCV + earnings calendar data (BUILT)
-│   │   ├── sentiment_client.py        # SHARED: wraps Reddit via PRAW — timestamped posts, keyword-classified bullish/bearish labels
+│   │   ├── sentiment_client.py        # SHARED: wraps StockTwits (Bullish/Bearish tagged messages, sentiment/volume velocity) + Seeking Alpha Finance (commentCount engagement proxy), both via RapidAPI (BUILT)
+│   │   ├── positioning_client.py      # SHARED: wraps yfinance — options chain (put/call, IV skew), institutional holders, short interest, analyst rating trend; re-exports insider transactions (BUILT)
+│   │   ├── fundamental_client.py      # SHARED: wraps yfinance + Alpha Vantage — valuation metrics, earnings history, estimate revisions; weekly batch (BUILT)
 │   │   └── news_client.py             # SHARED: wraps Alpha Vantage News & Sentiment + Yahoo Finance + Finnhub headlines — timestamped, decay-weighted
 │   │
 │   ├── indicators/
@@ -143,7 +171,9 @@ StockAnalysis/
 │
 ├── swing_model/
 │   ├── indicator_pipeline.py          # Orchestrates all data pulls + indicator calculations for semiconductor watchlist (in progress)
-│   ├── sentiment_layer.py             # Credibility-weighted sentiment trajectory + velocity; leading/lagging classification; divergence flagging; cross-platform consistency; spike detection
+│   ├── sentiment_layer.py             # StockTwits bullish/bearish ratio (z-scored vs. own history) + sentiment/volume velocity + Seeking Alpha engagement proxy; divergence flagging
+│   ├── positioning_layer.py           # Options positioning + institutional ownership change + short interest trend + insider transactions + analyst rating trend; per-sub-signal graceful degradation
+│   ├── fundamental_layer.py           # Earnings momentum (EPS growth, estimate revisions, surprise streak, analyst consensus) + valuation vs. sector peers (P/E, forward P/E, EV/EBITDA)
 │   ├── news_layer.py                  # NER-extracted ticker-specific news sentiment; source credibility weighting; narrative theme tracking; news clustering; timezone-adjusted windows
 │   ├── cross_ticker_analysis.py       # Detects sector-wide moves vs. genuine individual divergence across the 6-ticker watchlist
 │   ├── signal_decay.py                # Re-scores open positions daily; flags early exit when confidence drops significantly post-entry
@@ -191,12 +221,14 @@ StockAnalysis/
 └── tests/
     ├── test_shared_indicators.py
     ├── test_swing_scoring.py
+    ├── test_sentiment_layer.py
+    ├── test_positioning_layer.py
     └── test_stress_scenarios.py
 ```
 
 **Organizing principle:** `shared/` holds all reusable logic (data clients, indicator math, utilities). `swing_model/` contains only the pipeline, scoring, and trade selection logic specific to the semiconductor swing strategy. `config/swing_config.yaml` is the single source of truth for the watchlist and all thresholds.
 
-**Build status:** `market_data_client.py` and `technical_common.py` complete and tested. `swing_model/indicator_pipeline.py` in progress. Everything else pending.
+**Build status:** `market_data_client.py`, `technical_common.py`, `sentiment_client.py`/`sentiment_layer.py`, `positioning_client.py`/`positioning_layer.py`, `fundamental_client.py`/`fundamental_layer.py`, and `scoring.py` (5-category system) complete and tested. `swing_model/indicator_pipeline.py` wires Technical, Positioning, and Fundamental together; Sentiment and News are wired in `run_swing_model.py`. Remaining phases per the roadmap below.
 
 ---
 
@@ -204,18 +236,19 @@ StockAnalysis/
 
 **Timeframe:** 5-15 trading days (1-3 calendar weeks). This is the target holding period for all swing trade candidates — short enough to capture fast semiconductor sector moves driven by news/AI narratives, long enough for multi-day sentiment and technical setups to play out. Backtesting success metrics (win rate, R:R, drawdown) are all measured against this specific window.
 
-**Cadence:** Indicator layer runs 2-3 times daily — once pre-market, once mid-session, once after close. Technical indicators are recalculated on daily bars after close; sentiment/news layers run more frequently to capture intraday developments that may affect the next session.
+**Cadence:** Indicator layer runs 2-3 times daily — once pre-market, once mid-session, once after close. Technical indicators are recalculated on daily bars after close; Market Positioning runs daily; Sentiment and news layers run more frequently to capture intraday developments that may affect the next session; Fundamental runs weekly (Monday 17:00 ET) since valuation/earnings data moves far slower than the other four categories.
 
 ### Indicator Layer (Swing)
 
 | Category | Indicators | Source | Cost |
 |---|---|---|---|
 | Technical | 20/50-day MAs, 20/50-day breakout levels, 20-day avg volume, relative strength vs. SMH/SOXX, RSI, ATR, MACD, volume profile | yfinance | Free |
-| Social/Sentiment | Timestamped posts, keyword-classified bullish/bearish labels, mention volume, sentiment trajectory, velocity, unusual spike detection, cross-subreddit consistency (r/wallstreetbets vs. r/stocks, r/investing, r/semiconductors) | Reddit API via PRAW | Free |
+| Market Positioning | Put/call ratio + IV skew, institutional ownership change, short interest trend, SEC Form 4 insider transactions, analyst rating trend (upgrades/downgrades) | yfinance | Free |
+| Sentiment | StockTwits Bullish/Bearish tagged messages (ratio + native sentiment/volume velocity fields), Seeking Alpha commentCount engagement velocity (proxy, not true sentiment) | StockTwits + Seeking Alpha Finance (RapidAPI) | Paid |
 | News (primary) | Timestamped articles, NER-extracted ticker-specific sentiment, pre-computed scores, source credibility weighting, narrative theme tracking | Alpha Vantage News & Sentiment (25 calls/day free tier) | Free |
 | News (secondary) | Recent headlines with timestamps; NER applied for ticker precision | Yahoo Finance via yfinance + Finnhub `/company-news` (free tier) | Free |
-| Insider/Institutional | SEC Form 4 insider buying/selling; institutional commentary appearing in social discussion | yfinance calendar data | Free |
-| Geographic/Timezone | Pre-market Asian + European social/news signals as leading indicators for US session open | Reddit + Alpha Vantage (timezone-filtered) | Free |
+| Fundamental | EPS growth trend, estimate revisions, earnings surprise streak, analyst consensus, P/E vs. sector, forward vs. trailing P/E, EV/EBITDA vs. peers | yfinance + Alpha Vantage (weekly batch) | Free |
+| Geographic/Timezone | Pre-market Asian + European sentiment/news signals as leading indicators for US session open | StockTwits + Alpha Vantage (timezone-filtered) | Free/Paid |
 
 ### Statistical Methods (How Confidence Is Actually Computed)
 
@@ -247,7 +280,7 @@ This prevents the model from producing high-confidence signals during hostile ma
 The model scores a setup at entry, but also re-scores it daily throughout the 5-15 day holding window. Signal decay tracks how the confidence score evolves day by day after entry — if a bullish setup's confidence drops significantly (e.g., sentiment reverses, price breaks back below a key MA, news turns negative), that is flagged as an early exit signal rather than waiting for a fixed time stop. Without this, the model gives you an entry signal but no framework for managing the trade after entry. Signal decay output is a daily updated confidence time series per open position.
 
 **7. Cross-ticker correlation within the sector**
-The six semiconductor tickers are heavily correlated — when NVDA moves strongly, AMD often follows. If the model fires bullish signals on three tickers simultaneously, those are likely not three independent opportunities; they may reflect one sector-wide move expressed across correlated names. Cross-ticker correlation detection distinguishes between:
+The six semiconductaor tickers are heavily correlated — when NVDA moves strongly, AMD often follows. If the model fires bullish signals on three tickers simultaneously, those are likely not three independent opportunities; they may reflect one sector-wide move expressed across correlated names. Cross-ticker correlation detection distinguishes between:
 - Sector-wide move: multiple tickers firing simultaneously, each signal discounted individually since they share a common cause
 - Individual divergence: one ticker outperforming or underperforming its peers despite similar sector conditions — this is genuine stock-specific strength/weakness and warrants higher individual confidence
 
@@ -269,13 +302,63 @@ Each ticker's upcoming earnings date is checked before any trade recommendation 
 **10. Sector rotation signal**
 A macro-level filter that sits above individual ticker scoring. Tracks whether institutional money is flowing into or out of semiconductors as a whole relative to the broader market, using SMH vs. SPY performance across multiple timeframes (5-day, 20-day, 60-day). If semiconductors are in a rotation-out phase at the sector level, even strong individual ticker setups warrant reduced confidence — the sector headwind reduces the probability that any individual name can sustain a meaningful move against the flow. Sector rotation state is computed daily alongside regime detection and stored as a modifier applied to all ticker confidence scores before output.
 
+### Market Positioning Layer
+
+**Rationale:** Options positioning, institutional ownership, and short interest measure committed capital — slower-moving and harder to manipulate than social sentiment, but blind to early retail momentum (which the Sentiment layer below covers instead). All five sub-signals are sourced free via yfinance; no paid subscription is required for this category.
+
+**1. Options positioning — put/call ratio + IV skew (0-6 points)**
+From the nearest-expiration option chain: put/call ratio (total put volume ÷ total call volume) and IV skew (near-the-money average put IV minus average call IV, restricted to a ±10% moneyness band around the current price). A low ratio and negative skew (calls richer than puts) scores bullish; a high ratio and positive skew scores bearish; both are scored around a neutral midpoint when balanced.
+
+**2. Institutional ownership change (0-5 points)**
+`heldPercentInstitutions` compared against the prior scan's cached snapshot (`data/processed/positioning_state.json`). Accumulation (rising institutional ownership) scores bullish; distribution scores bearish. On a ticker's first scan, no prior snapshot exists yet, so this sub-signal falls back to its neutral midpoint rather than being penalized — same forward-building-history pattern as the Fundamental layer's weekly cache.
+
+**3. Short interest trend (0-4 points)**
+Shares short vs. shares short one month prior (both available directly from yfinance, no snapshot needed). Declining short interest (covering) scores bullish; increasing short interest (building) scores bearish.
+
+**4. Insider transactions (0-3 points)**
+SEC Form 4 filings via yfinance, classified using the same buying-cluster/selling-cluster logic as the original design (2+ distinct insiders transacting the same direction within a 10-day window is a cluster). This used to be a standalone ±8 confidence modifier — it now lives here as a Positioning sub-signal instead, since keeping both would double-count the same Form 4 data.
+
+**5. Analyst rating trend (0-2 points)**
+Recent upgrade/downgrade *actions* within a 30-day lookback (`yfinance.Ticker.upgrades_downgrades`) — distinct from the static analyst consensus *level* already scored by the Fundamental layer below. A recent upgrade scores bullish; a recent downgrade scores bearish; no recent action scores neutral.
+
+**Total: 20 points.** **Graceful degradation:** each of the five sub-signals that fails to fetch forfeits only its own points — the category never hard-fails to zero unless every source is unavailable simultaneously, matching the Sentiment layer's degradation pattern (see below). If Positioning is fully offline, confidence is capped at 70 for that ticker (below the 90 threshold), same as Sentiment's offline cap.
+
+### Sentiment Layer — StockTwits Reintegration
+
+**Background:** The original design used Reddit/PRAW for social sentiment. Reddit access stalled (dev app pending, no auto-approval as of 2026-07-07) and required keyword-inferred sentiment classification with manufactured-spike validation logic, since Reddit posts carry no native sentiment label. Reddit has now been **fully removed** — not deferred, not dormant — replaced by StockTwits (real-time, explicitly-tagged) plus a Seeking Alpha engagement proxy, both via a paid RapidAPI subscription.
+
+**1. StockTwits bullish/bearish ratio (0-7 points)**
+From `stocktwits.p.rapidapi.com/streams/symbol/{ticker}.json`: each message carries an explicit `entities.sentiment.basic` tag ("Bullish"/"Bearish") — no keyword/NLP inference needed, which simplifies scoring considerably versus the original Reddit design and removes the need for cross-subreddit consistency or manufactured-spike detection (StockTwits' structured tagging is far harder to game accidentally than free-text keyword matching). The ratio of bullish to bearish tagged messages is z-scored against the ticker's own rolling daily history.
+
+**2. StockTwits sentiment/volume velocity (0-5 points)**
+StockTwits' response includes native `sentiment_change`/`volume_change` fields per message, which seed this calculation directly rather than requiring it to be derived purely from raw message counts. Falls back to a trajectory-derived velocity (rate of change of the daily bullish ratio) when those fields aren't present.
+
+**3. Seeking Alpha engagement proxy (0-3 points)**
+From `seeking-alpha-finance.p.rapidapi.com/symbols/news`: uses the `commentCount` field's rate of change across recently published items as a weak proxy for retail engagement/conviction. This is explicitly a proxy, not scored sentiment — this RapidAPI subscription's Instablogs (community blog) endpoints only support single-post lookup by numeric ID and cannot be searched by ticker. Weighted lowest of the three sub-signals for this reason.
+
+**Total: 15 points.** **Graceful degradation:** identical pattern to Positioning. If StockTwits is unavailable, sub-signals 1 and 2 forfeit their points (12 of 15) but sub-signal 3 (Seeking Alpha) still contributes if available, and vice versa. The category only hard-fails to zero (triggering the confidence-70 cap) if both sources are down simultaneously.
+
+### Fundamental Layer
+
+**Rationale:** The four layers above are all price/flow/sentiment-driven and update daily or more often. Fundamental data (earnings quality, valuation) moves far slower — weekly is enough — but adds a dimension none of the other four capture: is the company's underlying business actually improving, and is the stock cheap or expensive relative to sector peers?
+
+**1. Earnings momentum (0-9 points internally, rescaled to a 0-6 contribution)**
+Combines EPS growth trend (accelerating growth scores highest), estimate revisions (proxied via implied upside from analyst target price — Alpha Vantage's free tier has no true historical revision-direction endpoint), earnings surprise streak (consecutive beats vs. misses), and analyst consensus level (`recommendationMean`).
+
+**2. Valuation vs. sector peers (0-6 points internally, rescaled to a 0-4 contribution)**
+P/E vs. sector average, forward vs. trailing P/E (cheapening or richening), and EV/EBITDA vs. sector average — all computed across the full watchlist simultaneously so "sector average" reflects the other 5 tickers, not a fixed external benchmark.
+
+**Total: 10 points** (`FundamentalScorer` computes on its own internal -15..+15 scale; `scoring.py` rescales that to the 10-point contribution described here). Data unavailable → contributes 0 (neutral, not penalized) rather than triggering an offline cap, since fundamental data is far less time-critical than the other four categories. Updated weekly (Monday 17:00 ET), cached in `data/processed/fundamental_state.json`, and reused on every scan between updates.
+
 ### Confidence Scoring (Swing)
 
 | Signal Category | Starting Weight | Statistical Method |
 |---|---|---|
-| Technical (breakout, trend, RS, RSI, ATR, MACD, volume profile) | 50-60% | Z-score normalized; volume profile levels for target/stop precision |
-| Social/Sentiment (Reddit) | 20-25% | Trajectory + velocity over rolling 3-5 day window; cross-subreddit consistency multiplier; spike type classification |
-| News (Alpha Vantage + Yahoo Finance + Finnhub) | 15-20% | NER ticker-specific sentiment; source credibility weighted; time-decayed; narrative theme alignment; news clustering |
+| Technical (breakout, trend, RS, RSI, volume profile) | 40% | Z-score normalized; volume profile levels for target/stop precision |
+| Market Positioning (options, institutional, short interest, insider, analyst trend) | 20% | Near-the-money IV skew; institutional ownership delta vs. prior snapshot; per-sub-signal graceful degradation |
+| Sentiment (StockTwits ratio + velocity, Seeking Alpha engagement) | 15% | Z-score normalized StockTwits ratio vs. own history; native sentiment/volume-change fields; per-sub-signal graceful degradation |
+| News (Alpha Vantage + Yahoo Finance + Finnhub) | 15% | NER ticker-specific sentiment; source credibility weighted; time-decayed; narrative theme alignment; news clustering |
+| Fundamental (earnings momentum, valuation vs. peers) | 10% | EPS growth/surprise/revisions; P/E and EV/EBITDA vs. sector average; neutral (not penalized) when data unavailable |
 
 **Modifiers applied after base score is computed:**
 | Modifier | Effect |
@@ -287,12 +370,10 @@ A macro-level filter that sits above individual ticker scoring. Tracks whether i
 | Earnings within 5 days | Score reduced by configurable penalty; structure forced to defined-risk |
 | Cross-ticker: sector-wide move detected | Individual ticker scores discounted proportionally |
 | Cross-ticker: genuine individual divergence | Individual ticker score boosted |
-| Insider buying detected (Form 4) | Bullish confidence boosted; bearish confidence suppressed |
-| Insider selling cluster detected | Bearish modifier applied regardless of technical signal |
 | Narrative theme aligned with trade thesis | Sentiment/news contribution weighted up |
 | Narrative theme opposed to trade thesis | Sentiment/news contribution weighted down |
-| Cross-subreddit inconsistency (WSB vs. other subreddits diverge) | Social confidence contribution reduced |
-| Manufactured spike detected (sudden, low-diversity accounts) | Social contribution flagged; confidence held pending cross-subreddit validation |
+| Sentiment/price divergence: sentiment leading bullish | Confidence increased moderately (retail conviction ahead of price) |
+| Sentiment/price divergence: price move unconfirmed by sentiment | Confidence reduced even if technical score is high |
 | Pre-market Asian/European signal contradicts US thesis | Confidence reduced; flagged for review |
 | Seasonality: historically strong period for semis (e.g., Q4) | Confidence boosted by configurable seasonal modifier |
 | Seasonality: historically weak period for semis (e.g., post-Q1) | Confidence reduced by configurable seasonal modifier |
@@ -302,16 +383,20 @@ A macro-level filter that sits above individual ticker scoring. Tracks whether i
 | Entry confirmation: position skipped | Signal cleared; slot freed for next candidate; logged in override_log.csv |
 | Signal decay (open position): confidence declining | Early exit flag triggered |
 
+**Note — insider activity is no longer a standalone modifier.** It moved into Market Positioning as a 0-3 point sub-signal (see *Market Positioning Layer* above); keeping both a modifier and a sub-signal would double-count the same Form 4 data. Cross-subreddit consistency and manufactured-spike modifiers from the original Reddit design are gone entirely — StockTwits' explicit sentiment tags don't need them.
+
 **Starting weights are hypotheses — calibrated win rates from backtesting (Phase 11) replace them with empirically derived weights.**
 
 **Formal confidence score formula:**
 
-The confidence score is computed as a weighted sum across three signal categories, then modified by a separate modifier layer. The formula is explicit and must be implemented exactly as defined in `swing_model/scoring.py`:
+The confidence score is computed as a weighted sum across five signal categories, then modified by a separate modifier layer. The formula is explicit and must be implemented exactly as defined in `swing_model/scoring.py`:
 
 ```
-Base Score = (Technical Score × Technical Weight)
-           + (Sentiment Score × Sentiment Weight)
-           + (News Score × News Weight)
+Base Score = (Technical Score × 40%)
+           + (Positioning Score × 20%)
+           + (Sentiment Score × 15%)
+           + (News Score × 15%)
+           + (Fundamental Score × 10%)
 
 Final Score = Base Score + Sum(all applicable modifiers)
 Final Score = min(100, max(0, Final Score))  # clamped to 0-100
@@ -321,10 +406,12 @@ Final Score = min(100, max(0, Final Score))  # clamped to 0-100
 
 | Signal Category | Max Contribution | Weight | How Scored |
 |---|---|---|---|
-| Technical | 60 points max | 60% | Z-score of each indicator mapped to 0-20 points per sub-signal; 5 sub-signals (breakout, trend, RS, RSI, volume profile) × max 12 points each = 60 total |
-| Sentiment | 25 points max | 25% | Trajectory (0-10) + velocity (0-5) + cross-platform consistency (0-5) + spike classification (0-5) = 25 total |
+| Technical | 40 points max | 40% | 5 sub-signals (breakout, trend, RS, RSI, volume profile) × max 8 points each = 40 total |
+| Market Positioning | 20 points max | 20% | Options (0-6) + institutional (0-5) + short interest (0-4) + insider (0-3) + analyst trend (0-2) = 20 total |
+| Sentiment | 15 points max | 15% | StockTwits ratio (0-7) + StockTwits velocity (0-5) + Seeking Alpha engagement (0-3) = 15 total |
 | News | 15 points max | 15% | Credibility-weighted score (0-6) + theme alignment (0-4) + clustering (0-3) + decay factor (0-2) = 15 total |
-| **Total Base Score** | **100 points max** | **100%** | Sum of above three categories |
+| Fundamental | 10 points max | 10% | Earnings momentum (0-6) + valuation vs. peers (0-4) = 10 total (rescaled from FundamentalScorer's internal -15..+15 scale) |
+| **Total Base Score** | **100 points max** | **100%** | Sum of above five categories |
 
 **Modifier bounds (applied after base score, can push above/below category scores but final is clamped 0-100):**
 
@@ -334,36 +421,41 @@ Final Score = min(100, max(0, Final Score))  # clamped to 0-100
 | Sector rotation (outflow/neutral/inflow) | -15 | +5 |
 | Earnings proximity (0-5 days / 6-18 days / 18+ days) | -20 | 0 |
 | Cross-ticker (sector-wide / neutral / diverging) | -10 | +5 |
-| Insider activity (selling cluster / none / buying) | -8 | +8 |
 | Seasonality (weak / neutral / strong period) | -5 | +5 |
 | Macro overlay (adverse / neutral / favorable) | -10 | +3 |
-| **Total modifier range** | **-83** | **+36** |
+| **Total modifier range** | **-75** | **+28** |
 
 **Example confidence breakdown (mathematically consistent):**
 | Component | Sub-score | Category Max | Contribution |
 |---|---|---|---|
-| Breakout (volume z-score +2.4 → maps to 11/12) | 11 | 12 | +11 |
-| Trend intact (20MA > 50MA, price > 50MA → 10/12) | 10 | 12 | +10 |
-| Relative strength vs. SMH (z-score +1.8 → 9/12) | 9 | 12 | +9 |
-| RSI at 58 neutral-bullish (7/12) | 7 | 12 | +7 |
-| Volume profile: price above high-vol support (10/12) | 10 | 12 | +10 |
-| **Technical subtotal** | **47** | **60** | **+47** |
-| Sentiment trajectory: building 4/5 days (8/10) | 8 | 10 | +8 |
-| Sentiment velocity: accelerating (4/5) | 4 | 5 | +4 |
-| Cross-platform consistency: both bullish (4/5) | 4 | 5 | +4 |
-| Spike classification: organic (4/5) | 4 | 5 | +4 |
-| **Sentiment subtotal** | **20** | **25** | **+20** |
+| Breakout (volume z-score +2.4 → maps to 7/8) | 7 | 8 | +7 |
+| Trend intact (20MA > 50MA, price > 50MA → 6/8) | 6 | 8 | +6 |
+| Relative strength vs. SMH (z-score +1.8 → 6/8) | 6 | 8 | +6 |
+| RSI at 58 neutral-bullish (5/8) | 5 | 8 | +5 |
+| Volume profile: price above high-vol support (6/8) | 6 | 8 | +6 |
+| **Technical subtotal** | **30** | **40** | **+30** |
+| Options positioning: call skew building (4/6) | 4 | 6 | +4 |
+| Institutional: net accumulation (4/5) | 4 | 5 | +4 |
+| Short interest: declining into strength (3/4) | 3 | 4 | +3 |
+| Insider: single director buy (2/3) | 2 | 3 | +2 |
+| Analyst: one upgrade this week (2/2) | 2 | 2 | +2 |
+| **Positioning subtotal** | **15** | **20** | **+15** |
+| StockTwits ratio: bullish-tilted vs. own history (6/7) | 6 | 7 | +6 |
+| StockTwits velocity: message volume + bullish tilt rising (4/5) | 4 | 5 | +4 |
+| Seeking Alpha engagement: comment velocity up on bullish coverage (2/3) | 2 | 3 | +2 |
+| **Sentiment subtotal** | **12** | **15** | **+12** |
 | News credibility-weighted score (5/6) | 5 | 6 | +5 |
 | Theme alignment: AI demand (4/4) | 4 | 4 | +4 |
 | News clustering: 2 independent sources (2/3) | 2 | 3 | +2 |
 | Decay factor: article 6hrs ago (2/2) | 2 | 2 | +2 |
 | **News subtotal** | **13** | **15** | **+13** |
+| Fundamental: earnings momentum + valuation, internal 15/15 rescaled | | | +10 |
+| **Fundamental subtotal** | **10** | **10** | **+10** |
 | **Base Score** | | | **80/100** |
 | Regime: trending up | | | +5 |
 | Sector rotation: neutral | | | 0 |
 | Earnings: 18 days away | | | 0 |
 | Cross-ticker: NVDA diverging from peers | | | +5 |
-| Insider: no recent Form 4 activity | | | 0 |
 | Seasonality: neutral period | | | 0 |
 | Macro overlay: neutral | | | 0 |
 | **Final bullish confidence** | | | **90/100** ✅ |
@@ -379,23 +471,20 @@ Many semiconductor articles mention multiple companies simultaneously. An articl
 **3. Narrative theme tracking**
 Beyond individual post/article sentiment, the model tracks which themes dominate semiconductor discussion at any given time — AI demand, supply chain constraints, China export restrictions, earnings expectations, competitive dynamics (NVDA vs. AMD), memory pricing cycles, etc. A bullish breakout in NVDA during a period when "AI demand" is the dominant narrative has more conviction than the same setup when "supply chain uncertainty" dominates. Themes are extracted from news headlines and social posts using keyword clustering. Current dominant theme per ticker is stored as a field and used to weight the news/sentiment confidence contribution up or down depending on whether the trade thesis aligns with or runs against the prevailing narrative.
 
-**4. Unusual social volume spike detection**
-Extends basic mention-volume tracking to distinguish between two types of spikes:
-- Organic acceleration: mention volume building gradually over multiple days — typical of legitimate momentum building; treated as a confirmatory signal
-- Sudden manufactured spike: volume appearing suddenly within minutes/hours from a small number of accounts — typical of coordinated activity or a breaking news catalyst; treated as a warning flag requiring cross-subreddit validation before contributing to confidence
-Spike type classification uses rate-of-change of mention volume (acceleration, not just level) and account diversity analysis (are the spike posts coming from many independent accounts or a cluster of similar ones?).
+**4. Unusual social volume spike detection — retired**
+The original Reddit design distinguished organic acceleration from sudden manufactured spikes (coordinated activity from a small cluster of accounts), requiring cross-subreddit validation before trusting a spike. StockTwits' explicit `entities.sentiment.basic` tagging removes most of the ambiguity this logic existed to resolve — messages carry a structured sentiment label rather than requiring inference from free text, so spike-type classification is no longer part of the Sentiment layer. See *Sentiment Layer — StockTwits Reintegration* above for what replaced it (ratio + velocity from native StockTwits fields).
 
-**5. Cross-subreddit sentiment consistency**
-r/wallstreetbets (hype/degen) and the more measured subreddits (r/investing, r/stocks, r/semiconductors) are cross-validated against each other rather than simply summed. When both show bullish sentiment independently and simultaneously, that's a much stronger signal than either alone. When they diverge (WSB strongly bullish, the rest neutral or bearish on the same ticker at the same time), confidence is reduced — WSB may be experiencing hype/manipulation isolated to one community. Cross-subreddit consistency score is a multiplier applied to the combined social sentiment contribution.
+**5. Cross-subreddit sentiment consistency — retired**
+The original design cross-validated r/wallstreetbets against more measured subreddits (r/investing, r/stocks, r/semiconductors) to catch hype isolated to one community. This concept doesn't map to StockTwits (a single unified stream, not multiple communities) and has been replaced by the Seeking Alpha engagement proxy as the Sentiment layer's third sub-signal instead — see *Sentiment Layer — StockTwits Reintegration* above.
 
-**6. Insider and institutional signal detection**
-Two sub-components: SEC Form 4 insider transactions (executives buying/selling shares on the open market — sourced free from yfinance) and social discussion patterns suggesting institutional awareness (references to unusual options activity, acquisition rumors, or large block trades appearing in social before price moves). Insider buying by executives is one of the highest-conviction bullish signals available and is systematically underused in retail systems. Insider selling is treated as a bearish modifier, especially when clustered across multiple executives in a short window.
+**6. Insider signal detection — moved to Market Positioning**
+SEC Form 4 insider transactions (executives buying/selling shares on the open market, sourced free from yfinance) are still tracked with the same buying-cluster/selling-cluster classification as originally designed. This used to be a standalone confidence modifier; it is now a Market Positioning sub-signal instead (0-3 of Positioning's 20 points) — see *Market Positioning Layer* above. Institutional ownership change and analyst rating trend, which the original design lumped in loosely as "institutional commentary appearing in social discussion," are now their own dedicated Positioning sub-signals sourced directly from yfinance rather than inferred from social text.
 
 **7. Sentiment velocity**
-Adds a second derivative to sentiment trajectory. The existing scope tracks whether sentiment is building (first derivative — direction). Sentiment velocity tracks whether that building is accelerating (second derivative — rate of change of rate of change). Sentiment that has been building slowly for 5 days and then suddenly accelerates often precedes a sharp price move — analogous to price momentum acceleration in technical analysis. Sentiment velocity is computed as a rolling second derivative of the bullish ratio over a 5-day window and stored as a separate field from sentiment trajectory.
+Adds a second derivative to sentiment trajectory (first derivative — is sentiment building at all). Sentiment velocity tracks whether that building is accelerating. Sentiment that has been building slowly for 5 days and then suddenly accelerates often precedes a sharp price move — analogous to price momentum acceleration in technical analysis. In the StockTwits design this is seeded directly from the API's own `sentiment_change`/`volume_change` fields when present, falling back to a rolling second derivative of the bullish ratio over a 5-day window when they aren't (see *Sentiment Layer — StockTwits Reintegration* above).
 
 **8. Geographic/timezone-adjusted sentiment windows**
-Semiconductors are a globally-traded sector with heavy Asian retail interest (NVDA, AMD) and significant European institutional coverage (TSML, ASML). Social and news signals originating from Asian markets (appearing during US after-hours, roughly 6pm-4am ET) can be leading indicators for the next US session open. The sentiment layer applies timezone-aware windowing:
+Semiconductors are a globally-traded sector with heavy Asian retail interest (NVDA, AMD) and significant European institutional coverage (TSM, ASML). Sentiment and news signals originating from Asian markets (appearing during US after-hours, roughly 6pm-4am ET) can be leading indicators for the next US session open. The sentiment layer applies timezone-aware windowing:
 - Pre-market Asian window (6pm-midnight ET): signals weighted as leading indicators for next US session
 - European window (2am-9:30am ET): signals weighted as early confirmation/contradiction of Asian signal direction
 - US session (9:30am-4pm ET): real-time signals weighted at full value
@@ -425,7 +514,7 @@ When sentiment and price move in opposite directions over a defined window:
 Multiple independent bullish (or bearish) news items about the same ticker within a short window (same day or adjacent days) are treated as a stronger signal than one item repeated across outlets. Source diversity (not just article count) and NER-confirmed ticker specificity are both required for a cluster to be counted.
 
 **Temporal alignment output fields per ticker:**
-`sentiment_trajectory`, `sentiment_velocity`, `sentiment_lead_lag`, `news_decay_weighted_score`, `divergence_flag`, `news_cluster_count`, `cross_platform_consistency_score`, `dominant_narrative_theme`, `timezone_window_signals`, `insider_transaction_flag`, `source_credibility_weighted_score`
+`sentiment_trajectory`, `sentiment_velocity`, `sentiment_lead_lag`, `news_decay_weighted_score`, `divergence_flag`, `news_cluster_count`, `dominant_narrative_theme`, `timezone_window_signals`, `insider_transaction_flag`, `source_credibility_weighted_score`
 
 **Critical caveat:** confidence reflects statistically aligned evidence, not a guaranteed probability. Calibration to empirical win rates happens in Phase 10 backtesting.
 
@@ -626,9 +715,9 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 | **Phase 1** ✅ | Shared foundation | `market_data_client.py` (BUILT), `technical_common.py` with z-score normalization (BUILT) |
 | **Phase 2** 🔄 | Technical pipeline | `swing_model/indicator_pipeline.py` — daily OHLCV pull, all technical indicators, normalized output table per ticker |
 | **Phase 3** | Macro context layer | `regime_detection.py` (VIX + SMH + breadth → regime), `sector_rotation.py` (SMH vs. SPY flows), `earnings_calendar.py` (earnings penalty + structure override), `seasonality.py` (monthly/quarterly semiconductor seasonal modifiers), `macro_overlay.py` (Fed rates, USD strength, China trade policy → macro confidence modifier) |
-| **Phase 4** | Sentiment + news layer | `sentiment_client.py`, `news_client.py`, `source_credibility.py`, `ner_extractor.py`, `narrative_tracker.py`, `insider_tracker.py`, `temporal_alignment.py`, `swing_model/sentiment_layer.py`, `swing_model/news_layer.py` |
+| **Phase 4** ✅ | Positioning + Sentiment + News + Fundamental layers | `positioning_client.py` + `swing_model/positioning_layer.py` (options, institutional, short interest, insider, analyst trend — all free yfinance); `sentiment_client.py` (StockTwits + Seeking Alpha, RapidAPI) + `swing_model/sentiment_layer.py`; `news_client.py`, `source_credibility.py`, `ner_extractor.py`, `narrative_tracker.py`, `temporal_alignment.py`, `swing_model/news_layer.py`; `fundamental_client.py` + `swing_model/fundamental_layer.py` (earnings momentum, valuation vs. peers). Reddit/PRAW fully removed — no dormant client, no modifier path |
 | **Phase 5** | Advanced technical layer | `volume_profile.py` (high/low volume nodes), `swing_model/cross_ticker_analysis.py` (sector-wide vs. individual divergence) |
-| **Phase 6** | Confidence scoring | `swing_model/scoring.py` — master scorer combining all inputs + all modifiers including seasonal and macro overlay |
+| **Phase 6** ✅ | Confidence scoring | `swing_model/scoring.py` — master scorer combining all five categories (40/20/15/15/10) + all modifiers including seasonal and macro overlay; insider transactions scored inside Positioning rather than as a standalone modifier |
 | **Phase 7** | EV-based trade selector | `options_math.py` (Black-Scholes, Greeks, EV, slippage), `trade_selector.py` (15 trade types, all filters), `risk_reward.py`, `position_sizer.py` |
 | **Phase 8** | Signal decay + portfolio management | `signal_decay.py` (daily re-scoring, all management stops), `portfolio_manager.py` (position tracking, circuit breakers, PDT tracking, entry confirmation handling, correlation override) |
 | **Phase 9** | Risk mitigation layer | `data_validator.py`, `black_swan_detector.py`, exponential backoff in all clients, data fallback hierarchy, Alpha Vantage call budget enforcement, UTC timestamp normalization, audit_log, override_log, validation_log |
@@ -642,17 +731,20 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 
 ---
 
-## API Stack (All Free)
+## API Stack (mostly free — Sentiment is the one paid exception)
 
 | API | Purpose | Cost | Notes |
 |---|---|---|---|
-| yfinance | Daily OHLCV price data, Yahoo Finance news headlines, earnings calendar, insider transactions | Free | No API key needed; unofficial |
-| Reddit API via PRAW | Social sentiment — timestamped posts, keyword-classified bullish/bearish labels, community discussion volume | Free | Rate limits manageable for 6-ticker watchlist |
-| Alpha Vantage | News sentiment with pre-computed scores | Free | 25 calls/day free tier; 20 used per day per budget |
+| yfinance | Daily OHLCV price data, Yahoo Finance news headlines, earnings calendar, insider transactions, options chain, institutional holders, short interest, analyst rating changes | Free | No API key needed; unofficial |
+| **StockTwits (via RapidAPI)** | Sentiment layer — real-time crowd Bullish/Bearish tagged messages, sentiment/volume velocity | **Paid — RapidAPI subscription** | Host: `stocktwits.p.rapidapi.com`. Replaces Reddit/PRAW, which is fully removed from the stack (no dormant client, no modifier path) — Reddit access had stalled indefinitely (dev app pending, no auto-approval as of 2026-07-07) |
+| **Seeking Alpha Finance (via RapidAPI)** | Sentiment layer — commentCount engagement proxy. News layer — editorial news/analyst calls (same endpoint, two different reads) | **Paid — RapidAPI subscription** | Host: `seeking-alpha-finance.p.rapidapi.com`, endpoint `symbols/news`. No ticker-searchable Instablogs (community blog) feed exists on this subscription — `instablogs/post_data` only supports single-post lookup by numeric ID |
+| Alpha Vantage | News sentiment with pre-computed scores; weekly fundamental batch (earnings, overview) | Free | 25 calls/day free tier; 20 used per day per daily budget, plus a separate weekly fundamental batch that doesn't touch the daily budget |
 | Finnhub | Company news headlines (`/company-news`) | Free | Social-sentiment endpoint is paid-only, not used |
 | Discord Webhook | Primary alert delivery for all signal types | Free | Webhook URL stored in .env |
 | SMTP email | Secondary alert delivery for critical alerts only (circuit breakers, Black Swan, open position stops) | Free | Gmail SMTP or similar; backup when Discord unavailable |
 | Twilio SMS (optional) | Tertiary alert for highest-priority alerts only (Black Swan, Red circuit breaker) | Free tier available | Twilio free tier: 3 numbers, ~$15 free credit; optional but recommended |
+
+**Environment variable note:** both RapidAPI sources share a single `RAPIDAPI_KEY` in `.env`. `sentiment_client.py` and `news_client.py` each set the appropriate `x-rapidapi-host` header per request — never hardcode the key in source, and rotate immediately if it is ever exposed in a chat log, screenshot, commit, or ticket.
 
 ---
 
@@ -684,9 +776,13 @@ Win rate and R:R are reported separately for each of the four market regimes (tr
 
 Price data: yfinance (primary) → Alpha Vantage daily endpoint (fallback) → data-unavailable mode. In data-unavailable mode: all new signals frozen, immediate Discord alert sent, open positions managed using last-known cached data flagged as stale.
 
-Sentiment data: Reddit → sentiment-offline mode. In sentiment-offline mode: sentiment layer contributes zero to confidence score, maximum confidence capped at 70 (below the 90 threshold, preventing new trades from firing), Discord alert sent flagging sentiment layer offline.
+Sentiment data: StockTwits (primary, ratio + velocity sub-signals) → Seeking Alpha engagement proxy (secondary, partial coverage only) → sentiment-offline mode. Per-sub-signal graceful degradation applies: each of the three sentiment sub-signals that fails validation or returns no data forfeits only its own points; the category only hard-fails to zero if both sources are down simultaneously. In sentiment-offline mode: maximum confidence capped at 70 (below the 90 threshold, preventing new trades from firing), Discord alert sent flagging sentiment layer offline.
+
+Market Positioning data: yfinance only (no fallback source needed — free, unofficial, same reliability profile as the Technical layer). Per-sub-signal graceful degradation applies identically to Sentiment: each of the five Positioning sub-signals (options, institutional, short interest, insider, analyst trend) that fails to fetch forfeits only its own points. If Positioning is fully offline, confidence is capped at 70, same as Sentiment.
 
 News data: Alpha Vantage (primary) → Yahoo Finance (secondary) → news-offline mode. Same cap behavior as sentiment-offline mode.
+
+Fundamental data: yfinance + Alpha Vantage weekly batch → neutral (0 contribution) if unavailable. Unlike Sentiment and Positioning, Fundamental unavailability does *not* trigger a confidence cap — it's the slowest-moving of the five categories and its absence is treated as "no fundamental signal either way" rather than a system health problem.
 
 Open position management during data outage: even when all sources are unavailable, the system reads from `data/processed/` cache and fires time stop, trailing stop, and structure stop alerts using last-known data, clearly flagged as stale — "⚠️ Using cached data from [timestamp] — verify manually before acting."
 
@@ -703,13 +799,14 @@ Runs before every indicator calculation on every data pull. Checks:
 - Price data: no gaps longer than 3 trading days; High ≥ Low ≥ 0; Close between High and Low; Volume > 0; no single-day move > 50% (likely split or data error)
 - Sentiment data: bullish ratio between 0.0 and 1.0; mention volume positive integer; timestamps within expected range
 - News data: sentiment scores within documented range; publication timestamp not in future; ticker attribution present
+- Positioning data: institutional ownership % between 0.0 and 1.0; short interest fields non-negative; put/call ratio non-negative
 Any validation failure: exclude that ticker from current scan, log to `data/logs/validation_log.csv`, send Discord data validation alert. System continues scanning remaining tickers.
 
 **Solution: Universal timestamp normalization**
-All incoming data timestamps are converted to UTC immediately on ingestion, before any processing. Timezone of each source is hardcoded in the respective client (`sentiment_client.py`, `news_client.py`) based on each API's documented timezone convention. Any record with ambiguous or missing timezone is excluded from temporal alignment calculations and logged.
+All incoming data timestamps are converted to UTC immediately on ingestion, before any processing. Timezone of each source is hardcoded in the respective client (`sentiment_client.py`, `news_client.py`, `positioning_client.py`) based on each API's documented timezone convention. Any record with ambiguous or missing timezone is excluded from temporal alignment calculations and logged.
 
 **Solution: Automatic retry with exponential backoff**
-All API calls use exponential backoff: fail → wait 30s → retry → wait 60s → retry → wait 120s → retry → invoke fallback. Implemented in all client files (`market_data_client.py`, `sentiment_client.py`, `news_client.py`).
+All API calls use exponential backoff: fail → wait 30s → retry → wait 60s → retry → wait 120s → retry → invoke fallback. Implemented in all client files (`market_data_client.py`, `sentiment_client.py`, `positioning_client.py`, `fundamental_client.py`, `news_client.py`). The RapidAPI-based `sentiment_client.py` additionally does not retry 4xx errors other than 429 (rate limit), since those indicate a rejected request rather than a transient failure.
 
 ---
 
@@ -753,7 +850,7 @@ Sent at 4:30pm ET after every post-close scan regardless of whether candidates w
 ```
 ✅ SYSTEM HEALTH — 4:30pm ET
 Scan completed:      6/6 tickers processed
-Data sources:        yfinance ✅ | Reddit ✅ | Alpha Vantage ✅ | Finnhub ✅
+Data sources:        yfinance ✅ | StockTwits ✅ | SeekingAlpha ✅ | Alpha Vantage ✅ | Finnhub ✅
 Alpha Vantage calls: 20/25 used today
 Candidates found:    0 (threshold: 90/100)
 Open positions:      1 (NVDA — Day 4, confidence: 88, trailing stop: $112.00)
@@ -1076,7 +1173,8 @@ If you reply "details" to the alert, a follow-up message sends the complete excl
 ## Open Decisions for Team Discussion
 
 1. ~~Confirm watchlist~~ ✅ Resolved: NVDA, AMD, AVGO, TSM, MU, ASML with SMH as benchmark
-2. ~~Confirm API stack~~ ✅ Resolved: yfinance, Reddit/PRAW, Alpha Vantage, Finnhub (all free)
+2. ~~Confirm API stack~~ ✅ Resolved (v2.0.0): yfinance, Alpha Vantage, Finnhub (all free) + StockTwits and Seeking Alpha Finance via RapidAPI (paid, shared `RAPIDAPI_KEY`). Reddit/PRAW is fully removed from the stack — no dormant client, no modifier path. Reddit's dev app had been pending since 2026-07-07 with no auto-approval path; StockTwits' structured sentiment tagging is also a quality improvement over Reddit's keyword-inferred classification, not just an availability fix.
+8. **NEW — Resolved: Market Positioning and Fundamental added as new categories.** Weights rebalanced Technical 40 / Positioning 20 / Sentiment 15 / News 15 / Fundamental 10. Insider transactions moved from a standalone confidence modifier into a Positioning sub-signal to avoid double-counting the same Form 4 data.
 3. ~~Define holding period~~ ✅ Resolved: 5-15 trading days
 4. ~~Define backtesting success metrics~~ ✅ Resolved (see Performance Thresholds below)
 5. ~~Define minimum confidence threshold~~ ✅ Resolved: 90/100 minimum confidence required before any trade is surfaced
@@ -1101,10 +1199,12 @@ All trade recommendations are delivered as formatted Discord alerts via webhook.
 📈 Direction:           BULLISH
 
 — SIGNAL BREAKDOWN —
-Technical:              +57 (breakout confirmed, trend intact, RS strong)
-Sentiment:              +22 (building 4/5 days, cross-platform consistent)
+Technical:              +35 (breakout confirmed, trend intact, RS strong)
+Positioning:            +17 (call skew building, institutions accumulating, shorts covering)
+Sentiment:              +13 (StockTwits bullish-tilted + rising velocity)
 News:                   +14 (bullish, NER-confirmed, recent)
-Base Score:             75
+Fundamental:            +9 (earnings momentum positive, reasonable valuation)
+Base Score:             88
 Regime modifier:        +5 (trending market)
 Cross-ticker:           NVDA diverging from peers (+3)
 Earnings:               18 days away — no penalty

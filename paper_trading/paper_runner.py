@@ -50,12 +50,12 @@ from swing_model.run_swing_model import (
     _compute_macro_safe,
     _compute_rotation_safe,
     _compute_cross_ticker_safe,
-    _fetch_reddit_safe,
+    _fetch_stocktwits_safe,
+    _fetch_sa_engagement_safe,
     _fetch_av_news_safe,
     _fetch_yahoo_news_safe,
     _fetch_finnhub_news_safe,
     _fetch_earnings_safe,
-    _get_insider_safe,
     get_model_version,
 )
 
@@ -66,7 +66,7 @@ CONFIDENCE_THRESHOLD = 90
 
 _CSV_COLUMNS = [
     "signal_date", "ticker", "confidence",
-    "technical_score", "sentiment_score", "news_score", "fundamental_score",
+    "technical_score", "positioning_score", "sentiment_score", "news_score", "fundamental_score",
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
@@ -141,14 +141,15 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 logger.info(f"{ticker}: already logged today — skipped")
                 continue
 
-            # Sentiment
-            reddit_posts = _fetch_reddit_safe(ticker)
+            # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy
+            stocktwits_messages = _fetch_stocktwits_safe(ticker)
+            sa_engagement_items = _fetch_sa_engagement_safe(ticker)
             price_data = {
                 "price_change_5d_pct": (
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(reddit_posts, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
             # News
             av_articles = _fetch_av_news_safe(ticker)
@@ -156,26 +157,27 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles)
 
-            # Earnings + insider + cross-ticker modifiers
+            # Earnings + cross-ticker modifiers
             earnings_info = _fetch_earnings_safe(ticker)
             earnings_date = (earnings_info or {}).get("next_earnings_date")
-            earnings_mod = get_earnings_modifier(ticker, earnings_date, cfg=cfg).get("confidence_modifier", 0.0)
-            insider_mod = _get_insider_safe(ticker).get("confidence_modifier", 0.0)
+            earnings_result = get_earnings_modifier(ticker, earnings_date, cfg=cfg)
+            earnings_mod = earnings_result.get("confidence_modifier", 0.0)
             ct_mod = cross_ticker.get(ticker, {}).get("confidence_modifier", 0.0)
 
-            # Fundamental
+            # Fundamental + Positioning (fetched inside run_pipeline, cached in *_state.json)
             fundamental = indicators.get("_fundamental_full") or {}
+            positioning = indicators.get("_positioning_full") or {}
 
             # Full confidence score
             score = compute_confidence_score(
                 technical=indicators,
+                positioning=positioning,
                 sentiment=sentiment,
                 news=news,
                 regime_modifier=regime_mod,
                 sector_rotation_modifier=rotation_mod,
                 earnings_modifier=earnings_mod,
                 cross_ticker_modifier=ct_mod,
-                insider_modifier=insider_mod,
                 seasonality_modifier=seasonality_mod,
                 macro_modifier=macro_mod,
                 cfg=cfg,
@@ -243,6 +245,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 "ticker": ticker,
                 "confidence": f"{final_score:.1f}",
                 "technical_score": f"{score.get('technical_total', 0.0):.1f}",
+                "positioning_score": f"{score.get('positioning_total', 0.0):.1f}",
                 "sentiment_score": f"{score.get('sentiment_total', 0.0):.1f}",
                 "news_score": f"{score.get('news_total', 0.0):.1f}",
                 "fundamental_score": f"{score.get('fundamental_score', 0.0):.1f}",
@@ -287,6 +290,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         "target": float(target_px) if target_px else 0.0,
                         "rr_ratio": rr_ratio,
                         "technical_score": score.get("technical_total", 0.0),
+                        "positioning_score": score.get("positioning_total", 0.0),
                         "sentiment_score": score.get("sentiment_total", 0.0),
                         "news_score": score.get("news_total", 0.0),
                         "fundamental_score": score.get("fundamental_score", 0.0),

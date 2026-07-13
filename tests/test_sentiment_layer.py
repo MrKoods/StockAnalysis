@@ -27,11 +27,7 @@ from shared.utils.source_credibility import (
 )
 from shared.utils.ner_extractor import extract_ticker_sentiments, is_ticker_relevant
 from shared.utils.narrative_tracker import identify_dominant_theme, theme_alignment_modifier
-from swing_model.sentiment_layer import (
-    compute_sentiment_score,
-    detect_spike_type,
-    compute_cross_platform_consistency,
-)
+from swing_model.sentiment_layer import compute_sentiment_score, SENTIMENT_MAX
 from swing_model.news_layer import compute_news_score, count_independent_cluster
 
 
@@ -193,60 +189,83 @@ class TestNarrativeTracker:
 # ---------------------------------------------------------------------------
 
 class TestSentimentLayer:
-    def _make_posts(self, n_bullish, n_bearish, hours_ago=2):
+    def _make_messages(self, n_bullish, n_bearish, hours_ago=2, sentiment_change=None, volume_change=None):
         now = datetime.now(timezone.utc)
-        posts = []
         ts = (now - timedelta(hours=hours_ago)).isoformat()
+        messages = []
         for i in range(n_bullish):
-            posts.append({"post_id": str(i), "timestamp_utc": ts,
-                          "sentiment": "bullish", "author_name": f"user{i}",
-                          "subreddit": "stocks"})
+            messages.append({
+                "message_id": str(i), "timestamp_utc": ts, "sentiment": "bullish",
+                "sentiment_change": sentiment_change, "volume_change": volume_change,
+            })
         for i in range(n_bearish):
-            posts.append({"post_id": str(n_bullish + i), "timestamp_utc": ts,
-                          "sentiment": "bearish", "author_name": f"user{n_bullish + i}",
-                          "subreddit": "stocks"})
-        return posts
+            messages.append({
+                "message_id": str(n_bullish + i), "timestamp_utc": ts, "sentiment": "bearish",
+                "sentiment_change": sentiment_change, "volume_change": volume_change,
+            })
+        return messages
+
+    def _make_sa_items(self, comment_counts, hours_ago_start=48):
+        now = datetime.now(timezone.utc)
+        items = []
+        for i, count in enumerate(comment_counts):
+            hours_ago = hours_ago_start - i * 6
+            items.append({
+                "article_id": str(i),
+                "timestamp_utc": (now - timedelta(hours=hours_ago)).isoformat(),
+                "title": f"Article {i}",
+                "comment_count": count,
+            })
+        return items
 
     def test_bullish_dominance_gives_high_score(self):
-        posts = self._make_posts(20, 2)
-        result = compute_sentiment_score(posts, "NVDA", {})
+        messages = self._make_messages(20, 2)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
         assert result["dominant_sentiment"] == "bullish"
-        assert result["sentiment_score_total"] > 10
+        assert result["ratio_score"] > 3.5
 
-    def test_offline_when_no_posts(self):
-        result = compute_sentiment_score([], "NVDA", {})
+    def test_offline_when_both_sources_empty(self):
+        result = compute_sentiment_score([], [], "NVDA", {})
         assert result["sentiment_offline"]
         assert result["sentiment_offline_cap"] == 70
+        assert result["sentiment_score_total"] == 0.0
 
-    def test_score_total_capped_at_25(self):
-        posts = self._make_posts(50, 0)
-        result = compute_sentiment_score(posts, "NVDA", {})
-        assert result["sentiment_score_total"] <= 25.0
+    def test_not_offline_when_only_one_source_available(self):
+        messages = self._make_messages(10, 2)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        assert not result["sentiment_offline"]
+
+    def test_score_total_capped_at_max(self):
+        messages = self._make_messages(50, 0, sentiment_change=0.5, volume_change=0.5)
+        sa_items = self._make_sa_items([50, 100, 150])
+        result = compute_sentiment_score(messages, sa_items, "NVDA", {})
+        assert result["sentiment_score_total"] <= SENTIMENT_MAX
+
+    def test_native_sentiment_change_field_drives_velocity(self):
+        rising = self._make_messages(10, 2, sentiment_change=0.3, volume_change=0.3)
+        flat = self._make_messages(10, 2, sentiment_change=0.0, volume_change=0.0)
+        result_rising = compute_sentiment_score(rising, [], "NVDA", {})
+        result_flat = compute_sentiment_score(flat, [], "NVDA", {})
+        assert result_rising["velocity_score"] > result_flat["velocity_score"]
+
+    def test_rising_comment_count_lifts_engagement_score(self):
+        rising = self._make_sa_items([10, 20, 40, 80])
+        flat = self._make_sa_items([40, 40, 40, 40])
+        result_rising = compute_sentiment_score([], rising, "NVDA", {})
+        result_flat = compute_sentiment_score([], flat, "NVDA", {})
+        assert result_rising["engagement_score"] > result_flat["engagement_score"]
 
     def test_all_required_keys_present(self):
-        result = compute_sentiment_score([], "NVDA", {})
+        result = compute_sentiment_score([], [], "NVDA", {})
         required = [
-            "trajectory_score", "velocity_score", "cross_platform_score", "spike_score",
-            "sentiment_score_total", "sentiment_trajectory", "sentiment_velocity",
-            "divergence_flag", "cross_platform_consistency_score", "spike_type",
-            "dominant_sentiment", "bullish_ratio_wsb", "bullish_ratio_other_subs",
-            "bullish_ratio_reddit", "mention_volume_reddit",
+            "ratio_score", "velocity_score", "engagement_score",
+            "sentiment_score_total", "sentiment_trajectory",
+            "divergence_flag", "dominant_sentiment", "bullish_ratio_stocktwits",
+            "mention_volume_stocktwits", "engagement_item_count",
+            "sentiment_offline", "sentiment_offline_cap", "sub_signal_data_quality",
         ]
         for key in required:
             assert key in result, f"Missing key: {key}"
-
-    def test_cross_platform_consistent_bullish(self):
-        score = compute_cross_platform_consistency(0.70, 0.75)
-        assert score == 1.0
-
-    def test_cross_platform_inconsistent(self):
-        score = compute_cross_platform_consistency(0.80, 0.20)
-        assert score < 0.5
-
-    def test_organic_spike_detected(self):
-        ratios = [0.30, 0.35, 0.40, 0.50, 0.65]
-        spike = detect_spike_type(ratios, list(range(5)), [str(i) for i in range(10)])
-        assert spike == "organic"
 
 
 # ---------------------------------------------------------------------------

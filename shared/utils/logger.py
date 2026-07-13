@@ -48,9 +48,9 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
 
 _AUDIT_COLUMNS = [
     "timestamp_utc", "model_version", "scan_type", "ticker",
-    "technical_score", "sentiment_score", "news_score", "base_score",
+    "technical_score", "positioning_score", "sentiment_score", "news_score", "base_score",
     "regime_modifier", "sector_rotation_modifier", "earnings_modifier",
-    "cross_ticker_modifier", "insider_modifier", "seasonality_modifier",
+    "cross_ticker_modifier", "seasonality_modifier",
     "macro_modifier", "final_score",
     "signal_surfaced", "direction", "structure_recommended",
     "ev_per_dollar", "rr_ratio", "entry_lower", "entry_upper",

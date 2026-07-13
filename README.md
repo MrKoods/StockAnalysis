@@ -22,7 +22,7 @@ A swing trading decision-support system for the semiconductor sector (NVDA, AMD,
 | Key | Where to Get It | `.env` Variable |
 |---|---|---|
 | Alpha Vantage | [alphavantage.co](https://www.alphavantage.co/support/#api-key) — free tier | `ALPHA_VANTAGE_API_KEY` |
-| Reddit (PRAW) | [reddit.com/prefs/apps](https://www.reddit.com/prefs/apps) — create script app | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` |
+| StockTwits + Seeking Alpha Finance (RapidAPI) | [rapidapi.com](https://rapidapi.com) — paid subscription, shared key for both (Sentiment layer) | `RAPIDAPI_KEY` |
 | Finnhub | [finnhub.io](https://finnhub.io) — free tier; used for `/company-news` headlines only (social-sentiment requires a paid plan) | `FINNHUB_API_KEY` |
 | Discord Webhook | Discord server → Edit Channel → Integrations → Webhooks | `DISCORD_WEBHOOK_URL` |
 | Gmail SMTP (optional) | Gmail account + App Password | `SMTP_USER`, `SMTP_PASSWORD`, `ALERT_EMAIL_TO` |
