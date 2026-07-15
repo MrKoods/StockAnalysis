@@ -4,11 +4,7 @@ All tests avoid network calls and file I/O where possible.
 """
 
 import csv
-import json
 import pytest
-import tempfile
-from pathlib import Path
-from datetime import datetime, timezone
 
 from paper_trading.fill_tracker import log_fill, compute_avg_slippage, check_slippage_threshold
 from paper_trading.paper_trade_engine import simulate_fill

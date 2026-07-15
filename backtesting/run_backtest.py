@@ -5,12 +5,11 @@ Full run: 70/30 split, walk-forward validation, per-regime reporting.
 """
 
 import argparse
-import json
 from pathlib import Path
 
 import pandas as pd
 
-from backtesting.backtest_engine import run_backtest, run_walk_forward
+from backtesting.backtest_engine import run_backtest
 from backtesting.metrics import run_sensitivity_analysis
 from shared.utils.logger import get_logger
 
@@ -76,7 +75,7 @@ def main() -> None:
         logger.info("Running full backtest (70/30 split + walk-forward)")
         result = run_backtest(historical_data)
 
-        print(f"\nBacktest Results:")
+        print("\nBacktest Results:")
         print(f"  Passed:           {result.get('passed')}")
         print(f"  Win Rate:         {result.get('win_rate', 0.0):.1%}")
         print(f"  Avg R:R:          {result.get('avg_rr', 0.0):.2f}")
@@ -86,7 +85,7 @@ def main() -> None:
         print(f"  Max Consec Loss:  {result.get('max_consecutive_losses', 0)}")
 
         if result.get("per_regime"):
-            print(f"\nPer-Regime Results:")
+            print("\nPer-Regime Results:")
             for regime, metrics in result["per_regime"].items():
                 print(f"  {regime}: win={metrics['win_rate']:.1%} "
                       f"avg_rr={metrics['avg_rr']:.2f} trades={metrics['trade_count']}")

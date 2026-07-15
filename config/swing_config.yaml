@@ -394,6 +394,42 @@ volume_profile:
   lookback_days: 60
   price_bucket_pct: 0.005           # 0.5% price buckets for volume node analysis
 
+# Event Severity Gate — binary veto mechanism in the news pipeline (not a scoring
+# category). Critical + thesis-opposed news blocks a ticker (or the whole watchlist
+# for sector-wide triggers) from surfacing any new signal until the next post-close
+# scan completes after the event. See Project_Scope.md "Event Severity Gate".
+event_severity_gate:
+  enabled: true
+  cooling_off: next_post_close_scan   # only supported value for now
+  sector_wide_triggers:                # any match => block entire watchlist
+    - "export restriction"
+    - "export ban"
+    - "chip ban"
+    - "tariff"
+    - "trade war"
+    - "Taiwan Strait"
+    - "semiconductor embargo"
+    - "entity list"
+    - "national security review"
+  ticker_triggers:                     # match + NER ticker attribution => block that ticker
+    - "CEO resigns"
+    - "CEO departure"
+    - "fraud"
+    - "SEC investigation"
+    - "DOJ investigation"
+    - "guidance withdrawn"
+    - "accounting irregularities"
+    - "restatement"
+    - "halted"
+  principal_sources:                   # statements from these actors matching any trigger are always critical
+    - "President"
+    - "White House"
+    - "Federal Reserve"
+    - "Commerce Department"
+    - "USTR"
+  min_source_credibility: 0.5          # below this, trigger match logs WARNING but does not gate
+  require_headline_match: true         # case-insensitive match against post-NER headline text
+
 # Technical indicators
 technical:
   ma_short: 20

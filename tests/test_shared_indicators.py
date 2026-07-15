@@ -19,7 +19,6 @@ from shared.indicators.technical_common import (
     rsi,
     atr,
     macd,
-    volume_zscore,
     compute_technical_indicators,
 )
 
@@ -163,7 +162,6 @@ class TestATR:
 
     def test_atr_wider_than_high_minus_low(self, ohlcv_trending_up):
         # ATR uses true range (includes gaps) so >= H-L
-        hl = ohlcv_trending_up["High"] - ohlcv_trending_up["Low"]
         result = atr(
             ohlcv_trending_up["High"],
             ohlcv_trending_up["Low"],

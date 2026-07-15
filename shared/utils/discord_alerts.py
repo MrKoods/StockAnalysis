@@ -5,7 +5,6 @@ Supports two-message architecture for trade alerts (primary compact + optional "
 Each alert is sent as a Discord embed for clean formatting.
 """
 
-import json
 import os
 from datetime import datetime, timezone
 from typing import Optional
@@ -262,6 +261,58 @@ def send_macro_warning(macro_state: dict) -> bool:
              "value": str(macro_state.get("confidence_modifier", 0.0)),
              "inline": True},
         ],
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
+def send_event_gate_triggered_alert(
+    block: dict,
+    open_positions_affected: Optional[list[dict]] = None,
+    model_version: str = "v1.0.0",
+) -> bool:
+    """
+    🚨 EVENT_GATE_TRIGGERED — critical, thesis-opposed news has vetoed new signal
+    surfacing for one ticker (ticker scope) or the entire watchlist (sector scope).
+    """
+    tickers = block.get("tickers", [])
+    scope = block.get("scope", "ticker")
+    open_positions_affected = open_positions_affected or []
+
+    embed = {
+        "title": f"🚨 EVENT SEVERITY GATE TRIGGERED — {scope.upper()} BLOCK",
+        "color": _COLORS["red"],
+        "description": block.get("trigger_headline", "")[:2000],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Blocked Tickers", "value": ", ".join(tickers) or "—", "inline": False},
+            {"name": "Trigger Match", "value": block.get("trigger_match", "—"), "inline": True},
+            {"name": "Source", "value": block.get("source", "—"), "inline": True},
+            {"name": "Expiry Condition", "value": block.get("expiry_condition", "next_post_close_scan"), "inline": True},
+            {
+                "name": "Open Positions Affected",
+                "value": ", ".join(p.get("ticker", "?") for p in open_positions_affected) or "None",
+                "inline": False,
+            },
+        ],
+        "footer": {"text": f"StockAnalysis {model_version} | New signals suppressed until cooling-off completes"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
+def send_event_gate_expired_alert(block: dict, model_version: str = "v1.0.0") -> bool:
+    """ℹ️ EVENT_GATE_EXPIRED — cooling-off complete (a post-close scan ran after the
+    event); the ticker(s) surface normally again on the next qualifying score."""
+    tickers = block.get("tickers", [])
+    embed = {
+        "title": f"ℹ️ EVENT GATE EXPIRED — {', '.join(tickers) or '—'}",
+        "color": _COLORS["grey"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Trigger Match", "value": block.get("trigger_match", "—"), "inline": True},
+            {"name": "Scope", "value": block.get("scope", "—"), "inline": True},
+            {"name": "Blocked Since", "value": block.get("created_at_utc", "—"), "inline": True},
+        ],
+        "footer": {"text": f"StockAnalysis {model_version} | Post-close scan completed after event — normal scoring resumed"},
     }
     return _post_to_webhook({"embeds": [embed]})
 

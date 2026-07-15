@@ -248,7 +248,6 @@ def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
     adj_sent = 0.02 if sent_win > sent_loss else -0.02
     adj_news = 0.02 if news_win > news_loss else -0.02
 
-    max_adj = 0.10  # cap at ±10pp
     new_weights = {
         "technical": round(max(0.30, min(0.80, current_weights.get("technical", 0.60) + adj_tech)), 4),
         "sentiment": round(max(0.05, min(0.40, current_weights.get("sentiment", 0.25) + adj_sent)), 4),

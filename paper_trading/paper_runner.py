@@ -21,7 +21,6 @@ import csv
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 # Load .env before any imports that read environment variables
 try:
@@ -42,6 +41,11 @@ from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_signal_alert
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.regime_detection import REGIME_HIGH_VOL
+from shared.utils.event_gate import (
+    load_gate_state, save_gate_state, is_ticker_blocked, add_block,
+    has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
+    SCOPE_SECTOR,
+)
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
@@ -57,6 +61,9 @@ from swing_model.run_swing_model import (
     _fetch_finnhub_news_safe,
     _fetch_earnings_safe,
     get_model_version,
+    _try_send_event_gate_alert,
+    _try_send_event_gate_expired_alert,
+    _write_event_gate_audit,
 )
 
 logger = get_logger(__name__)
@@ -111,6 +118,12 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     model_version = get_model_version()
     today_str = date.today().isoformat()
     already_logged = _load_logged_keys()
+
+    # Event Severity Gate state — shared with run_swing_model.py's live scans
+    # (same real-world tickers, same blocks). See event_gate.expire_blocks for
+    # why blocks created in this run must be excluded from this run's expiry.
+    gate_state = load_gate_state()
+    blocks_created_this_scan: set[str] = set()
 
     watchlist: list[str] = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
     rr_cfg: dict = cfg.get("risk_reward", {})
@@ -168,6 +181,15 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             fundamental = indicators.get("_fundamental_full") or {}
             positioning = indicators.get("_positioning_full") or {}
 
+            # Event Severity Gate — check for an existing block (from a prior
+            # scan) before scoring. Full parity with run_swing_model.py: the
+            # gate is part of the model's own veto logic, not a portfolio-level
+            # constraint, so paper trading must apply it to reflect what the
+            # live model would actually surface.
+            existing_gate_block = is_ticker_blocked(ticker, gate_state)
+            event_gate_blocked = existing_gate_block is not None
+            event_gate_trigger = existing_gate_block.get("trigger_match") if existing_gate_block else None
+
             # Full confidence score
             score = compute_confidence_score(
                 technical=indicators,
@@ -183,9 +205,59 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 cfg=cfg,
                 regime=regime,
                 fundamental=fundamental,
+                event_gate_blocked=event_gate_blocked,
+                event_gate_trigger=event_gate_trigger,
             )
 
             final_score = float(score.get("final_score", 0.0))
+            direction = score.get("direction", "bullish")
+
+            # Event Severity Gate — process this scan's critical news for this
+            # ticker (may block it before it's even logged as a paper signal).
+            # Sector-wide triggers block unconditionally; ticker triggers block
+            # only when thesis-opposed. Mirrors run_swing_model.py exactly,
+            # including updating this scan's own score dict in place so a
+            # same-scan critical event can't slip through before its own block
+            # is created (see run_swing_model.py for the full rationale).
+            for event in news.get("critical_events", []):
+                event_scope = event["scope"]
+                trigger = event["trigger_match"]
+
+                if event_scope == SCOPE_SECTOR:
+                    if not has_active_block_for_trigger(gate_state, trigger, SCOPE_SECTOR):
+                        gate_state = add_block(
+                            gate_state, tickers=list(watchlist), scope=SCOPE_SECTOR,
+                            trigger_headline=event["headline"], trigger_match=trigger,
+                            source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                        )
+                        new_block = gate_state["blocks"][-1]
+                        blocks_created_this_scan.add(new_block["id"])
+                        _try_send_event_gate_alert(new_block, model_version)
+                        _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
+                        score["event_gate_blocked"] = True
+                        score["event_gate_trigger"] = trigger
+                else:
+                    opposed = is_thesis_opposed(event.get("ner_sentiment"), direction)
+                    if opposed and not is_ticker_blocked(ticker, gate_state):
+                        gate_state = add_block(
+                            gate_state, tickers=[ticker], scope=event_scope,
+                            trigger_headline=event["headline"], trigger_match=trigger,
+                            source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                        )
+                        new_block = gate_state["blocks"][-1]
+                        blocks_created_this_scan.add(new_block["id"])
+                        _try_send_event_gate_alert(new_block, model_version)
+                        _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
+                        score["event_gate_blocked"] = True
+                        score["event_gate_trigger"] = trigger
+
+            if score.get("event_gate_blocked"):
+                logger.info(
+                    f"{ticker}: EVENT GATE BLOCKED (trigger='{score.get('event_gate_trigger')}') "
+                    f"— paper signal suppressed, matches live model behavior"
+                )
+                continue
+
             if final_score < CONFIDENCE_THRESHOLD:
                 continue
 
@@ -215,7 +287,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 trade_result = rank_trade_structures(
                     {
                         "ticker": ticker,
-                        "direction": score.get("direction", "bullish"),
+                        "direction": direction,
                         "confidence": final_score,
                         "entry": entry_mid,
                         "entry_mid": entry_mid,
@@ -302,6 +374,17 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
 
         except Exception as exc:
             logger.error(f"{ticker}: paper_runner error — {exc}")
+
+    # Event Severity Gate — expire blocks whose cooling-off condition is met,
+    # same rule as run_swing_model.py: a post_close scan completing after the
+    # block's event timestamp, excluding blocks created earlier in this run.
+    newly_expired_blocks = expire_blocks(
+        gate_state, scan_type, datetime.now(timezone.utc), exclude_ids=blocks_created_this_scan,
+    )
+    save_gate_state(gate_state)
+    for expired_block in newly_expired_blocks:
+        _try_send_event_gate_expired_alert(expired_block, model_version)
+        _write_event_gate_audit(expired_block, model_version, scan_type, triggered=False)
 
     logger.info(f"Paper scan complete — {signals_logged} new signals logged to {PAPER_TRADES_CSV}")
     return signals_logged

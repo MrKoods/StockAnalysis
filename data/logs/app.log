@@ -824,3 +824,232 @@
 2026-07-09 20:56:05,252 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
 2026-07-12 22:23:00,090 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
 2026-07-12 22:23:33,415 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-13 15:55:05,703 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-13 15:55:05,704 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-13 19:08:55,225 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-13 19:08:55,703 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=203.53, rsi=49.9, atr=7.20)
+2026-07-13 19:08:55,708 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=534.39, rsi=53.1, atr=35.85)
+2026-07-13 19:08:55,713 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=384.05, rsi=48.2, atr=17.43)
+2026-07-13 19:08:55,718 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=421.58, rsi=46.1, atr=19.67)
+2026-07-13 19:08:55,723 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=937.00, rsi=46.2, atr=86.28)
+2026-07-13 19:08:55,727 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1726.04, rsi=46.8, atr=89.97)
+2026-07-13 19:08:55,727 [swing_model.indicator_pipeline] INFO — Monday post-17:00 ET — fetching fresh fundamental data.
+2026-07-13 19:08:55,727 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-07-13 19:08:56,732 [shared.api_clients.fundamental_client] WARNING — NVDA: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-13 19:09:27,217 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-13 19:09:27,762 [shared.api_clients.fundamental_client] WARNING — AMD: earnings_history attempt 1 failed — No quarterlyEarnings key in response: ['Information'] — retrying in 30s
+2026-07-13 19:09:58,638 [shared.api_clients.fundamental_client] WARNING — AMD: estimate_revisions attempt 1 failed — OVERVIEW response missing Symbol: ['Information'] — retrying in 30s
+2026-07-13 19:10:29,104 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-13 19:10:29,660 [shared.api_clients.fundamental_client] WARNING — AVGO: earnings_history attempt 1 failed — No quarterlyEarnings key in response: ['Information'] — retrying in 30s
+2026-07-14 08:07:01,505 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-14 08:07:01,509 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
+2026-07-14 14:07:47,487 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 5 engagement items for NVDA.
+2026-07-14 14:24:20,575 [shared.api_clients.sentiment_client] WARNING — RapidAPI request rejected with HTTP 403 (no retry): 403 Client Error: Forbidden for url: https://stocktwits.p.rapidapi.com/streams/symbol/NVDA.json
+2026-07-14 14:24:21,550 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 3 engagement items for NVDA.
+2026-07-14 14:25:26,780 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 3 messages for NVDA.
+2026-07-14 14:25:28,320 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 3 engagement items for NVDA.
+2026-07-14 14:37:19,113 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 14:44:02,596 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:29:17,522 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:29:17,523 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:29:17,526 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:29:17,527 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:29:17,528 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:29:17,528 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:17,529 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:17,530 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:17,530 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:17,531 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:17,545 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:29:17,550 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:29:24,738 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:29:24,739 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:29:24,742 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:29:24,743 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:29:24,744 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:29:24,745 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:24,746 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:24,746 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:24,747 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:24,747 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:29:24,762 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:29:24,765 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:29:24,975 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:32:01,565 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-14 16:32:02,093 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=211.80, rsi=56.4, atr=7.35)
+2026-07-14 16:32:02,097 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=548.13, rsi=55.2, atr=36.13)
+2026-07-14 16:32:02,101 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=389.11, rsi=49.9, atr=17.13)
+2026-07-14 16:32:02,106 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=420.39, rsi=45.7, atr=19.13)
+2026-07-14 16:32:02,110 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=983.12, rsi=49.7, atr=84.24)
+2026-07-14 16:32:02,115 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1775.64, rsi=50.1, atr=88.70)
+2026-07-14 16:32:02,115 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-06T23:36:55.801243+00:00)
+2026-07-14 16:32:02,116 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-07-14 16:32:02,650 [swing_model.indicator_pipeline] INFO —   NVDA: positioning data fetched OK
+2026-07-14 16:32:03,132 [swing_model.indicator_pipeline] INFO —   AMD: positioning data fetched OK
+2026-07-14 16:32:03,691 [swing_model.indicator_pipeline] INFO —   AVGO: positioning data fetched OK
+2026-07-14 16:32:04,235 [swing_model.indicator_pipeline] INFO —   TSM: positioning data fetched OK
+2026-07-14 16:32:04,938 [swing_model.indicator_pipeline] INFO —   MU: positioning data fetched OK
+2026-07-14 16:32:05,439 [swing_model.indicator_pipeline] INFO —   ASML: positioning data fetched OK
+2026-07-14 16:32:05,447 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-07-14 16:32:05,448 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-14 16:32:06,808 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NVDA.
+2026-07-14 16:32:09,156 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for NVDA.
+2026-07-14 16:32:09,602 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-07-14 16:32:09,815 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-07-14 16:32:10,213 [shared.api_clients.news_client] INFO — Finnhub: fetched 249 articles for NVDA.
+2026-07-14 16:32:10,987 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMD.
+2026-07-14 16:32:13,180 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMD.
+2026-07-14 16:32:14,245 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMD.
+2026-07-14 16:32:14,416 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-07-14 16:32:14,799 [shared.api_clients.news_client] INFO — Finnhub: fetched 246 articles for AMD.
+2026-07-14 16:32:15,437 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AVGO.
+2026-07-14 16:32:17,196 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AVGO.
+2026-07-14 16:32:17,799 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AVGO.
+2026-07-14 16:32:17,941 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-07-14 16:32:18,288 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for AVGO.
+2026-07-14 16:32:18,915 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSM.
+2026-07-14 16:32:20,616 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TSM.
+2026-07-14 16:32:21,179 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-07-14 16:32:21,358 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-07-14 16:32:21,697 [shared.api_clients.news_client] INFO — Finnhub: fetched 33 articles for TSM.
+2026-07-14 16:32:22,269 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MU.
+2026-07-14 16:32:24,230 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MU.
+2026-07-14 16:32:24,807 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for MU.
+2026-07-14 16:32:25,031 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-07-14 16:32:25,387 [shared.api_clients.news_client] INFO — Finnhub: fetched 248 articles for MU.
+2026-07-14 16:32:25,914 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ASML.
+2026-07-14 16:32:27,586 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ASML.
+2026-07-14 16:32:28,172 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for ASML.
+2026-07-14 16:32:28,553 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-07-14 16:32:28,920 [shared.api_clients.news_client] INFO — Finnhub: fetched 82 articles for ASML.
+2026-07-14 16:32:28,977 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-14 16:32:42,287 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:32:42,288 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:32:42,292 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:32:42,292 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:32:42,293 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:32:42,294 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:32:42,295 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:32:42,295 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:32:42,296 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:32:42,297 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:32:42,310 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:32:42,314 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:32:42,526 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:34:17,071 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:34:17,073 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:34:17,076 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:34:17,077 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:34:17,078 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:34:17,079 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:34:17,079 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:34:17,080 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:34:17,080 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:34:17,081 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:34:17,095 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:34:17,099 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:34:17,458 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:35:01,232 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:35:01,233 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:35:01,236 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:35:01,237 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:35:01,238 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:35:01,239 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:01,239 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:01,240 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:01,240 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:01,241 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:01,254 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:35:01,259 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:35:01,478 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:35:48,145 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:35:48,147 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:35:48,150 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:35:48,151 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:35:48,152 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:35:48,152 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:48,153 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:48,154 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:48,154 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:48,155 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:35:48,165 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:35:48,169 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:35:48,386 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:45:10,278 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:45:10,280 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:45:10,283 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:45:10,284 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:45:10,285 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:45:10,286 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:45:10,286 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:45:10,287 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:45:10,288 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:45:10,288 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:45:10,298 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:45:10,303 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:45:10,517 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 16:48:19,178 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 16:48:19,179 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:48:19,183 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 16:48:19,184 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 16:48:19,185 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 16:48:19,186 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:48:19,186 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:48:19,187 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:48:19,188 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:48:19,188 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 16:48:19,202 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 16:48:19,206 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 16:48:19,430 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 17:27:49,336 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 17:27:49,338 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 17:27:49,341 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 17:27:49,342 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 17:27:49,343 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 17:27:49,343 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:27:49,344 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:27:49,344 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:27:49,345 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:27:49,346 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:27:49,359 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 17:27:49,363 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 17:27:49,575 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 17:46:26,672 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 17:46:26,673 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 17:46:26,676 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 17:46:26,677 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 17:46:26,678 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 17:46:26,679 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:46:26,679 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:46:26,680 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:46:26,680 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:46:26,681 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 17:46:26,694 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 17:46:26,698 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 17:46:26,903 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 18:32:48,495 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 18:32:48,496 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 18:32:48,500 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 18:32:48,500 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 18:32:48,502 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 18:32:48,502 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:32:48,503 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:32:48,504 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:32:48,504 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:32:48,505 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:32:48,515 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 18:32:48,519 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 18:32:48,746 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-14 18:33:36,463 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-14 18:33:36,464 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 18:33:36,468 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-14 18:33:36,468 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-14 18:33:36,469 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-14 18:33:36,470 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:33:36,471 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:33:36,471 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:33:36,472 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:33:36,473 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-14 18:33:36,483 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-14 18:33:36,487 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-14 18:33:36,698 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold

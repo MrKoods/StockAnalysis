@@ -6,7 +6,6 @@ Forward-testing period: 60-90 trading days minimum before Phase 15 go-live.
 """
 
 from datetime import datetime, timezone
-from typing import Optional
 
 
 def run_paper_session(
@@ -26,8 +25,6 @@ def run_paper_session(
     Returns session results dict.
     """
     from swing_model.indicator_pipeline import load_config
-    import yaml
-    from pathlib import Path
 
     try:
         cfg = load_config(cfg_path)
@@ -49,7 +46,6 @@ def run_paper_session(
     # 2. All fills are logged to fill_log.csv at recommended price
     # 3. Open positions are tracked in data/processed/paper_positions.json
 
-    from paper_trading.fill_tracker import log_fill
     from paper_trading.paper_state import load_paper_state, save_paper_state
 
     state = load_paper_state()

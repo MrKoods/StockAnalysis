@@ -5,8 +5,6 @@ Tests for Phase 5:
 """
 
 import pandas as pd
-import numpy as np
-import pytest
 
 from shared.utils.volume_profile import (
     compute_volume_profile,
@@ -83,7 +81,6 @@ class TestVolumeProfile:
         # Add a synthetic HVN below current price
         vp["volume_at_level"] = 0.0
         vp["is_high_volume_node"] = False
-        median_vol = 1000.0
         # Manually mark a level below price=130 as HVN
         levels = vp.index.tolist()
         below = [lv for lv in levels if lv < 120.0]

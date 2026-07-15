@@ -4,8 +4,6 @@ Tracks theme momentum over time. A bullish NVDA breakout during "AI demand"
 dominance has more conviction than the same setup during "supply chain uncertainty."
 """
 
-from typing import Optional
-import re
 
 
 THEME_KEYWORDS: dict[str, list[str]] = {

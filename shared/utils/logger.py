@@ -9,7 +9,6 @@ import logging
 import logging.handlers
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 
 _loggers: dict[str, logging.Logger] = {}
@@ -55,6 +54,7 @@ _AUDIT_COLUMNS = [
     "signal_surfaced", "direction", "structure_recommended",
     "ev_per_dollar", "rr_ratio", "entry_lower", "entry_upper",
     "stop_loss", "target", "notes",
+    "event_gate_blocked", "event_gate_trigger",
 ]
 
 

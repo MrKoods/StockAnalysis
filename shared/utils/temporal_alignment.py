@@ -5,7 +5,7 @@ All timestamps must be UTC before entering this module.
 """
 
 import math
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Optional
 
 import pandas as pd

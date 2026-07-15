@@ -12,7 +12,6 @@ All tests use synthetic data — no API calls.
 import math
 from datetime import datetime, timezone, timedelta
 
-import pytest
 
 from shared.utils.temporal_alignment import (
     news_decay_weight,

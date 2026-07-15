@@ -109,8 +109,8 @@ def fetch_seeking_alpha_engagement(ticker: str, limit: int = 10) -> list[dict]:
         logger.warning("RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.")
         return []
 
-    url = f"https://{_SEEKING_ALPHA_HOST}/symbols/news"
-    params = {"ticker_slug": ticker, "size": limit}
+    url = f"https://{_SEEKING_ALPHA_HOST}/v1/symbols/news"
+    params = {"ticker_slug": ticker, "page_number": 1, "category": "all"}
     data = _rapidapi_get(url, _SEEKING_ALPHA_HOST, api_key, params=params)
     if data is None:
         return []
@@ -146,7 +146,10 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
     backoff (30s -> 60s -> 120s). 4xx client errors (except 429) are not
     retried. Returns parsed JSON or None.
     """
-    headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": host}
+    # StockTwits' backend fronts this RapidAPI endpoint with Cloudflare bot
+    # protection that blocks the default python-requests User-Agent (403 +
+    # "Just a moment..." challenge page) — a browser/curl-like UA passes.
+    headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": host, "User-Agent": "curl/8.4.0"}
     delays = _BACKOFF_DELAYS
     for attempt in range(retries):
         try:

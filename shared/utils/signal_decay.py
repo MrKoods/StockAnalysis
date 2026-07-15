@@ -8,7 +8,7 @@ Also tracks win-rate feedback per signal type from signal_win_rates.json.
 
 import json
 import math
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 

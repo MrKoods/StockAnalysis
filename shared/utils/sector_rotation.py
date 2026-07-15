@@ -16,7 +16,7 @@ ROTATION_OUTFLOW = "outflow"
 def compute_rotation_state(
     smh_close: pd.Series,
     spy_close: pd.Series,
-    windows: list[int] = [5, 20, 60],
+    windows: Optional[list[int]] = None,
 ) -> dict:
     """
     Compute sector rotation state for semiconductors vs. broad market.
@@ -34,6 +34,8 @@ def compute_rotation_state(
         confidence_modifier
     }
     """
+    if windows is None:
+        windows = [5, 20, 60]
     relative: dict[int, float] = {}
     for w in windows:
         if len(smh_close) < w + 1 or len(spy_close) < w + 1:

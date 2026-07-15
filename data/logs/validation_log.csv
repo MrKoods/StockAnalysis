@@ -118,3 +118,256 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-13T05:23:33.489940+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-07-13T05:23:33.490886+00:00,NVDA,news,news_future_timestamp
 2026-07-13T05:23:33.494473+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:37:19.171605+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:37:19.172419+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:37:19.173744+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T21:37:19.175761+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T21:37:19.177651+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T21:37:19.179443+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T21:37:19.181449+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T21:37:19.183357+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T21:37:19.184157+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T21:37:19.184923+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T21:37:19.186580+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T21:37:19.187409+00:00,NVDA,news,news_future_timestamp
+2026-07-14T21:37:19.189859+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:44:02.657893+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:44:02.658725+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T21:44:02.660138+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T21:44:02.662174+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T21:44:02.664259+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T21:44:02.666282+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T21:44:02.668356+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T21:44:02.669992+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T21:44:02.670710+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T21:44:02.671431+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T21:44:02.673020+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T21:44:02.673737+00:00,NVDA,news,news_future_timestamp
+2026-07-14T21:44:02.676026+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:29:17.532691+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:17.532986+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:17.533780+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:17.534521+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:17.535261+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:29:17.535997+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:29:17.537435+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:29:17.537208+00:00
+2026-07-14T23:29:24.748704+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:24.749206+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:24.750050+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:24.750886+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:29:24.751712+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:29:24.752518+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:29:24.753996+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:29:24.753802+00:00
+2026-07-14T23:29:25.035629+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:29:25.036425+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:29:25.037781+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:29:25.039864+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:29:25.044102+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:29:25.047278+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:29:25.050660+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:29:25.053102+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:29:25.054126+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:29:25.056215+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:29:25.058544+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:29:25.059684+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:29:25.062652+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:32:42.297810+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:32:42.298096+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:32:42.298836+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:32:42.299560+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:32:42.300300+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:32:42.301067+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:32:42.302298+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:32:42.302126+00:00
+2026-07-14T23:32:42.589965+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:32:42.590879+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:32:42.592537+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:32:42.594700+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:32:42.597065+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:32:42.599041+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:32:42.601934+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:32:42.603961+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:32:42.604765+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:32:42.605572+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:32:42.607796+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:32:42.608587+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:32:42.610928+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:34:17.082558+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:34:17.082846+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:34:17.083655+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:34:17.084432+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:34:17.085193+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:34:17.086177+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:34:17.087455+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:34:17.087258+00:00
+2026-07-14T23:34:17.520450+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:34:17.521248+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:34:17.522601+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:34:17.524756+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:34:17.526776+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:34:17.528610+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:34:17.530626+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:34:17.532259+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:34:17.533008+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:34:17.533729+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:34:17.535308+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:34:17.536057+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:34:17.538407+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:01.242361+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:01.242645+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:01.243444+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:01.244160+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:01.244881+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:35:01.245680+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:35:01.246874+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:35:01.246699+00:00
+2026-07-14T23:35:01.536525+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:01.537397+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:01.538793+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:35:01.541124+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:01.543104+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:01.545016+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:01.547440+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:35:01.549283+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:35:01.550065+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:35:01.550816+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:35:01.552674+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:35:01.553445+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:35:01.555771+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:48.156040+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:48.156354+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:48.157099+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:48.157814+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:35:48.158543+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:35:48.159281+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:35:48.160466+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:35:48.160297+00:00
+2026-07-14T23:35:48.446835+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:48.447692+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:35:48.449062+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:35:48.451135+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:48.453068+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:48.454885+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:35:48.456917+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:35:48.458589+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:35:48.459336+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:35:48.460079+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:35:48.461942+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:35:48.462728+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:35:48.465048+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:45:10.289517+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:45:10.289808+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:45:10.290531+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:45:10.291247+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:45:10.292039+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:45:10.292749+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:45:10.293910+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:45:10.293743+00:00
+2026-07-14T23:45:10.579394+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:45:10.580314+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:45:10.581684+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:45:10.584006+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:45:10.586194+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:45:10.588146+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:45:10.590188+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:45:10.591831+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:45:10.592589+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:45:10.593300+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:45:10.595033+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:45:10.595801+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:45:10.598134+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:48:19.189486+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:48:19.189805+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:48:19.190591+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:48:19.191308+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-14T23:48:19.192038+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-14T23:48:19.192767+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-14T23:48:19.193920+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-14T23:48:19.193751+00:00
+2026-07-14T23:48:19.489435+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:48:19.490248+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-14T23:48:19.491581+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-14T23:48:19.494138+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-14T23:48:19.496156+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-14T23:48:19.497994+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-14T23:48:19.500030+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-14T23:48:19.501993+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-14T23:48:19.502867+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-14T23:48:19.503630+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-14T23:48:19.505409+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-14T23:48:19.506394+00:00,NVDA,news,news_future_timestamp
+2026-07-14T23:48:19.508968+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:27:49.347032+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:27:49.347334+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:27:49.348079+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:27:49.348885+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:27:49.349646+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-15T00:27:49.350417+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-15T00:27:49.351602+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-15T00:27:49.351430+00:00
+2026-07-15T00:27:49.636552+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:27:49.637383+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:27:49.638700+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-15T00:27:49.640777+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-15T00:27:49.642690+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-15T00:27:49.644541+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-15T00:27:49.646746+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-15T00:27:49.648385+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-15T00:27:49.649176+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-15T00:27:49.649904+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-15T00:27:49.651486+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-15T00:27:49.652429+00:00,NVDA,news,news_future_timestamp
+2026-07-15T00:27:49.655174+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:46:26.682285+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:46:26.682572+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:46:26.683299+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:46:26.684014+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T00:46:26.684729+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-15T00:46:26.685449+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-15T00:46:26.686612+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-15T00:46:26.686439+00:00
+2026-07-15T00:46:26.962861+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:46:26.963714+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T00:46:26.965096+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-15T00:46:26.967442+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-15T00:46:26.969687+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-15T00:46:26.971795+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-15T00:46:26.974202+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-15T00:46:26.975991+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-15T00:46:26.976799+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-15T00:46:26.977627+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-15T00:46:26.979381+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-15T00:46:26.980317+00:00,NVDA,news,news_future_timestamp
+2026-07-15T00:46:26.982868+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:32:48.506372+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:32:48.506715+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:32:48.507481+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:32:48.508205+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:32:48.509000+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-15T01:32:48.509746+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-15T01:32:48.511016+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-15T01:32:48.510841+00:00
+2026-07-15T01:32:48.814341+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:32:48.815268+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:32:48.816908+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-15T01:32:48.819155+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-15T01:32:48.821393+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-15T01:32:48.823588+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-15T01:32:48.826054+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-15T01:32:48.828352+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-15T01:32:48.829364+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-15T01:32:48.830286+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-15T01:32:48.832219+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-15T01:32:48.833031+00:00,NVDA,news,news_future_timestamp
+2026-07-15T01:32:48.835825+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:33:36.473987+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:33:36.474271+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:33:36.475034+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:33:36.475762+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T01:33:36.476508+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-15T01:33:36.477230+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-15T01:33:36.478660+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-15T01:33:36.478486+00:00
+2026-07-15T01:33:36.771354+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:33:36.772297+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T01:33:36.773792+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-15T01:33:36.776022+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-15T01:33:36.777949+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-15T01:33:36.779793+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-15T01:33:36.781819+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-15T01:33:36.783466+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-15T01:33:36.784241+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-15T01:33:36.784970+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-15T01:33:36.786540+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-15T01:33:36.787259+00:00,NVDA,news,news_future_timestamp
+2026-07-15T01:33:36.789657+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']

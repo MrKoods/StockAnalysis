@@ -5,7 +5,7 @@ Checks: price gaps, OHLC sanity, volume, single-day moves, sentiment ratio bound
 news score ranges, positioning field bounds, timestamp validity.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import pandas as pd
@@ -231,6 +231,57 @@ def validate_positioning_data(
     if reasons:
         write_validation_entry(ticker, "positioning", "; ".join(reasons))
     return len(reasons) == 0, reasons
+
+
+def validate_event_gate_state(state: dict, max_age_trading_days: int = 5) -> dict:
+    """
+    Validate data/processed/event_gate_state.json content on read.
+
+    - Malformed content (not a dict, missing/non-list 'blocks') is repaired to
+      an empty state with a warning — never crashes a scan.
+    - Individual malformed block entries (missing required keys, bad
+      timestamps) are dropped with a warning rather than failing the whole file.
+    - Blocks older than max_age_trading_days (approximated as calendar days,
+      same ~1.4x convention used elsewhere for a 5-trading-day window) are
+      auto-expired with a warning even if a post-close scan never explicitly
+      expired them — a safety net against a stuck block outliving its purpose.
+
+    Returns a repaired {"blocks": [...]} dict. Never raises.
+    """
+    required_block_keys = {"tickers", "scope", "trigger_match", "event_timestamp_utc", "expired"}
+
+    if not isinstance(state, dict) or not isinstance(state.get("blocks"), list):
+        write_validation_entry("_system", "event_gate_state", "malformed_state_repaired_to_empty")
+        return {"blocks": []}
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max_age_trading_days * 1.4)
+    clean_blocks = []
+    for block in state["blocks"]:
+        if not isinstance(block, dict) or not required_block_keys.issubset(block.keys()):
+            write_validation_entry("_system", "event_gate_state", f"malformed_block_dropped_{block}")
+            continue
+
+        ts = block.get("event_timestamp_utc")
+        try:
+            dt = datetime.fromisoformat(ts)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            write_validation_entry("_system", "event_gate_state", f"malformed_timestamp_dropped_{ts}")
+            continue
+
+        if not block.get("expired") and dt < cutoff:
+            write_validation_entry(
+                "_system", "event_gate_state",
+                f"stale_block_auto_expired_{block.get('trigger_match')}_{ts}",
+            )
+            block["expired"] = True
+            block["expired_at_utc"] = datetime.now(timezone.utc).isoformat()
+            block.setdefault("expiry_condition", "auto_expired_stale")
+
+        clean_blocks.append(block)
+
+    return {"blocks": clean_blocks}
 
 
 def run_preflight_validation(

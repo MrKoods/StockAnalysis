@@ -11,6 +11,32 @@ from shared.utils.source_credibility import score_news_outlet
 from shared.utils.ner_extractor import extract_ticker_sentiments, is_ticker_relevant
 from shared.utils.narrative_tracker import identify_dominant_theme, theme_alignment_modifier
 from shared.utils.temporal_alignment import news_decay_weight
+from shared.utils.event_gate import (
+    classify_severity as _classify_event_severity,
+    SEVERITY_CRITICAL, SCOPE_TICKER, SCOPE_SECTOR,
+)
+
+
+def classify_severity(item: dict, cfg: Optional[dict] = None) -> dict:
+    """
+    Classify one processed news item's Event Severity Gate status using the
+    config-driven keyword + source rules in config/swing_config.yaml
+    (event_severity_gate). Returns a copy of `item` with 'severity' ("normal"
+    or "critical") and 'scope' ("ticker" | "sector" | None) attached.
+
+    This is a veto-only classification, not a scoring input — News keeps its
+    normal 15-point additive scoring for every item regardless of severity.
+    """
+    cfg = cfg or {}
+    headline = item.get("title", "") or item.get("headline", "")
+    source = item.get("source_domain", "") or item.get("publisher", "") or item.get("source", "")
+    result = _classify_event_severity(headline, source, cfg)
+
+    updated = dict(item)
+    updated["severity"] = result["severity"]
+    updated["scope"] = result["scope"]
+    updated["trigger_match"] = result["trigger_match"]
+    return updated
 
 
 def compute_news_score(
@@ -66,6 +92,46 @@ def compute_news_score(
             }
             relevant.append(article_record)
             ner_results.append({"ticker": ticker, "sentiment": ticker_sentiment, "title": title})
+
+    # ---------------------------------------------------------------------------
+    # Event Severity Gate — classify every processed item for severity/scope.
+    # Sector-wide triggers (export policy, tariffs, Taiwan Strait, etc.) are
+    # checked across ALL articles, since a macro headline may never name a
+    # specific ticker and so wouldn't pass the ticker-relevance filter above.
+    # Ticker triggers require NER attribution to this ticker, so they're only
+    # checked against articles already confirmed relevant (NER already ran).
+    # This is classification only — no scoring effect here; the caller
+    # (run_swing_model.py) decides whether a critical event blocks or is
+    # merely logged, using scoring.py's computed trade direction.
+    # ---------------------------------------------------------------------------
+    critical_events = []
+    for art in all_articles:
+        title = art.get("title", "")
+        source = art.get("source_domain", "") or art.get("publisher", "")
+        classified = classify_severity({"title": title, "source_domain": source}, cfg)
+        if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_SECTOR:
+            critical_events.append({
+                "headline": title,
+                "source": source,
+                "scope": SCOPE_SECTOR,
+                "trigger_match": classified["trigger_match"],
+                "ner_sentiment": None,
+                "event_timestamp_utc": _parse_ts(art.get("timestamp_utc", "")).isoformat(),
+            })
+
+    for art in relevant:
+        title = art.get("title", "")
+        source = art.get("source_domain", "") or art.get("publisher", "")
+        classified = classify_severity({"title": title, "source_domain": source}, cfg)
+        if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_TICKER:
+            critical_events.append({
+                "headline": title,
+                "source": source,
+                "scope": SCOPE_TICKER,
+                "trigger_match": classified["trigger_match"],
+                "ner_sentiment": art.get("_ner_sentiment"),
+                "event_timestamp_utc": art["_ts"].isoformat(),
+            })
 
     # ---------------------------------------------------------------------------
     # 1. Credibility-weighted score (0-6)
@@ -125,6 +191,10 @@ def compute_news_score(
         "ner_sentiment_per_article": ner_results,
         "relevant_article_count": len(relevant),
         "total_article_count": len(all_articles),
+
+        # Event Severity Gate — classification only; run_swing_model.py decides
+        # whether to block (thesis-opposed) or merely log (thesis-aligned/neutral).
+        "critical_events": critical_events,
     }
 
 

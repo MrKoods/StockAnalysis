@@ -8,11 +8,7 @@ Pass criteria (all three required simultaneously):
 - Actual slippage within 10% of modeled estimates over the same period
 """
 
-from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
-import pandas as pd
 
 
 _PASS_CRITERIA = {

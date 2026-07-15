@@ -7,7 +7,6 @@ Standalone module testable with known inputs independent of the rest of the syst
 """
 
 import math
-from typing import Optional
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +144,6 @@ def compute_ev_surface(
     }
     """
     loss_prob = 1.0 - win_probability
-    price_range = target - stop
     up_move = target - entry
     down_move = entry - stop
 

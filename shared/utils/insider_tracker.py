@@ -7,7 +7,6 @@ Note: yfinance insider data has 1-2 business day delay — treat as confirmation
 """
 
 from datetime import datetime, timezone, timedelta
-from typing import Optional
 
 import pandas as pd
 
@@ -129,11 +128,6 @@ def classify_transactions(transactions: list[dict], window_days: int = 10) -> st
 
 def _signal_to_modifier(signal: str, transactions: list[dict]) -> float:
     """Convert classified signal to confidence modifier (-8 to +8)."""
-    buy_count = sum(1 for tx in transactions
-                    if "purchase" in str(tx.get("transaction", "")).lower()
-                    or "buy" in str(tx.get("transaction", "")).lower())
-    sell_count = len(transactions) - buy_count
-
     if signal == "buying":
         # 2+ distinct buyers → +8; single buyer → +4
         buyers = set(tx.get("insider") or tx.get("name", "x") for tx in transactions

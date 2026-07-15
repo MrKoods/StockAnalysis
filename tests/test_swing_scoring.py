@@ -12,7 +12,6 @@ from swing_model.scoring import (
     compute_confidence_score,
     compute_technical_sub_scores,
     apply_high_vol_regime_cap,
-    CONFIDENCE_THRESHOLD,
     TECHNICAL_MAX,
     POSITIONING_MAX,
     SENTIMENT_MAX,

@@ -7,7 +7,6 @@ import math
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -102,7 +101,7 @@ def compute_consecutive_losses(outcomes: list[dict]) -> int:
 
 def run_sensitivity_analysis(
     historical_data: dict,
-    thresholds: list[int] = [85, 87, 90, 92, 95],
+    thresholds: Optional[list[int]] = None,
 ) -> pd.DataFrame:
     """
     Run backtest across 5 confidence thresholds (Clarification 3).
@@ -110,6 +109,8 @@ def run_sensitivity_analysis(
     Returns DataFrame with columns: threshold, qualifying_trades, win_rate, avg_rr, signals_per_month, max_consec_losses.
     Saves to backtesting/reports/sensitivity_analysis.csv.
     """
+    if thresholds is None:
+        thresholds = [85, 87, 90, 92, 95]
     rows = []
     for threshold in thresholds:
         # Filter outcomes from historical_data by confidence threshold

@@ -10,9 +10,7 @@ All tests use synthetic deterministic series.
 
 from datetime import datetime, timezone
 
-import numpy as np
 import pandas as pd
-import pytest
 
 from shared.utils.regime_detection import (
     classify_regime,

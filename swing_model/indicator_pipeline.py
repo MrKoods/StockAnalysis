@@ -9,7 +9,6 @@ so fundamental scores are available every scan without API calls.
 """
 
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -18,7 +17,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yaml
 
-from shared.api_clients.market_data_client import fetch_ohlcv_batch, fetch_vix
+from shared.api_clients.market_data_client import fetch_ohlcv_batch
 from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.fundamental_client import FundamentalClient

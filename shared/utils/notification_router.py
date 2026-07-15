@@ -88,6 +88,7 @@ def classify_alert_priority(alert_type: str) -> str:
     _CRITICAL_TYPES = {
         "circuit_breaker_yellow", "circuit_breaker_orange", "circuit_breaker_red",
         "black_swan", "time_stop", "structure_stop", "missed_scan",
+        "event_gate_critical",
     }
     _HIGHEST_TYPES = {"black_swan", "circuit_breaker_red"}
 

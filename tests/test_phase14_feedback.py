@@ -6,8 +6,6 @@ All file I/O is redirected to tmp_path via monkeypatch.
 import csv
 import json
 import pytest
-from pathlib import Path
-from datetime import datetime, timezone
 
 from swing_model.feedback_loop import (
     log_trade_outcome,
@@ -177,7 +175,6 @@ class TestRunCalibration:
         assert "holdout_win_rate_old" in result
 
     def test_result_contains_required_keys(self, tmp_path, monkeypatch):
-        import swing_model.feedback_loop as fl
         result = run_calibration()
         for key in ("status", "weights_updated"):
             assert key in result

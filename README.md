@@ -69,6 +69,8 @@ A swing trading decision-support system for the semiconductor sector (NVDA, AMD,
 | 15 | 🔮 Future | Live execution (after Phase 13 paper trading passes) |
 | 16 | 🔮 Ongoing | Continuous improvement |
 
+**Event Severity Gate (v2.1.0):** ✅ Built and tested — `shared/utils/event_gate.py`, wired into `news_layer.py`/`scoring.py`/`run_swing_model.py`. Binary veto (not a scoring category) that suppresses signal surfacing on critical, thesis-opposed news until the next post-close scan completes after the event. See `CHANGELOG.md` v2.1.0 and `Project_Scope.md` → "Event Severity Gate". **Not yet backtested** — same not-live-eligible status as the rest of the model until a passing backtest is logged.
+
 ---
 
 ## Section 6 — How to Run Each Component
@@ -105,6 +107,7 @@ python monitoring/performance_dashboard.py
 - `position_sizing.tiers` — risk % per confidence tier; `max_capital_pct` caps per-trade size
 - `circuit_breakers` — yellow/orange/red drawdown levels
 - `options_approval_level` — set to your actual brokerage approval level (1/2/3)
+- `event_severity_gate` — enable/disable flag, sector-wide/ticker trigger keyword lists, principal sources, minimum source credibility (news veto, not a scoring category)
 
 **`config/global_config.yaml`** — infrastructure settings:
 - API base URLs, rate limits, retry backoff parameters

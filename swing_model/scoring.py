@@ -36,7 +36,6 @@ Modifier bounds (applied after base score):
 
 from typing import Optional
 
-import yaml
 
 
 # Minimum final score to surface a trade recommendation
@@ -67,6 +66,8 @@ def compute_confidence_score(
     volume_profile_score: Optional[float] = None,
     regime: Optional[str] = None,
     fundamental: Optional[dict] = None,
+    event_gate_blocked: bool = False,
+    event_gate_trigger: Optional[str] = None,
 ) -> dict:
     """
     Compute final confidence score for one ticker.
@@ -80,6 +81,14 @@ def compute_confidence_score(
                   to use neutral 0 contribution (data unavailable behavior)
     live_weights: calibrated weights from data/processed/live_weights.json;
                   if None, uses spec weights
+    event_gate_blocked:  True if data/processed/event_gate_state.json has an active
+                  block covering this ticker (checked by the caller before this call
+                  via shared/utils/event_gate.py). The confidence score is still
+                  computed and returned in full for the audit log, but
+                  meets_threshold is forced False — points rank opportunities,
+                  the Event Severity Gate vetoes them regardless of score.
+    event_gate_trigger:  the trigger headline/keyword reference to audit-log
+                  alongside the suppressed score, when event_gate_blocked is True.
 
     Returns full score breakdown dict for audit_log and Discord alert.
     """
@@ -166,7 +175,10 @@ def compute_confidence_score(
         final_score = min(final_score, positioning.get("positioning_offline_cap", 70))
 
     direction = determine_direction(technical, sentiment)
-    meets_threshold = final_score >= CONFIDENCE_THRESHOLD
+    # Event Severity Gate veto — a 96 is blocked exactly like a 90 (points rank
+    # opportunities; gates enforce vetoes). The real final_score is still returned
+    # in full below for the audit log; only surfacing is suppressed.
+    meets_threshold = final_score >= CONFIDENCE_THRESHOLD and not event_gate_blocked
 
     return {
         # Technical sub-scores
@@ -228,6 +240,10 @@ def compute_confidence_score(
         "final_score": round(final_score, 2),
         "direction": direction,
         "meets_threshold": meets_threshold,
+
+        # Event Severity Gate
+        "event_gate_blocked": event_gate_blocked,
+        "event_gate_trigger": event_gate_trigger,
     }
 
 

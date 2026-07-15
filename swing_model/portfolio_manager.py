@@ -13,7 +13,6 @@ from typing import Optional
 
 
 _POSITION_STATE_FILE = Path("data/processed/position_state.json")
-_TRADE_OUTCOMES_FILE = Path("data/logs/trade_outcomes.csv")
 _OVERRIDE_LOG_FILE = Path("data/logs/override_log.csv")
 
 _EMPTY_STATE = {
@@ -309,19 +308,54 @@ def is_pdt_warning(state: dict, threshold: int = 2) -> bool:
 # ---------------------------------------------------------------------------
 
 def _log_trade_outcome(closed_pos: dict) -> None:
-    """Append closed trade to trade_outcomes.csv."""
-    _TRADE_OUTCOMES_FILE.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not _TRADE_OUTCOMES_FILE.exists()
-    fieldnames = [
-        "ticker", "direction", "structure", "entry_price", "exit_price",
-        "stop_loss", "target", "pnl_dollars", "pnl_pct",
-        "exit_reason", "opened_at_utc", "closed_at_utc", "confidence",
-    ]
-    with _TRADE_OUTCOMES_FILE.open("a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        if write_header:
-            writer.writeheader()
-        writer.writerow({k: closed_pos.get(k, "") for k in fieldnames})
+    """
+    Append closed trade to trade_outcomes.csv via feedback_loop.log_trade_outcome —
+    the single source of truth for that file's schema (also updates
+    signal_win_rates.json for Phase 14 calibration). technical_total /
+    sentiment_total / news_total / signal_key are left blank here: this
+    position record only captures entry/exit/P&L, not the entry-time signal
+    component scores those fields need.
+    """
+    from swing_model.feedback_loop import log_trade_outcome
+
+    opened_at = str(closed_pos.get("opened_at_utc", ""))
+    closed_at = str(closed_pos.get("closed_at_utc", ""))
+    exit_reason = str(closed_pos.get("exit_reason", "")).lower()
+    pnl_dollars = float(closed_pos.get("pnl_dollars", 0.0))
+
+    if "target" in exit_reason or "profit" in exit_reason:
+        outcome = "win"
+    elif "time" in exit_reason:
+        outcome = "time_stop"
+    elif "stop" in exit_reason:
+        outcome = "loss"
+    else:
+        outcome = "win" if pnl_dollars >= 0 else "loss"
+
+    holding_days = ""
+    if len(opened_at) >= 10 and len(closed_at) >= 10:
+        try:
+            opened_date = datetime.fromisoformat(opened_at.replace("Z", "+00:00")).date()
+            closed_date = datetime.fromisoformat(closed_at.replace("Z", "+00:00")).date()
+            holding_days = (closed_date - opened_date).days
+        except ValueError:
+            holding_days = ""
+
+    log_trade_outcome({
+        "timestamp_utc": closed_at,
+        "ticker": closed_pos.get("ticker", ""),
+        "entry_date": opened_at[:10] if len(opened_at) >= 10 else "",
+        "exit_date": closed_at[:10] if len(closed_at) >= 10 else "",
+        "entry_price": closed_pos.get("entry_price", ""),
+        "exit_price": closed_pos.get("exit_price", ""),
+        "direction": closed_pos.get("direction", ""),
+        "structure": closed_pos.get("structure", ""),
+        "confidence_score": closed_pos.get("confidence", ""),
+        "holding_days": holding_days,
+        "pnl_dollars": pnl_dollars,
+        "pnl_pct": closed_pos.get("pnl_pct", ""),
+        "outcome": outcome,
+    })
 
 
 def _log_override(ticker: str, reason: str, position_details: Optional[dict]) -> None:

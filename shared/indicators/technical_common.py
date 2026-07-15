@@ -7,7 +7,6 @@ before they are combined in scoring.py.
 
 import numpy as np
 import pandas as pd
-from typing import Optional
 
 
 # ---------------------------------------------------------------------------

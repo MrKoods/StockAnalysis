@@ -4,7 +4,6 @@ post-entry. Tracks confidence time series for each open position throughout the
 5-15 day holding window. Fires early exit Discord alert if confidence drops > 10 points.
 """
 
-from datetime import datetime, timezone
 from typing import Optional
 
 

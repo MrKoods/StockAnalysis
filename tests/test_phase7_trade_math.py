@@ -26,11 +26,9 @@ from shared.utils.position_sizer import (
     get_risk_pct,
     compute_position_size,
     apply_circuit_breaker_sizing,
-    SIZING_TIERS,
 )
 from swing_model.trade_selector import (
     rank_trade_structures,
-    ALL_42_STRUCTURES,
 )
 
 

@@ -1,0 +1,14 @@
+{
+  "passed": false,
+  "win_rate": 0.0,
+  "avg_rr": 0.0,
+  "sharpe_ratio": 0.0,
+  "max_drawdown_pct": 0.0,
+  "qualifying_trades": 0,
+  "total_signals": 0,
+  "max_consecutive_losses": 0,
+  "per_regime": {},
+  "walk_forward": [],
+  "train_period": "2026-01-01 00:00:00+00:00",
+  "test_period": "2026-04-29 00:00:00+00:00"
+}

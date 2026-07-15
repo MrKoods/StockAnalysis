@@ -202,7 +202,7 @@ def main() -> None:
     calls_today = _calls_today()
     daily_limit = args.daily_limit
 
-    print(f"Historical news downloader")
+    print("Historical news downloader")
     print(f"  Tickers: {', '.join(TICKERS)}")
     print(f"  Quarters: {len(quarters)} (most-recent first)")
     print(f"  Calls remaining today: {daily_limit - calls_today}/{daily_limit}")

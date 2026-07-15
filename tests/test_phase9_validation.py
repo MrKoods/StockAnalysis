@@ -4,7 +4,6 @@ No network calls, no disk writes tested here (write paths are covered by integra
 """
 
 import pandas as pd
-import pytest
 from datetime import datetime, timezone, timedelta
 
 from shared.utils.data_validator import (

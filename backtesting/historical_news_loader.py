@@ -13,7 +13,6 @@ fetch_news_alpha_vantage() — compatible with compute_news_score().
 import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Optional
 
 _NEWS_DIR = Path("data/historical_news")
 

@@ -3,8 +3,6 @@ Tests for Phase 10: Discord alert formatting, notification routing priority,
 run_swing_model helpers. No real HTTP calls or file writes.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
 
 from shared.utils.discord_alerts import format_trade_alert_text

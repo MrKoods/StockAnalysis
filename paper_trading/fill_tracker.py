@@ -8,7 +8,6 @@ fires Discord alert recommending review of structure liquidity thresholds.
 import csv
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 
 _FILL_LOG_FILE = Path("data/logs/fill_log.csv")

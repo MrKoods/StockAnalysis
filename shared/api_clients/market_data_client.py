@@ -6,8 +6,7 @@ Implements exponential backoff (30s → 60s → 120s → fallback).
 """
 
 import time
-import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Optional
 
 import yfinance as yf

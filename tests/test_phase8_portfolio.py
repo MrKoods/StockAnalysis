@@ -16,12 +16,9 @@ from swing_model.portfolio_manager import (
     close_position,
     update_circuit_breaker,
     can_open_new_position,
-    handle_entry_confirmation,
     get_portfolio_delta,
     count_day_trades,
     is_pdt_warning,
-    _EMPTY_STATE,
-    MAX_OPEN_POSITIONS,
 )
 
 
@@ -206,6 +203,17 @@ class TestAddPosition:
 
 
 class TestClosePosition:
+    @pytest.fixture(autouse=True)
+    def _isolate_trade_outcomes_file(self, tmp_path, monkeypatch):
+        """
+        close_position() -> _log_trade_outcome() -> feedback_loop.log_trade_outcome()
+        writes to real data/logs files by default — redirect both to tmp_path so
+        these tests never pollute the real trade_outcomes.csv / signal_win_rates.json.
+        """
+        import swing_model.feedback_loop as fl
+        monkeypatch.setattr(fl, "_TRADE_OUTCOMES_FILE", tmp_path / "trade_outcomes.csv")
+        monkeypatch.setattr(fl, "_SIGNAL_WIN_RATES_FILE", tmp_path / "signal_win_rates.json")
+
     def test_close_profitable_increases_equity(self):
         state = _empty_state()
         state["positions"] = [{

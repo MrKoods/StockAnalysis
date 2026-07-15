@@ -4,10 +4,8 @@ Replays scoring logic against historical data.
 Minimum 100 qualifying trades (confidence 90+, R:R 1:3+) before win rate is valid.
 """
 
-import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 
@@ -65,7 +63,6 @@ def run_backtest(
     train_cutoff = all_dates[split_idx] if split_idx < len(all_dates) else all_dates[-1]
 
     # Split each ticker's DataFrame
-    train_data = {t: df[df.index <= train_cutoff] for t, df in historical_data.items()}
     test_data = {t: df[df.index > train_cutoff] for t, df in historical_data.items()}
 
     # Step 2-4: Simulate signals in test data
@@ -138,10 +135,7 @@ def run_walk_forward(
     if not all_dates:
         return []
 
-    start = all_dates[0]
-    end = all_dates[-1]
     results = []
-    window_start = start
     window_num = 0
 
     while True:
@@ -214,7 +208,6 @@ def simulate_trade_outcome(
 
         high = float(bar.get("High", 0))
         low = float(bar.get("Low", 0))
-        close = float(bar.get("Close", 0))
 
         if direction == "bullish":
             if high >= target:

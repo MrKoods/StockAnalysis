@@ -6,7 +6,6 @@ All tests use synthetic price data — no external data calls.
 import pandas as pd
 import numpy as np
 import pytest
-from datetime import datetime, timezone, timedelta
 
 from backtesting.metrics import (
     compute_win_rate,
@@ -82,7 +81,7 @@ class TestMetrics:
         assert compute_avg_rr([]) == 0.0
 
     def test_avg_rr_correct(self):
-        outcomes = [{"achieved_rr": 3.0}, {"achieved_rr": 3.0}]
+        outcomes = [{"outcome": "win", "achieved_rr": 3.0}, {"outcome": "win", "achieved_rr": 3.0}]
         assert compute_avg_rr(outcomes) == pytest.approx(3.0)
 
     def test_max_drawdown_on_flat_curve(self):

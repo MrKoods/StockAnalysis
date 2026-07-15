@@ -7,12 +7,10 @@ Sends system health check at post-close regardless of whether candidates were fo
 
 import argparse
 import csv
-import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
-import yaml
 
 from shared.utils.logger import get_logger, write_audit_entry
 from swing_model.indicator_pipeline import run_pipeline, load_config
@@ -38,6 +36,11 @@ from swing_model.news_layer import compute_news_score
 from swing_model.scoring import compute_confidence_score
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.position_sizer import get_risk_pct
+from shared.utils.event_gate import (
+    load_gate_state, save_gate_state, is_ticker_blocked, add_block,
+    has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
+    SCOPE_SECTOR,
+)
 
 logger = get_logger(__name__)
 
@@ -84,6 +87,12 @@ def main(scan_type: str = "post_close") -> None:
         logger.warning("RED circuit breaker active — no new signals")
 
     watchlist = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
+
+    # Event Severity Gate state — loaded once per scan; blocks_created_this_scan
+    # tracks ids added during THIS run so expire_blocks() never self-expires a
+    # block in the same scan that just created it (see event_gate.expire_blocks).
+    gate_state = load_gate_state()
+    blocks_created_this_scan: set[str] = set()
 
     # Step 4: Run indicator pipeline for ALL tickers in a single batch fetch
     indicators_by_ticker = run_pipeline(watchlist, scan_type=scan_type, cfg=cfg)
@@ -153,6 +162,13 @@ def main(scan_type: str = "post_close") -> None:
             # includes insider transactions, which are scored here instead of as a standalone modifier)
             positioning = indicators.get("_positioning_full") or {}
 
+            # Event Severity Gate — check for an existing block (from a prior scan)
+            # covering this ticker before scoring. The score is still computed in
+            # full either way; only surfacing is suppressed when blocked.
+            existing_gate_block = is_ticker_blocked(ticker, gate_state)
+            event_gate_blocked = existing_gate_block is not None
+            event_gate_trigger = existing_gate_block.get("trigger_match") if existing_gate_block else None
+
             # Full confidence score — all layers combined
             score = compute_confidence_score(
                 technical=indicators,
@@ -168,16 +184,76 @@ def main(scan_type: str = "post_close") -> None:
                 cfg=cfg,
                 regime=regime,
                 fundamental=fundamental,
+                event_gate_blocked=event_gate_blocked,
+                event_gate_trigger=event_gate_trigger,
             )
 
             final_score = float(score.get("final_score", 0.0))
             direction = score.get("direction", "bullish")
+
+            # Event Severity Gate — process this scan's critical news: create new
+            # blocks for thesis-opposed critical items (or unconditionally for
+            # sector-wide triggers), log thesis-aligned items without blocking or
+            # boosting, and fire an immediate alert if this ticker has an open
+            # position (does not wait for the daily re-score).
+            open_position = next(
+                (p for p in state.get("positions", []) if p.get("open", True) and p.get("ticker") == ticker),
+                None,
+            )
+            for event in news.get("critical_events", []):
+                event_scope = event["scope"]
+                trigger = event["trigger_match"]
+
+                if event_scope == SCOPE_SECTOR:
+                    if not has_active_block_for_trigger(gate_state, trigger, SCOPE_SECTOR):
+                        gate_state = add_block(
+                            gate_state, tickers=list(watchlist), scope=SCOPE_SECTOR,
+                            trigger_headline=event["headline"], trigger_match=trigger,
+                            source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                        )
+                        new_block = gate_state["blocks"][-1]
+                        blocks_created_this_scan.add(new_block["id"])
+                        _try_send_event_gate_alert(new_block, model_version)
+                        _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
+                        # This ticker's score was computed before this loop ran — a
+                        # sector-wide block discovered just now must still veto this
+                        # scan's surfacing, not only future ones.
+                        score["event_gate_blocked"] = True
+                        score["event_gate_trigger"] = trigger
+                else:
+                    opposed = is_thesis_opposed(event.get("ner_sentiment"), direction)
+                    if opposed:
+                        if not is_ticker_blocked(ticker, gate_state):
+                            gate_state = add_block(
+                                gate_state, tickers=[ticker], scope=event_scope,
+                                trigger_headline=event["headline"], trigger_match=trigger,
+                                source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                            )
+                            new_block = gate_state["blocks"][-1]
+                            blocks_created_this_scan.add(new_block["id"])
+                            _try_send_event_gate_alert(new_block, model_version)
+                            _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
+                            # Same reasoning as the sector-wide branch above — veto
+                            # this scan's surfacing, not just subsequent ones.
+                            score["event_gate_blocked"] = True
+                            score["event_gate_trigger"] = trigger
+                    else:
+                        logger.info(
+                            f"{ticker}: critical news thesis-aligned "
+                            f"({event.get('ner_sentiment')} vs {direction} thesis) — logged, "
+                            f"no block, no boost. Trigger: '{trigger}'"
+                        )
+
+                if open_position is not None:
+                    _handle_open_position_critical_event(open_position, event, model_version)
 
             # Trade structure evaluation (only for signals at or above threshold)
             entry_lower = entry_upper = stop_loss = target = None
             structure_recommended = ev_per_dollar = rr_ratio = None
             risk_pct = 0.01
             notes = ""
+            if score.get("event_gate_blocked"):
+                notes = f"EVENT GATE BLOCKED — trigger: {score.get('event_gate_trigger')}"
 
             if final_score >= 90:
                 close_px = indicators.get("close", 0.0)
@@ -227,7 +303,10 @@ def main(scan_type: str = "post_close") -> None:
                         logger.error(f"{ticker}: trade structure ranking failed — {exc}")
 
                 if ticker in cfg.get("geopolitical_risk_tickers", []):
-                    notes = f"Geopolitical risk ticker ({cfg.get('geopolitical_penalty', -5)} confidence penalty applied)"
+                    geo_note = f"Geopolitical risk ticker ({cfg.get('geopolitical_penalty', -5)} confidence penalty applied)"
+                    notes = f"{notes} | {geo_note}" if notes else geo_note
+
+            signal_surfaced = final_score >= 90 and not score.get("event_gate_blocked", False)
 
             # Step 11: Write audit log entry for every scanned ticker
             write_audit_entry({
@@ -246,7 +325,7 @@ def main(scan_type: str = "post_close") -> None:
                 "seasonality_modifier": score.get("seasonality_modifier", 0.0),
                 "macro_modifier": score.get("macro_modifier", 0.0),
                 "final_score": final_score,
-                "signal_surfaced": final_score >= 90,
+                "signal_surfaced": signal_surfaced,
                 "direction": direction,
                 "structure_recommended": structure_recommended or "",
                 "ev_per_dollar": ev_per_dollar or "",
@@ -256,9 +335,11 @@ def main(scan_type: str = "post_close") -> None:
                 "stop_loss": stop_loss or "",
                 "target": target or "",
                 "notes": notes,
+                "event_gate_blocked": score.get("event_gate_blocked", False),
+                "event_gate_trigger": score.get("event_gate_trigger", "") or "",
             })
 
-            if final_score >= 90 and cb_state not in ("orange", "red"):
+            if signal_surfaced and cb_state not in ("orange", "red"):
                 allowed, reason = can_open_new_position(state, {
                     "ticker": ticker,
                     "direction": direction,
@@ -284,6 +365,19 @@ def main(scan_type: str = "post_close") -> None:
         except Exception as exc:
             logger.error(f"{ticker}: pipeline error — {exc}")
             data_sources["yfinance"] = False
+
+    # Event Severity Gate — expire blocks whose cooling-off condition is met:
+    # a post_close scan that completes after the block's event timestamp (a full
+    # daily-bar update reflecting the event). Blocks created earlier in THIS scan
+    # are excluded — cooling-off requires a scan that starts after the block
+    # already existed, not the one that just created it moments ago.
+    newly_expired_blocks = expire_blocks(
+        gate_state, scan_type, datetime.now(timezone.utc), exclude_ids=blocks_created_this_scan,
+    )
+    save_gate_state(gate_state)
+    for expired_block in newly_expired_blocks:
+        _try_send_event_gate_expired_alert(expired_block, model_version)
+        _write_event_gate_audit(expired_block, model_version, scan_type, triggered=False)
 
     # Step 12: Save updated state
     state["last_scan_timestamp_utc"] = datetime.now(timezone.utc).isoformat()
@@ -349,14 +443,26 @@ def check_for_missed_scan(audit_log_path: str, scan_type: str) -> bool:
 
 
 def get_model_version(changelog_path: str = "CHANGELOG.md") -> str:
-    """Extract current model version from CHANGELOG.md header."""
+    """
+    Extract current model version from CHANGELOG.md header.
+    Tries UTF-8 first (CHANGELOG.md may contain emoji in alert-type descriptions);
+    falls back to the platform default encoding for files written without an
+    explicit encoding, so this stays robust regardless of who last saved the file.
+    """
+    path = Path(changelog_path)
     try:
-        content = Path(changelog_path).read_text()
-        for line in content.splitlines():
-            if line.startswith("## [v"):
-                return line.split("]")[0].strip("## [")
+        content = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        try:
+            content = path.read_text()
+        except Exception:
+            return "v1.0.0"
     except Exception:
-        pass
+        return "v1.0.0"
+
+    for line in content.splitlines():
+        if line.startswith("## [v"):
+            return line.split("[", 1)[1].split("]")[0]
     return "v1.0.0"
 
 
@@ -378,6 +484,68 @@ def _try_send_health_check(**kwargs) -> None:
         send_health_check(**kwargs)
     except Exception as exc:
         logger.error(f"Health check send failed: {exc}")
+
+
+def _try_send_event_gate_alert(block: dict, model_version: str) -> None:
+    try:
+        from shared.utils.discord_alerts import send_event_gate_triggered_alert
+        send_event_gate_triggered_alert(block, model_version=model_version)
+    except Exception as exc:
+        logger.error(f"Event gate triggered alert send failed: {exc}")
+
+
+def _try_send_event_gate_expired_alert(block: dict, model_version: str) -> None:
+    try:
+        from shared.utils.discord_alerts import send_event_gate_expired_alert
+        send_event_gate_expired_alert(block, model_version=model_version)
+    except Exception as exc:
+        logger.error(f"Event gate expired alert send failed: {exc}")
+
+
+def _handle_open_position_critical_event(position: dict, event: dict, model_version: str) -> dict:
+    """
+    Fire an immediate critical alert for an open position hit by a critical news
+    event — does not wait for the daily re-score, same treatment as a
+    signal-decay early-exit flag. Routes through notification_router.py so
+    critical-priority email escalation applies. Returns the routing result dict.
+    """
+    from shared.utils.notification_router import route_alert, classify_alert_priority
+    ticker = position.get("ticker", "?")
+    message = (
+        f"🚨 CRITICAL EVENT — {ticker} (OPEN POSITION) — {event.get('trigger_match', '')}: "
+        f"{event.get('headline', '')[:200]}"
+    )
+    priority = classify_alert_priority("event_gate_critical")
+    result = route_alert(message, alert_type="event_gate_critical", priority=priority)
+    write_audit_entry({
+        "model_version": model_version,
+        "scan_type": "critical",
+        "ticker": ticker,
+        "notes": f"OPEN POSITION CRITICAL EVENT ALERT — trigger='{event.get('trigger_match')}'",
+        "event_gate_blocked": False,
+        "event_gate_trigger": event.get("trigger_match", ""),
+        "signal_surfaced": False,
+    })
+    return result
+
+
+def _write_event_gate_audit(block: dict, model_version: str, scan_type: str, triggered: bool) -> None:
+    """Audit-log a gate trigger or expiry event (every gate action gets a row)."""
+    note = (
+        f"EVENT_GATE_TRIGGERED — scope={block.get('scope')} trigger='{block.get('trigger_match')}' "
+        f"source='{block.get('source')}'"
+        if triggered else
+        f"EVENT_GATE_EXPIRED — trigger='{block.get('trigger_match')}'"
+    )
+    write_audit_entry({
+        "model_version": model_version,
+        "scan_type": scan_type,
+        "ticker": ",".join(block.get("tickers", [])),
+        "notes": note,
+        "event_gate_blocked": triggered,
+        "event_gate_trigger": block.get("trigger_match", ""),
+        "signal_surfaced": False,
+    })
 
 
 def _try_send_cb_alert(cb_change: dict, equity: float, peak: float) -> None:
@@ -502,7 +670,6 @@ def _compute_macro_safe(
     that isn't yet parsed at this stage of the pipeline.
     """
     try:
-        import pandas as pd
         if tnx_series is None or dxy_series is None:
             return {"confidence_modifier": 0.0, "macro_state": "neutral"}
         return compute_macro_state(

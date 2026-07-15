@@ -7,7 +7,6 @@ circuit breaker thresholds trigger correctly under shock conditions.
 import pytest
 
 from backtesting.stress_test import run_all_scenarios, SCENARIOS
-from swing_model.portfolio_manager import _EMPTY_STATE
 
 
 # ---------------------------------------------------------------------------
