@@ -1,13 +1,16 @@
 """
-SHARED: Event Severity Gate — a binary veto mechanism in the news pipeline.
+SHARED: Event Severity Gate — advisory flag for critical news in the pipeline.
 
-Points rank opportunities; gates enforce vetoes. This is not a sixth scoring
-category — it exists because News's normal 15-point additive score can be
-mathematically outvoted by four slower-moving layers (Technical/Positioning/
-Sentiment on daily-to-quarterly cadence, Fundamental weekly) that haven't
-reacted yet to a severe breaking event. Classification is keyword + source
-based and fully driven by config/swing_config.yaml['event_severity_gate'] —
-never hardcoded in Python.
+This is not a sixth scoring category — it exists because News's normal
+15-point additive score can be mathematically outvoted by four slower-moving
+layers (Technical/Positioning/Sentiment on daily-to-quarterly cadence,
+Fundamental weekly) that haven't reacted yet to a severe breaking event.
+Classification is keyword + source based and fully driven by
+config/swing_config.yaml['event_severity_gate'] — never hardcoded in Python.
+
+Advisory only: a candidate with an active block still surfaces on its own
+score merits — event_gate_blocked/event_gate_trigger are attached so the
+caller can flag it, never used to suppress or alter the score.
 
 Block state persists in data/processed/event_gate_state.json until the next
 full post-close scan completes after the event timestamp (cooling-off).
@@ -107,12 +110,12 @@ def is_thesis_opposed(ner_sentiment: Optional[str], candidate_direction: str) ->
     """
     Does a critical item's NER-attributed sentiment oppose the candidate's direction?
 
-    Bearish news opposes a bullish thesis (and vice versa) — that's a hard block.
+    Bearish news opposes a bullish thesis (and vice versa) — that's flagged.
     Bearish news on an already-bearish thesis is *confirming*, not opposing — the
-    gate is asymmetric by design (veto only; chasing shock headlines that agree
+    gate is asymmetric by design (flag only; chasing shock headlines that agree
     with your thesis is how you buy the top of a gap, so it is never boosted either).
-    Neutral/unknown NER attribution defaults to opposed: a false block costs one
-    missed trade, a false pass costs a position through a gap-down.
+    Neutral/unknown NER attribution defaults to opposed: a false flag costs the
+    user a moment's extra scrutiny, a false pass means no warning on a real gap-down risk.
     """
     sentiment = (ner_sentiment or "neutral").lower()
     if sentiment == "bullish":

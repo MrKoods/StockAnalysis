@@ -2,10 +2,11 @@
 Tests for the Event Severity Gate — shared/utils/event_gate.py,
 data_validator.validate_event_gate_state, news_layer.classify_severity /
 compute_news_score's critical_events, scoring.compute_confidence_score's
-event_gate_blocked veto, and run_swing_model's open-position critical alert path.
+event_gate_blocked flag, and run_swing_model's open-position critical alert path.
 
-Points rank opportunities; gates enforce vetoes. These tests verify the gate
-never scores anything itself — it only classifies severity and vetoes surfacing.
+Advisory, not a veto: a signal with an active critical event still surfaces on
+its own score merits — the gate only attaches event_gate_blocked/event_gate_trigger
+so the caller can flag it, never suppresses or alters the score itself.
 """
 
 import logging
@@ -376,7 +377,7 @@ class TestNewsLayerIntegration:
 
 
 # ---------------------------------------------------------------------------
-# scoring.compute_confidence_score — veto, not a score input
+# scoring.compute_confidence_score — advisory flag, not a score input
 # ---------------------------------------------------------------------------
 
 def _max_technical():
@@ -403,8 +404,8 @@ def _max_news():
             "clustering_score": 3, "decay_score": 2}
 
 
-class TestScoringEventGateVeto:
-    def test_high_confidence_candidate_blocked_regardless_of_score(self):
+class TestScoringEventGateAdvisory:
+    def test_high_confidence_candidate_still_surfaces_when_flagged(self):
         result = compute_confidence_score(
             technical=_max_technical(), positioning=_max_positioning(),
             sentiment=_max_sent(), news=_max_news(),
@@ -413,12 +414,12 @@ class TestScoringEventGateVeto:
             volume_profile_score=8.0,
             event_gate_blocked=True, event_gate_trigger="export restriction",
         )
-        assert result["final_score"] >= 90  # a strong (e.g. 96) score is still computed in full
-        assert result["meets_threshold"] is False  # but never surfaces
-        assert result["event_gate_blocked"] is True
+        assert result["final_score"] >= 90
+        assert result["meets_threshold"] is True  # advisory only — still surfaces
+        assert result["event_gate_blocked"] is True  # caller uses this to flag, not suppress
         assert result["event_gate_trigger"] == "export restriction"
 
-    def test_not_blocked_by_default(self):
+    def test_not_flagged_by_default(self):
         result = compute_confidence_score(
             technical=_max_technical(), positioning=_max_positioning(),
             sentiment=_max_sent(), news=_max_news(),
@@ -430,8 +431,8 @@ class TestScoringEventGateVeto:
         assert result["event_gate_trigger"] is None
         assert result["meets_threshold"] is True
 
-    def test_blocked_score_is_identical_to_unblocked_score(self):
-        """The gate never changes the score itself — veto only, never a boost or penalty."""
+    def test_flagged_score_is_identical_to_unflagged_score(self):
+        """The gate never changes the score itself — advisory flag only, never a boost or penalty."""
         kwargs = dict(
             technical=_max_technical(), positioning=_max_positioning(),
             sentiment=_max_sent(), news=_max_news(),
@@ -439,10 +440,11 @@ class TestScoringEventGateVeto:
             cross_ticker_modifier=5, seasonality_modifier=0, macro_modifier=0,
             volume_profile_score=8.0,
         )
-        unblocked = compute_confidence_score(**kwargs)
-        blocked = compute_confidence_score(**kwargs, event_gate_blocked=True, event_gate_trigger="fraud")
-        assert unblocked["final_score"] == blocked["final_score"]
-        assert unblocked["base_score"] == blocked["base_score"]
+        unflagged = compute_confidence_score(**kwargs)
+        flagged = compute_confidence_score(**kwargs, event_gate_blocked=True, event_gate_trigger="fraud")
+        assert unflagged["final_score"] == flagged["final_score"]
+        assert unflagged["base_score"] == flagged["base_score"]
+        assert unflagged["meets_threshold"] == flagged["meets_threshold"]
 
 
 # ---------------------------------------------------------------------------

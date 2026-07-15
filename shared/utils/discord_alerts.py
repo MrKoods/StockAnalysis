@@ -62,10 +62,14 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     dominant_theme = candidate.get("dominant_theme", "")
 
     direction_emoji = "📈" if direction == "bullish" else "📉"
-    color = _COLORS["green"] if direction == "bullish" else _COLORS["red"]
+    event_gate_blocked = bool(candidate.get("event_gate_blocked"))
+    color = _COLORS["orange"] if event_gate_blocked else (
+        _COLORS["green"] if direction == "bullish" else _COLORS["red"]
+    )
+    title_prefix = "⚠️ [ACTIVE EVENT] " if event_gate_blocked else ""
 
     embed = {
-        "title": f"{direction_emoji} {ticker} SWING SIGNAL — Confidence {confidence:.0f}/100",
+        "title": f"{title_prefix}{direction_emoji} {ticker} SWING SIGNAL — Confidence {confidence:.0f}/100",
         "color": color,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "fields": [
@@ -100,6 +104,17 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
         embed["fields"].append({
             "name": "Excluded Structures",
             "value": exclusion_summary[:1000],
+            "inline": False,
+        })
+
+    if event_gate_blocked:
+        embed["fields"].append({
+            "name": "⚠️ Active Event — Review Before Trading",
+            "value": (
+                f"Trigger: {candidate.get('event_gate_trigger', 'unknown')}\n"
+                f"This signal still qualifies on score alone, but a critical news "
+                f"event is active for this ticker. Use your own judgment."
+            ),
             "inline": False,
         })
 
@@ -334,10 +349,12 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     fundamental_score = float(trade.get("fundamental_score", 0.0))
     news_count = trade.get("news_article_count", "0")
     vix_val = trade.get("vix_at_signal", "—")
+    event_gate_blocked = bool(trade.get("event_gate_blocked"))
+    title_prefix = "⚠️ [ACTIVE EVENT] " if event_gate_blocked else ""
 
     embed = {
-        "title": f"📋 PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
-        "color": _COLORS["blue"],
+        "title": f"{title_prefix}📋 PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
+        "color": _COLORS["orange"] if event_gate_blocked else _COLORS["blue"],
         "description": "**PAPER TRADING ONLY** — no live capital",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "fields": [
@@ -361,6 +378,18 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
         ],
         "footer": {"text": f"StockAnalysis {model_version} | Paper Trading"},
     }
+
+    if event_gate_blocked:
+        embed["fields"].append({
+            "name": "⚠️ Active Event — Review Before Trading",
+            "value": (
+                f"Trigger: {trade.get('event_gate_trigger', 'unknown')}\n"
+                f"This signal still qualifies on score alone, but a critical news "
+                f"event is active for this ticker. Use your own judgment."
+            ),
+            "inline": False,
+        })
+
     return _post_to_webhook({"embeds": [embed]})
 
 

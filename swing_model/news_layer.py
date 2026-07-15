@@ -24,7 +24,7 @@ def classify_severity(item: dict, cfg: Optional[dict] = None) -> dict:
     (event_severity_gate). Returns a copy of `item` with 'severity' ("normal"
     or "critical") and 'scope' ("ticker" | "sector" | None) attached.
 
-    This is a veto-only classification, not a scoring input — News keeps its
+    This is an advisory classification, not a scoring input — News keeps its
     normal 15-point additive scoring for every item regardless of severity.
     """
     cfg = cfg or {}

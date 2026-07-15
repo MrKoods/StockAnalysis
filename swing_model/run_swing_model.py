@@ -163,8 +163,9 @@ def main(scan_type: str = "post_close") -> None:
             positioning = indicators.get("_positioning_full") or {}
 
             # Event Severity Gate — check for an existing block (from a prior scan)
-            # covering this ticker before scoring. The score is still computed in
-            # full either way; only surfacing is suppressed when blocked.
+            # covering this ticker before scoring. Advisory only: the signal still
+            # surfaces on its own score merits; event_gate_blocked/trigger are
+            # attached below so the alert/audit trail can flag it for review.
             existing_gate_block = is_ticker_blocked(ticker, gate_state)
             event_gate_blocked = existing_gate_block is not None
             event_gate_trigger = existing_gate_block.get("trigger_match") if existing_gate_block else None
@@ -216,8 +217,8 @@ def main(scan_type: str = "post_close") -> None:
                         _try_send_event_gate_alert(new_block, model_version)
                         _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
                         # This ticker's score was computed before this loop ran — a
-                        # sector-wide block discovered just now must still veto this
-                        # scan's surfacing, not only future ones.
+                        # sector-wide block discovered just now must still flag this
+                        # scan's output, not only future ones.
                         score["event_gate_blocked"] = True
                         score["event_gate_trigger"] = trigger
                 else:
@@ -233,8 +234,8 @@ def main(scan_type: str = "post_close") -> None:
                             blocks_created_this_scan.add(new_block["id"])
                             _try_send_event_gate_alert(new_block, model_version)
                             _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
-                            # Same reasoning as the sector-wide branch above — veto
-                            # this scan's surfacing, not just subsequent ones.
+                            # Same reasoning as the sector-wide branch above — flag
+                            # this scan's output, not just subsequent ones.
                             score["event_gate_blocked"] = True
                             score["event_gate_trigger"] = trigger
                     else:
@@ -253,7 +254,7 @@ def main(scan_type: str = "post_close") -> None:
             risk_pct = 0.01
             notes = ""
             if score.get("event_gate_blocked"):
-                notes = f"EVENT GATE BLOCKED — trigger: {score.get('event_gate_trigger')}"
+                notes = f"⚠️ ACTIVE EVENT ALERT — trigger: {score.get('event_gate_trigger')} — review before trading"
 
             if final_score >= 90:
                 close_px = indicators.get("close", 0.0)
@@ -306,7 +307,7 @@ def main(scan_type: str = "post_close") -> None:
                     geo_note = f"Geopolitical risk ticker ({cfg.get('geopolitical_penalty', -5)} confidence penalty applied)"
                     notes = f"{notes} | {geo_note}" if notes else geo_note
 
-            signal_surfaced = final_score >= 90 and not score.get("event_gate_blocked", False)
+            signal_surfaced = final_score >= 90
 
             # Step 11: Write audit log entry for every scanned ticker
             write_audit_entry({

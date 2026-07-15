@@ -83,12 +83,12 @@ def compute_confidence_score(
                   if None, uses spec weights
     event_gate_blocked:  True if data/processed/event_gate_state.json has an active
                   block covering this ticker (checked by the caller before this call
-                  via shared/utils/event_gate.py). The confidence score is still
-                  computed and returned in full for the audit log, but
-                  meets_threshold is forced False — points rank opportunities,
-                  the Event Severity Gate vetoes them regardless of score.
-    event_gate_trigger:  the trigger headline/keyword reference to audit-log
-                  alongside the suppressed score, when event_gate_blocked is True.
+                  via shared/utils/event_gate.py). Advisory only — does not affect
+                  meets_threshold or the score itself; the caller surfaces the
+                  signal normally and attaches this as a warning flag so the user
+                  can make their own call on a ticker with an active critical event.
+    event_gate_trigger:  the trigger headline/keyword reference to attach alongside
+                  the score, when event_gate_blocked is True.
 
     Returns full score breakdown dict for audit_log and Discord alert.
     """
@@ -175,10 +175,10 @@ def compute_confidence_score(
         final_score = min(final_score, positioning.get("positioning_offline_cap", 70))
 
     direction = determine_direction(technical, sentiment)
-    # Event Severity Gate veto — a 96 is blocked exactly like a 90 (points rank
-    # opportunities; gates enforce vetoes). The real final_score is still returned
-    # in full below for the audit log; only surfacing is suppressed.
-    meets_threshold = final_score >= CONFIDENCE_THRESHOLD and not event_gate_blocked
+    # Event Severity Gate is advisory, not a veto — the signal still surfaces on
+    # its own merits; event_gate_blocked/event_gate_trigger are carried through
+    # below so the caller can flag the active event alongside the signal.
+    meets_threshold = final_score >= CONFIDENCE_THRESHOLD
 
     return {
         # Technical sub-scores

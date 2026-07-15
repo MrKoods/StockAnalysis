@@ -371,3 +371,23 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-15T01:33:36.786540+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-07-15T01:33:36.787259+00:00,NVDA,news,news_future_timestamp
 2026-07-15T01:33:36.789657+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T19:07:59.215128+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T19:07:59.215704+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T19:07:59.216494+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T19:07:59.217381+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-15T19:07:59.218486+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-15T19:07:59.219616+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-15T19:07:59.221192+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-15T19:07:59.220987+00:00
+2026-07-15T19:07:59.599022+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T19:07:59.599910+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-15T19:07:59.602012+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-15T19:07:59.604593+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-15T19:07:59.606914+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-15T19:07:59.609245+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-15T19:07:59.611410+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-15T19:07:59.613455+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-15T19:07:59.614705+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-15T19:07:59.615718+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-15T19:07:59.617650+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-15T19:07:59.618543+00:00,NVDA,news,news_future_timestamp
+2026-07-15T19:07:59.621740+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']

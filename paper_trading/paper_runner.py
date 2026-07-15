@@ -79,6 +79,7 @@ _CSV_COLUMNS = [
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "structure_recommended", "ev_per_dollar",
+    "event_gate_blocked", "event_gate_trigger",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
 ]
@@ -182,10 +183,9 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             positioning = indicators.get("_positioning_full") or {}
 
             # Event Severity Gate — check for an existing block (from a prior
-            # scan) before scoring. Full parity with run_swing_model.py: the
-            # gate is part of the model's own veto logic, not a portfolio-level
-            # constraint, so paper trading must apply it to reflect what the
-            # live model would actually surface.
+            # scan) before scoring. Full parity with run_swing_model.py: advisory
+            # only, so the signal still surfaces on its own score merits, flagged
+            # with event_gate_blocked/trigger for the paper trade log and alert.
             existing_gate_block = is_ticker_blocked(ticker, gate_state)
             event_gate_blocked = existing_gate_block is not None
             event_gate_trigger = existing_gate_block.get("trigger_match") if existing_gate_block else None
@@ -253,10 +253,9 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
 
             if score.get("event_gate_blocked"):
                 logger.info(
-                    f"{ticker}: EVENT GATE BLOCKED (trigger='{score.get('event_gate_trigger')}') "
-                    f"— paper signal suppressed, matches live model behavior"
+                    f"{ticker}: ACTIVE EVENT (trigger='{score.get('event_gate_trigger')}') "
+                    f"— signal still logged, flagged for review"
                 )
-                continue
 
             if final_score < CONFIDENCE_THRESHOLD:
                 continue
@@ -338,6 +337,8 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
                 "structure_recommended": structure_recommended,
                 "ev_per_dollar": ev_per_dollar,
+                "event_gate_blocked": bool(score.get("event_gate_blocked", False)),
+                "event_gate_trigger": score.get("event_gate_trigger", "") or "",
                 # Outcome fields filled by paper_updater.py
                 "outcome": "",
                 "exit_date": "",
