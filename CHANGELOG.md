@@ -12,6 +12,24 @@ backtest entry in this file.
 
 ---
 
+## [v2.1.2] — 2026-07-15 — Paper trading: log every ticker's score regardless of qualification
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0/v2.1.1 — logging-only change, no scoring/threshold impact.
+
+### What changed
+- `paper_trading/paper_runner.py`: added an INFO-level log line for every ticker on every scan, showing the full computed score breakdown (technical/positioning/sentiment/news/fundamental sub-totals, final score, direction, and qualifies yes/no) — regardless of whether the ticker clears the 90-confidence threshold.
+
+### Why it was changed
+- Reviewing the first full day of paper trading (2026-07-15, 3 scans, 0 qualifying signals) surfaced a real visibility gap: `paper_runner.py` only ever wrote to `paper_trades.csv` for qualifying signals, so on a day where nothing qualified there was no record anywhere of what any ticker actually scored — making it impossible to audit whether the technical/positioning/sentiment/news/fundamental layers were computing sensible values. This closes that gap without changing what surfaces as a signal or how it's scored.
+
+### Backtest result
+N/A — logging-only change, no effect on scoring, thresholds, or trade selection.
+
+### Approved by
+MrKoods — 2026-07-15
+
+---
+
 ## [v2.1.1] — 2026-07-15 — Event Severity Gate changed from veto to advisory flag
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0 — see "Backtest result" below; this change does not affect that status either way.

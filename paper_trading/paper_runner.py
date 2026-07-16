@@ -257,6 +257,21 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                     f"— signal still logged, flagged for review"
                 )
 
+            # Log every ticker's computed score regardless of qualification —
+            # otherwise sub-threshold tickers leave no record of what they
+            # actually scored, making it impossible to audit the scoring
+            # layers on days with zero qualifying signals.
+            logger.info(
+                f"{ticker}: SCORE {final_score:.1f}/100 "
+                f"(technical={score.get('technical_total', 0.0):.1f}/40, "
+                f"positioning={score.get('positioning_total', 0.0):.1f}/20, "
+                f"sentiment={score.get('sentiment_total', 0.0):.1f}/15, "
+                f"news={score.get('news_total', 0.0):.1f}/15, "
+                f"fundamental={score.get('fundamental_score', 0.0):.1f}/10) "
+                f"direction={direction} "
+                f"qualifies={'yes' if final_score >= CONFIDENCE_THRESHOLD else 'no'}"
+            )
+
             if final_score < CONFIDENCE_THRESHOLD:
                 continue
 
