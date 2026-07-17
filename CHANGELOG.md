@@ -12,6 +12,46 @@ backtest entry in this file.
 
 ---
 
+## [v2.1.4] — 2026-07-16 — Exclude statistical outliers from sector-average valuation scoring
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.1.3 — see "Backtest result" below. Unlike the last three entries, this one does change a scoring computation (Fundamental category's valuation sub-score), so it's flagged more carefully.
+
+### What changed
+- `swing_model/fundamental_layer.py`: `score_valuation_vs_peers()` now excludes statistical outliers (modified Z-score via median + MAD, threshold 3.5) from the trailing P/E, forward P/E, and EV/EBITDA sector-average calculations before scoring each ticker against them. New helper `_exclude_outliers()`. Falls back to the unfiltered value set when there are fewer than 4 data points (too small a sample for outlier detection to be meaningful) or when MAD is 0 (no spread to measure against). The excluded ticker itself is unaffected in every other respect — it's still scored, just against the corrected average, same as everyone else.
+- `tests/test_fundamental_layer.py`: new file (no test coverage existed for `fundamental_layer.py` before this) — 10 tests covering `_exclude_outliers()` directly and its integration into `score_valuation_vs_peers()`, verified against a fixture shaped like the real watchlist data that exposed the bug.
+
+### Why it was changed
+- Found while reviewing 2026-07-15/16's real paper-trading fundamental scores: NVDA, AVGO, and MU all hit the exact fundamental-score ceiling (10.0/10) simultaneously. Traced it back through the real cached data (`data/processed/fundamental_state.json`) and confirmed the math was technically correct but methodologically flawed — AMD's trailing P/E (184x, inflated by a -30.4% EPS decline the prior quarter depressing the denominator) was dragging the 6-ticker sector average up to ~66.6x, which made every OTHER ticker in the watchlist look artificially cheap by comparison (even a genuinely un-cheap 62x P/E scored as "below sector average"). With only 5-6 tickers in the watchlist, one distorted value doesn't just mis-score itself — it silently biases every peer comparison. Verified the fix directly against the real data: sector P/E average corrects from 66.6x to 43.1x with AMD excluded, and the four tickers previously clustered at/near the ceiling now spread out (5, -1, 2, 6, 6, 3) instead of clustering at (6, -1, 6, 6, 6, 4).
+
+### Backtest result
+**Inherited PENDING/FAILED status from v2.1.0, not independently re-tested.** This does change how the Fundamental category's valuation sub-score is computed, which is exactly the kind of change this file's rule is meant to catch — but the existing backtest already fails on the win-rate criterion for unrelated reasons (Positioning/Sentiment proxy-data limitations, documented in v2.0.0/v2.1.0), and this specific fix was verified by direct computation against real current fundamental data instead, not backtest replay (the backtest's historical fundamentals feed would need its own outlier-exclusion validation separately, which hasn't been done). Per this file's own rule, this version remains ineligible for live trading until a passing backtest is logged — same status as v2.1.0.
+
+### Approved by
+MrKoods — 2026-07-16
+
+---
+
+## [v2.1.3] — 2026-07-16 — Fix recurring stale event-gate triggers; log modifiers alongside scores
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0/v2.1.1/v2.1.2 — bug fix + logging, no scoring/threshold impact.
+
+### What changed
+- `swing_model/news_layer.py`: `compute_news_score()`'s sector-wide critical-event detection now applies the same 5-day recency bar (`news_decay_weight`, `zero_at_days=5.0`) already used for ticker-relevant articles. Previously it checked `all_articles` with no age filter at all, so a stale article could keep matching a sector-wide trigger indefinitely.
+- `paper_trading/paper_runner.py`: the per-ticker score log line (added in v2.1.2) now also includes the six shared modifier values (regime, macro, sector_rotation, earnings, cross_ticker, seasonality) and their total, alongside the existing sub-category breakdown.
+- `tests/test_event_gate.py`: added `test_stale_sector_wide_article_does_not_retrigger` and `test_recent_sector_wide_article_within_bar_still_triggers` to cover the fix.
+
+### Why it was changed
+- Observed directly in production: the same 6-day-old "tariff" headline (Benzinga, 2026-07-10) re-triggered a brand-new sector-wide block on both 2026-07-15 and 2026-07-16, immediately after each prior block's cooling-off expired at post-close. Confirmed via a direct decay calculation that the article was already fully stale (decay = 0.0) yet was still counted as a fresh critical event, because the sector-wide loop never checked article age at all — only the ticker-relevant loop did. Left unfixed, this one headline could have kept re-blocking the entire watchlist every day indefinitely for as long as the news API kept surfacing it.
+- Separately: reviewing 2026-07-15/16's paper trading data showed every ticker's score falling in lockstep across the day (e.g., TSM 27.6 → 8.5 → 6.2), which the v2.1.2 score log couldn't explain since it only captured the five per-ticker sub-scores, not the modifiers that get applied identically to the whole watchlist each scan. Logging modifiers alongside scores closes that visibility gap.
+
+### Backtest result
+N/A — bug fix + logging change, no effect on scoring, thresholds, or trade selection. The recency-filter fix was verified directly against the real headline/timestamp that triggered the bug (`compute_news_score` now returns zero critical_events for it, confirmed both via unit test and a standalone repro script).
+
+### Approved by
+MrKoods — 2026-07-16
+
+---
+
 ## [v2.1.2] — 2026-07-15 — Paper trading: log every ticker's score regardless of qualification
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0/v2.1.1 — logging-only change, no scoring/threshold impact.

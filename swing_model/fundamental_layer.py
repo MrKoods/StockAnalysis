@@ -15,6 +15,7 @@ Data flows from FundamentalClient.get_all_fundamentals() which is called once pe
 When fundamental data is unavailable, fundamental_score = 0 (neutral — not penalized).
 """
 
+import statistics
 from pathlib import Path
 from typing import Optional
 
@@ -23,6 +24,38 @@ import yaml
 from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+_OUTLIER_MODIFIED_Z_THRESHOLD = 3.5
+_OUTLIER_MIN_SAMPLE_SIZE = 4
+
+
+def _exclude_outliers(values: list[float]) -> list[float]:
+    """
+    Drop statistical outliers before averaging a peer group (e.g. sector P/E).
+
+    With a small watchlist (as few as 5-6 tickers), a single distorted metric —
+    e.g. a P/E computed off a just-collapsed earnings base — inflates the
+    "sector average" enough to make every OTHER ticker look artificially cheap
+    by comparison, silently biasing their valuation scores too.
+
+    Uses the modified Z-score (median + MAD), not mean/stdev: with this few
+    data points, a single outlier corrupts the mean/stdev nearly as much as it
+    corrupts the raw average we're trying to fix, whereas the median and MAD
+    are far more resistant to being dragged by the one point under test.
+    Falls back to the unfiltered list when there are too few points for
+    outlier detection to be meaningful, or when MAD is 0 (no spread to
+    measure against — nothing to flag as an outlier).
+    """
+    if len(values) < _OUTLIER_MIN_SAMPLE_SIZE:
+        return values
+
+    median = statistics.median(values)
+    mad = statistics.median(abs(v - median) for v in values)
+    if mad == 0:
+        return values
+
+    filtered = [v for v in values if 0.6745 * abs(v - median) / mad <= _OUTLIER_MODIFIED_Z_THRESHOLD]
+    return filtered if filtered else values
 
 _CONFIG_PATH = Path("config/swing_config.yaml")
 
@@ -232,9 +265,13 @@ class FundamentalScorer:
             if ev is not None and "enterpriseToEbitda" not in suspect:
                 ev_values.append(ev)
 
-        sector_pe = sum(pe_values) / len(pe_values) if pe_values else None
-        sector_fpe = sum(fpe_values) / len(fpe_values) if fpe_values else None
-        sector_ev = sum(ev_values) / len(ev_values) if ev_values else None
+        pe_values_filtered = _exclude_outliers(pe_values)
+        fpe_values_filtered = _exclude_outliers(fpe_values)
+        ev_values_filtered = _exclude_outliers(ev_values)
+
+        sector_pe = sum(pe_values_filtered) / len(pe_values_filtered) if pe_values_filtered else None
+        sector_fpe = sum(fpe_values_filtered) / len(fpe_values_filtered) if fpe_values_filtered else None
+        sector_ev = sum(ev_values_filtered) / len(ev_values_filtered) if ev_values_filtered else None
 
         sector_averages = {
             "pe": round(sector_pe, 2) if sector_pe else None,

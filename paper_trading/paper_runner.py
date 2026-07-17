@@ -260,7 +260,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             # Log every ticker's computed score regardless of qualification —
             # otherwise sub-threshold tickers leave no record of what they
             # actually scored, making it impossible to audit the scoring
-            # layers on days with zero qualifying signals.
+            # layers on days with zero qualifying signals. Modifiers are
+            # included since they're shared across the whole watchlist each
+            # scan and are the natural explanation for a uniform day-over-day
+            # move in every ticker's score at once.
             logger.info(
                 f"{ticker}: SCORE {final_score:.1f}/100 "
                 f"(technical={score.get('technical_total', 0.0):.1f}/40, "
@@ -268,6 +271,13 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 f"sentiment={score.get('sentiment_total', 0.0):.1f}/15, "
                 f"news={score.get('news_total', 0.0):.1f}/15, "
                 f"fundamental={score.get('fundamental_score', 0.0):.1f}/10) "
+                f"modifiers(regime={score.get('regime_modifier', 0.0):+.1f}, "
+                f"macro={score.get('macro_modifier', 0.0):+.1f}, "
+                f"sector_rotation={score.get('sector_rotation_modifier', 0.0):+.1f}, "
+                f"earnings={score.get('earnings_modifier', 0.0):+.1f}, "
+                f"cross_ticker={score.get('cross_ticker_modifier', 0.0):+.1f}, "
+                f"seasonality={score.get('seasonality_modifier', 0.0):+.1f}, "
+                f"total={score.get('total_modifier', 0.0):+.1f}) "
                 f"direction={direction} "
                 f"qualifies={'yes' if final_score >= CONFIDENCE_THRESHOLD else 'no'}"
             )

@@ -337,6 +337,37 @@ class TestNewsLayerIntegration:
         assert critical[0]["scope"] == SCOPE_SECTOR
         assert critical[0]["trigger_match"] == "export restriction"
 
+    def test_stale_sector_wide_article_does_not_retrigger(self):
+        """
+        A news API can keep resurfacing the same old article indefinitely.
+        Once a sector-wide article is beyond the same 5-day recency bar used
+        for ticker-relevant news, it must stop producing new critical_events —
+        otherwise one stale headline re-triggers a fresh block every day,
+        forever, after the prior block's cooling-off expires.
+        """
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        stale_ts = now - timedelta(days=6)
+        articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source_domain": "White House",
+            "timestamp_utc": stale_ts.isoformat(),
+        }]
+        result = compute_news_score(articles, [], "NVDA", cfg, reference_date=now)
+        assert result["critical_events"] == []
+
+    def test_recent_sector_wide_article_within_bar_still_triggers(self):
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        recent_ts = now - timedelta(days=2)
+        articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source_domain": "White House",
+            "timestamp_utc": recent_ts.isoformat(),
+        }]
+        result = compute_news_score(articles, [], "NVDA", cfg, reference_date=now)
+        assert len(result["critical_events"]) == 1
+
     def test_ticker_specific_event_ner_attributed(self):
         cfg = _gate_cfg()
         now = datetime.now(timezone.utc)

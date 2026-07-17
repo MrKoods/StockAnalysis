@@ -97,7 +97,11 @@ def compute_news_score(
     # Event Severity Gate — classify every processed item for severity/scope.
     # Sector-wide triggers (export policy, tariffs, Taiwan Strait, etc.) are
     # checked across ALL articles, since a macro headline may never name a
-    # specific ticker and so wouldn't pass the ticker-relevance filter above.
+    # specific ticker and so wouldn't pass the ticker-relevance filter above —
+    # but still subject to the same recency bar as ticker-relevant articles
+    # below, so a stale article the news API keeps resurfacing (observed in
+    # practice: the same 6-day-old headline re-triggering a fresh block every
+    # day after the prior one expired) stops counting as a new critical event.
     # Ticker triggers require NER attribution to this ticker, so they're only
     # checked against articles already confirmed relevant (NER already ran).
     # This is classification only — no scoring effect here; the caller
@@ -108,6 +112,10 @@ def compute_news_score(
     for art in all_articles:
         title = art.get("title", "")
         source = art.get("source_domain", "") or art.get("publisher", "")
+        ts = _parse_ts(art.get("timestamp_utc", ""))
+        decay = news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0)
+        if decay <= 0.0:
+            continue  # Too old — same recency bar as ticker-relevant articles below
         classified = classify_severity({"title": title, "source_domain": source}, cfg)
         if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_SECTOR:
             critical_events.append({
@@ -116,7 +124,7 @@ def compute_news_score(
                 "scope": SCOPE_SECTOR,
                 "trigger_match": classified["trigger_match"],
                 "ner_sentiment": None,
-                "event_timestamp_utc": _parse_ts(art.get("timestamp_utc", "")).isoformat(),
+                "event_timestamp_utc": ts.isoformat(),
             })
 
     for art in relevant:
