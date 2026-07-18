@@ -208,19 +208,25 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
     logger.info(f"Fetching fundamental data for: {tickers}")
     client = FundamentalClient()
-    new_tickers = {}
+    # Save after every ticker, not just once at the end — a full 6-ticker
+    # refresh can take several minutes (each sub-call retries on rate limits),
+    # and a mid-batch interruption (manual Ctrl+C, crash, hitting the AV
+    # budget cap) must not discard tickers that already completed. Deliberately
+    # NOT updating last_updated until the whole loop finishes: a partial batch
+    # must still read as "not yet refreshed today" so the next opportunity
+    # retries it, rather than silently settling for a part-stale, part-fresh
+    # snapshot mislabeled as complete.
     for ticker in tickers:
         try:
-            new_tickers[ticker] = client.get_all_fundamentals(ticker)
+            state["tickers"][ticker] = client.get_all_fundamentals(ticker)
             logger.info(f"  {ticker}: fundamental data fetched OK")
         except Exception as exc:
             logger.error(f"  {ticker}: fundamental fetch failed — {exc}")
             write_validation_entry(ticker, "fundamental_fetch_error", str(exc))
-            new_tickers[ticker] = None
+            state["tickers"][ticker] = None
+        _save_fundamental_state(state)
 
     state["last_updated"] = datetime.now(timezone.utc).isoformat()
-    state["tickers"].update(new_tickers)
-
     _save_fundamental_state(state)
     return state
 

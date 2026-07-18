@@ -393,6 +393,51 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     return _post_to_webhook({"embeds": [embed]})
 
 
+def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
+    """
+    Lower-priority awareness ping for a ticker that scored close to but below
+    the 90-point threshold — NOT a trade signal, no entry/stop/target (those
+    are never computed for sub-threshold tickers). Deliberately low-key
+    styling (grey, no "SIGNAL"/"TRADE" language) so it can't be mistaken for
+    an actual recommendation or dilute the weight of a real one.
+    """
+    ticker = candidate.get("ticker", "?")
+    confidence = float(candidate.get("confidence", 0.0))
+    direction = str(candidate.get("direction", "bullish"))
+    regime = str(candidate.get("regime", ""))
+    technical_score = float(candidate.get("technical_score", 0.0))
+    positioning_score = float(candidate.get("positioning_score", 0.0))
+    sentiment_score = float(candidate.get("sentiment_score", 0.0))
+    news_score = float(candidate.get("news_score", 0.0))
+    fundamental_score = float(candidate.get("fundamental_score", 0.0))
+    total_modifier = float(candidate.get("total_modifier", 0.0))
+
+    embed = {
+        "title": f"👀 Near miss — {ticker} — {confidence:.0f}/100 (needs 90)",
+        "color": _COLORS["grey"],
+        "description": "Not a trade signal — awareness only, below threshold",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Direction", "value": direction.title(), "inline": True},
+            {"name": "Regime", "value": regime.replace("_", " ").title() if regime else "—", "inline": True},
+            {"name": "Modifiers (total)", "value": f"{total_modifier:+.1f}", "inline": True},
+            {
+                "name": "Score Breakdown",
+                "value": (
+                    f"Tech: **{technical_score:.1f}**/40  |  "
+                    f"Pos: **{positioning_score:.1f}**/20  |  "
+                    f"Sent: **{sentiment_score:.1f}**/15  |  "
+                    f"News: **{news_score:.1f}**/15  |  "
+                    f"Fund: **{fundamental_score:.1f}**/10"
+                ),
+                "inline": False,
+            },
+        ],
+        "footer": {"text": f"StockAnalysis {model_version} | Near-Miss — Not a Trade Signal"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
 def send_paper_outcome_alert(trade: dict) -> bool:
     """PAPER TRADE CLOSED embed — sends when stop, target, or time stop triggers."""
     ticker = trade.get("ticker", "?")

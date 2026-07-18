@@ -38,7 +38,7 @@ from shared.utils.regime_detection import get_regime_modifiers
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.logger import get_logger
-from shared.utils.discord_alerts import send_paper_signal_alert
+from shared.utils.discord_alerts import send_paper_signal_alert, send_near_miss_alert
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.regime_detection import REGIME_HIGH_VOL
 from shared.utils.event_gate import (
@@ -70,6 +70,7 @@ logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 CONFIDENCE_THRESHOLD = 90
+NEAR_MISS_THRESHOLD = 80  # awareness-only Discord ping; never logged as a trade
 
 _CSV_COLUMNS = [
     "signal_date", "ticker", "confidence",
@@ -282,7 +283,41 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 f"qualifies={'yes' if final_score >= CONFIDENCE_THRESHOLD else 'no'}"
             )
 
+            # regime_modifier and sector_rotation_modifier are both derived
+            # from the same underlying SMH price action (regime: SMH vs. its
+            # own SMA trend; sector_rotation: SMH return vs. SPY) but summed
+            # as if independent. When both are negative at once, it's one
+            # real observation ("SMH is weak") being counted twice, not two
+            # separate corroborating signals — worth knowing when reading a
+            # heavily-penalized score, not something to silently auto-adjust.
+            if score.get("regime_modifier", 0.0) < 0 and score.get("sector_rotation_modifier", 0.0) < 0:
+                logger.info(
+                    f"{ticker}: NOTE — regime ({score.get('regime_modifier', 0.0):+.1f}) and "
+                    f"sector_rotation ({score.get('sector_rotation_modifier', 0.0):+.1f}) are both "
+                    f"negative and both derived from SMH price action — likely the same underlying "
+                    f"weakness counted twice, not two independent signals"
+                )
+
             if final_score < CONFIDENCE_THRESHOLD:
+                if final_score >= NEAR_MISS_THRESHOLD:
+                    try:
+                        send_near_miss_alert(
+                            {
+                                "ticker": ticker,
+                                "confidence": final_score,
+                                "direction": direction,
+                                "regime": regime,
+                                "technical_score": score.get("technical_total", 0.0),
+                                "positioning_score": score.get("positioning_total", 0.0),
+                                "sentiment_score": score.get("sentiment_total", 0.0),
+                                "news_score": score.get("news_total", 0.0),
+                                "fundamental_score": score.get("fundamental_score", 0.0),
+                                "total_modifier": score.get("total_modifier", 0.0),
+                            },
+                            model_version=model_version,
+                        )
+                    except Exception as exc:
+                        logger.warning(f"{ticker}: near-miss Discord alert failed — {exc}")
                 continue
 
             # Entry/stop/target

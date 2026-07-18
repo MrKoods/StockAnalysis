@@ -12,6 +12,47 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.0] — 2026-07-18 — Near-miss awareness alerts; flag correlated regime/sector-rotation penalties
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.1.5. New notification category (not a scoring change) — bumped MINOR per this file's own versioning rule, same precedent as v2.1.0's Event Gate addition.
+
+### What changed
+- `shared/utils/discord_alerts.py`: new `send_near_miss_alert()` — a deliberately low-key (grey, "not a trade signal" language, no entry/stop/target) Discord ping for a ticker that scores 80-89 (configurable via `NEAR_MISS_THRESHOLD`), distinct from the real 90+ signal alert so it can't be mistaken for a recommendation.
+- `paper_trading/paper_runner.py`: fires `send_near_miss_alert()` for any ticker scoring in `[NEAR_MISS_THRESHOLD, CONFIDENCE_THRESHOLD)`. Near-misses are never written to `paper_trades.csv` — awareness only, not part of the trade dataset.
+- `paper_trading/paper_runner.py`: added a log note when `regime_modifier` and `sector_rotation_modifier` are both negative in the same scan — both are derived from the same underlying SMH price action (regime: SMH vs. its own SMA trend; sector_rotation: SMH return vs. SPY) but summed as independent modifiers. The note doesn't change the score; it just flags when a heavily-penalized score reflects one real observation counted twice rather than two independent ones.
+
+### Why it was changed
+- Reviewing 2026-07-17's scan showed the 90-point threshold is a hard cliff with zero visibility into "how close" a sub-threshold ticker actually was — an 89 and a 12 looked identical (invisible) from the outside. The near-miss tier gives forward visibility without changing what counts as an actual signal or touching the threshold itself.
+- Separately, reviewing the same day's modifier breakdown (added in v2.1.3) showed `regime` and `sector_rotation` both pegged negative simultaneously across the whole watchlist, both traceable to the same SMH weakness. Flagging this compounding is informational only — deliberately not auto-adjusting the score, since that's a real risk-weighting decision that shouldn't be made silently.
+
+### Backtest result
+N/A — new notification category + diagnostic logging only, no effect on scoring, thresholds, or trade selection.
+
+### Approved by
+MrKoods — 2026-07-18
+
+---
+
+## [v2.1.5] — 2026-07-17 — Fundamental refresh saves incrementally, not just at the end
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.1.4 — reliability fix, no scoring/threshold impact.
+
+### What changed
+- `swing_model/indicator_pipeline.py`: `fetch_fundamental_data()` now writes `fundamental_state.json` after every ticker in the weekly refresh loop, instead of only once after all 6 tickers finish. `last_updated` is still only set once the full loop completes (success or per-ticker-caught-failure) — a partial batch correctly still reads as "not refreshed today" so the next opportunity retries it, rather than settling for a part-stale, part-fresh snapshot mislabeled as complete.
+- `tests/test_indicator_pipeline_fundamental_refresh.py`: new file (no coverage existed for this module before) — 4 tests, including one that reproduces the exact real incident (`KeyboardInterrupt` mid-batch) and confirms already-fetched tickers survive on disk while `last_updated` correctly stays unset.
+
+### Why it was changed
+- Found while reviewing today's scan: `fundamental_state.json` was still showing `last_updated: 2026-07-06`, 11 days stale. Traced it through `data/logs/paper_runner_task.log` and found the July 13 (Monday) weekly refresh had started successfully — NVDA and AMD both completed — and then a literal `^C` appears in the raw log, mid-retry on AVGO: a manual interruption, not a recurring bug. But because the old code only saved once at the very end, that one interruption discarded NVDA and AMD's already-fetched data too, and silently left the system on the prior week's snapshot with no error or warning anywhere. No Monday-after-5pm-ET has recurred since (next is July 20), so nothing had triggered a retry.
+- The interruption itself was a one-off, but the all-or-nothing save was a real structural fragility — the same failure mode would recur from a mid-batch crash, a network drop, or hitting the Alpha Vantage budget cap partway through (a real risk: a full 6-ticker refresh can use up to ~18 AV calls, on top of that day's routine news fetching in the same scan).
+
+### Backtest result
+N/A — reliability/persistence fix, no effect on scoring, thresholds, or trade selection.
+
+### Approved by
+MrKoods — 2026-07-17
+
+---
+
 ## [v2.1.4] — 2026-07-16 — Exclude statistical outliers from sector-average valuation scoring
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.1.3 — see "Backtest result" below. Unlike the last three entries, this one does change a scoring computation (Fundamental category's valuation sub-score), so it's flagged more carefully.
