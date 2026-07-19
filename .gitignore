@@ -39,3 +39,6 @@ htmlcov/
 # Logs (processed logs are tracked; raw API cache is not)
 data/raw/
 data/historical/
+
+# Desktop app UI — local scan history (App_UI_Scope.md), regenerated per machine
+stockanalysis_history.db

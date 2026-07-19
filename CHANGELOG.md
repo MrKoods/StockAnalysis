@@ -12,6 +12,29 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.1] — 2026-07-18 — Remove email/SMS notification delivery; Discord + app UI only
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.0 — infrastructure simplification, no scoring/threshold impact.
+
+### What changed
+- `shared/utils/notification_router.py`: rewritten to send every alert to Discord only. Removed `send_email()`, `send_sms()`, the `PRIORITY_NORMAL`/`PRIORITY_CRITICAL`/`PRIORITY_HIGHEST` constants, and `classify_alert_priority()` — priority-based escalation had no remaining purpose once email/SMS were removed as delivery targets. `route_alert()` no longer takes a `priority` argument and its result dict drops `email_sent`/`sms_sent`, keeping only `discord_sent`/`errors`.
+- `swing_model/run_swing_model.py`: updated the two `route_alert()` call sites (`_handle_open_position_critical_event`, `_try_send_missed_scan_alert`) to drop the now-removed `priority` argument and `classify_alert_priority` import.
+- Removed SMTP (`SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`ALERT_EMAIL_TO`) and Twilio (`TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_NUMBER`/`TWILIO_TO_NUMBER`) variables from `.env.example`, the `twilio` dependency from `requirements.txt`, and `email_secondary`/`sms_tertiary` from `config/global_config.yaml`'s `notifications` block.
+- `tests/test_phase10_alerts.py`: removed `TestAlertPriority` (tested the now-deleted `classify_alert_priority()`). `tests/test_event_gate.py`: updated the `route_alert` mock and assertions in `TestOpenPositionCriticalAlert` to match the new (no-priority, Discord-only) signature and return shape.
+- Updated `README.md`, `Project_Scope.md`, and `App_UI_Scope.md` (the draft desktop-UI addendum) to describe Discord as the sole alert delivery channel — the app UI's persisted notification feed is the second place alerts surface, not email/SMS.
+
+### Why it was changed
+- The system is still in the paper-trading phase with no live capital at risk (every version through v2.2.0 remains not-yet-eligible-to-go-live per this file's own rule), so the guaranteed-delivery rationale behind the original email/SMS redundancy (Enhancement 8 in `Project_Scope.md`) doesn't apply yet. Maintaining SMTP and Twilio credentials and the priority-escalation branching added real operational surface (two more sets of credentials to keep current, two more delivery paths that could silently fail) for a guarantee the project doesn't currently need. Discord plus the in-progress desktop app UI (which persists every notification to SQLite for later review, `App_UI_Scope.md` §3.2) covers the actual current need.
+- Simplifying `notification_router.py` down to a single delivery path now also removes a source of friction for the app-UI work in progress — the UI's notification-feed schema no longer needs per-channel (Discord/email/SMS) status tracking, just a single Discord `sent`/`failed` status.
+
+### Backtest result
+N/A — notification infrastructure only, no effect on scoring, thresholds, or trade selection.
+
+### Approved by
+MrKoods — 2026-07-18
+
+---
+
 ## [v2.2.0] — 2026-07-18 — Near-miss awareness alerts; flag correlated regime/sector-rotation penalties
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.1.5. New notification category (not a scoring change) — bumped MINOR per this file's own versioning rule, same precedent as v2.1.0's Event Gate addition.

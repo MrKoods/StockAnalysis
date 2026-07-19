@@ -487,37 +487,40 @@ def _try_send_health_check(**kwargs) -> None:
         logger.error(f"Health check send failed: {exc}")
 
 
-def _try_send_event_gate_alert(block: dict, model_version: str) -> None:
+def _try_send_event_gate_alert(block: dict, model_version: str) -> bool:
+    """Returns True if the Discord send succeeded — callers may log this to the app UI's DB."""
     try:
         from shared.utils.discord_alerts import send_event_gate_triggered_alert
-        send_event_gate_triggered_alert(block, model_version=model_version)
+        return send_event_gate_triggered_alert(block, model_version=model_version)
     except Exception as exc:
         logger.error(f"Event gate triggered alert send failed: {exc}")
+        return False
 
 
-def _try_send_event_gate_expired_alert(block: dict, model_version: str) -> None:
+def _try_send_event_gate_expired_alert(block: dict, model_version: str) -> bool:
+    """Returns True if the Discord send succeeded — callers may log this to the app UI's DB."""
     try:
         from shared.utils.discord_alerts import send_event_gate_expired_alert
-        send_event_gate_expired_alert(block, model_version=model_version)
+        return send_event_gate_expired_alert(block, model_version=model_version)
     except Exception as exc:
         logger.error(f"Event gate expired alert send failed: {exc}")
+        return False
 
 
 def _handle_open_position_critical_event(position: dict, event: dict, model_version: str) -> dict:
     """
     Fire an immediate critical alert for an open position hit by a critical news
     event — does not wait for the daily re-score, same treatment as a
-    signal-decay early-exit flag. Routes through notification_router.py so
-    critical-priority email escalation applies. Returns the routing result dict.
+    signal-decay early-exit flag. Routes through notification_router.py.
+    Returns the routing result dict.
     """
-    from shared.utils.notification_router import route_alert, classify_alert_priority
+    from shared.utils.notification_router import route_alert
     ticker = position.get("ticker", "?")
     message = (
         f"🚨 CRITICAL EVENT — {ticker} (OPEN POSITION) — {event.get('trigger_match', '')}: "
         f"{event.get('headline', '')[:200]}"
     )
-    priority = classify_alert_priority("event_gate_critical")
-    result = route_alert(message, alert_type="event_gate_critical", priority=priority)
+    result = route_alert(message, alert_type="event_gate_critical")
     write_audit_entry({
         "model_version": model_version,
         "scan_type": "critical",
@@ -559,12 +562,10 @@ def _try_send_cb_alert(cb_change: dict, equity: float, peak: float) -> None:
 
 def _try_send_missed_scan_alert(model_version: str) -> None:
     try:
-        from shared.utils.notification_router import route_alert, classify_alert_priority
-        priority = classify_alert_priority("missed_scan")
+        from shared.utils.notification_router import route_alert
         route_alert(
             f"⚠️ Missed scan detected — {model_version} — check system health.",
             alert_type="missed_scan",
-            priority=priority,
         )
     except Exception as exc:
         logger.error(f"Missed scan alert failed: {exc}")

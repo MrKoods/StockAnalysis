@@ -25,8 +25,6 @@ A swing trading decision-support system for the semiconductor sector (NVDA, AMD,
 | StockTwits + Seeking Alpha Finance (RapidAPI) | [rapidapi.com](https://rapidapi.com) — paid subscription, shared key for both (Sentiment layer) | `RAPIDAPI_KEY` |
 | Finnhub | [finnhub.io](https://finnhub.io) — free tier; used for `/company-news` headlines only (social-sentiment requires a paid plan) | `FINNHUB_API_KEY` |
 | Discord Webhook | Discord server → Edit Channel → Integrations → Webhooks | `DISCORD_WEBHOOK_URL` |
-| Gmail SMTP (optional) | Gmail account + App Password | `SMTP_USER`, `SMTP_PASSWORD`, `ALERT_EMAIL_TO` |
-| Twilio SMS (optional) | [twilio.com](https://twilio.com) — free trial | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `TWILIO_TO_NUMBER` |
 
 ---
 

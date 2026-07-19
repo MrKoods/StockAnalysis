@@ -31,7 +31,6 @@ from shared.utils.data_validator import validate_event_gate_state
 from swing_model.news_layer import compute_news_score, classify_severity as news_classify_severity
 from swing_model.scoring import compute_confidence_score
 from swing_model.run_swing_model import _handle_open_position_critical_event
-from shared.utils.notification_router import PRIORITY_CRITICAL
 
 WATCHLIST = ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]
 
@@ -479,18 +478,17 @@ class TestScoringEventGateAdvisory:
 
 
 # ---------------------------------------------------------------------------
-# Open-position critical alert — immediate, critical-priority routing
+# Open-position critical alert — fires immediately, does not wait for rescore
 # ---------------------------------------------------------------------------
 
 class TestOpenPositionCriticalAlert:
-    def test_routes_critical_priority_and_does_not_wait_for_rescore(self, monkeypatch):
+    def test_routes_immediately_and_does_not_wait_for_rescore(self, monkeypatch):
         calls = {}
 
-        def fake_route_alert(message, alert_type, priority, discord_webhook_url=None):
+        def fake_route_alert(message, alert_type, discord_webhook_url=None):
             calls["message"] = message
             calls["alert_type"] = alert_type
-            calls["priority"] = priority
-            return {"discord_sent": True, "email_sent": True, "sms_sent": False, "errors": []}
+            return {"discord_sent": True, "errors": []}
 
         monkeypatch.setattr("shared.utils.notification_router.route_alert", fake_route_alert)
         monkeypatch.setattr("swing_model.run_swing_model.write_audit_entry", lambda entry: None)
@@ -500,8 +498,6 @@ class TestOpenPositionCriticalAlert:
         result = _handle_open_position_critical_event(position, event, "v2.1.0")
 
         assert calls["alert_type"] == "event_gate_critical"
-        assert calls["priority"] == PRIORITY_CRITICAL
         assert "AMD" in calls["message"]
         assert "CEO resigns" in calls["message"]
         assert result["discord_sent"] is True
-        assert result["email_sent"] is True  # critical priority escalates to email

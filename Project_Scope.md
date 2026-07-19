@@ -168,7 +168,7 @@ StockAnalysis/
 │       ├── event_gate.py          # SHARED: Event Severity Gate — classifies news severity (normal/critical) + scope (ticker/sector) from config keyword+source rules; manages block state in event_gate_state.json (BUILT, v2.1.0)
 │       ├── seasonality.py             # SHARED: calendar-based confidence modifier — semiconductor seasonal patterns by month/quarter; amplifies or reduces confidence based on historical seasonal win rates
 │       ├── macro_overlay.py           # SHARED: monitors Fed rate direction, USD strength, China trade policy signals; applies macro confidence modifier above individual ticker scoring
-│       ├── notification_router.py     # SHARED: routes alerts to Discord (primary) + email/SMS (secondary, critical alerts only); reads NOTIFICATION_CONFIG from .env
+│       ├── notification_router.py     # SHARED: sends alerts to Discord (the only delivery channel — no email/SMS); reads DISCORD_WEBHOOK_URL from .env
 │       └── discord_alerts.py          # SHARED: formats + sends all Discord alert types; reads DISCORD_WEBHOOK_URL from .env
 │
 ├── swing_model/
@@ -539,7 +539,7 @@ Multiple independent bullish (or bearish) news items about the same ticker withi
 
 **Cooling-off window.** A block persists until the next full post-close scan completes *after* the event timestamp — the system must see one full daily-bar update reflecting the event before trusting the other four layers again. A block created mid-scan never self-expires in that same run; it survives until a subsequent scan invocation whose completion timestamp is later than the event. This is enforced by `expire_blocks()` in `shared/utils/event_gate.py` and driven from `swing_model/run_swing_model.py` after each scan completes.
 
-**Open positions bypass the cooling-off window entirely.** A critical event on a ticker with an open position fires an immediate 🚨 Discord + email alert via `notification_router.py` (critical priority) the moment it's detected — it does not wait for the daily re-score, the same treatment as a signal-decay early-exit flag.
+**Open positions bypass the cooling-off window entirely.** A critical event on a ticker with an open position fires an immediate 🚨 Discord alert via `notification_router.py` the moment it's detected — it does not wait for the daily re-score, the same treatment as a signal-decay early-exit flag.
 
 **The honest tradeoff.** A false block costs one missed trade — tolerable, since the system is selective by design and surfaces few candidates anyway. A false pass (failing to classify a real shock as critical) costs a position riding through a gap-down with none of the usual protections engaged in time. And the trigger list can never be complete for a genuinely novel shock — this gate reduces the specific, recurring failure mode of "known bad headline outvoted by slow layers," not the general risk of surprise. It complements, and does not replace, the Black Swan detector and high-vol regime cap.
 
@@ -748,7 +748,7 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 | **Phase 7** | EV-based trade selector | `options_math.py` (Black-Scholes, Greeks, EV, slippage), `trade_selector.py` (15 trade types, all filters), `risk_reward.py`, `position_sizer.py` |
 | **Phase 8** | Signal decay + portfolio management | `signal_decay.py` (daily re-scoring, all management stops), `portfolio_manager.py` (position tracking, circuit breakers, PDT tracking, entry confirmation handling, correlation override) |
 | **Phase 9** | Risk mitigation layer | `data_validator.py`, `black_swan_detector.py`, exponential backoff in all clients, data fallback hierarchy, Alpha Vantage call budget enforcement, UTC timestamp normalization, audit_log, override_log, validation_log |
-| **Phase 10** | Notification + output layer | `discord_alerts.py` (all alert types, entry confirmation listener), `notification_router.py` (Discord primary + email secondary + SMS tertiary for critical alerts), `run_swing_model.py` (daily entry point, health check, missed scan detection) |
+| **Phase 10** | Notification + output layer | `discord_alerts.py` (all alert types, entry confirmation listener), `notification_router.py` (Discord — the only delivery channel besides the app UI), `run_swing_model.py` (daily entry point, health check, missed scan detection) |
 | **Phase 11** | Model versioning + CHANGELOG | `CHANGELOG.md` structure, `model_versioning.py` (version tracking, re-backtest enforcement before version increment, version logged in every audit entry) |
 | **Phase 12** | Backtesting | `backtest_engine.py` + `metrics.py` — 70/30 out-of-sample split, minimum 100 qualifying trades, walk-forward validation, per-regime performance reporting, stress testing (`stress_test.py`), confidence calibration |
 | **Phase 13** | Paper trading (60-90 days minimum) | `paper_trading/paper_trade_engine.py` (real-time data, simulated fills), `fill_tracker.py` (recommended vs. actual fill price logging), `paper_trade_metrics.py` (forward-testing win rate, R:R, EV accuracy vs. theoretical). Pass criteria: 80% win rate, 1:3 R:R, and slippage within 10% of modeled estimates sustained over minimum 60 trading days |
@@ -767,9 +767,7 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 | **Seeking Alpha Finance (via RapidAPI)** | Sentiment layer — commentCount engagement proxy. News layer — editorial news/analyst calls (same endpoint, two different reads) | **Paid — RapidAPI subscription** | Host: `seeking-alpha-finance.p.rapidapi.com`, endpoint `symbols/news`. No ticker-searchable Instablogs (community blog) feed exists on this subscription — `instablogs/post_data` only supports single-post lookup by numeric ID |
 | Alpha Vantage | News sentiment with pre-computed scores; weekly fundamental batch (earnings, overview) | Free | 25 calls/day free tier; 20 used per day per daily budget, plus a separate weekly fundamental batch that doesn't touch the daily budget |
 | Finnhub | Company news headlines (`/company-news`) | Free | Social-sentiment endpoint is paid-only, not used |
-| Discord Webhook | Primary alert delivery for all signal types | Free | Webhook URL stored in .env |
-| SMTP email | Secondary alert delivery for critical alerts only (circuit breakers, Black Swan, open position stops) | Free | Gmail SMTP or similar; backup when Discord unavailable |
-| Twilio SMS (optional) | Tertiary alert for highest-priority alerts only (Black Swan, Red circuit breaker) | Free tier available | Twilio free tier: 3 numbers, ~$15 free credit; optional but recommended |
+| Discord Webhook | Sole alert delivery channel for all signal types (the desktop app UI is the other place alerts surface — no email/SMS) | Free | Webhook URL stored in .env |
 
 **Environment variable note:** both RapidAPI sources share a single `RAPIDAPI_KEY` in `.env`. `sentiment_client.py` and `news_client.py` each set the appropriate `x-rapidapi-host` header per request — never hardcode the key in source, and rotate immediately if it is ever exposed in a chat log, screenshot, commit, or ticket.
 
@@ -1025,17 +1023,11 @@ Option B (cloud hosting — more reliable): deploy to AWS EC2 t2.micro (free tie
 
 ---
 
-### Enhancement 8 — Notification Redundancy (Phase 10)
+### Enhancement 8 — Notification Delivery (Phase 10)
 
-**Rationale:** Discord is the primary output channel, but it has no guaranteed uptime SLA and webhook failures are possible. Critical alerts (circuit breakers, Black Swan events, open position stops) require guaranteed delivery — missing one while traveling or during a Discord outage could result in an unmanaged open position past its stop level.
+**Discord only — email/SMS redundancy removed.** An earlier draft of this scope routed critical alerts (circuit breakers, Black Swan events, open position stops) through email (SMTP) and, for the highest-priority subset, SMS (Twilio) as backup channels in case of a Discord outage. That redundancy has been removed: Discord and the local desktop app UI (see `App_UI_Scope.md`) are the only two places alerts surface. `shared/utils/notification_router.py` sends every alert to Discord and nothing else — no priority-based escalation, no SMTP/Twilio dependency, no corresponding `.env` credentials.
 
-**Implementation:** `shared/utils/notification_router.py` sits above `discord_alerts.py` and routes alerts based on priority:
-
-- All alerts → Discord (primary)
-- Critical alerts only → email via SMTP (secondary): circuit breakers (all levels), Black Swan detection, time stops on open positions, structure stops on open positions, missed scan detection
-- Highest priority alerts → SMS via Twilio free tier (tertiary): Black Swan detection, Red circuit breaker only
-
-Critical vs. non-critical classification is defined in `global_config.yaml`. SMTP credentials and Twilio credentials stored in `.env`. If Discord delivery fails (HTTP error on webhook POST), `notification_router.py` automatically escalates to email for that alert regardless of priority level.
+**Accepted tradeoff:** a Discord outage now means a missed alert with no automatic fallback delivery. Given the account is still in the paper-trading phase (no live capital at risk — see CHANGELOG.md version-eligibility status) and the app UI provides a second, always-available place to review results and notification history without needing Discord to have been up at the time, the operational cost of maintaining SMTP/Twilio credentials and the escalation logic wasn't justified. Revisit if/when the model goes live and open positions carry real capital.
 
 ---
 
@@ -1186,7 +1178,7 @@ If you reply "details" to the alert, a follow-up message sends the complete excl
 
 **Operational risks (residual):**
 - The system requires a reliable internet connection and running Python environment. No cloud hosting is specified in this scope — if the system runs on a local machine that powers off or disconnects, scans will be missed. Consider cloud hosting for production reliability (Phase 15).
-- Notification redundancy (email + SMS) adds delivery resilience but not guaranteed delivery — SMTP servers and Twilio can also experience outages. For highest-stakes alerts (Black Swan, Red circuit breaker), manual monitoring is still recommended as a final backstop.
+- Discord is the sole alert delivery channel — no email/SMS fallback (see Enhancement 8). A Discord outage means a missed real-time alert with no automatic backup; the app UI's persisted notification history is the recovery path, not a live substitute. For highest-stakes alerts (Black Swan, Red circuit breaker), manual monitoring is still recommended as a final backstop.
 - Entry confirmation via Discord reply requires Discord to be available and the reply to be processed before the 2-hour default timeout. In poor connectivity conditions, confirmation may be delayed — monitor `data/logs/override_log.csv` to catch misclassified entries.
 
 **Performance monitoring risks (residual):**

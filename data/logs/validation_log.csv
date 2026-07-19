@@ -575,3 +575,94 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-18T06:39:57.106811+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-07-18T06:39:57.107590+00:00,NVDA,news,news_future_timestamp
 2026-07-18T06:39:57.110120+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:14:59.101220+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:14:59.101602+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:14:59.102707+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:14:59.103567+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:14:59.104361+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T04:14:59.105205+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T04:14:59.107468+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T04:14:59.107197+00:00
+2026-07-19T04:15:12.522632+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:15:12.522965+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:15:12.523804+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:15:12.524769+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:15:12.525683+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T04:15:12.526564+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T04:15:12.528317+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T04:15:12.528126+00:00
+2026-07-19T04:15:12.633571+00:00,AMD,fundamental_fetch_error,API error
+2026-07-19T04:15:13.024580+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:15:13.025698+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:15:13.027940+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-19T04:15:13.031423+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-19T04:15:13.033498+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-19T04:15:13.035463+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-19T04:15:13.037825+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-19T04:15:13.039543+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-19T04:15:13.040387+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-19T04:15:13.041238+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-19T04:15:13.043784+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-19T04:15:13.045432+00:00,NVDA,news,news_future_timestamp
+2026-07-19T04:15:13.049500+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:30:30.102954+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:30:30.103391+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:30:30.104636+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:30:30.105909+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:30:30.107017+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T04:30:30.108068+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T04:30:30.109649+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T04:30:30.109441+00:00
+2026-07-19T04:30:30.219421+00:00,AMD,fundamental_fetch_error,API error
+2026-07-19T04:30:30.601778+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:30:30.603000+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:30:30.605909+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-19T04:30:30.608324+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-19T04:30:30.610475+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-19T04:30:30.612447+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-19T04:30:30.614552+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-19T04:30:30.616593+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-19T04:30:30.617462+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-19T04:30:30.618296+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-19T04:30:30.620303+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-19T04:30:30.622026+00:00,NVDA,news,news_future_timestamp
+2026-07-19T04:30:30.624689+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:34:55.086123+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:34:55.087891+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:34:55.090785+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:34:55.100369+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:34:55.102608+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T04:34:55.106534+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T04:34:55.108644+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T04:34:55.108389+00:00
+2026-07-19T04:34:55.279661+00:00,AMD,fundamental_fetch_error,API error
+2026-07-19T04:34:55.651138+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:34:55.652169+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:34:55.653720+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-19T04:34:55.655914+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-19T04:34:55.658172+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-19T04:34:55.660811+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-19T04:34:55.665001+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-19T04:34:55.667299+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-19T04:34:55.668096+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-19T04:34:55.668874+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-19T04:34:55.670655+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-19T04:34:55.671419+00:00,NVDA,news,news_future_timestamp
+2026-07-19T04:34:55.673975+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:35:38.545460+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:35:38.545813+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:35:38.546711+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:35:38.547595+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T04:35:38.548413+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T04:35:38.549213+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T04:35:38.550422+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T04:35:38.550238+00:00
+2026-07-19T04:35:38.658580+00:00,AMD,fundamental_fetch_error,API error
+2026-07-19T04:35:39.024749+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:35:39.025689+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T04:35:39.027144+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-19T04:35:39.029554+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-19T04:35:39.031691+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-19T04:35:39.033652+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-19T04:35:39.036139+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-19T04:35:39.038615+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-19T04:35:39.039935+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-19T04:35:39.040722+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-19T04:35:39.042387+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-19T04:35:39.043487+00:00,NVDA,news,news_future_timestamp
+2026-07-19T04:35:39.046056+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']

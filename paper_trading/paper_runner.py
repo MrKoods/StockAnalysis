@@ -21,6 +21,7 @@ import csv
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 # Load .env before any imports that read environment variables
 try:
@@ -29,6 +30,7 @@ try:
 except ImportError:
     pass
 
+from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score
@@ -69,8 +71,25 @@ from swing_model.run_swing_model import (
 logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
+CONFIG_PATH = Path("config/swing_config.yaml")
 CONFIDENCE_THRESHOLD = 90
 NEAR_MISS_THRESHOLD = 80  # awareness-only Discord ping; never logged as a trade
+
+# Maps a layer_scores.layer_name (app_ui/db.py) to the compute_confidence_score()
+# result key it comes from — 5 scored categories + 6 modifiers, see App_UI_Scope.md §3.1/§5.
+_LAYER_SCORE_FIELDS = {
+    "technical": "technical_total",
+    "market_positioning": "positioning_total",
+    "sentiment": "sentiment_total",
+    "news": "news_total",
+    "fundamental": "fundamental_score",
+    "regime": "regime_modifier",
+    "sector_rotation": "sector_rotation_modifier",
+    "earnings": "earnings_modifier",
+    "cross_ticker": "cross_ticker_modifier",
+    "seasonality": "seasonality_modifier",
+    "macro_overlay": "macro_modifier",
+}
 
 _CSV_COLUMNS = [
     "signal_date", "ticker", "confidence",
@@ -111,6 +130,78 @@ def _append_row(row: dict) -> None:
         writer.writerow(row)
 
 
+# ---------------------------------------------------------------------------
+# App UI persistence — writes alongside the existing CSV/Discord behavior,
+# never in place of it. Every call is wrapped so a DB failure (locked file,
+# disk full) never breaks a scan the way it would if this were load-bearing.
+# See App_UI_Scope.md §4 — "wrap instead of consolidate."
+# ---------------------------------------------------------------------------
+
+def _read_config_snapshot() -> str:
+    try:
+        return CONFIG_PATH.read_text(encoding="utf-8")
+    except Exception as exc:
+        logger.warning(f"Could not read {CONFIG_PATH} for config_snapshot: {exc}")
+        return ""
+
+
+def _db_create_scan_run_safe(scan_type: str, config_snapshot: str) -> Optional[int]:
+    try:
+        return app_db.create_scan_run(scan_type, config_snapshot)
+    except Exception as exc:
+        logger.warning(f"app_ui DB: could not create scan_run — {exc}")
+        return None
+
+
+def _db_insert_ticker_result_safe(
+    run_id: Optional[int],
+    ticker: str,
+    category: str,
+    composite_score: float,
+    trade_structure: Optional[str] = None,
+    expected_value: Optional[float] = None,
+    event_gate_blocked: bool = False,
+    event_gate_trigger: Optional[str] = None,
+) -> Optional[int]:
+    if run_id is None:
+        return None
+    try:
+        return app_db.insert_ticker_result(
+            run_id, ticker, category, composite_score,
+            trade_structure=trade_structure, expected_value=expected_value,
+            event_gate_blocked=event_gate_blocked, event_gate_trigger=event_gate_trigger,
+        )
+    except Exception as exc:
+        logger.warning(f"app_ui DB: could not insert ticker_result for {ticker} — {exc}")
+        return None
+
+
+def _db_insert_layer_scores_safe(result_id: Optional[int], score: dict) -> None:
+    if result_id is None:
+        return
+    try:
+        for layer_name, score_key in _LAYER_SCORE_FIELDS.items():
+            app_db.insert_layer_score(result_id, layer_name, score.get(score_key))
+    except Exception as exc:
+        logger.warning(f"app_ui DB: could not insert layer_scores — {exc}")
+
+
+def _db_insert_notification_safe(
+    run_id: Optional[int],
+    ticker: Optional[str],
+    alert_type: str,
+    payload: dict,
+    discord_sent: bool,
+) -> None:
+    try:
+        app_db.insert_notification(
+            alert_type, "sent" if discord_sent else "failed",
+            run_id=run_id, ticker=ticker, payload=payload,
+        )
+    except Exception as exc:
+        logger.warning(f"app_ui DB: could not insert notification ({alert_type}) — {exc}")
+
+
 def run_paper_scan(scan_type: str = "post_close") -> int:
     """
     Run the full swing model pipeline and log qualifying signals to paper_trades.csv.
@@ -120,6 +211,11 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     model_version = get_model_version()
     today_str = date.today().isoformat()
     already_logged = _load_logged_keys()
+
+    # app_ui DB — one scan_runs row per invocation; every ticker_result and
+    # notification below is tagged with this run_id. run_id is None if the DB
+    # write itself failed, in which case the _db_*_safe helpers all no-op.
+    run_id = _db_create_scan_run_safe(scan_type, _read_config_snapshot())
 
     # Event Severity Gate state — shared with run_swing_model.py's live scans
     # (same real-world tickers, same blocks). See event_gate.expire_blocks for
@@ -233,7 +329,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         )
                         new_block = gate_state["blocks"][-1]
                         blocks_created_this_scan.add(new_block["id"])
-                        _try_send_event_gate_alert(new_block, model_version)
+                        gate_discord_sent = _try_send_event_gate_alert(new_block, model_version)
+                        _db_insert_notification_safe(
+                            run_id, None, "event_gate_triggered", new_block, gate_discord_sent,
+                        )
                         _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
                         score["event_gate_blocked"] = True
                         score["event_gate_trigger"] = trigger
@@ -247,7 +346,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         )
                         new_block = gate_state["blocks"][-1]
                         blocks_created_this_scan.add(new_block["id"])
-                        _try_send_event_gate_alert(new_block, model_version)
+                        gate_discord_sent = _try_send_event_gate_alert(new_block, model_version)
+                        _db_insert_notification_safe(
+                            run_id, ticker, "event_gate_triggered", new_block, gate_discord_sent,
+                        )
                         _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
                         score["event_gate_blocked"] = True
                         score["event_gate_trigger"] = trigger
@@ -299,25 +401,37 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 )
 
             if final_score < CONFIDENCE_THRESHOLD:
+                sub_threshold_category = (
+                    app_db.CATEGORY_NEAR_MISS if final_score >= NEAR_MISS_THRESHOLD else app_db.CATEGORY_NO_SIGNAL
+                )
+                result_id = _db_insert_ticker_result_safe(
+                    run_id, ticker, sub_threshold_category, final_score,
+                    event_gate_blocked=bool(score.get("event_gate_blocked", False)),
+                    event_gate_trigger=score.get("event_gate_trigger"),
+                )
+                _db_insert_layer_scores_safe(result_id, score)
+
                 if final_score >= NEAR_MISS_THRESHOLD:
+                    near_miss_payload = {
+                        "ticker": ticker,
+                        "confidence": final_score,
+                        "direction": direction,
+                        "regime": regime,
+                        "technical_score": score.get("technical_total", 0.0),
+                        "positioning_score": score.get("positioning_total", 0.0),
+                        "sentiment_score": score.get("sentiment_total", 0.0),
+                        "news_score": score.get("news_total", 0.0),
+                        "fundamental_score": score.get("fundamental_score", 0.0),
+                        "total_modifier": score.get("total_modifier", 0.0),
+                    }
+                    near_miss_sent = False
                     try:
-                        send_near_miss_alert(
-                            {
-                                "ticker": ticker,
-                                "confidence": final_score,
-                                "direction": direction,
-                                "regime": regime,
-                                "technical_score": score.get("technical_total", 0.0),
-                                "positioning_score": score.get("positioning_total", 0.0),
-                                "sentiment_score": score.get("sentiment_total", 0.0),
-                                "news_score": score.get("news_total", 0.0),
-                                "fundamental_score": score.get("fundamental_score", 0.0),
-                                "total_modifier": score.get("total_modifier", 0.0),
-                            },
-                            model_version=model_version,
-                        )
+                        near_miss_sent = send_near_miss_alert(near_miss_payload, model_version=model_version)
                     except Exception as exc:
                         logger.warning(f"{ticker}: near-miss Discord alert failed — {exc}")
+                    _db_insert_notification_safe(
+                        run_id, ticker, "near_miss", near_miss_payload, near_miss_sent,
+                    )
                 continue
 
             # Entry/stop/target
@@ -368,6 +482,18 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             except Exception as exc:
                 logger.warning(f"{ticker}: structure ranking failed — {exc}")
 
+            qualified_category = (
+                app_db.CATEGORY_TRADE_RECOMMENDED if structure_recommended else app_db.CATEGORY_PASSED_NO_TRADE
+            )
+            result_id = _db_insert_ticker_result_safe(
+                run_id, ticker, qualified_category, final_score,
+                trade_structure=structure_recommended or None,
+                expected_value=float(ev_per_dollar) if ev_per_dollar else None,
+                event_gate_blocked=bool(score.get("event_gate_blocked", False)),
+                event_gate_trigger=score.get("event_gate_trigger"),
+            )
+            _db_insert_layer_scores_safe(result_id, score)
+
             news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles)
             dominant_theme = str(news.get("dominant_theme", "")) if isinstance(news, dict) else ""
 
@@ -413,25 +539,25 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             logger.info(f"{ticker}: PAPER signal logged — confidence {final_score:.1f}")
 
             # Paper-specific Discord alert (separate from live model alert)
+            paper_alert_payload = {
+                **row,
+                "entry_zone_lower": entry_lower,
+                "entry_zone_upper": entry_upper,
+                "stop_loss": stop_loss,
+                "target": float(target_px) if target_px else 0.0,
+                "rr_ratio": rr_ratio,
+                "technical_score": score.get("technical_total", 0.0),
+                "positioning_score": score.get("positioning_total", 0.0),
+                "sentiment_score": score.get("sentiment_total", 0.0),
+                "news_score": score.get("news_total", 0.0),
+                "fundamental_score": score.get("fundamental_score", 0.0),
+            }
+            paper_alert_sent = False
             try:
-                send_paper_signal_alert(
-                    {
-                        **row,
-                        "entry_zone_lower": entry_lower,
-                        "entry_zone_upper": entry_upper,
-                        "stop_loss": stop_loss,
-                        "target": float(target_px) if target_px else 0.0,
-                        "rr_ratio": rr_ratio,
-                        "technical_score": score.get("technical_total", 0.0),
-                        "positioning_score": score.get("positioning_total", 0.0),
-                        "sentiment_score": score.get("sentiment_total", 0.0),
-                        "news_score": score.get("news_total", 0.0),
-                        "fundamental_score": score.get("fundamental_score", 0.0),
-                    },
-                    model_version=model_version,
-                )
+                paper_alert_sent = send_paper_signal_alert(paper_alert_payload, model_version=model_version)
             except Exception as exc:
                 logger.warning(f"{ticker}: paper Discord alert failed — {exc}")
+            _db_insert_notification_safe(run_id, ticker, "trade", paper_alert_payload, paper_alert_sent)
 
         except Exception as exc:
             logger.error(f"{ticker}: paper_runner error — {exc}")
@@ -444,7 +570,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     )
     save_gate_state(gate_state)
     for expired_block in newly_expired_blocks:
-        _try_send_event_gate_expired_alert(expired_block, model_version)
+        expired_discord_sent = _try_send_event_gate_expired_alert(expired_block, model_version)
+        _db_insert_notification_safe(
+            run_id, None, "event_gate_expired", expired_block, expired_discord_sent,
+        )
         _write_event_gate_audit(expired_block, model_version, scan_type, triggered=False)
 
     logger.info(f"Paper scan complete — {signals_logged} new signals logged to {PAPER_TRADES_CSV}")

@@ -58,12 +58,9 @@ output:
   format: "csv"                      # csv or json
 
 notifications:
-  # Priority routing: all alerts → Discord; critical → also email; highest → also SMS
-  # Critical alerts: circuit breakers, Black Swan, time stops, structure stops, missed scan
-  # Highest-priority: Black Swan, Red circuit breaker only
+  # Discord is the only delivery channel (app UI is the other, local-only) — no
+  # email or SMS escalation.
   discord_primary: true
-  email_secondary: true
-  sms_tertiary: true                 # Optional — requires Twilio credentials in .env
   discord_timeout_seconds: 10
   entry_confirmation_timeout_hours: 2
 

@@ -1,43 +1,12 @@
 """
-Tests for Phase 10: Discord alert formatting, notification routing priority,
-run_swing_model helpers. No real HTTP calls or file writes.
+Tests for Phase 10: Discord alert formatting, run_swing_model helpers.
+No real HTTP calls or file writes.
 """
 
 from datetime import datetime, timezone
 
 from shared.utils.discord_alerts import format_trade_alert_text
-from shared.utils.notification_router import classify_alert_priority, PRIORITY_NORMAL, PRIORITY_CRITICAL, PRIORITY_HIGHEST
 from swing_model.run_swing_model import get_model_version, check_for_missed_scan
-
-
-# ---------------------------------------------------------------------------
-# Alert priority classification
-# ---------------------------------------------------------------------------
-
-class TestAlertPriority:
-    def test_trade_alert_is_normal(self):
-        assert classify_alert_priority("trade_alert") == PRIORITY_NORMAL
-
-    def test_circuit_breaker_yellow_is_critical(self):
-        assert classify_alert_priority("circuit_breaker_yellow") == PRIORITY_CRITICAL
-
-    def test_circuit_breaker_orange_is_critical(self):
-        assert classify_alert_priority("circuit_breaker_orange") == PRIORITY_CRITICAL
-
-    def test_black_swan_is_highest(self):
-        assert classify_alert_priority("black_swan") == PRIORITY_HIGHEST
-
-    def test_circuit_breaker_red_is_highest(self):
-        assert classify_alert_priority("circuit_breaker_red") == PRIORITY_HIGHEST
-
-    def test_time_stop_is_critical(self):
-        assert classify_alert_priority("time_stop") == PRIORITY_CRITICAL
-
-    def test_missed_scan_is_critical(self):
-        assert classify_alert_priority("missed_scan") == PRIORITY_CRITICAL
-
-    def test_unknown_type_is_normal(self):
-        assert classify_alert_priority("some_unknown_alert") == PRIORITY_NORMAL
 
 
 # ---------------------------------------------------------------------------
