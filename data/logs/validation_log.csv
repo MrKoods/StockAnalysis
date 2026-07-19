@@ -964,3 +964,24 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-19T12:46:08.124914+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-07-19T12:46:08.125712+00:00,NVDA,news,news_future_timestamp
 2026-07-19T12:46:08.128820+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T12:53:18.688530+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T12:53:18.688820+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T12:53:18.689610+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T12:53:18.690391+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-19T12:53:18.691147+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-19T12:53:18.691893+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-19T12:53:18.693072+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-19T12:53:18.692898+00:00
+2026-07-19T12:53:18.775019+00:00,AMD,fundamental_fetch_error,API error
+2026-07-19T12:53:19.127355+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T12:53:19.128223+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-19T12:53:19.129702+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-19T12:53:19.132513+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-19T12:53:19.135055+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-19T12:53:19.137709+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-19T12:53:19.140228+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-19T12:53:19.142352+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-19T12:53:19.143215+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-19T12:53:19.144132+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-19T12:53:19.146104+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-19T12:53:19.146927+00:00,NVDA,news,news_future_timestamp
+2026-07-19T12:53:19.149958+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']

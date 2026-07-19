@@ -12,6 +12,61 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.2] — 2026-07-19 — Fix 24 issues from a full-codebase senior-engineer review
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.1 — see "Backtest result" below. Several of these entries change scoring/risk computations (flagged individually), so this is not a pure reliability patch like v2.1.5/v2.2.1.
+
+### What changed
+
+**Backtest validity**
+- `backtesting/backtest_engine.py`, `backtesting/metrics.py`: the equity curve is now built in chronological order (sorted by exit date) instead of the ticker-by-ticker order signals were generated in, and `compute_sharpe()` now annualizes using the actual observed trade frequency (`_trades_per_year()`) instead of always assuming `sqrt(252)` as if each trade were one calendar day. Both distorted the previously-reported Sharpe ratio (9.10) — **that figure is stale and must not be cited until the backtest is re-run.** Win rate (63.1%) and avg R:R (2.02) were unaffected by either bug.
+- `backtesting/backtest_engine.py`: the 70/30 test split now includes a real pre-cutoff warmup buffer (65 bars) per ticker so the first ~60 nominal test-period days aren't lost to indicator warmup with zero chance of producing a signal; a new `signal_cutoff` param on `_simulate_test_signals()` ensures warmup-buffer bars still can't themselves count as an out-of-sample signal.
+- `backtesting/backtest_engine.py`, `swing_model/indicator_pipeline.py`: fundamental scoring in the backtest now does a point-in-time lookup against a dated archive (`data/processed/fundamental_history/`, written on every weekly refresh) instead of using today's live snapshot for the entire multi-year replay — closes a real lookahead-bias source. The archive starts empty, so bars before the first archived snapshot fall back to neutral; it builds up week by week from here (same "accumulates going forward" tradeoff already accepted for Positioning).
+
+**Scoring correctness**
+- `shared/indicators/technical_common.py`, `swing_model/scoring.py`: MACD unavailability (short history, <35 bars) no longer silently reads as "not bullish" — new `macd_data_available` flag lets `trend_score` tell "insufficient data" apart from a genuine bearish MACD instead of capping the score either way.
+- `swing_model/fundamental_layer.py`: `eps_growth_score` changed from an asymmetric -2..+3 scale with a hard cliff at -5% decline (anything worse, from -6% to -60%, scored identically) to a symmetric, graduated -3..+3 scale.
+- `swing_model/scoring.py`: the positioning offline-degradation cap (caps score at 70 when positioning data is unavailable) previously only fired when `positioning_offline` was explicitly `True` — an empty/`None` positioning dict (the documented "data unavailable" default) silently bypassed it. Now also fires on an empty dict.
+- `swing_model/sentiment_layer.py`: the StockTwits bullish-ratio z-score now requires a minimum baseline sample size (5 messages across the trailing window) before trusting it — previously a single message on a low-volume ticker, with prior days at the neutral 0.5 placeholder, could produce `pstdev([0.5]*4)==0`, fall back to a tiny `std_baseline=0.15`, and max the 0-7 sub-score off n=1.
+- `shared/utils/insider_tracker.py`, `swing_model/positioning_layer.py`: consolidated three divergent buyer-counting implementations (one correctly windowed + shares-or-text, two text-only and unwindowed) into one shared `count_distinct_traders()` — `positioning_layer._score_insider` and `insider_tracker._signal_to_modifier` used to be able to disagree with `classify_transactions`' own classification.
+- `shared/utils/source_credibility.py`: `score_news_outlet()` no longer matches when a short/garbled parsed source string is merely contained *within* a known outlet key (e.g. a truncated "ft" matching "ft.com" and inheriting Financial Times' 0.88 credibility) — only the safe direction (a known key found within the parsed source) remains.
+
+**Risk/execution enforcement**
+- `swing_model/trade_selector.py`: now actually enforces the documented 1:3 R:R filter and a liquidity/slippage filter (structures where slippage eats ≥50% of raw EV are excluded) — both were computed but never checked before, so a 1:1 R:R structure could rank #1 and be marked `"recommended": True`. The documented Greeks filter (theta/vega/gamma) remains unimplemented — no options-chain data currently flows into this function — and is now surfaced via a `greeks_filter_status` field instead of silently reading as passed.
+- `shared/utils/position_sizer.py`: `compute_position_size()` now zeroes `risk_pct`/`dollar_risk` when the 5% capital cap is exceeded instead of returning full sizing and relying on the caller to check `capital_approved`.
+- `swing_model/portfolio_manager.py`: `can_open_new_position()` now blocks a second same-direction position on a ticker that already has one open — the existing correlated-pair check only compared *different* tickers and couldn't catch this.
+- `shared/utils/risk_reward.py`: `compute_entry_zone()`/`compute_stop_loss()` now reject `atr_14 <= 0` instead of silently producing a distorted (potentially inverted) stop/target from a bad ATR data point.
+- `shared/utils/regime_detection.py`: the VIX 25-30 band (elevated but below the extreme cutoff) with mixed trend signals now correctly classifies as `REGIME_HIGH_VOL` instead of both branches silently returning `REGIME_CHOPPY`, which had made the `vix_high_threshold` parameter a no-op and skipped the score-cap safety brake for that band.
+- `shared/utils/options_math.py`: `compute_ev_surface()` no longer double-multiplies by `win_probability`, which was systematically understating EV for every complex/surface structure (ratio spreads, back spreads).
+
+**Calibration / feedback loop**
+- `swing_model/feedback_loop.py`: `_score_outcomes()` now actually uses its `weights` argument (a win/loss composite-separation score) instead of ignoring it and returning the raw win rate — previously `run_calibration()`'s holdout old-vs-new comparison was always equal, so the safety gate meant to reject a bad recalibration could never fail.
+- `swing_model/scoring.py`: `compute_confidence_score()`'s `live_weights` parameter was accepted and documented but never read anywhere in the function body — implemented it (redistributes the technical+sentiment+news point pool per calibrated fractions). No current caller passes it, so this has no effect on live scoring yet.
+- `backtesting/backtest_engine.py`: corrected `run_backtest()`'s docstring, which claimed the 70/30 split calibrates weights on the train set — it never did and still doesn't; that's a separate, opt-in mechanism (`feedback_loop.run_calibration()`).
+
+**Dead code**
+- `swing_model/signal_decay.py`: `rescore_open_positions()` (post-entry daily re-scoring, >10pt confidence-drop early exit, trailing stop, time stop) was `raise NotImplementedError("Phase 8")` — fully implemented. Not wired into `run_swing_model.py`'s live loop yet, since that would mean the system starts closing positions automatically without a separate review pass.
+- `paper_trading/paper_trade_engine.py`, `paper_trading/paper_state.py` (removed): deleted `run_paper_session()`/`_update_paper_position()` and the `paper_state.py` module — nothing ever populated `data/processed/paper_positions.json` with an open position, so this orchestrator could only ever no-op. The real, working paper-trading pathway is `paper_runner.py` (`run_paper_scan`) + `paper_updater.py`, both operating on `paper_trading/paper_trades.csv`. `simulate_fill()` (used/tested independently) stays.
+
+**Reliability / ops**
+- `shared/api_clients/fundamental_client.py`, `shared/api_clients/news_client.py`, `shared/utils/discord_alerts.py`, `download_historical_news.py`: redact API keys/webhook tokens from error messages before logging — `requests`' `HTTPError` embeds the full request URL (including the `apikey`/`token` query param), so an unredacted 429/403/5xx would have written the live key to `app.log`/`validation_log.csv` in plaintext.
+- `shared/api_clients/fundamental_client.py`: `get_earnings_history()`/`get_estimate_revisions()` now check and increment the same Alpha Vantage daily call budget (`av_call_count.json`) that `news_client.py` already enforced — previously these 2 calls/ticker ran uncounted, so a Monday weekly refresh could push real AV usage past the free-tier daily cap while every individual counter still looked fine. Also capped per-call backoff at 90s (was unbounded — worst case ~42 minutes across a full 6-ticker refresh with both calls each).
+- New `shared/utils/atomic_io.py` (`atomic_write_json`/`atomic_write_text`, temp-file + rename): wired into `paper_updater.py`'s trade CSV, `feedback_loop.py`'s win-rate/weights files, `news_client.py`'s AV call counter, and `portfolio_manager.py`'s position state — a crash or overlapping run mid-write could previously truncate/corrupt any of these.
+- `swing_model/run_swing_model.py`: the per-ticker exception handler now still writes an audit_log.csv row on failure (previously a ticker with an exception anywhere before the normal audit write — sentiment/news/scoring/event-gate all run before it — silently had no row at all for that scan), and no longer blindly mislabels every such failure as a yfinance issue (that flag now only sets where an actual OHLCV fetch failure occurs). A failed VIX fetch now fails conservative (`REGIME_HIGH_VOL`) instead of defaulting to a calm VIX=15 reading.
+- `shared/utils/data_validator.py`: `validate_ohlcv()` now also checks Open is within [Low, High] — previously only High/Low/Close/Volume were validated per bar.
+- `app_ui/config_tab.py`: the config editor now detects and warns when the file changed on disk since it was last loaded here, before overwriting it.
+
+### Why it was changed
+User requested a full-codebase review "thinking like a senior developer and stock market analysis expert," which was run as four parallel focused reviews (core scoring layers; risk management/market-context utils; backtesting/paper trading; orchestration/API clients/app infra). All findings were spot-checked against the actual code before being reported, then fixed on request. Full list and reasoning for each fix is in the conversation this version was produced from; the most consequential single finding was the Sharpe-ratio computation bug, since it directly invalidates a previously-reported headline backtest metric.
+
+### Backtest result
+**PENDING — not yet re-run.** This entry changes several scoring computations (MACD availability handling, EPS growth scale, positioning offline cap, sentiment ratio z-score gate, R:R/liquidity filtering in trade structure selection) on top of fixing the backtest engine's own Sharpe/warmup-window bugs, so the existing 63.1% WR / 149-trade result cannot be assumed to still hold and the Sharpe figure is known-invalid regardless. Per this file's own rule, this version remains ineligible for live trading until a passing backtest is logged — run `run_backtest()` and log the result here before treating v2.2.2 as validated. All 497 existing unit/integration tests pass, but none of them are a substitute for the full historical replay.
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.1] — 2026-07-18 — Remove email/SMS notification delivery; Discord + app UI only
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.0 — infrastructure simplification, no scoring/threshold impact.
