@@ -29,7 +29,7 @@ midpoint rather than 0 (a real current value exists, just no trend yet).
 
 from typing import Optional
 
-from shared.utils.insider_tracker import classify_transactions
+from shared.utils.insider_tracker import classify_transactions, count_distinct_traders
 
 OPTIONS_MAX = 6.0
 INSTITUTIONAL_MAX = 5.0
@@ -177,12 +177,14 @@ def _score_insider(transactions: Optional[list]) -> tuple[float, str]:
     if signal == "selling_cluster":
         return 0.0, "complete"
     if signal == "buying":
-        buyers = set(
-            tx.get("insider") or tx.get("name", "x") for tx in transactions
-            if "purchase" in str(tx.get("transaction", "")).lower()
-            or "buy" in str(tx.get("transaction", "")).lower()
-        )
-        return (INSIDER_MAX if len(buyers) >= 2 else 2.25), "complete"  # 2+ buyers -> max; single buyer -> partial credit
+        # Reuse the same windowed buy_insiders count classify_transactions used to
+        # decide "buying" in the first place — this used to re-derive its own
+        # buyer count from text-match only, with no date window, which could
+        # diverge from the classification above (e.g. a buy detected via shares
+        # sign with no matching text yielded 0 local buyers and only partial
+        # credit; a stale out-of-window buy could inflate it to full credit).
+        buy_insiders, _ = count_distinct_traders(transactions, window_days=10)
+        return (INSIDER_MAX if len(buy_insiders) >= 2 else 2.25), "complete"  # 2+ buyers -> max; single buyer -> partial credit
     return INSIDER_MAX / 2.0, "complete"  # neutral
 
 

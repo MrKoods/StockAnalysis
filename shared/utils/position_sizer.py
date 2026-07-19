@@ -63,6 +63,15 @@ def compute_position_size(
     max_capital = max_capital_pct * account_equity
     capital_approved = capital_required <= max_capital
 
+    # Zero out risk_pct/dollar_risk when the 5% cap is exceeded rather than
+    # returning full sizing and relying on every caller to remember to check
+    # capital_approved before acting on it — trade_selector.py already hard-excludes
+    # over-capital structures at the ranking stage; this keeps the same cap
+    # structurally enforced here too, not just advisory.
+    if not capital_approved:
+        adjusted_risk_pct = 0.0
+        dollar_risk = 0.0
+
     return {
         "risk_pct": round(adjusted_risk_pct, 4),
         "dollar_risk": round(dollar_risk, 2),

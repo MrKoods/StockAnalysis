@@ -128,7 +128,10 @@ def _fetch_quarter(api_key: str, ticker: str, time_from: str, time_to: str) -> l
         resp.raise_for_status()
         data = resp.json()
     except Exception as exc:
-        print(f"    ERROR fetching {ticker} {time_from}-{time_to}: {exc}")
+        # requests' HTTPError embeds the full request URL (apikey is a query
+        # param) — redact before printing so a 429/403 doesn't leak the live key.
+        safe_exc = str(exc).replace(api_key, "***REDACTED***") if api_key else str(exc)
+        print(f"    ERROR fetching {ticker} {time_from}-{time_to}: {safe_exc}")
         return []
 
     if "Information" in data:

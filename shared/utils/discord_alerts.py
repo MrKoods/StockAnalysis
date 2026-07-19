@@ -491,7 +491,10 @@ def _post_to_webhook(payload: dict, webhook_url: Optional[str] = None) -> bool:
         resp = requests.post(url, json=payload, timeout=10)
         return resp.status_code in (200, 204)
     except Exception as exc:
-        logger.error(f"Discord webhook POST failed: {exc}")
+        # The webhook token lives in the URL path itself (not a header), and
+        # requests' connection/timeout errors often embed the full URL — redact
+        # before logging so a network failure doesn't write the live webhook to disk.
+        logger.error(f"Discord webhook POST failed: {str(exc).replace(url, '***REDACTED_WEBHOOK***')}")
         return False
 
 

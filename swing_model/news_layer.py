@@ -168,7 +168,7 @@ def compute_news_score(
     # ---------------------------------------------------------------------------
     # 3. Clustering score (0-3)
     # ---------------------------------------------------------------------------
-    cluster_count = count_independent_cluster(relevant, ticker, window_days=2)
+    cluster_count = count_independent_cluster(relevant, ticker, window_days=2, reference_date=now)
     clustering_score = float(min(3, cluster_count))
 
     # ---------------------------------------------------------------------------
@@ -222,6 +222,7 @@ def count_independent_cluster(
     articles: list[dict],
     ticker: str,
     window_days: int = 2,
+    reference_date: Optional[datetime] = None,
 ) -> int:
     """
     Count independent same-direction news articles in window_days (cap at 3).
@@ -230,7 +231,7 @@ def count_independent_cluster(
     if not articles:
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = reference_date if reference_date is not None else datetime.now(timezone.utc)
     from datetime import timedelta
     cutoff = now - timedelta(days=window_days)
 

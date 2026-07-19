@@ -11,6 +11,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
+from shared.utils.atomic_io import atomic_write_json
 
 _POSITION_STATE_FILE = Path("data/processed/position_state.json")
 _OVERRIDE_LOG_FILE = Path("data/logs/override_log.csv")
@@ -50,9 +51,8 @@ def load_position_state() -> dict:
 
 
 def save_position_state(state: dict) -> None:
-    """Persist position state to data/processed/position_state.json."""
-    _POSITION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _POSITION_STATE_FILE.write_text(json.dumps(state, indent=2, default=str))
+    """Persist position state to data/processed/position_state.json (atomic write)."""
+    atomic_write_json(_POSITION_STATE_FILE, state)
 
 
 def add_position(state: dict, position: dict) -> dict:
@@ -223,9 +223,18 @@ def can_open_new_position(
     if existing_risk + new_risk > MAX_TOTAL_RISK_PCT:
         return False, f"total_risk_exceeds_3pct_{round((existing_risk + new_risk)*100, 1)}pct"
 
-    # Correlated pair rule — no same-direction exposure in correlated pair
+    # Same-ticker rule — no second same-direction position on a ticker that
+    # already has one open. {new_ticker, open_ticker} collapses to a 1-element
+    # set when they're equal, which never matches any 2-element pair in
+    # _CORRELATED_PAIRS below, so that check alone couldn't catch this case —
+    # both of the 2 available slots could otherwise concentrate in one name.
     new_ticker = new_position.get("ticker", "")
     new_dir = new_position.get("direction", "bullish")
+    for open_pos in open_positions:
+        if new_ticker == open_pos.get("ticker", "") and new_dir == open_pos.get("direction", "bullish"):
+            return False, f"duplicate_position_{new_ticker}_same_direction"
+
+    # Correlated pair rule — no same-direction exposure in correlated pair
     for open_pos in open_positions:
         open_ticker = open_pos.get("ticker", "")
         if new_dir == open_pos.get("direction", "bullish"):

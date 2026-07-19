@@ -14,6 +14,7 @@ Usage:
 """
 
 import csv
+import io
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -30,6 +31,7 @@ import yfinance as yf
 
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_outcome_alert
+from shared.utils.atomic_io import atomic_write_text
 
 logger = get_logger(__name__)
 
@@ -56,10 +58,13 @@ def _load_trades() -> list[dict]:
 
 
 def _save_trades(trades: list[dict]) -> None:
-    with open(PAPER_TRADES_CSV, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(trades)
+    # Full-file rewrite on every update — write atomically so a crash or an
+    # overlapping run mid-write can't truncate the whole trade history.
+    buf = io.StringIO(newline="")
+    writer = csv.DictWriter(buf, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(trades)
+    atomic_write_text(PAPER_TRADES_CSV, buf.getvalue(), newline="")
 
 
 def _download_ohlcv(ticker: str, start: str) -> Optional[pd.DataFrame]:

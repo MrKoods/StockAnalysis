@@ -122,6 +122,11 @@ def main(scan_type: str = "post_close") -> None:
         try:
             indicators = indicators_by_ticker.get(ticker)
             if indicators is None:
+                # This IS an actual yfinance/OHLCV data gap for this ticker (Step 4's
+                # run_pipeline already tried and failed) — the correct place to flag
+                # data_sources["yfinance"], unlike the broad except below which used
+                # to set this for any unrelated failure further down the pipeline.
+                data_sources["yfinance"] = False
                 continue
             tickers_processed += 1
 
@@ -365,7 +370,25 @@ def main(scan_type: str = "post_close") -> None:
 
         except Exception as exc:
             logger.error(f"{ticker}: pipeline error — {exc}")
-            data_sources["yfinance"] = False
+            # Always leave an audit_log.csv row for this ticker, even on failure —
+            # previously an exception anywhere before the normal audit write above
+            # (sentiment/news/scoring/event-gate all run before it) meant this
+            # ticker silently had no row at all for this scan, with no record of
+            # what happened. Also no longer blindly marks data_sources["yfinance"]
+            # False here: this ticker's actual yfinance OHLCV fetch (run_pipeline's
+            # Step 4, earlier) already succeeded by the time this block runs — an
+            # exception here is in sentiment/news/scoring/event-gate code, not
+            # yfinance, and mislabeling it that way pointed incident debugging at
+            # the wrong subsystem.
+            try:
+                write_audit_entry({
+                    "model_version": model_version,
+                    "scan_type": scan_type,
+                    "ticker": ticker,
+                    "notes": f"pipeline_error: {exc}",
+                })
+            except Exception:
+                pass
 
     # Event Severity Gate — expire blocks whose cooling-off condition is met:
     # a post_close scan that completes after the block's event timestamp (a full
@@ -649,13 +672,22 @@ def _compute_regime_safe(
     vix: Optional[float],
     smh_df,
 ) -> str:
-    """Classify market regime; falls back to 'choppy' on any error."""
+    """
+    Classify market regime; falls back to 'choppy' on any error.
+
+    A failed VIX fetch (vix is None) does NOT default to a calm reading (15.0) —
+    that would fail open exactly when a data-provider outage coincides with real
+    volatility, potentially skipping the REGIME_HIGH_VOL score cap / defined-risk
+    brake. With no real VIX data, this fails conservative instead: REGIME_HIGH_VOL.
+    """
     try:
         import pandas as pd
         if smh_df is None or (isinstance(smh_df, pd.DataFrame) and smh_df.empty):
             return "choppy"
-        vix_val = float(vix) if vix is not None else 15.0
-        return classify_regime(vix=vix_val, smh_ohlcv=smh_df)
+        if vix is None:
+            logger.warning("VIX unavailable — defaulting to REGIME_HIGH_VOL (fail conservative, not calm).")
+            return REGIME_HIGH_VOL
+        return classify_regime(vix=float(vix), smh_ohlcv=smh_df)
     except Exception as exc:
         logger.warning(f"Regime detection failed — {exc}. Defaulting to 'choppy'.")
         return "choppy"

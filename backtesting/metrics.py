@@ -56,13 +56,20 @@ def compute_max_drawdown(equity_curve: pd.Series) -> float:
     return float(abs(drawdown.min()))
 
 
-def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.05) -> float:
-    """Annualized Sharpe ratio on daily returns series."""
+def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.05, periods_per_year: float = 252) -> float:
+    """
+    Annualized Sharpe ratio. `periods_per_year` must match what one step in `returns`
+    represents: 252 for a true daily-returns series, or the actual observed trade
+    frequency when each step is one trade rather than one calendar day (a trade-level
+    equity curve stepped through sqrt(252) would overstate annualized Sharpe by
+    treating ~149 trades/multi-year backtest as if they were 252 independent
+    observations per year).
+    """
     if returns.empty or returns.std() == 0:
         return 0.0
-    daily_rf = risk_free_rate / 252
-    excess = returns - daily_rf
-    return float((excess.mean() / returns.std()) * math.sqrt(252))
+    period_rf = risk_free_rate / periods_per_year
+    excess = returns - period_rf
+    return float((excess.mean() / returns.std()) * math.sqrt(periods_per_year))
 
 
 def per_regime_metrics(outcomes: list[dict]) -> dict:

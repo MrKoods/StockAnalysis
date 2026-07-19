@@ -252,9 +252,15 @@ def compute_technical_indicators(
     c_sma50 = float(sma_50_series.iloc[latest]) if not pd.isna(sma_50_series.iloc[latest]) else c_close
     c_rsi = float(rsi_series.iloc[latest])
     c_atr = float(atr_series.iloc[latest]) if not pd.isna(atr_series.iloc[latest]) else 0.0
-    c_macd = float(macd_line_s.iloc[latest])
-    c_signal = float(macd_signal_s.iloc[latest])
-    c_hist = float(macd_hist_s.iloc[latest])
+    # MACD needs ~35 bars of history (26-period slow EMA + signal); with less
+    # (new watchlist addition, short backtest window) macd_line/signal are NaN.
+    # Unguarded, NaN > NaN evaluates False in Python, so macd_bullish silently
+    # read as "not bullish" instead of "unknown" — macd_data_available lets
+    # scoring.py tell the two apart instead of quietly capping trend_score.
+    macd_data_available = not (pd.isna(macd_line_s.iloc[latest]) or pd.isna(macd_signal_s.iloc[latest]))
+    c_macd = float(macd_line_s.iloc[latest]) if macd_data_available else 0.0
+    c_signal = float(macd_signal_s.iloc[latest]) if macd_data_available else 0.0
+    c_hist = float(macd_hist_s.iloc[latest]) if not pd.isna(macd_hist_s.iloc[latest]) else 0.0
     c_rolling_high = float(rolling_high_20.iloc[latest]) if not pd.isna(rolling_high_20.iloc[latest]) else c_close
     c_vol_sma = float(volume_sma.iloc[latest]) if not pd.isna(volume_sma.iloc[latest]) else 0.0
     c_rs = float(rs_series.iloc[latest]) if not pd.isna(rs_series.iloc[latest]) else 0.0
@@ -292,5 +298,6 @@ def compute_technical_indicators(
         "trend_intact": c_sma20 > c_sma50 and c_close > c_sma50,
         "sma_20_above_sma_50": c_sma20 > c_sma50,
         "price_above_sma_50": c_close > c_sma50,
-        "macd_bullish": c_macd > c_signal,
+        "macd_bullish": (c_macd > c_signal) if macd_data_available else False,
+        "macd_data_available": macd_data_available,
     }

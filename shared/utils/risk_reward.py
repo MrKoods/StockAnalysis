@@ -23,6 +23,12 @@ def compute_entry_zone(
     Lower = max(current_close, breakout_level) - (half_width_atr × ATR_14)
     Upper = max(current_close, breakout_level) + (half_width_atr × ATR_14)
     """
+    if atr_14 <= 0:
+        # A vendor data glitch (bad/negative ATR) must not silently produce an
+        # inverted or zero-width entry zone — every downstream stop/target
+        # calculation assumes a positive ATR.
+        raise ValueError(f"atr_14 must be > 0, got {atr_14}")
+
     anchor = max(current_close, breakout_level)
     lower = anchor - (half_width_atr * atr_14)
     upper = anchor + (half_width_atr * atr_14)
@@ -42,6 +48,9 @@ def compute_stop_loss(
     (tighter stop = less risk per trade, more capital-efficient).
     Stop must always be below entry_zone_lower.
     """
+    if atr_14 <= 0:
+        raise ValueError(f"atr_14 must be > 0, got {atr_14}")
+
     atr_stop = entry_zone_lower - (stop_atr_multiplier * atr_14)
 
     if high_volume_support is not None and high_volume_support < entry_zone_lower:

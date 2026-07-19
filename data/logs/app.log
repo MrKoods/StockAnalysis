@@ -1992,3 +1992,759 @@
 2026-07-18 21:37:17,036 [paper_trading.paper_runner] INFO — ASML: SCORE 26.6/100 (technical=22.9/40, positioning=9.7/20, sentiment=0.3/15, news=11.7/15, fundamental=6.0/10) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=-5.0, seasonality=+1.0, total=-24.0) direction=bullish qualifies=no
 2026-07-18 21:37:17,036 [paper_trading.paper_runner] INFO — ASML: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
 2026-07-18 21:37:17,122 [paper_trading.paper_runner] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-07-19 04:59:11,797 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:11,798 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 04:59:11,798 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 04:59:11,798 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:11,799 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,799 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 04:59:11,800 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,800 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,801 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 04:59:11,804 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:11,804 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 04:59:11,804 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 04:59:11,804 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:11,805 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,808 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:11,808 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 04:59:11,808 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 04:59:11,808 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:11,810 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,812 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:11,812 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 04:59:11,812 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 04:59:11,812 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:11,813 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,813 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 04:59:11,814 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,814 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 04:59:11,816 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,817 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:11,817 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 04:59:18,401 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 04:59:18,449 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 04:59:18,453 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 04:59:18,505 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-51\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 04:59:18,538 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 04:59:18,587 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 04:59:18,592 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-51\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 04:59:18,598 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 04:59:18,605 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 04:59:18,608 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 04:59:18,609 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 04:59:18,610 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 04:59:18,611 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 04:59:18,611 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 04:59:18,612 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 04:59:18,613 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 04:59:18,613 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 04:59:18,621 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 04:59:18,628 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 04:59:18,703 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:18,703 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 04:59:18,703 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:18,704 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,704 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 04:59:18,706 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,707 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,708 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 04:59:18,710 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:18,710 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 04:59:18,710 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:18,711 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,713 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:18,713 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 04:59:18,713 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:18,714 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,716 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 04:59:18,716 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 04:59:18,716 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 04:59:18,717 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,717 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 04:59:18,718 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,718 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 04:59:18,719 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,720 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 04:59:18,720 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 04:59:18,966 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:19:25,038 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:19:25,085 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:19:25,090 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:19:25,140 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-52\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:19:25,176 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:19:25,224 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:19:25,228 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-52\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:19:25,234 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:19:25,242 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:19:25,245 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:19:25,246 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:19:25,247 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:19:25,248 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:19:25,249 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:19:25,250 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:19:25,250 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:19:25,251 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:19:25,259 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:19:25,265 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:19:25,344 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:19:25,344 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:19:25,344 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:19:25,345 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,345 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:19:25,347 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,348 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,349 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:19:25,351 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:19:25,351 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:19:25,351 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:19:25,352 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,354 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:19:25,354 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:19:25,354 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:19:25,355 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,357 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:19:25,357 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:19:25,357 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:19:25,358 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,358 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:19:25,359 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,359 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:19:25,360 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,361 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:19:25,362 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:19:25,607 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:21:04,213 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:21:15,241 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:21:15,290 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:21:15,294 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:21:15,344 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-54\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:21:15,379 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:21:15,427 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:21:15,431 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-54\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:21:15,435 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:21:15,436 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:21:15,441 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:21:15,442 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:21:15,443 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:21:15,443 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:21:15,444 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:21:15,445 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:21:15,445 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:21:15,446 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:21:15,455 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:21:15,460 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:25:32,177 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:25:32,228 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:25:32,233 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:25:32,283 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-56\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:25:32,318 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:25:32,365 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:25:32,369 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-56\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:25:32,376 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:25:32,382 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:25:32,385 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:25:32,386 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:25:32,388 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:25:32,389 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:25:32,389 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:25:32,390 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:25:32,391 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:25:32,391 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:25:32,400 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:25:32,406 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:25:32,483 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:25:32,483 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:25:32,483 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:25:32,484 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,484 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:25:32,485 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,486 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,487 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:25:32,489 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:25:32,489 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:25:32,489 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:25:32,490 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,492 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:25:32,492 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:25:32,493 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:25:32,493 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,496 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:25:32,496 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:25:32,496 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:25:32,496 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,497 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:25:32,498 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,498 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:25:32,499 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,499 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:25:32,500 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:25:32,750 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:27:14,611 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:27:14,611 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:27:14,611 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:27:14,612 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,612 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:27:14,613 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,614 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,615 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:27:14,616 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:27:14,617 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:27:14,617 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:27:14,617 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,619 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:27:14,620 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:27:14,620 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:27:14,621 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,623 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:27:14,623 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:27:14,623 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:27:14,624 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,624 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:27:14,625 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,625 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:27:14,626 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,628 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:27:14,628 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:28:40,891 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:28:40,891 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:28:40,891 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:28:40,892 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,892 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:28:40,893 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,894 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,895 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:28:40,897 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:28:40,897 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:28:40,897 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:28:40,898 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,900 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:28:40,900 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:28:40,900 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:28:40,901 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,902 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:28:40,903 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:28:40,903 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:28:40,903 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,903 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:28:40,905 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,905 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:28:40,905 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,906 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:28:40,907 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-07-20.json
+2026-07-19 05:29:45,686 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:29:45,686 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:29:45,686 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 05:29:45,686 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:29:45,687 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,688 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:29:45,688 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,689 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,690 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-59\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:29:45,692 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:29:45,692 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:29:45,692 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 05:29:45,692 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:29:45,693 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,695 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:29:45,695 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:29:45,695 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 05:29:45,695 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:29:45,696 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,698 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:29:45,698 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:29:45,698 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.
+2026-07-19 05:29:45,698 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:29:45,699 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,699 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:29:45,700 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,700 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:29:45,700 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,701 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:29:45,702 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-59\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:32:05,452 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:32:05,499 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:32:05,502 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:32:05,552 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-60\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:32:05,586 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:32:05,630 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:32:05,634 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-60\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:32:05,640 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:32:05,647 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:32:05,652 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:32:05,652 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:32:05,653 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:32:05,654 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:32:05,655 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:32:05,656 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:32:05,657 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:32:05,658 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:32:05,666 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:32:05,672 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:32:05,751 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:32:05,752 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:32:05,752 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:32:05,753 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,753 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:32:05,753 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,755 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,755 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-60\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:32:05,758 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:32:05,759 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:32:05,759 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:32:05,760 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,763 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:32:05,763 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:32:05,763 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:32:05,764 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,766 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:32:05,766 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:32:05,766 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:32:05,767 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,767 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:32:05,768 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,768 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:32:05,769 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,770 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:32:05,770 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-60\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:32:06,012 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:33:49,370 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:33:49,415 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:33:49,419 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:33:49,469 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-61\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:33:49,502 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:33:49,550 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:33:49,553 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-61\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:33:49,559 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:33:49,564 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:33:49,567 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:33:49,568 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:33:49,569 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:33:49,570 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:33:49,571 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:33:49,571 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:33:49,572 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:33:49,573 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:33:49,581 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:33:49,587 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:33:49,663 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:33:49,664 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:33:49,664 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:33:49,664 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,665 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:33:49,665 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,666 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,667 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-61\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:33:49,669 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:33:49,669 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:33:49,669 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:33:49,670 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,672 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:33:49,672 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:33:49,672 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:33:49,673 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,675 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:33:49,675 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:33:49,675 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:33:49,676 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,676 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:33:49,677 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,677 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:33:49,678 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,679 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:33:49,679 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-61\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:33:49,946 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:35:14,872 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:35:14,921 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:35:14,925 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:35:14,977 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-62\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:35:15,011 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:35:15,058 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:35:15,062 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-62\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:35:15,068 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:35:15,081 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:35:15,084 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:35:15,085 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:35:15,086 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:35:15,087 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:35:15,088 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:35:15,088 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:35:15,089 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:35:15,090 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:35:15,099 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:35:15,105 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:35:15,169 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:35:15,169 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:35:15,169 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:35:15,170 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,170 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:35:15,171 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,172 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,173 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-62\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:35:15,175 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:35:15,175 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:35:15,175 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:35:15,176 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,178 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:35:15,179 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:35:15,179 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:35:15,179 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,181 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:35:15,182 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:35:15,182 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:35:15,182 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,183 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:35:15,184 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,184 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:35:15,184 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,185 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:35:15,186 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-62\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:35:15,434 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:36:15,212 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:36:15,212 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:36:15,212 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:36:15,213 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,213 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:36:15,214 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,214 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,215 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-63\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:36:15,217 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:36:15,217 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:36:15,217 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:36:15,218 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,220 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:36:15,220 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:36:15,220 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:36:15,221 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,223 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:36:15,223 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:36:15,223 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:36:15,224 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,224 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:36:15,225 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,225 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:36:15,226 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,227 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:36:15,227 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-63\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:37:30,376 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:37:30,425 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:37:30,430 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:37:30,480 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-64\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:37:30,516 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:37:30,568 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:37:30,572 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-64\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:37:30,579 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:37:30,593 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:37:30,597 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:37:30,598 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:37:30,599 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:37:30,600 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:37:30,601 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:37:30,601 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:37:30,602 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:37:30,603 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:37:30,610 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:37:30,617 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:37:30,681 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:37:30,681 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:37:30,681 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:37:30,682 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,682 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:37:30,683 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,684 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,684 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-64\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:37:30,687 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:37:30,687 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:37:30,687 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:37:30,687 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,691 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:37:30,691 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:37:30,691 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:37:30,692 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,695 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:37:30,695 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:37:30,695 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:37:30,696 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,696 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:37:30,697 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,697 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:37:30,698 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,699 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:37:30,699 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-64\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:37:30,943 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:39:35,883 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:39:35,931 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:39:35,936 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:39:35,985 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-66\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:39:36,018 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:39:36,065 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:39:36,069 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-66\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:39:36,076 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:39:36,089 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:39:36,092 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:39:36,093 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:39:36,094 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:39:36,095 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:39:36,095 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:39:36,096 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:39:36,096 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:39:36,097 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:39:36,105 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:39:36,110 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:39:36,177 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:39:36,177 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:39:36,177 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:39:36,178 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,178 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:39:36,179 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,179 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,180 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-66\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:39:36,182 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:39:36,182 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:39:36,182 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:39:36,183 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,185 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:39:36,185 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:39:36,185 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:39:36,186 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,188 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:39:36,188 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:39:36,188 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:39:36,189 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,189 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:39:36,190 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,190 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:39:36,191 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,192 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:39:36,192 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-66\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:39:36,430 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:41:00,325 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:41:00,372 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:41:00,376 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:41:00,426 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-67\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:41:00,460 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:41:00,505 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:41:00,510 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-67\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:41:00,517 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:41:00,531 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:41:00,535 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:41:00,536 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:41:00,537 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:41:00,538 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:41:00,539 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:41:00,540 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:41:00,540 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:41:00,541 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:41:00,550 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:41:00,557 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:41:00,624 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:41:00,624 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:41:00,624 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:41:00,625 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,626 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:41:00,627 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,628 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,628 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-67\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:41:00,631 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:41:00,631 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:41:00,631 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:41:00,632 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,635 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:41:00,635 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:41:00,635 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:41:00,636 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,639 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:41:00,639 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:41:00,639 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:41:00,639 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,640 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:41:00,641 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,641 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:41:00,641 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,642 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:41:00,643 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-67\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:41:00,909 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:42:32,953 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:42:32,999 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:42:33,003 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:42:33,051 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-68\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:42:33,085 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:42:33,131 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:42:33,135 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-68\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:42:33,141 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:42:33,155 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:42:33,159 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:42:33,159 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:42:33,161 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:42:33,161 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:42:33,162 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:42:33,163 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:42:33,163 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:42:33,164 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:42:33,173 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:42:33,179 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:42:33,244 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:42:33,244 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:42:33,245 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:42:33,246 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,246 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:42:33,247 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,248 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,248 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-68\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:42:33,250 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:42:33,250 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:42:33,251 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:42:33,251 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,253 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:42:33,253 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:42:33,254 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:42:33,254 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,256 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:42:33,256 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:42:33,256 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:42:33,257 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,257 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:42:33,258 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,258 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:42:33,259 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,260 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:42:33,261 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-68\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:42:33,501 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:44:04,136 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:44:04,182 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:44:04,185 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:44:04,234 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-69\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:44:04,268 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:44:04,313 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:44:04,317 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-69\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:44:04,324 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:44:04,338 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:44:04,341 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:44:04,342 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:44:04,343 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:44:04,344 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:04,345 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:04,345 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:04,346 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:04,347 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:04,356 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:44:04,362 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:44:04,427 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:04,427 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:44:04,427 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:04,428 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,428 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:44:04,428 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,429 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,430 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-69\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:44:04,432 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:04,432 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:44:04,432 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:04,433 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,435 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:04,435 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:44:04,435 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:04,436 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,438 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:04,438 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:44:04,438 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:04,439 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,439 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:44:04,440 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,440 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:44:04,442 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,443 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:04,443 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-69\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:44:04,694 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:44:58,320 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:44:58,365 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:44:58,369 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:44:58,418 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-70\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:44:58,452 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:44:58,499 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:44:58,503 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-70\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:44:58,509 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:44:58,523 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:44:58,527 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:44:58,527 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:44:58,528 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:44:58,529 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:58,530 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:58,530 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:58,531 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:58,532 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:44:58,540 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:44:58,547 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:44:58,610 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:58,610 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:44:58,610 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:58,611 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,611 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:44:58,611 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,612 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,613 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-70\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:44:58,615 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:58,615 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:44:58,615 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:58,616 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,619 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:58,619 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:44:58,619 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:58,620 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,622 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:44:58,622 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:44:58,622 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:44:58,623 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,623 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:44:58,624 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,624 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:44:58,625 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,626 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:44:58,626 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-70\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:44:58,867 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold
+2026-07-19 05:46:07,461 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:46:07,507 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:46:07,511 [paper_trading.paper_runner] INFO — AMD: SCORE 85.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=no
+2026-07-19 05:46:07,560 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-71\test_run_paper_scan_persists_t0\paper_trades.csv
+2026-07-19 05:46:07,595 [paper_trading.paper_runner] INFO — NVDA: SCORE 95.0/100 (technical=30.0/40, positioning=15.0/20, sentiment=10.0/15, news=10.0/15, fundamental=5.0/10) modifiers(regime=+0.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+0.0) direction=bullish qualifies=yes
+2026-07-19 05:46:07,643 [paper_trading.paper_runner] INFO — NVDA: PAPER signal logged — confidence 95.0
+2026-07-19 05:46:07,647 [paper_trading.paper_runner] INFO — Paper scan complete — 1 new signals logged to C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-71\test_run_paper_scan_no_trade_w0\paper_trades.csv
+2026-07-19 05:46:07,653 [shared.utils.event_gate] WARNING — Trigger match 'tariff' (sector) from low-credibility source 'totally-unknown-blog.example' (credibility=0.50 < 0.6) — logged, not gated. Headline: Random blog claims new tariff imminent
+2026-07-19 05:46:07,666 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:46:07,670 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='export restriction' source='White House'
+2026-07-19 05:46:07,670 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['AMD'] trigger='CEO resigns' source='Reuters'
+2026-07-19 05:46:07,671 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='White House'
+2026-07-19 05:46:07,672 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:46:07,673 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:46:07,673 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:46:07,674 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:46:07,675 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=ticker tickers=['NVDA'] trigger='fraud' source='Reuters'
+2026-07-19 05:46:07,683 [shared.utils.event_gate] WARNING — event_gate_state.json unreadable (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)) — repairing to empty state.
+2026-07-19 05:46:07,688 [shared.utils.event_gate] WARNING — event_severity_gate disabled — would have classified as critical (sector, trigger='export restriction'). Headline: White House announces new chip export restriction
+2026-07-19 05:46:07,749 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:46:07,749 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:46:07,749 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:46:07,750 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,750 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-07-19 05:46:07,752 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,753 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,753 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-71\test_all_succeed_saves_all_tic0\fundamental_history\2026-07-20.json
+2026-07-19 05:46:07,755 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:46:07,756 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:46:07,756 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:46:07,757 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,760 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:46:07,760 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD']
+2026-07-19 05:46:07,760 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:46:07,761 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,763 [swing_model.indicator_pipeline] INFO — Fundamental state has no last_updated — fetching fresh data.
+2026-07-19 05:46:07,763 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['NVDA', 'AMD', 'AVGO']
+2026-07-19 05:46:07,763 [swing_model.indicator_pipeline] INFO —   NVDA: fundamental data fetched OK
+2026-07-19 05:46:07,764 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,764 [swing_model.indicator_pipeline] ERROR —   AMD: fundamental fetch failed — API error
+2026-07-19 05:46:07,765 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,765 [swing_model.indicator_pipeline] INFO —   AVGO: fundamental data fetched OK
+2026-07-19 05:46:07,766 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,767 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-07-19 05:46:07,768 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: C:\Users\user\AppData\Local\Temp\pytest-of-user\pytest-71\test_caught_exception_on_one_t0\fundamental_history\2026-07-20.json
+2026-07-19 05:46:08,014 [monitoring.performance_dashboard] WARNING — PERFORMANCE REVIEW TRIGGERED: 20-trade win rate 60.0% < 70% threshold

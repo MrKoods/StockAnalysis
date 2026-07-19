@@ -79,30 +79,30 @@ def get_insider_signal(
     }
 
 
-def classify_transactions(transactions: list[dict], window_days: int = 10) -> str:
+def count_distinct_traders(transactions: list[dict], window_days: int = 10) -> tuple[set, set]:
     """
-    Classify a list of insider transactions as 'buying', 'selling_cluster', or 'neutral'.
-    Cluster: 2+ distinct insiders transacting in same direction within window_days.
+    Return (buy_insiders, sell_insiders) — distinct insider ids transacting within
+    window_days of the most recent transaction in the list. Single source of truth
+    for buy/sell classification: a transaction counts as a buy/sell from either its
+    text field ("purchase"/"buy"/"sale"/"sell") OR its shares sign (yfinance uses
+    "Shares", negative for sells) — matching either is sufficient.
+
+    Used by both classify_transactions (below) and swing_model/positioning_layer.py's
+    _score_insider, which used to re-derive its own buyer count from only the text
+    field and with no date window at all — diverging from classify_transactions
+    whenever a transaction was classified via its shares sign, or was outside the
+    window, giving inconsistent scoring for the same signal.
     """
+    buy_insiders: set = set()
+    sell_insiders: set = set()
     if not transactions:
-        return "neutral"
+        return buy_insiders, sell_insiders
 
-    buy_insiders = set()
-    sell_insiders = set()
-
-    cutoff_relative = timedelta(days=window_days)
-    if not transactions:
-        return "neutral"
-
-    # Find most-recent transaction date as anchor
-    dates = []
-    for tx in transactions:
-        d = tx.get("_parsed_date")
-        if d:
-            dates.append(d)
+    dates = [tx.get("_parsed_date") for tx in transactions if tx.get("_parsed_date")]
     if not dates:
-        return "neutral"
+        return buy_insiders, sell_insiders
     anchor = max(dates)
+    cutoff_relative = timedelta(days=window_days)
 
     for tx in transactions:
         d = tx.get("_parsed_date")
@@ -117,6 +117,19 @@ def classify_transactions(transactions: list[dict], window_days: int = 10) -> st
         elif "purchase" in transaction_type or "buy" in transaction_type or float(shares) > 0:
             buy_insiders.add(insider_id)
 
+    return buy_insiders, sell_insiders
+
+
+def classify_transactions(transactions: list[dict], window_days: int = 10) -> str:
+    """
+    Classify a list of insider transactions as 'buying', 'selling_cluster', or 'neutral'.
+    Cluster: 2+ distinct insiders transacting in same direction within window_days.
+    """
+    if not transactions:
+        return "neutral"
+
+    buy_insiders, sell_insiders = count_distinct_traders(transactions, window_days)
+
     if len(buy_insiders) >= 2:
         return "buying"
     if len(sell_insiders) >= 2:
@@ -126,14 +139,12 @@ def classify_transactions(transactions: list[dict], window_days: int = 10) -> st
     return "neutral"
 
 
-def _signal_to_modifier(signal: str, transactions: list[dict]) -> float:
+def _signal_to_modifier(signal: str, transactions: list[dict], window_days: int = 10) -> float:
     """Convert classified signal to confidence modifier (-8 to +8)."""
     if signal == "buying":
         # 2+ distinct buyers → +8; single buyer → +4
-        buyers = set(tx.get("insider") or tx.get("name", "x") for tx in transactions
-                     if "purchase" in str(tx.get("transaction", "")).lower()
-                     or "buy" in str(tx.get("transaction", "")).lower())
-        return 8.0 if len(buyers) >= 2 else 4.0
+        buy_insiders, _ = count_distinct_traders(transactions, window_days)
+        return 8.0 if len(buy_insiders) >= 2 else 4.0
     if signal == "selling_cluster":
         return -8.0
     return 0.0

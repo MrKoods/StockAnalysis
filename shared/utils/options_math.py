@@ -166,7 +166,12 @@ def compute_ev_surface(
             "flat": round(day_ev_flat, 2),
             "stop": round(day_ev_stop, 2),
         }
-        ev_components.append(win_probability * day_ev_target + day_ev_flat + day_ev_stop)
+        # day_ev_target already carries win_probability and day_ev_stop already
+        # carries loss_prob — both are probability-weighted expected contributions.
+        # Multiplying day_ev_target by win_probability again here squared its
+        # probability weight, systematically understating EV for every complex/
+        # surface structure (ratio spreads, back spreads).
+        ev_components.append(day_ev_target + day_ev_flat + day_ev_stop)
 
     ev_weighted = sum(ev_components) / len(ev_components)
 

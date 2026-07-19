@@ -88,7 +88,7 @@ class FundamentalScorer:
         Input: output of FundamentalClient.get_all_fundamentals() for one ticker.
 
         Returns dict with:
-          eps_growth_score       (int, -2 to +3)
+          eps_growth_score       (int, -3 to +3)
           estimate_revisions_score (int, -2 to +2)
           earnings_surprise_score  (int, -2 to +2)
           analyst_consensus_score  (int, -2 to +2)
@@ -101,7 +101,7 @@ class FundamentalScorer:
 
         breakdown = {}
 
-        # -- EPS growth score (max 3 pts) --------------------------------
+        # -- EPS growth score (-3 to +3 pts) -----------------------------
         eps_growth_trend = earnings.get("eps_growth_trend") or []
         valid_growth = [g for g in eps_growth_trend if g is not None]
 
@@ -113,14 +113,24 @@ class FundamentalScorer:
             else:
                 accelerating = avg_growth > 0.10
 
+            # Symmetric -3..+3, graduated on the downside instead of a hard cliff:
+            # avg_growth=-0.049 used to score +1 while -0.050 scored -2, and any
+            # decline worse than -5% (whether -6% or a -60% earnings collapse)
+            # scored identically at -2 — destroying signal for severely
+            # deteriorating earnings and biasing the composite toward bullish
+            # outcomes (max +3, floor -2).
             if accelerating and avg_growth > 0.10:
                 eps_growth_score = 3
             elif avg_growth > 0.0:
                 eps_growth_score = 2
             elif avg_growth >= -0.05:
                 eps_growth_score = 1
-            else:
+            elif avg_growth >= -0.15:
+                eps_growth_score = -1
+            elif avg_growth >= -0.30:
                 eps_growth_score = -2
+            else:
+                eps_growth_score = -3
 
             breakdown["eps_growth"] = {
                 "avg_growth": round(avg_growth, 4),

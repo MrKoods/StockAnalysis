@@ -64,10 +64,10 @@ def compute_sentiment_score(
     sa_offline = not seeking_alpha_items
     sentiment_offline = stocktwits_offline and sa_offline
 
-    daily_ratios = _build_daily_bullish_ratios(stocktwits_messages, days=5)
+    daily_ratios, daily_totals = _build_daily_bullish_ratios(stocktwits_messages, days=5)
     trajectory = compute_sentiment_trajectory(daily_ratios) if not stocktwits_offline else 0.0
 
-    ratio_score, ratio_dq = _score_ratio(stocktwits_messages, daily_ratios)
+    ratio_score, ratio_dq = _score_ratio(stocktwits_messages, daily_ratios, daily_totals)
     velocity_score, velocity_dq = _score_velocity(stocktwits_messages, daily_ratios)
     engagement_score, engagement_dq = _score_engagement(seeking_alpha_items)
 
@@ -114,28 +114,45 @@ def compute_sentiment_score(
     }
 
 
-def _score_ratio(messages: list[dict], daily_ratios: list[float]) -> tuple[float, str]:
+_RATIO_MIN_BASELINE_MESSAGES = 5  # across the trailing baseline days, not just today
+
+
+def _score_ratio(
+    messages: list[dict],
+    daily_ratios: list[float],
+    daily_totals: Optional[list[int]] = None,
+) -> tuple[float, str]:
     """
     Score the current bullish/bearish ratio z-scored against the ticker's own
     trailing daily-bucket history. Neutral midpoint = 3.5 (of 0-7).
     Forfeits to 0 when no messages are available.
+
+    Requires at least _RATIO_MIN_BASELINE_MESSAGES real messages across the
+    baseline days before trusting the z-score. Without this gate, a single
+    message on a low-volume ticker (with prior days at the 0.5 neutral
+    placeholder — see _build_daily_bullish_ratios) computes pstdev([0.5]*4)==0,
+    falls back to a tiny std_baseline=0.15, and can max the 0-7 score off n=1 —
+    not a real "vs. own history" comparison.
     """
     if not messages:
         return 0.0, "unavailable"
 
     baseline = daily_ratios[:-1] if len(daily_ratios) > 1 else []
     current_ratio = daily_ratios[-1] if daily_ratios else 0.5
+    baseline_sample_size = sum(daily_totals[:-1]) if daily_totals and len(daily_totals) > 1 else 0
 
-    if len(baseline) >= 2:
+    if len(baseline) >= 2 and baseline_sample_size >= _RATIO_MIN_BASELINE_MESSAGES:
         mean_baseline = statistics.mean(baseline)
         std_baseline = statistics.pstdev(baseline) or 0.15
-    else:
-        mean_baseline = 0.5
-        std_baseline = 0.15
+        z = (current_ratio - mean_baseline) / std_baseline
+        score = 3.5 + z * 1.75
+        return max(0.0, min(RATIO_MAX, score)), "complete"
 
-    z = (current_ratio - mean_baseline) / std_baseline
-    score = 3.5 + z * 1.75
-    return max(0.0, min(RATIO_MAX, score)), "complete"
+    # Not enough baseline history to z-score meaningfully — scale today's raw
+    # ratio linearly onto [0, RATIO_MAX] instead of fabricating a z-score against
+    # a mostly-placeholder baseline.
+    score = current_ratio * RATIO_MAX
+    return max(0.0, min(RATIO_MAX, score)), "insufficient_baseline"
 
 
 def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[float, str]:
@@ -205,10 +222,14 @@ def _as_float(val) -> Optional[float]:
         return None
 
 
-def _build_daily_bullish_ratios(messages: list[dict], days: int = 5) -> list[float]:
+def _build_daily_bullish_ratios(messages: list[dict], days: int = 5) -> tuple[list[float], list[int]]:
     """
     Aggregate StockTwits messages into daily bullish ratios over last `days` days.
-    Returns list of ratios (oldest to newest), length = days.
+    Returns (ratios, totals) — both oldest-to-newest, length = days. `totals` (real
+    message count per bucket) lets callers tell a genuine trailing history apart
+    from days with zero messages that were filled with the neutral 0.5 placeholder —
+    a z-score computed against an all-placeholder baseline is meaningless, not a
+    real "vs. own history" comparison.
     """
     now = datetime.now(timezone.utc)
     buckets: list[dict] = [{"bull": 0, "bear": 0, "total": 0} for _ in range(days)]
@@ -226,12 +247,14 @@ def _build_daily_bullish_ratios(messages: list[dict], days: int = 5) -> list[flo
                 buckets[bucket_idx]["bear"] += 1
 
     ratios = []
+    totals = []
     for b in buckets:
         if b["total"] > 0:
             ratios.append(b["bull"] / b["total"])
         else:
             ratios.append(0.5)  # neutral when no data
-    return ratios
+        totals.append(b["total"])
+    return ratios, totals
 
 
 def _parse_ts(ts_str: str) -> datetime:

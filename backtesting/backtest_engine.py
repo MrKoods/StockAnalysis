@@ -4,6 +4,7 @@ Replays scoring logic against historical data.
 Minimum 100 qualifying trades (confidence 90+, R:R 1:3+) before win rate is valid.
 """
 
+import bisect
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,12 +31,16 @@ def run_backtest(
 
     Steps:
     1. Split data into train (70%) and test (30%) sets
-    2. Calibrate confidence weights on train set
-    3. Identify all qualifying signals (confidence >= 90, R:R >= 1:3) in test set
-    4. Simulate trade outcomes (entry at alert price, exit at target/stop/time stop)
-    5. Compute metrics (win rate, R:R, drawdown, Sharpe) per-regime and overall
-    6. Run walk-forward validation across available windows
-    7. Return full backtest results dict
+    2. Identify all qualifying signals (confidence >= 90, R:R >= 1:3) in test set —
+       NOTE: the train split is currently only used to hold out test data; no weight
+       calibration runs against it here. Live weight calibration (technical/sentiment/
+       news rebalancing from real trade outcomes) is a separate, opt-in mechanism —
+       see swing_model/feedback_loop.py run_calibration() and scoring.py's
+       live_weights parameter — not part of this backtest.
+    3. Simulate trade outcomes (entry at alert price, exit at target/stop/time stop)
+    4. Compute metrics (win rate, R:R, drawdown, Sharpe) per-regime and overall
+    5. Run walk-forward validation across available windows
+    6. Return full backtest results dict
 
     Returns dict with all metrics, per-regime results, walk-forward results.
     """
@@ -62,12 +67,24 @@ def run_backtest(
     split_idx = int(len(all_dates) * train_split)
     train_cutoff = all_dates[split_idx] if split_idx < len(all_dates) else all_dates[-1]
 
-    # Split each ticker's DataFrame
-    test_data = {t: df[df.index > train_cutoff] for t, df in historical_data.items()}
+    # Split each ticker's DataFrame, keeping a warmup buffer of real pre-cutoff
+    # bars (matches _simulate_test_signals' len(df)>=65 / range(60,...) indicator
+    # warmup requirement) so the first ~60 nominal test-period days aren't wasted
+    # on indicator warmup with zero chance of producing a signal — that history
+    # exists for free just before train_cutoff. signal_cutoff below ensures none
+    # of those buffer bars are themselves treated as an out-of-sample signal.
+    _WARMUP_BARS = 65
+    test_data = {}
+    for t, df in historical_data.items():
+        if df.empty:
+            test_data[t] = df
+            continue
+        pos = df.index.searchsorted(train_cutoff, side="right")
+        test_data[t] = df.iloc[max(0, pos - _WARMUP_BARS):]
 
     # Step 2-4: Simulate signals in test data
     # (Full indicator pipeline requires live data; in backtest we use simplified proxy signals)
-    all_outcomes = _simulate_test_signals(test_data, config_path)
+    all_outcomes = _simulate_test_signals(test_data, config_path, signal_cutoff=train_cutoff)
     qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
 
     # Step 5: Metrics
@@ -75,11 +92,16 @@ def run_backtest(
     avg_rr = compute_avg_rr(qualifying)
     regime_metrics = per_regime_metrics(qualifying)
 
-    # Build equity curve
-    equity_curve = _build_equity_curve(qualifying, starting_equity=15000.0)
+    # Build equity curve — trades must be in calendar order (chronological by exit
+    # date, when P&L actually realizes), not the ticker-by-ticker order they were
+    # generated in, or the curve/drawdown/Sharpe would replay history out of sequence.
+    qualifying_chrono = sorted(qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
+    equity_curve = _build_equity_curve(qualifying_chrono, starting_equity=15000.0)
     max_dd = compute_max_drawdown(equity_curve)
-    daily_returns = equity_curve.pct_change().dropna()
-    sharpe = compute_sharpe(daily_returns)
+    trade_returns = equity_curve.pct_change().dropna()
+    # Each step in trade_returns is one trade, not one calendar day — annualize
+    # using the actual observed trade frequency rather than assuming sqrt(252).
+    sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
 
     max_consec_losses = compute_consecutive_losses(qualifying)
 
@@ -197,7 +219,8 @@ def simulate_trade_outcome(
     """
     if future_ohlcv.empty or entry <= 0 or stop <= 0 or target <= 0:
         return {"outcome": "no_data", "exit_price": entry, "pnl_pct": 0.0,
-                "holding_days": 0, "achieved_rr": 0.0, "confidence": confidence}
+                "holding_days": 0, "achieved_rr": 0.0, "confidence": confidence,
+                "signal_date": signal_date, "exit_date": signal_date}
 
     risk = entry - stop if direction == "bullish" else stop - entry
     max_days = holding_period[1]
@@ -213,6 +236,7 @@ def simulate_trade_outcome(
             if high >= target:
                 return {
                     "outcome": "win",
+                    "signal_date": signal_date,
                     "exit_date": str(bar_date),
                     "exit_price": target,
                     "pnl_pct": (target - entry) / entry,
@@ -226,6 +250,7 @@ def simulate_trade_outcome(
             if low <= stop:
                 return {
                     "outcome": "loss",
+                    "signal_date": signal_date,
                     "exit_date": str(bar_date),
                     "exit_price": stop,
                     "pnl_pct": (stop - entry) / entry,
@@ -240,6 +265,7 @@ def simulate_trade_outcome(
             if low <= target:
                 return {
                     "outcome": "win",
+                    "signal_date": signal_date,
                     "exit_date": str(bar_date),
                     "exit_price": target,
                     "pnl_pct": (entry - target) / entry,
@@ -253,6 +279,7 @@ def simulate_trade_outcome(
             if high >= stop:
                 return {
                     "outcome": "loss",
+                    "signal_date": signal_date,
                     "exit_date": str(bar_date),
                     "exit_price": stop,
                     "pnl_pct": (stop - entry) / entry * -1,
@@ -269,6 +296,7 @@ def simulate_trade_outcome(
     pnl_pct = (final_close - entry) / entry if direction == "bullish" else (entry - final_close) / entry
     return {
         "outcome": "time_stop",
+        "signal_date": signal_date,
         "exit_date": str(future_ohlcv.index[min(max_days - 1, len(future_ohlcv) - 1)]),
         "exit_price": final_close,
         "pnl_pct": pnl_pct,
@@ -281,35 +309,69 @@ def simulate_trade_outcome(
     }
 
 
-def _load_backtest_fundamentals(tickers: list, cfg: dict) -> dict:
+def _load_fundamental_history(tickers: list, cfg: dict) -> list[tuple[datetime, dict]]:
     """
-    Load current fundamental scores as a static proxy for the full backtest period.
-    Fundamentals are updated weekly and change slowly — using the current snapshot
-    as a fixed proxy is appropriate for a 5-year replay.
-    Returns {ticker: fundamental_score_dict} or {} on failure.
+    Load every archived weekly fundamental snapshot (data/processed/fundamental_history/*.json),
+    scored and sorted oldest-to-newest, for point-in-time lookup during backtest replay.
+
+    fundamental_state.json only ever holds the latest snapshot, so scoring every historical
+    bar against it would leak today's fundamentals into the past. The dated archive (written
+    by indicator_pipeline.py's _archive_fundamental_snapshot on each weekly refresh) lets a
+    bar look up the snapshot that was actually current as of its own date instead. Returns []
+    until at least one weekly archive exists — bars before the first archived date fall back
+    to the neutral fundamental score, the same "accumulates going forward" tradeoff already
+    accepted for the Positioning layer.
     """
     from swing_model.fundamental_layer import FundamentalScorer
     import json as _json
 
-    state_path = Path("data/processed/fundamental_state.json")
-    if not state_path.exists():
-        return {}
-    try:
-        with open(state_path, "r") as f:
-            state = _json.load(f)
-        scorer = FundamentalScorer(cfg)
-        watchlist = [t for t in tickers if t != "SMH"]
-        return scorer.score_all_tickers(watchlist, state)
-    except Exception:
-        return {}
+    history_dir = Path("data/processed/fundamental_history")
+    if not history_dir.exists():
+        return []
+
+    scorer = FundamentalScorer(cfg)
+    watchlist = [t for t in tickers if t != "SMH"]
+    snapshots = []
+    for path in sorted(history_dir.glob("*.json")):
+        try:
+            with open(path, "r") as f:
+                snapshot = _json.load(f)
+            snap_date = datetime.strptime(snapshot["date"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            scores = scorer.score_all_tickers(watchlist, snapshot)
+            snapshots.append((snap_date, scores))
+        except Exception:
+            continue
+
+    snapshots.sort(key=lambda pair: pair[0])
+    return snapshots
+
+
+def _fundamental_as_of(history: list[tuple[datetime, dict]], ticker: str, bar_date, neutral: dict) -> dict:
+    """Most recent archived fundamental snapshot at or before bar_date; neutral if none yet exists."""
+    if not history:
+        return neutral
+    bar_dt = bar_date if bar_date.tzinfo else bar_date.replace(tzinfo=timezone.utc)
+    dates = [snap_date for snap_date, _ in history]
+    idx = bisect.bisect_right(dates, bar_dt) - 1
+    if idx < 0:
+        return neutral
+    return history[idx][1].get(ticker, neutral)
 
 
 def _simulate_test_signals(
     test_data: dict[str, pd.DataFrame],
     config_path: str = "config/swing_config.yaml",
+    signal_cutoff: "pd.Timestamp | None" = None,
 ) -> list[dict]:
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.
+
+    signal_cutoff: when set, bars at or before this date can still be used for
+    indicator warmup (SMA50/rolling-high/etc. need history) but never generate a
+    signal themselves. Lets the caller hand this function a test slice that starts
+    with a warmup buffer of real pre-cutoff bars, instead of every ticker losing its
+    first ~60 nominal test-period days to indicator warmup with zero chance of a
+    signal — those days had real prior history available, it just wasn't included.
 
     All scoring layers are applied:
     - Technical: real historical OHLCV via compute_technical_indicators
@@ -318,7 +380,9 @@ def _simulate_test_signals(
       Fundamental below)
     - Sentiment: price-momentum proxy (5-day return → retail sentiment correlation)
     - News: real Alpha Vantage historical articles where available; neutral fallback
-    - Fundamental: static snapshot from fundamental_state.json (slow-moving, weekly cadence)
+    - Fundamental: point-in-time lookup against the archived weekly snapshot on or before
+      each bar's date (data/processed/fundamental_history/); neutral for bars before the
+      first archived snapshot exists
 
     Signal candidates: bars where close breaks the prior 20-day high AND pass
     three quality gates (trend intact, sector alignment, healthy RSI range).
@@ -375,8 +439,9 @@ def _simulate_test_signals(
     # this constant should be re-validated once that data exists, not treated as final.
     _BACKTEST_SCORE_MAX = 69.0
 
-    # Load real fundamental scores once — static proxy for the full period
-    fundamental_scores = _load_backtest_fundamentals(list(test_data.keys()), cfg)
+    # Load the archived weekly fundamental snapshots once; each bar looks up the
+    # snapshot on or before its own date (see _fundamental_as_of).
+    fundamental_history = _load_fundamental_history(list(test_data.keys()), cfg)
 
     smh_df = test_data.get("SMH")
     rr_cfg = cfg.get("risk_reward", {})
@@ -403,9 +468,6 @@ def _simulate_test_signals(
         else:
             bench_aligned = pd.Series(100.0, index=df.index)
 
-        # Use real fundamental scores for this ticker; fall back to neutral
-        fundamental = fundamental_scores.get(ticker, _neutral_fundamental)
-
         # Pre-compute 20-day breakout mask on the full ticker DataFrame (O(n), no look-ahead)
         prior_20d_high = df["High"].rolling(20).max().shift(1)
         breakout_mask = df["Close"] > prior_20d_high
@@ -415,6 +477,12 @@ def _simulate_test_signals(
 
         for i in signal_indices:
             bar_date = df.index[i]
+            if signal_cutoff is not None and bar_date <= signal_cutoff:
+                # Warmup-buffer bar (real pre-cutoff history included so early
+                # test-period bars aren't starved of indicator context) — usable
+                # for computing indicators on later bars via df_slice, but not
+                # itself an out-of-sample signal.
+                continue
             df_slice = df.iloc[:i + 1]
             bench_slice = bench_aligned.iloc[:i + 1]
 
@@ -494,6 +562,8 @@ def _simulate_test_signals(
                     news = _neutral_news
             else:
                 news = _neutral_news
+
+            fundamental = _fundamental_as_of(fundamental_history, ticker, bar_date, _neutral_fundamental)
 
             try:
                 score = compute_confidence_score(
@@ -626,6 +696,28 @@ def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
         "dominant_sentiment": dom,
         "sentiment_offline": False,
     }
+
+
+def _trades_per_year(outcomes: list[dict]) -> float:
+    """
+    Actual trade frequency, for Sharpe annualization. An equity curve stepped one
+    point per trade is not a daily series — sqrt(252) would treat ~149 trades over
+    a multi-year backtest as if they were 252 independent observations every year.
+    Falls back to 252 (the old behavior) when there isn't enough date info to infer
+    a real trade frequency, rather than raising or silently returning 0.
+    """
+    dates = []
+    for o in outcomes:
+        try:
+            dates.append(pd.Timestamp(o.get("exit_date")))
+        except Exception:
+            continue
+    if len(dates) < 2:
+        return 252.0
+    span_years = (max(dates) - min(dates)).days / 365.25
+    if span_years <= 0:
+        return 252.0
+    return len(outcomes) / span_years
 
 
 def _build_equity_curve(outcomes: list[dict], starting_equity: float = 15000.0) -> pd.Series:

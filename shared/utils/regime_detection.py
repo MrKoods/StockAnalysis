@@ -56,10 +56,15 @@ def classify_regime(
     if not price_above_sma and not sma_rising:
         return REGIME_TRENDING_DOWN
 
-    # Mixed signals (e.g., SMA falling but price above, or vice versa)
-    # Also elevated VIX (above high threshold but not extreme)
+    # Mixed signals (e.g., SMA falling but price above, or vice versa).
+    # Elevated VIX (above high threshold but below the extreme cutoff already
+    # handled at the top of this function) combined with a directionless trend
+    # is exactly the "choppy AND volatile" case the score_cap=70 safety brake
+    # (REGIME_HIGH_VOL, see get_regime_modifiers) exists for — both branches
+    # previously returned REGIME_CHOPPY here, silently making vix_high_threshold
+    # a no-op and skipping that brake for the 25-30 VIX band.
     if vix > vix_high_threshold:
-        return REGIME_CHOPPY
+        return REGIME_HIGH_VOL
 
     return REGIME_CHOPPY
 

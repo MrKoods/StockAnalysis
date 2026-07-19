@@ -29,6 +29,7 @@ logger = get_logger(__name__)
 
 _ET = ZoneInfo("America/New_York")
 _FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
+_FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
 
 
@@ -228,6 +229,7 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
     state["last_updated"] = datetime.now(timezone.utc).isoformat()
     _save_fundamental_state(state)
+    _archive_fundamental_snapshot(state)
     return state
 
 
@@ -349,6 +351,29 @@ def _save_fundamental_state(state: dict) -> None:
         logger.info("fundamental_state.json updated.")
     except Exception as exc:
         logger.error(f"Could not save fundamental_state.json — {exc}")
+
+
+def _archive_fundamental_snapshot(state: dict) -> None:
+    """
+    Append a dated copy of this week's fundamental snapshot to
+    data/processed/fundamental_history/. fundamental_state.json only ever holds
+    the latest snapshot, so a backtest replaying past dates has no choice but to
+    score every historical bar against today's fundamentals (a lookahead-bias
+    source — see backtesting/backtest_engine.py's point-in-time lookup). Building
+    a dated archive going forward, one file per weekly refresh, lets future
+    backtests look up the snapshot that was actually current as of each historical
+    bar instead. Same "accumulates from the first live scan onward" tradeoff
+    already accepted for the Positioning layer.
+    """
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        _FUNDAMENTAL_HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+        path = _FUNDAMENTAL_HISTORY_DIR / f"{date_str}.json"
+        with open(path, "w") as f:
+            json.dump({"date": date_str, "tickers": state.get("tickers", {})}, f, indent=2, default=str)
+        logger.info(f"Archived fundamental snapshot: {path}")
+    except Exception as exc:
+        logger.error(f"Could not archive fundamental snapshot — {exc}")
 
 
 def _basic_validate(ticker: str, df: pd.DataFrame) -> bool:

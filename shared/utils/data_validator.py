@@ -49,6 +49,7 @@ def validate_ohlcv(
 
     # OHLC sanity checks
     for i, row in df.iterrows():
+        open_px = float(row["Open"]) if not pd.isna(row["Open"]) else -1
         high = float(row["High"]) if not pd.isna(row["High"]) else -1
         low = float(row["Low"]) if not pd.isna(row["Low"]) else -1
         close = float(row["Close"]) if not pd.isna(row["Close"]) else -1
@@ -62,6 +63,13 @@ def validate_ohlcv(
             break
         if close < low or close > high:
             reasons.append(f"ohlcv_close_out_of_range_{i}")
+            break
+        # Open was previously never checked — only High/Low/Close/Volume were —
+        # so a corrupted Open (decimal-shift error, stale print) passed pre-flight
+        # validation undetected even though entry-zone/stop-loss math elsewhere
+        # can key off the day's Open.
+        if open_px < low or open_px > high:
+            reasons.append(f"ohlcv_open_out_of_range_{i}")
             break
         if volume <= 0:
             reasons.append(f"ohlcv_zero_or_negative_volume_{i}")

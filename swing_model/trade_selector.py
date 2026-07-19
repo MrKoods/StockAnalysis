@@ -1,14 +1,23 @@
 """
 EV-based trade ranker — evaluates all 42 trade structures simultaneously.
 Runs standard EV formula for simple structures; full P&L surface for complex ones.
-Applies all 8 filter types before ranking.
 
 Filters (applied before ranking):
 1. Undefined risk: exclude at $15k unless account > $50k + Level 3
 2. Capital: max 5% of account = $750 at $15k
-3. R:R: ≥ 1:3 after slippage
-4. Greeks: theta burn, vega alignment, gamma risk
-5. Liquidity: wide bid/ask reducing real-world EV below 1:3
+3. R:R: ≥ configured min_rr_ratio (default 1:3), evaluated on the shared
+   entry/stop/target setup — same for every structure since it doesn't depend
+   on per-structure option pricing.
+4. Greeks: NOT IMPLEMENTED. Theta/vega/gamma filtering would need a live options
+   chain (strike, expiry, IV) per structure; rank_trade_structures only receives
+   a scalar iv_percentile, not the chain itself (shared/api_clients/positioning_client.py
+   fetch_option_chain_metrics has chain data but isn't wired into this call path).
+   Rather than fabricate a filter from assumed strikes/DTE, this is surfaced via
+   'greeks_filter_status' in the result so callers don't mistake silence for a
+   passed check.
+5. Liquidity: excluded when the slippage cost (half the bid/ask spread × legs ×
+   100, per adjust_ev_for_slippage) consumes >=50% of the structure's raw EV —
+   i.e., a wide bid/ask is eating most of the edge the R:R filter is meant to protect.
 6. Account type: options approval level from swing_config.yaml
 7. Direction: exclude misaligned structures
 8. 0DTE: always excluded
@@ -103,6 +112,12 @@ def rank_trade_structures(
     max_capital = account_equity * 0.05
     force_defined_risk = bool(candidate.get("force_defined_risk", False))
 
+    # Filter 3 input: R:R of the shared entry/stop/target setup. Identical for every
+    # structure (none of them change the underlying's own price levels), so it's
+    # computed once here rather than per-structure.
+    rr = (target - entry) / (entry - stop) if (entry - stop) > 0 else 0.0
+    min_rr = float((cfg or {}).get("risk_reward", {}).get("min_rr_ratio", 3.0))
+
     ranked_structures = []
     excluded = []
 
@@ -111,17 +126,28 @@ def rank_trade_structures(
         eligible, reasons = _apply_filters(
             name, structure, candidate, account_equity,
             options_approval_level, iv_percentile, max_capital,
-            force_defined_risk, cfg,
+            force_defined_risk, cfg, rr, min_rr,
         )
         if not eligible:
             excluded.append({"name": name, "reasons": reasons})
             continue
 
-        ev = _compute_structure_ev(name, structure, candidate, iv_percentile / 100.0,
-                                   win_prob, bid_ask_spreads.get(name, 0.0))
-        if ev is None:
+        ev_result = _compute_structure_ev(name, structure, candidate, iv_percentile / 100.0,
+                                          win_prob, bid_ask_spreads.get(name, 0.0))
+        if ev_result is None:
             excluded.append({"name": name, "reasons": ["ev_computation_failed"]})
             continue
+        ev, ev_raw, ev_adjusted = ev_result
+
+        # Filter 5: Liquidity — a wide bid/ask can consume most of a structure's
+        # edge on multi-leg fills. Exclude when slippage eats >=50% of the raw EV
+        # (only meaningful when there's actually an edge to protect and spread
+        # data was supplied — a missing/zero spread is "unknown", not "tight").
+        if ev_raw > 0 and bid_ask_spreads.get(name, 0.0) > 0:
+            slippage_fraction = (ev_raw - ev_adjusted) / ev_raw
+            if slippage_fraction >= 0.50:
+                excluded.append({"name": name, "reasons": ["wide_bid_ask_liquidity"]})
+                continue
 
         # Estimate capital required (simplified — contract-level sizing not available here)
         est_capital = _estimate_capital_required(name, structure, entry, stop, target)
@@ -130,7 +156,6 @@ def rank_trade_structures(
             continue
 
         ev_per_dollar = capital_efficiency_score(ev, est_capital, max_capital)
-        rr = (target - entry) / (entry - stop) if (entry - stop) > 0 else 0.0
 
         ranked_structures.append({
             "name": name,
@@ -156,6 +181,9 @@ def rank_trade_structures(
         "structures_eligible_after_filters": len(ranked_structures),
         "ranked_structures": ranked_structures,
         "exclusion_summary": build_discord_exclusion_summary(excluded),
+        # Filter 4 (Greeks: theta/vega/gamma) is not applied — see module docstring.
+        # Surfaced explicitly so a missing filter doesn't read as a passed one.
+        "greeks_filter_status": "not_implemented_no_options_chain_data",
     }
 
 
@@ -169,10 +197,12 @@ def _apply_filters(
     max_capital: float,
     force_defined_risk: bool,
     cfg: Optional[dict] = None,
+    rr: float = 0.0,
+    min_rr: float = 3.0,
 ) -> tuple[bool, list[str]]:
     """
-    Apply all 8 filter types to a structure.
-    Returns (is_eligible, exclusion_reasons).
+    Apply filter types to a structure (Greeks — filter 4 — is not implemented;
+    see module docstring). Returns (is_eligible, exclusion_reasons).
     """
     reasons = []
     direction = candidate.get("direction", "bullish")
@@ -188,6 +218,11 @@ def _apply_filters(
     capital_filter = structure.get("capital_filter", "")
     if capital_filter == "exclude_under_50k" and account_equity < 50_000:
         reasons.append("capital_filter_50k_required")
+
+    # Filter 3: R:R — the underlying entry/stop/target setup must clear the
+    # configured minimum (default 1:3) before any structure is even considered.
+    if rr < min_rr:
+        reasons.append("rr_below_min_threshold")
 
     # Filter 6: Account type / options approval level
     if structure_name in _LEVEL_3_REQUIRED and options_approval_level < 3:
@@ -216,10 +251,12 @@ def _compute_structure_ev(
     iv: float,
     win_prob: float,
     bid_ask_spread: float = 0.0,
-) -> Optional[float]:
+) -> Optional[tuple[float, float, float]]:
     """
     Compute EV for a structure. Uses surface method for complex structures.
-    Returns ev_per_dollar_risked or None if insufficient data.
+    Returns (ev_per_dollar_risked, ev_raw, ev_adjusted) or None if insufficient data.
+    ev_raw/ev_adjusted (pre/post slippage) let the liquidity filter (filter 5)
+    measure how much of the edge a wide bid/ask consumes.
     """
     entry = float(candidate.get("entry", candidate.get("entry_mid", 0.0)))
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
@@ -253,7 +290,7 @@ def _compute_structure_ev(
     capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
     if capital <= 0:
         return None
-    return ev_adjusted / capital
+    return ev_adjusted / capital, ev, ev_adjusted
 
 
 def _estimate_capital_required(

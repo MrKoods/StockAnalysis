@@ -39,10 +39,18 @@ def score_news_outlet(source_domain: str) -> float:
     """
     if not source_domain:
         return 0.50
-    # Try exact match first, then partial domain match
+    # Match when a known outlet key/domain appears within the parsed source
+    # string (e.g. "cnbc.com" found inside "www.cnbc.com/markets"). Only this
+    # direction is safe: the reverse (checking whether the parsed string is
+    # contained *within* a key, e.g. clean="ft" matching key="ft.com") lets a
+    # short or garbled parsed source string spuriously inherit a premium outlet's
+    # credibility score — a real risk since event_gate.py uses this score to
+    # decide whether a critical-news trigger gets downgraded for a low-credibility
+    # source, so a junk source being mis-scored as premium could let a block through
+    # that should have been downgraded.
     clean = source_domain.lower().strip().rstrip("/")
     for key, val in _DEFAULT_OUTLET_SCORES.items():
-        if key.lower() in clean or clean in key.lower():
+        if key.lower() in clean:
             return val
     return 0.50
 

@@ -124,6 +124,28 @@ def compute_confidence_score(
     news_total = min(float(NEWS_MAX), max(0.0, news_total))
 
     # ---------------------------------------------------------------------------
+    # Step 4b: Apply calibrated live_weights, if provided.
+    #   live_weights (from feedback_loop.py's holdout-validated calibration) redistributes
+    #   the combined technical+sentiment+news pool (points unchanged, TECHNICAL_MAX +
+    #   SENTIMENT_MAX + NEWS_MAX) according to calibrated fractions instead of the fixed
+    #   40/15/15 split. Positioning and fundamental are untouched — feedback_loop.py only
+    #   tracks these three sub-signals. When live_weights is None (the default, and what
+    #   every current caller passes), this is a no-op — previously this parameter was
+    #   accepted and documented but never actually read anywhere in this function.
+    # ---------------------------------------------------------------------------
+    if live_weights:
+        pool = technical_total + sentiment_total + news_total
+        w_sum = sum(float(v) for v in (
+            live_weights.get("technical", 0.0),
+            live_weights.get("sentiment", 0.0),
+            live_weights.get("news", 0.0),
+        ))
+        if w_sum > 0 and pool > 0:
+            technical_total = pool * (float(live_weights.get("technical", 0.0)) / w_sum)
+            sentiment_total = pool * (float(live_weights.get("sentiment", 0.0)) / w_sum)
+            news_total = pool * (float(live_weights.get("news", 0.0)) / w_sum)
+
+    # ---------------------------------------------------------------------------
     # Step 5: Fundamental contribution
     #   fundamental_score is on FundamentalScorer's internal -15..+15 scale.
     #   Rescaled here to a -10..+10 contribution (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX).
@@ -170,8 +192,12 @@ def compute_confidence_score(
     if sentiment.get("sentiment_offline", False):
         final_score = min(final_score, sentiment.get("sentiment_offline_cap", 70))
 
-    # Positioning offline cap: if offline, cap at 70 (mirrors sentiment's degradation rule)
-    if positioning.get("positioning_offline", False):
+    # Positioning offline cap: if offline, cap at 70 (mirrors sentiment's degradation rule).
+    # Also fires on an empty positioning dict (from the positioning=None default above, or
+    # any future caller passing {} directly) — .get("positioning_offline", False) alone
+    # reads False when the key is simply absent, silently skipping the degradation cap
+    # for exactly the "no positioning data at all" case it exists to catch.
+    if positioning.get("positioning_offline", False) or not positioning:
         final_score = min(final_score, positioning.get("positioning_offline_cap", 70))
 
     direction = determine_direction(technical, sentiment)
@@ -289,8 +315,14 @@ def compute_technical_sub_scores(
     sma20_above_50 = bool(technical.get("sma_20_above_sma_50", False))
     price_above_50 = bool(technical.get("price_above_sma_50", False))
     macd_bullish = bool(technical.get("macd_bullish", False))
+    # Default True: callers/tests that don't set this key are asserting a real
+    # macd_bullish value themselves, same as before this field existed. Only
+    # compute_technical_indicators sets it False for a genuine NaN (insufficient
+    # history) — that case shouldn't silently cap trend_score as if MACD had
+    # actively disagreed with an otherwise-intact SMA trend.
+    macd_data_available = bool(technical.get("macd_data_available", True))
 
-    if trend_intact and macd_bullish:
+    if trend_intact and (macd_bullish or not macd_data_available):
         trend_score = 8.0
     elif trend_intact:
         trend_score = 6.0

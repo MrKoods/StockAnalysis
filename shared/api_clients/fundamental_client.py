@@ -4,9 +4,13 @@ Fundamental data client for the semiconductor swing trading model.
 Fetches valuation metrics, earnings history, and estimate revisions for each watchlist
 ticker using yfinance (no API key needed) and Alpha Vantage (ALPHA_VANTAGE_API_KEY from .env).
 
-Update cadence: weekly (Monday at 17:00 ET). This client does NOT consume the daily
-25-call Alpha Vantage budget — the 6 weekly calls (one per ticker) are a separate weekly
-batch that runs outside normal scan hours. No new API keys are required.
+Update cadence: weekly (Monday at 17:00 ET) — 2 Alpha Vantage calls per ticker
+(EARNINGS + OVERVIEW). Alpha Vantage's free-tier limit is a single per-account daily
+cap, not partitioned by "scan type" — these calls share data/processed/av_call_count.json
+with shared/api_clients/news_client.py's scan-time AV usage (previously this client
+fired AV calls without checking or incrementing that counter at all, so a Monday
+refresh landing on the same day as scan-time news calls could silently exceed the
+real daily budget while every individual counter still looked fine).
 
 Data sources:
   - yfinance Ticker.info    — valuation metrics (P/E, EV/EBITDA, analyst consensus)
@@ -22,11 +26,13 @@ import requests
 import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
+from shared.api_clients.news_client import check_av_budget, increment_av_call_count
 
 logger = get_logger(__name__)
 
 _AV_BASE_URL = "https://www.alphavantage.co/query"
 _BACKOFF_DELAYS = [30, 60, 120]
+_MAX_TOTAL_BACKOFF_SECONDS = 90  # caps worst-case stall per AV call (see _with_backoff)
 
 
 class FundamentalClient:
@@ -121,11 +127,14 @@ class FundamentalClient:
 
         Uses exponential backoff (30s → 60s → 120s). Returns None if all retries fail.
 
-        Alpha Vantage free tier has a 25-call/day limit. Weekly fundamental batch uses
-        separate quota — see module docstring.
+        Alpha Vantage free tier has a single 25-call/day limit shared across this
+        client and shared/api_clients/news_client.py — see module docstring.
         """
         if not self._av_key:
             logger.warning(f"{ticker}: skipping earnings history — no AV key")
+            return None
+        if not check_av_budget():
+            logger.warning(f"{ticker}: AV daily budget exhausted — skipping earnings history")
             return None
 
         def _fetch_earnings():
@@ -142,6 +151,7 @@ class FundamentalClient:
             return data
 
         data = self._with_backoff(_fetch_earnings, ticker, "earnings_history")
+        increment_av_call_count()
         if data is None:
             return None
 
@@ -227,6 +237,9 @@ class FundamentalClient:
         if not self._av_key:
             logger.warning(f"{ticker}: skipping estimate revisions — no AV key")
             return result
+        if not check_av_budget():
+            logger.warning(f"{ticker}: AV daily budget exhausted — skipping estimate revisions")
+            return result
 
         def _fetch_overview():
             params = {
@@ -242,6 +255,7 @@ class FundamentalClient:
             return data
 
         overview = self._with_backoff(_fetch_overview, ticker, "estimate_revisions")
+        increment_av_call_count()
         if overview is None:
             return result
 
@@ -308,22 +322,48 @@ class FundamentalClient:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def _redact(self, text: str) -> str:
+        """
+        Strip the Alpha Vantage API key out of an error message before it's logged
+        or written to validation_log.csv. requests' HTTPError embeds the full
+        request URL (apikey is a query param), so an unredacted 429/403/5xx would
+        otherwise write the live key to disk in plaintext.
+        """
+        if self._av_key:
+            text = text.replace(self._av_key, "***REDACTED***")
+        return text
+
     def _with_backoff(self, fn, ticker: str, label: str):
         """
-        Call fn() with exponential backoff (30s → 60s → 120s → None).
-        Logs each failure to validation_log.csv. Returns None after all retries.
+        Call fn() with exponential backoff (30s → 60s → 120s → None), capped at
+        _MAX_TOTAL_BACKOFF_SECONDS of total sleep. Logs each failure to
+        validation_log.csv. Returns None after all retries or once the cap is hit.
+
+        Without the cap, a full retry ladder (30+60+120=210s) on both AV calls
+        (EARNINGS + OVERVIEW) across all 6 watchlist tickers is a ~42-minute worst
+        case, run synchronously inside the pipeline with no overall timeout — an AV
+        outage on refresh day could stall whatever else shares that process for
+        most of an hour. Capping bounds it to _MAX_TOTAL_BACKOFF_SECONDS per call.
         """
         last_exc = None
+        elapsed = 0.0
         for attempt, delay in enumerate(_BACKOFF_DELAYS, start=1):
             try:
                 return fn()
             except Exception as exc:
                 last_exc = exc
-                logger.warning(f"{ticker}: {label} attempt {attempt} failed — {exc} — retrying in {delay}s")
+                if elapsed + delay > _MAX_TOTAL_BACKOFF_SECONDS:
+                    logger.warning(
+                        f"{ticker}: {label} attempt {attempt} failed — {self._redact(str(exc))} — "
+                        f"backoff cap ({_MAX_TOTAL_BACKOFF_SECONDS}s) reached, giving up early"
+                    )
+                    break
+                logger.warning(f"{ticker}: {label} attempt {attempt} failed — {self._redact(str(exc))} — retrying in {delay}s")
                 time.sleep(delay)
+                elapsed += delay
 
-        logger.error(f"{ticker}: {label} failed after all retries — {last_exc}")
-        write_validation_entry(ticker, f"fundamental_{label}_error", str(last_exc))
+        logger.error(f"{ticker}: {label} failed after all retries — {self._redact(str(last_exc))}")
+        write_validation_entry(ticker, f"fundamental_{label}_error", self._redact(str(last_exc)))
         return None
 
 

@@ -19,6 +19,7 @@ import swing_model.indicator_pipeline as ip
 @pytest.fixture(autouse=True)
 def _isolate_state_file(tmp_path, monkeypatch):
     monkeypatch.setattr(ip, "_FUNDAMENTAL_STATE_PATH", tmp_path / "fundamental_state.json")
+    monkeypatch.setattr(ip, "_FUNDAMENTAL_HISTORY_DIR", tmp_path / "fundamental_history")
 
 
 def _fake_fundamentals(ticker):

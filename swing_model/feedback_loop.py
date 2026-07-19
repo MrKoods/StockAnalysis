@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from shared.utils.atomic_io import atomic_write_json
 
 _TRADE_OUTCOMES_FILE = Path("data/logs/trade_outcomes.csv")
 _SIGNAL_WIN_RATES_FILE = Path("data/processed/signal_win_rates.json")
@@ -84,7 +85,7 @@ def update_signal_win_rates(outcome: dict) -> None:
     if rates[key]["total"] >= 10:
         rates[key]["win_rate"] = round(rates[key]["wins"] / rates[key]["total"], 4)
 
-    path.write_text(json.dumps(rates, indent=2), encoding="utf-8")
+    atomic_write_json(path, rates)
 
 
 def run_calibration(
@@ -214,8 +215,7 @@ def _load_live_weights() -> dict:
 
 
 def _save_live_weights(weights: dict) -> None:
-    _LIVE_WEIGHTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _LIVE_WEIGHTS_FILE.write_text(json.dumps(weights, indent=2), encoding="utf-8")
+    atomic_write_json(_LIVE_WEIGHTS_FILE, weights)
 
 
 def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
@@ -263,8 +263,41 @@ def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
 
 
 def _score_outcomes(outcomes: list[dict], weights: dict) -> float:
-    """Simple proxy: win rate on outcomes weighted by confidence signal."""
+    """
+    How well `weights` combine the technical/sentiment/news sub-totals to separate
+    winning holdout trades from losing ones — mean weighted composite score of wins
+    minus mean of losses. Higher is better (mirrors _recompute_weights: a sub-signal
+    that scores higher in wins than losses should be upweighted).
+
+    This previously ignored `weights` entirely and returned the raw win rate, which
+    made old-vs-new holdout comparisons in run_calibration always identical — the
+    safety gate meant to reject a bad recalibration could never actually fail.
+    Falls back to raw win rate when sub-signal fields aren't present (e.g. legacy
+    CSV rows) or one of the win/loss groups is empty, so the comparison degrades
+    gracefully instead of raising or dividing by zero.
+    """
     if not outcomes:
         return 0.0
-    wins = sum(1 for o in outcomes if o.get("outcome") == "win")
-    return wins / len(outcomes)
+
+    wins = [o for o in outcomes if o.get("outcome") == "win"]
+    losses = [o for o in outcomes if o.get("outcome") in ("loss", "time_stop")]
+
+    has_subsignals = any(f"{k}_total" in o for o in outcomes for k in weights)
+    if not has_subsignals or not wins or not losses:
+        return sum(1 for o in outcomes if o.get("outcome") == "win") / len(outcomes)
+
+    def composite(o: dict) -> float:
+        total = 0.0
+        for key, weight in weights.items():
+            val = o.get(f"{key}_total")
+            if val in (None, ""):
+                continue
+            try:
+                total += float(weight) * float(val)
+            except (TypeError, ValueError):
+                continue
+        return total
+
+    win_avg = sum(composite(o) for o in wins) / len(wins)
+    loss_avg = sum(composite(o) for o in losses) / len(losses)
+    return win_avg - loss_avg

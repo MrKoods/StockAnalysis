@@ -18,6 +18,7 @@ import requests
 import yfinance as yf
 
 from shared.utils.logger import get_logger
+from shared.utils.atomic_io import atomic_write_json
 
 logger = get_logger(__name__)
 
@@ -207,14 +208,29 @@ def increment_av_call_count() -> int:
     """Increment and persist Alpha Vantage call counter. Returns new count."""
     data = get_av_call_count()
     data["count"] += 1
-    _AV_COUNTER_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _AV_COUNTER_FILE.write_text(json.dumps(data))
+    atomic_write_json(_AV_COUNTER_FILE, data)
     return data["count"]
 
 
 def check_av_budget(daily_limit: int = 20) -> bool:
     """Return True if a call is available within today's budget."""
     return get_av_call_count()["count"] < daily_limit
+
+
+_SECRET_PARAM_KEYS = ("apikey", "api_key", "token")
+
+
+def _redact_secrets(text: str, params: dict) -> str:
+    """
+    Strip API key/token param values out of an error message before it's logged.
+    requests' HTTPError embeds the full request URL, including query params, so an
+    unredacted 429/403/5xx would otherwise write the live key to disk in plaintext.
+    """
+    for key in _SECRET_PARAM_KEYS:
+        val = params.get(key)
+        if val:
+            text = text.replace(str(val), "***REDACTED***")
+    return text
 
 
 def _backoff_get(url: str, params: dict, retries: int = 3) -> Optional[dict]:
@@ -227,7 +243,7 @@ def _backoff_get(url: str, params: dict, retries: int = 3) -> Optional[dict]:
             return resp.json()
         except Exception as exc:
             if attempt < len(delays):
-                logger.warning(f"Request failed (attempt {attempt+1}): {exc}. Retry in {delays[attempt]}s.")
+                logger.warning(f"Request failed (attempt {attempt+1}): {_redact_secrets(str(exc), params)}. Retry in {delays[attempt]}s.")
                 time.sleep(delays[attempt])
-    logger.error(f"All retries exhausted for {url}")
+    logger.error(f"All retries exhausted for {_redact_secrets(url, params)}")
     return None
