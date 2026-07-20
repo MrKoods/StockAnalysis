@@ -29,15 +29,16 @@ from shared.utils.logger import get_logger
 logger = get_logger(__name__)
 
 VARIANTS = {
-    # Pinned explicitly to the pre-v2.2.5 band (45-82), not {} — since
-    # _simulate_test_signals' own default changed in v2.2.5, an empty dict
-    # here would silently stop meaning "original baseline" the moment the
-    # function default next changes.
-    "original_baseline_45_82": {"rsi_min": 45.0, "rsi_max": 82.0},
-    "current_default_45_70": {"rsi_min": 45.0, "rsi_max": 70.0},
-    "volume_confirmed_0.5z": {"min_breakout_volume_zscore": 0.5},
-    "next_bar_confirmation": {"require_confirmation_bar": True},
-    "rsi_tightened_plus_volume": {"rsi_min": 45.0, "rsi_max": 70.0, "min_breakout_volume_zscore": 0.5},
+    # Pinned explicitly to the pre-v2.2.5/v2.2.6 originals, not {} — since
+    # _simulate_test_signals' own defaults have changed twice now (v2.2.5:
+    # rsi_max 82->70, v2.2.6: require_confirmation_bar False->True), an
+    # empty dict here would silently stop meaning "original baseline" the
+    # moment either default next changes.
+    "original_baseline_45_82": {"rsi_min": 45.0, "rsi_max": 82.0, "require_confirmation_bar": False},
+    "rsi_tightened_45_70_only": {"rsi_min": 45.0, "rsi_max": 70.0, "require_confirmation_bar": False},
+    "volume_confirmed_0.5z": {"min_breakout_volume_zscore": 0.5, "require_confirmation_bar": False},
+    "current_default_confirmation_bar": {},
+    "rsi_tightened_plus_volume": {"rsi_min": 45.0, "rsi_max": 70.0, "min_breakout_volume_zscore": 0.5, "require_confirmation_bar": False},
 }
 
 

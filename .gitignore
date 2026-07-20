@@ -4,6 +4,7 @@
 # Raw and historical data (large, gitignored per scope)
 data/raw/
 data/historical/
+data/historical_banks/
 
 # Python
 __pycache__/
