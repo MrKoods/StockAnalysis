@@ -12,6 +12,31 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.4] — 2026-07-19 — Fix broken sensitivity-analysis tool; surface walk-forward's real result
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.3 — tooling/analysis fix, no scoring/threshold impact on live or paper trading.
+
+### What changed
+- `backtesting/metrics.py`: `run_sensitivity_analysis()` took a `historical_data: dict` parameter and read `historical_data.get("outcomes", [])` — but every caller passed the raw `{ticker: DataFrame}` dict from `load_historical_data()`, which has no `"outcomes"` key. The lookup always missed, so the function silently returned all-zero rows at every threshold, every time it had ever been run. Changed the signature to take `outcomes: list[dict]` and `test_months: float` directly instead of a dict wrapper that nothing ever populated correctly.
+- `backtesting/backtest_engine.py`: extracted the train/test split + signal simulation block from `run_backtest()` into a new shared helper `_get_test_outcomes()`, so `run_backtest()` and the `--sensitivity` path both operate on the exact same out-of-sample signal set instead of two independently-computed splits that could silently drift apart. `run_backtest()`'s own result is unchanged (verified identical: 57.0% WR / avg R:R 2.01 / 107 trades / Sharpe 2.45 before and after this refactor).
+- `backtesting/run_backtest.py`: `--sensitivity` now calls `_get_test_outcomes()` then `run_sensitivity_analysis()` with real data instead of the broken dict.
+
+### Why it was changed
+- User asked what to do next given daily paper trading is ongoing. Investigating whether the 90-point confidence threshold was well-calibrated required running `--sensitivity`, which turned out to have never worked — Project_Scope.md documents this tool (Clarification 3) but it had no test coverage and had silently done nothing since it was written.
+
+### What the fix revealed
+- **Win rate is roughly flat (56.8%–60.5%) across every threshold from 85 to 95** — it does not climb meaningfully as the bar gets stricter (`backtesting/reports/sensitivity_analysis.csv`). A well-calibrated confidence score should show win rate rising with threshold; this one doesn't. This means raising the live threshold above 90 is unlikely to move win rate toward 80% by itself — the score isn't ranking candidates by real forward edge within this range, so the fix has to be a better signal, not a stricter cutoff.
+- **Walk-forward has never once passed.** `run_backtest()` already computes this on every run (`run_walk_forward()`, 24 six-month windows from 2014–2026) but the console output in `run_backtest.py` never printed it, so it had gone unexamined. Result: **0 of 24 windows meet the pass bar** (win rate ≥70%, avg R:R ≥1.8, ≥10 trades). Most windows have far too few qualifying trades (many are 0–5) to be individually meaningful, and window-to-window win rate swings from 0% to 76.9% — consistent with a strategy that fires rarely enough that no single 6-month slice is a reliable sample. The 57.0%/107-trade headline number from the fixed 2022–2026 test split is the most statistically meaningful figure available, but it obscures how unstable the underlying signal is period-to-period.
+- **A volume-confirmation entry gate was tested and reverted, not adopted.** Requiring `breakout_volume_zscore >= 0.5` on the backtest's entry filter improved the test-set result (57.0%→62.0% WR, avg R:R 2.01→2.07, max drawdown 7.5%→5.7%) but dropped qualifying trades to 79, below the 100-trade minimum, and — more importantly — this was discovered by iterating filter parameters directly against the single fixed out-of-sample test set, which is exactly the kind of test-set overfitting the 70/30 split exists to prevent. Reverted rather than shipped. A legitimate version of this idea needs validation against the walk-forward windows (or a fresh, never-peeked-at holdout), not a single re-run against the same 30% slice.
+
+### Backtest result
+N/A for this entry specifically — `run_backtest()`'s own output is unchanged by this fix (confirmed identical before/after). The walk-forward and sensitivity results it surfaced are existing, previously-uncomputed-or-unexamined facts about v2.2.2/v2.2.3, not a new backtest run against new code.
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.3] — 2026-07-19 — Fix cross_ticker config mismatch; dampen sector-wide modifier stacking
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.2 — see "Backtest result" below.

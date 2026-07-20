@@ -107,12 +107,18 @@ def compute_consecutive_losses(outcomes: list[dict]) -> int:
 
 
 def run_sensitivity_analysis(
-    historical_data: dict,
+    outcomes: list[dict],
+    test_months: float = 1.0,
     thresholds: Optional[list[int]] = None,
 ) -> pd.DataFrame:
     """
     Run backtest across 5 confidence thresholds (Clarification 3).
     For each threshold: qualifying trades, win rate, avg R:R, signal frequency, max consecutive losses.
+
+    `outcomes` should be the full unfiltered out-of-sample signal set (see
+    backtest_engine._get_test_outcomes) — this function does the threshold
+    filtering itself, once per threshold, rather than expecting pre-filtered input.
+
     Returns DataFrame with columns: threshold, qualifying_trades, win_rate, avg_rr, signals_per_month, max_consec_losses.
     Saves to backtesting/reports/sensitivity_analysis.csv.
     """
@@ -120,9 +126,7 @@ def run_sensitivity_analysis(
         thresholds = [85, 87, 90, 92, 95]
     rows = []
     for threshold in thresholds:
-        # Filter outcomes from historical_data by confidence threshold
-        all_outcomes = historical_data.get("outcomes", [])
-        qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= threshold]
+        qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= threshold]
 
         if not qualifying:
             rows.append({
@@ -135,13 +139,12 @@ def run_sensitivity_analysis(
             })
             continue
 
-        months = historical_data.get("test_months", 1)
         rows.append({
             "threshold": threshold,
             "qualifying_trades": len(qualifying),
             "win_rate": round(compute_win_rate(qualifying), 4),
             "avg_rr": round(compute_avg_rr(qualifying), 2),
-            "signals_per_month": round(len(qualifying) / max(months, 1), 2),
+            "signals_per_month": round(len(qualifying) / max(test_months, 1.0), 2),
             "max_consec_losses": compute_consecutive_losses(qualifying),
         })
 

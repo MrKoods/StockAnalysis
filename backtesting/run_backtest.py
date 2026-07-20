@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from backtesting.backtest_engine import run_backtest
+from backtesting.backtest_engine import run_backtest, _get_test_outcomes
 from backtesting.metrics import run_sensitivity_analysis
 from shared.utils.logger import get_logger
 
@@ -68,7 +68,11 @@ def main() -> None:
 
     if args.sensitivity:
         logger.info("Running sensitivity analysis across thresholds: 85, 87, 90, 92, 95")
-        df = run_sensitivity_analysis(historical_data)
+        all_outcomes, test_months, all_dates, train_cutoff = _get_test_outcomes(historical_data)
+        if not all_dates:
+            logger.error("No dates in historical data — cannot run sensitivity analysis.")
+            return
+        df = run_sensitivity_analysis(all_outcomes, test_months)
         print(df.to_string(index=False))
         logger.info("Sensitivity analysis complete. Saved to backtesting/reports/sensitivity_analysis.csv")
     else:

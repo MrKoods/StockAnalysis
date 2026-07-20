@@ -57,34 +57,13 @@ def run_backtest(
             "walk_forward": [],
         }
 
-    # Step 1: Collect all bar dates across tickers and split
-    all_dates = sorted(set(
-        date for df in historical_data.values() for date in df.index
-    ))
+    # Step 1-4: Split into train/test and simulate signals in the test period.
+    # (Full indicator pipeline requires live data; in backtest we use simplified proxy signals)
+    all_outcomes, _test_months, all_dates, train_cutoff = _get_test_outcomes(
+        historical_data, config_path, train_split
+    )
     if not all_dates:
         return {"passed": False, "error": "no_dates", "win_rate": 0.0}
-
-    split_idx = int(len(all_dates) * train_split)
-    train_cutoff = all_dates[split_idx] if split_idx < len(all_dates) else all_dates[-1]
-
-    # Split each ticker's DataFrame, keeping a warmup buffer of real pre-cutoff
-    # bars (matches _simulate_test_signals' len(df)>=65 / range(60,...) indicator
-    # warmup requirement) so the first ~60 nominal test-period days aren't wasted
-    # on indicator warmup with zero chance of producing a signal — that history
-    # exists for free just before train_cutoff. signal_cutoff below ensures none
-    # of those buffer bars are themselves treated as an out-of-sample signal.
-    _WARMUP_BARS = 65
-    test_data = {}
-    for t, df in historical_data.items():
-        if df.empty:
-            test_data[t] = df
-            continue
-        pos = df.index.searchsorted(train_cutoff, side="right")
-        test_data[t] = df.iloc[max(0, pos - _WARMUP_BARS):]
-
-    # Step 2-4: Simulate signals in test data
-    # (Full indicator pipeline requires live data; in backtest we use simplified proxy signals)
-    all_outcomes = _simulate_test_signals(test_data, config_path, signal_cutoff=train_cutoff)
     qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
 
     # Step 5: Metrics
@@ -135,6 +114,56 @@ def run_backtest(
     # Save report
     _save_report(result)
     return result
+
+
+def _get_test_outcomes(
+    historical_data: dict[str, pd.DataFrame],
+    config_path: str = "config/swing_config.yaml",
+    train_split: float = 0.70,
+) -> tuple[list[dict], float, list, "pd.Timestamp | None"]:
+    """
+    Split historical_data into train/test (70/30 by default) and simulate every
+    out-of-sample breakout signal in the test period, unfiltered by confidence.
+
+    Shared by run_backtest() (which filters to >=90) and run_sensitivity_analysis()
+    (which filters at several thresholds) so both operate on the exact same
+    out-of-sample signal set instead of two independently-computed splits that
+    could silently drift apart.
+
+    Returns (all_outcomes, test_period_months, all_dates, train_cutoff).
+    """
+    if not historical_data:
+        return [], 0.0, [], None
+
+    all_dates = sorted(set(
+        date for df in historical_data.values() for date in df.index
+    ))
+    if not all_dates:
+        return [], 0.0, [], None
+
+    split_idx = int(len(all_dates) * train_split)
+    train_cutoff = all_dates[split_idx] if split_idx < len(all_dates) else all_dates[-1]
+
+    # Split each ticker's DataFrame, keeping a warmup buffer of real pre-cutoff
+    # bars (matches _simulate_test_signals' len(df)>=65 / range(60,...) indicator
+    # warmup requirement) so the first ~60 nominal test-period days aren't wasted
+    # on indicator warmup with zero chance of producing a signal — that history
+    # exists for free just before train_cutoff. signal_cutoff below ensures none
+    # of those buffer bars are themselves treated as an out-of-sample signal.
+    _WARMUP_BARS = 65
+    test_data = {}
+    for t, df in historical_data.items():
+        if df.empty:
+            test_data[t] = df
+            continue
+        pos = df.index.searchsorted(train_cutoff, side="right")
+        test_data[t] = df.iloc[max(0, pos - _WARMUP_BARS):]
+
+    all_outcomes = _simulate_test_signals(test_data, config_path, signal_cutoff=train_cutoff)
+
+    test_months = max(1.0, (all_dates[-1] - train_cutoff).days / 30.44)
+
+    return all_outcomes, test_months, all_dates, train_cutoff
 
 
 def run_walk_forward(
