@@ -437,6 +437,35 @@ def _load_fundamental_history(tickers: list, cfg: dict) -> list[tuple[datetime, 
     return snapshots
 
 
+def _load_macro_series(macro_dir: str = "data/historical_macro") -> tuple:
+    """
+    Load cached historical TNX (10-yr Treasury yield) and DXY (USD index)
+    close-price series for backtest-time macro_overlay computation. Returns
+    (tnx_series, dxy_series); either is None if its CSV isn't present.
+    compute_macro_state() degrades to a neutral read when a series is None,
+    the same "accumulates going forward"/graceful-degradation pattern already
+    used for Positioning and Fundamental. Research data, not part of the live
+    watchlist — see CHANGELOG.md v2.2.7 for why this exists.
+    """
+    macro_path = Path(macro_dir)
+    tnx = dxy = None
+    for fname, attr in (("TNX.csv", "tnx"), ("DXY.csv", "dxy")):
+        path = macro_path / fname
+        if not path.exists():
+            continue
+        try:
+            df = pd.read_csv(path, parse_dates=["Date"], index_col="Date")
+            df.index = pd.to_datetime(df.index, utc=True)
+            series = pd.to_numeric(df["Close"], errors="coerce").dropna()
+            if attr == "tnx":
+                tnx = series
+            else:
+                dxy = series
+        except Exception:
+            continue
+    return tnx, dxy
+
+
 def _fundamental_as_of(history: list[tuple[datetime, dict]], ticker: str, bar_date, neutral: dict) -> dict:
     """Most recent archived fundamental snapshot at or before bar_date; neutral if none yet exists."""
     if not history:
@@ -516,6 +545,7 @@ def _simulate_test_signals(
     from shared.utils.regime_detection import classify_regime, get_regime_modifiers
     from shared.utils.seasonality import get_seasonality_modifier
     from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
+    from shared.utils.macro_overlay import compute_macro_state
     from backtesting.historical_news_loader import load_historical_news
 
     try:
@@ -558,6 +588,12 @@ def _simulate_test_signals(
     # Load the archived weekly fundamental snapshots once; each bar looks up the
     # snapshot on or before its own date (see _fundamental_as_of).
     fundamental_history = _load_fundamental_history(list(test_data.keys()), cfg)
+
+    # Load cached TNX/DXY series once for point-in-time macro_overlay computation
+    # (v2.2.7 — previously hardcoded to macro_modifier=0.0 always; see CHANGELOG).
+    # China tension defaults to 0 (no historical news-keyword archive covers the
+    # full backtest window) — neutral-when-unavailable, same as News/Fundamental.
+    tnx_series, dxy_series = _load_macro_series()
 
     smh_df = test_data.get("SMH")
     rr_cfg = cfg.get("risk_reward", {})
@@ -674,6 +710,24 @@ def _simulate_test_signals(
                     except Exception:
                         pass
 
+            # Macro overlay: real TNX (rate direction) / DXY (USD strength) state,
+            # computed point-in-time as of bar_date so later history can't leak
+            # backward. china_keyword_count_5d fixed at 0 (no historical news-
+            # keyword archive covers the full backtest window) — neutral when
+            # unavailable, same pattern as News/Fundamental elsewhere here.
+            macro_mod = 0.0
+            macro_state_label = "unavailable"
+            if tnx_series is not None or dxy_series is not None:
+                try:
+                    tnx_slice = tnx_series[tnx_series.index <= bar_date] if tnx_series is not None else None
+                    dxy_slice = dxy_series[dxy_series.index <= bar_date] if dxy_series is not None else None
+                    macro_result = compute_macro_state(tnx_slice, dxy_slice, china_keyword_count_5d=0, cfg=cfg)
+                    macro_mod = macro_result.get("confidence_modifier", 0.0)
+                    macro_state_label = macro_result.get("macro_state", "neutral")
+                except Exception:
+                    macro_mod = 0.0
+                    macro_state_label = "unavailable"
+
             # Price-momentum sentiment proxy: when price is trending up,
             # retail sentiment tends to be bullish. This is a documented
             # phenomenon at short horizons and better than a flat neutral
@@ -711,7 +765,7 @@ def _simulate_test_signals(
                     earnings_modifier=0.0,
                     cross_ticker_modifier=0.0,
                     seasonality_modifier=seas_mod,
-                    macro_modifier=0.0,
+                    macro_modifier=macro_mod,
                     cfg=cfg,
                     regime=regime,
                     fundamental=fundamental,
@@ -758,6 +812,7 @@ def _simulate_test_signals(
                 regime=regime,
             )
             outcome["ticker"] = ticker
+            outcome["macro_state"] = macro_state_label
             outcomes.append(outcome)
 
     return outcomes

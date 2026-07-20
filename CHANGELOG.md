@@ -12,6 +12,31 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.7] — 2026-07-19 — Wire the real macro overlay into the backtest (was hardcoded to zero)
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.6. **This closes a backtest-only gap — it does not change live/paper scoring at all.** `paper_trading/paper_runner.py` already computes a real macro overlay every scan (`_compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)`, live TNX/DXY data) and has since Enhancement 7 was built. Only the backtest was faking it.
+
+### What changed
+- `backtesting/backtest_engine.py`: `_simulate_test_signals()` previously passed `macro_modifier=0.0` to `compute_confidence_score()` unconditionally, for every single simulated trade, in every version through v2.2.6. New `_load_macro_series()` loads cached `data/historical_macro/TNX.csv` / `DXY.csv` (10-yr Treasury yield, USD index — same two proxies `shared/utils/macro_overlay.py` already uses live) once per backtest run; each candidate bar now computes a real, point-in-time `compute_macro_state()` result (no look-ahead — series sliced to `<= bar_date`) and uses its actual `confidence_modifier` (-10 to +3) instead of the hardcoded zero. `china_keyword_count_5d` is fixed at 0 (no historical news-keyword archive covers the full backtest window) — neutral-when-unavailable, the same pattern already used for News/Fundamental elsewhere in this function. Each outcome now also carries a `macro_state` field for diagnostics.
+- `data/historical_macro/` (new, gitignored — same treatment as `data/historical_banks/`): `TNX.csv`, `DXY.csv`, 2013-2026, fetched via yfinance.
+
+### Why it was changed
+- Directly investigating the open question flagged in v2.2.6 (walk-forward windows pass consistently in 2018-2021, mostly fail 2022-onward, unexplained). Pulled 10-year Treasury yield annual averages and lined them up against every walk-forward window: **every passing window sits in a falling-or-low-rate environment (2014-2021); every failing window with enough trades to judge sits in a rising-or-persistently-high-rate environment (2016-2018 partial, 2020-2026).** Textbook mechanism — cheap capital favors growth/momentum continuation, rising rates compress valuations and produce choppier, more mean-reverting price action. The codebase already has a tool built for exactly this (`macro_overlay.py`, monitors Fed rate direction among other things) but the backtest had simply never exercised it.
+
+### What wiring it in actually showed
+- Re-ran the rolling (24mo window, 6mo step) walk-forward with the real macro overlay active. The 2022-2023 rate-hiking-cycle windows now surface **fewer but meaningfully higher-quality** qualifying trades (e.g. 2022-07→2024-07: 4 trades at 75% WR, up from consistently-failing full samples pre-fix) — the overlay is suppressing weak candidates below the 90 threshold during adverse macro readings rather than letting them through to become recorded losses. **Zero qualifying trades ever occurred during an `"adverse"` macro state** (109 neutral, 103 favorable, 0 adverse, out of 212 pooled trades on the rolling view) — confirms the modifier works by suppression, exactly as designed.
+- More strikingly: **the 2024-01→2026-01 and 2024-07→2026-07 windows flip from FAIL to PASS** (69.2% and 75.0% WR respectively) — the most recent, most relevant-to-right-now stretch of the walk-forward analysis looks meaningfully better once the model is allowed to use the same macro awareness live trading already has.
+- Official fixed-slice result improves modestly: 66.7% WR (was 64.7%), avg R:R 2.35 (was 2.29), 18 qualifying trades (was 17, still below the 100-trade minimum), max drawdown 3.0%, max consecutive losses 3.
+- Cross-sector combined pooled result (semis + banks, non-overlapping 24mo windows, same methodology as v2.2.6): 100 trades, 58.0% WR, 1.78 avg R:R — close to the pre-fix estimate (104 trades, 58.7%/1.78), i.e. the aggregate headline number barely moved, but the *temporal consistency* improved substantially, which is the more important result: this was an investigation into *why* performance varied by era, and it now has a real, evidenced, partial answer instead of an open mystery.
+
+### Backtest result
+Fixed-slice: 66.7% win rate, avg R:R 2.35, 18 qualifying trades (below the 100-trade minimum), Sharpe not meaningful at this sample size, max drawdown 3.0%. Per this file's own rule this remains ineligible for live trading — trade-count shortfall on the fixed slice is disqualifying regardless of the improved win rate. The cross-sector pooled evidence (100 trades, 58.0% WR, 1.78 avg R:R) remains the more statistically meaningful figure.
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.6] — 2026-07-19 — Fix walk-forward window sizing; adopt next-bar confirmation; test a second sector
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.5. Entry-filter change is backtest-methodology only (does not touch live/paper scoring, same as v2.2.5 — see that entry). Walk-forward window/bar changes are backtest-diagnostic only — **the actual go-live safety gate (80% win rate, 1:3 min R:R, `run_backtest()`'s own `passed` computation, Project_Scope.md's Performance Thresholds) is untouched by this entry.**

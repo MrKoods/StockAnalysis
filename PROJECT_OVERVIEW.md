@@ -3,7 +3,7 @@
 **A single, current snapshot of the whole workspace — what it is, how it works, what's built, and where it stands today.**
 For the full historical design rationale and every implementation detail, see `Project_Scope.md` (the living spec this document summarizes). For the desktop app plan, see `App_UI_Scope.md`. For a version-by-version history, see `CHANGELOG.md`.
 
-*Last reviewed: 2026-07-19, model v2.2.6 — includes the first real backtest result, a fix to correlated-modifier stacking, a fix to a previously-broken sensitivity-analysis tool, a fix to an undersized walk-forward window that had been producing a misleadingly bleak "0/24 passed" result, a second-sector (regional banks) research validation, and a self-corrected entry-filter decision (see §11 — an earlier conclusion in this same series was reversed once the window-sizing bug was fixed).*
+*Last reviewed: 2026-07-19, model v2.2.7 — includes the first real backtest result, a fix to correlated-modifier stacking, a fix to a previously-broken sensitivity-analysis tool, a fix to an undersized walk-forward window, a second-sector (regional banks) research validation, a self-corrected entry-filter decision, and a rate-regime investigation that explains a meaningful part of why 2022-onward performance looked weaker (see §11).*
 
 ---
 
@@ -35,7 +35,7 @@ For the full historical design rationale and every implementation detail, see `P
 | **Watchlist** | NVDA, AMD, AVGO, TSM, MU, ASML (benchmark: SMH sector ETF) |
 | **Holding period** | 5–15 trading days |
 | **Starting capital (paper only)** | $15,000 |
-| **Current model version** | v2.2.6 (see `CHANGELOG.md`) |
+| **Current model version** | v2.2.7 (see `CHANGELOG.md`) |
 | **Live-trading status** | ❌ **Not eligible.** No version has ever passed the official fixed-slice backtest (trade count shortfall). Best current evidence of real edge: ~58.7% win rate / 1.78 avg R:R pooled across two independent sectors (104 trades) — real and positive, well short of the 80%/1:3 go-live bar. Zero real money at risk. |
 | **Current phase** | Paper trading (running, 0 qualifying signals so far) + post-review code hardening |
 | **Test suite** | 500 tests: 497 pass, 3 skipped — the skips are stale, leaving stress testing with zero real coverage (see §10) |
@@ -183,6 +183,10 @@ StockAnalysis/
 │                             generalizes beyond semiconductors (v2.2.6). NOT part of the live
 │                             watchlist — config/swing_config.yaml is unchanged.
 │
+├── data/historical_macro/   Research-only TNX (10-yr yield) / DXY (USD index) data, 2013-2026,
+│                             used to wire a real macro_overlay into the backtest instead of
+│                             the hardcoded zero it used through v2.2.6 (v2.2.7)
+│
 ├── output/swing_recommendations/   Daily ranked recommendation output
 │
 ├── tests/                   22 test files, 500 tests total
@@ -269,8 +273,9 @@ This section has a real self-correction in it (v2.2.6 reversing a v2.2.5 conclus
 - **The walk-forward diagnostic bar was recalibrated (0.70 WR / 1.8 R:R → 0.55 WR / 1.3 R:R) based on this evidence — but the actual go-live safety gate (80% WR, 1:3 min R:R) was deliberately left untouched.** The original walk-forward bar was set before any data existed and the strategy has never hit it even in its best years; the recalibrated version reflects what's actually, repeatably achievable. This is a diagnostic-only change — it makes zero difference to what's required before real capital is ever used.
 - **Decision made and documented: stop iterating backtest filter parameters against this same ~12-year, now-two-sector dataset.** Five rounds of testing (stop-multiplier, volume gate, RSI band, confirmation bar, the combination) risk diminishing, overfitting-prone returns from here. The entry filter is considered settled for now — not proven, but not worth further tuning against data that's already been looked at this many times. The next legitimate test is time: continued daily paper trading against genuinely new data.
 - **A separate, already-resolved problem: `regime`/`sector_rotation`/`cross_ticker` modifiers were stacking to a uniform -24 penalty across the whole watchlist** (v2.2.3), plus a config/code key mismatch that silently ignored a configured value. Fixed; doesn't affect any backtest number above (not modeled in the backtest at all), only live/paper scoring.
-- **Every version from v2.0.0 through v2.2.6 remains formally "not eligible to go live"** per the project's own CHANGELOG rule — the fixed-slice trade count (17) is disqualifying on its own, independent of the encouraging win rate.
-- **Next concrete action:** let paper trading run — that's the actual next validation step, not more backtest tuning. Separately, worth understanding *why* 2022-onward windows look weaker than 2018-2021 (structural market change, genuine alpha decay, or just an unusually hard regime for any trend system) before trusting current-era performance as much as the historical average suggests.
+- **The 2022-onward weakness has a real, evidenced partial explanation: rate regime.** Lined up 10-year Treasury yield trend against every walk-forward window — every passing window sits in a falling-or-low-rate era (2014-2021); every failing window with enough trades to judge sits in a rising-or-persistently-high-rate era (2016-2018 partial, 2020-2026). Textbook mechanism (cheap capital favors momentum continuation; rising rates produce choppier, more mean-reverting price action). **The codebase already had a tool built for exactly this** — `shared/utils/macro_overlay.py`, which live/paper trading (`paper_runner.py`) has used with real data all along — **but the backtest had hardcoded `macro_modifier=0.0` for every trade in every version through v2.2.6.** Fixed in v2.2.7: wired the real TNX/DXY-based overlay into the backtest. Result: the 2022-2023 hiking-cycle windows now surface fewer but meaningfully higher-quality trades (weak candidates get suppressed below the 90 threshold during adverse macro readings instead of becoming recorded losses — zero qualifying trades ever occurred during an `"adverse"` macro state across 212 pooled trades), and **the most recent 2024-2026 windows flip from FAIL to PASS** (69.2% and 75.0% WR). This is a backtest-only fix — it makes the backtest consistent with what live scoring already does, not a new live behavior.
+- **Every version from v2.0.0 through v2.2.7 remains formally "not eligible to go live"** per the project's own CHANGELOG rule — the fixed-slice trade count (18) is disqualifying on its own, independent of the improved 66.7% win rate.
+- **Next concrete action:** let paper trading run — that's the actual next validation step, not more backtest tuning (per the explicit v2.2.6 decision, still in force). The rate-regime finding is informative context for reading paper-trading results going forward (current rates are still elevated per the 2026 data pulled), not a reason to resume backtest iteration.
 
 ---
 
@@ -288,7 +293,7 @@ A local PySide6 desktop app is being built alongside the existing Discord-only p
 ## 13. Known Gaps & Open Items
 
 - **Backtest still fails on the official fixed-slice criteria** (17 qualifying trades, below the 100-trade minimum) despite an encouraging 64.7% win rate. Regime coverage outside `trending_up` is structurally unreachable for this entry-filter design, not a data gap. See §11 and `CHANGELOG.md` v2.2.2–v2.2.6. This is the single most important open item.
-- **Performance looks meaningfully weaker in 2022-onward walk-forward windows than in 2018-2021** (§11) — unexplained. Could be structural market change, genuine alpha decay, or just a harder regime for any trend-following system; worth investigating before trusting the historical average as representative of what to expect right now.
+- **Performance looked meaningfully weaker in 2022-onward walk-forward windows than in 2018-2021 — now partially explained (§11) as a rate-regime effect, not fully resolved.** Wiring the real macro overlay into the backtest (v2.2.7) recovered much of the 2024-2026 stretch to passing, but genuine alpha decay/crowding hasn't been ruled out as a contributing factor — only tested and ruled out: gap-through-stop mechanics (checked directly, not the cause).
 - **Volume-confirmation as a filter (tested independently, not combined with the adopted RSI+confirmation-bar default) looked promising in earlier rounds but was superseded by the more thorough v2.2.6 comparison** — worth re-checking in combination with the current default once more data exists, per the "stop iterating for now" decision in §11.
 - **Decided, not a gap: no further backtest-filter iteration for now.** Five rounds of tuning against the same fixed historical (now two-sector) sample is enough — see §11's explicit decision to let paper trading, not more backtesting, be the next validation step.
 - **Options Greeks filter (theta/vega/gamma)** in the trade selector is documented but not implemented — no live options-chain data currently feeds it. Surfaced honestly as "not evaluated" rather than silently passing.
@@ -304,7 +309,7 @@ A local PySide6 desktop app is being built alongside the existing Discord-only p
 ## 14. What's Next
 
 1. **Let paper trading run — this is now the actual next step, by explicit decision (§11), not another backtest round.** Expect it to be slow: the current filter (RSI 45-70 + next-bar confirmation) is more selective than the original design, so genuinely qualifying setups will be rarer than ever.
-2. **Investigate the 2018-2021 vs. 2022-onward performance gap** found in the walk-forward analysis (§11) — understand whether current-era conditions structurally suit this strategy less well before assuming historical averages apply to what paper trading will actually see.
+2. **The 2018-2021 vs. 2022-onward gap has a real, partial explanation now (rate regime, §11)** — the residual question is whether the remaining gap is pure regime effect or partly genuine alpha decay/crowding. Not urgent given the "pause backtesting" decision, but worth keeping in mind when interpreting paper-trading results.
 3. **Decide on the regime-coverage requirement.** Structurally unreachable for a breakout-style entry filter — either redefine it (validate `trending_up` directly, validate abstention elsewhere) or treat it as a signal this design needs a second, different signal type for non-trending regimes.
 4. **If/when it's time to test filters again** (not now — see §11's decision to pause), re-check volume confirmation in combination with the current RSI+confirmation-bar default, and consider extending the second-sector research (banks) to a third sector for an even sturdier generalization check.
 5. Decide on the `build_notification()` consolidation question for the desktop app (§12) before it grows more alert-consuming call sites.

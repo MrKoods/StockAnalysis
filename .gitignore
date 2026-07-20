@@ -5,6 +5,7 @@
 data/raw/
 data/historical/
 data/historical_banks/
+data/historical_macro/
 
 # Python
 __pycache__/
