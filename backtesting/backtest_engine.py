@@ -170,12 +170,26 @@ def run_walk_forward(
     historical_data: dict[str, pd.DataFrame],
     initial_train_months: int = 18,
     validate_months: int = 6,
+    config_path: str = "config/swing_config.yaml",
+    signal_kwargs: "dict | None" = None,
+    include_outcomes: bool = False,
 ) -> list[dict]:
     """
     Walk-forward validation across all available windows.
     Calibrate on months 1-18, validate on 19-24. Roll: calibrate 1-24, validate 25-30.
     Model must pass thresholds in every window, not just the initial one.
     Returns list of per-window results.
+
+    signal_kwargs: forwarded to _simulate_test_signals (rsi_min/rsi_max/
+    min_breakout_volume_zscore/require_confirmation_bar) — lets callers test
+    entry-filter variants across every window instead of a single fixed split.
+    See backtesting/entry_filter_variants.py.
+
+    include_outcomes: when True, each window's dict also carries its raw
+    qualifying-trade outcome list under "outcomes", so a caller can pool
+    outcomes across all windows for a single large-sample evaluation. Off by
+    default to keep run_backtest()'s saved JSON report lean — it doesn't need
+    per-trade detail duplicated inside walk_forward.
     """
     if not historical_data:
         return []
@@ -186,6 +200,7 @@ def run_walk_forward(
     if not all_dates:
         return []
 
+    signal_kwargs = signal_kwargs or {}
     results = []
     window_num = 0
 
@@ -206,14 +221,14 @@ def run_walk_forward(
         val_data = {t: df[(df.index > train_cutoff) & (df.index <= val_cutoff)]
                     for t, df in historical_data.items()}
 
-        outcomes = _simulate_test_signals(val_data)
+        outcomes = _simulate_test_signals(val_data, config_path, **signal_kwargs)
         qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= 90]
 
         win_rate = compute_win_rate(qualifying)
         avg_rr = compute_avg_rr(qualifying)
         passed = win_rate >= 0.70 and avg_rr >= 1.8 and len(qualifying) >= 10
 
-        results.append({
+        window_result = {
             "window": window_num + 1,
             "train_through": str(train_cutoff),
             "validate_through": str(val_cutoff),
@@ -221,7 +236,10 @@ def run_walk_forward(
             "win_rate": round(win_rate, 4),
             "avg_rr": round(avg_rr, 2),
             "passed": passed,
-        })
+        }
+        if include_outcomes:
+            window_result["outcomes"] = qualifying
+        results.append(window_result)
 
         window_num += 1
         if val_end_days >= len(all_dates):
@@ -391,6 +409,10 @@ def _simulate_test_signals(
     test_data: dict[str, pd.DataFrame],
     config_path: str = "config/swing_config.yaml",
     signal_cutoff: "pd.Timestamp | None" = None,
+    rsi_min: float = 45.0,
+    rsi_max: float = 70.0,
+    min_breakout_volume_zscore: "float | None" = None,
+    require_confirmation_bar: bool = False,
 ) -> list[dict]:
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.
@@ -401,6 +423,27 @@ def _simulate_test_signals(
     with a warmup buffer of real pre-cutoff bars, instead of every ticker losing its
     first ~60 nominal test-period days to indicator warmup with zero chance of a
     signal — those days had real prior history available, it just wasn't included.
+
+    rsi_min/rsi_max: entry-filter RSI band, overridable for research experiments
+    (see backtesting/entry_filter_variants.py). Default tightened from the
+    original 45-82 to 45-70 in v2.2.5 — walk-forward evidence pooled across all
+    24 windows (2014-2026) showed 82 lets through too many already-extended
+    moves with less runway left to reach target: 45-70 improved pooled win rate
+    49.4%→60.8% at a real cost of ~3x fewer qualifying candidates. This is a
+    backtest-only candidate-selection filter — it does not exist in and does
+    not change live/paper scoring, which already scores RSI continuously
+    (swing_model/scoring.py, 0-8 points, no hard cutoff).
+
+    min_breakout_volume_zscore: if set, requires the breakout bar's volume
+    z-score (vs. its own 20-day history) to be at or above this value — a
+    conviction filter (weak-volume breakouts are more prone to stalling).
+    None (default) disables this filter entirely, matching original behavior.
+
+    require_confirmation_bar: if True, the bar immediately after the breakout
+    must also close above the breakout level before a signal counts — filters
+    out one-day pops that immediately fade. When a candidate is confirmed,
+    entry/indicators/outcome simulation all shift to that next bar (the
+    breakout bar itself is never used as the entry bar in this mode).
 
     All scoring layers are applied:
     - Technical: real historical OHLCV via compute_technical_indicators
@@ -512,8 +555,23 @@ def _simulate_test_signals(
                 # for computing indicators on later bars via df_slice, but not
                 # itself an out-of-sample signal.
                 continue
-            df_slice = df.iloc[:i + 1]
-            bench_slice = bench_aligned.iloc[:i + 1]
+
+            entry_idx = i
+            if require_confirmation_bar:
+                # Next bar must still close above the breakout level — filters
+                # out one-day pops that immediately fade. Entry shifts to the
+                # confirmation bar itself, not the original breakout bar.
+                if i + 1 >= len(df):
+                    continue
+                if not (df["Close"].iloc[i + 1] > prior_20d_high.iloc[i]):
+                    continue
+                entry_idx = i + 1
+                bar_date = df.index[entry_idx]
+                if signal_cutoff is not None and bar_date <= signal_cutoff:
+                    continue
+
+            df_slice = df.iloc[:entry_idx + 1]
+            bench_slice = bench_aligned.iloc[:entry_idx + 1]
 
             try:
                 indicators = compute_technical_indicators(df_slice, bench_slice, cfg)
@@ -527,7 +585,8 @@ def _simulate_test_signals(
             #    Captures intra-sector rotation (e.g., non-NVDA names lagging NVDA-inflated SMH)
             #    that rs_zscore (a normalized z-score) can miss because z-score can be positive
             #    even when absolute performance lags the benchmark.
-            # 4. RSI 45-82: healthy momentum range.
+            # 4. RSI band (default 45-82): healthy momentum range.
+            # 5. Optional volume confirmation / next-bar confirmation — see docstring.
             if not indicators.get("trend_intact", False):
                 continue
             if smh_sector_trend is not None:
@@ -542,8 +601,11 @@ def _simulate_test_signals(
                 if stock_ret_20d < bench_ret_20d:
                     continue
             rsi_val = float(indicators.get("rsi_14", 50.0))
-            if rsi_val < 45.0 or rsi_val > 82.0:
+            if rsi_val < rsi_min or rsi_val > rsi_max:
                 continue
+            if min_breakout_volume_zscore is not None:
+                if float(indicators.get("breakout_volume_zscore", 0.0)) < min_breakout_volume_zscore:
+                    continue
 
             # Seasonality from the signal bar date
             try:
@@ -637,7 +699,7 @@ def _simulate_test_signals(
             if stop <= 0 or target is None or target <= entry or atr <= 0:
                 continue
 
-            future = df.iloc[i + 1: i + 16]
+            future = df.iloc[entry_idx + 1: entry_idx + 16]
             if future.empty:
                 continue
 

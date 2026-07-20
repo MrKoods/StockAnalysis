@@ -12,6 +12,42 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.5] — 2026-07-19 — Tighten backtest entry-filter RSI ceiling (82→70) based on walk-forward evidence
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.4. **This is a backtest-methodology change only — it does not touch live or paper scoring.** `swing_model/scoring.py` already scores RSI continuously (0-8 points, tapering above 80, no hard cutoff); this filter exists solely in `backtesting/backtest_engine.py`'s simplified candidate-selection logic, which decides which historical bars the backtest even considers as breakout candidates.
+
+### What changed
+- `backtesting/backtest_engine.py`: `_simulate_test_signals()`'s default `rsi_max` changed from `82.0` to `70.0`. `rsi_min` stays `45.0`. Both remain overridable parameters (see v2.2.4's parameterization) for future research.
+- `backtesting/entry_filter_variants.py`: `VARIANTS["baseline"]` renamed to `"original_baseline_45_82"` and pinned to explicit `{rsi_min: 45.0, rsi_max: 82.0}` (was `{}`) — an empty dict would have silently started meaning "45-70" the moment the function default changed here, breaking the variant comparison's own reference point. Added `"current_default_45_70"` as the new baseline label.
+- `backtesting/reports/sensitivity_analysis.csv` regenerated against the new default.
+
+### Why it was changed
+- User asked what an expert stock/technical analyst would flag about the entry design, given the diagnostic finding that qualifying-trade losses take 5-9 days to resolve (not 1-2) and 41% of qualifying trades stall around 0.88R when the 15-day time stop hits (v2.2.4 finding) — a signal-conviction pattern, not a fast-false-breakout pattern. RSI 82 as an upper bound lets through already-extended moves with less runway left to reach a 3R target before time runs out.
+- Built `backtesting/entry_filter_variants.py` to test this properly: pooled qualifying trades across all 24 walk-forward windows (2014-2026) instead of hand-tuning against the single fixed 70/30 test slice (the exact overfitting trap flagged in v2.2.4 when a volume-confirmation experiment was tested and reverted for this reason). Five variants tested — RSI tightening, volume confirmation, next-bar confirmation, and a combination — pooled results:
+
+| Variant | Pooled trades (24 windows) | Win rate | Avg R:R |
+|---|---|---|---|
+| Original (RSI 45-82) | 156 | 49.4% | 1.22 |
+| **RSI tightened (45-70) — adopted** | 51 | **60.8%** | 1.41 |
+| Volume confirmed (≥0.5 z-score) | 104 | 55.8% | 1.25 |
+| Next-bar confirmation | 110 | 49.1% | 1.08 |
+| RSI + volume combo | 32 | 71.9% | 1.48 |
+
+  Next-bar confirmation (does the bar after the breakout still close above the level) did **not** help — consistent with losses resolving over 5-9 days rather than 1-2, a simple one-bar check doesn't catch the real failure pattern. The RSI+volume combo shows the best number but on only 32 pooled trades across 12 years — flagged as promising, not adopted, too thin a sample to trust yet.
+
+### An important, honest tension — not hidden
+- On the pooled 24-window sample, RSI 45-70 clearly improves win rate (49.4%→60.8%).
+- But on the *specific* fixed 2022-2026 slice `run_backtest()` reports as its headline number, the same change makes it **worse**: 57.0%→51.8% win rate, and qualifying trades drop from 107 to **27 — below the project's own 100-trade minimum** for a statistically valid read on that slice alone.
+- This is not necessarily a contradiction: at n=27, a handful of individual trades flipping win/loss swings the percentage by several points on pure noise, and the 24-window pooled sample (207 total trades across independent periods) is the statistically sturdier of the two reads. But it's a real, visible tension, not a clean win — decided to adopt based on the pooled evidence being more trustworthy than one slice, with this section serving as the explicit record of that judgment call and its cost (signal frequency at the 90 threshold drops from ~2.19/month to ~0.55/month per the regenerated sensitivity report).
+
+### Backtest result
+Official fixed-slice number **degrades** with this change: 51.8% win rate (was 57.0%), avg R:R 2.23 (was 2.01), 27 qualifying trades (was 107, now below the 100-trade minimum), Sharpe 0.64 (was 2.45, though at n=27 this figure is on a thin sample). Per this file's own rule this remains ineligible for live trading — already true before this change, unaffected by it. The 24-window pooled evidence in the table above is the actual basis for adopting this default, not the fixed-slice number, which is exactly why this section documents both rather than only the favorable one.
+
+### Approved by
+MrKoods — 2026-07-19 (adopted knowing the fixed-slice headline number moved unfavorably; decision rests on the pooled walk-forward evidence)
+
+---
+
 ## [v2.2.4] — 2026-07-19 — Fix broken sensitivity-analysis tool; surface walk-forward's real result
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.3 — tooling/analysis fix, no scoring/threshold impact on live or paper trading.
