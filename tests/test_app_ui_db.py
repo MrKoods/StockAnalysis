@@ -3,6 +3,8 @@ Tests for app_ui/db.py — SQLite persistence layer backing the desktop app UI.
 Each test uses its own tmp_path db file; no shared state between tests.
 """
 
+import sqlite3
+
 from app_ui import db
 
 
@@ -68,6 +70,60 @@ class TestTickerResultsAndLayerScores:
         db.insert_ticker_result(run_b, "AMD", db.CATEGORY_NO_SIGNAL, db_path=path)
         assert [r["ticker"] for r in db.get_ticker_results(run_a, db_path=path)] == ["NVDA"]
         assert [r["ticker"] for r in db.get_ticker_results(run_b, db_path=path)] == ["AMD"]
+
+    def test_sector_roundtrip(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        db.insert_ticker_result(run_id, "NVDA", db.CATEGORY_NO_SIGNAL, sector="semiconductors", db_path=path)
+        db.insert_ticker_result(run_id, "ZION", db.CATEGORY_NO_SIGNAL, sector="regional_banks", db_path=path)
+        results = {r["ticker"]: r["sector"] for r in db.get_ticker_results(run_id, db_path=path)}
+        assert results["NVDA"] == "semiconductors"
+        assert results["ZION"] == "regional_banks"
+
+    def test_sector_defaults_to_none_when_not_passed(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        db.insert_ticker_result(run_id, "NVDA", db.CATEGORY_NO_SIGNAL, db_path=path)
+        results = db.get_ticker_results(run_id, db_path=path)
+        assert results[0]["sector"] is None
+
+    def test_migration_adds_sector_column_to_pre_existing_db(self, tmp_path):
+        """A DB file created before the sector column existed must not break —
+        get_connection()'s migration should add it transparently."""
+        path = tmp_path / "history.db"
+        # Simulate a pre-v2.2.10 DB: create ticker_results without the sector column.
+        conn = sqlite3.connect(str(path))
+        conn.execute("""
+            CREATE TABLE ticker_results (
+                result_id INTEGER PRIMARY KEY,
+                run_id INTEGER NOT NULL,
+                ticker TEXT NOT NULL,
+                category TEXT NOT NULL,
+                composite_score REAL,
+                trade_structure TEXT,
+                expected_value REAL,
+                event_gate_blocked INTEGER NOT NULL DEFAULT 0,
+                event_gate_trigger TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE scan_runs (
+                run_id INTEGER PRIMARY KEY,
+                run_timestamp TEXT NOT NULL,
+                scan_type TEXT NOT NULL,
+                config_snapshot TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+        # A fresh get_connection() call (e.g. via create_scan_run) must migrate
+        # the old table in place, not error and not lose existing behavior.
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        result_id = db.insert_ticker_result(run_id, "NVDA", db.CATEGORY_NO_SIGNAL, sector="semiconductors", db_path=path)
+        assert result_id is not None
+        results = db.get_ticker_results(run_id, db_path=path)
+        assert results[0]["sector"] == "semiconductors"
 
 
 class TestNotifications:

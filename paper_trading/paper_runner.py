@@ -165,6 +165,7 @@ def _db_insert_ticker_result_safe(
     expected_value: Optional[float] = None,
     event_gate_blocked: bool = False,
     event_gate_trigger: Optional[str] = None,
+    sector: Optional[str] = None,
 ) -> Optional[int]:
     if run_id is None:
         return None
@@ -173,6 +174,7 @@ def _db_insert_ticker_result_safe(
             run_id, ticker, category, composite_score,
             trade_structure=trade_structure, expected_value=expected_value,
             event_gate_blocked=event_gate_blocked, event_gate_trigger=event_gate_trigger,
+            sector=sector,
         )
     except Exception as exc:
         logger.warning(f"app_ui DB: could not insert ticker_result for {ticker} — {exc}")
@@ -445,6 +447,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                     run_id, ticker, sub_threshold_category, final_score,
                     event_gate_blocked=bool(score.get("event_gate_blocked", False)),
                     event_gate_trigger=score.get("event_gate_trigger"),
+                    sector=sector,
                 )
                 _db_insert_layer_scores_safe(result_id, score)
 
@@ -528,6 +531,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 expected_value=float(ev_per_dollar) if ev_per_dollar else None,
                 event_gate_blocked=bool(score.get("event_gate_blocked", False)),
                 event_gate_trigger=score.get("event_gate_trigger"),
+                sector=sector,
             )
             _db_insert_layer_scores_safe(result_id, score)
 

@@ -18,10 +18,12 @@ watchlist:
   benchmark: SMH                   # Sector ETF for relative-strength comparison
   benchmark_alt: SOXX
 
-  # Sector-grouped structure (new) — shared/utils/sector_config.py reads this as
-  # the source of truth going forward. regional_banks is present but inactive;
-  # backtest-validated in CHANGELOG.md v2.2.6/v2.2.7 as a research-only dataset
-  # (data/historical_banks/, gitignored) before being added here.
+  # Sector-grouped structure — shared/utils/sector_config.py reads this as the
+  # source of truth going forward. Backtest-validated in CHANGELOG.md
+  # v2.2.6/v2.2.7 (data/historical_banks/, gitignored research dataset);
+  # activated for PAPER TRADING ONLY in v2.2.10 — no real capital is at risk
+  # for either sector (see Performance Thresholds — nothing is eligible to go
+  # live with real money regardless of this flag).
   sectors:
     semiconductors:
       active: true
@@ -35,7 +37,7 @@ watchlist:
         - MU
         - ASML
     regional_banks:
-      active: false               # flips true only in the live-activation phase
+      active: true                # paper trading only — see v2.2.10 CHANGELOG entry
       benchmark: KRE
       benchmark_alt: null
       tickers:

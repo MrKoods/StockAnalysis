@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS ticker_results (
     trade_structure TEXT,
     expected_value REAL,
     event_gate_blocked INTEGER NOT NULL DEFAULT 0,
-    event_gate_trigger TEXT
+    event_gate_trigger TEXT,
+    sector TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_ticker_results_run_id ON ticker_results(run_id);
 
@@ -74,7 +75,24 @@ def get_connection(db_path: Optional[Path] = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(_SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """
+    Schema changes to existing DB files that CREATE TABLE IF NOT EXISTS can't
+    apply on its own (that's a no-op once the table already exists). Each
+    migration checks column presence first — sqlite3 has no
+    "ADD COLUMN IF NOT EXISTS" — so this is safe to run on every connection.
+    """
+    cols = {row["name"] for row in conn.execute("PRAGMA table_info(ticker_results)")}
+    if "sector" not in cols:
+        # Added v2.2.10 for multi-sector result grouping (App_UI_Scope.md §3.1) —
+        # existing rows from before this migration get sector=NULL, shown under
+        # an "Unknown Sector" bucket in results_tab.py rather than dropped.
+        conn.execute("ALTER TABLE ticker_results ADD COLUMN sector TEXT")
+        conn.commit()
 
 
 def create_scan_run(
@@ -100,20 +118,26 @@ def insert_ticker_result(
     expected_value: Optional[float] = None,
     event_gate_blocked: bool = False,
     event_gate_trigger: Optional[str] = None,
+    sector: Optional[str] = None,
     db_path: Optional[Path] = None,
 ) -> int:
-    """Insert a ticker_results row for one ticker in one scan run. Returns the new result_id."""
+    """Insert a ticker_results row for one ticker in one scan run. Returns the new result_id.
+
+    sector: which watchlist.sectors entry `ticker` belongs to (e.g.
+    "semiconductors", "regional_banks") — None for callers that haven't
+    threaded sector through yet, shown under "Unknown Sector" in results_tab.py.
+    """
     with get_connection(db_path) as conn:
         cur = conn.execute(
             """
             INSERT INTO ticker_results
                 (run_id, ticker, category, composite_score, trade_structure,
-                 expected_value, event_gate_blocked, event_gate_trigger)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 expected_value, event_gate_blocked, event_gate_trigger, sector)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id, ticker, category, composite_score, trade_structure,
-                expected_value, int(bool(event_gate_blocked)), event_gate_trigger,
+                expected_value, int(bool(event_gate_blocked)), event_gate_trigger, sector,
             ),
         )
         return int(cur.lastrowid)

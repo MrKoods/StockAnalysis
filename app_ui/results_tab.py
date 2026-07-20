@@ -42,6 +42,20 @@ _LAYER_ORDER = [
 ]
 
 
+def _sector_label(sector) -> str:
+    """
+    Human-readable sector heading. Derived generically from the
+    watchlist.sectors config key (e.g. "regional_banks" -> "Regional Banks")
+    rather than a hardcoded lookup, so a newly-added sector needs no UI code
+    change. Rows with no sector recorded (pre-v2.2.10 history, or a caller
+    that hasn't threaded sector through) group under "Unknown Sector" rather
+    than being dropped.
+    """
+    if not sector:
+        return "Unknown Sector"
+    return sector.replace("_", " ").title()
+
+
 class ResultsTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -88,46 +102,67 @@ class ResultsTab(QWidget):
     def _render_run(self, run_id: int) -> None:
         self.tree.clear()
         results = db.get_ticker_results(run_id)
-        by_category: dict[str, list[dict]] = {cat: [] for cat in _CATEGORY_ORDER}
+
+        by_sector: dict = {}
         for row in results:
-            by_category.setdefault(row["category"], []).append(row)
+            by_sector.setdefault(row["sector"], []).append(row)
 
-        for category in _CATEGORY_ORDER:
-            rows = sorted(by_category.get(category, []), key=lambda r: -(r["composite_score"] or 0))
-            category_item = QTreeWidgetItem([f"{_CATEGORY_LABELS[category]}  ({len(rows)})"])
-            category_item.setFirstColumnSpanned(True)
-            font = category_item.font(0)
-            font.setBold(True)
-            category_item.setFont(0, font)
-            self.tree.addTopLevelItem(category_item)
+        # Known sectors sorted alphabetically by label; rows with no sector
+        # recorded (None) always sort last under "Unknown Sector".
+        sector_keys = sorted(by_sector.keys(), key=lambda s: (s is None, _sector_label(s)))
 
-            for row in rows:
-                gate_flag = "⚠ Active Event" if row["event_gate_blocked"] else ""
-                ticker_item = QTreeWidgetItem([
-                    row["ticker"],
-                    f"{row['composite_score']:.1f}" if row["composite_score"] is not None else "",
-                    row["trade_structure"] or "",
-                    f"{row['expected_value']:.4f}" if row["expected_value"] is not None else "",
-                    gate_flag,
-                ])
-                if gate_flag:
-                    ticker_item.setForeground(4, Qt.GlobalColor.darkYellow)
-                category_item.addChild(ticker_item)
+        for sector_key in sector_keys:
+            sector_rows = by_sector[sector_key]
+            sector_item = QTreeWidgetItem([f"{_sector_label(sector_key)}  ({len(sector_rows)})"])
+            sector_item.setFirstColumnSpanned(True)
+            sector_font = sector_item.font(0)
+            sector_font.setBold(True)
+            sector_font.setPointSize(sector_font.pointSize() + 1)
+            sector_item.setFont(0, sector_font)
+            self.tree.addTopLevelItem(sector_item)
 
-                layers = sorted(
-                    db.get_layer_scores(row["result_id"]),
-                    key=lambda layer: _LAYER_ORDER.index(layer["layer_name"])
-                    if layer["layer_name"] in _LAYER_ORDER else len(_LAYER_ORDER),
-                )
-                for layer in layers:
-                    layer_name = layer["layer_name"]
-                    label = _LAYER_LABELS.get(layer_name, layer_name)
-                    score = layer["score"]
-                    layer_item = QTreeWidgetItem([
-                        label, f"{score:+.1f}" if score is not None else "", "", "", "",
+            by_category: dict[str, list[dict]] = {cat: [] for cat in _CATEGORY_ORDER}
+            for row in sector_rows:
+                by_category.setdefault(row["category"], []).append(row)
+
+            for category in _CATEGORY_ORDER:
+                rows = sorted(by_category.get(category, []), key=lambda r: -(r["composite_score"] or 0))
+                category_item = QTreeWidgetItem([f"{_CATEGORY_LABELS[category]}  ({len(rows)})"])
+                category_item.setFirstColumnSpanned(True)
+                font = category_item.font(0)
+                font.setBold(True)
+                category_item.setFont(0, font)
+                sector_item.addChild(category_item)
+
+                for row in rows:
+                    gate_flag = "⚠ Active Event" if row["event_gate_blocked"] else ""
+                    ticker_item = QTreeWidgetItem([
+                        row["ticker"],
+                        f"{row['composite_score']:.1f}" if row["composite_score"] is not None else "",
+                        row["trade_structure"] or "",
+                        f"{row['expected_value']:.4f}" if row["expected_value"] is not None else "",
+                        gate_flag,
                     ])
-                    ticker_item.addChild(layer_item)
+                    if gate_flag:
+                        ticker_item.setForeground(4, Qt.GlobalColor.darkYellow)
+                    category_item.addChild(ticker_item)
 
-            category_item.setExpanded(True)
+                    layers = sorted(
+                        db.get_layer_scores(row["result_id"]),
+                        key=lambda layer: _LAYER_ORDER.index(layer["layer_name"])
+                        if layer["layer_name"] in _LAYER_ORDER else len(_LAYER_ORDER),
+                    )
+                    for layer in layers:
+                        layer_name = layer["layer_name"]
+                        label = _LAYER_LABELS.get(layer_name, layer_name)
+                        score = layer["score"]
+                        layer_item = QTreeWidgetItem([
+                            label, f"{score:+.1f}" if score is not None else "", "", "", "",
+                        ])
+                        ticker_item.addChild(layer_item)
 
-        self.tree.expandToDepth(0)
+                category_item.setExpanded(True)
+
+            sector_item.setExpanded(True)
+
+        self.tree.expandToDepth(1)

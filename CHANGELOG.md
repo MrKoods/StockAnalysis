@@ -12,6 +12,34 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.10] — 2026-07-19 — Activate regional_banks for paper trading; app UI groups results by sector
+
+**Status:** Code updated. **`regional_banks.active` is now `true` — paper trading will scan both sectors starting with the next scheduled run.** This is a paper-trading activation only, not a live-capital decision: per this file's own Performance Thresholds, no version has ever passed the backtest, so real money stays at zero risk regardless of this flag, same as every version since v2.0.0. This is a MINOR bump (new capability, tradeable universe expands from 6 to 11 tickers) rather than MAJOR — no scoring architecture or trade-selection logic changed, only which tickers get scanned.
+
+### What changed
+
+**App UI now shows results grouped by sector, then category within each sector** (the actual trigger for this entry — user asked for this ahead of tomorrow's paper test and it didn't exist yet):
+- `app_ui/db.py`: `ticker_results` gains a `sector TEXT` column. New `_migrate()` runs on every `get_connection()` call, adding the column to pre-existing DB files via `ALTER TABLE` (checked against `PRAGMA table_info` first, since sqlite3 has no `ADD COLUMN IF NOT EXISTS`) — verified directly against a copy of the real, already-in-use `stockanalysis_history.db`, not just a synthetic test fixture. `insert_ticker_result()` gains an optional `sector` parameter.
+- `paper_trading/paper_runner.py`: both `_db_insert_ticker_result_safe()` call sites now pass `sector=sector` — the `ticker_sector_map` lookup already existed in scope from v2.2.8's per-sector loop, this just threads it into the DB write.
+- `app_ui/results_tab.py`: `_render_run()` restructured to group top-level by sector (label derived generically from the config key, e.g. `regional_banks` → "Regional Banks", so a future sector needs no UI code change), category nested within each sector, exactly as before otherwise. Rows with no sector recorded (pre-migration history) group under "Unknown Sector" rather than being dropped.
+
+**Verification, in order of rigor:**
+1. Re-ran the cross-sector backtest (same tooling as v2.2.6/v2.2.7, nothing about the strategy logic changed since then) — confirmed unchanged: semis 54 trades/61.1% WR, banks 46 trades/54.3% WR, pooled 100 trades/58.0% WR/1.78 avg R:R.
+2. **New `tests/test_multi_sector_live_pipeline.py`** — the first test in this whole multi-sector effort to actually run `paper_runner.run_paper_scan()` itself end to end with two active sectors (everything external mocked: no real API calls, no real Discord sends). This is the thing backtesting structurally cannot verify — `backtest_engine.py`'s simulation never calls `run_pipeline()`/`_fetch_market_context()` at all, so unit tests of individual pieces are the only prior evidence this actually worked together. Confirms: `run_pipeline()` is called exactly once per sector with that sector's own tickers and benchmark (`SMH`→semis tickers, `KRE`→bank tickers, not mixed); a semis trade and a bank trade can be recommended in the same scan simultaneously (proves per-sector portfolio caps, not a shared pool); every `ticker_results` row lands with the correct sector tag.
+3. **Checked `fundamental_layer.py`'s `self._watchlist` (still reads the legacy flat `watchlist.tickers` key directly)** — confirmed via grep it's assigned once and never read anywhere else in the class; dead code, not a correctness risk.
+4. **Found, but did not fix: `shared/utils/black_swan_detector.py::check_black_swan()` still checks a single SMH-only drop threshold**, not per-sector as this file's own v2.2.8 entry said it would eventually need. Checked its call sites directly: **zero** — it's not wired into `run_swing_model.py` or `paper_runner.py` at all, a pre-existing gap unrelated to and unaffected by any multi-sector work this session. Not a blocker for tomorrow since it has no effect on live/paper behavior either way; noted here rather than silently left out, and worth wiring up (single- or multi-sector) as its own future entry.
+
+### Why it was changed
+User: "tomorrow we paper test... the app ui should show both sectors and results of each in a categorized fashion... check to make sure this is the case." Direct verification (not assumption) found two real gaps: `regional_banks` was still `active: false`, and the app UI had no sector dimension anywhere — `ticker_results` had no `sector` column and `results_tab.py` grouped only by category. Both fixed and verified before activating, given the immediately preceding entry (v2.2.9) was itself a lesson in not trusting a prior "this is fixed" claim without re-checking.
+
+### Backtest result
+Unchanged from v2.2.6/v2.2.7 (confirmed by re-run, see above) — pooled cross-sector: 100 trades, 58.0% win rate, 1.78 avg R:R, ≈+0.63R expected value per trade. Still well short of the 80%/1:3 go-live bar; this entry only expands what paper trading observes, it does not change eligibility for real capital. 536 tests pass (was 532), including the new end-to-end multi-sector pipeline test.
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.9] — 2026-07-19 — Fix a real gap in v2.2.8: fundamental "sector average" wasn't actually sector-scoped
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.8. Same scope as v2.2.8 — `regional_banks` stays `active: false`, this only matters once it's turned on.

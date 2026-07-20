@@ -46,20 +46,26 @@ def _multi_sector_cfg() -> dict:
     }
 
 
-class TestRealConfigStillSingleSector:
-    """Sanity check: today's real config resolves to one active sector."""
+class TestRealConfigBothSectorsActive:
+    """
+    Sanity check on the real config file itself: as of v2.2.10 both sectors
+    are active for paper trading (regional_banks flipped from false to true).
+    This class exists to catch exactly this kind of drift — if it ever fails,
+    someone changed watchlist.sectors.*.active without updating this test's
+    expectations, which is worth noticing either way.
+    """
 
-    def test_real_config_has_one_active_sector(self):
+    def test_real_config_has_both_sectors_active(self):
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         active = get_active_sectors(cfg)
-        assert set(active.keys()) == {"semiconductors"}
+        assert set(active.keys()) == {"semiconductors", "regional_banks"}
 
-    def test_real_config_watchlist_unchanged(self):
+    def test_real_config_watchlist_includes_both_sectors(self):
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         tickers = get_all_tickers(cfg)
-        assert tickers == ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]
+        assert tickers == ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML", "ZION", "KEY", "HBAN", "RF", "FITB"]
 
 
 class TestFetchMarketContextPerSector:
