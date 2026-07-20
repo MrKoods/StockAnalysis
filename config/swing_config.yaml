@@ -108,7 +108,16 @@ modifiers:
     within_6_to_18_days_penalty: -5
     beyond_18_days: 0
   cross_ticker:
-    sector_wide_discount: -10
+    # Dampened to 0 (was -10, but a config/code key mismatch meant this value
+    # was never actually applied — the code always used a hardcoded -5.0
+    # instead, see cross_ticker_analysis.py). Now that the mismatch is fixed,
+    # set to 0 rather than -10 or the old -5 default: regime and sector_rotation
+    # modifiers already penalize sector-wide SMH weakness through their own
+    # channels, so a sector-wide cross_ticker penalty on top of those two would
+    # triple-count one underlying signal. divergence_boost/underperforming stay
+    # active since those reflect genuine ticker-specific information the other
+    # two modifiers can't see.
+    sector_wide_discount: 0
     divergence_boost: 5
   # Insider activity is scored as a Market Positioning sub-signal (see
   # positioning_sub_signals.insider_transactions), not a standalone modifier —

@@ -1,0 +1,327 @@
+# StockAnalysis — Current Project Overview
+
+**A single, current snapshot of the whole workspace — what it is, how it works, what's built, and where it stands today.**
+For the full historical design rationale and every implementation detail, see `Project_Scope.md` (the living spec this document summarizes). For the desktop app plan, see `App_UI_Scope.md`. For a version-by-version history, see `CHANGELOG.md`.
+
+*Last reviewed: 2026-07-19, model v2.2.3 — includes the first real backtest result (run against v2.2.2) and a same-day fix to correlated-modifier stacking discovered while investigating why paper trading had produced zero signals.*
+
+---
+
+## Table of Contents
+
+1. [At a Glance](#1-at-a-glance)
+2. [What This Is (and Isn't)](#2-what-this-is-and-isnt)
+3. [How It Works](#3-how-it-works)
+4. [The Scoring Model](#4-the-scoring-model)
+5. [Trade Selection](#5-trade-selection)
+6. [Safety & Risk Systems](#6-safety--risk-systems)
+7. [Project Structure](#7-project-structure)
+8. [Tech Stack & External APIs](#8-tech-stack--external-apis)
+9. [Build Status by Phase](#9-build-status-by-phase)
+10. [Testing](#10-testing)
+11. [Where Things Actually Stand Right Now](#11-where-things-actually-stand-right-now)
+12. [Desktop App (In Progress)](#12-desktop-app-in-progress)
+13. [Known Gaps & Open Items](#13-known-gaps--open-items)
+14. [What's Next](#14-whats-next)
+15. [How to Run It](#15-how-to-run-it)
+
+---
+
+## 1. At a Glance
+
+| | |
+|---|---|
+| **Purpose** | Decision-support system that finds high-conviction swing trades in semiconductor stocks and recommends them — it does not trade automatically |
+| **Watchlist** | NVDA, AMD, AVGO, TSM, MU, ASML (benchmark: SMH sector ETF) |
+| **Holding period** | 5–15 trading days |
+| **Starting capital (paper only)** | $15,000 |
+| **Current model version** | v2.2.3 (see `CHANGELOG.md`) |
+| **Live-trading status** | ❌ **Not eligible.** No version has ever passed a backtest. Zero real money at risk. |
+| **Current phase** | Paper trading (running, 0 qualifying signals so far) + post-review code hardening |
+| **Test suite** | 500 tests: 497 pass, 3 skipped — the skips are stale, leaving stress testing with zero real coverage (see §10) |
+| **Delivery channel** | Discord webhook (sole channel — email/SMS were removed in v2.2.1) |
+
+---
+
+## 2. What This Is (and Isn't)
+
+**It is:** a rules-based, statistically-grounded scoring engine that pulls technical, market-positioning, sentiment, news, and fundamental data for six semiconductor stocks every day, combines it into a single 0–100 confidence score per ticker, and — for anything scoring 90+ — ranks the best of 42 possible trade structures (stock, options, spreads) by expected value and posts a recommendation to Discord.
+
+**It is not:**
+- An autonomous trading bot. Nothing executes automatically — every alert requires manual review and manual order entry.
+- Financial advice.
+- Validated yet. The backtest has never produced a passing result, and paper trading has not accumulated enough history to judge. See [§11](#11-where-things-actually-stand-right-now).
+
+**Non-negotiable gate before any real money is used** (all three required simultaneously):
+- 80% win rate
+- 90/100 minimum confidence score to surface a trade
+- 1:3 minimum risk/reward ratio
+
+---
+
+## 3. How It Works
+
+```mermaid
+flowchart TD
+    A[Data Pull\nyfinance / StockTwits / Seeking Alpha / Alpha Vantage / Finnhub] --> B[Indicator Layer\nTechnical · Positioning · Sentiment · News · Fundamental]
+    B --> C[Scoring Engine\nscoring.py — 5-category weighted score + modifiers]
+    C --> D{Score >= 90?}
+    D -- No, 80-89 --> E[Near-Miss Alert\nawareness only]
+    D -- No, <80 --> F[No Signal]
+    D -- Yes --> G[Event Severity Gate\nadvisory flag only, does not block]
+    G --> H[Trade Selector\nEV ranking across 42 structures]
+    H --> I[Portfolio Manager\nposition limits, circuit breakers, PDT check]
+    I --> J[Discord Alert + App UI log]
+```
+
+**Cadence:** the pipeline runs up to three times a day — pre-market (~8:30am ET), mid-session (~12pm ET), and post-close (~4:30pm ET). Technical/Positioning/Sentiment/News refresh on every run; Fundamental data refreshes weekly (Monday) since valuation and earnings data move far slower.
+
+**Two-layer architecture:**
+1. **Indicator layer** — pulls raw data and computes every metric with full timestamp precision (`shared/` clients + `swing_model/*_layer.py`).
+2. **Decision layer** — combines everything into a confidence score and picks the best trade structure by expected value, not a lookup table (`scoring.py`, `trade_selector.py`).
+
+Everything is transparent and backtestable — z-score normalization, rolling win rates, and explicit formulas throughout, not black-box ML.
+
+---
+
+## 4. The Scoring Model
+
+Five categories sum to a 100-point base score, then modifiers (regime, sector rotation, earnings proximity, cross-ticker correlation, seasonality, macro overlay) adjust it up or down before a final 0–100 clamp.
+
+| Category | Max Points | What It Measures | Source |
+|---|---|---|---|
+| **Technical** | 40 | Breakout, trend (MA cross), relative strength vs. SMH, RSI, volume profile | yfinance (free) |
+| **Market Positioning** | 20 | Options put/call ratio + IV skew, institutional ownership change, short interest trend, insider (Form 4) transactions, analyst rating trend | yfinance (free) |
+| **Sentiment** | 15 | StockTwits bullish/bearish ratio + velocity, Seeking Alpha engagement proxy | RapidAPI (**paid**) |
+| **News** | 15 | NER-extracted ticker-specific sentiment, source-credibility weighted, time-decayed, narrative-theme aligned | Alpha Vantage + Yahoo + Finnhub (free) |
+| **Fundamental** | 10 | Earnings momentum (EPS growth, surprise streak, estimate revisions), valuation vs. sector peers (P/E, EV/EBITDA) | yfinance + Alpha Vantage (free) |
+
+**Modifier layer (applied after the base score):** market regime (trending/choppy/high-vol), sector rotation (SMH vs SPY flow), earnings proximity, cross-ticker divergence, seasonality, and macro overlay (Fed rates, USD strength, China trade policy) — each bounded (e.g. regime ±10/-15, earnings proximity 0/-20) so no single modifier can dominate the score.
+
+**Notable design history:** Reddit/PRAW was the original sentiment source and was fully removed in v2.0.0 (stalled API access, weaker signal than StockTwits' explicit sentiment tags). Insider transactions used to be a separate ±8 modifier; it was folded into Market Positioning to stop double-counting the same SEC filings.
+
+**Event Severity Gate:** a separate binary mechanism (not a scoring category) that watches for breaking news severe enough to outrun the four slower-moving categories (a chip export ban, a CEO resignation, fraud allegations). As of v2.1.1 it is **advisory only** — it flags a candidate with a visible ⚠️ warning rather than suppressing it, so you make the judgment call rather than the system hiding potentially valid signals.
+
+Full formulas, point-by-point sub-signal breakdowns, and a worked example live in `Project_Scope.md` under "Confidence Scoring (Swing)".
+
+---
+
+## 5. Trade Selection
+
+For any ticker scoring 90+, the trade selector doesn't use if/then rules — it computes **Expected Value for all 42 applicable trade structures simultaneously** (long/short stock, calls, puts, LEAPS, debit spreads, credit spreads, collars, calendars, diagonals, and more) and ranks them.
+
+```
+EV = (Win Probability × Average Win) − (Loss Probability × Average Loss)
+```
+
+Filters applied before a structure can be recommended:
+- **1:3 minimum risk/reward** (target distance ≥ 3× stop distance, based on ATR + volume-profile levels)
+- **Liquidity/slippage filter** — excluded if slippage would eat ≥50% of raw EV
+- **Options approval level** — structures above your configured brokerage permission level are filtered out entirely
+- **Greeks filter** — documented but not yet implemented (no live options-chain data feeds it yet); currently surfaced as an explicit "not evaluated" status rather than silently passing
+
+Entry zone, stop, and target are all computed from explicit formulas (ATR + volume-profile nodes) — never eyeballed.
+
+---
+
+## 6. Safety & Risk Systems
+
+The system leans heavily on layered risk controls rather than trusting the score alone:
+
+| System | What it does |
+|---|---|
+| **Data validation** | Every incoming price/sentiment/news/positioning record is range-checked before use; corrupt tickers are excluded from that scan and logged to `validation_log.csv` |
+| **Graceful degradation** | Each of Sentiment's and Positioning's sub-signals can fail independently without zeroing the whole category; full category outage caps confidence at 70 (below the 90 threshold) |
+| **Black Swan detector** | Freezes new signals and fires a red alert if SMH drops >7% intraday or VIX spikes >40% |
+| **Circuit breakers** | Yellow/Orange/Red drawdown tiers on the $15k paper account |
+| **PDT tracking** | Tracks rolling 5-day day-trade count, warns before a forced same-day close would trip the pattern-day-trader rule |
+| **Correlated-position limits** | Blocks a second same-direction position on a ticker that already has one open, and limits simultaneous correlated pairs (e.g. NVDA/AMD) |
+| **Event Severity Gate** | Advisory flag on trades surfaced during a severe, thesis-opposed breaking-news event (see §4) |
+| **Model versioning discipline** | `CHANGELOG.md` + `model_versioning.py` — no scoring/threshold change goes live without a version bump and a backtest entry logged. Every version since v2.0.0 remains marked not-eligible-to-go-live pending a passing backtest |
+| **Audit trail** | Every scan decision (score breakdown, modifiers, gate state, whether it surfaced) is written to `audit_log.csv`, regardless of outcome |
+
+---
+
+## 7. Project Structure
+
+```
+StockAnalysis/
+├── shared/                  Reusable logic: API clients, indicator math, utilities
+│   ├── api_clients/         yfinance, StockTwits, Seeking Alpha, Alpha Vantage, Finnhub wrappers
+│   ├── indicators/          Technical indicator math (MA, RSI, ATR, MACD, z-scores)
+│   └── utils/                20+ modules: risk/reward math, regime detection, sector rotation,
+│                             volume profile, earnings calendar, NER, insider tracking, options
+│                             math, position sizing, data validation, event gate, seasonality,
+│                             macro overlay, Discord alerts, atomic file writes
+│
+├── swing_model/             The strategy itself: pipeline, 5-category scoring, trade selection,
+│                             portfolio/position management, signal decay, feedback loop
+│
+├── backtesting/             Historical replay engine (70/30 split, walk-forward, stress tests)
+│
+├── paper_trading/           Forward-testing with real market data, simulated fills, no real capital
+│
+├── monitoring/               Weekly performance dashboard → Discord
+│
+├── app_ui/                  Draft PySide6 desktop app (results, alerts feed, config editor) — see §12
+│
+├── config/                  swing_config.yaml (watchlist, thresholds, weights)
+│                             global_config.yaml (API/infra settings)
+│
+├── data/
+│   ├── processed/           Live state: open positions, live weights, event-gate state,
+│                             cached fundamental/positioning snapshots, AV call budget counter
+│   ├── logs/                 audit_log, override_log, validation_log, fill_log,
+│                             trade_outcomes, performance_log (CSV, forensic record of every run)
+│   ├── raw/ · historical/    Gitignored API caches
+│
+├── output/swing_recommendations/   Daily ranked recommendation output
+│
+├── tests/                   22 test files, 500 tests total
+│
+├── Project_Scope.md         Full design spec (detailed, ~1,600 lines) — source of truth for "why"
+├── App_UI_Scope.md          Desktop app design addendum (draft)
+├── CHANGELOG.md             Version history, backtest status per version, versioning rules
+└── README.md                Setup/quick-start
+```
+
+---
+
+## 8. Tech Stack & External APIs
+
+| API / Library | Used For | Cost |
+|---|---|---|
+| **yfinance** | OHLCV price data, options chain, institutional holders, short interest, insider transactions, analyst ratings, earnings calendar | Free |
+| **StockTwits** (via RapidAPI) | Real-time tagged Bullish/Bearish crowd sentiment | **Paid** (shared `RAPIDAPI_KEY`) |
+| **Seeking Alpha Finance** (via RapidAPI) | Engagement proxy (comment count velocity) + editorial news | **Paid** (same key) |
+| **Alpha Vantage** | Pre-scored news sentiment, weekly fundamental batch | Free (25 calls/day cap, actively budget-tracked) |
+| **Finnhub** | Company news headlines | Free tier |
+| **Discord Webhook** | Sole alert delivery channel | Free |
+| **spaCy** | Named entity recognition on news headlines (multi-company article disambiguation) | Free/local |
+| **py_vollib** | Black-Scholes options pricing/Greeks | Free/local |
+| **PySide6** | Desktop app UI framework | Free |
+| **SQLite** | Desktop app's local persistence (`stockanalysis_history.db`) | Free/local |
+| **pytest / ruff** | Testing and linting | Free/local |
+
+Full core dependency list is in `requirements.txt`.
+
+---
+
+## 9. Build Status by Phase
+
+The project follows a 16-phase roadmap defined in `Project_Scope.md`. Status today:
+
+| Phase | Area | Status |
+|---|---|---|
+| 1 | Market data + technical indicators foundation | ✅ Built |
+| 2 | Technical indicator pipeline | ✅ Built |
+| 3 | Macro context layer (regime, sector rotation, earnings calendar, seasonality, macro overlay) | ✅ Built |
+| 4 | Positioning, Sentiment, News, Fundamental layers | ✅ Built |
+| 5 | Volume profile + cross-ticker analysis | ✅ Built |
+| 6 | Confidence scoring engine | ✅ Built |
+| 7 | EV-based trade selector (42 structures) | ✅ Built |
+| 8 | Signal decay + portfolio management | ✅ Built |
+| 9 | Risk mitigation layer (validation, Black Swan detector, fallbacks) | ✅ Built |
+| 10 | Discord alerts + notification routing | ✅ Built |
+| 11 | Model versioning + CHANGELOG enforcement | ✅ Built |
+| 12 | Backtesting engine | ✅ Built, **but no version has ever produced a passing result; stress-test suite has zero real test coverage (see §10)** |
+| 13 | Paper trading | 🔄 **Running now** — 0 qualifying signals logged so far |
+| 14 | Feedback loop + performance monitoring | ✅ Built (dashboard + calibration exist; calibration not yet applied live) |
+| 15 | Live execution | 🔒 Blocked — cannot start until Phase 13 passes |
+| 16 | Continuous improvement | Ongoing |
+
+Additionally, a **desktop app UI** (not in the original 16-phase roadmap) is under active draft development — see §12.
+
+---
+
+## 10. Testing
+
+- **500 tests** across 22 files in `tests/` — **497 pass, 3 are skipped.** Covers scoring, every indicator layer, the event gate, position sizing/trade math, portfolio management, backtesting, paper trading, feedback loop/calibration, and the app UI's config validation, database layer, and scan worker.
+- **The 3 skips are stale, not conditional.** All three live in `tests/test_stress_scenarios.py` and are hardcoded `pytest.skip("Implement Phase 12 first")` — but Phase 12 (backtesting) is done, and `backtesting/stress_test.py` itself is fully implemented (`SCENARIOS`, `run_all_scenarios`, `run_scenario`). The skip messages were never updated after that landed, so **stress testing currently has zero real test coverage** despite the module existing and being wired into the roadmap as built.
+- Tests verify code correctness (the logic does what it's supposed to) — they do **not** verify the strategy is profitable. That's what backtesting and paper trading are for, and both remain unproven (see below).
+
+---
+
+## 11. Where Things Actually Stand Right Now
+
+This is the part a design spec doesn't tell you — the actual operational state as of 2026-07-19:
+
+- **No real money has ever been at risk.** Paper account equity sits untouched at $15,000, zero open positions.
+- **Paper trading is live but quiet.** The most recent real scan (2026-07-17) scored all six tickers in the 20–35/100 range — well under the 90 threshold — driven mainly by negative regime and sector-rotation modifiers (semiconductors were in an outflow/choppy read that week). Zero trades have been logged to the paper trading dataset yet.
+- **The backtest has now been re-run against v2.2.2 (2026-07-19) — and it fails.** Win rate 57.0% (need 80%), avg R:R 2.01 (need ≥1:3), 107 qualifying trades (meets the ≥100 minimum). The Sharpe ratio comes back at 2.45 — confirming the previously-reported 9.1 figure really was inflated by the equity-curve/annualization bug fixed in this version, independent of the win-rate shortfall. Full detail logged in `CHANGELOG.md` under v2.2.2.
+- **A second, separate problem surfaced in the same run: the entire out-of-sample test set falls in a `trending_up` regime — zero trending-down, choppy, or high-volatility trades.** The project's own regime-coverage requirement (all four regimes represented, each meeting threshold independently) isn't met yet, so even taking the 57%/2.01 result at face value, it only says something about how the model behaves in a trending market, not across conditions.
+- **A third problem, found the same day while investigating why paper trading had produced zero signals: `regime`, `sector_rotation`, and `cross_ticker` were stacking to a uniform -24 penalty across the whole watchlist**, all three substantially derived from the same underlying SMH sector trend — one real market condition counted three times. A config/code key mismatch in `cross_ticker_analysis.py` also meant the configured `-10` sector-wide value was silently ignored in favor of a hardcoded `-5.0` the whole time. **Fixed in v2.2.3** (2026-07-19): the key mismatch is corrected, and `sector_wide_discount` is now deliberately set to `0` — regime and sector_rotation already capture sector-wide weakness through their own channels, so cross_ticker's unique value is the individual-divergence part (kept active), not a third sector-wide penalty. Not modeled in the backtest at all (`cross_ticker_modifier` is hardcoded to `0.0` there), so this fix doesn't change the v2.2.2 backtest result above — it only affects live/paper scoring. Full detail in `CHANGELOG.md` under v2.2.3.
+- **Every version from v2.0.0 through v2.2.3 remains formally "not eligible to go live"** per the project's own CHANGELOG rule — this is now a real, current failure rather than a "pending" placeholder.
+- **v2.2.2 (2026-07-19)** was a large hardening pass: 24 issues found via a full-codebase senior-engineer-style review were fixed, spanning scoring correctness, risk/execution enforcement, calibration, dead code removal, and reliability (atomic file writes, API key redaction from logs, budget tracking gaps). Full detail in `CHANGELOG.md`.
+- **Next concrete action:** root-cause the win-rate shortfall (which of the five categories — Technical/Positioning/Sentiment/News/Fundamental — is contributing false positives) and extend the historical data window so the out-of-sample period actually covers a choppy/high-vol/trending-down period, not just trending-up. Also watch tomorrow's paper trading scan for whether the modifier fix changes anything meaningfully — base category scores (roughly 50-57/100 before modifiers, per the 2026-07-17 log) are still well short of the 90 threshold on their own, so this fix alone is unlikely to produce a signal by itself.
+
+---
+
+## 12. Desktop App (In Progress)
+
+A local PySide6 desktop app is being built alongside the existing Discord-only pipeline — **additive only**, it changes no scoring logic or config format.
+
+- **Purpose:** view results, per-ticker layer breakdowns, and the full alert history without leaving the app, persisted across sessions in SQLite (`stockanalysis_history.db`).
+- **Screens (per `App_UI_Scope.md`):** Results (grouped by Trade Recommended / Passed-No-Trade / Near-Miss / No Signal, expandable to layer breakdown), Notifications feed, Config editor (writes back to `swing_config.yaml` with validation), Run Control (fires `paper_runner.py`, with an Alpha Vantage budget guard before running and a hard-disabled button during a run to prevent concurrent writes to shared state files).
+- **Status:** scaffolded (`app_ui/` has `main.py`, `main_window.py`, `results_tab.py`, `config_tab.py`, `notifications_tab.py`, `scan_worker.py`, `db.py`), with dedicated test coverage already in `tests/test_app_ui_*.py`. `App_UI_Scope.md` itself is still marked **draft, not yet merged into `Project_Scope.md`**.
+- **Open design decision noted in the spec but not yet resolved in code:** whether the ~7 separate Discord-alert call sites get consolidated into one shared `build_notification()` step, or the UI's DB write is bolted on next to each existing call site individually. The spec recommends starting with the lower-risk "bolt-on" approach.
+
+---
+
+## 13. Known Gaps & Open Items
+
+- **Backtest fails: 57.0% win rate vs. 80% required, and the out-of-sample test set has no regime diversity (trending-up only)** — see §11 and `CHANGELOG.md` v2.2.2. This is the single most important open item.
+- **Options Greeks filter (theta/vega/gamma)** in the trade selector is documented but not implemented — no live options-chain data currently feeds it. Surfaced honestly as "not evaluated" rather than silently passing.
+- **Signal decay re-scoring** (`rescore_open_positions()`) is implemented and tested but **not wired into the live daily loop** — it would let the system start closing positions automatically without a human review pass, which hasn't been decided on yet.
+- **Calibrated live weights** (`live_weights.json` / feedback loop calibration) exist and are tested, but nothing currently calls `compute_confidence_score()` with `live_weights` populated — the model is still running on its original hypothesis weights, not empirically calibrated ones.
+- **Market Positioning and Sentiment have no real historical data yet** — both StockTwits data and most Positioning sub-signals only started accumulating from v2.0.0 onward, so the backtest engine still uses neutral/proxy inputs for those two categories. This is expected to improve as more real history accumulates, not a bug to fix.
+- **The backtest doesn't model `cross_ticker` at all** (hardcoded to `0.0` in `backtest_engine.py`) — so the v2.2.3 modifier-stacking fix (§11) can't be validated by backtest replay, only by direct log inspection, and any future cross_ticker tuning will need the same treatment.
+- **Stress testing (`backtesting/stress_test.py`) has zero real test coverage.** The module is fully implemented, but all 3 tests in `tests/test_stress_scenarios.py` are hardcoded to skip with a stale "Implement Phase 12 first" message that was never removed once Phase 12 landed — see §10.
+- **App UI is still a draft** — scaffolded and tested in isolation, not yet confirmed end-to-end against a live paper-trading run.
+
+---
+
+## 14. What's Next
+
+1. **Root-cause the win-rate shortfall.** Backtest each of the five categories' contribution to the 43% of qualifying trades that lost — determine whether Technical, Positioning, Sentiment, News, or Fundamental (or some combination) is driving false positives, using the per-signal audit data the backtest already produces.
+2. **Extend the historical data window for regime coverage.** The current out-of-sample test set is entirely `trending_up` — pull more historical bars (further back, or through a different period) so the held-out set actually includes a choppy, high-volatility, and trending-down stretch, per the project's own regime-coverage requirement.
+3. Let paper trading keep accumulating real signals in parallel — no meaningful forward-test conclusion is possible yet at 0 logged trades, and it's independent of the backtest fix above.
+4. Decide on the `build_notification()` consolidation question for the desktop app (§12) before it grows more alert-consuming call sites.
+5. Once enough paper-trading history exists, run `feedback_loop.run_calibration()` and decide whether to switch scoring over to calibrated live weights.
+6. Continue treating every scoring/threshold change as a version bump with a required backtest entry — no exceptions, per the project's own rule. Re-run the backtest again once #1 and #2 are addressed.
+
+---
+
+## 15. How to Run It
+
+```bash
+# One-time setup
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+cp .env.example .env        # fill in API keys — see §8
+
+# Daily paper-trading scan (the actual current operational pathway)
+python paper_trading/paper_runner.py
+
+# Full historical backtest (run as a module, not a script path — plain
+# `python backtesting/run_backtest.py` fails with ModuleNotFoundError)
+python -m backtesting.run_backtest
+
+# Threshold sensitivity analysis only
+python -m backtesting.run_backtest --sensitivity
+
+# Stress test against extreme scenarios
+python backtesting/stress_test.py
+
+# Weekly performance dashboard → Discord
+python monitoring/performance_dashboard.py
+
+# Desktop app (draft)
+python app_ui/main.py
+```
+
+Note: `run_swing_model.py` (the "real" live-signal entry point) exists and is fully built, but the actual pathway run daily right now is `paper_trading/paper_runner.py` — no version is eligible to go live yet.
+
+---
+
+*This document is a snapshot, not a source of truth for implementation details — those live in the code and in `Project_Scope.md`. Regenerate or update this file whenever the version, phase status, or operational picture materially changes.*

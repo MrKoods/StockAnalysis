@@ -12,6 +12,26 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.3] — 2026-07-19 — Fix cross_ticker config mismatch; dampen sector-wide modifier stacking
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.2 — see "Backtest result" below.
+
+### What changed
+- `swing_model/cross_ticker_analysis.py`: `analyze_cross_ticker()` looked up modifier values under the keys `"sector_wide"`/`"individual_divergence"` in `cfg["modifiers"]["cross_ticker"]`, but `config/swing_config.yaml` defines those same settings under `sector_wide_discount`/`divergence_boost`. The mismatch meant the configured values were never read — the function silently fell back to hardcoded defaults (`-5.0`/`+5.0`/`-10.0`) every time, regardless of what was set in config. Fixed the lookup keys to match the config schema.
+- `config/swing_config.yaml`: `modifiers.cross_ticker.sector_wide_discount` changed from `-10` (a value that, per the bug above, was never actually being applied — the real behavior was always `-5.0`) to `0`. This is a deliberate dampening, not a restoration of the old intended `-10`: `regime` and `sector_rotation` modifiers are both already derived from the same underlying SMH price trend that drives cross_ticker's "sector-wide" state (3+ tickers moving together), so a third sector-wide penalty on top of those two triple-counts one observation. Confirmed directly against real paper-trading logs (2026-07-17): `regime=-5.0`, `sector_rotation=-15.0`, `cross_ticker=-5.0` fired identically across TSM and MU despite very different underlying category scores — all three tied to the same sector-wide SMH weakness that week. `divergence_boost` (+5, individual outperformance) and the `underperforming` penalty (-10, individual-specific) are untouched — those reflect genuine ticker-specific information the other two modifiers can't see, so they're not redundant.
+- This exact risk was already flagged in v2.2.0 (regime/sector_rotation correlation logged as a warning, not auto-corrected, "a real risk-weighting decision that shouldn't be made silently"). This entry makes that deliberate call for the sector-wide portion of `cross_ticker` specifically, rather than leaving it unresolved indefinitely.
+
+### Why it was changed
+- User asked how to improve the model before continuing paper trading. Investigating why paper trading has produced zero qualifying signals surfaced that `regime` + `sector_rotation` + `cross_ticker` were stacking to a uniform -24 modifier across the entire watchlist on 2026-07-17, independent of any individual ticker's technical merit — a config bug and an unresolved triple-counting risk compounding each other.
+
+### Backtest result
+**N/A — not modeled by the current backtest harness.** `backtesting/backtest_engine.py`'s `_simulate_test_signals()` hardcodes `cross_ticker_modifier=0.0` for every simulated trade (cross-ticker correlation across the 6-ticker watchlist isn't computed in the backtest replay at all). This change has no effect on the existing v2.2.2 backtest result (57.0% WR / avg R:R 2.01 / 107 trades / Sharpe 2.45, trending_up regime only) — that result stands as the current baseline, unaffected by this fix. The lack of cross_ticker modeling in the backtest is itself a gap worth closing eventually, separate from this fix. All 500 tests pass (497 passed, 3 skipped, `tests/test_volume_cross_ticker.py` included).
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.2] — 2026-07-19 — Fix 24 issues from a full-codebase senior-engineer review
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.1 — see "Backtest result" below. Several of these entries change scoring/risk computations (flagged individually), so this is not a pure reliability patch like v2.1.5/v2.2.1.
@@ -60,10 +80,19 @@ backtest entry in this file.
 User requested a full-codebase review "thinking like a senior developer and stock market analysis expert," which was run as four parallel focused reviews (core scoring layers; risk management/market-context utils; backtesting/paper trading; orchestration/API clients/app infra). All findings were spot-checked against the actual code before being reported, then fixed on request. Full list and reasoning for each fix is in the conversation this version was produced from; the most consequential single finding was the Sharpe-ratio computation bug, since it directly invalidates a previously-reported headline backtest metric.
 
 ### Backtest result
-**PENDING — not yet re-run.** This entry changes several scoring computations (MACD availability handling, EPS growth scale, positioning offline cap, sentiment ratio z-score gate, R:R/liquidity filtering in trade structure selection) on top of fixing the backtest engine's own Sharpe/warmup-window bugs, so the existing 63.1% WR / 149-trade result cannot be assumed to still hold and the Sharpe figure is known-invalid regardless. Per this file's own rule, this version remains ineligible for live trading until a passing backtest is logged — run `run_backtest()` and log the result here before treating v2.2.2 as validated. All 497 existing unit/integration tests pass, but none of them are a substitute for the full historical replay.
+**RUN 2026-07-19 — FAILED.** `python -m backtesting.run_backtest` against `data/historical/{AMD,ASML,AVGO,MU,NVDA,SMH,TSM}.csv` (3,395 daily bars/ticker), 70/30 split with walk-forward.
+
+- Win rate: **57.0%** (required 80%) — ❌
+- Avg R:R: **2.01** (required ≥1:3) — ❌
+- Qualifying trades: 107 (required ≥100) — ✅
+- Sharpe ratio: **2.45** — this replaces the stale 9.1 figure from the pre-v2.2.2 engine; confirms that figure was inflated by the Sharpe/equity-curve bug fixed in this version, independent of the win-rate shortfall
+- Max drawdown: 7.5%
+- Regime coverage: **all 107 qualifying trades fall in `trending_up` only** — no choppy, high-volatility, or trending-down trades appear in the test set, so the regime-coverage requirement (Project_Scope.md → Performance Thresholds) is not met either, separate from the win-rate failure. The available historical window does not currently contain enough regime diversity in the out-of-sample period to validate the model outside a trending market.
+
+This is the first backtest run against the actual 5-category (Technical/Positioning/Sentiment/News/Fundamental) scoring model with real fix-ups from this version's review — it supersedes the pre-v2.0.0-era 63.1%/149-trade figure, which was never valid for this scoring design in the first place (see v2.0.0/v2.1.0 entries). Per this file's own rule, v2.2.2 remains ineligible for live trading: win rate and R:R both fall well short of threshold, and the test window's lack of regime diversity means even the trending-up-only result can't yet be generalized. Root-causing the win-rate gap (which of the five categories is contributing false positives) and extending the historical window for regime coverage are both required before the next attempt.
 
 ### Approved by
-MrKoods — 2026-07-19
+MrKoods — 2026-07-19 (code changes only; backtest failed, not approved for live trading)
 
 ---
 

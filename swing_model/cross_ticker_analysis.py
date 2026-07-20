@@ -75,12 +75,16 @@ def analyze_cross_ticker(
         if abs(ticker_ret - peer_avg) > 0.03:
             divergence_direction = "outperforming" if ticker_ret > peer_avg else "underperforming"
 
-        # Sector-wide → reduce confidence (sector tailwind, not stock-specific)
+        # Sector-wide → reduce confidence (sector tailwind, not stock-specific).
+        # Deliberately dampened to 0 by default (see swing_config.yaml comment):
+        # regime and sector_rotation modifiers are both already derived from the
+        # same SMH price action that drives this sector-wide state, so applying
+        # a third penalty here would triple-count one underlying signal.
         # Individual divergence + outperforming → increase confidence
         if correlation_state == CORRELATION_SECTOR_WIDE:
-            modifier = _get_modifier(cfg, "sector_wide", -5.0)
+            modifier = _get_modifier(cfg, "sector_wide_discount", -5.0)
         elif correlation_state == CORRELATION_INDIVIDUAL_DIVERGENCE and divergence_direction == "outperforming":
-            modifier = _get_modifier(cfg, "individual_divergence", 5.0)
+            modifier = _get_modifier(cfg, "divergence_boost", 5.0)
         elif correlation_state == CORRELATION_INDIVIDUAL_DIVERGENCE and divergence_direction == "underperforming":
             modifier = _get_modifier(cfg, "underperforming", -10.0)
         else:
