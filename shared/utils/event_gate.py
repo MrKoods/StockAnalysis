@@ -39,7 +39,12 @@ SCOPE_SECTOR = "sector"
 # Classification
 # ---------------------------------------------------------------------------
 
-def classify_severity(headline: str, source: Optional[str] = None, cfg: Optional[dict] = None) -> dict:
+def classify_severity(
+    headline: str,
+    source: Optional[str] = None,
+    cfg: Optional[dict] = None,
+    sector: Optional[str] = None,
+) -> dict:
     """
     Classify a single news headline's severity per the event_severity_gate config.
 
@@ -49,6 +54,11 @@ def classify_severity(headline: str, source: Optional[str] = None, cfg: Optional
     ticker) from a source below min_source_credibility is downgraded back to
     "normal" and logged as a WARNING instead of gating — UNLESS the source is
     one of the configured principal_sources, which are always critical.
+
+    `sector`: which sector's `event_severity_gate.sector_triggers` list to check
+    against (see config/swing_config.yaml). None checks every active sector's
+    list unioned — a defensive default for callers that haven't been migrated
+    to pass a sector; every real call site should pass one after v2.2.8.
 
     Returns: {severity, scope, trigger_match, source_credibility, principal_source}
     """
@@ -63,7 +73,7 @@ def classify_severity(headline: str, source: Optional[str] = None, cfg: Optional
         "principal_source": False,
     }
 
-    matched = _find_trigger_match(headline, gate_cfg)
+    matched = _find_trigger_match(headline, gate_cfg, sector)
     if not matched:
         return result
 
@@ -94,10 +104,23 @@ def classify_severity(headline: str, source: Optional[str] = None, cfg: Optional
     return result
 
 
-def _find_trigger_match(headline: str, gate_cfg: dict) -> Optional[dict]:
-    """Sector-wide triggers checked first — a sector-wide match always wins scope."""
+def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = None) -> Optional[dict]:
+    """
+    Sector-wide triggers checked first — a sector-wide match always wins scope.
+
+    `sector_triggers` is a dict keyed by sector name (config/swing_config.yaml).
+    When `sector` is given, only that sector's trigger list is checked — a
+    chip-ban headline must not match while scoring a bank ticker, and vice
+    versa. When `sector` is None (unmigrated caller), every active sector's
+    list is unioned as a defensive fallback.
+    """
     headline_lower = (headline or "").lower()
-    for trigger in gate_cfg.get("sector_wide_triggers", []):
+    sector_triggers_cfg = gate_cfg.get("sector_triggers", {})
+    if sector is not None:
+        candidate_triggers = sector_triggers_cfg.get(sector, [])
+    else:
+        candidate_triggers = [t for triggers in sector_triggers_cfg.values() for t in triggers]
+    for trigger in candidate_triggers:
         if trigger.lower() in headline_lower:
             return {"scope": SCOPE_SECTOR, "trigger_match": trigger}
     for trigger in gate_cfg.get("ticker_triggers", []):
@@ -150,12 +173,22 @@ def save_gate_state(state: dict) -> None:
 
 
 def is_ticker_blocked(ticker: str, state: dict) -> Optional[dict]:
-    """Return the active block dict covering `ticker` (sector-wide or ticker-specific), or None."""
+    """
+    Return the active block dict covering `ticker` (sector-wide or ticker-specific), or None.
+
+    Membership is decided purely by `block["tickers"]` — add_block() always
+    populates it with the actual covered tickers regardless of scope (the full
+    sector's ticker list for SCOPE_SECTOR, a single ticker for SCOPE_TICKER).
+    `scope` is metadata about why the block was created, not which tickers it
+    covers. A prior version of this function short-circuited on
+    `scope == SCOPE_SECTOR` without checking membership at all, which was
+    harmless with one sector (a sector-wide block always covered the whole,
+    single-sector watchlist) but would incorrectly block every ticker in every
+    sector once a second sector exists.
+    """
     for block in state.get("blocks", []):
         if block.get("expired"):
             continue
-        if block.get("scope") == SCOPE_SECTOR:
-            return block
         if ticker in block.get("tickers", []):
             return block
     return None

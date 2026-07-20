@@ -2,6 +2,12 @@
 # Single source of truth for strategy-level settings. Change thresholds here, not in code.
 
 watchlist:
+  # Legacy flat keys — kept for backward compatibility with call sites not yet
+  # migrated to sector_config.py's helpers (fundamental_layer.py, run_swing_model.py,
+  # paper_runner.py, news_layer.py read these directly via cfg.get("watchlist", {}).
+  # get("tickers", [...])). Mirrors watchlist.sectors.semiconductors exactly — do
+  # not let these drift out of sync until every consumer is migrated (see
+  # shared/utils/sector_config.py and CHANGELOG.md's multi-sector expansion entries).
   tickers:
     - NVDA
     - AMD
@@ -11,6 +17,33 @@ watchlist:
     - ASML
   benchmark: SMH                   # Sector ETF for relative-strength comparison
   benchmark_alt: SOXX
+
+  # Sector-grouped structure (new) — shared/utils/sector_config.py reads this as
+  # the source of truth going forward. regional_banks is present but inactive;
+  # backtest-validated in CHANGELOG.md v2.2.6/v2.2.7 as a research-only dataset
+  # (data/historical_banks/, gitignored) before being added here.
+  sectors:
+    semiconductors:
+      active: true
+      benchmark: SMH
+      benchmark_alt: SOXX
+      tickers:
+        - NVDA
+        - AMD
+        - AVGO
+        - TSM
+        - MU
+        - ASML
+    regional_banks:
+      active: false               # flips true only in the live-activation phase
+      benchmark: KRE
+      benchmark_alt: null
+      tickers:
+        - ZION
+        - KEY
+        - HBAN
+        - RF
+        - FITB
 
 # Geopolitical risk tickers — apply fixed confidence penalty in alerts
 geopolitical_risk_tickers:
@@ -202,11 +235,31 @@ circuit_breakers:
 
 # Portfolio construction
 portfolio:
-  max_open_positions: 2
-  max_simultaneous_risk_pct: 0.03    # 3% of account max across all open positions
-  correlated_pair_tickers:           # Max 1 position from this group simultaneously
-    - NVDA
-    - AMD
+  max_simultaneous_risk_pct: 0.03    # 3% of account max across all open positions —
+                                      # dollar-risk backstop, independent of position count
+  # max_total_open_positions is a secondary safety ceiling = sum of active sectors'
+  # max_open_positions (2+2=4 once regional_banks activates; today, with only
+  # semiconductors active, the sector cap of 2 is the binding constraint regardless).
+  max_total_open_positions: 4
+  sectors:
+    semiconductors:
+      max_open_positions: 2
+      # Each inner list is a correlated group — at most 1 same-direction open
+      # position from any single group at a time. Generalized from the old
+      # 2-element correlated_pair_tickers to support the regional_banks
+      # sector's larger group below (portfolio_manager.py's correlated-group
+      # check already handles groups of any size, not just pairs).
+      correlated_groups:
+        - [NVDA, AMD]
+        - [NVDA, AVGO]
+        - [AMD, AVGO]
+        - [MU, NVDA]
+        - [TSM, NVDA]
+        - [TSM, ASML]
+    regional_banks:
+      max_open_positions: 2
+      correlated_groups:
+        - [ZION, KEY, HBAN, RF, FITB]
 
 # PDT tracking
 pdt:
@@ -237,9 +290,18 @@ data_validation:
 
 # Alpha Vantage call budget (enforced by market_data_client.py)
 alpha_vantage_budget:
-  post_close: 8                      # 6 news + 1 SMH + 1 VIX
-  pre_market: 6
-  mid_session: 6
+  # AV news is fetched post-close only (v2.2.8) — 1 call per active ticker
+  # across all active sectors, none at pre-market/mid-session (those fall back
+  # to the already-free Yahoo+Finnhub sources). This mirrors the cadence-
+  # tiering already used for Fundamental (weekly) and Positioning (daily), and
+  # scales with active ticker count: 6 today (semis only), 11 once
+  # regional_banks activates. Previously ran 3x/day for every ticker
+  # regardless of scan type, which would not have fit an 11-ticker watchlist
+  # under the 25-call free-tier limit.
+  news_cadence: post_close_only
+  post_close: 6
+  pre_market: 0
+  mid_session: 0
   daily_total: 20
   daily_limit: 25
 
@@ -410,17 +472,28 @@ volume_profile:
 event_severity_gate:
   enabled: true
   cooling_off: next_post_close_scan   # only supported value for now
-  sector_wide_triggers:                # any match => block entire watchlist
-    - "export restriction"
-    - "export ban"
-    - "chip ban"
-    - "tariff"
-    - "trade war"
-    - "Taiwan Strait"
-    - "semiconductor embargo"
-    - "entity list"
-    - "national security review"
-  ticker_triggers:                     # match + NER ticker attribution => block that ticker
+  # Sector-scoped: any match blocks only that sector's tickers, not the whole
+  # multi-sector watchlist (a chip-ban headline must not block bank tickers,
+  # and vice versa). Keyed by watchlist.sectors' sector names.
+  sector_triggers:
+    semiconductors:
+      - "export restriction"
+      - "export ban"
+      - "chip ban"
+      - "tariff"
+      - "trade war"
+      - "Taiwan Strait"
+      - "semiconductor embargo"
+      - "entity list"
+      - "national security review"
+    regional_banks:
+      - "bank failure"
+      - "FDIC receivership"
+      - "deposit run"
+      - "banking crisis"
+      - "SIFI designation"
+      - "regional bank contagion"
+  ticker_triggers:                     # match + NER ticker attribution => block that ticker (sector-agnostic)
     - "CEO resigns"
     - "CEO departure"
     - "fraud"

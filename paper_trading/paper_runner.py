@@ -48,6 +48,9 @@ from shared.utils.event_gate import (
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
     SCOPE_SECTOR,
 )
+from shared.utils.sector_config import (
+    get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
+)
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
@@ -223,21 +226,48 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     gate_state = load_gate_state()
     blocks_created_this_scan: set[str] = set()
 
-    watchlist: list[str] = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
+    active_sectors = get_active_sectors(cfg)
+    watchlist: list[str] = get_all_tickers(cfg)
+    ticker_sector_map = get_ticker_sector_map(cfg)
     rr_cfg: dict = cfg.get("risk_reward", {})
 
-    # --- Technical indicators (single batch yfinance fetch) ---
-    indicators_by_ticker = run_pipeline(watchlist, scan_type=scan_type, cfg=cfg)
+    # --- Technical indicators, once per active sector (own benchmark each) ---
+    indicators_by_ticker: dict = {}
+    for sector_name, sector_cfg in active_sectors.items():
+        sector_indicators = run_pipeline(
+            sector_cfg.get("tickers", []),
+            benchmark=sector_cfg.get("benchmark", "SMH"),
+            scan_type=scan_type, cfg=cfg,
+        )
+        indicators_by_ticker.update(sector_indicators)
 
-    # --- Shared market context ---
-    mkt = _fetch_market_context(watchlist)
+    # --- Shared market context (one batch fetch covering every sector benchmark) ---
+    mkt = _fetch_market_context(cfg)
     vix_val = float(mkt["vix"]) if mkt["vix"] is not None else 15.0
-    regime = _compute_regime_safe(mkt["vix"], mkt["smh_df"])
-    regime_mod = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+
+    # Regime/rotation modifiers computed PER SECTOR; macro + seasonality stay global.
+    regime_by_sector: dict[str, str] = {}
+    regime_mod_by_sector: dict[str, float] = {}
+    rotation_mod_by_sector: dict[str, float] = {}
+    for sector_name in active_sectors:
+        bench_df = mkt["sector_benchmark_dfs"].get(sector_name)
+        regime = _compute_regime_safe(mkt["vix"], bench_df)
+        regime_by_sector[sector_name] = regime
+        regime_mod_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+        rotation_mod_by_sector[sector_name] = _compute_rotation_safe(
+            bench_df, mkt["spy_df"]
+        ).get("confidence_modifier", 0.0)
+
     macro_mod = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg).get("confidence_modifier", 0.0)
-    rotation_mod = _compute_rotation_safe(mkt["smh_df"], mkt["spy_df"]).get("confidence_modifier", 0.0)
     seasonality_mod = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
-    cross_ticker = _compute_cross_ticker_safe(indicators_by_ticker, mkt["ticker_ohlcv"], cfg)
+
+    # Cross-ticker analysis, once per sector so pooling stays within-sector.
+    cross_ticker: dict = {}
+    for sector_name, sector_cfg in active_sectors.items():
+        sector_tickers = sector_cfg.get("tickers", [])
+        sector_indicators = {t: indicators_by_ticker[t] for t in sector_tickers if t in indicators_by_ticker}
+        sector_ohlcv = {t: mkt["ticker_ohlcv"][t] for t in sector_tickers if t in mkt["ticker_ohlcv"]}
+        cross_ticker.update(_compute_cross_ticker_safe(sector_indicators, sector_ohlcv, cfg))
 
     signals_logged = 0
 
@@ -252,6 +282,12 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 logger.info(f"{ticker}: already logged today — skipped")
                 continue
 
+            # This ticker's sector — drives which regime/rotation modifier applies.
+            sector = ticker_sector_map.get(ticker)
+            regime = regime_by_sector.get(sector, "choppy")
+            regime_mod = regime_mod_by_sector.get(sector, 0.0)
+            rotation_mod = rotation_mod_by_sector.get(sector, 0.0)
+
             # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)
             sa_engagement_items = _fetch_sa_engagement_safe(ticker)
@@ -262,11 +298,12 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             }
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
-            # News
-            av_articles = _fetch_av_news_safe(ticker)
+            # News — Alpha Vantage post-close only, see run_swing_model.py's
+            # matching change for the full rationale (AV daily budget).
+            av_articles = _fetch_av_news_safe(ticker) if scan_type == "post_close" else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles)
+            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles, sector=sector)
 
             # Earnings + cross-ticker modifiers
             earnings_info = _fetch_earnings_safe(ticker)
@@ -323,7 +360,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 if event_scope == SCOPE_SECTOR:
                     if not has_active_block_for_trigger(gate_state, trigger, SCOPE_SECTOR):
                         gate_state = add_block(
-                            gate_state, tickers=list(watchlist), scope=SCOPE_SECTOR,
+                            gate_state, tickers=get_sector_tickers(cfg, sector), scope=SCOPE_SECTOR,
                             trigger_headline=event["headline"], trigger_match=trigger,
                             source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
                         )

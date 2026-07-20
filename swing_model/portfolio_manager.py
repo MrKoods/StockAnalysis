@@ -31,9 +31,15 @@ _EMPTY_STATE = {
 
 MAX_OPEN_POSITIONS = 2
 MAX_TOTAL_RISK_PCT = 0.03  # 3% total portfolio risk across all open positions
+MAX_TOTAL_OPEN_POSITIONS = 2
 
-# Correlated ticker pairs — treat as same-direction exposure if already in a position
-_CORRELATED_PAIRS = [
+# Fallback defaults — used when cfg lacks a portfolio.sectors block (or cfg is
+# None), so behavior is unchanged for callers that haven't migrated their
+# config yet. Real values normally come from config/swing_config.yaml's
+# portfolio.sectors.<name>.max_open_positions/correlated_groups.
+# Correlated GROUPS (generalized from the original 2-element pairs) — treat
+# same-direction exposure to 2+ tickers from the same group as concentration risk.
+_CORRELATED_GROUPS = [
     {"NVDA", "AMD"},
     {"NVDA", "AVGO"},
     {"AMD", "AVGO"},
@@ -206,42 +212,69 @@ def can_open_new_position(
     """
     Check all portfolio constraints before allowing a new position.
     Returns (allowed: bool, reason: str).
-    Constraints: max 2 slots, max 3% total risk, correlated pair limit,
-    circuit breaker state (Orange/Red → no new positions).
+    Constraints: per-sector position cap + a global total-position ceiling,
+    max simultaneous risk %, correlated-group limit (scoped to the new
+    ticker's own sector), circuit breaker state (Orange/Red → no new positions).
+
+    Position caps are per-sector (e.g. 2 semis + 2 banks), not one shared
+    pool — the point of a second sector is diversification, and a shared cap
+    would let one sector's setups routinely crowd out the other's. The
+    max_simultaneous_risk_pct cap remains the real dollar-risk backstop,
+    independent of how many sector slots exist.
     """
+    cfg = cfg or {}
+    portfolio_cfg = cfg.get("portfolio", {})
+
     cb_state = state.get("circuit_breaker_state", "normal")
     if cb_state in ("orange", "red"):
         return False, f"circuit_breaker_{cb_state}_no_new_positions"
 
+    from shared.utils.sector_config import get_ticker_sector_map, get_sector_tickers
+    new_ticker = new_position.get("ticker", "")
+    new_dir = new_position.get("direction", "bullish")
+    sector = get_ticker_sector_map(cfg).get(new_ticker)
+    sector_cfg = portfolio_cfg.get("sectors", {}).get(sector, {}) if sector else {}
+
+    total_max_positions = int(portfolio_cfg.get("max_total_open_positions", MAX_TOTAL_OPEN_POSITIONS))
+    sector_max_positions = int(sector_cfg.get("max_open_positions", MAX_OPEN_POSITIONS))
+    max_risk_pct = float(portfolio_cfg.get("max_simultaneous_risk_pct", MAX_TOTAL_RISK_PCT))
+    correlated_groups = [set(g) for g in sector_cfg.get("correlated_groups", [])] or _CORRELATED_GROUPS
+
     open_positions = [p for p in state.get("positions", []) if p.get("open", True)]
 
-    if len(open_positions) >= MAX_OPEN_POSITIONS:
-        return False, f"max_positions_reached_{MAX_OPEN_POSITIONS}"
+    if len(open_positions) >= total_max_positions:
+        return False, f"max_total_positions_reached_{total_max_positions}"
+
+    if sector is not None:
+        sector_tickers = set(get_sector_tickers(cfg, sector))
+        same_sector_open = [p for p in open_positions if p.get("ticker", "") in sector_tickers]
+        if len(same_sector_open) >= sector_max_positions:
+            return False, f"max_positions_reached_sector_{sector}_{sector_max_positions}"
 
     new_risk = float(new_position.get("risk_pct", 0.01))
     existing_risk = sum(float(p.get("risk_pct", 0.01)) for p in open_positions)
-    if existing_risk + new_risk > MAX_TOTAL_RISK_PCT:
-        return False, f"total_risk_exceeds_3pct_{round((existing_risk + new_risk)*100, 1)}pct"
+    if existing_risk + new_risk > max_risk_pct:
+        return False, f"total_risk_exceeds_{round(max_risk_pct*100)}pct_{round((existing_risk + new_risk)*100, 1)}pct"
 
     # Same-ticker rule — no second same-direction position on a ticker that
     # already has one open. {new_ticker, open_ticker} collapses to a 1-element
-    # set when they're equal, which never matches any 2-element pair in
-    # _CORRELATED_PAIRS below, so that check alone couldn't catch this case —
-    # both of the 2 available slots could otherwise concentrate in one name.
-    new_ticker = new_position.get("ticker", "")
-    new_dir = new_position.get("direction", "bullish")
+    # set when they're equal, which never matches any correlated group below
+    # (groups always have 2+ distinct tickers), so that check alone couldn't
+    # catch this case — sector slots could otherwise concentrate in one name.
     for open_pos in open_positions:
         if new_ticker == open_pos.get("ticker", "") and new_dir == open_pos.get("direction", "bullish"):
             return False, f"duplicate_position_{new_ticker}_same_direction"
 
-    # Correlated pair rule — no same-direction exposure in correlated pair
+    # Correlated-group rule — no same-direction exposure to 2+ tickers from
+    # the same group. correlated_groups is scoped to the NEW ticker's own
+    # sector, so a bank ticker is only ever checked against bank groups.
     for open_pos in open_positions:
         open_ticker = open_pos.get("ticker", "")
         if new_dir == open_pos.get("direction", "bullish"):
             pair = {new_ticker, open_ticker}
-            for corr_pair in _CORRELATED_PAIRS:
-                if pair == corr_pair:
-                    return False, f"correlated_pair_{open_ticker}_{new_ticker}_same_direction"
+            for corr_group in correlated_groups:
+                if pair.issubset(corr_group):
+                    return False, f"correlated_group_{open_ticker}_{new_ticker}_same_direction"
 
     # Yellow CB: only allow confidence >= 95
     if cb_state == "yellow":

@@ -62,12 +62,12 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
-    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, scan_type, cfg: _fake_indicators())
-    monkeypatch.setattr(pr, "_fetch_market_context", lambda watchlist: {
-        "vix": 15.0, "smh_df": None, "spy_df": None, "tnx_series": None,
+    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: _fake_indicators())
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {}, "spy_df": None, "tnx_series": None,
         "dxy_series": None, "ticker_ohlcv": {},
     })
-    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, smh_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
     monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
@@ -154,14 +154,14 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
-    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, scan_type, cfg: {
+    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {
         "NVDA": _fake_indicators()["NVDA"],
     })
-    monkeypatch.setattr(pr, "_fetch_market_context", lambda watchlist: {
-        "vix": 15.0, "smh_df": None, "spy_df": None, "tnx_series": None,
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {}, "spy_df": None, "tnx_series": None,
         "dxy_series": None, "ticker_ohlcv": {},
     })
-    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, smh_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
     monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
@@ -191,3 +191,71 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     results = app_db.get_ticker_results(run_id, db_path=db_path)
     assert results[0]["category"] == app_db.CATEGORY_PASSED_NO_TRADE
     assert results[0]["trade_structure"] is None
+
+
+def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str) -> list:
+    """Runs a single paper scan for NVDA with everything mocked except
+    _fetch_av_news_safe (call-tracked), returning the list of tickers it was
+    called for. Each call uses its own tmp_path so the "already logged today"
+    dedup in run_paper_scan can't suppress a second scan_type's run."""
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    monkeypatch.setattr(pr, "load_config", lambda: {
+        "watchlist": {"tickers": ["NVDA"]}, "risk_reward": {}, "options_approval_level": 2,
+    })
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {
+        "NVDA": _fake_indicators()["NVDA"],
+    })
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {}, "spy_df": None, "tnx_series": None,
+        "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+
+    av_calls = []
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: av_calls.append(ticker) or [{"title": "x"}])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "compute_news_score", lambda *a, **k: {"critical_events": [], "dominant_theme": ""})
+    monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
+    monkeypatch.setattr(pr, "rank_trade_structures", lambda *a, **k: {"ranked_structures": []})
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version: True)
+
+    pr.run_paper_scan(scan_type=scan_type)
+    return av_calls
+
+
+def test_av_news_skipped_for_pre_market(tmp_path, monkeypatch):
+    av_calls = _run_av_cadence_scan(tmp_path, monkeypatch, "pre_market")
+    assert av_calls == [], "AV news must be skipped for pre_market scans"
+
+
+def test_av_news_fetched_for_post_close(tmp_path, monkeypatch):
+    av_calls = _run_av_cadence_scan(tmp_path, monkeypatch, "post_close")
+    assert av_calls == ["NVDA"], "AV news must still be fetched for post_close scans"

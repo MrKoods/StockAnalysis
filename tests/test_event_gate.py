@@ -40,11 +40,13 @@ def _gate_cfg(enabled: bool = True, min_cred: float = 0.5) -> dict:
         "event_severity_gate": {
             "enabled": enabled,
             "cooling_off": "next_post_close_scan",
-            "sector_wide_triggers": [
-                "export restriction", "export ban", "chip ban", "tariff",
-                "trade war", "Taiwan Strait", "semiconductor embargo",
-                "entity list", "national security review",
-            ],
+            "sector_triggers": {
+                "semiconductors": [
+                    "export restriction", "export ban", "chip ban", "tariff",
+                    "trade war", "Taiwan Strait", "semiconductor embargo",
+                    "entity list", "national security review",
+                ],
+            },
             "ticker_triggers": [
                 "CEO resigns", "CEO departure", "fraud", "SEC investigation",
                 "DOJ investigation", "guidance withdrawn",

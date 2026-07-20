@@ -41,6 +41,9 @@ from shared.utils.event_gate import (
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
     SCOPE_SECTOR,
 )
+from shared.utils.sector_config import (
+    get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
+)
 
 logger = get_logger(__name__)
 
@@ -86,7 +89,9 @@ def main(scan_type: str = "post_close") -> None:
     if cb_state == "red":
         logger.warning("RED circuit breaker active — no new signals")
 
-    watchlist = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
+    active_sectors = get_active_sectors(cfg)
+    watchlist = get_all_tickers(cfg)
+    ticker_sector_map = get_ticker_sector_map(cfg)
 
     # Event Severity Gate state — loaded once per scan; blocks_created_this_scan
     # tracks ids added during THIS run so expire_blocks() never self-expires a
@@ -94,21 +99,49 @@ def main(scan_type: str = "post_close") -> None:
     gate_state = load_gate_state()
     blocks_created_this_scan: set[str] = set()
 
-    # Step 4: Run indicator pipeline for ALL tickers in a single batch fetch
-    indicators_by_ticker = run_pipeline(watchlist, scan_type=scan_type, cfg=cfg)
+    # Step 4: Run indicator pipeline once per active sector (each sector's
+    # relative-strength calc needs its OWN benchmark, e.g. banks vs. KRE, not
+    # semis' SMH), then merge into one dict for the per-ticker loop below.
+    indicators_by_ticker: dict = {}
+    for sector_name, sector_cfg in active_sectors.items():
+        sector_indicators = run_pipeline(
+            sector_cfg.get("tickers", []),
+            benchmark=sector_cfg.get("benchmark", "SMH"),
+            scan_type=scan_type, cfg=cfg,
+        )
+        indicators_by_ticker.update(sector_indicators)
 
-    # Step 5: Fetch shared market context data (separate 3-month window for modifiers)
-    mkt = _fetch_market_context(watchlist)
+    # Step 5: Fetch shared market context data (separate 3-month window for
+    # modifiers) — one batch fetch covering every active sector's benchmark.
+    mkt = _fetch_market_context(cfg)
 
-    # Step 6: Compute shared modifiers — computed once and applied to every ticker
-    regime = _compute_regime_safe(mkt["vix"], mkt["smh_df"])
-    regime_modifier_val = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+    # Step 6: Compute regime/rotation modifiers PER SECTOR (each sector can be
+    # in a different regime at the same time) — macro overlay and seasonality
+    # stay global, since TNX/DXY and the calendar aren't sector-specific.
+    regime_by_sector: dict[str, str] = {}
+    regime_modifier_by_sector: dict[str, float] = {}
+    rotation_modifier_by_sector: dict[str, float] = {}
+    for sector_name in active_sectors:
+        bench_df = mkt["sector_benchmark_dfs"].get(sector_name)
+        regime = _compute_regime_safe(mkt["vix"], bench_df)
+        regime_by_sector[sector_name] = regime
+        regime_modifier_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+        rotation_modifier_by_sector[sector_name] = _compute_rotation_safe(
+            bench_df, mkt["spy_df"]
+        ).get("confidence_modifier", 0.0)
+
     macro_modifier_val = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg).get("confidence_modifier", 0.0)
-    rotation_modifier_val = _compute_rotation_safe(mkt["smh_df"], mkt["spy_df"]).get("confidence_modifier", 0.0)
     seasonality_modifier_val = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
 
-    # Step 7: Cross-ticker analysis
-    cross_ticker_results = _compute_cross_ticker_safe(indicators_by_ticker, mkt["ticker_ohlcv"], cfg)
+    # Step 7: Cross-ticker analysis, run once per sector so "3+ tickers moving
+    # together" and peer-average divergence are computed within each sector's
+    # own ticker set, not pooled across unrelated sectors.
+    cross_ticker_results: dict = {}
+    for sector_name, sector_cfg in active_sectors.items():
+        sector_tickers = sector_cfg.get("tickers", [])
+        sector_indicators = {t: indicators_by_ticker[t] for t in sector_tickers if t in indicators_by_ticker}
+        sector_ohlcv = {t: mkt["ticker_ohlcv"][t] for t in sector_tickers if t in mkt["ticker_ohlcv"]}
+        cross_ticker_results.update(_compute_cross_ticker_safe(sector_indicators, sector_ohlcv, cfg))
 
     # Step 8-9: Per-ticker scoring and signal evaluation
     tickers_processed = 0
@@ -130,6 +163,13 @@ def main(scan_type: str = "post_close") -> None:
                 continue
             tickers_processed += 1
 
+            # This ticker's sector — drives which regime/rotation modifier applies
+            # and which sector's event-gate trigger list is checked below.
+            sector = ticker_sector_map.get(ticker)
+            regime = regime_by_sector.get(sector, "choppy")
+            regime_modifier_val = regime_modifier_by_sector.get(sector, 0.0)
+            rotation_modifier_val = rotation_modifier_by_sector.get(sector, 0.0)
+
             # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)
             if stocktwits_messages:
@@ -145,12 +185,19 @@ def main(scan_type: str = "post_close") -> None:
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
             # News layer
-            av_articles = _fetch_av_news_safe(ticker)
+            # Alpha Vantage news is post-close only — pre-market/mid-session fall
+            # back to the already-free Yahoo+Finnhub sources below. Mirrors the
+            # existing cadence-tiering already used for Fundamental (weekly) and
+            # Positioning (daily) layers. With the watchlist now spanning multiple
+            # sectors, calling AV once per ticker on every scan would exceed the
+            # 25-calls/day free-tier budget; restricting to post-close actually
+            # increases headroom vs. the old 3x/day-for-6-tickers pattern.
+            av_articles = _fetch_av_news_safe(ticker) if scan_type == "post_close" else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles)
+            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles, sector=sector)
 
             # Earnings proximity modifier
             earnings_info = _fetch_earnings_safe(ticker)
@@ -213,7 +260,7 @@ def main(scan_type: str = "post_close") -> None:
                 if event_scope == SCOPE_SECTOR:
                     if not has_active_block_for_trigger(gate_state, trigger, SCOPE_SECTOR):
                         gate_state = add_block(
-                            gate_state, tickers=list(watchlist), scope=SCOPE_SECTOR,
+                            gate_state, tickers=get_sector_tickers(cfg, sector), scope=SCOPE_SECTOR,
                             trigger_headline=event["headline"], trigger_match=trigger,
                             source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
                         )
@@ -351,7 +398,7 @@ def main(scan_type: str = "post_close") -> None:
                     "direction": direction,
                     "confidence": final_score,
                     "risk_pct": risk_pct,
-                })
+                }, cfg=cfg)
                 if allowed:
                     candidate = {
                         **score,
@@ -614,24 +661,35 @@ def _read_av_call_count() -> int:
 # Market context helpers
 # ---------------------------------------------------------------------------
 
-def _fetch_market_context(watchlist: list[str]) -> dict:
+def _fetch_market_context(cfg: dict) -> dict:
     """
     Fetch all shared market-context data needed for modifier computation.
 
+    Fetches EVERY active sector's benchmark (not just SMH) in the same batch
+    call, since regime/rotation modifiers are computed per-sector — a bank
+    ticker's regime must be classified against KRE, not the semiconductor
+    sector's SMH.
+
     Returns dict with keys:
-      vix          — float (or None if fetch failed)
-      smh_df       — pd.DataFrame OHLCV for SMH
-      spy_df       — pd.DataFrame OHLCV for SPY
-      tnx_series   — pd.Series of TNX Close prices
-      dxy_series   — pd.Series of DXY Close prices
-      ticker_ohlcv — dict[str, pd.DataFrame] for watchlist tickers only
+      vix                — float (or None if fetch failed)
+      sector_benchmark_dfs — dict[sector_name, pd.DataFrame] OHLCV per active sector's benchmark
+      spy_df              — pd.DataFrame OHLCV for SPY
+      tnx_series          — pd.Series of TNX Close prices
+      dxy_series          — pd.Series of DXY Close prices
+      ticker_ohlcv        — dict[str, pd.DataFrame] for watchlist tickers only
     """
     import pandas as pd
 
-    tickers_to_fetch = list(set(watchlist) | {"SMH", "SPY"})
+    active_sectors = get_active_sectors(cfg)
+    watchlist = get_all_tickers(cfg)
+    benchmark_tickers = {s.get("benchmark") for s in active_sectors.values() if s.get("benchmark")}
+
+    tickers_to_fetch = list(set(watchlist) | benchmark_tickers | {"SPY"})
     ohlcv_all = fetch_ohlcv_batch(tickers_to_fetch, period="3mo", interval="1d") or {}
 
-    smh_df = ohlcv_all.get("SMH")
+    sector_benchmark_dfs = {
+        name: ohlcv_all.get(s.get("benchmark")) for name, s in active_sectors.items()
+    }
     spy_df = ohlcv_all.get("SPY")
 
     vix = None
@@ -660,7 +718,7 @@ def _fetch_market_context(watchlist: list[str]) -> dict:
 
     return {
         "vix": vix,
-        "smh_df": smh_df,
+        "sector_benchmark_dfs": sector_benchmark_dfs,
         "spy_df": spy_df,
         "tnx_series": tnx_series,
         "dxy_series": dxy_series,
@@ -670,10 +728,13 @@ def _fetch_market_context(watchlist: list[str]) -> dict:
 
 def _compute_regime_safe(
     vix: Optional[float],
-    smh_df,
+    benchmark_df,
 ) -> str:
     """
-    Classify market regime; falls back to 'choppy' on any error.
+    Classify market regime for one sector's benchmark; falls back to 'choppy'
+    on any error. Called once per active sector (see main()) — `benchmark_df`
+    is that sector's own benchmark OHLCV (SMH for semis, KRE for banks, etc.),
+    not always SMH despite the underlying classify_regime() param name.
 
     A failed VIX fetch (vix is None) does NOT default to a calm reading (15.0) —
     that would fail open exactly when a data-provider outage coincides with real
@@ -682,12 +743,12 @@ def _compute_regime_safe(
     """
     try:
         import pandas as pd
-        if smh_df is None or (isinstance(smh_df, pd.DataFrame) and smh_df.empty):
+        if benchmark_df is None or (isinstance(benchmark_df, pd.DataFrame) and benchmark_df.empty):
             return "choppy"
         if vix is None:
             logger.warning("VIX unavailable — defaulting to REGIME_HIGH_VOL (fail conservative, not calm).")
             return REGIME_HIGH_VOL
-        return classify_regime(vix=float(vix), smh_ohlcv=smh_df)
+        return classify_regime(vix=float(vix), smh_ohlcv=benchmark_df)
     except Exception as exc:
         logger.warning(f"Regime detection failed — {exc}. Defaulting to 'choppy'.")
         return "choppy"
@@ -717,15 +778,20 @@ def _compute_macro_safe(
         return {"confidence_modifier": 0.0, "macro_state": "neutral"}
 
 
-def _compute_rotation_safe(smh_df, spy_df) -> dict:
-    """Compute sector rotation state; falls back to neutral on error."""
+def _compute_rotation_safe(benchmark_df, spy_df) -> dict:
+    """
+    Compute one sector's rotation state (benchmark vs. SPY flow); falls back
+    to neutral on error. Called once per active sector — `benchmark_df` is
+    that sector's own benchmark, not always SMH despite the underlying
+    compute_rotation_state() param names.
+    """
     try:
         import pandas as pd
-        if smh_df is None or spy_df is None:
+        if benchmark_df is None or spy_df is None:
             return {"confidence_modifier": 0.0, "rotation_state": "neutral"}
-        smh_close = smh_df["Close"] if isinstance(smh_df, pd.DataFrame) else smh_df
+        benchmark_close = benchmark_df["Close"] if isinstance(benchmark_df, pd.DataFrame) else benchmark_df
         spy_close = spy_df["Close"] if isinstance(spy_df, pd.DataFrame) else spy_df
-        return compute_rotation_state(smh_close=smh_close, spy_close=spy_close)
+        return compute_rotation_state(smh_close=benchmark_close, spy_close=spy_close)
     except Exception as exc:
         logger.warning(f"Sector rotation failed — {exc}. Using neutral modifier.")
         return {"confidence_modifier": 0.0, "rotation_state": "neutral"}

@@ -17,12 +17,16 @@ from shared.utils.event_gate import (
 )
 
 
-def classify_severity(item: dict, cfg: Optional[dict] = None) -> dict:
+def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[str] = None) -> dict:
     """
     Classify one processed news item's Event Severity Gate status using the
     config-driven keyword + source rules in config/swing_config.yaml
     (event_severity_gate). Returns a copy of `item` with 'severity' ("normal"
     or "critical") and 'scope' ("ticker" | "sector" | None) attached.
+
+    `sector`: restricts sector-wide trigger matching to this sector's keyword
+    list (see event_gate.classify_severity) — the ticker being scored belongs
+    to this sector, so a different sector's trigger words shouldn't fire here.
 
     This is an advisory classification, not a scoring input — News keeps its
     normal 15-point additive scoring for every item regardless of severity.
@@ -30,7 +34,7 @@ def classify_severity(item: dict, cfg: Optional[dict] = None) -> dict:
     cfg = cfg or {}
     headline = item.get("title", "") or item.get("headline", "")
     source = item.get("source_domain", "") or item.get("publisher", "") or item.get("source", "")
-    result = _classify_event_severity(headline, source, cfg)
+    result = _classify_event_severity(headline, source, cfg, sector=sector)
 
     updated = dict(item)
     updated["severity"] = result["severity"]
@@ -46,6 +50,7 @@ def compute_news_score(
     cfg: Optional[dict] = None,
     reference_date: Optional[datetime] = None,
     finnhub_articles: Optional[list[dict]] = None,
+    sector: Optional[str] = None,
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -56,13 +61,21 @@ def compute_news_score(
     - clustering_score:            0-3
     - decay_score:                 0-2
 
+    `sector`: which sector `ticker` belongs to (config/swing_config.yaml's
+    watchlist.sectors) — restricts Event Severity Gate sector-wide trigger
+    matching to that sector's keyword list, so a chip-ban headline doesn't
+    flag a critical event while scoring a bank ticker and vice versa. NER
+    ticker-mention matching below is intentionally NOT sector-scoped — a
+    headline can legitimately mention any active ticker in any sector.
+
     Returns dict with all fields required by scoring.py.
     """
     if cfg is None:
         cfg = {}
 
     now = reference_date if reference_date is not None else datetime.now(timezone.utc)
-    watchlist = cfg.get("watchlist", {}).get("tickers", ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"])
+    from shared.utils.sector_config import get_all_tickers
+    watchlist = get_all_tickers(cfg)
 
     all_articles = list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
 
@@ -116,7 +129,7 @@ def compute_news_score(
         decay = news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0)
         if decay <= 0.0:
             continue  # Too old — same recency bar as ticker-relevant articles below
-        classified = classify_severity({"title": title, "source_domain": source}, cfg)
+        classified = classify_severity({"title": title, "source_domain": source}, cfg, sector=sector)
         if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_SECTOR:
             critical_events.append({
                 "headline": title,
@@ -130,7 +143,7 @@ def compute_news_score(
     for art in relevant:
         title = art.get("title", "")
         source = art.get("source_domain", "") or art.get("publisher", "")
-        classified = classify_severity({"title": title, "source_domain": source}, cfg)
+        classified = classify_severity({"title": title, "source_domain": source}, cfg, sector=sector)
         if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_TICKER:
             critical_events.append({
                 "headline": title,

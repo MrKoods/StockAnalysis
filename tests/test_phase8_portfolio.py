@@ -122,7 +122,7 @@ class TestCanOpenNewPosition:
         ]
         ok, reason = can_open_new_position(state, _position("AMD"))
         assert ok is False
-        assert "max_positions" in reason
+        assert "max_total_positions" in reason
 
     def test_blocked_by_orange_circuit_breaker(self):
         state = _empty_state()
@@ -151,7 +151,7 @@ class TestCanOpenNewPosition:
         state["positions"] = [{**_position("NVDA"), "open": True, "direction": "bullish"}]
         ok, reason = can_open_new_position(state, _position("AMD", direction="bullish"))
         assert ok is False
-        assert "correlated_pair" in reason
+        assert "correlated_group" in reason
 
     def test_allowed_when_correlated_pair_opposite_direction(self):
         state = _empty_state()
@@ -173,6 +173,91 @@ class TestCanOpenNewPosition:
         assert ok is True
 
 
+def _two_sector_cfg():
+    return {
+        "watchlist": {
+            "sectors": {
+                "semiconductors": {
+                    "active": True, "benchmark": "SMH",
+                    "tickers": ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"],
+                },
+                "regional_banks": {
+                    "active": True, "benchmark": "KRE",
+                    "tickers": ["ZION", "KEY", "HBAN", "RF", "FITB"],
+                },
+            },
+        },
+        "portfolio": {
+            "max_simultaneous_risk_pct": 0.03,
+            "max_total_open_positions": 4,
+            "sectors": {
+                "semiconductors": {
+                    "max_open_positions": 2,
+                    "correlated_groups": [["NVDA", "AMD"], ["NVDA", "AVGO"]],
+                },
+                "regional_banks": {
+                    "max_open_positions": 2,
+                    "correlated_groups": [["ZION", "KEY", "HBAN", "RF", "FITB"]],
+                },
+            },
+        },
+    }
+
+
+class TestCanOpenNewPositionMultiSector:
+    """Per-sector caps and correlated-group isolation with two active sectors."""
+
+    def test_sector_slots_dont_share_a_pool(self):
+        # 2 semis positions already open (at the semis cap) — a bank position
+        # must still be allowed, since it's a different sector's slot.
+        state = _empty_state()
+        state["positions"] = [
+            {**_position("NVDA"), "open": True},
+            {**_position("AMD", direction="bearish"), "open": True},
+        ]
+        ok, reason = can_open_new_position(state, _position("ZION"), cfg=_two_sector_cfg())
+        assert ok is True, reason
+
+    def test_third_semis_position_blocked_by_sector_cap(self):
+        state = _empty_state()
+        state["positions"] = [
+            {**_position("NVDA"), "open": True},
+            {**_position("AMD", direction="bearish"), "open": True},
+        ]
+        ok, reason = can_open_new_position(state, _position("TSM"), cfg=_two_sector_cfg())
+        assert ok is False
+        assert "sector_semiconductors" in reason
+
+    def test_global_ceiling_blocks_a_5th_position_even_with_sector_room(self):
+        # 2 semis + 2 banks open = 4, at the global ceiling. A bank sector cap
+        # of 2 hasn't been exceeded per-sector, but the total ceiling has.
+        state = _empty_state()
+        state["positions"] = [
+            {**_position("NVDA"), "open": True},
+            {**_position("AMD", direction="bearish"), "open": True},
+            {**_position("ZION"), "open": True},
+            {**_position("KEY", direction="bearish"), "open": True},
+        ]
+        ok, reason = can_open_new_position(state, _position("HBAN"), cfg=_two_sector_cfg())
+        assert ok is False
+        assert "max_total_positions" in reason
+
+    def test_bank_correlated_group_does_not_block_semis_ticker(self):
+        # 5-ticker bank correlated group open on ZION — a semis ticker must
+        # not be affected by a correlated-group check scoped to another sector.
+        state = _empty_state()
+        state["positions"] = [{**_position("ZION"), "open": True}]
+        ok, reason = can_open_new_position(state, _position("NVDA"), cfg=_two_sector_cfg())
+        assert ok is True, reason
+
+    def test_bank_correlated_group_blocks_within_sector(self):
+        state = _empty_state()
+        state["positions"] = [{**_position("ZION"), "open": True}]
+        ok, reason = can_open_new_position(state, _position("KEY"), cfg=_two_sector_cfg())
+        assert ok is False
+        assert "correlated_group" in reason
+
+
 class TestAddPosition:
     def test_add_increases_position_count(self):
         state = _empty_state()
@@ -185,7 +270,7 @@ class TestAddPosition:
             {**_position("NVDA"), "open": True},
             {**_position("MU"), "open": True},
         ]
-        with pytest.raises(ValueError, match="max_positions"):
+        with pytest.raises(ValueError, match="max_total_positions"):
             add_position(state, _position("AMD"))
 
     def test_position_has_required_fields(self):
