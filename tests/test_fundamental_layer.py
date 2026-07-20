@@ -99,3 +99,59 @@ class TestScoreValuationVsPeersOutlierExclusion:
 
         avgo_score = result["ticker_scores"]["AVGO"]["pe_vs_sector_score"]
         assert avgo_score != 2  # must not still read as "cheap vs. peers"
+
+
+class TestScoreAllTickersMultiSectorScoping:
+    """
+    score_all_tickers()'s peer pool must be scoped to the `watchlist` it's
+    called with, not the full accumulated fundamental_state.json cache —
+    otherwise semiconductor and bank valuation multiples would blend into one
+    meaningless "sector average" once both sectors' data exist in the same
+    cache file (v2.2.8/v2.2.9 multi-sector infrastructure).
+    """
+
+    def _cached_state(self):
+        # fundamental_state.json shape — accumulates every ticker ever
+        # fetched across BOTH sectors, exactly like the real cache file would
+        # once regional_banks has been fetched at least once.
+        semis = {"NVDA": 29.9, "AMD": 32.0, "AVGO": 35.0, "TSM": 30.0}
+        banks = {"ZION": 9.0, "KEY": 8.5, "HBAN": 10.0}  # much lower P/E, different sector norm
+        tickers = {}
+        for t, pe in {**semis, **banks}.items():
+            tickers[t] = {"valuation": {
+                "trailingPE": pe, "forwardPE": pe * 0.9,
+                "enterpriseToEbitda": pe * 0.5, "suspect_fields": [],
+            }}
+        return {"tickers": tickers}
+
+    def test_semis_sector_average_excludes_bank_tickers(self):
+        state = self._cached_state()
+        results = FundamentalScorer().score_all_tickers(["NVDA", "AMD", "AVGO", "TSM"], state)
+        # If bank tickers (P/E ~8-10) leaked into the peer pool, the semis
+        # average would be pulled down well below the real semis-only value
+        # (~31.7). Assert it stays in the semis-only range.
+        avgo_quality = results["AVGO"]["data_quality"]
+        assert avgo_quality != "unavailable"
+        avgo_internal = FundamentalScorer().score_valuation_vs_peers(
+            {t: v for t, v in state["tickers"].items() if t in ["NVDA", "AMD", "AVGO", "TSM"]}
+        )
+        assert 28.0 < avgo_internal["sector_averages"]["pe"] < 35.0
+
+    def test_bank_sector_average_excludes_semis_tickers(self):
+        state = self._cached_state()
+        results = FundamentalScorer().score_all_tickers(["ZION", "KEY", "HBAN"], state)
+        assert set(results.keys()) == {"ZION", "KEY", "HBAN"}
+        bank_internal = FundamentalScorer().score_valuation_vs_peers(
+            {t: v for t, v in state["tickers"].items() if t in ["ZION", "KEY", "HBAN"]}
+        )
+        # If semis tickers (P/E ~30-35) leaked in, this average would be much
+        # higher than the real bank-only value (~9.2).
+        assert 8.0 < bank_internal["sector_averages"]["pe"] < 11.0
+
+    def test_score_all_tickers_only_scores_requested_watchlist(self):
+        # Even though the cache has 7 tickers total, only the 3 banks should
+        # appear in the output for a bank-scoped call.
+        state = self._cached_state()
+        results = FundamentalScorer().score_all_tickers(["ZION", "KEY", "HBAN"], state)
+        assert "NVDA" not in results
+        assert len(results) == 3

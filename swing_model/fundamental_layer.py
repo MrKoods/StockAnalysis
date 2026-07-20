@@ -490,10 +490,24 @@ class FundamentalScorer:
         fundamental_state: dict loaded from fundamental_state.json, shape:
           {"tickers": {"NVDA": <fundamental_data or None>, ...}}
 
+        fundamental_state.json accumulates every ticker ever fetched across
+        every call (forward-building-history, same pattern as Positioning) —
+        it is NOT scoped to this call's `watchlist`. The peer pool handed to
+        compute_fundamental_score()/score_valuation_vs_peers() below is scoped
+        to `watchlist` here, not the full accumulated state: with multi-sector
+        support (v2.2.8), indicator_pipeline.run_pipeline() is called once per
+        active sector with that sector's own ticker list as `watchlist` — an
+        unscoped peer pool would blend semiconductor and bank valuation
+        multiples into one meaningless "sector average" the moment both
+        sectors' data exists in the same cache file, silently corrupting every
+        ticker's valuation score exactly the way the multi-sector design work
+        was supposed to prevent.
+
         Returns dict: {ticker: compute_fundamental_score_output}
         Called by indicator_pipeline.py after fetching or loading cached data.
         """
-        all_fundamentals = fundamental_state.get("tickers", {})
+        all_fundamentals_cached = fundamental_state.get("tickers", {})
+        all_fundamentals = {t: v for t, v in all_fundamentals_cached.items() if t in watchlist}
 
         results = {}
         for ticker in watchlist:

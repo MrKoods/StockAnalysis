@@ -12,6 +12,27 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.9] — 2026-07-19 — Fix a real gap in v2.2.8: fundamental "sector average" wasn't actually sector-scoped
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.8. Same scope as v2.2.8 — `regional_banks` stays `active: false`, this only matters once it's turned on.
+
+### What changed
+- `swing_model/fundamental_layer.py::score_all_tickers()`: the peer pool handed to `compute_fundamental_score()`/`score_valuation_vs_peers()` is now filtered to the tickers in `watchlist` (`{t: v for t, v in all_fundamentals_cached.items() if t in watchlist}`) instead of the full, unfiltered `fundamental_state.get("tickers", {})`.
+
+### Why it was changed
+- User asked directly whether the second sector gets the full 5-layer scoring system. Re-verifying the answer surfaced that v2.2.8's fix for this exact issue (item #1 in that entry's list of 7 things that would silently break) was **claimed but never actually implemented** — v2.2.8 only touched `run_swing_model.py`, `paper_runner.py`, `event_gate.py`, `news_layer.py`, `portfolio_manager.py`, and config; `fundamental_layer.py`/`indicator_pipeline.py` were never edited.
+- The bug: `fundamental_state.json` accumulates every ticker ever fetched across every call (the same forward-building-history pattern already used for Positioning) — it is not scoped by the `tickers` argument passed into `fetch_fundamental_data()`/`run_pipeline()`. `score_all_tickers(watchlist, fundamental_state)` correctly iterated only `watchlist` to decide *which* tickers to score, but passed the *entire* accumulated `fundamental_state["tickers"]` dict — both sectors' entries, once both existed in the cache — into `score_valuation_vs_peers()` as the peer pool for every one of them. Calling `run_pipeline()` once per active sector (v2.2.8's Phase 1 fix) scoped *which tickers get scored* but never scoped *which tickers' data get averaged together* — those are two different things, and only the first one was actually fixed.
+- Concretely, this would have blended semiconductor P/E multiples (~30-40x) with regional bank P/E multiples (~8-12x) into one meaningless "sector average" the first time both sectors' fundamental data existed in the same cache file — exactly the failure mode v2.2.8 set out to prevent, just missed in implementation despite being correctly described in that entry's own text.
+- Positioning, Sentiment, News, and Technical were checked directly (not assumed) and confirmed not to have the same class of bug: Positioning scores each ticker purely against its own prior snapshot (no cross-ticker pooling at all, no `score_all_tickers`-style function exists in `positioning_layer.py`); Sentiment and News are computed per-ticker with no peer-averaging; Technical's relative-strength/regime/rotation modifiers were the ones v2.2.8 did correctly fix.
+
+### Backtest result
+N/A — the backtest doesn't model this bug at all (`backtest_engine.py`'s fundamental history archive lookup is single-sector to date; the fix is verified directly by new unit tests instead). Not modeled in live/paper scoring either while `regional_banks.active: false` — no behavior change for the currently-running single-sector config. New tests: `tests/test_fundamental_layer.py::TestScoreAllTickersMultiSectorScoping` (3 tests) — constructs a mixed-sector cache and confirms a bank-scoped call's peer average excludes semiconductor tickers and vice versa. 532 tests pass total (was 529).
+
+### Approved by
+MrKoods — 2026-07-19
+
+---
+
 ## [v2.2.8] — 2026-07-19 — Multi-sector infrastructure (Phases 0-3); AV news restricted to post-close
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.0.0–v2.2.7. **The live tradeable universe is unchanged** — `regional_banks` is present in config but `active: false`; every real scan today still runs exactly the original 6 semiconductor tickers against SMH. Phases 0-2 below are additive/behavior-preserving refactors (no scoring/threshold change, verified via regression tests, no backtest required per this file's own rule). Phase 3 (Alpha Vantage cadence) does change News-category data availability at pre-market/mid-session and is flagged separately below.
