@@ -1,7 +1,5 @@
 {
-  "last_updated": "2026-07-21T00:08:56.016142+00:00",
-  "update_cadence": "weekly",
-  "update_day": "Monday",
+  "date": "2026-07-21",
   "tickers": {
     "NVDA": {
       "ticker": "NVDA",
@@ -457,13 +455,5 @@
         }
       }
     }
-  },
-  "fetched_dates": {
-    "NVDA": "2026-07-06",
-    "AMD": "2026-07-06",
-    "AVGO": "2026-07-06",
-    "TSM": "2026-07-06",
-    "MU": "2026-07-06",
-    "ASML": "2026-07-06"
   }
 }

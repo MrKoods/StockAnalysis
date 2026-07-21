@@ -163,63 +163,60 @@ def run_pipeline(
 
 def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> dict:
     """
-    Fetch or load fundamental data for all watchlist tickers.
+    Fetch or load fundamental data for the given tickers.
 
-    Cadence logic:
-    - Load fundamental_state.json to check last_updated timestamp.
-    - If last_updated is None OR (today is Monday AND current ET time >= 17:00
-      AND last_updated is not today): fetch fresh data from FundamentalClient.
+    Cadence logic (tracked per ticker via state["fetched_dates"], not one
+    file-wide last_updated): a file-wide timestamp meant a sector processed
+    later in the same run (e.g. a newly-activated sector) would see an earlier
+    sector's fetch and conclude its own tickers were "already refreshed today"
+    when they had never been fetched at all — silently pinning them to 0 forever.
+    - True cold start (state has no last_updated at all): fetch every requested
+      ticker immediately.
+    - Otherwise, only refresh on the weekly window (Monday >= 17:00 ET), and only
+      tickers not already refreshed today.
     - Otherwise: return cached data from fundamental_state.json.
 
     Writes fresh data to fundamental_state.json when fetched.
     Logs any fetch failures to validation_log.csv without crashing.
 
-    Returns dict with structure: {"last_updated": ..., "tickers": {ticker: data}}
+    Returns dict with structure:
+      {"last_updated": ..., "tickers": {ticker: data}, "fetched_dates": {ticker: "YYYY-MM-DD"}}
     """
     if cfg is None:
         cfg = {}
 
     state = _load_fundamental_state()
-    last_updated_str = state.get("last_updated")
     now_et = datetime.now(_ET)
     today_str = now_et.strftime("%Y-%m-%d")
+    fetched_dates = state.setdefault("fetched_dates", {})
+    state.setdefault("tickers", {})
 
-    # Determine if a fresh fetch is needed
-    needs_fetch = False
-    if last_updated_str is None:
-        needs_fetch = True
+    if state.get("last_updated") is None:
+        to_fetch = list(tickers)
         logger.info("Fundamental state has no last_updated — fetching fresh data.")
+    elif now_et.weekday() == 0 and now_et.hour >= 17:
+        to_fetch = [t for t in tickers if fetched_dates.get(t) != today_str]
+        if to_fetch:
+            logger.info("Monday post-17:00 ET — fetching fresh fundamental data.")
     else:
-        # Parse the stored date
-        try:
-            last_date = last_updated_str[:10]  # YYYY-MM-DD
-        except Exception:
-            last_date = None
+        to_fetch = []
 
-        if last_date != today_str:
-            # Monday after 17:00 ET → scheduled weekly update
-            if now_et.weekday() == 0 and now_et.hour >= 17:
-                needs_fetch = True
-                logger.info("Monday post-17:00 ET — fetching fresh fundamental data.")
-        # On same day, no re-fetch needed (data is from earlier today)
-
-    if not needs_fetch:
-        logger.info(f"Loading cached fundamental data (last_updated: {last_updated_str})")
+    if not to_fetch:
+        logger.info(f"Loading cached fundamental data (last_updated: {state.get('last_updated')})")
         return state
 
-    logger.info(f"Fetching fundamental data for: {tickers}")
+    logger.info(f"Fetching fundamental data for: {to_fetch}")
     client = FundamentalClient()
-    # Save after every ticker, not just once at the end — a full 6-ticker
-    # refresh can take several minutes (each sub-call retries on rate limits),
-    # and a mid-batch interruption (manual Ctrl+C, crash, hitting the AV
-    # budget cap) must not discard tickers that already completed. Deliberately
-    # NOT updating last_updated until the whole loop finishes: a partial batch
-    # must still read as "not yet refreshed today" so the next opportunity
-    # retries it, rather than silently settling for a part-stale, part-fresh
-    # snapshot mislabeled as complete.
-    for ticker in tickers:
+    # Save after every ticker, not just once at the end — a full refresh can take
+    # several minutes (each sub-call retries on rate limits), and a mid-batch
+    # interruption (manual Ctrl+C, crash, hitting the AV budget cap) must not
+    # discard tickers that already completed. fetched_dates is updated per-ticker
+    # as each one succeeds, so a crash mid-loop leaves completed tickers correctly
+    # marked "fetched today" and only the remainder gets retried next opportunity.
+    for ticker in to_fetch:
         try:
             state["tickers"][ticker] = client.get_all_fundamentals(ticker)
+            state["fetched_dates"][ticker] = today_str
             logger.info(f"  {ticker}: fundamental data fetched OK")
         except Exception as exc:
             logger.error(f"  {ticker}: fundamental fetch failed — {exc}")
@@ -235,50 +232,52 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
 def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Optional[dict] = None) -> dict:
     """
-    Fetch or load Market Positioning data for all watchlist tickers (daily cadence).
+    Fetch or load Market Positioning data for the given tickers (daily cadence,
+    tracked per ticker).
 
-    Cadence logic: fetch fresh data once per day; on same-day re-scans (pre-market,
-    mid-session), reuse the day's already-fetched snapshot rather than re-hitting
-    yfinance. When a new day's fetch happens, the prior day's snapshot is preserved
-    under "previous_tickers" so positioning_layer.py can compute the institutional
-    ownership delta — same forward-building-history caveat as Fundamental/Sentiment
-    (no deep historical positioning archive exists; it accumulates from first live scan).
+    Cadence logic: each ticker is refreshed at most once per day, tracked via
+    state["fetched_dates"] rather than a single file-wide last_updated — a file-wide
+    timestamp meant a sector processed later in the same run (e.g. a newly-activated
+    sector) would see an earlier sector's fetch and inherit its "already fetched
+    today" status without ever being fetched itself. Refreshing a ticker preserves
+    its prior snapshot under "previous_tickers" so positioning_layer.py can compute
+    the institutional ownership delta — same forward-building-history caveat as
+    Fundamental/Sentiment (no deep historical positioning archive exists; it
+    accumulates from first live scan).
 
-    Returns dict: {last_updated, tickers, previous_updated, previous_tickers}
+    Returns dict: {last_updated, tickers, previous_updated, previous_tickers, fetched_dates}
     """
     if cfg is None:
         cfg = {}
 
     state = _load_positioning_state()
-    last_updated_str = state.get("last_updated")
     now_et = datetime.now(_ET)
     today_str = now_et.strftime("%Y-%m-%d")
+    fetched_dates = state.setdefault("fetched_dates", {})
+    state.setdefault("tickers", {})
+    state.setdefault("previous_tickers", {})
 
-    needs_fetch = last_updated_str is None or last_updated_str[:10] != today_str
-    if not needs_fetch:
-        logger.info(f"Loading cached positioning data (last_updated: {last_updated_str})")
+    to_fetch = [t for t in tickers if fetched_dates.get(t) != today_str]
+    if not to_fetch:
+        logger.info(f"Loading cached positioning data (last_updated: {state.get('last_updated')})")
         return state
 
-    logger.info(f"Fetching positioning data for: {tickers}")
-    new_tickers = {}
-    for ticker in tickers:
+    logger.info(f"Fetching positioning data for: {to_fetch}")
+    for ticker in to_fetch:
+        if ticker in state["tickers"]:
+            state["previous_tickers"][ticker] = state["tickers"][ticker]
         try:
-            new_tickers[ticker] = fetch_all_positioning(ticker, current_price=current_prices.get(ticker))
+            state["tickers"][ticker] = fetch_all_positioning(ticker, current_price=current_prices.get(ticker))
+            state["fetched_dates"][ticker] = today_str
             logger.info(f"  {ticker}: positioning data fetched OK")
         except Exception as exc:
             logger.error(f"  {ticker}: positioning fetch failed — {exc}")
             write_validation_entry(ticker, "positioning_fetch_error", str(exc))
-            new_tickers[ticker] = None
 
-    new_state = {
-        "last_updated": datetime.now(timezone.utc).isoformat(),
-        "tickers": new_tickers,
-        "previous_updated": state.get("last_updated"),
-        "previous_tickers": state.get("tickers", {}),
-    }
-
-    _save_positioning_state(new_state)
-    return new_state
+    state["previous_updated"] = state.get("last_updated")
+    state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    _save_positioning_state(state)
+    return state
 
 
 def _load_positioning_state() -> dict:
@@ -286,9 +285,10 @@ def _load_positioning_state() -> dict:
     default = {
         "last_updated": None,
         "update_cadence": "daily",
-        "tickers": {t: None for t in ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]},
+        "tickers": {},
         "previous_updated": None,
         "previous_tickers": {},
+        "fetched_dates": {},
     }
     if not _POSITIONING_STATE_PATH.exists():
         return default
@@ -296,9 +296,18 @@ def _load_positioning_state() -> dict:
         with open(_POSITIONING_STATE_PATH, "r") as f:
             data = json.load(f)
         if "tickers" not in data:
-            data["tickers"] = default["tickers"]
+            data["tickers"] = {}
         if "previous_tickers" not in data:
             data["previous_tickers"] = {}
+        if "fetched_dates" not in data:
+            # Migrating from the old file-wide last_updated scheme: assume every
+            # ticker already holding data was fetched on that date, so this
+            # migration doesn't itself trigger a same-day re-fetch of tickers
+            # whose data is already fresh.
+            last_date = (data.get("last_updated") or "")[:10] or None
+            data["fetched_dates"] = {
+                t: last_date for t, v in data["tickers"].items() if v is not None
+            }
         return data
     except Exception as exc:
         logger.warning(f"Could not load positioning_state.json — {exc}. Using defaults.")
@@ -324,7 +333,8 @@ def _load_fundamental_state() -> dict:
         "last_updated": None,
         "update_cadence": "weekly",
         "update_day": "Monday",
-        "tickers": {t: None for t in ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]},
+        "tickers": {},
+        "fetched_dates": {},
     }
     if not _FUNDAMENTAL_STATE_PATH.exists():
         return default
@@ -333,7 +343,15 @@ def _load_fundamental_state() -> dict:
             data = json.load(f)
         # Ensure tickers key exists
         if "tickers" not in data:
-            data["tickers"] = default["tickers"]
+            data["tickers"] = {}
+        if "fetched_dates" not in data:
+            # Migrating from the old file-wide last_updated scheme: assume every
+            # ticker already holding data was fetched on that date, so this
+            # migration doesn't itself trigger a same-day re-fetch.
+            last_date = (data.get("last_updated") or "")[:10] or None
+            data["fetched_dates"] = {
+                t: last_date for t, v in data["tickers"].items() if v is not None
+            }
         return data
     except Exception as exc:
         logger.warning(f"Could not load fundamental_state.json — {exc}. Using defaults.")

@@ -1,81 +1,14 @@
 {
   "passed": false,
-  "win_rate": 0.6667,
-  "avg_rr": 2.35,
-  "sharpe_ratio": 0.34,
-  "max_drawdown_pct": 0.0297,
-  "qualifying_trades": 18,
-  "total_signals": 50,
-  "max_consecutive_losses": 3,
-  "per_regime": {
-    "trending_up": {
-      "win_rate": 0.6666666666666666,
-      "avg_rr": 2.3537324671751056,
-      "trade_count": 18
-    }
-  },
-  "walk_forward": [
-    {
-      "window": 1,
-      "train_through": "2014-07-02 00:00:00+00:00",
-      "validate_through": "2016-07-01 00:00:00+00:00",
-      "qualifying_trades": 5,
-      "win_rate": 0.2,
-      "avg_rr": 2.5,
-      "verdict": "insufficient_data",
-      "passed": false
-    },
-    {
-      "window": 2,
-      "train_through": "2016-07-01 00:00:00+00:00",
-      "validate_through": "2018-07-03 00:00:00+00:00",
-      "qualifying_trades": 8,
-      "win_rate": 0.5,
-      "avg_rr": 1.84,
-      "verdict": "insufficient_data",
-      "passed": false
-    },
-    {
-      "window": 3,
-      "train_through": "2018-07-03 00:00:00+00:00",
-      "validate_through": "2020-07-06 00:00:00+00:00",
-      "qualifying_trades": 13,
-      "win_rate": 0.6923,
-      "avg_rr": 2.11,
-      "verdict": "pass",
-      "passed": true
-    },
-    {
-      "window": 4,
-      "train_through": "2020-07-06 00:00:00+00:00",
-      "validate_through": "2022-07-06 00:00:00+00:00",
-      "qualifying_trades": 12,
-      "win_rate": 0.5833,
-      "avg_rr": 0.75,
-      "verdict": "fail",
-      "passed": false
-    },
-    {
-      "window": 5,
-      "train_through": "2022-07-06 00:00:00+00:00",
-      "validate_through": "2024-07-09 00:00:00+00:00",
-      "qualifying_trades": 4,
-      "win_rate": 0.75,
-      "avg_rr": 2.42,
-      "verdict": "insufficient_data",
-      "passed": false
-    },
-    {
-      "window": 6,
-      "train_through": "2024-07-09 00:00:00+00:00",
-      "validate_through": "2026-07-02 00:00:00+00:00",
-      "qualifying_trades": 12,
-      "win_rate": 0.75,
-      "avg_rr": 2.33,
-      "verdict": "pass",
-      "passed": true
-    }
-  ],
-  "train_period": "2013-01-02 00:00:00+00:00",
-  "test_period": "2022-06-09 00:00:00+00:00"
+  "win_rate": 0.0,
+  "avg_rr": 0.0,
+  "sharpe_ratio": 0.0,
+  "max_drawdown_pct": 0.0,
+  "qualifying_trades": 0,
+  "total_signals": 0,
+  "max_consecutive_losses": 0,
+  "per_regime": {},
+  "walk_forward": [],
+  "train_period": "2026-01-01 00:00:00+00:00",
+  "test_period": "2026-04-29 00:00:00+00:00"
 }
