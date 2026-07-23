@@ -1,18 +1,18 @@
 {
-  "last_updated": "2026-07-20T23:49:30.797395+00:00",
+  "last_updated": "2026-07-22T12:30:08.587055+00:00",
   "tickers": {
     "NVDA": {
       "ticker": "NVDA",
       "options": {
-        "put_call_ratio": 0.546,
-        "avg_call_iv": 0.1133,
-        "avg_put_iv": 0.106,
-        "iv_skew": -0.0073,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 0.5307,
+        "avg_call_iv": 0.1071,
+        "avg_put_iv": 0.1213,
+        "iv_skew": 0.0142,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.71224,
+        "held_percent_institutions": 0.71521,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -75,7 +75,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:02.292608+00:00"
+        "as_of_utc": "2026-07-22T12:30:03.011364+00:00"
       },
       "short_interest": {
         "shares_short": 310126785.0,
@@ -1297,15 +1297,15 @@
     "AMD": {
       "ticker": "AMD",
       "options": {
-        "put_call_ratio": 0.7206,
-        "avg_call_iv": 0.107,
-        "avg_put_iv": 0.1104,
-        "iv_skew": 0.0034,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 0.6147,
+        "avg_call_iv": 0.0932,
+        "avg_put_iv": 0.1231,
+        "iv_skew": 0.0299,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.73278,
+        "held_percent_institutions": 0.74158996,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -1368,7 +1368,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:02.849337+00:00"
+        "as_of_utc": "2026-07-22T12:30:03.591590+00:00"
       },
       "short_interest": {
         "shares_short": 41583210.0,
@@ -1475,7 +1475,7 @@
         },
         {
           "date": "2026-05-14 00:00:00+00:00",
-          "insider_name": "HOUSEHOLDER JOSEPH A",
+          "insider_name": "DENZEL NORA M",
           "position": "Director",
           "transaction_type": "",
           "shares": 2613,
@@ -1483,7 +1483,7 @@
         },
         {
           "date": "2026-05-14 00:00:00+00:00",
-          "insider_name": "DENZEL NORA M",
+          "insider_name": "HOUSEHOLDER JOSEPH A",
           "position": "Director",
           "transaction_type": "",
           "shares": 2613,
@@ -1971,18 +1971,18 @@
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 12633,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
           "insider_name": "HU JEAN X",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 5893,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 12633,
           "value": NaN
         },
         {
@@ -2179,19 +2179,19 @@
         },
         {
           "date": "2025-02-14 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 17500,
-          "value": 334250.0
-        },
-        {
-          "date": "2025-02-14 00:00:00+00:00",
           "insider_name": "HU JEAN X",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 30786,
           "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 17500,
+          "value": 334250.0
         },
         {
           "date": "2025-02-14 00:00:00+00:00",
@@ -2403,18 +2403,18 @@
         },
         {
           "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "PENG VICTOR",
-          "position": "President",
-          "transaction_type": "",
-          "shares": 10921,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-09 00:00:00+00:00",
           "insider_name": "SU LISA T",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 807409,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-09 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 3303,
           "value": NaN
         },
         {
@@ -2427,10 +2427,10 @@
         },
         {
           "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "HU JEAN X",
-          "position": "Chief Financial Officer",
+          "insider_name": "PENG VICTOR",
+          "position": "President",
           "transaction_type": "",
-          "shares": 3303,
+          "shares": 10921,
           "value": NaN
         },
         {
@@ -2454,15 +2454,15 @@
     "AVGO": {
       "ticker": "AVGO",
       "options": {
-        "put_call_ratio": 0.7875,
-        "avg_call_iv": 0.1094,
-        "avg_put_iv": 0.1078,
-        "iv_skew": -0.0016,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 0.6355,
+        "avg_call_iv": 0.1084,
+        "avg_put_iv": 0.1054,
+        "iv_skew": -0.003,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.80191004,
+        "held_percent_institutions": 0.80559,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -2525,7 +2525,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:03.404101+00:00"
+        "as_of_utc": "2026-07-22T12:30:04.119558+00:00"
       },
       "short_interest": {
         "shares_short": 70123497.0,
@@ -2640,6 +2640,14 @@
         },
         {
           "date": "2026-04-20 00:00:00+00:00",
+          "insider_name": "PAGE JUSTINE F.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 864,
+          "value": 0
+        },
+        {
+          "date": "2026-04-20 00:00:00+00:00",
           "insider_name": "BRYANT DIANE M",
           "position": "Director",
           "transaction_type": "",
@@ -2649,14 +2657,6 @@
         {
           "date": "2026-04-20 00:00:00+00:00",
           "insider_name": "LOW CHECK KIAN",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 864,
-          "value": 0
-        },
-        {
-          "date": "2026-04-20 00:00:00+00:00",
-          "insider_name": "PAGE JUSTINE F.",
           "position": "Director",
           "transaction_type": "",
           "shares": 864,
@@ -2712,14 +2712,6 @@
         },
         {
           "date": "2026-04-08 00:00:00+00:00",
-          "insider_name": "KAWWAS CHARLIE B",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 10000,
-          "value": 3452270
-        },
-        {
-          "date": "2026-04-08 00:00:00+00:00",
           "insider_name": "PAGE JUSTINE F.",
           "position": "Director",
           "transaction_type": "",
@@ -2728,11 +2720,35 @@
         },
         {
           "date": "2026-04-08 00:00:00+00:00",
+          "insider_name": "KAWWAS CHARLIE B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 10000,
+          "value": 3452270
+        },
+        {
+          "date": "2026-04-08 00:00:00+00:00",
           "insider_name": "TAN HOCK E",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 22000,
           "value": 0
+        },
+        {
+          "date": "2026-03-17 00:00:00+00:00",
+          "insider_name": "VELAGA S. RAM",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 64379,
+          "value": 20819103
+        },
+        {
+          "date": "2026-03-17 00:00:00+00:00",
+          "insider_name": "SPEARS KIRSTEN MARGRETA",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 60154,
+          "value": 19452716
         },
         {
           "date": "2026-03-17 00:00:00+00:00",
@@ -2751,32 +2767,8 @@
           "value": 20966675
         },
         {
-          "date": "2026-03-17 00:00:00+00:00",
-          "insider_name": "SPEARS KIRSTEN MARGRETA",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 60154,
-          "value": 19452716
-        },
-        {
-          "date": "2026-03-17 00:00:00+00:00",
-          "insider_name": "VELAGA S. RAM",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 64379,
-          "value": 20819103
-        },
-        {
           "date": "2026-03-02 00:00:00+00:00",
           "insider_name": "VELAGA S. RAM",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 125000,
-          "value": 0
-        },
-        {
-          "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "KAWWAS CHARLIE B",
           "position": "Officer",
           "transaction_type": "",
           "shares": 125000,
@@ -2788,6 +2780,14 @@
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 110640,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "KAWWAS CHARLIE B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 125000,
           "value": 0
         },
         {
@@ -2856,6 +2856,14 @@
         },
         {
           "date": "2025-12-17 00:00:00+00:00",
+          "insider_name": "SPEARS KIRSTEN MARGRETA",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 6093,
+          "value": 2028440
+        },
+        {
+          "date": "2025-12-17 00:00:00+00:00",
           "insider_name": "BRAZEAL MARK DAVID",
           "position": "Officer",
           "transaction_type": "",
@@ -2869,14 +2877,6 @@
           "transaction_type": "",
           "shares": 3163,
           "value": 1053112
-        },
-        {
-          "date": "2025-12-17 00:00:00+00:00",
-          "insider_name": "SPEARS KIRSTEN MARGRETA",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 6093,
-          "value": 2028440
         },
         {
           "date": "2025-12-16 00:00:00+00:00",
@@ -3032,19 +3032,19 @@
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "DELLY GAYLA J",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 3000,
-          "value": 795390
-        },
-        {
-          "date": "2025-06-26 00:00:00+00:00",
           "insider_name": "TAN HOCK E",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 40000,
           "value": 10731720
+        },
+        {
+          "date": "2025-06-26 00:00:00+00:00",
+          "insider_name": "DELLY GAYLA J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3000,
+          "value": 795390
         },
         {
           "date": "2025-06-25 00:00:00+00:00",
@@ -3056,14 +3056,6 @@
         },
         {
           "date": "2025-06-25 00:00:00+00:00",
-          "insider_name": "SAMUELI HENRY",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 192024,
-          "value": 0
-        },
-        {
-          "date": "2025-06-25 00:00:00+00:00",
           "insider_name": "BRAZEAL MARK DAVID",
           "position": "Officer",
           "transaction_type": "",
@@ -3071,12 +3063,12 @@
           "value": 0
         },
         {
-          "date": "2025-06-24 00:00:00+00:00",
-          "insider_name": "BRAZEAL MARK DAVID",
-          "position": "Officer",
+          "date": "2025-06-25 00:00:00+00:00",
+          "insider_name": "SAMUELI HENRY",
+          "position": "Director",
           "transaction_type": "",
-          "shares": 50000,
-          "value": 13105050
+          "shares": 192024,
+          "value": 0
         },
         {
           "date": "2025-06-24 00:00:00+00:00",
@@ -3085,6 +3077,14 @@
           "transaction_type": "",
           "shares": 36350,
           "value": 9497128
+        },
+        {
+          "date": "2025-06-24 00:00:00+00:00",
+          "insider_name": "BRAZEAL MARK DAVID",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 50000,
+          "value": 13105050
         },
         {
           "date": "2025-06-24 00:00:00+00:00",
@@ -3152,6 +3152,14 @@
         },
         {
           "date": "2025-04-21 00:00:00+00:00",
+          "insider_name": "SAMUELI HENRY",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1602,
+          "value": 0
+        },
+        {
+          "date": "2025-04-21 00:00:00+00:00",
           "insider_name": "BRYANT DIANE M",
           "position": "Director",
           "transaction_type": "",
@@ -3169,14 +3177,6 @@
         {
           "date": "2025-04-21 00:00:00+00:00",
           "insider_name": "PAGE JUSTINE F.",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1602,
-          "value": 0
-        },
-        {
-          "date": "2025-04-21 00:00:00+00:00",
-          "insider_name": "SAMUELI HENRY",
           "position": "Director",
           "transaction_type": "",
           "shares": 1602,
@@ -3384,19 +3384,19 @@
         },
         {
           "date": "2024-10-11 00:00:00+00:00",
-          "insider_name": "BRAZEAL MARK DAVID",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 18900,
-          "value": 3429405
-        },
-        {
-          "date": "2024-10-11 00:00:00+00:00",
           "insider_name": "KAWWAS CHARLIE B",
           "position": "Officer",
           "transaction_type": "",
           "shares": 15950,
           "value": 2894048
+        },
+        {
+          "date": "2024-10-11 00:00:00+00:00",
+          "insider_name": "BRAZEAL MARK DAVID",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 18900,
+          "value": 3429405
         },
         {
           "date": "2024-10-09 00:00:00+00:00",
@@ -3475,15 +3475,15 @@
     "TSM": {
       "ticker": "TSM",
       "options": {
-        "put_call_ratio": 2.1975,
-        "avg_call_iv": 0.0427,
-        "avg_put_iv": 0.0475,
-        "iv_skew": 0.0048,
+        "put_call_ratio": 1.1277,
+        "avg_call_iv": 0.0567,
+        "avg_put_iv": 0.0676,
+        "iv_skew": 0.0109,
         "expiration": "2026-07-24",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.15539,
+        "held_percent_institutions": 0.15549,
         "top_holders": [
           {
             "holder": "FMR, LLC",
@@ -3546,7 +3546,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:04.012276+00:00"
+        "as_of_utc": "2026-07-22T12:30:04.630938+00:00"
       },
       "short_interest": {
         "shares_short": 27731361.0,
@@ -3592,15 +3592,15 @@
     "MU": {
       "ticker": "MU",
       "options": {
-        "put_call_ratio": 1.1129,
-        "avg_call_iv": 0.0857,
-        "avg_put_iv": 0.1075,
-        "iv_skew": 0.0218,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 1.0767,
+        "avg_call_iv": 0.0845,
+        "avg_put_iv": 0.1062,
+        "iv_skew": 0.0217,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.8222,
+        "held_percent_institutions": 0.83125,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -3663,7 +3663,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:04.616073+00:00"
+        "as_of_utc": "2026-07-22T12:30:05.149673+00:00"
       },
       "short_interest": {
         "shares_short": 31669690.0,
@@ -4661,15 +4661,15 @@
     "ASML": {
       "ticker": "ASML",
       "options": {
-        "put_call_ratio": 1.0619,
-        "avg_call_iv": 0.1078,
-        "avg_put_iv": 0.039,
-        "iv_skew": -0.0688,
+        "put_call_ratio": 0.9326,
+        "avg_call_iv": 0.0885,
+        "avg_put_iv": 0.0573,
+        "iv_skew": -0.0312,
         "expiration": "2026-07-24",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.20011,
+        "held_percent_institutions": 0.20198,
         "top_holders": [
           {
             "holder": "Fisher Asset Management, LLC",
@@ -4732,7 +4732,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T12:30:05.211499+00:00"
+        "as_of_utc": "2026-07-22T12:30:05.720456+00:00"
       },
       "short_interest": {
         "shares_short": 1132572.0,
@@ -4753,15 +4753,15 @@
     "ZION": {
       "ticker": "ZION",
       "options": {
-        "put_call_ratio": 4.6078,
-        "avg_call_iv": 0.3492,
-        "avg_put_iv": 0.3575,
-        "iv_skew": 0.0083,
+        "put_call_ratio": 4.0,
+        "avg_call_iv": 0.0182,
+        "avg_put_iv": 0.0234,
+        "iv_skew": 0.0052,
         "expiration": "2026-08-21",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.80910003,
+        "held_percent_institutions": 0.80928004,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -4824,7 +4824,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T23:49:28.528652+00:00"
+        "as_of_utc": "2026-07-22T12:30:06.703944+00:00"
       },
       "short_interest": {
         "shares_short": 6523045.0,
@@ -4836,7 +4836,7 @@
       },
       "analyst_trend": {
         "recent_upgrades": 0,
-        "recent_downgrades": 1,
+        "recent_downgrades": 2,
         "net_action": "downgrade",
         "suspect_fields": []
       },
@@ -5550,15 +5550,15 @@
     "KEY": {
       "ticker": "KEY",
       "options": {
-        "put_call_ratio": 0.5031,
-        "avg_call_iv": 0.3682,
-        "avg_put_iv": 0.3123,
-        "iv_skew": -0.0559,
+        "put_call_ratio": 1.631,
+        "avg_call_iv": 0.0258,
+        "avg_put_iv": 0.0188,
+        "iv_skew": -0.007,
         "expiration": "2026-08-21",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.88828003,
+        "held_percent_institutions": 0.88879997,
         "top_holders": [
           {
             "holder": "Bank of Nova Scotia",
@@ -5621,7 +5621,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T23:49:29.024179+00:00"
+        "as_of_utc": "2026-07-22T12:30:07.145834+00:00"
       },
       "short_interest": {
         "shares_short": 80407.0,
@@ -5912,18 +5912,18 @@
         },
         {
           "date": "2025-12-31 00:00:00+00:00",
-          "insider_name": "HAYES ROBIN",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 3174,
-          "value": NaN
-        },
-        {
-          "date": "2025-12-31 00:00:00+00:00",
           "insider_name": "GILE ELIZABETH R",
           "position": "Director",
           "transaction_type": "",
           "shares": 4319,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-31 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3174,
           "value": NaN
         },
         {
@@ -6264,18 +6264,18 @@
         },
         {
           "date": "2024-12-31 00:00:00+00:00",
-          "insider_name": "HAYES ROBIN",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 3029,
-          "value": NaN
-        },
-        {
-          "date": "2024-12-31 00:00:00+00:00",
           "insider_name": "GILE ELIZABETH R",
           "position": "Director",
           "transaction_type": "",
           "shares": 4114,
+          "value": NaN
+        },
+        {
+          "date": "2024-12-31 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3029,
           "value": NaN
         },
         {
@@ -6304,19 +6304,19 @@
         },
         {
           "date": "2024-11-06 00:00:00+00:00",
-          "insider_name": "MAGO ANGELA G",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 15011,
-          "value": 211805.0
-        },
-        {
-          "date": "2024-11-06 00:00:00+00:00",
           "insider_name": "PAINE ANDREW J III",
           "position": "Officer",
           "transaction_type": "",
           "shares": 66362,
           "value": 773468.0
+        },
+        {
+          "date": "2024-11-06 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15011,
+          "value": 211805.0
         },
         {
           "date": "2024-11-05 00:00:00+00:00",
@@ -6355,15 +6355,15 @@
     "HBAN": {
       "ticker": "HBAN",
       "options": {
-        "put_call_ratio": 0.2887,
-        "avg_call_iv": 0.3412,
-        "avg_put_iv": 0.3093,
-        "iv_skew": -0.0319,
+        "put_call_ratio": 1.4556,
+        "avg_call_iv": 0.0208,
+        "avg_put_iv": 0.0261,
+        "iv_skew": 0.0053,
         "expiration": "2026-08-21",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.89302003,
+        "held_percent_institutions": 0.89289004,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -6426,7 +6426,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T23:49:29.616155+00:00"
+        "as_of_utc": "2026-07-22T12:30:07.597764+00:00"
       },
       "short_interest": {
         "shares_short": 66239826.0,
@@ -6469,10 +6469,10 @@
         },
         {
           "date": "2026-07-01 00:00:00+00:00",
-          "insider_name": "KOWALSKI KENDALL A",
-          "position": "Chief Technology Officer",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 652,
+          "shares": 171,
           "value": 0
         },
         {
@@ -6489,6 +6489,14 @@
           "position": "Director",
           "transaction_type": "",
           "shares": 570,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 896,
           "value": 0
         },
         {
@@ -6517,18 +6525,10 @@
         },
         {
           "date": "2026-07-01 00:00:00+00:00",
-          "insider_name": "WHITE DONNELL R",
-          "position": "Officer",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 171,
-          "value": 0
-        },
-        {
-          "date": "2026-07-01 00:00:00+00:00",
-          "insider_name": "KLINE KATHERINE M. A.",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 896,
+          "shares": 652,
           "value": 0
         },
         {
@@ -6845,10 +6845,10 @@
         },
         {
           "date": "2026-04-01 00:00:00+00:00",
-          "insider_name": "KOWALSKI KENDALL A",
-          "position": "Chief Technology Officer",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 737,
+          "shares": 193,
           "value": 0
         },
         {
@@ -6865,6 +6865,14 @@
           "position": "Director",
           "transaction_type": "",
           "shares": 553,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 922,
           "value": 0
         },
         {
@@ -6893,18 +6901,10 @@
         },
         {
           "date": "2026-04-01 00:00:00+00:00",
-          "insider_name": "WHITE DONNELL R",
-          "position": "Officer",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 193,
-          "value": 0
-        },
-        {
-          "date": "2026-04-01 00:00:00+00:00",
-          "insider_name": "KLINE KATHERINE M. A.",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 922,
+          "shares": 737,
           "value": 0
         },
         {
@@ -7045,14 +7045,6 @@
         },
         {
           "date": "2026-03-09 00:00:00+00:00",
-          "insider_name": "KOWALSKI KENDALL A",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 21816,
-          "value": 0
-        },
-        {
-          "date": "2026-03-09 00:00:00+00:00",
           "insider_name": "KLEINMAN SCOTT D",
           "position": "Officer",
           "transaction_type": "",
@@ -7065,6 +7057,14 @@
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 131430,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 21816,
           "value": 0
         },
         {
@@ -7141,10 +7141,10 @@
         },
         {
           "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "KOWALSKI KENDALL A",
-          "position": "Chief Technology Officer",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 21213,
+          "shares": 3977,
           "value": 0
         },
         {
@@ -7181,10 +7181,10 @@
         },
         {
           "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "WHITE DONNELL R",
-          "position": "Officer",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 3977,
+          "shares": 21213,
           "value": 0
         },
         {
@@ -7429,10 +7429,10 @@
         },
         {
           "date": "2026-01-02 00:00:00+00:00",
-          "insider_name": "KOWALSKI KENDALL A",
-          "position": "Chief Technology Officer",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 645,
+          "shares": 164,
           "value": 0
         },
         {
@@ -7453,6 +7453,14 @@
         },
         {
           "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 831,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
           "insider_name": "WASSERMAN ZACHARY JACOB",
           "position": "Chief Financial Officer",
           "transaction_type": "",
@@ -7461,18 +7469,10 @@
         },
         {
           "date": "2026-01-02 00:00:00+00:00",
-          "insider_name": "WHITE DONNELL R",
-          "position": "Officer",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 164,
-          "value": 0
-        },
-        {
-          "date": "2026-01-02 00:00:00+00:00",
-          "insider_name": "KLINE KATHERINE M. A.",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 831,
+          "shares": 645,
           "value": 0
         },
         {
@@ -7648,15 +7648,15 @@
     "RF": {
       "ticker": "RF",
       "options": {
-        "put_call_ratio": 0.2911,
-        "avg_call_iv": 0.3421,
-        "avg_put_iv": 0.2942,
-        "iv_skew": -0.0479,
+        "put_call_ratio": 0.9077,
+        "avg_call_iv": 0.0169,
+        "avg_put_iv": 0.0261,
+        "iv_skew": 0.0092,
         "expiration": "2026-08-21",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.86236,
+        "held_percent_institutions": 0.86300004,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -7719,7 +7719,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T23:49:30.203388+00:00"
+        "as_of_utc": "2026-07-22T12:30:08.049457+00:00"
       },
       "short_interest": {
         "shares_short": 53908954.0,
@@ -7866,6 +7866,22 @@
         },
         {
           "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7967,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "CHADHA ANIL D.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 3983,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
           "insider_name": "DANELLA KATHERINE R",
           "position": "Officer",
           "transaction_type": "",
@@ -7894,22 +7910,6 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 23902,
-          "value": NaN
-        },
-        {
-          "date": "2026-04-02 00:00:00+00:00",
-          "insider_name": "WILLMAN BRIAN R",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 7967,
-          "value": NaN
-        },
-        {
-          "date": "2026-04-02 00:00:00+00:00",
-          "insider_name": "CHADHA ANIL D.",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 3983,
           "value": NaN
         },
         {
@@ -8114,6 +8114,14 @@
         },
         {
           "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6700,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
           "insider_name": "DANELLA KATHERINE R",
           "position": "Officer",
           "transaction_type": "",
@@ -8134,14 +8142,6 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 1674,
-          "value": NaN
-        },
-        {
-          "date": "2025-04-01 00:00:00+00:00",
-          "insider_name": "WILLMAN BRIAN R",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 6700,
           "value": NaN
         },
         {
@@ -8237,15 +8237,15 @@
     "FITB": {
       "ticker": "FITB",
       "options": {
-        "put_call_ratio": 11.1206,
-        "avg_call_iv": 0.32,
-        "avg_put_iv": 0.2952,
-        "iv_skew": -0.0248,
+        "put_call_ratio": 10.7084,
+        "avg_call_iv": 0.0156,
+        "avg_put_iv": 0.0156,
+        "iv_skew": 0.0,
         "expiration": "2026-08-21",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.91511,
+        "held_percent_institutions": 0.91490996,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -8308,7 +8308,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-20T23:49:30.698870+00:00"
+        "as_of_utc": "2026-07-22T12:30:08.497113+00:00"
       },
       "short_interest": {
         "shares_short": 75912.0,
@@ -9104,20 +9104,20 @@
       ]
     }
   },
-  "previous_updated": "2026-07-20T12:30:05.295814+00:00",
+  "previous_updated": "2026-07-22T12:30:05.849185+00:00",
   "previous_tickers": {
     "NVDA": {
       "ticker": "NVDA",
       "options": {
-        "put_call_ratio": 0.5461,
-        "avg_call_iv": 0.5538,
-        "avg_put_iv": 0.5672,
-        "iv_skew": 0.0134,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 0.7142,
+        "avg_call_iv": 0.0762,
+        "avg_put_iv": 0.0752,
+        "iv_skew": -0.001,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.71224,
+        "held_percent_institutions": 0.71229,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -9180,7 +9180,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:50.781187+00:00"
+        "as_of_utc": "2026-07-21T12:30:02.895338+00:00"
       },
       "short_interest": {
         "shares_short": 310126785.0,
@@ -10402,15 +10402,15 @@
     "AMD": {
       "ticker": "AMD",
       "options": {
-        "put_call_ratio": 0.7039,
-        "avg_call_iv": 0.7965,
-        "avg_put_iv": 0.7909,
-        "iv_skew": -0.0056,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 1.0136,
+        "avg_call_iv": 0.0721,
+        "avg_put_iv": 0.0752,
+        "iv_skew": 0.0031,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.73278,
+        "held_percent_institutions": 0.73291,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -10473,7 +10473,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:51.394654+00:00"
+        "as_of_utc": "2026-07-21T12:30:03.486356+00:00"
       },
       "short_interest": {
         "shares_short": 41583210.0,
@@ -10491,6 +10491,22 @@
       },
       "insider_transactions": [
         {
+          "date": "2026-07-15 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 6000,
+          "value": 3338580.0
+        },
+        {
+          "date": "2026-07-15 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 6000,
+          "value": 509100.0
+        },
+        {
           "date": "2026-06-15 00:00:00+00:00",
           "insider_name": "PAPERMASTER MARK D",
           "position": "Chief Technology Officer",
@@ -10500,19 +10516,19 @@
         },
         {
           "date": "2026-06-15 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 6000,
-          "value": 509100.0
-        },
-        {
-          "date": "2026-06-15 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
           "transaction_type": "",
           "shares": 7495,
           "value": NaN
+        },
+        {
+          "date": "2026-06-15 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 6000,
+          "value": 509100.0
         },
         {
           "date": "2026-06-12 00:00:00+00:00",
@@ -10556,7 +10572,7 @@
         },
         {
           "date": "2026-05-14 00:00:00+00:00",
-          "insider_name": "DENZEL NORA M",
+          "insider_name": "VANDERSLICE ELIZABETH W",
           "position": "Director",
           "transaction_type": "",
           "shares": 2613,
@@ -10572,7 +10588,7 @@
         },
         {
           "date": "2026-05-14 00:00:00+00:00",
-          "insider_name": "VANDERSLICE ELIZABETH W",
+          "insider_name": "DENZEL NORA M",
           "position": "Director",
           "transaction_type": "",
           "shares": 2613,
@@ -10660,18 +10676,18 @@
         },
         {
           "date": "2026-02-27 00:00:00+00:00",
-          "insider_name": "HU JEAN X",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 131942,
-          "value": NaN
-        },
-        {
-          "date": "2026-02-27 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
           "transaction_type": "",
           "shares": 44964,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-27 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 131942,
           "value": NaN
         },
         {
@@ -10700,22 +10716,6 @@
         },
         {
           "date": "2026-02-13 00:00:00+00:00",
-          "insider_name": "HU JEAN X",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 30788,
-          "value": NaN
-        },
-        {
-          "date": "2026-02-13 00:00:00+00:00",
-          "insider_name": "HAHN AVA M",
-          "position": "General Counsel",
-          "transaction_type": "",
-          "shares": 2268,
-          "value": NaN
-        },
-        {
-          "date": "2026-02-13 00:00:00+00:00",
           "insider_name": "GRASBY PAUL DARREN",
           "position": "Officer",
           "transaction_type": "",
@@ -10736,6 +10736,22 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 76966,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-13 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 30788,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-13 00:00:00+00:00",
+          "insider_name": "HAHN AVA M",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 2268,
           "value": NaN
         },
         {
@@ -10964,22 +10980,6 @@
         },
         {
           "date": "2025-08-15 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 125663,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-15 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 58875,
-          "value": 574392.0
-        },
-        {
-          "date": "2025-08-15 00:00:00+00:00",
           "insider_name": "GRASBY PAUL DARREN",
           "position": "Officer",
           "transaction_type": "",
@@ -11003,6 +11003,22 @@
           "value": NaN
         },
         {
+          "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 125663,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 58875,
+          "value": 574392.0
+        },
+        {
           "date": "2025-08-13 00:00:00+00:00",
           "insider_name": "OLSON JON A",
           "position": "Director",
@@ -11017,38 +11033,6 @@
           "transaction_type": "",
           "shares": 10000,
           "value": 1732100.0
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 16221,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 12633,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "HU JEAN X",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 5893,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "HAHN AVA M",
-          "position": "General Counsel",
-          "transaction_type": "",
-          "shares": 1133,
-          "value": NaN
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
@@ -11083,6 +11067,38 @@
           "value": NaN
         },
         {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 16221,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 5893,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 12633,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "HAHN AVA M",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 1133,
+          "value": NaN
+        },
+        {
           "date": "2025-07-15 00:00:00+00:00",
           "insider_name": "PAPERMASTER MARK D",
           "position": "Chief Technology Officer",
@@ -11108,19 +11124,19 @@
         },
         {
           "date": "2025-06-13 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 17500,
-          "value": 334250.0
-        },
-        {
-          "date": "2025-06-13 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
           "transaction_type": "",
           "shares": 7494,
           "value": NaN
+        },
+        {
+          "date": "2025-06-13 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 17500,
+          "value": 334250.0
         },
         {
           "date": "2025-06-12 00:00:00+00:00",
@@ -11156,22 +11172,6 @@
         },
         {
           "date": "2025-05-08 00:00:00+00:00",
-          "insider_name": "DENZEL NORA M",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1547,
-          "value": NaN
-        },
-        {
-          "date": "2025-05-08 00:00:00+00:00",
-          "insider_name": "HOUSEHOLDER JOSEPH A",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1547,
-          "value": NaN
-        },
-        {
-          "date": "2025-05-08 00:00:00+00:00",
           "insider_name": "VANDERSLICE ELIZABETH W",
           "position": "Director",
           "transaction_type": "",
@@ -11189,6 +11189,22 @@
         {
           "date": "2025-05-08 00:00:00+00:00",
           "insider_name": "OLSON JON A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1547,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-08 00:00:00+00:00",
+          "insider_name": "HOUSEHOLDER JOSEPH A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1547,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-08 00:00:00+00:00",
+          "insider_name": "DENZEL NORA M",
           "position": "Director",
           "transaction_type": "",
           "shares": 1547,
@@ -11252,30 +11268,6 @@
         },
         {
           "date": "2025-02-14 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 17500,
-          "value": 334250.0
-        },
-        {
-          "date": "2025-02-14 00:00:00+00:00",
-          "insider_name": "HU JEAN X",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 30786,
-          "value": NaN
-        },
-        {
-          "date": "2025-02-14 00:00:00+00:00",
-          "insider_name": "HAHN AVA M",
-          "position": "General Counsel",
-          "transaction_type": "",
-          "shares": 2267,
-          "value": NaN
-        },
-        {
-          "date": "2025-02-14 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
@@ -11291,6 +11283,30 @@
           "value": NaN
         },
         {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 30786,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 17500,
+          "value": 334250.0
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "HAHN AVA M",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 2267,
+          "value": NaN
+        },
+        {
           "date": "2025-02-07 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
@@ -11300,18 +11316,18 @@
         },
         {
           "date": "2025-01-15 00:00:00+00:00",
-          "insider_name": "HAHN AVA M",
-          "position": "General Counsel",
-          "transaction_type": "",
-          "shares": 12095,
-          "value": NaN
-        },
-        {
-          "date": "2025-01-15 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
           "shares": 1773,
+          "value": NaN
+        },
+        {
+          "date": "2025-01-15 00:00:00+00:00",
+          "insider_name": "HAHN AVA M",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 12095,
           "value": NaN
         },
         {
@@ -11428,22 +11444,6 @@
         },
         {
           "date": "2024-08-15 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 191928,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-15 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 60032,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-15 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
@@ -11459,11 +11459,51 @@
           "value": NaN
         },
         {
-          "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "PENG VICTOR",
-          "position": "President",
+          "date": "2024-08-15 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
           "transaction_type": "",
-          "shares": 10921,
+          "shares": 191928,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-15 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 60032,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-09 00:00:00+00:00",
+          "insider_name": "HUYNH JACK M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6544,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-09 00:00:00+00:00",
+          "insider_name": "GUIDO PHILIP",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2642,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-09 00:00:00+00:00",
+          "insider_name": "SMITH DARLA M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2793,
+          "value": NaN
+        },
+        {
+          "date": "2024-08-09 00:00:00+00:00",
+          "insider_name": "NORROD FORREST EUGENE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 9297,
           "value": NaN
         },
         {
@@ -11492,34 +11532,10 @@
         },
         {
           "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "HUYNH JACK M",
-          "position": "Officer",
+          "insider_name": "PENG VICTOR",
+          "position": "President",
           "transaction_type": "",
-          "shares": 6544,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "SMITH DARLA M",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 2793,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "GUIDO PHILIP",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 2642,
-          "value": NaN
-        },
-        {
-          "date": "2024-08-09 00:00:00+00:00",
-          "insider_name": "NORROD FORREST EUGENE",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 9297,
+          "shares": 10921,
           "value": NaN
         },
         {
@@ -11543,15 +11559,15 @@
     "AVGO": {
       "ticker": "AVGO",
       "options": {
-        "put_call_ratio": 0.7912,
-        "avg_call_iv": 0.5808,
-        "avg_put_iv": 0.6293,
-        "iv_skew": 0.0485,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 0.6055,
+        "avg_call_iv": 0.0766,
+        "avg_put_iv": 0.0763,
+        "iv_skew": -0.0003,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.80191004,
+        "held_percent_institutions": 0.80202,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -11614,7 +11630,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:51.985939+00:00"
+        "as_of_utc": "2026-07-21T12:30:04.062961+00:00"
       },
       "short_interest": {
         "shares_short": 70123497.0,
@@ -11638,6 +11654,14 @@
           "transaction_type": "",
           "shares": 25000,
           "value": 10033225
+        },
+        {
+          "date": "2026-07-10 00:00:00+00:00",
+          "insider_name": "DELLY GAYLA J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 500,
+          "value": 0
         },
         {
           "date": "2026-07-08 00:00:00+00:00",
@@ -11721,6 +11745,14 @@
         },
         {
           "date": "2026-04-20 00:00:00+00:00",
+          "insider_name": "BRYANT DIANE M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 864,
+          "value": 0
+        },
+        {
+          "date": "2026-04-20 00:00:00+00:00",
           "insider_name": "LOW CHECK KIAN",
           "position": "Director",
           "transaction_type": "",
@@ -11754,14 +11786,6 @@
         {
           "date": "2026-04-20 00:00:00+00:00",
           "insider_name": "YOU HARRY L",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 864,
-          "value": 0
-        },
-        {
-          "date": "2026-04-20 00:00:00+00:00",
-          "insider_name": "BRYANT DIANE M",
           "position": "Director",
           "transaction_type": "",
           "shares": 864,
@@ -12233,6 +12257,14 @@
         },
         {
           "date": "2025-04-21 00:00:00+00:00",
+          "insider_name": "BRYANT DIANE M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1602,
+          "value": 0
+        },
+        {
+          "date": "2025-04-21 00:00:00+00:00",
           "insider_name": "LOW CHECK KIAN",
           "position": "Director",
           "transaction_type": "",
@@ -12274,14 +12306,6 @@
         {
           "date": "2025-04-21 00:00:00+00:00",
           "insider_name": "YOU HARRY L",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1602,
-          "value": 0
-        },
-        {
-          "date": "2025-04-21 00:00:00+00:00",
-          "insider_name": "BRYANT DIANE M",
           "position": "Director",
           "transaction_type": "",
           "shares": 1602,
@@ -12465,19 +12489,19 @@
         },
         {
           "date": "2024-10-11 00:00:00+00:00",
-          "insider_name": "KAWWAS CHARLIE B",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 15950,
-          "value": 2894048
-        },
-        {
-          "date": "2024-10-11 00:00:00+00:00",
           "insider_name": "BRAZEAL MARK DAVID",
           "position": "Officer",
           "transaction_type": "",
           "shares": 18900,
           "value": 3429405
+        },
+        {
+          "date": "2024-10-11 00:00:00+00:00",
+          "insider_name": "KAWWAS CHARLIE B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15950,
+          "value": 2894048
         },
         {
           "date": "2024-10-09 00:00:00+00:00",
@@ -12556,15 +12580,15 @@
     "TSM": {
       "ticker": "TSM",
       "options": {
-        "put_call_ratio": 2.2023,
-        "avg_call_iv": 0.6269,
-        "avg_put_iv": 0.6462,
-        "iv_skew": 0.0193,
+        "put_call_ratio": 1.1021,
+        "avg_call_iv": 0.0536,
+        "avg_put_iv": 0.0573,
+        "iv_skew": 0.0037,
         "expiration": "2026-07-24",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.15539,
+        "held_percent_institutions": 0.15553,
         "top_holders": [
           {
             "holder": "FMR, LLC",
@@ -12627,7 +12651,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:52.611663+00:00"
+        "as_of_utc": "2026-07-21T12:30:04.619639+00:00"
       },
       "short_interest": {
         "shares_short": 27731361.0,
@@ -12673,15 +12697,15 @@
     "MU": {
       "ticker": "MU",
       "options": {
-        "put_call_ratio": 1.1148,
-        "avg_call_iv": 1.0221,
-        "avg_put_iv": 0.962,
-        "iv_skew": -0.0601,
-        "expiration": "2026-07-20",
+        "put_call_ratio": 1.1713,
+        "avg_call_iv": 0.0731,
+        "avg_put_iv": 0.0746,
+        "iv_skew": 0.0015,
+        "expiration": "2026-07-22",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.8222,
+        "held_percent_institutions": 0.8223,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -12744,7 +12768,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:53.116211+00:00"
+        "as_of_utc": "2026-07-21T12:30:05.145384+00:00"
       },
       "short_interest": {
         "shares_short": 31669690.0,
@@ -13742,15 +13766,15 @@
     "ASML": {
       "ticker": "ASML",
       "options": {
-        "put_call_ratio": 0.9283,
-        "avg_call_iv": 0.7386,
-        "avg_put_iv": 0.6736,
-        "iv_skew": -0.065,
+        "put_call_ratio": 1.5857,
+        "avg_call_iv": 0.1237,
+        "avg_put_iv": 0.0442,
+        "iv_skew": -0.0795,
         "expiration": "2026-07-24",
         "suspect_fields": []
       },
       "institutional": {
-        "held_percent_institutions": 0.20011,
+        "held_percent_institutions": 0.20064,
         "top_holders": [
           {
             "holder": "Fisher Asset Management, LLC",
@@ -13813,7 +13837,7 @@
             "date_reported": "2026-03-31 00:00:00"
           }
         ],
-        "as_of_utc": "2026-07-19T04:36:53.687599+00:00"
+        "as_of_utc": "2026-07-21T12:30:05.711813+00:00"
       },
       "short_interest": {
         "shares_short": 1132572.0,
@@ -13830,19 +13854,4372 @@
         "suspect_fields": []
       },
       "insider_transactions": []
+    },
+    "ZION": {
+      "ticker": "ZION",
+      "options": {
+        "put_call_ratio": 4.6078,
+        "avg_call_iv": 0.0169,
+        "avg_put_iv": 0.0313,
+        "iv_skew": 0.0144,
+        "expiration": "2026-08-21",
+        "suspect_fields": []
+      },
+      "institutional": {
+        "held_percent_institutions": 0.80928004,
+        "top_holders": [
+          {
+            "holder": "Blackrock Inc.",
+            "shares": 14020532,
+            "pct_out": 0.0953,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Portfolio Management LLC",
+            "shares": 10855578,
+            "pct_out": 0.0738,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Dimensional Fund Advisors LP",
+            "shares": 7477126,
+            "pct_out": 0.0508,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Capital Management LLC",
+            "shares": 6598287,
+            "pct_out": 0.044899996,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "State Street Corporation",
+            "shares": 5883024,
+            "pct_out": 0.04,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "LSV Asset Management",
+            "shares": 3910279,
+            "pct_out": 0.026600001,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Morgan Stanley",
+            "shares": 3059666,
+            "pct_out": 0.0208,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Geode Capital Management, LLC",
+            "shares": 3033897,
+            "pct_out": 0.020599999,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Fiduciary Management, Inc.",
+            "shares": 2787957,
+            "pct_out": 0.019,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Fuller & Thaler Asset Management Inc.",
+            "shares": 2594137,
+            "pct_out": 0.0176,
+            "date_reported": "2026-03-31 00:00:00"
+          }
+        ],
+        "as_of_utc": "2026-07-21T12:30:06.766962+00:00"
+      },
+      "short_interest": {
+        "shares_short": 6523045.0,
+        "shares_short_prior_month": 6377018.0,
+        "short_ratio": 3.66,
+        "short_percent_of_float": 0.0519,
+        "trend": "flat",
+        "suspect_fields": []
+      },
+      "analyst_trend": {
+        "recent_upgrades": 0,
+        "recent_downgrades": 1,
+        "net_action": "downgrade",
+        "suspect_fields": []
+      },
+      "insider_transactions": [
+        {
+          "date": "2026-05-08 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4209,
+          "value": 263072.0
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2004,
+          "value": 106012.0
+        },
+        {
+          "date": "2026-05-04 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 550,
+          "value": 34628.0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "YASTINE BARBARA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2055,
+          "value": 129999.0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "MURPHY EDWARD F",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2055,
+          "value": 129999.0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "CONTRERAS-SWEET MARIA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2055,
+          "value": 129999.0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "LAW SCOTT A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1974,
+          "value": 85020.0
+        },
+        {
+          "date": "2026-02-24 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 4500,
+          "value": 265635.0
+        },
+        {
+          "date": "2026-02-20 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 214,
+          "value": 0.0
+        },
+        {
+          "date": "2026-02-20 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 190,
+          "value": 11736.0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2089,
+          "value": 130521.0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2089,
+          "value": 110508.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8213,
+          "value": 494340.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "LAW SCOTT A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3921,
+          "value": 236005.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6503,
+          "value": 391416.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4278,
+          "value": 257493.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "KYRIAKAKIS CHRISTOPHER",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 10917,
+          "value": 657094.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 3837,
+          "value": 230949.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2242,
+          "value": 134946.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "CALLISTER NATHAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6803,
+          "value": 409473.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 15973,
+          "value": 961415.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5805,
+          "value": 349403.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 37557,
+          "value": 2260556.0
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6440,
+          "value": 387624.0
+        },
+        {
+          "date": "2026-02-06 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15476,
+          "value": 1019925.0
+        },
+        {
+          "date": "2026-02-06 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6558,
+          "value": 424958.0
+        },
+        {
+          "date": "2026-02-06 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13582,
+          "value": 657968.0
+        },
+        {
+          "date": "2026-02-04 00:00:00+00:00",
+          "insider_name": "LAW SCOTT A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 913,
+          "value": 46718.0
+        },
+        {
+          "date": "2026-02-04 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 30504,
+          "value": 1560890.0
+        },
+        {
+          "date": "2026-02-03 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 998,
+          "value": 47086.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 28980,
+          "value": 1771993.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1519,
+          "value": 93062.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 769,
+          "value": 46494.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1519,
+          "value": 77727.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 769,
+          "value": 39350.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 33125,
+          "value": 1587339.0
+        },
+        {
+          "date": "2025-12-30 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3320,
+          "value": 0.0
+        },
+        {
+          "date": "2025-12-30 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2351,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-23 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 23031,
+          "value": 0.0
+        },
+        {
+          "date": "2025-12-23 00:00:00+00:00",
+          "insider_name": "BURDISS PAUL E",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 4698,
+          "value": 0.0
+        },
+        {
+          "date": "2025-10-27 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1878,
+          "value": 0.0
+        },
+        {
+          "date": "2025-10-27 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2457,
+          "value": 130519.0
+        },
+        {
+          "date": "2025-08-22 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 385,
+          "value": 19700.0
+        },
+        {
+          "date": "2025-08-05 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 4500,
+          "value": 235556.0
+        },
+        {
+          "date": "2025-08-04 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 11200,
+          "value": 0.0
+        },
+        {
+          "date": "2025-07-30 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 5900,
+          "value": 0.0
+        },
+        {
+          "date": "2025-05-28 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 294,
+          "value": 13906.0
+        },
+        {
+          "date": "2025-05-02 00:00:00+00:00",
+          "insider_name": "YASTINE BARBARA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2789,
+          "value": 129995.0
+        },
+        {
+          "date": "2025-05-02 00:00:00+00:00",
+          "insider_name": "MURPHY EDWARD F",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2789,
+          "value": 129995.0
+        },
+        {
+          "date": "2025-05-02 00:00:00+00:00",
+          "insider_name": "CONTRERAS-SWEET MARIA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2789,
+          "value": 129995.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 316,
+          "value": 15636.0
+        },
+        {
+          "date": "2025-02-18 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 22673,
+          "value": 1280276.0
+        },
+        {
+          "date": "2025-02-18 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 22673,
+          "value": 1111403.0
+        },
+        {
+          "date": "2025-02-18 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 23424,
+          "value": 1200012.0
+        },
+        {
+          "date": "2025-02-12 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 10000,
+          "value": 557120.0
+        },
+        {
+          "date": "2025-02-12 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 4966,
+          "value": 276507.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "RICHARDS ROBERT RYAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 10351,
+          "value": 579967.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "LAW SCOTT A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4090,
+          "value": 229163.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 6783,
+          "value": 380051.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6246,
+          "value": 349963.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "KYRIAKAKIS CHRISTOPHER",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13171,
+          "value": 737971.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 3676,
+          "value": 205966.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2320,
+          "value": 129990.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 16659,
+          "value": 933404.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "BURDISS PAUL E",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 12652,
+          "value": 708892.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6055,
+          "value": 339262.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 38166,
+          "value": 2138441.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6717,
+          "value": 376354.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 40,
+          "value": 2241.0
+        },
+        {
+          "date": "2025-01-31 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 627,
+          "value": 34911.0
+        },
+        {
+          "date": "2024-12-23 00:00:00+00:00",
+          "insider_name": "SIMMONS HARRIS H",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 2648,
+          "value": 0.0
+        },
+        {
+          "date": "2024-12-17 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 388,
+          "value": 23249.0
+        },
+        {
+          "date": "2024-12-17 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 890,
+          "value": 53329.0
+        },
+        {
+          "date": "2024-12-17 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 116,
+          "value": 6951.0
+        },
+        {
+          "date": "2024-11-26 00:00:00+00:00",
+          "insider_name": "BURDISS PAUL E",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 9506,
+          "value": 580434.0
+        },
+        {
+          "date": "2024-11-26 00:00:00+00:00",
+          "insider_name": "BURDISS PAUL E",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 9506,
+          "value": 529294.0
+        },
+        {
+          "date": "2024-11-25 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 672,
+          "value": 32616.0
+        },
+        {
+          "date": "2024-11-21 00:00:00+00:00",
+          "insider_name": "ARBUCKLE JASON D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 147,
+          "value": 8700.0
+        },
+        {
+          "date": "2024-11-15 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 313,
+          "value": 18505.0
+        },
+        {
+          "date": "2024-11-15 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 313,
+          "value": 17428.0
+        },
+        {
+          "date": "2024-11-11 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1238,
+          "value": 75316.0
+        },
+        {
+          "date": "2024-11-11 00:00:00+00:00",
+          "insider_name": "ELLINGSEN ERIC",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1238,
+          "value": 68932.0
+        },
+        {
+          "date": "2024-11-08 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3605,
+          "value": 209298.0
+        },
+        {
+          "date": "2024-11-08 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3605,
+          "value": 200726.0
+        },
+        {
+          "date": "2024-10-30 00:00:00+00:00",
+          "insider_name": "SMITH JENNIFER ANNE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4385,
+          "value": 234427.0
+        },
+        {
+          "date": "2024-07-29 00:00:00+00:00",
+          "insider_name": "ALEXANDER BRUCE K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5156,
+          "value": 267257.0
+        },
+        {
+          "date": "2024-07-26 00:00:00+00:00",
+          "insider_name": "SHIREY TERRANCE ALAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1917,
+          "value": 99262.0
+        },
+        {
+          "date": "2024-07-26 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 120000,
+          "value": 6220788.0
+        }
+      ]
+    },
+    "KEY": {
+      "ticker": "KEY",
+      "options": {
+        "put_call_ratio": 0.5031,
+        "avg_call_iv": 0.0188,
+        "avg_put_iv": 0.0406,
+        "iv_skew": 0.0218,
+        "expiration": "2026-08-21",
+        "suspect_fields": []
+      },
+      "institutional": {
+        "held_percent_institutions": 0.88871,
+        "top_holders": [
+          {
+            "holder": "Bank of Nova Scotia",
+            "shares": 162996326,
+            "pct_out": 0.15100001,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Blackrock Inc.",
+            "shares": 88722677,
+            "pct_out": 0.082200006,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Capital Management LLC",
+            "shares": 65881386,
+            "pct_out": 0.061,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Portfolio Management LLC",
+            "shares": 51485072,
+            "pct_out": 0.0477,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "State Street Corporation",
+            "shares": 47130435,
+            "pct_out": 0.0437,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "FMR, LLC",
+            "shares": 46734944,
+            "pct_out": 0.0433,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Geode Capital Management, LLC",
+            "shares": 25425295,
+            "pct_out": 0.023599999,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Invesco Ltd.",
+            "shares": 19235463,
+            "pct_out": 0.0178,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Wellington Management Group, LLP",
+            "shares": 17164007,
+            "pct_out": 0.0159,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Price (T.Rowe) Associates Inc",
+            "shares": 16693424,
+            "pct_out": 0.0155,
+            "date_reported": "2026-03-31 00:00:00"
+          }
+        ],
+        "as_of_utc": "2026-07-21T12:30:07.204516+00:00"
+      },
+      "short_interest": {
+        "shares_short": 80407.0,
+        "shares_short_prior_month": 25642.0,
+        "short_ratio": 0.01,
+        "short_percent_of_float": 0.0001,
+        "trend": "increasing",
+        "suspect_fields": []
+      },
+      "analyst_trend": {
+        "recent_upgrades": 0,
+        "recent_downgrades": 0,
+        "net_action": "none",
+        "suspect_fields": []
+      },
+      "insider_transactions": [
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "CUTLER ALEXANDER M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 26893,
+          "value": NaN
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "VASOS TODD JOSEPH",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 27385,
+          "value": NaN
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 21694,
+          "value": NaN
+        },
+        {
+          "date": "2026-06-03 00:00:00+00:00",
+          "insider_name": "GILE ELIZABETH R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 23946,
+          "value": 499992.0
+        },
+        {
+          "date": "2026-05-11 00:00:00+00:00",
+          "insider_name": "HIPPLE RICHARD J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 18118,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-11 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 18118,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-11 00:00:00+00:00",
+          "insider_name": "DALLAS HIRAM JAMES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 18118,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-11 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 18118,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-11 00:00:00+00:00",
+          "insider_name": "HIGHSMITH CARLTON LEE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 18118,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-08 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 22826,
+          "value": 494411.0
+        },
+        {
+          "date": "2026-05-08 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 22826,
+          "value": 432781.0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2917,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "WATERS JAMES L",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 24205,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 44557,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "GAVRITY KENNETH C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21702,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "KIDIK ALLYSON M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4957,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "GILBERT STACY L.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4279,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "RAMANI MOHIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5767,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 32561,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "ALEXANDER VICTOR B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 23132,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 27806,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "EVANS KATRINA M.",
+          "position": "Officer and Director",
+          "transaction_type": "",
+          "shares": 13094,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "KHAYAT CLARK H",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 26845,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 130037,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-06 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 65961,
+          "value": 1532274.0
+        },
+        {
+          "date": "2026-01-29 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 62850,
+          "value": 1354418.0
+        },
+        {
+          "date": "2026-01-29 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 62850,
+          "value": 659296.0
+        },
+        {
+          "date": "2026-01-23 00:00:00+00:00",
+          "insider_name": "RAMANI MOHIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 61483,
+          "value": NaN
+        },
+        {
+          "date": "2026-01-23 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 738,
+          "value": NaN
+        },
+        {
+          "date": "2026-01-22 00:00:00+00:00",
+          "insider_name": "EVANS KATRINA M.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 32695,
+          "value": 710789.0
+        },
+        {
+          "date": "2026-01-22 00:00:00+00:00",
+          "insider_name": "EVANS KATRINA M.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8695,
+          "value": 164857.0
+        },
+        {
+          "date": "2026-01-21 00:00:00+00:00",
+          "insider_name": "ALEXANDER VICTOR B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 9345,
+          "value": 98029.0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "WILSON DAVID K",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10338,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-31 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2903,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-31 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3174,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-31 00:00:00+00:00",
+          "insider_name": "GILE ELIZABETH R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4319,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-10 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 12500,
+          "value": 0.0
+        },
+        {
+          "date": "2025-10-01 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2856,
+          "value": NaN
+        },
+        {
+          "date": "2025-09-10 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 66645,
+          "value": 0.0
+        },
+        {
+          "date": "2025-09-09 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 44953,
+          "value": 867143.0
+        },
+        {
+          "date": "2025-09-09 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 44953,
+          "value": 468860.0
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 50000,
+          "value": 880500.0
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 39406,
+          "value": 0.0
+        },
+        {
+          "date": "2025-07-24 00:00:00+00:00",
+          "insider_name": "EVANS KATRINA M.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 17000,
+          "value": 317390.0
+        },
+        {
+          "date": "2025-07-23 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 112149,
+          "value": 2115130.0
+        },
+        {
+          "date": "2025-07-23 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 112149,
+          "value": 1176443.0
+        },
+        {
+          "date": "2025-07-01 00:00:00+00:00",
+          "insider_name": "CUTLER ALEXANDER M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 13983,
+          "value": NaN
+        },
+        {
+          "date": "2025-07-01 00:00:00+00:00",
+          "insider_name": "VASOS TODD JOSEPH",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9726,
+          "value": NaN
+        },
+        {
+          "date": "2025-07-01 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 35955,
+          "value": NaN
+        },
+        {
+          "date": "2025-07-01 00:00:00+00:00",
+          "insider_name": "SNYDER BARBARA R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1493,
+          "value": NaN
+        },
+        {
+          "date": "2025-06-12 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 19000,
+          "value": 305710.0
+        },
+        {
+          "date": "2025-05-13 00:00:00+00:00",
+          "insider_name": "HIGHSMITH CARLTON LEE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 5000,
+          "value": 83000.0
+        },
+        {
+          "date": "2025-05-12 00:00:00+00:00",
+          "insider_name": "HIPPLE RICHARD J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 8626,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-12 00:00:00+00:00",
+          "insider_name": "DALLAS HIRAM JAMES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 8626,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-12 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 8626,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-12 00:00:00+00:00",
+          "insider_name": "HIGHSMITH CARLTON LEE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 8626,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-22 00:00:00+00:00",
+          "insider_name": "ALLARD JACQUELINE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 180,
+          "value": 2525.0
+        },
+        {
+          "date": "2025-04-21 00:00:00+00:00",
+          "insider_name": "TOBIN RICHARD J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 750,
+          "value": 10380.0
+        },
+        {
+          "date": "2025-04-21 00:00:00+00:00",
+          "insider_name": "KHANNA SOMESH",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 100,
+          "value": 1387.0
+        },
+        {
+          "date": "2025-04-21 00:00:00+00:00",
+          "insider_name": "RAMANI MOHIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 10000,
+          "value": 137500.0
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "KIDIK ALLYSON M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1016,
+          "value": 17973.0
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "WATERS JAMES L",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 17596,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 43026,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "GAVRITY KENNETH C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 18143,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "KIDIK ALLYSON M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4937,
+          "value": 14336.0
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "GILBERT STACY L.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3176,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 32765,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "ALEXANDER VICTOR B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 19987,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 27383,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "EVANS KATRINA M.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 12892,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "KHAYAT CLARK H",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 21470,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 115514,
+          "value": NaN
+        },
+        {
+          "date": "2025-02-13 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 57736,
+          "value": 1008071.0
+        },
+        {
+          "date": "2025-02-13 00:00:00+00:00",
+          "insider_name": "GORMAN CHRISTOPHER M",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 57736,
+          "value": 814655.0
+        },
+        {
+          "date": "2025-02-05 00:00:00+00:00",
+          "insider_name": "BANK OF NOVA SCOTIA",
+          "position": "Beneficial Owner of more than 10% of a Class of Security",
+          "transaction_type": "",
+          "shares": 50000,
+          "value": 892500.0
+        },
+        {
+          "date": "2025-01-24 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 704,
+          "value": NaN
+        },
+        {
+          "date": "2025-01-02 00:00:00+00:00",
+          "insider_name": "WILSON DAVID K",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10065,
+          "value": NaN
+        },
+        {
+          "date": "2024-12-31 00:00:00+00:00",
+          "insider_name": "VASOS TODD JOSEPH",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 6068,
+          "value": NaN
+        },
+        {
+          "date": "2024-12-31 00:00:00+00:00",
+          "insider_name": "HAYES ROBIN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3029,
+          "value": NaN
+        },
+        {
+          "date": "2024-12-31 00:00:00+00:00",
+          "insider_name": "GILE ELIZABETH R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4114,
+          "value": NaN
+        },
+        {
+          "date": "2024-11-08 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14249,
+          "value": 0.0
+        },
+        {
+          "date": "2024-11-06 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15011,
+          "value": 294065.0
+        },
+        {
+          "date": "2024-11-06 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 66362,
+          "value": 1262869.0
+        },
+        {
+          "date": "2024-11-06 00:00:00+00:00",
+          "insider_name": "MAGO ANGELA G",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15011,
+          "value": 211805.0
+        },
+        {
+          "date": "2024-11-06 00:00:00+00:00",
+          "insider_name": "PAINE ANDREW J III",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 66362,
+          "value": 773468.0
+        },
+        {
+          "date": "2024-11-05 00:00:00+00:00",
+          "insider_name": "HIGHSMITH CARLTON LEE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9000,
+          "value": 154260.0
+        },
+        {
+          "date": "2024-08-29 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 42535,
+          "value": 719692.0
+        },
+        {
+          "date": "2024-08-29 00:00:00+00:00",
+          "insider_name": "BRADY AMY G",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 13856,
+          "value": 195508.0
+        },
+        {
+          "date": "2024-08-16 00:00:00+00:00",
+          "insider_name": "HIGHSMITH CARLTON LEE",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10000,
+          "value": 162100.0
+        }
+      ]
+    },
+    "HBAN": {
+      "ticker": "HBAN",
+      "options": {
+        "put_call_ratio": 0.2887,
+        "avg_call_iv": 0.0208,
+        "avg_put_iv": 0.0221,
+        "iv_skew": 0.0013,
+        "expiration": "2026-08-21",
+        "suspect_fields": []
+      },
+      "institutional": {
+        "held_percent_institutions": 0.8929,
+        "top_holders": [
+          {
+            "holder": "Blackrock Inc.",
+            "shares": 175848308,
+            "pct_out": 0.0867,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Capital Management LLC",
+            "shares": 131810766,
+            "pct_out": 0.065,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Wellington Management Group, LLP",
+            "shares": 129387133,
+            "pct_out": 0.0638,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "State Street Corporation",
+            "shares": 94350662,
+            "pct_out": 0.0465,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Portfolio Management LLC",
+            "shares": 93852592,
+            "pct_out": 0.0463,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Invesco Ltd.",
+            "shares": 67273930,
+            "pct_out": 0.0332,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Price (T.Rowe) Associates Inc",
+            "shares": 63480451,
+            "pct_out": 0.0313,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Geode Capital Management, LLC",
+            "shares": 56713932,
+            "pct_out": 0.027999999,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Boston Partners",
+            "shares": 50150636,
+            "pct_out": 0.0247,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Dz Bank Ag Deutsche Zentral Genossenschafts Bank, Frankfurt Am Main",
+            "shares": 50053460,
+            "pct_out": 0.0247,
+            "date_reported": "2026-03-31 00:00:00"
+          }
+        ],
+        "as_of_utc": "2026-07-21T12:30:07.671181+00:00"
+      },
+      "short_interest": {
+        "shares_short": 66239826.0,
+        "shares_short_prior_month": 63917531.0,
+        "short_ratio": 2.87,
+        "short_percent_of_float": 0.0328,
+        "trend": "flat",
+        "suspect_fields": []
+      },
+      "analyst_trend": {
+        "recent_upgrades": 0,
+        "recent_downgrades": 1,
+        "net_action": "downgrade",
+        "suspect_fields": []
+      },
+      "insider_transactions": [
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 687,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 349,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 1877,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 171,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1849,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "TATE JEFFREY L.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 570,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 896,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "SANTHANAKRISHNAN SENTHILKUMAR",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 708,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 6512,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "WASSERMAN ZACHARY JACOB",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 2244,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 652,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 661,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 475,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "POHMER SARAH E",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1437,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "MILLER TIMOTHY W",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 639,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "RODRIGUEZ ALICE L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 79,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1440,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "PORTEOUS DAVID L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2960,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "INGLIS JOHN C",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1057,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2344,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "MALONEY NANCY E.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1413,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1989,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "HEPNER VIRGINIA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 79,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2193,
+          "value": 0
+        },
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2505,
+          "value": 0
+        },
+        {
+          "date": "2026-06-25 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 10568,
+          "value": 190224
+        },
+        {
+          "date": "2026-06-12 00:00:00+00:00",
+          "insider_name": "ROLLINS JAMES D III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 223522,
+          "value": 3878107
+        },
+        {
+          "date": "2026-06-01 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 19425,
+          "value": 314685
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10523,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "TATE JEFFREY L.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "RODRIGUEZ ALICE L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10523,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "PORTEOUS DAVID L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10523,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "INGLIS JOHN C",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10523,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "HEPNER VIRGINIA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9320,
+          "value": 0
+        },
+        {
+          "date": "2026-05-01 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 10523,
+          "value": 0
+        },
+        {
+          "date": "2026-04-29 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 25313,
+          "value": 254649
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2595,
+          "value": 0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 902,
+          "value": 0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1880,
+          "value": 0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1880,
+          "value": 0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3092,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 648,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 295,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 2120,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 427,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 193,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2089,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "TATE JEFFREY L.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 553,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 922,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "SANTHANAKRISHNAN SENTHILKUMAR",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 800,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 7351,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "WASSERMAN ZACHARY JACOB",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 2535,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 737,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 746,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 536,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "POHMER SARAH E",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1814,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "MILLER TIMOTHY W",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 722,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1522,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "PORTEOUS DAVID L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3281,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "INGLIS JOHN C",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1080,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2929,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "MALONEY NANCY E.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1603,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2119,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "HOUSTON HELGA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6229,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2363,
+          "value": 0
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2692,
+          "value": 0
+        },
+        {
+          "date": "2026-03-12 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 32277,
+          "value": 499971
+        },
+        {
+          "date": "2026-03-12 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 65530,
+          "value": 1001298
+        },
+        {
+          "date": "2026-03-12 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 10170,
+          "value": 157648
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 9724,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 118287,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "WASSERMAN ZACHARY JACOB",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 131430,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 21816,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21552,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 10724,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 131430,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "MALONEY NANCY E.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 18399,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "HOUSTON HELGA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 111715,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 433723,
+          "value": 0
+        },
+        {
+          "date": "2026-03-06 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13133,
+          "value": 132118
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 41101,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 9944,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3977,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 53034,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "SANTHANAKRISHNAN SENTHILKUMAR",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 53034,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 193753,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "WASSERMAN ZACHARY JACOB",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 66293,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 21213,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21213,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 19225,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "POHMER SARAH E",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 30494,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "MILLER TIMOTHY W",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13523,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 71596,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "MALONEY NANCY E.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 32410,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "HOUSTON HELGA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 35798,
+          "value": 0
+        },
+        {
+          "date": "2026-02-19 00:00:00+00:00",
+          "insider_name": "TORGOW GARY",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 14200,
+          "value": 252902
+        },
+        {
+          "date": "2026-02-13 00:00:00+00:00",
+          "insider_name": "SANTHANAKRISHNAN SENTHILKUMAR",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 28968,
+          "value": 0
+        },
+        {
+          "date": "2026-02-10 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 28724,
+          "value": 322023
+        },
+        {
+          "date": "2026-02-10 00:00:00+00:00",
+          "insider_name": "HEPNER VIRGINIA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3000,
+          "value": 0
+        },
+        {
+          "date": "2026-02-10 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 17454,
+          "value": 330426
+        },
+        {
+          "date": "2026-02-06 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 250000,
+          "value": 2515000
+        },
+        {
+          "date": "2026-02-04 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 50000,
+          "value": 503000
+        },
+        {
+          "date": "2026-02-04 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5830,
+          "value": 111557
+        },
+        {
+          "date": "2026-01-30 00:00:00+00:00",
+          "insider_name": "HEPNER VIRGINIA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 70696,
+          "value": 0
+        },
+        {
+          "date": "2026-01-30 00:00:00+00:00",
+          "insider_name": "HEPNER VIRGINIA A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 70779,
+          "value": 0
+        },
+        {
+          "date": "2026-01-30 00:00:00+00:00",
+          "insider_name": "ROLLINS JAMES D III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1683000,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3454,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1482,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3400,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2556,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2441,
+          "value": 0
+        },
+        {
+          "date": "2026-01-26 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3602,
+          "value": 0
+        },
+        {
+          "date": "2026-01-13 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 40000,
+          "value": 0
+        },
+        {
+          "date": "2026-01-08 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 10000,
+          "value": 185000
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "DIAZ-GRANADOS RAFAEL ANDRES",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 557,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "SHEA TERESA H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 254,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 1683,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "LAWLOR BRENDAN A",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 372,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "WHITE DONNELL R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 164,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "KLEINMAN SCOTT D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2031,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "TATE JEFFREY L.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 499,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "KLINE KATHERINE M. A.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 831,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "WASSERMAN ZACHARY JACOB",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 2395,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 645,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 655,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "NATERI PRASHANT",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 396,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "POHMER SARAH E",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1359,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "MILLER TIMOTHY W",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 531,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "PHELAN KENNETH J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1349,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "PORTEOUS DAVID L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2953,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "INGLIS JOHN C",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 984,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "STANDRIDGE BRANTLEY J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2337,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "MALONEY NANCY E.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1072,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "SIT ROGER J.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1894,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "HOUSTON HELGA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5462,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "CRANE ANN B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2120,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 6715,
+          "value": 0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "NEU RICHARD W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3714,
+          "value": 0
+        },
+        {
+          "date": "2025-12-15 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 2000,
+          "value": 0
+        },
+        {
+          "date": "2025-12-12 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 4028,
+          "value": 71920
+        },
+        {
+          "date": "2025-12-11 00:00:00+00:00",
+          "insider_name": "KOWALSKI KENDALL A",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 49163,
+          "value": 737860
+        },
+        {
+          "date": "2025-12-11 00:00:00+00:00",
+          "insider_name": "PORTEOUS DAVID L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1938,
+          "value": 0
+        },
+        {
+          "date": "2025-12-11 00:00:00+00:00",
+          "insider_name": "HINGST MARCY C",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 12832,
+          "value": 230976
+        },
+        {
+          "date": "2025-12-08 00:00:00+00:00",
+          "insider_name": "STEINOUR STEPHEN D",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 180000,
+          "value": 0
+        },
+        {
+          "date": "2025-12-02 00:00:00+00:00",
+          "insider_name": "DHINGRA AMIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 300,
+          "value": 0
+        }
+      ]
+    },
+    "RF": {
+      "ticker": "RF",
+      "options": {
+        "put_call_ratio": 0.2911,
+        "avg_call_iv": 0.0223,
+        "avg_put_iv": 0.0318,
+        "iv_skew": 0.0095,
+        "expiration": "2026-08-21",
+        "suspect_fields": []
+      },
+      "institutional": {
+        "held_percent_institutions": 0.86272,
+        "top_holders": [
+          {
+            "holder": "Blackrock Inc.",
+            "shares": 82218346,
+            "pct_out": 0.0963,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Capital Management LLC",
+            "shares": 56164800,
+            "pct_out": 0.065799996,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "State Street Corporation",
+            "shares": 47713498,
+            "pct_out": 0.0559,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Portfolio Management LLC",
+            "shares": 40117408,
+            "pct_out": 0.047,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Wellington Management Group, LLP",
+            "shares": 36136723,
+            "pct_out": 0.0423,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Charles Schwab Investment Management, Inc.",
+            "shares": 25571718,
+            "pct_out": 0.03,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Geode Capital Management, LLC",
+            "shares": 24084795,
+            "pct_out": 0.028199999,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Morgan Stanley",
+            "shares": 19114744,
+            "pct_out": 0.0224,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "JPMORGAN CHASE & CO",
+            "shares": 18014358,
+            "pct_out": 0.0211,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Invesco Ltd.",
+            "shares": 17865010,
+            "pct_out": 0.0209,
+            "date_reported": "2026-03-31 00:00:00"
+          }
+        ],
+        "as_of_utc": "2026-07-21T12:30:08.182603+00:00"
+      },
+      "short_interest": {
+        "shares_short": 53908954.0,
+        "shares_short_prior_month": 53801041.0,
+        "short_ratio": 4.72,
+        "short_percent_of_float": 0.083500005,
+        "trend": "flat",
+        "suspect_fields": []
+      },
+      "analyst_trend": {
+        "recent_upgrades": 0,
+        "recent_downgrades": 2,
+        "net_action": "downgrade",
+        "suspect_fields": []
+      },
+      "insider_transactions": [
+        {
+          "date": "2026-07-01 00:00:00+00:00",
+          "insider_name": "SANTONE ANGELA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 28411,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-07 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7014,
+          "value": 195750.0
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "GOLODRYGA ZHANNA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7904,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "DAVIS NOOPUR",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7904,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "RHODES WILLIAM C III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7904,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "JOHNSON JOIA M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7904,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "JENKINS ROGER W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7904,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-06 00:00:00+00:00",
+          "insider_name": "PROKOPANKO JAMES T",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 63055,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "DANELLA KATHERINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 11320,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 11320,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "ALLEN KARIN K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1132,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "MASSEY CHARLES DANDRIDGE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13584,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4528,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 63393,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "RITTER WILLIAM D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7924,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "KEENAN DAVID R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13584,
+          "value": 0.0
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "DANELLA KATHERINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 19919,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 19919,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "ALLEN KARIN K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1992,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "MASSEY CHARLES DANDRIDGE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 23902,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7967,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "CHADHA ANIL D.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 3983,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "RITTER WILLIAM D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13943,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "KEENAN DAVID R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 23902,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-02 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 111545,
+          "value": NaN
+        },
+        {
+          "date": "2026-04-01 00:00:00+00:00",
+          "insider_name": "CHADHA ANIL D.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 5542,
+          "value": NaN
+        },
+        {
+          "date": "2026-01-22 00:00:00+00:00",
+          "insider_name": "RITTER WILLIAM D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 36000,
+          "value": 1036062.0
+        },
+        {
+          "date": "2026-01-02 00:00:00+00:00",
+          "insider_name": "ZUSI RUSSELL K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 69911,
+          "value": NaN
+        },
+        {
+          "date": "2025-12-11 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 15000,
+          "value": 0.0
+        },
+        {
+          "date": "2025-08-27 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1875,
+          "value": 0.0
+        },
+        {
+          "date": "2025-08-13 00:00:00+00:00",
+          "insider_name": "JENKINS ROGER W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4000,
+          "value": 101906.0
+        },
+        {
+          "date": "2025-08-06 00:00:00+00:00",
+          "insider_name": "KEENAN DAVID R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 30000,
+          "value": 750279.0
+        },
+        {
+          "date": "2025-07-25 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 4000,
+          "value": 0.0
+        },
+        {
+          "date": "2025-07-01 00:00:00+00:00",
+          "insider_name": "MASSEY CHARLES DANDRIDGE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 20034,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-08 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8185,
+          "value": 174885.0
+        },
+        {
+          "date": "2025-04-16 00:00:00+00:00",
+          "insider_name": "DAVIS NOOPUR",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7089,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-16 00:00:00+00:00",
+          "insider_name": "RHODES WILLIAM C III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7089,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-16 00:00:00+00:00",
+          "insider_name": "JOHNSON JOIA M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 7089,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-16 00:00:00+00:00",
+          "insider_name": "JENKINS ROGER W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1883,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "DANELLA KATHERINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15729,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 18873,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "ALLEN KARIN K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2096,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8388,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "RITTER WILLIAM D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 12583,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "TURNER DAVID J JR",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 31456,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "KEENAN DAVID R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 20971,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 110097,
+          "value": 0.0
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "DANELLA KATHERINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14010,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 13945,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "ALLEN KARIN K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1674,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "WILLMAN BRIAN R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6700,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "RITTER WILLIAM D",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 9298,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "TURNER DAVID J JR",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 23243,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "KEENAN DAVID R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15497,
+          "value": NaN
+        },
+        {
+          "date": "2025-04-01 00:00:00+00:00",
+          "insider_name": "TURNER JOHN M JR",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 81356,
+          "value": NaN
+        },
+        {
+          "date": "2025-03-13 00:00:00+00:00",
+          "insider_name": "VINES TIMOTHY",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 9441,
+          "value": NaN
+        },
+        {
+          "date": "2025-03-11 00:00:00+00:00",
+          "insider_name": "JOHNSON JOIA M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2300,
+          "value": 48702.0
+        },
+        {
+          "date": "2025-02-03 00:00:00+00:00",
+          "insider_name": "SUQUET JOSE S",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 224,
+          "value": 5371.0
+        },
+        {
+          "date": "2025-01-29 00:00:00+00:00",
+          "insider_name": "SUQUET JOSE S",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2408,
+          "value": 57687.0
+        },
+        {
+          "date": "2025-01-02 00:00:00+00:00",
+          "insider_name": "ZUSI RUSSELL K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 67074,
+          "value": NaN
+        },
+        {
+          "date": "2024-12-05 00:00:00+00:00",
+          "insider_name": "PLIMPTON TARA ANN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 1920,
+          "value": 0.0
+        },
+        {
+          "date": "2024-10-31 00:00:00+00:00",
+          "insider_name": "TURNER DAVID J JR",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 4300,
+          "value": 0.0
+        }
+      ]
+    },
+    "FITB": {
+      "ticker": "FITB",
+      "options": {
+        "put_call_ratio": 11.1206,
+        "avg_call_iv": 0.0156,
+        "avg_put_iv": 0.0156,
+        "iv_skew": 0.0,
+        "expiration": "2026-08-21",
+        "suspect_fields": []
+      },
+      "institutional": {
+        "held_percent_institutions": 0.91494006,
+        "top_holders": [
+          {
+            "holder": "Blackrock Inc.",
+            "shares": 80753449,
+            "pct_out": 0.089099996,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Capital Management LLC",
+            "shares": 58430540,
+            "pct_out": 0.0645,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Vanguard Portfolio Management LLC",
+            "shares": 47033560,
+            "pct_out": 0.0519,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Price (T.Rowe) Associates Inc",
+            "shares": 46150287,
+            "pct_out": 0.0509,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "State Street Corporation",
+            "shares": 40583308,
+            "pct_out": 0.0448,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Capital World Investors",
+            "shares": 39074539,
+            "pct_out": 0.0431,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "JPMORGAN CHASE & CO",
+            "shares": 30208077,
+            "pct_out": 0.033299997,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Charles Schwab Investment Management, Inc.",
+            "shares": 26478466,
+            "pct_out": 0.0292,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Invesco Ltd.",
+            "shares": 26177935,
+            "pct_out": 0.028900001,
+            "date_reported": "2026-03-31 00:00:00"
+          },
+          {
+            "holder": "Geode Capital Management, LLC",
+            "shares": 24929709,
+            "pct_out": 0.0275,
+            "date_reported": "2026-03-31 00:00:00"
+          }
+        ],
+        "as_of_utc": "2026-07-21T12:30:08.682337+00:00"
+      },
+      "short_interest": {
+        "shares_short": 75912.0,
+        "shares_short_prior_month": 44617053.0,
+        "short_ratio": 0.01,
+        "short_percent_of_float": 0.0001,
+        "trend": "declining",
+        "suspect_fields": []
+      },
+      "analyst_trend": {
+        "recent_upgrades": 0,
+        "recent_downgrades": 0,
+        "net_action": "none",
+        "suspect_fields": []
+      },
+      "insider_transactions": [
+        {
+          "date": "2026-04-29 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4300,
+          "value": 0
+        },
+        {
+          "date": "2026-04-28 00:00:00+00:00",
+          "insider_name": "SEFZIK PETER L",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 20000,
+          "value": 1009189
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "ALMODOVAR PRISCILLA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "DESMANGLES LAURENT",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "SMITH BARBARA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "BENITEZ JORGE L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "ROGERS KATHLEEN A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "DANIELS C BRYAN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "CLEMENT-HOLMES LINDA W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "BLACKBURN KATHERINE H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "FEIGER MITCHELL STUART",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "HEMINGER GARY R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "VAN DE VEN MICHAEL G",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "AKINS NICHOLAS K",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "MALLESCH EILEEN A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "KERR DEREK J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-21 00:00:00+00:00",
+          "insider_name": "BAYH B EVAN III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2838,
+          "value": 0
+        },
+        {
+          "date": "2026-04-20 00:00:00+00:00",
+          "insider_name": "KHANNA KEVIN J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6000,
+          "value": 304630
+        },
+        {
+          "date": "2026-04-17 00:00:00+00:00",
+          "insider_name": "LOPPER JEFFREY A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3835,
+          "value": 69452
+        },
+        {
+          "date": "2026-02-24 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 14896,
+          "value": 757515
+        },
+        {
+          "date": "2026-02-23 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 14228,
+          "value": 380172
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 3420,
+          "value": 184868
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "PINCKNEY NANCY C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 27122,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 16520,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "PRESTON BRYAN D",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 29888,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "LOPPER JEFFREY A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2013,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "GONZALEZ CHRISTIAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6765,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "KHANNA KEVIN J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14496,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "CHAYT BRIDGIT",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6765,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "KING DARREN J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14496,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 231729,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 36173,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "SHAFFER ROBERT P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 43172,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "STEVENS MELISSA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21939,
+          "value": 0
+        },
+        {
+          "date": "2026-02-18 00:00:00+00:00",
+          "insider_name": "LEONARD JAMES C",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 65617,
+          "value": 0
+        },
+        {
+          "date": "2026-02-17 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 15887,
+          "value": 526972
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "FEIGER MITCHELL STUART",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 97515,
+          "value": 5334527
+        },
+        {
+          "date": "2026-02-12 00:00:00+00:00",
+          "insider_name": "LEONARD JAMES C",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 4350,
+          "value": 64684
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "SMITH BARBARA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 40498,
+          "value": 0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "SEFZIK PETER L",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 209382,
+          "value": 0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "VAN DE VEN MICHAEL G",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 47972,
+          "value": 0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "KERR DEREK J",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 14189,
+          "value": 0
+        },
+        {
+          "date": "2026-01-07 00:00:00+00:00",
+          "insider_name": "ALMODOVAR PRISCILLA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 848,
+          "value": 0
+        },
+        {
+          "date": "2025-12-15 00:00:00+00:00",
+          "insider_name": "PRESTON BRYAN D",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 1100,
+          "value": 0
+        },
+        {
+          "date": "2025-12-11 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 2250,
+          "value": 109125
+        },
+        {
+          "date": "2025-10-20 00:00:00+00:00",
+          "insider_name": "BAYH B EVAN III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 3000,
+          "value": 123650
+        },
+        {
+          "date": "2025-10-09 00:00:00+00:00",
+          "insider_name": "GONZALEZ CHRISTIAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5709,
+          "value": 0
+        },
+        {
+          "date": "2025-08-28 00:00:00+00:00",
+          "insider_name": "SHAFFER ROBERT P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14035,
+          "value": 372208
+        },
+        {
+          "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "KHANNA KEVIN J",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14000,
+          "value": 597426
+        },
+        {
+          "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 7200,
+          "value": 0
+        },
+        {
+          "date": "2025-07-30 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8523,
+          "value": 154352
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "DESMANGLES LAURENT",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "BENITEZ JORGE L",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "ROGERS KATHLEEN A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "DANIELS C BRYAN",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "CLEMENT-HOLMES LINDA W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "BLACKBURN KATHERINE H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "FEIGER MITCHELL STUART",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "HARVEY THOMAS H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "HEMINGER GARY R",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "AKINS NICHOLAS K",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "MALLESCH EILEEN A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-15 00:00:00+00:00",
+          "insider_name": "BAYH B EVAN III",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 4135,
+          "value": 0
+        },
+        {
+          "date": "2025-04-14 00:00:00+00:00",
+          "insider_name": "LOPPER JEFFREY A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3315,
+          "value": 63018
+        },
+        {
+          "date": "2025-02-20 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8998,
+          "value": 392712
+        },
+        {
+          "date": "2025-02-20 00:00:00+00:00",
+          "insider_name": "LAVENDER KEVIN P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21700,
+          "value": 945100
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "LEONARD JAMES C",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 17200,
+          "value": 761279
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "PRESTON BRYAN D",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 1125,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "PINCKNEY NANCY C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 21299,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 15832,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "PRESTON BRYAN D",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 26462,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "LOPPER JEFFREY A.",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2300,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 170077,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 28757,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "SHAFFER ROBERT P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 39752,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "ZAUNBRECHER SUSAN B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 27567,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "GARRETT KRISTINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 25006,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "STEVENS MELISSA S",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 20600,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "LEONARD JAMES C",
+          "position": "Chief Operating Officer",
+          "transaction_type": "",
+          "shares": 49939,
+          "value": 0
+        },
+        {
+          "date": "2025-02-19 00:00:00+00:00",
+          "insider_name": "LAVENDER KEVIN P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 39951,
+          "value": 0
+        },
+        {
+          "date": "2025-02-18 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 7868,
+          "value": 346979
+        },
+        {
+          "date": "2025-02-13 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 28070,
+          "value": 744416
+        },
+        {
+          "date": "2025-01-27 00:00:00+00:00",
+          "insider_name": "HARVEY THOMAS H",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2562,
+          "value": 0
+        },
+        {
+          "date": "2024-11-25 00:00:00+00:00",
+          "insider_name": "SHAFFER ROBERT P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 25000,
+          "value": 1216194
+        },
+        {
+          "date": "2024-11-15 00:00:00+00:00",
+          "insider_name": "GIBSON KALA",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4696,
+          "value": 89271
+        },
+        {
+          "date": "2024-11-04 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 5750,
+          "value": 0
+        },
+        {
+          "date": "2024-10-28 00:00:00+00:00",
+          "insider_name": "GARRETT KRISTINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7500,
+          "value": 327526
+        },
+        {
+          "date": "2024-09-09 00:00:00+00:00",
+          "insider_name": "GARRETT KRISTINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7100,
+          "value": 296213
+        },
+        {
+          "date": "2024-09-09 00:00:00+00:00",
+          "insider_name": "GARRETT KRISTINE R",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 400,
+          "value": 0
+        },
+        {
+          "date": "2024-08-26 00:00:00+00:00",
+          "insider_name": "SCHRAMM JUDE",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 20000,
+          "value": 840055
+        },
+        {
+          "date": "2024-08-08 00:00:00+00:00",
+          "insider_name": "MCCALLISTER MICHAEL B",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 11143,
+          "value": 0
+        },
+        {
+          "date": "2024-07-25 00:00:00+00:00",
+          "insider_name": "SPENCE TIMOTHY",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 27842,
+          "value": 414011
+        },
+        {
+          "date": "2024-07-24 00:00:00+00:00",
+          "insider_name": "ZAUNBRECHER SUSAN B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2842,
+          "value": 117119
+        },
+        {
+          "date": "2024-07-24 00:00:00+00:00",
+          "insider_name": "LAVENDER KEVIN P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 20000,
+          "value": 835369
+        },
+        {
+          "date": "2024-07-24 00:00:00+00:00",
+          "insider_name": "FEIGER MITCHELL STUART",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 12000,
+          "value": 494524
+        },
+        {
+          "date": "2024-07-24 00:00:00+00:00",
+          "insider_name": "LAVENDER KEVIN P",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 8246,
+          "value": 218684
+        },
+        {
+          "date": "2024-07-23 00:00:00+00:00",
+          "insider_name": "ZAUNBRECHER SUSAN B",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 14228,
+          "value": 380172
+        }
+      ]
     }
   },
   "fetched_dates": {
-    "NVDA": "2026-07-20",
-    "AMD": "2026-07-20",
-    "AVGO": "2026-07-20",
-    "TSM": "2026-07-20",
-    "MU": "2026-07-20",
-    "ASML": "2026-07-20",
-    "ZION": "2026-07-20",
-    "KEY": "2026-07-20",
-    "HBAN": "2026-07-20",
-    "RF": "2026-07-20",
-    "FITB": "2026-07-20"
+    "NVDA": "2026-07-22",
+    "AMD": "2026-07-22",
+    "AVGO": "2026-07-22",
+    "TSM": "2026-07-22",
+    "MU": "2026-07-22",
+    "ASML": "2026-07-22",
+    "ZION": "2026-07-22",
+    "KEY": "2026-07-22",
+    "HBAN": "2026-07-22",
+    "RF": "2026-07-22",
+    "FITB": "2026-07-22"
   }
 }

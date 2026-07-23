@@ -156,6 +156,7 @@ def compute_confidence_score(
     fundamental_contribution = fundamental_score_raw * (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX)
     fundamental_contribution = max(-float(FUNDAMENTAL_MAX), min(float(FUNDAMENTAL_MAX), fundamental_contribution))
     fundamental_data_quality = fundamental.get("data_quality", "unavailable")
+    fundamental_data_as_of = fundamental.get("data_as_of")
 
     # ---------------------------------------------------------------------------
     # Step 6: Base Score = technical + positioning + sentiment + news + fundamental
@@ -248,6 +249,7 @@ def compute_confidence_score(
         "forward_vs_trailing_pe_score": fundamental.get("forward_vs_trailing_pe_score", 0),
         "ev_ebitda_vs_peers_score": fundamental.get("ev_ebitda_vs_peers_score", 0),
         "fundamental_data_quality": fundamental_data_quality,
+        "fundamental_data_as_of": fundamental_data_as_of,
         "fundamental_breakdown": {
             "earnings": fundamental.get("earnings_breakdown", {}),
             "valuation": fundamental.get("valuation_breakdown", {}),

@@ -3,11 +3,13 @@ Orchestrates all data pulls + indicator calculations for the semiconductor watch
 Produces a normalized output table per ticker — one row per ticker with all indicator
 values needed by scoring.py. Runs 2-3x daily (pre-market, mid-session, post-close).
 
-Fundamental data is fetched weekly (Monday 17:00 ET) and cached in
-data/processed/fundamental_state.json. On non-update days the cached data is loaded
-so fundamental scores are available every scan without API calls.
+Fundamental data is refreshed on a staggered per-ticker cadence (see
+fetch_fundamental_data) and cached in data/processed/fundamental_state.json. On days
+a given ticker isn't due, its cached data is loaded so fundamental scores are
+available every scan without API calls.
 """
 
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +18,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yaml
+import yfinance as yf
 
 from shared.api_clients.market_data_client import fetch_ohlcv_batch
 from shared.indicators.technical_common import compute_technical_indicators
@@ -31,6 +34,16 @@ _ET = ZoneInfo("America/New_York")
 _FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
 _FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
+
+# Fundamental refresh is staggered rather than bursting the whole watchlist on one
+# day: each ticker gets 2 AV calls (earnings + estimate revisions), and the AV daily
+# budget is shared with post-close news (1 call/ticker). Bursting e.g. 11 tickers on
+# one Monday costs 22 calls on top of 11 for news — 33 total, over the 25/day hard
+# cap. Capping refreshes/day and spreading tickers across weekdays keeps fundamental
+# usage to a handful of calls daily instead of a periodic spike that starves news.
+_FUNDAMENTAL_MAX_TICKERS_PER_DAY = 3
+_FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
+_FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3
 
 
 def run_pipeline(
@@ -128,6 +141,7 @@ def run_pipeline(
             results[ticker]["earnings_momentum_score"] = fs.get("earnings_momentum_score", 0)
             results[ticker]["valuation_score"] = fs.get("valuation_score", 0)
             results[ticker]["fundamental_data_quality"] = fs.get("data_quality", "unavailable")
+            results[ticker]["fundamental_data_as_of"] = fs.get("data_as_of")
             results[ticker]["_fundamental_full"] = fs
 
     # 7-8. Market Positioning data fetch + scoring (daily cadence — free yfinance data only)
@@ -161,20 +175,57 @@ def run_pipeline(
     return results
 
 
+def _rotation_weekday(ticker: str) -> int:
+    """Stable Mon-Fri (0-4) weekly refresh slot for a ticker, spreading the
+    watchlist's fundamental refreshes across the week instead of one burst day.
+    Uses a stable hash (not builtin hash(), which is randomized per-process) so
+    the assignment doesn't drift between runs."""
+    digest = hashlib.sha256(ticker.encode()).hexdigest()
+    return int(digest, 16) % 5
+
+
+def _get_upcoming_earnings_date(ticker: str):
+    """Free (yfinance) lookup of a ticker's next known earnings date, used only to
+    prioritize refresh timing — never consumes Alpha Vantage budget. Returns None
+    if unavailable rather than raising, since this is a scheduling hint, not a
+    required input."""
+    try:
+        cal = yf.Ticker(ticker).calendar or {}
+        dates = cal.get("Earnings Date") or []
+        return dates[0] if dates else None
+    except Exception:
+        return None
+
+
+def _days_since(date_str: Optional[str], today) -> Optional[int]:
+    if not date_str:
+        return None
+    try:
+        return (today - datetime.strptime(date_str, "%Y-%m-%d").date()).days
+    except Exception:
+        return None
+
+
 def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> dict:
     """
     Fetch or load fundamental data for the given tickers.
 
     Cadence logic (tracked per ticker via state["fetched_dates"], not one
-    file-wide last_updated): a file-wide timestamp meant a sector processed
-    later in the same run (e.g. a newly-activated sector) would see an earlier
-    sector's fetch and conclude its own tickers were "already refreshed today"
-    when they had never been fetched at all — silently pinning them to 0 forever.
-    - True cold start (state has no last_updated at all): fetch every requested
-      ticker immediately.
-    - Otherwise, only refresh on the weekly window (Monday >= 17:00 ET), and only
-      tickers not already refreshed today.
-    - Otherwise: return cached data from fundamental_state.json.
+    file-wide last_updated — a file-wide timestamp meant a sector processed
+    later in the same run would see an earlier sector's fetch and conclude its
+    own tickers were "already refreshed today" when they'd never been fetched
+    at all). Refreshes are staggered rather than bursting the whole watchlist
+    on one day, since fundamental data costs 2 AV calls/ticker and shares the
+    AV budget with post-close news — see _FUNDAMENTAL_MAX_TICKERS_PER_DAY.
+    On each call, a ticker is a refresh candidate if:
+      - it has never been fetched (cold start), highest priority; or
+      - it's within _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS of its next known
+        earnings date (free yfinance calendar lookup) — the one event that
+        actually invalidates cached fundamentals, so it jumps the queue; or
+      - today is its stable assigned weekday (_rotation_weekday) and it's been
+        >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS since its last fetch.
+    At most _FUNDAMENTAL_MAX_TICKERS_PER_DAY candidates (in that priority order)
+    actually fetch per call; the rest wait for their next due day.
 
     Writes fresh data to fundamental_state.json when fetched.
     Logs any fetch failures to validation_log.csv without crashing.
@@ -188,18 +239,30 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     state = _load_fundamental_state()
     now_et = datetime.now(_ET)
     today_str = now_et.strftime("%Y-%m-%d")
+    today_date = now_et.date()
     fetched_dates = state.setdefault("fetched_dates", {})
     state.setdefault("tickers", {})
 
-    if state.get("last_updated") is None:
-        to_fetch = list(tickers)
-        logger.info("Fundamental state has no last_updated — fetching fresh data.")
-    elif now_et.weekday() == 0 and now_et.hour >= 17:
-        to_fetch = [t for t in tickers if fetched_dates.get(t) != today_str]
-        if to_fetch:
-            logger.info("Monday post-17:00 ET — fetching fresh fundamental data.")
-    else:
-        to_fetch = []
+    bootstrap, earnings_priority, rotation_due = [], [], []
+    for t in tickers:
+        if fetched_dates.get(t) == today_str:
+            continue  # already refreshed today
+
+        last_fetch = fetched_dates.get(t)
+        if last_fetch is None:
+            bootstrap.append(t)
+            continue
+
+        earnings_date = _get_upcoming_earnings_date(t)
+        if earnings_date is not None and abs((earnings_date - today_date).days) <= _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS:
+            earnings_priority.append(t)
+            continue
+
+        days_stale = _days_since(last_fetch, today_date)
+        if today_date.weekday() == _rotation_weekday(t) and (days_stale is None or days_stale >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS):
+            rotation_due.append(t)
+
+    to_fetch = (bootstrap + earnings_priority + rotation_due)[:_FUNDAMENTAL_MAX_TICKERS_PER_DAY]
 
     if not to_fetch:
         logger.info(f"Loading cached fundamental data (last_updated: {state.get('last_updated')})")

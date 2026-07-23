@@ -508,6 +508,7 @@ class FundamentalScorer:
         """
         all_fundamentals_cached = fundamental_state.get("tickers", {})
         all_fundamentals = {t: v for t, v in all_fundamentals_cached.items() if t in watchlist}
+        fetched_dates = fundamental_state.get("fetched_dates", {})
 
         results = {}
         for ticker in watchlist:
@@ -516,6 +517,11 @@ class FundamentalScorer:
             except Exception as exc:
                 logger.error(f"{ticker}: fundamental scoring failed — {exc}")
                 results[ticker] = self._unavailable_score(ticker)
+            # Surfaces how stale this ticker's fundamental data is, since refreshes
+            # are now staggered per ticker (indicator_pipeline.fetch_fundamental_data)
+            # rather than all refreshed together — two tickers scored the same day
+            # can have fundamentals from different dates.
+            results[ticker]["data_as_of"] = fetched_dates.get(ticker)
 
         return results
 
@@ -539,6 +545,7 @@ class FundamentalScorer:
             "ev_ebitda_vs_peers_score": 0,
             "sector_averages": {},
             "data_quality": "unavailable",
+            "data_as_of": None,
         }
 
     @staticmethod

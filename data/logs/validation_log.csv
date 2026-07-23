@@ -1007,3 +1007,26 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-20T23:48:28.054856+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
 2026-07-20T23:48:28.055877+00:00,NVDA,news,news_future_timestamp
 2026-07-20T23:48:28.058435+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-23T00:10:26.738176+00:00,AMD,fundamental_fetch_error,API error
+2026-07-23T00:12:01.967132+00:00,AMD,fundamental_fetch_error,API error
+2026-07-23T00:12:09.643710+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-23T00:12:09.644019+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-23T00:12:09.645130+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-23T00:12:09.646093+00:00,_system,event_gate_state,malformed_state_repaired_to_empty
+2026-07-23T00:12:09.647221+00:00,_system,event_gate_state,malformed_block_dropped_{'unexpected': 'shape'}
+2026-07-23T00:12:09.648343+00:00,_system,event_gate_state,malformed_timestamp_dropped_not-a-timestamp
+2026-07-23T00:12:09.649719+00:00,_system,event_gate_state,stale_block_auto_expired_fraud_2026-06-23T00:12:09.649528+00:00
+2026-07-23T00:12:09.928747+00:00,AMD,fundamental_fetch_error,API error
+2026-07-23T00:12:10.774731+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-23T00:12:10.775739+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
+2026-07-23T00:12:10.778393+00:00,NVDA,ohlcv,"[""ohlcv_missing_columns_['Volume']""]"
+2026-07-23T00:12:10.781571+00:00,NVDA,ohlcv,ohlcv_high_less_than_low_2026-06-05 00:00:00+00:00
+2026-07-23T00:12:10.784589+00:00,NVDA,ohlcv,ohlcv_close_out_of_range_2026-06-05 00:00:00+00:00
+2026-07-23T00:12:10.787102+00:00,NVDA,ohlcv,ohlcv_zero_or_negative_volume_2026-06-05 00:00:00+00:00
+2026-07-23T00:12:10.790059+00:00,NVDA,ohlcv,ohlcv_extreme_single_day_move_pct_60.0
+2026-07-23T00:12:10.791976+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_1.5
+2026-07-23T00:12:10.792889+00:00,NVDA,sentiment,sentiment_bullish_ratio_out_of_bounds_-0.1
+2026-07-23T00:12:10.793894+00:00,NVDA,sentiment,sentiment_future_timestamp
+2026-07-23T00:12:10.795999+00:00,NVDA,news,news_sentiment_score_out_of_range_2.0
+2026-07-23T00:12:10.797006+00:00,NVDA,news,news_future_timestamp
+2026-07-23T00:12:10.800442+00:00,NVDA,ohlcv,['ohlcv_empty_dataframe']
