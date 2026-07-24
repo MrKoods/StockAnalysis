@@ -305,7 +305,18 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             av_articles = _fetch_av_news_safe(ticker) if scan_type == "post_close" else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles, sector=sector)
+            # sa_engagement_items (fetched above for Sentiment) runs on every scan,
+            # unlike AV news which is post-close only — feeding its headlines into
+            # Event Severity Gate detection (not the scored News total) lets
+            # pre-market/mid-session catch a critical event the same day it breaks
+            # instead of waiting up to ~13 hours for the next post-close scan.
+            sa_severity_articles = [
+                {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
+            ]
+            news = compute_news_score(
+                av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
+                sector=sector, seeking_alpha_articles=sa_severity_articles,
+            )
 
             # Earnings + cross-ticker modifiers
             earnings_info = _fetch_earnings_safe(ticker)

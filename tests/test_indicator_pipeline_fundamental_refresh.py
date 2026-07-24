@@ -62,6 +62,27 @@ class TestBootstrap:
         fetched_today = [t for t in tickers if result["fetched_dates"].get(t) == "2026-07-20"]
         assert len(fetched_today) == ip._FUNDAMENTAL_MAX_TICKERS_PER_DAY
 
+    def test_daily_cap_holds_across_multiple_calls_same_day(self):
+        """
+        The real incident this guards against: fetch_fundamental_data runs once
+        per scan (pre-market, mid-session, post-close) per sector, all sharing one
+        state file. A cap enforced only within a single call resets every time —
+        3 candidates left over from call 1 plus 3 more capacity in call 2 fetched
+        6 tickers in one day in production, double the intended daily ceiling.
+        """
+        semis = ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]  # 6 candidates
+        banks = ["ZION", "KEY", "HBAN", "RF", "FITB"]  # 5 candidates
+        with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+            with _frozen_now(datetime(2026, 7, 20, 5, 30)):
+                ip.fetch_fundamental_data(semis)  # pre-market, sector call 1
+                ip.fetch_fundamental_data(banks)  # pre-market, sector call 2
+                result = ip.fetch_fundamental_data(semis)  # mid-session, sector call 1 again
+
+        fetched_today = [
+            t for t in semis + banks if result["fetched_dates"].get(t) == "2026-07-20"
+        ]
+        assert len(fetched_today) == ip._FUNDAMENTAL_MAX_TICKERS_PER_DAY
+
     def test_leftover_bootstrap_candidates_fetch_on_a_later_call(self):
         tickers = ["NVDA", "AMD", "AVGO", "TSM", "MU"]
         with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):

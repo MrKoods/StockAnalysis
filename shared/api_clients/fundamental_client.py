@@ -2,20 +2,27 @@
 Fundamental data client for the semiconductor swing trading model.
 
 Fetches valuation metrics, earnings history, and estimate revisions for each watchlist
-ticker using yfinance (no API key needed) and Alpha Vantage (ALPHA_VANTAGE_API_KEY from .env).
+ticker using yfinance (no API key needed), Alpha Vantage (ALPHA_VANTAGE_API_KEY), and
+Finnhub (FINNHUB_API_KEY).
 
-Update cadence: weekly (Monday at 17:00 ET) — 2 Alpha Vantage calls per ticker
-(EARNINGS + OVERVIEW). Alpha Vantage's free-tier limit is a single per-account daily
-cap, not partitioned by "scan type" — these calls share data/processed/av_call_count.json
-with shared/api_clients/news_client.py's scan-time AV usage (previously this client
-fired AV calls without checking or incrementing that counter at all, so a Monday
-refresh landing on the same day as scan-time news calls could silently exceed the
-real daily budget while every individual counter still looked fine).
+Update cadence: staggered per-ticker (see indicator_pipeline.fetch_fundamental_data),
+1 Alpha Vantage call/ticker (EARNINGS only — see below). Alpha Vantage's free-tier
+limit is a single per-account daily cap, not partitioned by "scan type" — this call
+shares data/processed/av_call_count.json with shared/api_clients/news_client.py's
+scan-time AV usage.
 
 Data sources:
-  - yfinance Ticker.info    — valuation metrics (P/E, EV/EBITDA, analyst consensus)
-  - Alpha Vantage EARNINGS  — historical EPS actuals vs. estimates (4 quarters)
-  - Alpha Vantage OVERVIEW  — analyst target price, additional consensus fields
+  - yfinance Ticker.info         — valuation metrics (P/E, EV/EBITDA) + analyst target price
+  - Alpha Vantage EARNINGS       — historical EPS actuals vs. estimates (needs 8 quarters
+                                    for a full 4-quarter YoY growth trend — Finnhub's free
+                                    tier and yfinance's quarterly statements both cap out at
+                                    4-5 quarters, only enough for 1 of 4 YoY points, so AV
+                                    stays the source for this one call specifically)
+  - Finnhub /stock/recommendation — analyst rating breakdown (replaced Alpha Vantage
+                                    OVERVIEW here — AV's own prior docstring already noted
+                                    that call was low-value on the free tier: current
+                                    target price only, no revision history — Finnhub gives
+                                    the same rating-snapshot depth for zero AV budget)
 """
 
 import os
@@ -31,6 +38,7 @@ from shared.api_clients.news_client import check_av_budget, increment_av_call_co
 logger = get_logger(__name__)
 
 _AV_BASE_URL = "https://www.alphavantage.co/query"
+_FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 _BACKOFF_DELAYS = [30, 60, 120]
 _MAX_TOTAL_BACKOFF_SECONDS = 90  # caps worst-case stall per AV call (see _with_backoff)
 
@@ -40,16 +48,20 @@ class FundamentalClient:
     Retrieves fundamental data for semiconductor watchlist tickers.
 
     Methods:
-      get_valuation_metrics(ticker)  — P/E, EV/EBITDA, analyst consensus via yfinance
-      get_earnings_history(ticker)   — EPS actuals/estimates (4Q) via Alpha Vantage
-      get_estimate_revisions(ticker) — analyst target price/upside via Alpha Vantage OVERVIEW
+      get_valuation_metrics(ticker)  — P/E, EV/EBITDA via yfinance
+      get_earnings_history(ticker)   — EPS actuals/estimates (4Q YoY trend) via Alpha Vantage
+      get_estimate_revisions(ticker) — analyst target price (yfinance) + rating breakdown
+                                        (Finnhub) — no Alpha Vantage usage
       get_all_fundamentals(ticker)   — orchestrates all three; logs failures gracefully
     """
 
     def __init__(self):
         self._av_key = os.getenv("ALPHA_VANTAGE_API_KEY", "")
+        self._finnhub_key = os.getenv("FINNHUB_API_KEY", "")
         if not self._av_key:
-            logger.warning("ALPHA_VANTAGE_API_KEY not set — earnings/overview calls will fail gracefully.")
+            logger.warning("ALPHA_VANTAGE_API_KEY not set — earnings call will fail gracefully.")
+        if not self._finnhub_key:
+            logger.warning("FINNHUB_API_KEY not set — analyst rating call will fail gracefully.")
 
     # ------------------------------------------------------------------
     # Public API
@@ -207,79 +219,68 @@ class FundamentalClient:
 
     def get_estimate_revisions(self, ticker: str) -> dict:
         """
-        Fetch analyst target price and consensus data via Alpha Vantage OVERVIEW.
-
-        Note on data limitations: Alpha Vantage free tier does not provide a dedicated
-        estimate-revisions endpoint (no historical sequence of analyst price targets).
-        This method returns the current analyst target price and computes implied upside
-        vs. the current price from yfinance. A 'data_limitations' field documents this.
+        Fetch analyst target price (yfinance) and rating breakdown (Finnhub
+        /stock/recommendation). Replaced the prior Alpha Vantage OVERVIEW call —
+        AV's free tier never provided a real revision history there either (current
+        target price only), so this drops the second per-ticker AV call entirely
+        for the same practical depth, at zero AV budget cost.
 
         Returns dict with:
-          analyst_target_price  — from OVERVIEW AnalystTargetPrice field
-          current_price         — from yfinance (last close)
-          implied_upside_pct    — (target - current) / current; None if either unavailable
-          analyst_rating        — from OVERVIEW AnalystRatingStrongBuy etc. if present
-          data_limitations      — note about what's not available on free tier
+          analyst_target_price     — yfinance targetMeanPrice
+          current_price            — yfinance last close
+          implied_upside_pct       — (target - current) / current; None if either unavailable
+          analyst_rating_breakdown — Finnhub's most recent strongBuy/buy/hold/sell/
+                                      strongSell counts, if available
+          data_limitations         — note about what's not available on free tier
         """
         result = {
             "analyst_target_price": None,
             "current_price": None,
             "implied_upside_pct": None,
-            "analyst_rating": None,
+            "analyst_rating_breakdown": None,
             "data_limitations": (
-                "Alpha Vantage free tier does not provide historical estimate revision "
-                "sequences. This endpoint returns current analyst target price only. "
-                "Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be "
-                "determined without a paid tier or a secondary data source."
+                "Neither yfinance nor Finnhub's free tier provides a historical estimate "
+                "revision sequence (upgrades vs. downgrades vs. 30 days ago) — only current "
+                "target price and the latest rating snapshot are available without a paid tier."
             ),
         }
 
-        if not self._av_key:
-            logger.warning(f"{ticker}: skipping estimate revisions — no AV key")
-            return result
-        if not check_av_budget():
-            logger.warning(f"{ticker}: AV daily budget exhausted — skipping estimate revisions")
-            return result
-
-        def _fetch_overview():
-            params = {
-                "function": "OVERVIEW",
-                "symbol": ticker,
-                "apikey": self._av_key,
-            }
-            resp = requests.get(_AV_BASE_URL, params=params, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            if not data or "Symbol" not in data:
-                raise ValueError(f"OVERVIEW response missing Symbol: {list(data.keys())}")
-            return data
-
-        overview = self._with_backoff(_fetch_overview, ticker, "estimate_revisions")
-        increment_av_call_count()
-        if overview is None:
-            return result
-
-        result["analyst_target_price"] = _safe_float(overview.get("AnalystTargetPrice"))
-
-        # Analyst rating fields available in OVERVIEW (not all tickers have these)
-        for rating_field in ("AnalystRatingStrongBuy", "AnalystRatingBuy",
-                             "AnalystRatingHold", "AnalystRatingSell",
-                             "AnalystRatingStrongSell"):
-            val = _safe_float(overview.get(rating_field))
-            if val is not None:
-                result.setdefault("analyst_rating_breakdown", {})[rating_field] = val
-
-        # Current price from yfinance
         try:
             info = yf.Ticker(ticker).info
-            current = _safe_float(info.get("regularMarketPrice") or info.get("previousClose"))
-            result["current_price"] = current
-        except Exception:
-            pass
+            result["analyst_target_price"] = _safe_float(info.get("targetMeanPrice"))
+            result["current_price"] = _safe_float(
+                info.get("regularMarketPrice") or info.get("currentPrice") or info.get("previousClose")
+            )
+        except Exception as exc:
+            logger.warning(f"{ticker}: yfinance target price fetch failed — {exc}")
+            write_validation_entry(ticker, "fundamental_revisions_yfinance_error", str(exc))
 
         if result["analyst_target_price"] and result["current_price"]:
             upside = (result["analyst_target_price"] - result["current_price"]) / result["current_price"]
             result["implied_upside_pct"] = round(upside, 4)
+
+        if not self._finnhub_key:
+            logger.warning(f"{ticker}: skipping analyst rating — no Finnhub key")
+            return result
+
+        def _fetch_recommendation():
+            params = {"symbol": ticker, "token": self._finnhub_key}
+            resp = requests.get(f"{_FINNHUB_BASE_URL}/stock/recommendation", params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected /stock/recommendation response shape: {type(data)}")
+            return data
+
+        data = self._with_backoff(_fetch_recommendation, ticker, "analyst_recommendation")
+        if not data:
+            return result
+
+        latest = data[0]  # Finnhub returns most-recent-period-first
+        result["analyst_rating_breakdown"] = {
+            k: latest.get(k) for k in ("strongBuy", "buy", "hold", "sell", "strongSell")
+            if latest.get(k) is not None
+        } or None
 
         return result
 
@@ -324,13 +325,15 @@ class FundamentalClient:
 
     def _redact(self, text: str) -> str:
         """
-        Strip the Alpha Vantage API key out of an error message before it's logged
-        or written to validation_log.csv. requests' HTTPError embeds the full
-        request URL (apikey is a query param), so an unredacted 429/403/5xx would
+        Strip API keys out of an error message before it's logged or written to
+        validation_log.csv. requests' HTTPError embeds the full request URL (both
+        apikey and token are query params), so an unredacted 429/403/5xx would
         otherwise write the live key to disk in plaintext.
         """
         if self._av_key:
             text = text.replace(self._av_key, "***REDACTED***")
+        if self._finnhub_key:
+            text = text.replace(self._finnhub_key, "***REDACTED***")
         return text
 
     def _with_backoff(self, fn, ticker: str, label: str):
@@ -339,11 +342,11 @@ class FundamentalClient:
         _MAX_TOTAL_BACKOFF_SECONDS of total sleep. Logs each failure to
         validation_log.csv. Returns None after all retries or once the cap is hit.
 
-        Without the cap, a full retry ladder (30+60+120=210s) on both AV calls
-        (EARNINGS + OVERVIEW) across all 6 watchlist tickers is a ~42-minute worst
-        case, run synchronously inside the pipeline with no overall timeout — an AV
-        outage on refresh day could stall whatever else shares that process for
-        most of an hour. Capping bounds it to _MAX_TOTAL_BACKOFF_SECONDS per call.
+        Without the cap, a full retry ladder (30+60+120=210s) on both the AV
+        EARNINGS call and the Finnhub recommendation call across the whole
+        watchlist is a long worst case, run synchronously inside the pipeline with
+        no overall timeout — an outage on refresh day could stall whatever else
+        shares that process. Capping bounds it to _MAX_TOTAL_BACKOFF_SECONDS/call.
         """
         last_exc = None
         elapsed = 0.0

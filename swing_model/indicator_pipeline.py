@@ -224,8 +224,12 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
         actually invalidates cached fundamentals, so it jumps the queue; or
       - today is its stable assigned weekday (_rotation_weekday) and it's been
         >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS since its last fetch.
-    At most _FUNDAMENTAL_MAX_TICKERS_PER_DAY candidates (in that priority order)
-    actually fetch per call; the rest wait for their next due day.
+    At most _FUNDAMENTAL_MAX_TICKERS_PER_DAY tickers actually fetch per calendar
+    day in total (in that priority order), counted across every call today —
+    every scan x every sector shares this one state file, so the budget is
+    tracked globally via how many tickers already show today's date in
+    fetched_dates, not reset per call. Anything past the day's remaining budget
+    waits for its next due day.
 
     Writes fresh data to fundamental_state.json when fetched.
     Logs any fetch failures to validation_log.csv without crashing.
@@ -262,7 +266,16 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
         if today_date.weekday() == _rotation_weekday(t) and (days_stale is None or days_stale >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS):
             rotation_due.append(t)
 
-    to_fetch = (bootstrap + earnings_priority + rotation_due)[:_FUNDAMENTAL_MAX_TICKERS_PER_DAY]
+    # The cap is per calendar day across ALL calls (every scan x every sector shares
+    # this one state file), not per call — fetch_fundamental_data runs once per scan
+    # (3x/day) per sector, so capping only within a single call let the day's total
+    # balloon past the intended ceiling (e.g. 3 calls x 3 candidates = up to 9/day/
+    # sector, which is exactly what happened: 6 tickers fetched in one day before
+    # this fix). already_fetched_today counts every ticker any prior call today
+    # already fetched, regardless of which sector's call did it.
+    already_fetched_today = sum(1 for v in fetched_dates.values() if v == today_str)
+    remaining_budget = max(0, _FUNDAMENTAL_MAX_TICKERS_PER_DAY - already_fetched_today)
+    to_fetch = (bootstrap + earnings_priority + rotation_due)[:remaining_budget]
 
     if not to_fetch:
         logger.info(f"Loading cached fundamental data (last_updated: {state.get('last_updated')})")

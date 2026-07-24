@@ -197,7 +197,16 @@ def main(scan_type: str = "post_close") -> None:
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
-            news = compute_news_score(av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles, sector=sector)
+            # sa_engagement_items runs every scan (unlike AV, post-close only) —
+            # feeds Event Severity Gate detection only, not the scored News total.
+            # See paper_runner.py's matching change for the full rationale.
+            sa_severity_articles = [
+                {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
+            ]
+            news = compute_news_score(
+                av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
+                sector=sector, seeking_alpha_articles=sa_severity_articles,
+            )
 
             # Earnings proximity modifier
             earnings_info = _fetch_earnings_safe(ticker)

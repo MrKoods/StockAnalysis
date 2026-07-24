@@ -293,6 +293,23 @@ def send_event_gate_triggered_alert(
     scope = block.get("scope", "ticker")
     open_positions_affected = open_positions_affected or []
 
+    # The embed's own "timestamp" field (rendered by Discord as "X ago") only
+    # reflects when we detected/posted this — not when the underlying news
+    # actually happened. AV news is post-close-only for budget reasons, so a
+    # story that broke pre-market can sit undetected for hours before it's
+    # caught and posted here looking deceptively "fresh." Surface the real
+    # article time and the resulting lag explicitly so that's never hidden.
+    event_ts_str = block.get("event_timestamp_utc")
+    detected_lag_value = "—"
+    if event_ts_str:
+        try:
+            event_dt = datetime.fromisoformat(event_ts_str)
+            lag = datetime.now(timezone.utc) - event_dt
+            hours = lag.total_seconds() / 3600
+            detected_lag_value = f"{hours:.1f} hr" if hours >= 1 else f"{lag.total_seconds() / 60:.0f} min"
+        except ValueError:
+            pass
+
     embed = {
         "title": f"🚨 EVENT SEVERITY GATE TRIGGERED — {scope.upper()} BLOCK",
         "color": _COLORS["red"],
@@ -303,6 +320,8 @@ def send_event_gate_triggered_alert(
             {"name": "Trigger Match", "value": block.get("trigger_match", "—"), "inline": True},
             {"name": "Source", "value": block.get("source", "—"), "inline": True},
             {"name": "Expiry Condition", "value": block.get("expiry_condition", "next_post_close_scan"), "inline": True},
+            {"name": "Actual Event Time", "value": event_ts_str or "unknown", "inline": True},
+            {"name": "Detection Lag", "value": detected_lag_value, "inline": True},
             {
                 "name": "Open Positions Affected",
                 "value": ", ".join(p.get("ticker", "?") for p in open_positions_affected) or "None",

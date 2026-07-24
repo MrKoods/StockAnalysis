@@ -19,6 +19,13 @@ from backtesting.metrics import (
     compute_consecutive_losses,
 )
 
+# Referenced by name at call time in _save_report (not baked into a default arg
+# value, which Python evaluates once at import time) so tests/conftest.py's
+# autouse fixture can monkeypatch this and keep run_backtest() smoke tests from
+# writing real-looking (but synthetic, all-zero) report files into the actual
+# backtesting/reports/ directory under today's real date.
+_REPORTS_DIR = Path("backtesting/reports")
+
 
 def run_backtest(
     historical_data: dict[str, pd.DataFrame],
@@ -934,8 +941,8 @@ def _build_equity_curve(outcomes: list[dict], starting_equity: float = 15000.0) 
 
 
 def _save_report(result: dict) -> None:
-    """Save backtest result JSON to backtesting/reports/."""
-    report_dir = Path("backtesting/reports")
+    """Save backtest result JSON to _REPORTS_DIR (backtesting/reports/ by default)."""
+    report_dir = _REPORTS_DIR
     report_dir.mkdir(parents=True, exist_ok=True)
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     path = report_dir / f"swing_backtest_{date_str}.json"

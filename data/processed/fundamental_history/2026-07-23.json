@@ -1,7 +1,5 @@
 {
-  "last_updated": "2026-07-24T14:44:00.063981+00:00",
-  "update_cadence": "weekly",
-  "update_day": "Monday",
+  "date": "2026-07-23",
   "tickers": {
     "NVDA": {
       "ticker": "NVDA",
@@ -88,12 +86,12 @@
     "AVGO": {
       "ticker": "AVGO",
       "valuation": {
-        "trailingPE": 63.515835,
-        "forwardPE": 19.58283,
-        "enterpriseToEbitda": 45.445,
-        "enterpriseToRevenue": 25.343,
+        "trailingPE": 62.109634,
+        "forwardPE": 19.277388,
+        "enterpriseToEbitda": 41.825,
+        "enterpriseToRevenue": 23.324,
         "recommendationMean": 1.3125,
-        "targetMeanPrice": 525.44,
+        "targetMeanPrice": 523.72894,
         "suspect_fields": []
       },
       "earnings": {
@@ -112,17 +110,18 @@
         "consecutive_beats": 4
       },
       "revisions": {
-        "analyst_target_price": 525.44,
-        "current_price": 381.22,
-        "implied_upside_pct": 0.3783,
+        "analyst_target_price": 523.73,
+        "current_price": 373.9,
+        "implied_upside_pct": 0.4007,
+        "analyst_rating": null,
+        "data_limitations": "Alpha Vantage free tier does not provide historical estimate revision sequences. This endpoint returns current analyst target price only. Revision direction (upgrades vs. downgrades vs. 30 days ago) cannot be determined without a paid tier or a secondary data source.",
         "analyst_rating_breakdown": {
-          "strongBuy": 17,
-          "buy": 35,
-          "hold": 5,
-          "sell": 0,
-          "strongSell": 0
-        },
-        "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier."
+          "AnalystRatingStrongBuy": 7.0,
+          "AnalystRatingBuy": 37.0,
+          "AnalystRatingHold": 4.0,
+          "AnalystRatingSell": 0.0,
+          "AnalystRatingStrongSell": 0.0
+        }
       }
     },
     "TSM": {
@@ -456,18 +455,5 @@
         }
       }
     }
-  },
-  "fetched_dates": {
-    "NVDA": "2026-07-06",
-    "AMD": "2026-07-06",
-    "AVGO": "2026-07-24",
-    "TSM": "2026-07-23",
-    "MU": "2026-07-06",
-    "ASML": "2026-07-06",
-    "ZION": "2026-07-23",
-    "KEY": "2026-07-23",
-    "HBAN": "2026-07-23",
-    "RF": "2026-07-23",
-    "FITB": "2026-07-23"
   }
 }

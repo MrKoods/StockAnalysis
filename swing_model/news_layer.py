@@ -51,6 +51,7 @@ def compute_news_score(
     reference_date: Optional[datetime] = None,
     finnhub_articles: Optional[list[dict]] = None,
     sector: Optional[str] = None,
+    seeking_alpha_articles: Optional[list[dict]] = None,
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -68,6 +69,18 @@ def compute_news_score(
     ticker-mention matching below is intentionally NOT sector-scoped — a
     headline can legitimately mention any active ticker in any sector.
 
+    `seeking_alpha_articles`: Seeking Alpha editorial items (already fetched
+    every scan for the Sentiment layer's engagement-velocity proxy, at no
+    extra API cost) — checked for Event Severity Gate triggers ONLY, not
+    folded into the scored News total. AV news (the only source in
+    alpha_vantage_articles/all_articles) is restricted to the post-close scan
+    for budget reasons, which left pre-market/mid-session unable to detect a
+    critical event until hours after it broke (observed: a real headline sat
+    undetected ~13 hours before the post-close scan finally caught it).
+    Seeking Alpha runs on every scan already, so wiring its headlines into
+    severity classification (not the numeric score, which stays exactly as
+    backtested) closes most of that detection gap for free.
+
     Returns dict with all fields required by scoring.py.
     """
     if cfg is None:
@@ -78,6 +91,10 @@ def compute_news_score(
     watchlist = get_all_tickers(cfg)
 
     all_articles = list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
+    # Severity-only: adds Seeking Alpha's every-scan headlines to event-gate
+    # detection without affecting all_articles (credibility/theme/clustering/
+    # decay/total_article_count all stay computed from the original 3 sources).
+    severity_check_articles = all_articles + list(seeking_alpha_articles or [])
 
     # ---------------------------------------------------------------------------
     # Filter to relevant articles only (NER confirms ticker mention)
@@ -106,6 +123,19 @@ def compute_news_score(
             relevant.append(article_record)
             ner_results.append({"ticker": ticker, "sentiment": ticker_sentiment, "title": title})
 
+    # Seeking Alpha's ticker-relevant items, same NER + recency filter as above,
+    # kept separate from `relevant` so it only ever feeds severity detection
+    # below — never credibility/theme/clustering/decay, which stay computed
+    # from exactly the 3 sources this was backtested against.
+    severity_relevant = []
+    for art in (seeking_alpha_articles or []):
+        title = art.get("title", "")
+        if is_ticker_relevant(title, ticker):
+            ts = _parse_ts(art.get("timestamp_utc", ""))
+            if news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0) <= 0.0:
+                continue
+            severity_relevant.append({**art, "_ts": ts})
+
     # ---------------------------------------------------------------------------
     # Event Severity Gate — classify every processed item for severity/scope.
     # Sector-wide triggers (export policy, tariffs, Taiwan Strait, etc.) are
@@ -122,9 +152,9 @@ def compute_news_score(
     # merely logged, using scoring.py's computed trade direction.
     # ---------------------------------------------------------------------------
     critical_events = []
-    for art in all_articles:
+    for art in severity_check_articles:
         title = art.get("title", "")
-        source = art.get("source_domain", "") or art.get("publisher", "")
+        source = art.get("source_domain", "") or art.get("publisher", "") or art.get("source", "")
         ts = _parse_ts(art.get("timestamp_utc", ""))
         decay = news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0)
         if decay <= 0.0:
@@ -140,9 +170,9 @@ def compute_news_score(
                 "event_timestamp_utc": ts.isoformat(),
             })
 
-    for art in relevant:
+    for art in relevant + severity_relevant:
         title = art.get("title", "")
-        source = art.get("source_domain", "") or art.get("publisher", "")
+        source = art.get("source_domain", "") or art.get("publisher", "") or art.get("source", "")
         classified = classify_severity({"title": title, "source_domain": source}, cfg, sector=sector)
         if classified["severity"] == SEVERITY_CRITICAL and classified["scope"] == SCOPE_TICKER:
             critical_events.append({

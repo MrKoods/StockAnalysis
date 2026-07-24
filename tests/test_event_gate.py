@@ -407,6 +407,70 @@ class TestNewsLayerIntegration:
         # Normal 15-point scoring is completely unaffected by the gate being disabled
         assert "news_score_total" in result
 
+    def test_seeking_alpha_only_sector_event_still_detected(self):
+        """
+        AV news (alpha_vantage_articles) is post-close-only; pre-market/mid-session
+        pass an empty list there. Seeking Alpha runs every scan, so a sector-wide
+        critical event present ONLY in seeking_alpha_articles must still surface —
+        this is what closes the detection-lag gap for non-post-close scans.
+        """
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        sa_articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source": "seekingalpha.com",
+            "timestamp_utc": now.isoformat(),
+        }]
+        result = compute_news_score(
+            [], [], "NVDA", cfg, reference_date=now, seeking_alpha_articles=sa_articles
+        )
+        critical = result["critical_events"]
+        assert len(critical) == 1
+        assert critical[0]["scope"] == SCOPE_SECTOR
+
+    def test_seeking_alpha_only_ticker_event_still_detected(self):
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        sa_articles = [{
+            "title": "AMD CEO resigns amid controversy",
+            "source": "seekingalpha.com",
+            "timestamp_utc": now.isoformat(),
+        }]
+        result = compute_news_score(
+            [], [], "AMD", cfg, reference_date=now, seeking_alpha_articles=sa_articles
+        )
+        critical = result["critical_events"]
+        assert len(critical) == 1
+        assert critical[0]["scope"] == SCOPE_TICKER
+
+    def test_seeking_alpha_articles_do_not_affect_scored_news_total(self):
+        """
+        seeking_alpha_articles must only feed severity detection, never the
+        backtested 0-15 News score — adding it shouldn't change news_score_total
+        or total_article_count versus the same call without it.
+        """
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        av_articles = [{
+            "title": "NVDA gains market share amid strong AI demand",
+            "source_domain": "Reuters",
+            "timestamp_utc": now.isoformat(),
+        }]
+        sa_articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source": "seekingalpha.com",
+            "timestamp_utc": now.isoformat(),
+        }]
+        without_sa = compute_news_score(av_articles, [], "NVDA", cfg, reference_date=now)
+        with_sa = compute_news_score(
+            av_articles, [], "NVDA", cfg, reference_date=now, seeking_alpha_articles=sa_articles
+        )
+        assert with_sa["news_score_total"] == without_sa["news_score_total"]
+        assert with_sa["total_article_count"] == without_sa["total_article_count"]
+        # But the severity detection itself does differ — that's the whole point
+        assert without_sa["critical_events"] == []
+        assert len(with_sa["critical_events"]) == 1
+
 
 # ---------------------------------------------------------------------------
 # scoring.compute_confidence_score — advisory flag, not a score input

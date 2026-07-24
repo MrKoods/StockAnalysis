@@ -9,9 +9,22 @@ import logging
 import logging.handlers
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 
 _loggers: dict[str, logging.Logger] = {}
+
+# Module-level defaults for the CSV log writers below. Referenced by name at
+# call time (not baked into the function signatures as default arg values,
+# which Python evaluates once at import time) specifically so
+# tests/conftest.py's autouse fixture can monkeypatch these and redirect every
+# write_*_entry call into an isolated tmp_path — without this indirection,
+# any test that exercises a real error path (a mocked API failure, a data
+# validator edge case, etc.) silently appends synthetic entries to the actual
+# production CSV logs under data/logs/.
+_AUDIT_LOG_PATH = Path("data/logs/audit_log.csv")
+_VALIDATION_LOG_PATH = Path("data/logs/validation_log.csv")
+_OVERRIDE_LOG_PATH = Path("data/logs/override_log.csv")
 
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
@@ -58,12 +71,12 @@ _AUDIT_COLUMNS = [
 ]
 
 
-def write_audit_entry(entry: dict, audit_log_path: str = "data/logs/audit_log.csv") -> None:
+def write_audit_entry(entry: dict, audit_log_path: Optional[str] = None) -> None:
     """
     Append one row to audit_log.csv. Creates file with headers if it doesn't exist.
     Called by run_swing_model.py after every ticker is scored.
     """
-    path = Path(audit_log_path)
+    path = Path(audit_log_path) if audit_log_path is not None else _AUDIT_LOG_PATH
     write_header = not path.exists()
     with open(path, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=_AUDIT_COLUMNS, extrasaction="ignore")
@@ -75,10 +88,10 @@ def write_audit_entry(entry: dict, audit_log_path: str = "data/logs/audit_log.cs
 
 def write_validation_entry(
     ticker: str, failure_type: str, detail: str,
-    log_path: str = "data/logs/validation_log.csv"
+    log_path: Optional[str] = None
 ) -> None:
     """Append a data validation failure to validation_log.csv."""
-    path = Path(log_path)
+    path = Path(log_path) if log_path is not None else _VALIDATION_LOG_PATH
     write_header = not path.exists()
     with open(path, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
@@ -97,10 +110,10 @@ def write_validation_entry(
 
 def write_override_entry(
     ticker: str, system_recommendation: str, action_taken: str, reason: str,
-    log_path: str = "data/logs/override_log.csv"
+    log_path: Optional[str] = None
 ) -> None:
     """Append a manual override to override_log.csv."""
-    path = Path(log_path)
+    path = Path(log_path) if log_path is not None else _OVERRIDE_LOG_PATH
     write_header = not path.exists()
     with open(path, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
