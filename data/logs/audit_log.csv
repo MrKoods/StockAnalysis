@@ -8,3 +8,6 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-07-23T20:30:13.946736+00:00,v2.2.10,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export ban' source='cnbc.com',True,export ban
 2026-07-23T20:30:55.047325+00:00,v2.2.10,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
 2026-07-24T14:44:34.359799+00:00,v2.2.10,pre_market,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-07-24T20:30:52.826234+00:00,v2.2.10,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-07-24T20:30:53.300778+00:00,v2.2.10,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export ban',False,export ban
+2026-07-24T20:30:53.717881+00:00,v2.2.10,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud

@@ -12,6 +12,64 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.13] — 2026-07-24 — Feed Seeking Alpha into event-gate detection; cut a redundant AV call; isolate test logging
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.12 — the event-gate/AV-source changes affect signal detection speed and one Fundamental sub-score's data source, not the scoring formula itself; the test-isolation fix is reliability-only. See "Backtest result" below.
+
+### What changed
+- `swing_model/news_layer.py`, `run_swing_model.py`, `paper_trading/paper_runner.py`: Seeking Alpha's editorial headlines (already fetched every scan for the Sentiment layer's engagement-velocity proxy, at no extra API cost) now also feed Event Severity Gate detection — severity classification only, never the scored News total, which stays computed from exactly the same 3 sources (Alpha Vantage/Yahoo/Finnhub) it was backtested against. Alpha Vantage news is restricted to the post-close scan for budget reasons, which left pre-market/mid-session unable to detect a critical event until hours after it broke — one real headline sat undetected roughly 13 hours before the post-close scan finally caught it. `shared/utils/discord_alerts.py`'s event-gate-triggered embed now shows the actual article timestamp and the resulting detection lag explicitly, instead of only when the alert itself posted.
+- `shared/api_clients/fundamental_client.py`: `get_estimate_revisions()` now sources analyst target price from yfinance and rating breakdown from Finnhub, dropping the Alpha Vantage OVERVIEW call entirely. That call's own prior docstring already noted it was low-value on the free tier (current target price only, no real revision history), so this is one fewer AV call/ticker for the same practical depth — freeing budget as the watchlist grows across sectors. `implied_upside_pct` (feeds `estimate_revisions_score` in `fundamental_layer.py`) is computed the same way as before; only its target-price source changed.
+- New `tests/conftest.py`: autouse fixtures redirect `write_audit_entry`/`write_validation_entry`/`write_override_entry` (`shared/utils/logger.py`) and `backtest_engine._save_report()` into `tmp_path` for every test. Without this, any test exercising a real error path wrote synthetic entries straight into the production `data/logs/*.csv` files and `backtesting/reports/` — audited and found `validation_log.csv` was 99.7% test pollution going back to its very first entry. `logger.py`/`backtest_engine.py`'s path defaults are now module-level constants referenced by name (not baked into function default-argument values, which Python evaluates once at import time) specifically so they're monkeypatchable.
+- New `tests/test_fundamental_client.py` covering the Finnhub/yfinance `get_estimate_revisions()` rework.
+
+### Why it was changed
+Investigating why paper trading kept missing news that later showed up as a post-close event-gate trigger led to the Seeking Alpha wiring — the detection lag was real and measured, not hypothetical. The AV OVERVIEW removal was opportunistic budget cleanup found in the same pass. The test-log-pollution fixture came from directly auditing `validation_log.csv` and finding the overwhelming majority of entries were test artifacts, not real production data-quality issues — a real risk for anyone trying to read that file as a signal.
+
+### Backtest result
+**N/A / not independently re-tested.** The event-gate detection-lag fix and AV→yfinance/Finnhub data-source swap don't change the News category's scored total or the `estimate_revisions_score` formula itself — only detection speed and one sub-score's underlying data source — so the existing backtest result isn't invalidated by this entry, but it also wasn't specifically re-verified against these paths. The test-isolation fix has no effect on scoring, thresholds, or trade selection.
+
+### Approved by
+MrKoods — 2026-07-24
+
+---
+
+## [v2.2.12] — 2026-07-23 — Stagger fundamental refresh per ticker; prioritize by earnings proximity
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.11 — scheduling/reliability change, no scoring formula impact.
+
+### What changed
+- `swing_model/indicator_pipeline.py`: `fetch_fundamental_data()` no longer refreshes the whole watchlist in one Monday-evening burst. Each ticker gets a stable weekly rotation slot (`_rotation_weekday()`, hashed so it's consistent across runs, not Python's randomized built-in `hash()`), capped at `_FUNDAMENTAL_MAX_TICKERS_PER_DAY` (3) refreshes per day, prioritized as: cold-start (never fetched) > within `_FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS` (3) of a known earnings date (free yfinance calendar lookup — the one event that actually invalidates cached fundamentals) > due on its rotation day.
+- `swing_model/scoring.py`, `fundamental_layer.py`, `paper_trading/paper_runner.py`: now surface `fundamental_data_as_of` per ticker in the score breakdown and score-log line, since staggered refreshing means two tickers scored the same day can have fundamentals from different dates.
+
+### Why it was changed
+With multi-sector infrastructure (v2.2.8+) expanding the watchlist, a single Monday-evening burst refresh costs 2 Alpha Vantage calls per ticker on top of that day's post-close news calls — as the watchlist grows across sectors, that risks exceeding the 25-call/day free-tier budget in one burst. Staggering spreads the same total cost across the week instead.
+
+### Backtest result
+N/A — scheduling/cadence change only. Doesn't affect the fundamental scoring formula, only how frequently and on what day each ticker's underlying data is refreshed; the backtest's point-in-time fundamental lookup (added v2.2.2) already tolerates data of varying recency.
+
+### Approved by
+MrKoods — 2026-07-23
+
+---
+
+## [v2.2.11] — 2026-07-20 — Track fundamental/positioning fetch cadence per ticker, not file-wide
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.10 — bug fix, no scoring formula impact.
+
+### What changed
+- `swing_model/indicator_pipeline.py`: `fetch_fundamental_data()` and `fetch_positioning_data()` now track refresh cadence per ticker via `state["fetched_dates"]`, instead of a single file-wide `last_updated` timestamp. `_load_fundamental_state()`/`_load_positioning_state()` gained a migration path so existing state files don't trigger a spurious same-day re-fetch of tickers whose data was already fresh under the old scheme.
+
+### Why it was changed
+With multiple sectors active (v2.2.8+), a sector processed later in the same scan run would see an earlier sector's fetch timestamp on the shared file-wide `last_updated` field and conclude its own tickers were "already refreshed today" — even though they had never been fetched at all. That silently pinned newly-added sector tickers to null fundamental/positioning data indefinitely, with no error anywhere to surface it.
+
+### Backtest result
+N/A — bug fix to live/paper fetch-cadence tracking only; the backtest replay doesn't go through this code path.
+
+### Approved by
+MrKoods — 2026-07-20
+
+---
+
 ## [v2.2.10] — 2026-07-19 — Activate regional_banks for paper trading; app UI groups results by sector
 
 **Status:** Code updated. **`regional_banks.active` is now `true` — paper trading will scan both sectors starting with the next scheduled run.** This is a paper-trading activation only, not a live-capital decision: per this file's own Performance Thresholds, no version has ever passed the backtest, so real money stays at zero risk regardless of this flag, same as every version since v2.0.0. This is a MINOR bump (new capability, tradeable universe expands from 6 to 11 tickers) rather than MAJOR — no scoring architecture or trade-selection logic changed, only which tickers get scanned.
