@@ -12,6 +12,121 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.18] — 2026-07-26 — Healthcare sector pulled as a third, non-rate-sensitive diversification test
+
+**Status:** Code updated. **Research-only, same as regional banks (v2.2.6) — `config/swing_config.yaml`'s live watchlist is unchanged, zero live/paper trading impact.** Not a scoring or threshold change; no re-backtest of the live model required.
+
+### What changed
+- New `data/historical_healthcare/` (gitignored, local-only — matches `data/historical_banks/`'s existing pattern): 2013-2026 OHLCV via yfinance for XLV (benchmark) + LLY, PFE, MRK, ABBV, UNH, JNJ.
+- `.gitignore`: added `data/historical_healthcare/`.
+
+### Why it was changed
+Semis and regional banks are both rate-sensitive procyclicals — chips on growth/rate fears, banks on net-interest-margin and credit fears — so their agreement (v2.2.6/v2.2.7) is weaker evidence of genuine generalization than it looks: both could simply be responding to the same underlying rate-regime factor already shown (v2.2.7) to explain most of the pass/fail pattern. Healthcare/pharma was picked specifically because its momentum breakouts are driven by different catalysts (drug approvals, trial readouts, FDA decisions) largely independent of the macro rate cycle — a real test of whether the entry-filter edge is generic or sector-specific, not a third rate-sensitive data point dressed up as a third opinion.
+
+### Result
+Re-ran the identical pooled walk-forward methodology (current default filter: RSI 45-70 + confirmation bar, all windows, KRE/SMH/XLV relabeled as the generic backtest benchmark key per sector) fresh across all three sectors for a clean comparison:
+
+| Sector | Benchmark | Pooled trades | Win rate | Avg R:R | Max consec. losses |
+|---|---|---|---|---|---|
+| Semiconductors | SMH | 54 | 61.1% | 1.89 | 3 |
+| Regional banks | KRE | 46 | 54.4% | 1.63 | 8 |
+| Healthcare | XLV | 41 | 63.4% | 1.31 | 3 |
+| **All three pooled** | — | **141** | **59.6%** | **1.63** | — |
+
+(Small variance from the semis/banks figures previously logged in v2.2.6/v2.2.7 is expected re-run noise from walk-forward window boundaries on slightly more recent data, not a regression.)
+
+**Healthcare's win rate (63.4%) holds up as well as or better than semis and banks — genuinely reassuring for the "is this a real, generalizable edge" question.** Its average R:R (1.31) is meaningfully lower than either procyclical sector, though — healthcare breakouts win about as often but capture noticeably less reward per winner. Read together: the *direction-calling* part of the entry filter (breakout + trend + RS + RSI band) looks like it generalizes past rate-sensitive names; the *reward-magnitude* part may be more sector-dependent (healthcare's smaller/faster momentum moves vs. semis' larger, more explosive rallies) than previously evidenced with only two, similarly-behaved sectors. Three-sector pooled expectancy (0.596×1.63 − 0.404×1.0 ≈ 0.57R/trade) stays clearly positive.
+
+Per the v2.2.16 lockbox rule, this is reported as new evidence, not a trigger to retune entry-filter parameters against it.
+
+### Approved by
+MrKoods — 2026-07-26
+
+---
+
+## [v2.2.17] — 2026-07-26 — Replace the flat 80% WR / 1.8 R:R go-live gate with a bootstrapped expectancy CI
+
+**Status:** Code updated. Still not eligible to go live — this changes how "passed" is determined, it does not make anything pass. This IS a threshold change (the pass/fail criterion itself), so it gets the full re-backtest this file's own rule requires, even though it never touches live scoring weights, indicator parameters, or the 90-point confidence threshold that decides which trades surface.
+
+### What changed
+- `backtesting/metrics.py`: new `compute_r_multiples()` (per-trade achieved R, wins and losses — unlike `compute_avg_rr()`, which only ever averaged winners) and `bootstrap_expectancy_ci()` (bootstrapped confidence interval on mean per-trade R-expectancy, 10,000 resamples, fixed seed=42 by default for determinism — a go-live gate that flips pass/fail between identical re-runs from resampling noise alone would undermine trust in the gate itself).
+- `backtesting/backtest_engine.py::run_backtest()`: `passed` now requires the bootstrapped 95% CI lower bound on expectancy to clear a new `min_expectancy_r` parameter (default 0.3R), instead of `win_rate >= 0.80 and avg_rr >= 1.8`. Trade-count (≥100), Sharpe (≥1.0), and max-drawdown (≤15%) floors are unchanged. `win_rate`/`avg_rr` are still computed and included in the result dict for continuity with existing reports/dashboards — they just no longer gate `passed` directly. New result fields: `expectancy_r_mean`, `expectancy_r_ci_lower`, `expectancy_r_ci_upper`.
+- `Project_Scope.md` (Performance Thresholds section) and `PROJECT_OVERVIEW.md` (§1 non-negotiable gate) updated with a callout explaining the change — the original 80%/1:3 table, Kelly Criterion note, and streak-probability table are left as-is for historical/illustrative context (they were never recomputed under the new criterion; there's no single win-rate scalar to plug into that math the same way), not silently rewritten.
+- New tests in `tests/test_phase12_backtest.py`: `compute_r_multiples`/`bootstrap_expectancy_ci` unit tests (empty input, determinism under a fixed seed, CI narrowing with more trades) and `test_passed_requires_expectancy_ci_lower_above_threshold` confirming `passed` actually responds to `min_expectancy_r` rather than the old win_rate/avg_rr pair.
+
+### Why it was changed
+The flat 80% win rate / 1.8 avg R:R pair implied ~1.24R expectancy per trade sustained indefinitely — far above anything this design (or most systematic equity strategies) has ever demonstrated, even in its best historical windows (see PROJECT_OVERVIEW.md §11's walk-forward findings) — and a bare percentage pair can't distinguish a real edge from a small sample that got lucky. An expectancy confidence interval answers the question the gate actually needs answered: not just "is the observed number above X" but "how confident can we be the true edge is above X, given how much data we have."
+
+### Backtest result
+Re-ran the full 13.5-year fixed-slice backtest under the new gate: **win_rate=66.67%, avg_rr=2.35, expectancy_r_mean=1.236, expectancy_r_ci_lower=0.422, expectancy_r_ci_upper=2.03, sharpe=0.34, max_drawdown=2.97%, qualifying_trades=18 (of 100 required), total_signals=50.** `passed=False` — same as every prior version — but for a more informative reason than before: **the expectancy CI lower bound (0.422R) already clears the new 0.3R bar.** What's actually blocking go-live on this slice is trade count (18 vs. 100 required) and Sharpe (0.34 vs. 1.0 required), not a lack of edge. This is a more useful diagnosis than "66.7% vs. 80%, fail" — it says the signal looks statistically real when it fires, there just isn't enough of it yet (consistent with the "let paper trading accumulate more history" direction already in progress, not a reason to resume backtest-filter tuning — see the v2.2.16 lockbox rule). 566 tests pass (was 559), 3 skipped (unchanged, stale stress-test skips).
+
+### Approved by
+MrKoods — 2026-07-26
+
+---
+
+## [v2.2.16] — 2026-07-26 — Technical/Sentiment collinearity diagnostic; formal backtest-tuning lockbox rule
+
+**Status:** Code updated. No scoring, threshold, or trade-selection change of any kind — this entry is a measurement tool and a documented process rule, not a model change. No backtest re-run required.
+
+### What changed
+- New `backtesting/collinearity_diagnostic.py`: measures how independent the Technical and Sentiment categories actually are in backtest replay, where Sentiment is a price-momentum proxy (`_sentiment_from_price_momentum`) rather than real StockTwits data — since Technical already scores momentum/breakout/RSI directly, a proxy built from the same price series risked being the same signal wearing two labels, inflating the backtest's apparent win rate versus what independent live sentiment data will actually contribute. Reuses the identical candidate-detection filters as `_simulate_test_signals` so the sampled population matches what the real backtest scores. Run via `python -m backtesting.collinearity_diagnostic`.
+- `Project_Scope.md` (Clarification 6, residual model risks): formalized the "stop iterating" decision already made in v2.2.6 into an explicit rule — no historical or paper-trading data timestamped before 2026-07-26 may be used to tune backtest entry-filter parameters (RSI band, confirmation bar, volume gate, stop/target multipliers) again. Re-running the existing backtest for reporting/regression-checking is unaffected; only re-*tuning* against already-reused data is blocked. The next legitimate tuning pass is against paper-trading data accumulated after this date.
+
+### Why it was changed
+Part of a broader review of the project's statistical methodology (go-live gate calibration, cross-sector diversification test, this collinearity question, and the lockbox rule — see accompanying discussion). The collinearity question specifically was raised as a hypothesis ("is the backtest's apparent 5-category diversification partly illusory because two categories share the same underlying data in replay?") and needed an actual measurement rather than an argument from principle.
+
+### Result
+**The hypothesis did not hold up.** Measured across 201 candidate bars (6 tickers, same filters as the real backtest): Pearson r(technical_total, sentiment_total) = 0.115, Spearman ρ = 0.113 — both well below the 0.5 threshold that would indicate substantial collinearity, and closer to the "meaningfully separate information" end even under the proxy. The raw inputs each score is built from (rs_zscore vs. mom_5d) correlate similarly weakly (r=0.141, ρ=0.090). Read with two caveats: (1) the sample is pre-filtered to already-qualifying breakout candidates (trend_intact, RS>0, RSI 45-70), which compresses the variance of both variables and could understate the true unconditional correlation — a restriction-of-range effect, not a flaw in the measurement itself; (2) `sentiment_total` is a bucketed step function of `mom_5d`, which Pearson r can under-capture even for a real monotonic relationship — Spearman ρ was computed alongside for this reason and landed in the same range, so this isn't the explanation for the low reading. Net: the proxy-sentiment concern raised earlier this session is not corroborated by this data; the 63-67% backtest win rates aren't being meaningfully inflated by Technical/Sentiment double-counting.
+
+### Approved by
+MrKoods — 2026-07-26
+
+---
+
+## [v2.2.15] — 2026-07-26 — Seeking Alpha triggers same-scan AV cross-reference on a critical event
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.14 — this only changes when a pre-market/mid-session scan spends an Alpha Vantage call, not the scoring formula. See "Backtest result" below.
+
+### What changed
+- `swing_model/news_layer.py`: new `seeking_alpha_flags_critical_event()` — runs the existing `classify_severity()` logic standalone (cheap, local, no API cost) against Seeking Alpha's headlines for a ticker, before deciding whether to fetch Alpha Vantage news that scan.
+- `swing_model/run_swing_model.py`, `paper_trading/paper_runner.py`: pre-market/mid-session scans (which skip AV news entirely by default, post-close-only, for budget reasons — v2.2.x) now make one exception: if Seeking Alpha (already fetched every scan for Sentiment, at no extra cost) flags a critical ticker- or sector-scope event for that ticker, the AV call fires immediately instead of waiting for the post-close scan. Cross-references the event against an independent, pre-scored source the same scan it's detected, rather than up to ~13 hours later.
+- New `tests/test_event_gate.py::TestSeekingAlphaFlagsCriticalEvent` (6 tests) covering ticker-scope, sector-scope, wrong-ticker, non-critical, empty-input, and gate-disabled cases.
+
+### Why it was changed
+User asked, in the context of the v2.2.14 AV-budget-relief work, whether Seeking Alpha could also be used to trigger an Alpha Vantage cross-reference check rather than only feed the scored News total. This is deliberately scoped to the trigger alone (not a routine-call rotation or an AV-vs-SA sentiment-agreement flag, both discussed and deferred) — it *adds* an AV call in the rare case something's actually flagged, on scans that currently spend zero, rather than reducing total AV usage; that trade is worth it since confirming a real event is cheap next to missing one for ~13 hours.
+
+### Backtest result
+N/A — live/paper fetch-cadence change only, not modeled in `backtesting/simulation.py` (which never calls Alpha Vantage live and has no `seeking_alpha_articles` archive at all, per v2.2.14). Doesn't touch the scoring formula. 559 tests pass (was 553 before this entry), 3 skipped (same stale stress-test skips, unrelated).
+
+### Approved by
+MrKoods — 2026-07-26
+
+---
+
+## [v2.2.14] — 2026-07-26 — Fold Seeking Alpha into the scored News total; split backtest_engine.py; add CI/lockfile
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.13 — the News-scoring change adds a live-only fourth source to an existing category rather than altering the scoring formula's weights or thresholds; the rest of this entry is engineering infrastructure with no scoring effect at all. See "Backtest result" below.
+
+### What changed
+- `swing_model/news_layer.py`: `compute_news_score()` now folds `seeking_alpha_articles` directly into `all_articles` — Seeking Alpha headlines (already fetched every scan for the Sentiment layer's engagement-velocity proxy, at no extra API cost) now contribute to the scored 0-15 News total (credibility/theme/clustering/decay) exactly like AV/Yahoo/Finnhub articles, not just Event Severity Gate detection as of v2.2.13. `shared/utils/source_credibility.py` already had a `seekingalpha.com` → 0.55 credibility score defined before this change ever wired it into scoring. `run_swing_model.py`/`paper_trading/paper_runner.py` updated to match (`sa_severity_articles` renamed `sa_news_articles`); `tests/test_event_gate.py` updated to assert the new fold-in behavior instead of the old severity-only isolation.
+- **Why this addresses the AV budget constraint**: Alpha Vantage's `NEWS_SENTIMENT` call is already restricted to the post-close scan (1/ticker/day) and shares a 20-call/day free-tier budget with weekly `EARNINGS` calls — a real constraint on watchlist growth (see PROJECT_OVERVIEW.md §13). Seeking Alpha runs on every scan via the existing paid RapidAPI subscription at zero AV cost. Giving News a genuine second live source (rather than AV alone) means the category is less exposed on scans/days where AV data is thin, without spending any additional AV budget — the natural next step this unlocks (not done here, flagged as a follow-up) is staggering the AV news call itself per-ticker the same way `fetch_fundamental_data()` already staggers `EARNINGS` (v2.2.12), now that News doesn't depend on AV alone.
+- `backtesting/backtest_engine.py` (951 → 193 lines) split into three files, mechanical refactor only, no behavior change: `backtesting/simulation.py` (the historical-replay engine — `_simulate_test_signals`, `simulate_trade_outcome`, and their direct helpers), `backtesting/walk_forward.py` (`run_walk_forward`), and `backtesting/metrics.py` gains `_trades_per_year`/`_build_equity_curve`. `backtest_engine.py` now only holds `run_backtest`/`_get_test_outcomes`/`_save_report` and re-exports `run_walk_forward`/`simulate_trade_outcome` for existing callers (`entry_filter_variants.py`, `tests/test_phase12_backtest.py`) — verified no import broke.
+- New `.github/workflows/ci.yml`: runs `pytest --cov` + `ruff check .` on every push/PR to `main`/`Version-1`.
+- New `pyproject.toml`: `[tool.ruff]` config, scoped to `select = ["E", "F"]` (correctness) since the codebase is clean against that today — `I`/`UP`/`B` (import sort, pyupgrade, bugbear) surface ~400 pre-existing stylistic findings, deliberately left for their own separate adoption commit rather than silently bundled in here. Fixed the one real finding (`F401` unused import in `tests/test_multi_sector_pipeline.py`).
+- New `requirements.lock.txt`: fully resolved via `pip-compile` (pip-tools), for reproducible CI installs. `requirements.txt` stays the human-edited floor-version list; regenerate the lock after editing it (`pip-compile requirements.txt --output-file=requirements.lock.txt --resolver=backtracking`). One transitive dependency (`cody-special`, pulled in via `py_vollib`'s `lets-be-rational` backend) was manually verified before trusting it — an unfamiliar single-release package name is worth checking, this one turned out to be a legitimate W.J. Cody erf/normal-CDF approximation from the same `vollib` GitHub org, not a supply-chain risk.
+
+### Why it was changed
+User-requested engineering hardening pass: no CI meant a bad commit only got caught if someone remembered to run `pytest` locally; no lockfile meant an unpinned `yfinance`/`spacy` upgrade could silently change behavior with no test catching it; `backtest_engine.py` at 951 lines was the file with the highest concentration of self-caught bugs (Sharpe periodicity, equity-curve ordering) in this project's history, consistent with one file doing too much. The Seeking Alpha change was the user's own suggestion for relieving the Alpha Vantage budget constraint flagged in the same review.
+
+### Backtest result
+**No observable effect — confirmed, not just argued.** `backtesting/simulation.py` has no historical Seeking Alpha article archive (unlike AV, cached from Q4 2025 onward) and always calls `compute_news_score(..., seeking_alpha_articles=None)`; `list(None or [])` contributes nothing to `all_articles` whether or not this change exists, so the backtest path is mathematically unchanged. Re-ran the full 13.5-year backtest after this change: 66.7% WR, 18 qualifying trades, 2.35 avg R:R, 0.34 Sharpe — consistent with the existing v2.2.6-documented baseline (64.7% WR / 17 trades on the same fixed slice; small variance is expected re-run noise, not a regression). This is the same "accumulates going forward, not backtestable yet" caveat already accepted for Positioning and live StockTwits sentiment (see PROJECT_OVERVIEW.md §13) — tracked the same way. The `backtest_engine.py` split and CI/lockfile additions have no backtest-relevant code path at all. 553 tests pass (was 552 before this entry), 3 skipped (same stale stress-test skips, unrelated — see PROJECT_OVERVIEW.md §10).
+
+### Approved by
+MrKoods — 2026-07-26
+
+---
+
 ## [v2.2.13] — 2026-07-24 — Feed Seeking Alpha into event-gate detection; cut a redundant AV call; isolate test logging
 
 **Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.12 — the event-gate/AV-source changes affect signal detection speed and one Fundamental sub-score's data source, not the scoring formula itself; the test-isolation fix is reliability-only. See "Backtest result" below.

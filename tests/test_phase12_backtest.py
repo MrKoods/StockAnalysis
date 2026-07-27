@@ -14,6 +14,8 @@ from backtesting.metrics import (
     compute_sharpe,
     per_regime_metrics,
     compute_consecutive_losses,
+    compute_r_multiples,
+    bootstrap_expectancy_ci,
 )
 from backtesting.backtest_engine import simulate_trade_outcome, run_backtest
 from backtesting.stress_test import run_all_scenarios, run_scenario, SCENARIOS
@@ -87,6 +89,41 @@ class TestMetrics:
     def test_max_drawdown_on_flat_curve(self):
         curve = pd.Series([100.0] * 10)
         assert compute_max_drawdown(curve) == pytest.approx(0.0)
+
+    def test_r_multiples_includes_wins_and_losses(self):
+        outcomes = _outcomes(2, 3, rr=3.0)
+        r = compute_r_multiples(outcomes)
+        assert len(r) == 5
+        assert r.count(3.0) == 2
+        assert r.count(-1.0) == 3
+
+    def test_r_multiples_empty(self):
+        assert compute_r_multiples([]) == []
+
+    def test_bootstrap_expectancy_ci_empty(self):
+        result = bootstrap_expectancy_ci([])
+        assert result == {"mean_r": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n_trades": 0}
+
+    def test_bootstrap_expectancy_ci_deterministic_with_fixed_seed(self):
+        r_multiples = [3.0, 3.0, -1.0, -1.0, -1.0, 3.0, -1.0, 3.0, -1.0, -1.0]
+        result_a = bootstrap_expectancy_ci(r_multiples, n_bootstrap=500)
+        result_b = bootstrap_expectancy_ci(r_multiples, n_bootstrap=500)
+        assert result_a == result_b
+
+    def test_bootstrap_expectancy_ci_bounds_bracket_mean(self):
+        r_multiples = [3.0, -1.0] * 50  # 100 trades, 50% WR, mean_r = 1.0
+        result = bootstrap_expectancy_ci(r_multiples, n_bootstrap=2000)
+        assert result["n_trades"] == 100
+        assert result["mean_r"] == pytest.approx(1.0)
+        assert result["ci_lower"] <= result["mean_r"] <= result["ci_upper"]
+
+    def test_bootstrap_expectancy_ci_narrower_with_more_trades(self):
+        # Same underlying win rate/R:R, but 10x the sample — CI should tighten.
+        small = bootstrap_expectancy_ci([3.0, -1.0] * 10, n_bootstrap=2000)
+        large = bootstrap_expectancy_ci([3.0, -1.0] * 100, n_bootstrap=2000)
+        small_width = small["ci_upper"] - small["ci_lower"]
+        large_width = large["ci_upper"] - large["ci_lower"]
+        assert large_width < small_width
 
     def test_max_drawdown_on_declining_curve(self):
         curve = pd.Series([100.0, 90.0, 80.0, 85.0])
@@ -206,7 +243,8 @@ class TestRunBacktest:
     def test_returns_required_keys(self):
         data = {"NVDA": _ohlcv_trending_up(120)}
         result = run_backtest(data, min_qualifying_trades=1)
-        for key in ("passed", "win_rate", "avg_rr", "sharpe_ratio",
+        for key in ("passed", "win_rate", "avg_rr", "expectancy_r_mean",
+                    "expectancy_r_ci_lower", "expectancy_r_ci_upper", "sharpe_ratio",
                     "max_drawdown_pct", "qualifying_trades", "per_regime"):
             assert key in result
 
@@ -214,6 +252,26 @@ class TestRunBacktest:
         data = {"NVDA": _ohlcv_trending_up(120)}
         result = run_backtest(data, min_qualifying_trades=1)
         assert 0.0 <= result["win_rate"] <= 1.0
+
+    def test_passed_requires_expectancy_ci_lower_above_threshold(self):
+        """
+        v2.2.17: "passed" no longer gates on a flat win_rate/avg_rr pair — it
+        gates on the bootstrapped 95% CI lower bound of per-trade R-expectancy
+        clearing min_expectancy_r. A high win_rate/avg_rr on a tiny/noisy
+        sample should NOT pass if the CI lower bound doesn't clear the bar,
+        and passed should flip to True once min_expectancy_r is set low enough
+        for the same data.
+        """
+        data = {"NVDA": _ohlcv_trending_up(120)}
+        strict = run_backtest(data, min_qualifying_trades=1, min_expectancy_r=100.0)
+        assert strict["passed"] is False  # no real strategy clears a 100R bar
+
+        lenient = run_backtest(data, min_qualifying_trades=1, min_expectancy_r=-100.0)
+        # With trade-count/expectancy floors trivially satisfied, only Sharpe/
+        # drawdown can still fail — assert the expectancy fields themselves are
+        # internally consistent rather than asserting passed=True outright,
+        # since Sharpe/drawdown depend on the synthetic data's exact shape.
+        assert lenient["expectancy_r_ci_lower"] <= lenient["expectancy_r_mean"] <= lenient["expectancy_r_ci_upper"]
 
     def test_max_drawdown_non_negative(self):
         data = {"NVDA": _ohlcv_trending_up(120)}

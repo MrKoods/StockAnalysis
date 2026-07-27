@@ -1,3 +1,8 @@
+# Human-edited floor versions. CI and reproducible installs use the fully
+# resolved requirements.lock.txt instead — regenerate it after any change here:
+#   pip install pip-tools
+#   pip-compile requirements.txt --output-file=requirements.lock.txt --resolver=backtracking
+
 # Core data
 yfinance>=0.2.36
 pandas>=2.0.0

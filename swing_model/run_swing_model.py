@@ -32,7 +32,7 @@ from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from swing_model.sentiment_layer import compute_sentiment_score
-from swing_model.news_layer import compute_news_score
+from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
 from swing_model.scoring import compute_confidence_score
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.position_sizer import get_risk_pct
@@ -185,27 +185,32 @@ def main(scan_type: str = "post_close") -> None:
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
             # News layer
-            # Alpha Vantage news is post-close only — pre-market/mid-session fall
-            # back to the already-free Yahoo+Finnhub sources below. Mirrors the
-            # existing cadence-tiering already used for Fundamental (weekly) and
-            # Positioning (daily) layers. With the watchlist now spanning multiple
-            # sectors, calling AV once per ticker on every scan would exceed the
-            # 25-calls/day free-tier budget; restricting to post-close actually
-            # increases headroom vs. the old 3x/day-for-6-tickers pattern.
-            av_articles = _fetch_av_news_safe(ticker) if scan_type == "post_close" else []
+            # Alpha Vantage news is post-close only by default — pre-market/
+            # mid-session fall back to the already-free Yahoo+Finnhub sources
+            # below. Mirrors the existing cadence-tiering already used for
+            # Fundamental (weekly) and Positioning (daily) layers. With the
+            # watchlist now spanning multiple sectors, calling AV once per
+            # ticker on every scan would exceed the 25-calls/day free-tier
+            # budget; restricting to post-close actually increases headroom
+            # vs. the old 3x/day-for-6-tickers pattern. Exception: if Seeking
+            # Alpha (fetched above, runs every scan at no extra cost) already
+            # flags a critical event for this ticker, it's worth spending one
+            # AV call immediately to cross-reference with an independent
+            # source rather than waiting up to ~13 hours for post-close.
+            sa_news_articles = [
+                {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
+            ]
+            fetch_av_now = scan_type == "post_close" or seeking_alpha_flags_critical_event(
+                sa_news_articles, ticker, cfg, sector=sector
+            )
+            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
-            # sa_engagement_items runs every scan (unlike AV, post-close only) —
-            # feeds Event Severity Gate detection only, not the scored News total.
-            # See paper_runner.py's matching change for the full rationale.
-            sa_severity_articles = [
-                {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
-            ]
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
-                sector=sector, seeking_alpha_articles=sa_severity_articles,
+                sector=sector, seeking_alpha_articles=sa_news_articles,
             )
 
             # Earnings proximity modifier

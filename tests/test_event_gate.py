@@ -28,7 +28,11 @@ from shared.utils.event_gate import (
     SCOPE_SECTOR,
 )
 from shared.utils.data_validator import validate_event_gate_state
-from swing_model.news_layer import compute_news_score, classify_severity as news_classify_severity
+from swing_model.news_layer import (
+    compute_news_score,
+    classify_severity as news_classify_severity,
+    seeking_alpha_flags_critical_event,
+)
 from swing_model.scoring import compute_confidence_score
 from swing_model.run_swing_model import _handle_open_position_critical_event
 
@@ -443,11 +447,15 @@ class TestNewsLayerIntegration:
         assert len(critical) == 1
         assert critical[0]["scope"] == SCOPE_TICKER
 
-    def test_seeking_alpha_articles_do_not_affect_scored_news_total(self):
+    def test_seeking_alpha_articles_feed_the_scored_news_total(self):
         """
-        seeking_alpha_articles must only feed severity detection, never the
-        backtested 0-15 News score — adding it shouldn't change news_score_total
-        or total_article_count versus the same call without it.
+        seeking_alpha_articles are folded into the scored 0-15 News total
+        (credibility/theme/clustering/decay), not just severity detection —
+        a ticker-relevant Seeking Alpha item should grow total_article_count
+        and contribute to news_score_total exactly like an AV/Yahoo/Finnhub
+        article would. (Reversed from the original behavior, where Seeking
+        Alpha fed severity detection only, as part of the AV-budget-relief
+        change — see news_layer.py's compute_news_score docstring.)
         """
         cfg = _gate_cfg()
         now = datetime.now(timezone.utc)
@@ -457,7 +465,7 @@ class TestNewsLayerIntegration:
             "timestamp_utc": now.isoformat(),
         }]
         sa_articles = [{
-            "title": "White House announces new chip export restriction targeting China",
+            "title": "NVDA earnings beat expectations on strong data center demand",
             "source": "seekingalpha.com",
             "timestamp_utc": now.isoformat(),
         }]
@@ -465,11 +473,86 @@ class TestNewsLayerIntegration:
         with_sa = compute_news_score(
             av_articles, [], "NVDA", cfg, reference_date=now, seeking_alpha_articles=sa_articles
         )
-        assert with_sa["news_score_total"] == without_sa["news_score_total"]
-        assert with_sa["total_article_count"] == without_sa["total_article_count"]
-        # But the severity detection itself does differ — that's the whole point
-        assert without_sa["critical_events"] == []
-        assert len(with_sa["critical_events"]) == 1
+        assert with_sa["total_article_count"] == without_sa["total_article_count"] + 1
+        assert with_sa["relevant_article_count"] == without_sa["relevant_article_count"] + 1
+        assert with_sa["news_score_total"] >= without_sa["news_score_total"]
+
+    def test_seeking_alpha_sector_event_does_not_inflate_score_when_not_ticker_relevant(self):
+        """
+        A sector-wide (not ticker-named) Seeking Alpha headline still counts
+        toward total_article_count (it's now in all_articles) but shouldn't
+        pass the NER ticker-relevance filter into `relevant` — so it can still
+        trigger Event Severity Gate detection without silently inflating the
+        ticker's own News sub-scores.
+        """
+        cfg = _gate_cfg()
+        now = datetime.now(timezone.utc)
+        sa_articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source": "seekingalpha.com",
+            "timestamp_utc": now.isoformat(),
+        }]
+        result = compute_news_score(
+            [], [], "NVDA", cfg, reference_date=now, seeking_alpha_articles=sa_articles
+        )
+        assert result["total_article_count"] == 1
+        assert result["relevant_article_count"] == 0
+        assert len(result["critical_events"]) == 1
+
+
+class TestSeekingAlphaFlagsCriticalEvent:
+    """
+    seeking_alpha_flags_critical_event() — the cheap, local, no-API-cost check
+    run_swing_model.py/paper_runner.py use to decide whether a pre-market/
+    mid-session scan (where Alpha Vantage news is normally skipped for budget
+    reasons) should spend one AV call to cross-reference an event Seeking
+    Alpha already surfaced, instead of waiting for the post-close scan.
+    """
+
+    def test_ticker_scope_critical_event_triggers(self):
+        cfg = _gate_cfg()
+        sa_articles = [{
+            "title": "AMD CEO resigns amid controversy",
+            "source": "seekingalpha.com",
+        }]
+        assert seeking_alpha_flags_critical_event(sa_articles, "AMD", cfg) is True
+
+    def test_sector_scope_critical_event_triggers(self):
+        cfg = _gate_cfg()
+        sa_articles = [{
+            "title": "White House announces new chip export restriction targeting China",
+            "source": "seekingalpha.com",
+        }]
+        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg, sector="semiconductors") is True
+
+    def test_ticker_scope_event_for_a_different_ticker_does_not_trigger(self):
+        cfg = _gate_cfg()
+        sa_articles = [{
+            "title": "AMD CEO resigns amid controversy",
+            "source": "seekingalpha.com",
+        }]
+        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg) is False
+
+    def test_normal_headline_does_not_trigger(self):
+        cfg = _gate_cfg()
+        sa_articles = [{
+            "title": "NVDA gains market share amid strong AI demand",
+            "source": "seekingalpha.com",
+        }]
+        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg) is False
+
+    def test_empty_articles_does_not_trigger(self):
+        cfg = _gate_cfg()
+        assert seeking_alpha_flags_critical_event([], "NVDA", cfg) is False
+        assert seeking_alpha_flags_critical_event(None, "NVDA", cfg) is False
+
+    def test_gate_disabled_does_not_trigger(self):
+        cfg = _gate_cfg(enabled=False)
+        sa_articles = [{
+            "title": "AMD CEO resigns amid controversy",
+            "source": "seekingalpha.com",
+        }]
+        assert seeking_alpha_flags_critical_event(sa_articles, "AMD", cfg) is False
 
 
 # ---------------------------------------------------------------------------

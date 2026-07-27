@@ -15,7 +15,7 @@ from unittest.mock import patch
 import pandas as pd
 
 from shared.utils.sector_config import get_active_sectors, get_all_tickers
-from shared.utils.event_gate import add_block, is_ticker_blocked, SCOPE_SECTOR, SCOPE_TICKER
+from shared.utils.event_gate import add_block, is_ticker_blocked, SCOPE_SECTOR
 from swing_model.news_layer import compute_news_score, classify_severity as news_classify_severity
 
 

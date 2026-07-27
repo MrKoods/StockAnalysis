@@ -37,7 +37,7 @@ For the full historical design rationale and every implementation detail, see `P
 | **Starting capital (paper only)** | $15,000 |
 | **Current model version** | v2.2.10 (see `CHANGELOG.md`) |
 | **Watchlist** | 11 tickers, two sectors, both **paper-trading only**: semiconductors (NVDA/AMD/AVGO/TSM/MU/ASML vs. SMH) + regional banks (ZION/KEY/HBAN/RF/FITB vs. KRE, activated v2.2.10) |
-| **Live-trading status** | ❌ **Not eligible.** No version has ever passed the official fixed-slice backtest (trade count shortfall). Best current evidence of real edge: ~58.0% win rate / 1.78 avg R:R pooled across two independent sectors (100 trades) — real and positive, well short of the 80%/1:3 go-live bar. Zero real money at risk regardless of which sectors are active for paper trading. |
+| **Live-trading status** | ❌ **Not eligible.** No version has ever passed the official fixed-slice backtest — as of v2.2.17 the blocking reasons are trade-count shortfall (100 required, 18 observed on the fixed slice) and Sharpe (1.0 required, 0.34 observed), not expectancy: the bootstrapped 95% CI lower bound on per-trade R-expectancy (0.42R) actually clears the new 0.3R gate. Zero real money at risk regardless of which sectors are active for paper trading. |
 | **Current phase** | Paper trading (running, 0 qualifying signals so far) + post-review code hardening |
 | **Test suite** | 539 tests: 536 pass, 3 skipped — the skips are stale, leaving stress testing with zero real coverage (see §10) |
 | **Delivery channel** | Discord webhook (sole channel — email/SMS were removed in v2.2.1) |
@@ -53,10 +53,10 @@ For the full historical design rationale and every implementation detail, see `P
 - Financial advice.
 - Validated yet. The backtest has never produced a passing result, and paper trading has not accumulated enough history to judge. See [§11](#11-where-things-actually-stand-right-now).
 
-**Non-negotiable gate before any real money is used** (all three required simultaneously):
-- 80% win rate
-- 90/100 minimum confidence score to surface a trade
-- 1:3 minimum risk/reward ratio
+**Non-negotiable gate before any real money is used** (updated v2.2.17 — see `CHANGELOG.md` and `Project_Scope.md`'s Performance Thresholds section for the full rationale; all required simultaneously):
+- Bootstrapped 95% CI lower bound on per-trade R-expectancy ≥ 0.3R (replaces the original flat 80% win rate / 1.8 avg R:R pair, which said nothing about sample-size confidence and implied a combined expectancy — ~1.24R/trade — never observed even in the best historical windows)
+- 90/100 minimum confidence score to surface a trade (unchanged)
+- ≥ 100 qualifying trades, Sharpe ≥ 1.0, max drawdown ≤ 15% (unchanged)
 
 ---
 

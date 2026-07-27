@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 
@@ -42,6 +43,61 @@ def compute_avg_rr(outcomes: list[dict]) -> float:
     if not wins:
         return 0.0
     return sum(o["achieved_rr"] for o in wins) / len(wins)
+
+
+def compute_r_multiples(outcomes: list[dict]) -> list[float]:
+    """
+    Per-trade achieved R multiple for every outcome (wins negative-free, losses
+    negative) — unlike compute_avg_rr, which only averages winning trades to
+    describe "how much winners capture," this is every qualifying trade's
+    contribution to expectancy, win or loss.
+    """
+    return [float(o["achieved_rr"]) for o in outcomes if "achieved_rr" in o]
+
+
+def bootstrap_expectancy_ci(
+    r_multiples: list[float],
+    n_bootstrap: int = 10000,
+    ci: float = 0.95,
+    seed: Optional[int] = 42,
+) -> dict:
+    """
+    Bootstrap confidence interval on mean per-trade R-expectancy.
+
+    Resamples r_multiples with replacement n_bootstrap times, computing the
+    mean each time, then reads off the (1-ci)/2 and 1-(1-ci)/2 percentiles as
+    the CI bounds. This answers "how confident can we be the true expectancy
+    is above zero (or some threshold)" — a flat win-rate/R:R pair alone can't,
+    since it says nothing about sample-size-driven uncertainty and can't be
+    satisfied by mutually offsetting numbers the way e.g. "80% win rate at a
+    1.8 average R:R" can look decisive while still resting on a small sample.
+
+    seed defaults to a fixed value (not None) so this function is deterministic
+    across repeated calls with the same input — this gates a real go-live
+    decision, and a pass/fail flipping between runs on the same data purely
+    from resampling noise would undermine trust in the gate itself. Pass
+    seed=None for a fresh random draw if ever needed for research purposes.
+
+    Returns {"mean_r": ..., "ci_lower": ..., "ci_upper": ..., "n_trades": ...}.
+    All fields are 0.0 (n_trades=0) when r_multiples is empty.
+    """
+    if not r_multiples:
+        return {"mean_r": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n_trades": 0}
+
+    values = np.array(r_multiples, dtype=float)
+    rng = np.random.default_rng(seed)
+    boot_means = np.empty(n_bootstrap)
+    for i in range(n_bootstrap):
+        sample = rng.choice(values, size=len(values), replace=True)
+        boot_means[i] = sample.mean()
+
+    alpha = (1.0 - ci) / 2.0
+    return {
+        "mean_r": float(values.mean()),
+        "ci_lower": float(np.percentile(boot_means, alpha * 100)),
+        "ci_upper": float(np.percentile(boot_means, (1.0 - alpha) * 100)),
+        "n_trades": len(r_multiples),
+    }
 
 
 def compute_max_drawdown(equity_curve: pd.Series) -> float:
@@ -155,6 +211,51 @@ def run_sensitivity_analysis(
     df.to_csv(report_dir / "sensitivity_analysis.csv", index=False)
 
     return df
+
+
+def _trades_per_year(outcomes: list[dict]) -> float:
+    """
+    Actual trade frequency, for Sharpe annualization. An equity curve stepped one
+    point per trade is not a daily series — sqrt(252) would treat ~149 trades over
+    a multi-year backtest as if they were 252 independent observations every year.
+    Falls back to 252 (the old behavior) when there isn't enough date info to infer
+    a real trade frequency, rather than raising or silently returning 0.
+    """
+    dates = []
+    for o in outcomes:
+        try:
+            dates.append(pd.Timestamp(o.get("exit_date")))
+        except Exception:
+            continue
+    if len(dates) < 2:
+        return 252.0
+    span_years = (max(dates) - min(dates)).days / 365.25
+    if span_years <= 0:
+        return 252.0
+    return len(outcomes) / span_years
+
+
+def _build_equity_curve(outcomes: list[dict], starting_equity: float = 15000.0) -> pd.Series:
+    """Build equity curve from ordered trade outcomes."""
+    equity = starting_equity
+    values = [equity]
+
+    for o in outcomes:
+        pnl_pct = float(o.get("pnl_pct", 0.0))
+        risk_pct = 0.01  # Fixed 1% risk per trade
+        risk_dollars = equity * risk_pct
+        entry = o.get("entry_price", 1.0) or 1.0
+        stop = o.get("stop", entry * 0.97) or entry * 0.97
+
+        # Normalize: pnl as fraction of risk
+        risk_dist = abs(float(entry) - float(stop)) / float(entry) if float(entry) > 0 else 0.03
+        dollar_pnl = risk_dollars * (pnl_pct / risk_dist) if risk_dist > 0 else risk_dollars * pnl_pct
+        equity += dollar_pnl
+        values.append(max(0.0, equity))
+
+    if not values:
+        return pd.Series([starting_equity])
+    return pd.Series(values)
 
 
 def calibrate_weights(outcomes: list[dict], current_weights: dict) -> dict:

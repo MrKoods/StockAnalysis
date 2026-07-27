@@ -1159,6 +1159,7 @@ If you reply "details" to the alert, a follow-up message sends the complete excl
 - Confidence scores remain uncalibrated probabilities until Phase 10 backtesting with 100+ qualifying trades across all regimes. Do not size positions based on confidence scores until calibration is complete.
 - Walk-forward validation cannot fully predict future regime changes not present in historical data. The model may underperform in genuinely novel market conditions (e.g., a new type of macro shock with no historical precedent).
 - Overfitting risk persists despite walk-forward validation — the more parameters tuned during calibration, the higher the residual overfitting risk. Treat the first 6 months of live trading as an extended validation period.
+- **Lockbox rule (added 2026-07-26, formalizing the decision already made in CHANGELOG.md v2.2.6):** five rounds of entry-filter tuning (stop-multiplier, volume gate, RSI band, confirmation bar, and their combination) against the same fixed ~12-year, now-two-sector historical dataset already carries real overfitting risk from repeated re-use of one sample — every additional round against the same data buys a smaller and less trustworthy improvement. **No paper-trading data or historical data timestamped before 2026-07-26 may be used to tune backtest entry-filter parameters (RSI band, confirmation bar, volume gate, stop/target multipliers, or any future candidate filter) again.** The next legitimate parameter-tuning test is against paper-trading data accumulated *after* this date — a genuine out-of-sample lockbox, not another pass over data that's already been looked at repeatedly. This does not restrict re-running the existing backtest for reporting/monitoring purposes (e.g., after an unrelated scoring change, to confirm no regression) — only re-*tuning* parameters against pre-2026-07-26 data is the thing this rule blocks. Any request to tune against older data again should be treated as needing an explicit, separate decision to override this rule, not a default the model should just carry out.
 
 **Data risks (residual):**
 - yfinance is unofficial and may break without warning. Fallback to Alpha Vantage uses daily call budget headroom but is not a permanent solution — if yfinance breaks persistently, a paid data source (Polygon.io ~$29/month) becomes necessary.
@@ -1354,6 +1355,13 @@ Geopolitical:   No active flags on this ticker
 ---
 
 ## Performance Thresholds (Non-Negotiable Before Live Use)
+
+**Update (v2.2.17, 2026-07-26) — the *code-level* pass/fail gate in `backtest_engine.py::run_backtest()` no longer matches the flat 80%/1:3 pair described below.** The table, Kelly Criterion note, and streak-probability table further down this document are kept as originally written — they're still useful for understanding the *intent* (precision over frequency, why an 80%/1:3-style bar was chosen in the first place) — but they describe a target the system has never hit even once across v2.0.0-v2.2.16, and a flat win-rate/R:R pair says nothing about how much to trust a given result versus a coin flip that got lucky at a small sample size. The actual gate now checks:
+- Bootstrapped 95% CI lower bound on per-trade R-expectancy ≥ `min_expectancy_r` (default 0.3R) — see `backtesting/metrics.py::bootstrap_expectancy_ci()`.
+- ≥ 100 qualifying trades (unchanged).
+- Sharpe ≥ 1.0, max drawdown ≤ 15% (unchanged).
+
+Win rate and avg R:R are still computed and reported (dashboards/CHANGELOG entries keep citing them) — they just don't gate `passed` directly anymore. See `CHANGELOG.md` v2.2.17 for the full rationale and the real numbers from the most recent re-run. The Kelly Criterion note and streak-probability table below still assume the original 80%/1:3 figures for illustration; they have not been recomputed under the new criterion (there's no single "win rate" to plug into that math the same way) — treat them as historical context, not current operative math.
 
 These are the minimum validated benchmarks the system must achieve during Phase 10 backtesting before any live or paper trading begins. All three must be met simultaneously — meeting two of three is not sufficient.
 

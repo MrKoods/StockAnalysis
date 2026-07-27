@@ -6,6 +6,7 @@ data/raw/
 data/historical/
 data/historical_banks/
 data/historical_macro/
+data/historical_healthcare/
 
 # Python
 __pycache__/

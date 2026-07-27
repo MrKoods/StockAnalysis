@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# Starts at E/F (correctness + pycodestyle) only, since the codebase is clean
+# against that today. I (import sort), UP (pyupgrade), and B (bugbear) surface
+# ~400 pre-existing, purely stylistic findings (Optional[X] vs X|None, import
+# order, datetime.timezone.utc vs datetime.UTC) — worth adopting deliberately
+# via their own `ruff check --fix` commit, not silently via this config file.
+select = ["E", "F"]
+ignore = ["E501"]  # line length handled by `line-length`, not worth hard-failing on
+
+[tool.ruff.lint.isort]
+known-first-party = ["shared", "swing_model", "backtesting", "paper_trading", "monitoring", "app_ui"]

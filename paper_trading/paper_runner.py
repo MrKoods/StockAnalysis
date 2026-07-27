@@ -33,7 +33,7 @@ except ImportError:
 from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score
-from swing_model.news_layer import compute_news_score
+from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
 from swing_model.scoring import compute_confidence_score
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from shared.utils.regime_detection import get_regime_modifiers
@@ -300,22 +300,24 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             }
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
-            # News — Alpha Vantage post-close only, see run_swing_model.py's
-            # matching change for the full rationale (AV daily budget).
-            av_articles = _fetch_av_news_safe(ticker) if scan_type == "post_close" else []
-            yahoo_articles = _fetch_yahoo_news_safe(ticker)
-            finnhub_articles = _fetch_finnhub_news_safe(ticker)
-            # sa_engagement_items (fetched above for Sentiment) runs on every scan,
-            # unlike AV news which is post-close only — feeding its headlines into
-            # Event Severity Gate detection (not the scored News total) lets
-            # pre-market/mid-session catch a critical event the same day it breaks
-            # instead of waiting up to ~13 hours for the next post-close scan.
-            sa_severity_articles = [
+            # News — Alpha Vantage is post-close-only by default (AV daily budget),
+            # except when Seeking Alpha (fetched above for Sentiment, runs every
+            # scan at no extra cost) already flags a critical event for this
+            # ticker on a pre-market/mid-session scan — then it's worth spending
+            # one AV call immediately to cross-reference with an independent
+            # source, instead of waiting up to ~13 hours for the post-close scan.
+            sa_news_articles = [
                 {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
             ]
+            fetch_av_now = scan_type == "post_close" or seeking_alpha_flags_critical_event(
+                sa_news_articles, ticker, cfg, sector=sector
+            )
+            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
+            yahoo_articles = _fetch_yahoo_news_safe(ticker)
+            finnhub_articles = _fetch_finnhub_news_safe(ticker)
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
-                sector=sector, seeking_alpha_articles=sa_severity_articles,
+                sector=sector, seeking_alpha_articles=sa_news_articles,
             )
 
             # Earnings + cross-ticker modifiers
