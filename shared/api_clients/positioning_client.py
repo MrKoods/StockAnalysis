@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import pandas as pd
 import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
@@ -34,17 +35,45 @@ __all__ = [
     "fetch_analyst_rating_trend",
     "fetch_insider_transactions",
     "fetch_all_positioning",
+    "compute_iv_percentile",
 ]
 
+_MIN_IV_HISTORY_SAMPLES = 10
 
-def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = None) -> dict:
+
+def _pick_expiration(expirations: tuple, min_dte: int) -> str:
     """
-    Fetch the nearest-expiration option chain and derive put/call ratio + IV skew.
+    Pick the first listed expiration at least `min_dte` days out — the nearest
+    expiration (expirations[0]) is frequently a 0DTE/weekly contract, which
+    trade_selector.py's own Filter 8 always excludes from live trading anyway,
+    so building the chain/Greeks data off it would pick strikes for expiries
+    that can never actually be recommended. Falls back to the last available
+    expiration (the longest-dated one on offer) if none clear the floor.
+    """
+    today = datetime.now(timezone.utc).date()
+    for exp in expirations:
+        try:
+            exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if (exp_date - today).days >= min_dte:
+            return exp
+    return expirations[-1]
+
+
+def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = None, min_dte: int = 5) -> dict:
+    """
+    Fetch an option chain at least `min_dte` days out and derive put/call ratio,
+    IV skew, and a normalized near-the-money contract list for Greeks/structure-
+    leg selection (see shared/utils/options_math.py::select_directional_leg_strike,
+    swing_model/trade_selector.py's Filter 4).
 
     current_price (if supplied by the caller, e.g. from already-fetched OHLCV close)
     is used to restrict IV averaging to a near-the-money band (+/-10%) rather than
     the full chain, which is skewed by far-OTM contracts. Falls back to the full
-    chain average when current_price is not supplied.
+    chain average when current_price is not supplied. The `chain` field uses a
+    wider +/-20% band since spread/collar legs can sit further from the money
+    than the aggregate IV metrics need.
 
     Returns dict:
       put_call_ratio  — total put volume / total call volume (None if no volume)
@@ -52,11 +81,19 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
       avg_put_iv      — mean implied volatility of near-the-money puts
       iv_skew         — avg_put_iv - avg_call_iv (positive = puts richer = bearish skew)
       expiration      — expiration date used (str, YYYY-MM-DD)
+      dte             — days to that expiration (int, or None if unavailable)
+      atm_iv          — mean(avg_call_iv, avg_put_iv), or whichever is available —
+                         a single blended reading used by compute_iv_percentile()
+                         to build a rolling IV-percentile history over time
+      chain           — list of {strike, option_type, bid, ask, iv, open_interest,
+                         expiration} within +/-20% of current_price, real contracts
+                         only (used for Greeks/leg selection, not scoring)
       suspect_fields
     """
     result = {
         "put_call_ratio": None, "avg_call_iv": None, "avg_put_iv": None,
-        "iv_skew": None, "expiration": None, "suspect_fields": [],
+        "iv_skew": None, "expiration": None, "dte": None, "atm_iv": None, "chain": [],
+        "suspect_fields": [],
     }
 
     def _fetch():
@@ -64,7 +101,7 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
         expirations = t.options
         if not expirations:
             raise ValueError(f"No option expirations listed for {ticker}")
-        expiration = expirations[0]
+        expiration = _pick_expiration(expirations, min_dte)
         chain = t.option_chain(expiration)
         return expiration, chain.calls, chain.puts
 
@@ -75,6 +112,10 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
 
     expiration, calls, puts = fetched
     result["expiration"] = str(expiration)
+    try:
+        result["dte"] = (datetime.strptime(str(expiration), "%Y-%m-%d").date() - datetime.now(timezone.utc).date()).days
+    except ValueError:
+        pass
 
     try:
         call_vol = float(calls["volume"].fillna(0).sum())
@@ -105,11 +146,85 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
 
         if result["avg_call_iv"] is not None and result["avg_put_iv"] is not None:
             result["iv_skew"] = round(result["avg_put_iv"] - result["avg_call_iv"], 4)
+            result["atm_iv"] = round((result["avg_call_iv"] + result["avg_put_iv"]) / 2.0, 4)
+        elif result["avg_call_iv"] is not None:
+            result["atm_iv"] = result["avg_call_iv"]
+        elif result["avg_put_iv"] is not None:
+            result["atm_iv"] = result["avg_put_iv"]
+
+        result["chain"] = _build_chain_list(calls, puts, current_price, str(expiration))
     except Exception as exc:
         logger.warning(f"{ticker}: option chain metric computation failed — {exc}")
         write_validation_entry(ticker, "positioning_options_error", str(exc))
 
     return result
+
+
+def _build_chain_list(calls, puts, current_price: Optional[float], expiration: str) -> list[dict]:
+    """
+    Normalize yfinance's calls/puts DataFrames into a flat list of real contracts
+    within +/-20% of current_price (or the full chain if current_price is
+    unavailable) — used by options_math.py to pick real strikes for a structure's
+    legs and compute real Greeks, instead of the filter being skipped entirely.
+    """
+    if current_price is not None and current_price > 0:
+        lo, hi = current_price * 0.80, current_price * 1.20
+        band_calls = calls[(calls["strike"] >= lo) & (calls["strike"] <= hi)]
+        band_puts = puts[(puts["strike"] >= lo) & (puts["strike"] <= hi)]
+    else:
+        band_calls, band_puts = calls, puts
+
+    contracts = []
+    for df, option_type in ((band_calls, "call"), (band_puts, "put")):
+        for _, row in df.iterrows():
+            iv = row.get("impliedVolatility")
+            bid = row.get("bid")
+            ask = row.get("ask")
+            # A missing value in a pandas numeric column reads back as NaN, not
+            # None — yfinance leaves bid/ask/IV blank (NaN) for illiquid strikes
+            # routinely, so an `is None` check alone would silently let those
+            # through as if they were real, tradeable quotes.
+            if pd.isna(iv) or pd.isna(bid) or pd.isna(ask):
+                continue
+            contracts.append({
+                "strike": float(row["strike"]),
+                "option_type": option_type,
+                "bid": float(bid),
+                "ask": float(ask),
+                "iv": float(iv),
+                "open_interest": float(row.get("openInterest", 0.0) or 0.0),
+                "expiration": expiration,
+            })
+    return contracts
+
+
+def compute_iv_percentile(current_iv: Optional[float], iv_history: list) -> dict:
+    """
+    Percentile rank of `current_iv` within `iv_history` (prior daily `atm_iv`
+    readings, oldest-first — see indicator_pipeline.py::fetch_positioning_data,
+    which appends one reading per ticker per day). Used to prefer premium-selling
+    structures when IV is rich and premium-buying structures when IV is cheap,
+    instead of always assuming a neutral 50th percentile.
+
+    Requires at least _MIN_IV_HISTORY_SAMPLES prior readings before reporting a
+    real percentile — same "accumulates going forward, not backtestable yet"
+    caveat already accepted for Positioning/Sentiment (see PROJECT_OVERVIEW.md
+    §13). Below that floor, returns a neutral 50.0 with data_quality flagged so
+    callers can tell "genuinely mid-range" apart from "not enough history yet."
+
+    Returns {"iv_percentile": float, "data_quality": "sufficient_history" |
+    "insufficient_history" | "unavailable"}.
+    """
+    if current_iv is None:
+        return {"iv_percentile": 50.0, "data_quality": "unavailable"}
+
+    history = [v for v in (iv_history or []) if v is not None]
+    if len(history) < _MIN_IV_HISTORY_SAMPLES:
+        return {"iv_percentile": 50.0, "data_quality": "insufficient_history"}
+
+    rank = sum(1 for v in history if v <= current_iv)
+    percentile = round(100.0 * rank / len(history), 2)
+    return {"iv_percentile": percentile, "data_quality": "sufficient_history"}
 
 
 def fetch_institutional_ownership(ticker: str) -> dict:
@@ -258,12 +373,16 @@ def fetch_analyst_rating_trend(ticker: str, lookback_days: int = 30) -> dict:
     return result
 
 
-def fetch_all_positioning(ticker: str, current_price: Optional[float] = None) -> dict:
+def fetch_all_positioning(ticker: str, current_price: Optional[float] = None, min_dte: int = 5) -> dict:
     """
     Orchestrate all Market Positioning fetches for one ticker.
 
     Never raises — each sub-fetch is caught and logged independently so a
     single source's failure doesn't take down the whole category.
+
+    min_dte: passed through to fetch_option_chain_metrics — swing_config.yaml's
+    greeks_filter.min_dte, so the chain built here uses the same DTE floor
+    trade_selector.py's Greeks filter expects.
     """
     result = {
         "ticker": ticker,
@@ -275,7 +394,7 @@ def fetch_all_positioning(ticker: str, current_price: Optional[float] = None) ->
     }
 
     try:
-        result["options"] = fetch_option_chain_metrics(ticker, current_price)
+        result["options"] = fetch_option_chain_metrics(ticker, current_price, min_dte=min_dte)
     except Exception as exc:
         logger.error(f"{ticker}: fetch_option_chain_metrics failed — {exc}")
         write_validation_entry(ticker, "positioning_options_error", str(exc))

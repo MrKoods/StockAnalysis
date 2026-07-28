@@ -335,10 +335,11 @@ def send_event_gate_triggered_alert(
 
     # The embed's own "timestamp" field (rendered by Discord as "X ago") only
     # reflects when we detected/posted this — not when the underlying news
-    # actually happened. AV news is post-close-only for budget reasons, so a
-    # story that broke pre-market can sit undetected for hours before it's
-    # caught and posted here looking deceptively "fresh." Surface the real
-    # article time and the resulting lag explicitly so that's never hidden.
+    # actually happened. Detection only runs when a scan fires (pre-market/
+    # mid-session/post-close), so a story that breaks between scans can sit
+    # undetected for hours before it's caught and posted here looking
+    # deceptively "fresh." Surface the real article time and the resulting
+    # lag explicitly so that's never hidden.
     event_ts_str = block.get("event_timestamp_utc")
     detected_lag_value = "—"
     if event_ts_str:

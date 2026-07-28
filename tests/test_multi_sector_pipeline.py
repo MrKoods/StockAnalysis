@@ -46,26 +46,31 @@ def _multi_sector_cfg() -> dict:
     }
 
 
-class TestRealConfigBothSectorsActive:
+class TestRealConfigAllSectorsActive:
     """
-    Sanity check on the real config file itself: as of v2.2.10 both sectors
-    are active for paper trading (regional_banks flipped from false to true).
-    This class exists to catch exactly this kind of drift — if it ever fails,
-    someone changed watchlist.sectors.*.active without updating this test's
-    expectations, which is worth noticing either way.
+    Sanity check on the real config file itself: as of v2.2.24 all three
+    sectors are active for paper trading (healthcare flipped on alongside the
+    existing semiconductors/regional_banks). This class exists to catch
+    exactly this kind of drift — if it ever fails, someone changed
+    watchlist.sectors.*.active without updating this test's expectations,
+    which is worth noticing either way.
     """
 
-    def test_real_config_has_both_sectors_active(self):
+    def test_real_config_has_all_sectors_active(self):
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         active = get_active_sectors(cfg)
-        assert set(active.keys()) == {"semiconductors", "regional_banks"}
+        assert set(active.keys()) == {"semiconductors", "regional_banks", "healthcare"}
 
-    def test_real_config_watchlist_includes_both_sectors(self):
+    def test_real_config_watchlist_includes_all_sectors(self):
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         tickers = get_all_tickers(cfg)
-        assert tickers == ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML", "ZION", "KEY", "HBAN", "RF", "FITB"]
+        assert tickers == [
+            "NVDA", "AMD", "AVGO", "TSM", "MU", "ASML",
+            "ZION", "KEY", "HBAN", "RF", "FITB",
+            "LLY", "PFE", "MRK", "ABBV", "UNH", "JNJ",
+        ]
 
 
 class TestFetchMarketContextPerSector:

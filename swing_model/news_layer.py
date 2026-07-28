@@ -43,27 +43,29 @@ def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[s
     return updated
 
 
-def seeking_alpha_flags_critical_event(
-    seeking_alpha_articles: list[dict],
+def free_sources_flag_critical_event(
+    free_source_articles: list[dict],
     ticker: str,
     cfg: Optional[dict] = None,
     sector: Optional[str] = None,
 ) -> bool:
     """
-    Cheap, local (no API cost) check for whether any Seeking Alpha headline
-    already fetched this scan classifies as a critical event for `ticker` —
-    used by run_swing_model.py/paper_runner.py to decide whether a
-    pre-market/mid-session scan (where Alpha Vantage news is normally skipped
-    entirely for budget reasons) should spend one AV call to cross-reference
-    the event with an independent source, instead of waiting up to ~13 hours
-    for the next post-close scan to see it too.
+    Cheap, local (no API cost) check for whether any already-fetched
+    Yahoo/Finnhub/Seeking Alpha headline classifies as a critical event for
+    `ticker` — used by run_swing_model.py/paper_runner.py to decide whether a
+    scan should spend one Alpha Vantage call to cross-reference the event
+    with an independent source. AV is a confirmation tool, not a routine
+    per-ticker news source: every scan (pre-market, mid-session, post-close
+    alike) fetches the three free sources first and only calls AV when one of
+    them already flagged something critical, instead of spending a budgeted
+    call on every ticker every day regardless of whether anything happened.
 
     Same classify_severity() rules compute_news_score() already applies to
     every article — this just runs them standalone, before AV is fetched,
     so the fetch decision can depend on the result. Not a scoring input.
     """
     cfg = cfg or {}
-    for art in seeking_alpha_articles or []:
+    for art in free_source_articles or []:
         title = art.get("title", "")
         source = art.get("source_domain", "") or art.get("source", "")
         classified = classify_severity({"title": title, "source_domain": source}, cfg, sector=sector)
@@ -108,12 +110,13 @@ def compute_news_score(
     theme/clustering/decay) as of the AV-budget-relief change below — source
     credibility for "seekingalpha.com" (0.55) already existed in
     shared/utils/source_credibility.py before this change ever wired it in.
-    Also still covers Event Severity Gate detection on every scan: AV news
-    (restricted to the post-close scan for budget reasons) previously left
-    pre-market/mid-session unable to detect a critical event until hours after
+    Also still covers Event Severity Gate detection on every scan: back when
+    AV news was restricted to the post-close scan for budget reasons,
+    pre-market/mid-session couldn't detect a critical event until hours after
     it broke (observed: a real headline sat undetected ~13 hours before the
     post-close scan finally caught it) — Seeking Alpha running on every scan
-    closes that gap.
+    closed that gap, and now (see free_sources_flag_critical_event()) also
+    drives whether AV gets called at all, on every scan type alike.
 
     NOT modeled in the backtest: no historical Seeking Alpha article archive
     exists (unlike AV, whose historical articles are cached from Q4 2025

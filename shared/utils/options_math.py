@@ -7,6 +7,7 @@ Standalone module testable with known inputs independent of the rest of the syst
 """
 
 import math
+from typing import Optional
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +97,89 @@ def _norm_cdf(x: float) -> float:
 def _norm_pdf(x: float) -> float:
     """Standard normal PDF."""
     return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
+
+
+# ---------------------------------------------------------------------------
+# Real strike selection + net Greeks — trade_selector.py's Filter 4
+# ---------------------------------------------------------------------------
+
+_DEFAULT_RISK_FREE_RATE = 0.04  # fixed approximation (~short-term Treasury) —
+# Greeks are far less sensitive to r than to strike/IV/DTE for short-dated
+# swing-trade structures, so a live rate feed isn't worth the added dependency.
+
+# Magnitude only — direction (ITM vs. OTM side) is resolved separately below,
+# since it depends on both moneyness bucket and option_type.
+_MONEYNESS_MAGNITUDE = {"atm": 0.0, "otm": 0.06, "far_otm": 0.12, "deep_itm": 0.15}
+
+
+def select_directional_leg_strike(
+    chain: list,
+    current_price: float,
+    option_type: str,
+    moneyness: str = "atm",
+) -> Optional[dict]:
+    """
+    Pick the real contract from `chain` (see positioning_client.py's
+    fetch_option_chain_metrics 'chain' field) closest to a target strike for
+    one structure leg. Uses a fixed strike-offset convention rather than
+    iteratively solving for a target delta — simple and honest about being an
+    approximation, not fabricated delta-targeting precision (the project's own
+    prior stance on this filter: "rather than fabricate ... from assumed
+    strikes/DTE" — this at least uses real, currently-quoted strikes).
+
+    moneyness:
+      "atm"       — target strike == current_price
+      "otm"       — ~6% out of the money (calls: above current_price;
+                    puts: below) — e.g. a single-leg sold option, or the
+                    near/short leg of a 2-leg spread
+      "far_otm"   — ~12% out of the money, same direction as "otm" — the
+                    further, protective/long wing of a 2-leg spread
+      "deep_itm"  — ~15% in the money (calls: below current_price;
+                    puts: above)
+
+    Returns the chain contract (dict, unmodified) whose strike is closest to
+    the target, restricted to `option_type`, or None if `chain` has no
+    contracts of that type.
+    """
+    magnitude = _MONEYNESS_MAGNITUDE.get(moneyness, 0.0)
+    if moneyness == "deep_itm":
+        # ITM direction is the opposite side of current_price from OTM.
+        sign = -1.0 if option_type == "call" else 1.0
+    else:
+        # atm (magnitude 0 — sign irrelevant), otm, far_otm: OTM direction.
+        sign = 1.0 if option_type == "call" else -1.0
+    target = current_price * (1 + sign * magnitude)
+
+    candidates = [c for c in (chain or []) if c.get("option_type") == option_type]
+    if not candidates:
+        return None
+    return min(candidates, key=lambda c: abs(c["strike"] - target))
+
+
+def net_structure_greeks(
+    legs: list,
+    S: float,
+    T: float,
+    r: float = _DEFAULT_RISK_FREE_RATE,
+) -> dict:
+    """
+    Sum Greeks across a structure's legs, signed by side.
+
+    legs: list of {strike, option_type, side ("long"|"short"), iv} — as returned
+    by select_directional_leg_strike(), with "side" added by the caller.
+    T: time to expiry in years, shared across legs (same expiration chain).
+
+    Returns {"net": {delta, gamma, theta, vega, rho}, "legs": [per-leg detail]}.
+    """
+    net = {"delta": 0.0, "gamma": 0.0, "theta": 0.0, "vega": 0.0, "rho": 0.0}
+    leg_detail = []
+    for leg in legs:
+        sign = 1.0 if leg.get("side") == "long" else -1.0
+        g = compute_greeks(S, leg["strike"], T, r, leg["iv"], leg.get("option_type", "call"))
+        for key in net:
+            net[key] += sign * g[key]
+        leg_detail.append({**leg, "greeks": g})
+    return {"net": {k: round(v, 4) for k, v in net.items()}, "legs": leg_detail}
 
 
 # ---------------------------------------------------------------------------

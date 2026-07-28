@@ -25,6 +25,16 @@ class TestOptionsScore:
         assert result["options_score"] == 0.0
         assert result["sub_signal_data_quality"]["options"] == "unavailable"
 
+    def test_raw_options_passthrough_for_trade_selector_greeks_filter(self):
+        raw_options = {"chain": [{"strike": 100.0}], "dte": 10, "iv_percentile": 62.0}
+        data = {"options": {**raw_options, "put_call_ratio": 0.9, "iv_skew": None}}
+        result = compute_positioning_score("NVDA", data)
+        assert result["_options_raw"] == data["options"]
+
+    def test_raw_options_passthrough_is_none_when_no_positioning_data(self):
+        result = compute_positioning_score("NVDA", {"options": None})
+        assert result["_options_raw"] is None
+
 
 class TestInstitutionalScore:
     def test_accumulation_scores_above_midpoint(self):

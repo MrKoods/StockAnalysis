@@ -32,7 +32,7 @@ from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from swing_model.sentiment_layer import compute_sentiment_score
-from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
+from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
 from swing_model.scoring import compute_confidence_score
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.trade_selector import rank_trade_structures
@@ -201,29 +201,27 @@ def main(scan_type: str = "post_close") -> None:
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
             # News layer
-            # Alpha Vantage news is post-close only by default — pre-market/
-            # mid-session fall back to the already-free Yahoo+Finnhub sources
-            # below. Mirrors the existing cadence-tiering already used for
-            # Fundamental (weekly) and Positioning (daily) layers. With the
-            # watchlist now spanning multiple sectors, calling AV once per
-            # ticker on every scan would exceed the 25-calls/day free-tier
-            # budget; restricting to post-close actually increases headroom
-            # vs. the old 3x/day-for-6-tickers pattern. Exception: if Seeking
-            # Alpha (fetched above, runs every scan at no extra cost) already
-            # flags a critical event for this ticker, it's worth spending one
-            # AV call immediately to cross-reference with an independent
-            # source rather than waiting up to ~13 hours for post-close.
+            # Yahoo + Finnhub + Seeking Alpha are the primary sources, on every
+            # scan — all free. Alpha Vantage is a confirmation tool, not a
+            # routine per-ticker fetch: it's only called when one of the free
+            # sources already flagged a critical event for this ticker, to
+            # cross-reference it against an independent source immediately
+            # rather than scoring on free-source data alone. This replaces the
+            # old post-close-always/pre-market-conditional split — AV budget
+            # is now spent on confirmed events, not spent unconditionally once
+            # per ticker per day regardless of whether anything happened.
             sa_news_articles = [
                 {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
             ]
-            fetch_av_now = scan_type == "post_close" or seeking_alpha_flags_critical_event(
-                sa_news_articles, ticker, cfg, sector=sector
-            )
-            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
+            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles
+            fetch_av_now = free_sources_flag_critical_event(
+                free_source_articles, ticker, cfg, sector=sector
+            )
+            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
@@ -364,6 +362,7 @@ def main(scan_type: str = "post_close") -> None:
                         or regime == REGIME_HIGH_VOL
                     )
                     try:
+                        options_raw = positioning.get("_options_raw") or {}
                         trade_result = rank_trade_structures(
                             {
                                 "ticker": ticker, "direction": direction,
@@ -374,7 +373,9 @@ def main(scan_type: str = "post_close") -> None:
                             },
                             account_equity=float(state.get("account_equity", 15000.0)),
                             options_approval_level=int(cfg.get("options_approval_level", 2)),
-                            iv_percentile=50.0,
+                            iv_percentile=options_raw.get("iv_percentile", 50.0),
+                            option_chain=options_raw.get("chain"),
+                            dte=options_raw.get("dte"),
                             cfg=cfg,
                         )
                         ranked = trade_result.get("ranked_structures", [])

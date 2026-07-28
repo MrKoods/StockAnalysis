@@ -8,19 +8,30 @@ Filters (applied before ranking):
 3. R:R: ≥ configured min_rr_ratio (default 1:3), evaluated on the shared
    entry/stop/target setup — same for every structure since it doesn't depend
    on per-structure option pricing.
-4. Greeks: NOT IMPLEMENTED. Theta/vega/gamma filtering would need a live options
-   chain (strike, expiry, IV) per structure; rank_trade_structures only receives
-   a scalar iv_percentile, not the chain itself (shared/api_clients/positioning_client.py
-   fetch_option_chain_metrics has chain data but isn't wired into this call path).
-   Rather than fabricate a filter from assumed strikes/DTE, this is surfaced via
-   'greeks_filter_status' in the result so callers don't mistake silence for a
-   passed check.
+4. Greeks: applied when a real option chain is supplied (`option_chain` param,
+   from positioning_client.py's fetch_option_chain_metrics) AND the structure
+   has a resolvable options-only leg composition — see _GREEKS_RESOLVABLE_LEGS.
+   Real strikes are picked from the chain (options_math.py's
+   select_directional_leg_strike, a fixed strike-offset convention, not
+   iterative delta-solving) and net theta/vega computed (net_structure_greeks)
+   against config-driven bounds (swing_config.yaml's greeks_filter block).
+   Structures needing multiple expirations (calendars/diagonals), margin-based
+   synthetics, or 3+ leg wing structures (condors/butterflies/ratio spreads)
+   are deliberately left un-filtered — modeling their legs from one fetched
+   expiration and a fixed offset convention would misrepresent their actual
+   risk rather than measure it. `greeks_filter_status` in the result reports
+   which applied. No `option_chain` supplied at all → same as before this
+   filter existed, reported as 'not_implemented_no_options_chain_data'.
 5. Liquidity: excluded when the slippage cost (half the bid/ask spread × legs ×
    100, per adjust_ev_for_slippage) consumes >=50% of the structure's raw EV —
    i.e., a wide bid/ask is eating most of the edge the R:R filter is meant to protect.
+   `bid_ask_spreads` is now populated from the real chain when not explicitly
+   passed by the caller (previously always empty in production, making this
+   filter inert — see CHANGELOG v2.2.22).
 6. Account type: options approval level from swing_config.yaml
 7. Direction: exclude misaligned structures
-8. 0DTE: always excluded
+8. 0DTE: always excluded (also enforced upstream — fetch_option_chain_metrics'
+   min_dte skips 0DTE/weekly expirations before a chain ever reaches here)
 """
 
 from typing import Optional
@@ -31,6 +42,8 @@ from shared.utils.options_math import (
     compute_ev_surface,
     adjust_ev_for_slippage,
     capital_efficiency_score,
+    select_directional_leg_strike,
+    net_structure_greeks,
 )
 
 ALL_42_STRUCTURES = list(STRUCTURE_MULTIPLIERS.keys())
@@ -72,6 +85,70 @@ _UNDEFINED_RISK_STRUCTURES = {
 }
 _COMPLEX_SURFACE_STRUCTURES = {s for s, d in STRUCTURE_MULTIPLIERS.items() if d.get("ev_method") == "surface"}
 
+# Structures with a real, single-expiration, options-only (or options-leg-of-a-
+# mixed-structure) composition — Filter 4 (Greeks) is applied to these when a
+# real option_chain is supplied. Stock legs of mixed structures (covered_call,
+# protective_put, married_put, collar, covered_strangle) are omitted here since
+# stock contributes zero gamma/theta/vega and a constant delta — irrelevant to
+# the theta/vega bounds this filter checks. Deliberately excludes: LEAPS (needs
+# a long-dated expiry our single near-term chain fetch doesn't provide — using
+# near-term theta/vega for a LEAPS position would misrepresent it, not measure
+# it), calendars/diagonals (need two expirations), pure equity structures (no
+# options legs), and 3+ leg / synthetic / ratio structures (see module docstring).
+# Each value: list of (option_type, side, moneyness) — moneyness keys defined in
+# shared/utils/options_math.py's select_directional_leg_strike.
+_GREEKS_RESOLVABLE_LEGS: dict = {
+    "long_call": [("call", "long", "atm")],
+    "long_put": [("put", "long", "atm")],
+    "deep_itm_call": [("call", "long", "deep_itm")],
+    "deep_itm_put": [("put", "long", "deep_itm")],
+    "naked_short_call": [("call", "short", "otm")],
+    "naked_short_put": [("put", "short", "otm")],
+    "cash_secured_put": [("put", "short", "otm")],
+    "covered_call": [("call", "short", "otm")],
+    "protective_put": [("put", "long", "otm")],
+    "married_put": [("put", "long", "otm")],
+    "collar": [("put", "long", "otm"), ("call", "short", "otm")],
+    "covered_strangle": [("call", "short", "otm"), ("put", "short", "otm")],
+    "bull_call_spread": [("call", "long", "atm"), ("call", "short", "far_otm")],
+    "bear_put_spread": [("put", "long", "atm"), ("put", "short", "far_otm")],
+    "bull_put_spread": [("put", "short", "otm"), ("put", "long", "far_otm")],
+    "bear_call_spread": [("call", "short", "otm"), ("call", "long", "far_otm")],
+    "long_straddle": [("call", "long", "atm"), ("put", "long", "atm")],
+    "long_strangle": [("call", "long", "otm"), ("put", "long", "otm")],
+    "short_straddle": [("call", "short", "atm"), ("put", "short", "atm")],
+    "short_strangle": [("call", "short", "otm"), ("put", "short", "otm")],
+}
+
+
+def _resolve_structure_legs(
+    structure_name: str,
+    option_chain: list,
+    current_price: float,
+) -> Optional[list]:
+    """
+    Pick real contracts for `structure_name`'s legs from `option_chain` (see
+    _GREEKS_RESOLVABLE_LEGS). Returns None if the structure isn't in the
+    resolvable set, no chain was supplied, or any required leg has no matching
+    contract in the chain (e.g. a thin chain missing a far-OTM strike) — callers
+    treat None as "Greeks not evaluated for this structure", never as "passed."
+    """
+    spec = _GREEKS_RESOLVABLE_LEGS.get(structure_name)
+    if not spec or not option_chain or current_price <= 0:
+        return None
+
+    legs = []
+    for option_type, side, moneyness in spec:
+        contract = select_directional_leg_strike(option_chain, current_price, option_type, moneyness)
+        if contract is None:
+            return None
+        legs.append({
+            "strike": contract["strike"], "option_type": option_type,
+            "side": side, "iv": contract["iv"],
+            "bid": contract["bid"], "ask": contract["ask"],
+        })
+    return legs
+
 
 def rank_trade_structures(
     candidate: dict,
@@ -80,12 +157,22 @@ def rank_trade_structures(
     iv_percentile: float,
     bid_ask_spreads: Optional[dict] = None,
     cfg: Optional[dict] = None,
+    option_chain: Optional[list] = None,
+    dte: Optional[int] = None,
 ) -> dict:
     """
     Evaluate all 42 structures and return EV-ranked output.
 
     candidate: {ticker, direction, confidence, entry, stop, target, atr_14, ...}
     iv_percentile: current IV percentile (0-100) — affects structure preference
+    option_chain: real near-the-money contracts from positioning_client.py's
+      fetch_option_chain_metrics ('chain' field) — enables Filter 4 (Greeks) for
+      structures in _GREEKS_RESOLVABLE_LEGS, and (when bid_ask_spreads isn't
+      explicitly supplied) real per-structure bid/ask spreads for Filter 5.
+      None (the default) reproduces the prior behavior exactly — both filters
+      stay as inert as they were before this parameter existed.
+    dte: days to option_chain's expiration — required alongside option_chain for
+      Filter 4 to run (Greeks need a real time-to-expiry, not an assumed one).
 
     Returns:
     {
@@ -94,12 +181,20 @@ def rank_trade_structures(
         structures_eligible_after_filters: int,
         ranked_structures: [...],
         exclusion_summary: str,
+        greeks_filter_status: "applied" | "not_implemented_no_options_chain_data",
+        structures_greeks_evaluated: int,
     }
     """
     if cfg is None:
         cfg = {}
-    if bid_ask_spreads is None:
-        bid_ask_spreads = {}
+    # Copied, not aliased — real spreads resolved from option_chain below get
+    # written into this dict, and a caller-supplied dict shouldn't be mutated
+    # as a side effect of calling this function.
+    bid_ask_spreads = dict(bid_ask_spreads) if bid_ask_spreads else {}
+    greeks_cfg = cfg.get("greeks_filter", {})
+    max_daily_theta_pct = float(greeks_cfg.get("max_daily_theta_pct_of_capital", 0.05))
+    max_vega_pct = float(greeks_cfg.get("max_vega_pct_of_capital", 0.15))
+    greeks_available = bool(option_chain) and dte is not None
 
     ticker = candidate.get("ticker", "")
     direction = candidate.get("direction", "bullish")
@@ -120,6 +215,7 @@ def rank_trade_structures(
 
     ranked_structures = []
     excluded = []
+    structures_greeks_evaluated = 0
 
     for name in ALL_42_STRUCTURES:
         structure = STRUCTURE_MULTIPLIERS[name]
@@ -131,6 +227,12 @@ def rank_trade_structures(
         if not eligible:
             excluded.append({"name": name, "reasons": reasons})
             continue
+
+        # Resolve real legs (if the structure/chain allow it) once per structure —
+        # feeds both Filter 5's real bid/ask spread and Filter 4's Greeks check.
+        legs = _resolve_structure_legs(name, option_chain, entry) if option_chain else None
+        if legs is not None and name not in bid_ask_spreads:
+            bid_ask_spreads[name] = sum(c["ask"] - c["bid"] for c in legs) / len(legs)
 
         ev_result = _compute_structure_ev(name, structure, candidate, iv_percentile / 100.0,
                                           win_prob, bid_ask_spreads.get(name, 0.0))
@@ -155,6 +257,30 @@ def rank_trade_structures(
             excluded.append({"name": name, "reasons": ["capital_exceeds_5pct"]})
             continue
 
+        # Filter 4: Greeks — theta/vega bounded as a % of this structure's own
+        # capital-at-risk, so a small defined-risk spread and a large one are held
+        # to the same relative standard rather than the same dollar one.
+        greeks_detail = None
+        if legs is not None and greeks_available:
+            T = max(dte, 1) / 365.0
+            net = net_structure_greeks(legs, S=entry, T=T)["net"]
+            # compute_greeks returns per-share values; x100 for the contract multiplier
+            # to match est_capital's already-per-contract dollar units.
+            daily_theta_pct = abs(net["theta"]) * 100 / est_capital if est_capital > 0 else 0.0
+            vega_pct = abs(net["vega"]) * 100 / est_capital if est_capital > 0 else 0.0
+            structures_greeks_evaluated += 1
+            if daily_theta_pct > max_daily_theta_pct:
+                excluded.append({"name": name, "reasons": ["greeks_theta_exceeds_bound"]})
+                continue
+            if vega_pct > max_vega_pct:
+                excluded.append({"name": name, "reasons": ["greeks_vega_exceeds_bound"]})
+                continue
+            greeks_detail = {
+                "net_greeks": net,
+                "daily_theta_pct_of_capital": round(daily_theta_pct, 4),
+                "vega_pct_of_capital": round(vega_pct, 4),
+            }
+
         ev_per_dollar = capital_efficiency_score(ev, est_capital, max_capital)
 
         ranked_structures.append({
@@ -164,6 +290,7 @@ def rank_trade_structures(
             "capital_required": round(est_capital, 2),
             "rr_ratio": round(rr, 2),
             "legs": structure.get("legs", 1),
+            "greeks": greeks_detail,
             "filter_notes": [],
         })
 
@@ -181,9 +308,14 @@ def rank_trade_structures(
         "structures_eligible_after_filters": len(ranked_structures),
         "ranked_structures": ranked_structures,
         "exclusion_summary": build_discord_exclusion_summary(excluded),
-        # Filter 4 (Greeks: theta/vega/gamma) is not applied — see module docstring.
-        # Surfaced explicitly so a missing filter doesn't read as a passed one.
-        "greeks_filter_status": "not_implemented_no_options_chain_data",
+        # "applied": a real option_chain + dte were supplied, so Filter 4 ran for
+        # every structure in _GREEKS_RESOLVABLE_LEGS (see structures_greeks_evaluated
+        # for how many actually had a usable chain match — 0 is possible on a thin
+        # chain and is still an honest "applied," not a failure).
+        # "not_implemented_no_options_chain_data": no chain/dte supplied at all —
+        # identical to this filter's behavior before it existed.
+        "greeks_filter_status": "applied" if greeks_available else "not_implemented_no_options_chain_data",
+        "structures_greeks_evaluated": structures_greeks_evaluated,
     }
 
 
@@ -201,8 +333,11 @@ def _apply_filters(
     min_rr: float = 3.0,
 ) -> tuple[bool, list[str]]:
     """
-    Apply filter types to a structure (Greeks — filter 4 — is not implemented;
-    see module docstring). Returns (is_eligible, exclusion_reasons).
+    Apply filters 1-3/6-8 to a structure. Filters 4 (Greeks) and 5 (liquidity)
+    are applied separately in rank_trade_structures' main loop — both need
+    values (resolved legs, EV) that aren't available until after this function
+    runs, same reason Filter 5 was already handled outside it. Returns
+    (is_eligible, exclusion_reasons).
     """
     reasons = []
     direction = candidate.get("direction", "bullish")

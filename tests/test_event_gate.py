@@ -31,7 +31,7 @@ from shared.utils.data_validator import validate_event_gate_state
 from swing_model.news_layer import (
     compute_news_score,
     classify_severity as news_classify_severity,
-    seeking_alpha_flags_critical_event,
+    free_sources_flag_critical_event,
 )
 from swing_model.scoring import compute_confidence_score
 from swing_model.run_swing_model import _handle_open_position_critical_event
@@ -500,13 +500,13 @@ class TestNewsLayerIntegration:
         assert len(result["critical_events"]) == 1
 
 
-class TestSeekingAlphaFlagsCriticalEvent:
+class TestFreeSourcesFlagCriticalEvent:
     """
-    seeking_alpha_flags_critical_event() — the cheap, local, no-API-cost check
-    run_swing_model.py/paper_runner.py use to decide whether a pre-market/
-    mid-session scan (where Alpha Vantage news is normally skipped for budget
-    reasons) should spend one AV call to cross-reference an event Seeking
-    Alpha already surfaced, instead of waiting for the post-close scan.
+    free_sources_flag_critical_event() — the cheap, local, no-API-cost check
+    run_swing_model.py/paper_runner.py use to decide whether a scan should
+    spend one Alpha Vantage call to cross-reference an event already surfaced
+    by Yahoo, Finnhub, or Seeking Alpha (AV is a confirmation tool, called on
+    every scan type when triggered — not a routine per-ticker post-close fetch).
     """
 
     def test_ticker_scope_critical_event_triggers(self):
@@ -515,7 +515,7 @@ class TestSeekingAlphaFlagsCriticalEvent:
             "title": "AMD CEO resigns amid controversy",
             "source": "seekingalpha.com",
         }]
-        assert seeking_alpha_flags_critical_event(sa_articles, "AMD", cfg) is True
+        assert free_sources_flag_critical_event(sa_articles, "AMD", cfg) is True
 
     def test_sector_scope_critical_event_triggers(self):
         cfg = _gate_cfg()
@@ -523,7 +523,16 @@ class TestSeekingAlphaFlagsCriticalEvent:
             "title": "White House announces new chip export restriction targeting China",
             "source": "seekingalpha.com",
         }]
-        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg, sector="semiconductors") is True
+        assert free_sources_flag_critical_event(sa_articles, "NVDA", cfg, sector="semiconductors") is True
+
+    def test_yahoo_or_finnhub_sourced_critical_event_triggers(self):
+        cfg = _gate_cfg()
+        # Yahoo/Finnhub articles use "source_domain" rather than SA's "source" key.
+        free_articles = [{
+            "title": "AMD CEO resigns amid controversy",
+            "source_domain": "finance.yahoo.com",
+        }]
+        assert free_sources_flag_critical_event(free_articles, "AMD", cfg) is True
 
     def test_ticker_scope_event_for_a_different_ticker_does_not_trigger(self):
         cfg = _gate_cfg()
@@ -531,7 +540,7 @@ class TestSeekingAlphaFlagsCriticalEvent:
             "title": "AMD CEO resigns amid controversy",
             "source": "seekingalpha.com",
         }]
-        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg) is False
+        assert free_sources_flag_critical_event(sa_articles, "NVDA", cfg) is False
 
     def test_normal_headline_does_not_trigger(self):
         cfg = _gate_cfg()
@@ -539,12 +548,12 @@ class TestSeekingAlphaFlagsCriticalEvent:
             "title": "NVDA gains market share amid strong AI demand",
             "source": "seekingalpha.com",
         }]
-        assert seeking_alpha_flags_critical_event(sa_articles, "NVDA", cfg) is False
+        assert free_sources_flag_critical_event(sa_articles, "NVDA", cfg) is False
 
     def test_empty_articles_does_not_trigger(self):
         cfg = _gate_cfg()
-        assert seeking_alpha_flags_critical_event([], "NVDA", cfg) is False
-        assert seeking_alpha_flags_critical_event(None, "NVDA", cfg) is False
+        assert free_sources_flag_critical_event([], "NVDA", cfg) is False
+        assert free_sources_flag_critical_event(None, "NVDA", cfg) is False
 
     def test_gate_disabled_does_not_trigger(self):
         cfg = _gate_cfg(enabled=False)
@@ -552,7 +561,7 @@ class TestSeekingAlphaFlagsCriticalEvent:
             "title": "AMD CEO resigns amid controversy",
             "source": "seekingalpha.com",
         }]
-        assert seeking_alpha_flags_critical_event(sa_articles, "AMD", cfg) is False
+        assert free_sources_flag_critical_event(sa_articles, "AMD", cfg) is False
 
 
 # ---------------------------------------------------------------------------

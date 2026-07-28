@@ -13,6 +13,8 @@ from shared.utils.options_math import (
     compute_ev_surface,
     adjust_ev_for_slippage,
     STRUCTURE_MULTIPLIERS,
+    select_directional_leg_strike,
+    net_structure_greeks,
 )
 from shared.utils.risk_reward import (
     compute_entry_zone,
@@ -85,6 +87,106 @@ class TestBlackScholes:
         g = compute_greeks(100, 100, 0.5, 0.05, 0.3, "call")
         for key in ("delta", "gamma", "theta", "vega", "rho"):
             assert key in g
+
+
+# ---------------------------------------------------------------------------
+# Real strike selection + net Greeks (trade_selector.py's Filter 4)
+# ---------------------------------------------------------------------------
+
+def _fake_chain(current_price: float = 100.0, step: float = 5.0, width: int = 8) -> list:
+    """Synthetic near-the-money chain: calls+puts every `step` around current_price."""
+    chain = []
+    for i in range(-width, width + 1):
+        strike = round(current_price + i * step, 2)
+        if strike <= 0:
+            continue
+        for option_type in ("call", "put"):
+            chain.append({
+                "strike": strike, "option_type": option_type,
+                "bid": 1.0, "ask": 1.2, "iv": 0.35,
+                "open_interest": 100, "expiration": "2027-01-01",
+            })
+    return chain
+
+
+class TestSelectDirectionalLegStrike:
+    def test_atm_call_picks_nearest_strike_to_current_price(self):
+        # Strikes land on 96, 101, 106, ... — 103 is nearest to 101 (dist 2) not 106 (dist 3).
+        chain = _fake_chain(current_price=101.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 103.0, "call", "atm")
+        assert contract["strike"] == 101.0
+
+    def test_otm_call_picks_strike_above_current_price(self):
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 100.0, "call", "otm")
+        assert contract["strike"] > 100.0
+
+    def test_otm_put_picks_strike_below_current_price(self):
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 100.0, "put", "otm")
+        assert contract["strike"] < 100.0
+
+    def test_far_otm_further_from_money_than_otm(self):
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        near = select_directional_leg_strike(chain, 100.0, "call", "otm")
+        far = select_directional_leg_strike(chain, 100.0, "call", "far_otm")
+        assert far["strike"] > near["strike"]
+
+    def test_deep_itm_call_picks_strike_below_current_price(self):
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 100.0, "call", "deep_itm")
+        assert contract["strike"] < 100.0
+
+    def test_deep_itm_put_picks_strike_above_current_price(self):
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 100.0, "put", "deep_itm")
+        assert contract["strike"] > 100.0
+
+    def test_no_matching_option_type_returns_none(self):
+        calls_only = [c for c in _fake_chain() if c["option_type"] == "call"]
+        assert select_directional_leg_strike(calls_only, 100.0, "put", "atm") is None
+
+    def test_empty_chain_returns_none(self):
+        assert select_directional_leg_strike([], 100.0, "call", "atm") is None
+
+
+class TestNetStructureGreeks:
+    def test_long_call_has_negative_net_theta(self):
+        legs = [{"strike": 100.0, "option_type": "call", "side": "long", "iv": 0.3}]
+        result = net_structure_greeks(legs, S=100.0, T=0.25)
+        assert result["net"]["theta"] < 0
+
+    def test_short_call_has_positive_net_theta(self):
+        legs = [{"strike": 100.0, "option_type": "call", "side": "short", "iv": 0.3}]
+        result = net_structure_greeks(legs, S=100.0, T=0.25)
+        assert result["net"]["theta"] > 0
+
+    def test_vertical_spread_theta_smaller_than_single_leg(self):
+        single = net_structure_greeks(
+            [{"strike": 100.0, "option_type": "call", "side": "long", "iv": 0.3}], S=100.0, T=0.25,
+        )
+        spread = net_structure_greeks(
+            [
+                {"strike": 100.0, "option_type": "call", "side": "long", "iv": 0.3},
+                {"strike": 110.0, "option_type": "call", "side": "short", "iv": 0.3},
+            ],
+            S=100.0, T=0.25,
+        )
+        assert abs(spread["net"]["theta"]) < abs(single["net"]["theta"])
+
+    def test_long_straddle_positive_vega(self):
+        legs = [
+            {"strike": 100.0, "option_type": "call", "side": "long", "iv": 0.3},
+            {"strike": 100.0, "option_type": "put", "side": "long", "iv": 0.3},
+        ]
+        result = net_structure_greeks(legs, S=100.0, T=0.25)
+        assert result["net"]["vega"] > 0
+
+    def test_per_leg_detail_included(self):
+        legs = [{"strike": 100.0, "option_type": "call", "side": "long", "iv": 0.3}]
+        result = net_structure_greeks(legs, S=100.0, T=0.25)
+        assert len(result["legs"]) == 1
+        assert "greeks" in result["legs"][0]
 
 
 # ---------------------------------------------------------------------------
@@ -357,3 +459,96 @@ class TestTradeSelector:
             # Others should not be recommended
             for s in result["ranked_structures"][1:]:
                 assert s["recommended"] is False
+
+
+class TestGreeksFilter:
+    """rank_trade_structures' Filter 4 — real Greeks when option_chain+dte are
+    supplied. Uses the module-level _fake_chain() helper (500-centered, since
+    TestTradeSelector's _candidate() entry is 500.0)."""
+
+    def _candidate(self, direction="bullish", confidence=92):
+        return {
+            "ticker": "NVDA", "direction": direction, "confidence": confidence,
+            "entry_mid": 500.0, "stop_loss": 485.0, "target": 545.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+
+    def test_no_chain_reports_not_implemented(self):
+        result = rank_trade_structures(
+            self._candidate(), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+        )
+        assert result["greeks_filter_status"] == "not_implemented_no_options_chain_data"
+        assert result["structures_greeks_evaluated"] == 0
+
+    def test_chain_without_dte_reports_not_implemented(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain,
+        )
+        assert result["greeks_filter_status"] == "not_implemented_no_options_chain_data"
+
+    def test_chain_and_dte_reports_applied(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        assert result["greeks_filter_status"] == "applied"
+        assert result["structures_greeks_evaluated"] > 0
+
+    def test_resolvable_structure_carries_greeks_detail(self):
+        # account_equity raised to 100k so long_call's ~$2,500 estimated capital
+        # clears the pre-existing 5%-of-account filter (unrelated to Greeks) —
+        # at 15k, long_call would be excluded before Filter 4 ever runs.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(), account_equity=100_000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        assert "long_call" in by_name
+        assert by_name["long_call"]["greeks"] is not None
+        assert "net_greeks" in by_name["long_call"]["greeks"]
+
+    def test_tight_theta_bound_excludes_long_premium_structures(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        cfg = {"greeks_filter": {"max_daily_theta_pct_of_capital": 0.0001, "max_vega_pct_of_capital": 1.0}}
+        result = rank_trade_structures(
+            self._candidate(), account_equity=100_000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10, cfg=cfg,
+        )
+        eligible_names = {s["name"] for s in result["ranked_structures"]}
+        assert "long_call" not in eligible_names
+        reasons = [r for item in result["exclusion_summary"].split(";") for r in [item.strip()]]
+        assert any("theta" in r for r in reasons)
+
+    def test_bid_ask_spreads_not_mutated_for_caller(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        caller_dict = {}
+        rank_trade_structures(
+            self._candidate(), account_equity=100_000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10, bid_ask_spreads=caller_dict,
+        )
+        assert caller_dict == {}  # unchanged — internal resolution shouldn't leak back
+
+    def test_missing_leg_type_leaves_greeks_unresolved_not_falsely_passed(self):
+        # Calls-only chain — long_call resolves fine, but long_straddle (needs a
+        # put leg too) can't resolve and must report greeks=None, not a fabricated pass.
+        calls_only = [c for c in _fake_chain(current_price=500.0, step=10.0) if c["option_type"] == "call"]
+        result = rank_trade_structures(
+            self._candidate(), account_equity=100_000,
+            options_approval_level=3, iv_percentile=30.0,
+            option_chain=calls_only, dte=10,
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        if "long_call" in by_name:
+            assert by_name["long_call"]["greeks"] is not None
+        if "long_straddle" in by_name:
+            assert by_name["long_straddle"]["greeks"] is None

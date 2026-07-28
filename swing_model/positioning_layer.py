@@ -102,6 +102,12 @@ def compute_positioning_score(
             "insider": insider_dq,
             "analyst": analyst_dq,
         },
+        # Raw passthrough (not a scoring input) — trade_selector.py's Greeks
+        # filter needs the real chain/dte/iv_percentile positioning_client.py
+        # fetched, not just the 0-6 points _score_options() derived from it.
+        # Same "_full passthrough" pattern as indicator_pipeline.py's
+        # _fundamental_full/_positioning_full.
+        "_options_raw": positioning_data.get("options"),
     }
 
 

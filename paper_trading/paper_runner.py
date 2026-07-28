@@ -33,7 +33,7 @@ except ImportError:
 from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score
-from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
+from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
 from swing_model.scoring import compute_confidence_score
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
@@ -79,6 +79,14 @@ PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 CONFIG_PATH = Path("config/swing_config.yaml")
 CONFIDENCE_THRESHOLD = 90
 NEAR_MISS_THRESHOLD = 80  # awareness-only Discord ping; never logged as a trade
+# Below CONFIDENCE_THRESHOLD, still run rank_trade_structures() and record its
+# output on the ticker_results DB row (trade_structure/expected_value columns)
+# for scores in this range — pure research data on Filter 4/5's real behavior
+# (see CHANGELOG v2.2.22) across a wider score range. Never written to
+# paper_trades.csv, never fires the real trade Discord alert, never counts
+# toward signals_logged or any go-live gate — CONFIDENCE_THRESHOLD alone still
+# decides what's a real qualifying signal.
+STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD = 60
 
 # Maps a layer_scores.layer_name (app_ui/db.py) to the compute_confidence_score()
 # result key it comes from — 5 scored categories + 6 modifiers, see App_UI_Scope.md §3.1/§5.
@@ -317,21 +325,22 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             }
             sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
 
-            # News — Alpha Vantage is post-close-only by default (AV daily budget),
-            # except when Seeking Alpha (fetched above for Sentiment, runs every
-            # scan at no extra cost) already flags a critical event for this
-            # ticker on a pre-market/mid-session scan — then it's worth spending
-            # one AV call immediately to cross-reference with an independent
-            # source, instead of waiting up to ~13 hours for the post-close scan.
+            # News — Yahoo + Finnhub + Seeking Alpha are the primary sources, on
+            # every scan — all free. Alpha Vantage is a confirmation tool, not a
+            # routine per-ticker fetch: it's only called when one of the free
+            # sources already flagged a critical event for this ticker, to
+            # cross-reference it against an independent source immediately
+            # rather than scoring on free-source data alone.
             sa_news_articles = [
                 {**item, "source": "seekingalpha.com"} for item in sa_engagement_items
             ]
-            fetch_av_now = scan_type == "post_close" or seeking_alpha_flags_critical_event(
-                sa_news_articles, ticker, cfg, sector=sector
-            )
-            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
+            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles
+            fetch_av_now = free_sources_flag_critical_event(
+                free_source_articles, ticker, cfg, sector=sector
+            )
+            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
@@ -471,12 +480,73 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                     f"weakness counted twice, not two independent signals"
                 )
 
+            # Entry/stop/target + trade structure ranking — computed for any score
+            # clearing STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60), not just real
+            # qualifying signals (>=CONFIDENCE_THRESHOLD, 90). Below 90 this is
+            # research data only: recorded on the ticker_results DB row's
+            # trade_structure/expected_value columns, never written to
+            # paper_trades.csv and never fires the real trade alert — see
+            # STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD's own comment.
+            entry_mid = stop_loss = target_px = None
+            rr_ratio = 0.0
+            structure_recommended = ""
+            ev_per_dollar = ""
+            if final_score >= STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD:
+                close_px = float(indicators.get("close", 0.0))
+                atr = float(indicators.get("atr_14", close_px * 0.02))
+                breakout_level = float(indicators.get("rolling_high_20", close_px))
+
+                entry_lower, entry_upper = compute_entry_zone(
+                    close_px, breakout_level, atr,
+                    rr_cfg.get("entry_zone_half_width_atr", 0.25),
+                )
+                entry_mid = (entry_lower + entry_upper) / 2.0
+                stop_loss = compute_stop_loss(
+                    entry_lower, atr,
+                    stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                )
+                target_px = compute_target(entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
+                risk = entry_mid - stop_loss
+                rr_ratio = round((target_px - entry_mid) / risk, 2) if (target_px and risk > 0) else 0.0
+
+                try:
+                    force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
+                    options_raw = positioning.get("_options_raw") or {}
+                    trade_result = rank_trade_structures(
+                        {
+                            "ticker": ticker,
+                            "direction": direction,
+                            "confidence": final_score,
+                            "entry": entry_mid,
+                            "entry_mid": entry_mid,
+                            "stop_loss": stop_loss,
+                            "target": target_px,
+                            "atr_14": atr,
+                            "force_defined_risk": force_defined_risk,
+                        },
+                        account_equity=15000.0,
+                        options_approval_level=int(cfg.get("options_approval_level", 2)),
+                        iv_percentile=options_raw.get("iv_percentile", 50.0),
+                        option_chain=options_raw.get("chain"),
+                        dte=options_raw.get("dte"),
+                        cfg=cfg,
+                    )
+                    ranked = trade_result.get("ranked_structures", [])
+                    if ranked:
+                        best = ranked[0]
+                        structure_recommended = best.get("name", "")
+                        ev_per_dollar = f"{best.get('ev_per_dollar_risked', 0.0):.3f}"
+                except Exception as exc:
+                    logger.warning(f"{ticker}: structure ranking failed — {exc}")
+
             if final_score < CONFIDENCE_THRESHOLD:
                 sub_threshold_category = (
                     app_db.CATEGORY_NEAR_MISS if final_score >= NEAR_MISS_THRESHOLD else app_db.CATEGORY_NO_SIGNAL
                 )
                 result_id = _db_insert_ticker_result_safe(
                     run_id, ticker, sub_threshold_category, final_score,
+                    trade_structure=structure_recommended or None,
+                    expected_value=float(ev_per_dollar) if ev_per_dollar else None,
                     event_gate_blocked=bool(score.get("event_gate_blocked", False)),
                     event_gate_trigger=score.get("event_gate_trigger"),
                     sector=sector,
@@ -505,54 +575,6 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         run_id, ticker, "near_miss", near_miss_payload, near_miss_sent,
                     )
                 continue
-
-            # Entry/stop/target
-            close_px = float(indicators.get("close", 0.0))
-            atr = float(indicators.get("atr_14", close_px * 0.02))
-            breakout_level = float(indicators.get("rolling_high_20", close_px))
-
-            entry_lower, entry_upper = compute_entry_zone(
-                close_px, breakout_level, atr,
-                rr_cfg.get("entry_zone_half_width_atr", 0.25),
-            )
-            entry_mid = (entry_lower + entry_upper) / 2.0
-            stop_loss = compute_stop_loss(
-                entry_lower, atr,
-                stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
-            )
-            target_px = compute_target(entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
-            risk = entry_mid - stop_loss
-            rr_ratio = round((target_px - entry_mid) / risk, 2) if (target_px and risk > 0) else 0.0
-
-            # Trade structure ranking
-            structure_recommended = ""
-            ev_per_dollar = ""
-            try:
-                force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
-                trade_result = rank_trade_structures(
-                    {
-                        "ticker": ticker,
-                        "direction": direction,
-                        "confidence": final_score,
-                        "entry": entry_mid,
-                        "entry_mid": entry_mid,
-                        "stop_loss": stop_loss,
-                        "target": target_px,
-                        "atr_14": atr,
-                        "force_defined_risk": force_defined_risk,
-                    },
-                    account_equity=15000.0,
-                    options_approval_level=int(cfg.get("options_approval_level", 2)),
-                    iv_percentile=50.0,
-                    cfg=cfg,
-                )
-                ranked = trade_result.get("ranked_structures", [])
-                if ranked:
-                    best = ranked[0]
-                    structure_recommended = best.get("name", "")
-                    ev_per_dollar = f"{best.get('ev_per_dollar_risked', 0.0):.3f}"
-            except Exception as exc:
-                logger.warning(f"{ticker}: structure ranking failed — {exc}")
 
             qualified_category = (
                 app_db.CATEGORY_TRADE_RECOMMENDED if structure_recommended else app_db.CATEGORY_PASSED_NO_TRADE

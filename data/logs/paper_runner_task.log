@@ -1113,3 +1113,23 @@ Done — 0 paper signal(s) logged.
 2026-07-27 16:21:42,691 [__main__] INFO — FITB: SCORE 46.7/100 (technical=24.1/40, positioning=9.0/20, sentiment=3.5/15, news=2.1/15, fundamental=2.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+1.0, total=+6.0) direction=bullish qualifies=no
 2026-07-27 16:21:44,487 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
 Done — 0 paper signal(s) logged.
+2026-07-28 13:30:02,154 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-07-28 13:30:02,524 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=197.01, rsi=43.0, atr=7.56)
+2026-07-28 13:30:02,530 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=454.62, rsi=39.2, atr=38.58)
+2026-07-28 13:30:02,535 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=380.91, rsi=47.5, atr=16.08)
+2026-07-28 13:30:02,540 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=392.31, rsi=39.0, atr=17.61)
+2026-07-28 13:30:02,545 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=820.53, rsi=40.3, atr=83.14)
+2026-07-28 13:30:02,549 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1582.95, rsi=36.9, atr=85.60)
+2026-07-28 13:30:03,110 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-28T12:30:04.422876+00:00)
+2026-07-28 13:30:03,114 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-07-28T12:30:11.208152+00:00)
+2026-07-28 13:30:03,115 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-07-28 13:30:03,115 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB', 'KRE']
+2026-07-28 13:30:03,290 [swing_model.indicator_pipeline] INFO — ZION: indicators computed (close=69.52, rsi=51.7, atr=1.67)
+2026-07-28 13:30:03,295 [swing_model.indicator_pipeline] INFO — KEY: indicators computed (close=22.63, rsi=45.9, atr=0.47)
+2026-07-28 13:30:03,299 [swing_model.indicator_pipeline] INFO — HBAN: indicators computed (close=17.30, rsi=45.2, atr=0.42)
+2026-07-28 13:30:03,306 [swing_model.indicator_pipeline] INFO — RF: indicators computed (close=31.27, rsi=59.0, atr=0.67)
+2026-07-28 13:30:03,310 [swing_model.indicator_pipeline] INFO — FITB: indicators computed (close=57.80, rsi=59.6, atr=1.33)
+2026-07-28 13:30:03,799 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-07-28T12:30:04.422876+00:00)
+2026-07-28 13:30:03,802 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-07-28T12:30:11.208152+00:00)
+2026-07-28 13:30:03,802 [swing_model.indicator_pipeline] INFO — Pipeline complete: 5/5 tickers processed successfully.
+^C

@@ -25,7 +25,7 @@ from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.fundamental_client import FundamentalClient
 from swing_model.fundamental_layer import FundamentalScorer
-from shared.api_clients.positioning_client import fetch_all_positioning
+from shared.api_clients.positioning_client import fetch_all_positioning, compute_iv_percentile
 from swing_model.positioning_layer import compute_positioning_score
 
 logger = get_logger(__name__)
@@ -34,6 +34,7 @@ _ET = ZoneInfo("America/New_York")
 _FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
 _FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
+_MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history's growth, oldest dropped first
 
 # Fundamental refresh is staggered rather than bursting the whole watchlist on one
 # day. Alpha Vantage is now down to a single call per ticker (eps_growth_trend only
@@ -363,11 +364,27 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
         return state
 
     logger.info(f"Fetching positioning data for: {to_fetch}")
+    iv_history = state.setdefault("iv_history", {})
+    min_dte = int(cfg.get("greeks_filter", {}).get("min_dte", 5))
     for ticker in to_fetch:
         if ticker in state["tickers"]:
             state["previous_tickers"][ticker] = state["tickers"][ticker]
         try:
-            state["tickers"][ticker] = fetch_all_positioning(ticker, current_price=current_prices.get(ticker))
+            fresh = fetch_all_positioning(ticker, current_price=current_prices.get(ticker), min_dte=min_dte)
+            # IV percentile needs a rolling history of daily atm_iv readings, not
+            # just today's — build/extend it here (once per ticker per day, same
+            # cadence as the rest of Positioning) and attach the computed
+            # percentile to today's options data so it's available wherever
+            # _positioning_full is read (scoring, trade_selector.py's structure
+            # selection), without every caller re-deriving it from raw history.
+            atm_iv = (fresh.get("options") or {}).get("atm_iv")
+            ticker_history = iv_history.setdefault(ticker, [])
+            if atm_iv is not None:
+                ticker_history.append(atm_iv)
+                del ticker_history[:-_MAX_IV_HISTORY_DAYS]
+            if fresh.get("options") is not None:
+                fresh["options"].update(compute_iv_percentile(atm_iv, ticker_history[:-1]))
+            state["tickers"][ticker] = fresh
             state["fetched_dates"][ticker] = today_str
             logger.info(f"  {ticker}: positioning data fetched OK")
         except Exception as exc:
