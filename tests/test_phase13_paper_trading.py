@@ -115,49 +115,60 @@ class TestEvaluatePaperTradingPass:
         return [{"slippage_pct": actual_slip, "modeled_slippage_pct": modeled_slip}] * n
 
     def test_overall_pass_when_all_criteria_met(self):
-        outcomes = self._win_outcomes(90, 10, rr=3.0)  # 90% win rate, 3.0 avg rr
+        # Strong, consistent edge over a reasonably large sample — CI lower
+        # bound should clear 0.3R comfortably.
+        outcomes = self._win_outcomes(90, 10, rr=3.0)  # mean_r = 2.6
         fills = self._fill_log(10)
         result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60)
-        assert result["win_rate_pass"] is True
-        assert result["rr_pass"] is True
+        assert result["expectancy_pass"] is True
         assert result["slippage_pass"] is True
         assert result["duration_pass"] is True
         assert result["overall_pass"] is True
 
-    def test_fails_when_win_rate_too_low(self):
-        outcomes = self._win_outcomes(70, 30, rr=3.5)  # 70% win rate < 80%
+    def test_fails_when_expectancy_ci_too_low(self):
+        """
+        v2.2.19 (mirrors the backtest gate's v2.2.17 change): "passed" no longer
+        gates on a flat win_rate/avg_rr pair — it gates on the bootstrapped 95%
+        CI lower bound of per-trade R-expectancy clearing min_expectancy_r. A
+        small, noisy sample with a weak/negative mean edge should not pass even
+        though win_rate alone might look plausible.
+        """
+        outcomes = self._win_outcomes(3, 2, rr=0.5)  # mean_r = -0.1, n=5
         fills = self._fill_log(10)
         result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60)
-        assert result["win_rate_pass"] is False
+        assert result["expectancy_pass"] is False
         assert result["overall_pass"] is False
 
+    def test_passes_once_min_expectancy_r_lowered_for_same_data(self):
+        outcomes = self._win_outcomes(3, 2, rr=0.5)
+        fills = self._fill_log(10)
+        strict = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60, min_expectancy_r=100.0)
+        assert strict["overall_pass"] is False  # no real edge clears a 100R bar
+        lenient = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60, min_expectancy_r=-100.0)
+        assert lenient["expectancy_r_ci_lower"] <= lenient["expectancy_r_mean"] <= lenient["expectancy_r_ci_upper"]
+
     def test_fails_when_duration_insufficient(self):
-        outcomes = self._win_outcomes(90, 10)
+        outcomes = self._win_outcomes(90, 10, rr=3.0)
         fills = self._fill_log(10)
         result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=30)  # < 60
         assert result["duration_pass"] is False
         assert result["overall_pass"] is False
 
-    def test_fails_when_rr_too_low(self):
-        outcomes = self._win_outcomes(90, 10, rr=2.0)  # avg_rr < 3.0
-        fills = self._fill_log(10)
-        result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60)
-        assert result["rr_pass"] is False
-        assert result["overall_pass"] is False
-
     def test_failures_list_populated_on_miss(self):
-        outcomes = self._win_outcomes(70, 30)  # win rate miss
+        outcomes = self._win_outcomes(3, 2, rr=0.5)  # weak edge, small sample
         result = evaluate_paper_trading_pass(outcomes, [], trading_days_elapsed=30)
-        assert len(result["failures"]) >= 2  # win_rate + duration at minimum
+        assert len(result["failures"]) >= 2  # expectancy + duration at minimum
 
     def test_empty_outcomes_all_fail(self):
         result = evaluate_paper_trading_pass([], [], trading_days_elapsed=0)
         assert result["overall_pass"] is False
         assert result["win_rate"] == 0.0
+        assert result["expectancy_r_ci_lower"] == 0.0
 
     def test_result_contains_required_keys(self):
         result = evaluate_paper_trading_pass([], [], 0)
-        for key in ("overall_pass", "win_rate", "win_rate_pass", "avg_rr", "rr_pass",
+        for key in ("overall_pass", "win_rate", "avg_rr", "expectancy_r_mean",
+                    "expectancy_r_ci_lower", "expectancy_r_ci_upper", "expectancy_pass",
                     "avg_slippage_excess", "slippage_pass", "duration_pass", "failures"):
             assert key in result
 

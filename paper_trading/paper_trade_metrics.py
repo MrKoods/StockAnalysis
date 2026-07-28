@@ -2,18 +2,21 @@
 Forward-testing win rate, R:R, and EV vs. theoretical.
 Pass/fail criteria for Phase 13 go-live decision.
 
-Pass criteria (all three required simultaneously):
-- Win rate >= 80% sustained over minimum 60 trading days
-- Average R:R >= 1:3 maintained
-- Actual slippage within 10% of modeled estimates over the same period
+Pass criteria (v2.2.19 — mirrors the backtest gate's v2.2.17 change): rather than
+a flat win-rate/R:R pair, "passed" requires the bootstrapped 95% CI lower bound on
+per-trade R-expectancy to clear min_expectancy_r, alongside slippage and minimum-
+duration floors. win_rate/avg_rr are still computed and returned for continuity
+with existing reports/dashboards — they no longer gate pass/fail directly, for the
+same reason the backtest gate changed: a flat percentage pair can't distinguish a
+real edge from a small sample that got lucky, which matters even more here since
+qualifying paper trades (score >= 90) accumulate far slower than backtest replay.
 """
 
-
+from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples
 
 
 _PASS_CRITERIA = {
-    "min_win_rate": 0.80,
-    "min_avg_rr": 3.0,
+    "min_expectancy_r": 0.3,
     "max_slippage_excess_pct": 0.10,
     "min_trading_days": 60,
 }
@@ -23,6 +26,7 @@ def evaluate_paper_trading_pass(
     trade_outcomes: list[dict],
     fill_log: list[dict],
     trading_days_elapsed: int,
+    min_expectancy_r: float = _PASS_CRITERIA["min_expectancy_r"],
 ) -> dict:
     """
     Evaluate whether paper trading has passed the Phase 13 go-live criteria.
@@ -31,9 +35,11 @@ def evaluate_paper_trading_pass(
     {
         overall_pass: bool,
         win_rate: float,
-        win_rate_pass: bool,
         avg_rr: float,
-        rr_pass: bool,
+        expectancy_r_mean: float,
+        expectancy_r_ci_lower: float,
+        expectancy_r_ci_upper: float,
+        expectancy_pass: bool,
         avg_slippage_excess: float,
         slippage_pass: bool,
         trading_days_elapsed: int,
@@ -43,19 +49,23 @@ def evaluate_paper_trading_pass(
     """
     failures = []
 
-    # Win rate
+    # Win rate / avg R:R (winners only) — reported for continuity, no longer gate
+    # overall_pass directly.
     wins = sum(1 for o in trade_outcomes if o.get("outcome") == "win")
     win_rate = wins / len(trade_outcomes) if trade_outcomes else 0.0
-    win_rate_pass = win_rate >= _PASS_CRITERIA["min_win_rate"]
-    if not win_rate_pass:
-        failures.append(f"win_rate_{win_rate:.1%}_below_80pct")
-
-    # Average R:R — measured on winning trades only (avg win / 1 unit risk)
     rr_values = [float(o.get("achieved_rr", 0.0)) for o in trade_outcomes if o.get("outcome") == "win"]
     avg_rr = sum(rr_values) / len(rr_values) if rr_values else 0.0
-    rr_pass = avg_rr >= _PASS_CRITERIA["min_avg_rr"]
-    if not rr_pass:
-        failures.append(f"avg_rr_{avg_rr:.2f}_below_3.0")
+
+    # Expectancy CI — the actual gate. compute_r_multiples pulls achieved_rr from
+    # every outcome (wins and losses), not just winners, since expectancy needs
+    # the full win/loss distribution, not just how much winners capture.
+    expectancy_ci = bootstrap_expectancy_ci(compute_r_multiples(trade_outcomes))
+    expectancy_pass = expectancy_ci["ci_lower"] >= min_expectancy_r
+    if not expectancy_pass:
+        failures.append(
+            f"expectancy_ci_lower_{expectancy_ci['ci_lower']:.3f}R_below_{min_expectancy_r}R"
+            f"_({expectancy_ci['n_trades']}_trades)"
+        )
 
     # Slippage
     slippage_excess = _compute_slippage_excess(fill_log)
@@ -68,14 +78,16 @@ def evaluate_paper_trading_pass(
     if not duration_pass:
         failures.append(f"only_{trading_days_elapsed}_trading_days_need_60")
 
-    overall_pass = win_rate_pass and rr_pass and slippage_pass and duration_pass
+    overall_pass = expectancy_pass and slippage_pass and duration_pass
 
     return {
         "overall_pass": overall_pass,
         "win_rate": round(win_rate, 4),
-        "win_rate_pass": win_rate_pass,
         "avg_rr": round(avg_rr, 2),
-        "rr_pass": rr_pass,
+        "expectancy_r_mean": round(expectancy_ci["mean_r"], 3),
+        "expectancy_r_ci_lower": round(expectancy_ci["ci_lower"], 3),
+        "expectancy_r_ci_upper": round(expectancy_ci["ci_upper"], 3),
+        "expectancy_pass": expectancy_pass,
         "avg_slippage_excess": round(slippage_excess, 4),
         "slippage_pass": slippage_pass,
         "trading_days_elapsed": trading_days_elapsed,

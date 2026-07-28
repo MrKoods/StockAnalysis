@@ -63,6 +63,11 @@ Re-ran the full 13.5-year fixed-slice backtest under the new gate: **win_rate=66
 ### Approved by
 MrKoods — 2026-07-26
 
+### Extended to paper trading — 2026-07-27
+The same bootstrapped expectancy CI gate now also governs paper trading's own go-live check, not just the backtest's. `paper_trading/paper_trade_metrics.py::evaluate_paper_trading_pass()` previously gated on a separate flat `win_rate >= 0.80 and avg_rr >= 3.0` pair; it now requires the same CI-lower-bound-clears-`min_expectancy_r` (default 0.3R) criterion, reusing `backtesting/metrics.py`'s `compute_r_multiples()`/`bootstrap_expectancy_ci()` directly rather than duplicating the logic. `win_rate`/`avg_rr` are still computed and returned for continuity, no longer gate `overall_pass` directly (mirrors the backtest side exactly). New result fields: `expectancy_r_mean`, `expectancy_r_ci_lower`, `expectancy_r_ci_upper`, `expectancy_pass` (replaces `win_rate_pass`/`rr_pass`). Sanity-checked against paper trading's actual current state (zero logged qualifying trades): correctly reports `expectancy_ci_lower=0.0R, n_trades=0` rather than a misleading pass/fail. Holding both go-live gates to inconsistent statistical standards would undermine trust in whichever one ends up making the real call. `tests/test_phase13_paper_trading.py::TestEvaluatePaperTradingPass` rewritten to match (7 tests, same count as before — old win-rate/rr-based tests replaced 1:1 with expectancy-CI-based ones). 566 tests pass (unchanged by this change specifically — net-neutral swap), 3 skipped (unchanged). See v2.2.16's extension below, made in the same session, for the 566→573 jump.
+
+Approved by: [pending]
+
 ---
 
 ## [v2.2.16] — 2026-07-26 — Technical/Sentiment collinearity diagnostic; formal backtest-tuning lockbox rule
@@ -81,6 +86,11 @@ Part of a broader review of the project's statistical methodology (go-live gate 
 
 ### Approved by
 MrKoods — 2026-07-26
+
+### Extended to live paper trading — 2026-07-27
+New `paper_trading/live_collinearity_diagnostic.py` runs the same Technical/Sentiment correlation measurement against real accumulated paper-trading scan history (`stockanalysis_history.db`'s `ticker_results`/`layer_scores` tables, via a `collect_score_pairs()` join) instead of backtest replay. This isn't re-testing the original proxy concern — paper trading already uses real StockTwits/Seeking Alpha sentiment data, no proxy involved — it's the complementary question of whether independence actually holds now that real data has accumulated. Uses every logged scan result (215 rows across 20 scan runs as of 2026-07-27), not just breakout candidates, since v2.1.2 already logs every ticker regardless of qualification — no equivalent restriction-of-range caveat as the backtest version. **Result: Pearson r = -0.108, Spearman ρ = -0.105** — comparable to, slightly better than, the backtest's proxy-based r=0.115, both well under the 0.3 "meaningfully separate information" threshold. The collinearity concern does not hold up with real data either. `tests/test_live_collinearity_diagnostic.py` (7 new tests, isolated per-test SQLite DB via existing `db_path` parameters on `app_ui/db.py`'s insert functions). 573 tests pass total, up from 566 — this addition's own +7 (the v2.2.17 extension above, made in the same session, was a net-neutral test swap and didn't itself move the count). 3 skipped (unchanged).
+
+Approved by: [pending]
 
 ---
 
