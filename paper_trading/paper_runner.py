@@ -35,6 +35,7 @@ from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
 from swing_model.scoring import compute_confidence_score
+from swing_model.feedback_loop import load_live_weights_if_calibrated
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from shared.utils.regime_detection import get_regime_modifiers
 from shared.utils.earnings_calendar import get_earnings_modifier
@@ -51,6 +52,7 @@ from shared.utils.event_gate import (
 from shared.utils.sector_config import (
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
+from shared.utils.macro_overlay import save_macro_state
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
@@ -260,8 +262,23 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             bench_df, mkt["spy_df"]
         ).get("confidence_modifier", 0.0)
 
-    macro_mod = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg).get("confidence_modifier", 0.0)
+    macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
+    macro_mod = macro_state_result.get("confidence_modifier", 0.0)
+    # Persist for observability (app UI, debugging) — computed fresh every run
+    # regardless, this doesn't feed back into scoring itself. Best-effort: a
+    # write failure here shouldn't abort the scan.
+    try:
+        save_macro_state(macro_state_result)
+    except Exception as exc:
+        logger.warning(f"Failed to persist macro state — {exc}")
     seasonality_mod = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
+
+    # Only non-None once a real feedback-loop calibration has passed holdout —
+    # see load_live_weights_if_calibrated's docstring. Always None today (zero
+    # calibrations run so far, per should_recalibrate's own floor), so
+    # compute_confidence_score's live_weights branch stays a no-op; computed
+    # once here rather than per ticker since it's the same value all scan.
+    live_weights_calibrated = load_live_weights_if_calibrated()
 
     # Cross-ticker analysis, once per sector so pooling stays within-sector.
     cross_ticker: dict = {}
@@ -352,6 +369,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 seasonality_modifier=seasonality_mod,
                 macro_modifier=macro_mod,
                 cfg=cfg,
+                live_weights=live_weights_calibrated,
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,

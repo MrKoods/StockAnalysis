@@ -123,6 +123,7 @@ def test_two_sectors_flow_through_the_real_pipeline_and_tag_correctly(tmp_path, 
     })
     monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
     monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
     monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})

@@ -5,8 +5,23 @@ feeds back into scoring engine calibration (two-speed cycle per Clarification 1)
 Two-speed cycle:
   Immediate: log outcome → update signal_win_rates.json (does NOT affect live scoring)
   Monthly (or every 20 trades): mini-calibration pass → out-of-sample check →
-    if passing: update live_weights.json; if failing: Discord alert + keep old weights.
-  Weight changes > 5pp require version increment + mini-backtest (enforced by model_versioning.py).
+    if passing and no version-bump-triggering change: update calibrated_weights.json;
+    if failing or needs a version bump first: keep old weights (caller alerts —
+    see paper_trading/paper_updater.py's auto-trigger hook).
+  Weight changes > 5pp require version increment + mini-backtest — single
+  enforcement point: swing_model.model_versioning.check_backtest_required(),
+  called from run_calibration() itself.
+
+Data source: run_calibration() takes an explicit `outcomes` list rather than
+always reading data/logs/trade_outcomes.csv (this module's own log_trade_outcome()
+output, fed only by swing_model/portfolio_manager.py's manual-Discord-confirmation
+flow) — that file has stayed empty since no model version has gone live. Real
+callers should pass load_calibration_outcomes_from_paper_trades(), which reads
+paper_trading/paper_trades.csv — the system that's actually been running.
+
+calibrated_weights.json only reaches live scoring via load_live_weights_if_calibrated(),
+which returns None until a real calibration has passed holdout at least once —
+see that function's docstring.
 """
 
 import csv
@@ -16,11 +31,16 @@ from pathlib import Path
 from typing import Optional
 
 from shared.utils.atomic_io import atomic_write_json
+from swing_model import model_versioning
 
 _TRADE_OUTCOMES_FILE = Path("data/logs/trade_outcomes.csv")
 _SIGNAL_WIN_RATES_FILE = Path("data/processed/signal_win_rates.json")
 # Calibrated weight deltas — separate from config/live_weights.json (which has a nested schema)
 _LIVE_WEIGHTS_FILE = Path("data/processed/calibrated_weights.json")
+# Paper trading's own trade log — see load_calibration_outcomes_from_paper_trades.
+_PAPER_TRADES_FILE = Path("paper_trading/paper_trades.csv")
+
+_WEIGHT_KEYS = ("technical", "sentiment", "news")
 
 _OUTCOMES_COLUMNS = [
     "timestamp_utc", "ticker", "entry_date", "exit_date",
@@ -88,38 +108,108 @@ def update_signal_win_rates(outcome: dict) -> None:
     atomic_write_json(path, rates)
 
 
+def load_calibration_outcomes_from_paper_trades(csv_path: Optional[Path] = None) -> list[dict]:
+    """
+    Adapt paper_trading/paper_trades.csv's closed rows into the shape
+    run_calibration() expects. This is the real data source for calibration —
+    paper trading is the system that's actually been running (see
+    paper_trading/paper_trade_metrics.py::load_paper_trade_gate_inputs for the
+    same "which file is real" note); this module's own _TRADE_OUTCOMES_FILE
+    (fed by swing_model/portfolio_manager.py's manual-Discord-confirmation
+    flow) has stayed empty since no model version has gone live, and would
+    give run_calibration() nothing to work with.
+
+    Field mapping: technical_score -> technical_total, sentiment_score ->
+    sentiment_total, news_score -> news_total (identical values, renamed to
+    match this module's _score_outcomes/_recompute_weights schema); outcome/
+    achieved_rr/pnl_pct pass through under their existing names.
+
+    Known gap, not addressed here: signal_key stays "unknown" for every row.
+    build_signal_key() needs raw indicator flags (breakout_confirmed,
+    sentiment_direction) that paper_trades.csv's schema doesn't capture — it
+    stores the aggregate 0-40/0-15/0-15 category scores, not the underlying
+    boolean/directional sub-signals those flags come from. update_signal_win_rates()
+    still works, it just can't bucket by signal combination yet; that would
+    need paper_runner.py's row-writer to additionally persist those raw flags
+    — a separate follow-up, not done here.
+    """
+    path = csv_path or _PAPER_TRADES_FILE
+    if not path.exists():
+        return []
+
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+
+    outcomes = []
+    for r in rows:
+        if not r.get("outcome"):
+            continue
+        outcomes.append({
+            "timestamp_utc": r.get("exit_date", ""),
+            "ticker": r.get("ticker", ""),
+            "entry_date": r.get("signal_date", ""),
+            "exit_date": r.get("exit_date", ""),
+            "entry_price": r.get("entry_price", ""),
+            "exit_price": r.get("exit_price", ""),
+            "confidence_score": r.get("confidence", ""),
+            "technical_total": r.get("technical_score", ""),
+            "sentiment_total": r.get("sentiment_score", ""),
+            "news_total": r.get("news_score", ""),
+            "holding_days": r.get("holding_days", ""),
+            "pnl_pct": r.get("pnl_pct", ""),
+            "achieved_rr": r.get("achieved_rr", ""),
+            "outcome": r.get("outcome", ""),
+            "signal_key": "unknown",
+        })
+    return outcomes
+
+
 def run_calibration(
-    holdout_count: int = 5,
-    min_change_for_version: float = 0.05,
+    outcomes: Optional[list[dict]] = None,
+    holdout_count: Optional[int] = None,
+    min_change_for_version: Optional[float] = None,
     cfg: Optional[dict] = None,
 ) -> dict:
     """
-    Monthly calibration pass:
-    1. Read all outcomes from trade_outcomes.csv
+    Monthly (or every-N-trades) calibration pass:
+    1. Load outcomes — from `outcomes` if given, else data/logs/trade_outcomes.csv
+       (kept as the default for backward compatibility; real callers should
+       pass load_calibration_outcomes_from_paper_trades() explicitly — see
+       that function's docstring for why trade_outcomes.csv alone is empty)
     2. Withhold most recent holdout_count trades as out-of-sample check
     3. Recompute win rates per signal combination from remaining trades
     4. Test new weights on withheld trades
-    5. If new weights equal or better on withheld: update live_weights.json
+    5. If new weights equal or better on withheld AND no version bump needed:
+       update calibrated_weights.json with last_calibrated/n_trades metadata
     6. If any weight changes > min_change_for_version: require version increment
-    7. If calibration fails out-of-sample check: keep old weights, send Discord alert
+       (single enforcement point: swing_model.model_versioning.check_backtest_required)
+    7. If calibration fails out-of-sample check: keep old weights (caller decides
+       whether to alert — see paper_trading/paper_updater.py's auto-trigger hook)
+
+    holdout_count/min_change_for_version fall back to cfg's feedback_loop block
+    (recalibrate settings) when not passed explicitly, then to this project's
+    documented defaults (5, 0.05) if cfg has neither.
 
     Returns dict with calibration result details.
     """
-    if not _TRADE_OUTCOMES_FILE.exists():
-        return {
-            "status": "no_data",
-            "message": "No trade outcomes file found",
-            "weights_updated": False,
-        }
+    fl_cfg = (cfg or {}).get("feedback_loop", {})
+    if holdout_count is None:
+        holdout_count = int(fl_cfg.get("out_of_sample_holdout", 5))
+    if min_change_for_version is None:
+        min_change_for_version = float(fl_cfg.get("weight_change_version_threshold", 0.05))
 
-    # Load all outcomes
-    outcomes = []
-    try:
-        with open(_TRADE_OUTCOMES_FILE, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            outcomes = list(reader)
-    except OSError as exc:
-        return {"status": "error", "message": str(exc), "weights_updated": False}
+    if outcomes is None:
+        if not _TRADE_OUTCOMES_FILE.exists():
+            return {
+                "status": "no_data",
+                "message": "No trade outcomes file found",
+                "weights_updated": False,
+            }
+        try:
+            with open(_TRADE_OUTCOMES_FILE, newline="", encoding="utf-8") as f:
+                outcomes = list(csv.DictReader(f))
+        except OSError as exc:
+            return {"status": "error", "message": str(exc), "weights_updated": False}
 
     if len(outcomes) < holdout_count + 10:
         return {
@@ -131,7 +221,7 @@ def run_calibration(
     train_outcomes = outcomes[:-holdout_count]
     holdout = outcomes[-holdout_count:]
 
-    # Load current weights
+    # Load current weights (metadata-stripped — see _load_live_weights)
     current_weights = _load_live_weights()
 
     # Recompute weights from training set
@@ -143,10 +233,8 @@ def run_calibration(
 
     passed_holdout = holdout_win_rate_new >= holdout_win_rate_old
 
-    # Check if any changes exceed version threshold
-    needs_version = any(
-        abs(new_weights.get(k, 0) - current_weights.get(k, 0)) > min_change_for_version
-        for k in set(list(new_weights.keys()) + list(current_weights.keys()))
+    needs_version = model_versioning.check_backtest_required(
+        new_weights, current_weights, change_threshold=min_change_for_version
     )
 
     result = {
@@ -162,7 +250,7 @@ def run_calibration(
     }
 
     if passed_holdout and not needs_version:
-        _save_live_weights(new_weights)
+        _save_live_weights(new_weights, n_trades=len(train_outcomes))
         result["weights_updated"] = True
     elif passed_holdout and needs_version:
         # Changes >5pp — require version bump before applying
@@ -177,6 +265,51 @@ def run_calibration(
         )
 
     return result
+
+
+def should_recalibrate(closed_trade_count: int, cfg: Optional[dict] = None) -> bool:
+    """
+    Whether a new calibration pass is due, per config/swing_config.yaml's
+    feedback_loop block: every recalibrate_every_n_trades closed trades since
+    the last calibration, or recalibrate_monthly if that much wall-clock time
+    has passed — whichever fires first.
+
+    Stateless: reads calibrated_weights.json's own last_calibrated/n_trades
+    metadata (written by _save_live_weights on a passing calibration) rather
+    than tracking a separate "trades since last calibration" counter, so
+    there's one source of truth for "when did we last calibrate."
+
+    Never calibrated yet: due once enough trades exist for run_calibration()
+    to even attempt it (its own insufficient-data floor is holdout_count + 10,
+    default 15) — an imprecise trigger here just means a wasted, cheap
+    run_calibration() call that returns "insufficient_data", not a bug.
+    """
+    fl_cfg = (cfg or {}).get("feedback_loop", {})
+    every_n = int(fl_cfg.get("recalibrate_every_n_trades", 20))
+    monthly = bool(fl_cfg.get("recalibrate_monthly", True))
+    holdout = int(fl_cfg.get("out_of_sample_holdout", 5))
+
+    raw = _load_live_weights_raw()
+    last_calibrated = raw.get("last_calibrated")
+    last_n_trades = raw.get("n_trades")
+
+    if not last_calibrated:
+        return closed_trade_count >= holdout + 10
+
+    if last_n_trades is not None and closed_trade_count - int(last_n_trades) >= every_n:
+        return True
+
+    if monthly:
+        try:
+            last_dt = datetime.fromisoformat(last_calibrated)
+            if last_dt.tzinfo is None:
+                last_dt = last_dt.replace(tzinfo=timezone.utc)
+            if (datetime.now(timezone.utc) - last_dt).days >= 30:
+                return True
+        except ValueError:
+            pass
+
+    return False
 
 
 def build_signal_key(indicator_state: dict) -> str:
@@ -206,6 +339,15 @@ def build_signal_key(indicator_state: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def _load_live_weights() -> dict:
+    """Weight fractions only (technical/sentiment/news) — strips last_calibrated/
+    n_trades metadata if present, since callers here only do weight arithmetic."""
+    raw = _load_live_weights_raw()
+    return {k: raw[k] for k in _WEIGHT_KEYS if k in raw} or {
+        "technical": 0.60, "sentiment": 0.25, "news": 0.15
+    }
+
+
+def _load_live_weights_raw() -> dict:
     if _LIVE_WEIGHTS_FILE.exists():
         try:
             return json.loads(_LIVE_WEIGHTS_FILE.read_text(encoding="utf-8"))
@@ -214,8 +356,36 @@ def _load_live_weights() -> dict:
     return {"technical": 0.60, "sentiment": 0.25, "news": 0.15}
 
 
-def _save_live_weights(weights: dict) -> None:
-    atomic_write_json(_LIVE_WEIGHTS_FILE, weights)
+def _save_live_weights(weights: dict, n_trades: Optional[int] = None) -> None:
+    """
+    Persist calibrated weights plus last_calibrated/n_trades metadata — this
+    metadata is what load_live_weights_if_calibrated() checks before letting
+    these weights actually reach compute_confidence_score(), so a placeholder/
+    default weights file (never genuinely calibrated) can't silently start
+    affecting live scoring.
+    """
+    payload = {k: weights[k] for k in _WEIGHT_KEYS if k in weights}
+    payload["last_calibrated"] = datetime.now(timezone.utc).isoformat()
+    payload["n_trades"] = n_trades
+    atomic_write_json(_LIVE_WEIGHTS_FILE, payload)
+
+
+def load_live_weights_if_calibrated() -> Optional[dict]:
+    """
+    Returns the calibrated weight fractions {"technical", "sentiment", "news"}
+    only if calibrated_weights.json was actually written by a passing
+    run_calibration() call (i.e. has a last_calibrated timestamp) — otherwise
+    returns None. Callers (run_swing_model.py, paper_runner.py) pass this
+    straight into compute_confidence_score(live_weights=...); with zero real
+    calibrations run yet, this returns None and live scoring is unaffected —
+    it only starts having any effect once a real calibration passes holdout,
+    at which point it's exactly the kind of weight change this project's own
+    rule requires a version bump for (see run_calibration's needs_version_increment).
+    """
+    raw = _load_live_weights_raw()
+    if not raw.get("last_calibrated"):
+        return None
+    return {k: raw[k] for k in _WEIGHT_KEYS if k in raw}
 
 
 def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:

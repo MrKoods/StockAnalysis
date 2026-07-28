@@ -32,6 +32,8 @@ from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.macro_overlay import (
     compute_macro_state,
     get_macro_modifier,
+    load_macro_state,
+    save_macro_state,
     MACRO_ADVERSE,
     MACRO_FAVORABLE,
     MACRO_NEUTRAL,
@@ -319,3 +321,39 @@ class TestMacroOverlay:
         result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0)
         # Both TNX and DXY fall back to neutral → overall favorable or neutral
         assert result["macro_state"] in (MACRO_NEUTRAL, MACRO_FAVORABLE)
+
+
+class TestMacroStatePersistence:
+    """
+    save_macro_state/load_macro_state are observability-only — nothing in the
+    scoring path reads the file back (run_swing_model.py/paper_runner.py
+    recompute macro state fresh every scan via _compute_macro_safe and pass it
+    directly into compute_confidence_score). This just confirms the round-trip
+    itself works, now that the live pipeline actually calls save_macro_state()
+    after every scan instead of leaving data/processed/macro_state.json stale.
+    """
+
+    def test_save_then_load_round_trips(self, tmp_path, monkeypatch):
+        import shared.utils.macro_overlay as macro_overlay_module
+
+        state_file = tmp_path / "macro_state.json"
+        monkeypatch.setattr(macro_overlay_module, "_MACRO_STATE_FILE", state_file)
+
+        tnx = pd.Series([4.0] * 6 + [4.0 * 1.05] * 20)
+        dxy = pd.Series([100.0] * 6 + [100.0 * 1.03] * 20)
+        computed = compute_macro_state(tnx, dxy, china_keyword_count_5d=0)
+
+        save_macro_state(computed)
+        assert state_file.exists()
+
+        loaded = load_macro_state()
+        assert loaded["macro_state"] == computed["macro_state"] == MACRO_ADVERSE
+        assert loaded["confidence_modifier"] == computed["confidence_modifier"]
+
+    def test_load_missing_file_returns_neutral_default(self, tmp_path, monkeypatch):
+        import shared.utils.macro_overlay as macro_overlay_module
+
+        monkeypatch.setattr(macro_overlay_module, "_MACRO_STATE_FILE", tmp_path / "does_not_exist.json")
+        result = load_macro_state()
+        assert result["macro_state"] == MACRO_NEUTRAL
+        assert result["confidence_modifier"] == 0.0

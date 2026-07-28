@@ -1,8 +1,13 @@
 """
 SHARED: Monitors Fed rate direction (^TNX proxy), USD strength (DXY),
 and China trade policy signals (news keyword frequency).
-Outputs macro state (favorable/neutral/adverse) updated daily.
-Stored in data/processed/macro_state.json; read by scoring.py.
+Outputs macro state (favorable/neutral/adverse), recomputed fresh every scan
+by run_swing_model.py/paper_runner.py (see _compute_macro_safe) and fed
+directly into compute_confidence_score() as macro_modifier — this module's
+own state is not read back from disk for scoring. save_macro_state()/
+load_macro_state() persist data/processed/macro_state.json purely for
+observability (so the current macro state is visible without recomputing);
+nothing in the scoring path reads this file.
 
 Free proxy sources (per Clarification 2):
   Fed direction: ^TNX 20-day trend (3%+ rise = hawkish = adverse)

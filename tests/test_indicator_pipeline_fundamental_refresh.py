@@ -26,7 +26,7 @@ def _isolate_state_file(tmp_path, monkeypatch):
     monkeypatch.setattr(ip, "_get_upcoming_earnings_date", lambda ticker: None)
 
 
-def _fake_fundamentals(ticker):
+def _fake_fundamentals(ticker, fetch_eps_growth_trend=True):
     return {"ticker": ticker, "valuation": {}, "earnings": {}, "revisions": {}}
 
 
@@ -138,7 +138,7 @@ class TestRotationAndEarningsPriority:
         ticker = "NVDA"
         calls = []
 
-        def counting_fetch(self, t):
+        def counting_fetch(self, t, fetch_eps_growth_trend=True):
             calls.append(t)
             return _fake_fundamentals(t)
 
@@ -150,6 +150,57 @@ class TestRotationAndEarningsPriority:
         assert calls == [ticker]
 
 
+class TestEpsGrowthTrendGating:
+    def test_bootstrap_and_earnings_priority_request_growth_trend(self):
+        calls = {}
+
+        def recording_fetch(ticker, fetch_eps_growth_trend=True):
+            calls[ticker] = fetch_eps_growth_trend
+            return _fake_fundamentals(ticker)
+
+        with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=recording_fetch):
+            with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                ip.fetch_fundamental_data(["NVDA"])  # bootstrap — never fetched before
+
+        assert calls["NVDA"] is True
+
+    def test_plain_rotation_refresh_does_not_request_growth_trend(self):
+        calls = {}
+
+        def recording_fetch(ticker, fetch_eps_growth_trend=True):
+            calls[ticker] = fetch_eps_growth_trend
+            return _fake_fundamentals(ticker)
+
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=recording_fetch):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data(["NVDA"])  # bootstrap fetch, growth trend=True
+                with _frozen_now(datetime(2026, 7, 27, 9, 0)):  # following Monday, stale rotation
+                    ip.fetch_fundamental_data(["NVDA"])
+
+        assert calls["NVDA"] is False  # the rotation-only refresh
+
+    def test_old_eps_growth_trend_carried_forward_when_not_refetched(self):
+        def fetch_with_growth(ticker, fetch_eps_growth_trend=True):
+            earnings = {"earnings_surprises": [0.1], "consecutive_beats": 1}
+            if fetch_eps_growth_trend:
+                earnings["eps_growth_trend"] = [0.42]
+            return {"ticker": ticker, "valuation": {}, "earnings": earnings, "revisions": {}}
+
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=fetch_with_growth):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data(["NVDA"])  # bootstrap: gets real eps_growth_trend
+                with _frozen_now(datetime(2026, 7, 27, 9, 0)):  # rotation-only refresh
+                    result = ip.fetch_fundamental_data(["NVDA"])
+
+        # The rotation refresh didn't request growth trend, but the old value
+        # should still be present — carried forward, not wiped to missing/None.
+        assert result["tickers"]["NVDA"]["earnings"]["eps_growth_trend"] == [0.42]
+        # The Finnhub-sourced field still reflects the newer refresh.
+        assert result["tickers"]["NVDA"]["earnings"]["earnings_surprises"] == [0.1]
+
+
 class TestIncrementalSave:
     def test_interruption_mid_batch_preserves_already_fetched_tickers(self):
         """
@@ -159,7 +210,7 @@ class TestIncrementalSave:
         """
         call_order = []
 
-        def fake_fetch(self, ticker):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
             call_order.append(ticker)
             if ticker == "AMD":
                 raise KeyboardInterrupt()
@@ -177,7 +228,7 @@ class TestIncrementalSave:
         assert "AVGO" not in call_order
 
     def test_interruption_leaves_ticker_unfetched_so_retry_happens(self):
-        def fake_fetch(self, ticker):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
             if ticker == "AMD":
                 raise KeyboardInterrupt()
             return _fake_fundamentals(ticker)
@@ -191,7 +242,7 @@ class TestIncrementalSave:
         assert "AMD" not in on_disk["fetched_dates"]
 
     def test_caught_exception_on_one_ticker_does_not_abort_the_rest(self):
-        def fake_fetch(self, ticker):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
             if ticker == "AMD":
                 raise ValueError("API error")
             return _fake_fundamentals(ticker)

@@ -27,6 +27,7 @@ from backtesting.run_backtest import load_historical_data
 from backtesting.simulation import _compute_vix_proxy, _sentiment_from_price_momentum
 from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers
+from shared.utils.tail_dependence import conditional_top_quantile_rate
 from swing_model.scoring import compute_confidence_score
 
 _NEUTRAL_FUNDAMENTAL = {"fundamental_score": 0.0, "data_quality": "unavailable"}
@@ -191,6 +192,18 @@ def main() -> None:
         "is a soft upper bound, not a lower bound, on what independent live "
         "sentiment data will contribute. |r| < 0.3 would suggest the categories are "
         "adding meaningfully separate information even under the proxy."
+    )
+
+    tail = conditional_top_quantile_rate(df, "technical_total", "sentiment_total", quantile=0.75)
+    print(
+        f"\nTail dependence (top-quartile co-occurrence): P(sentiment top 25%% | technical top 25%%) "
+        f"= {tail['conditional_rate']:.1%} vs. unconditional {tail['unconditional_rate']:.1%} "
+        f"(lift={tail['lift']:.2f}x, n_conditioned={tail['n_conditioned']}). A low bulk r above "
+        "doesn't rule out elevated joint-extreme co-occurrence — lift near 1.0 means the two "
+        "categories peak together no more than chance would predict; lift meaningfully above "
+        "1.0 means the backtest's apparent joint-high-score rate (what a 90-point threshold "
+        "actually depends on) is inflated by the proxy beyond what the bulk correlation reading "
+        "alone would suggest."
     )
 
     report_dir = Path("backtesting/reports")

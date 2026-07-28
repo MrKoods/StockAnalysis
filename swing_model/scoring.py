@@ -79,8 +79,11 @@ def compute_confidence_score(
     news:         output from news_layer.compute_news_score()
     fundamental:  output from FundamentalScorer.compute_fundamental_score(); pass None
                   to use neutral 0 contribution (data unavailable behavior)
-    live_weights: calibrated weights from data/processed/live_weights.json;
-                  if None, uses spec weights
+    live_weights: calibrated weights, e.g. from
+                  swing_model.feedback_loop.load_live_weights_if_calibrated()
+                  (reads data/processed/calibrated_weights.json — only returns
+                  non-None once a real calibration has passed holdout); if
+                  None (the default, and today's actual state), uses spec weights
     event_gate_blocked:  True if data/processed/event_gate_state.json has an active
                   block covering this ticker (checked by the caller before this call
                   via shared/utils/event_gate.py). Advisory only — does not affect

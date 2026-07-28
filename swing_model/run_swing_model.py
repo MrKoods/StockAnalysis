@@ -25,7 +25,7 @@ from shared.api_clients.market_data_client import (
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
-from shared.utils.macro_overlay import compute_macro_state
+from shared.utils.macro_overlay import compute_macro_state, save_macro_state
 from shared.utils.sector_rotation import compute_rotation_state
 from shared.utils.earnings_calendar import get_earnings_modifier
 from swing_model.cross_ticker_analysis import analyze_cross_ticker
@@ -34,6 +34,7 @@ from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, comp
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, seeking_alpha_flags_critical_event
 from swing_model.scoring import compute_confidence_score
+from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.position_sizer import get_risk_pct
 from shared.utils.event_gate import (
@@ -130,8 +131,23 @@ def main(scan_type: str = "post_close") -> None:
             bench_df, mkt["spy_df"]
         ).get("confidence_modifier", 0.0)
 
-    macro_modifier_val = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg).get("confidence_modifier", 0.0)
+    macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
+    macro_modifier_val = macro_state_result.get("confidence_modifier", 0.0)
+    # Persist for observability (app UI, debugging) — computed fresh every run
+    # regardless, this doesn't feed back into scoring itself. Best-effort: a
+    # write failure here shouldn't abort the scan.
+    try:
+        save_macro_state(macro_state_result)
+    except Exception as exc:
+        logger.warning(f"Failed to persist macro state — {exc}")
     seasonality_modifier_val = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
+
+    # Only non-None once a real feedback-loop calibration has passed holdout —
+    # see load_live_weights_if_calibrated's docstring. With zero calibrations
+    # run so far this is always None today, so compute_confidence_score's
+    # live_weights branch stays a no-op; computed once here rather than per
+    # ticker since it's the same value for the whole scan.
+    live_weights_calibrated = load_live_weights_if_calibrated()
 
     # Step 7: Cross-ticker analysis, run once per sector so "3+ tickers moving
     # together" and peer-average divergence are computed within each sector's
@@ -249,6 +265,7 @@ def main(scan_type: str = "post_close") -> None:
                 seasonality_modifier=seasonality_modifier_val,
                 macro_modifier=macro_modifier_val,
                 cfg=cfg,
+                live_weights=live_weights_calibrated,
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,

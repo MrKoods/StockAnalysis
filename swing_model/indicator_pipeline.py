@@ -36,11 +36,14 @@ _FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
 
 # Fundamental refresh is staggered rather than bursting the whole watchlist on one
-# day: each ticker gets 2 AV calls (earnings + estimate revisions), and the AV daily
-# budget is shared with post-close news (1 call/ticker). Bursting e.g. 11 tickers on
-# one Monday costs 22 calls on top of 11 for news — 33 total, over the 25/day hard
-# cap. Capping refreshes/day and spreading tickers across weekdays keeps fundamental
-# usage to a handful of calls daily instead of a periodic spike that starves news.
+# day. Alpha Vantage is now down to a single call per ticker (eps_growth_trend only
+# — earnings_surprises/consecutive_beats moved to Finnhub, free, in
+# fundamental_client.py), and even that one call only fires for a cold-start ticker
+# or one near its own earnings date, not on routine rotation refresh — see
+# get_all_fundamentals's fetch_eps_growth_trend parameter. The AV daily budget is
+# still shared with post-close news (1 call/ticker), so capping refreshes/day and
+# spreading tickers across weekdays keeps fundamental usage to a handful of AV calls
+# a month, not a day, instead of a periodic spike that starves news.
 _FUNDAMENTAL_MAX_TICKERS_PER_DAY = 3
 _FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
 _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3
@@ -215,8 +218,8 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     later in the same run would see an earlier sector's fetch and conclude its
     own tickers were "already refreshed today" when they'd never been fetched
     at all). Refreshes are staggered rather than bursting the whole watchlist
-    on one day, since fundamental data costs 2 AV calls/ticker and shares the
-    AV budget with post-close news — see _FUNDAMENTAL_MAX_TICKERS_PER_DAY.
+    on one day, since fundamental data shares the AV budget with post-close
+    news — see _FUNDAMENTAL_MAX_TICKERS_PER_DAY.
     On each call, a ticker is a refresh candidate if:
       - it has never been fetched (cold start), highest priority; or
       - it's within _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS of its next known
@@ -224,6 +227,12 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
         actually invalidates cached fundamentals, so it jumps the queue; or
       - today is its stable assigned weekday (_rotation_weekday) and it's been
         >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS since its last fetch.
+    Only bootstrap/earnings-priority tickers actually spend an Alpha Vantage
+    call (for eps_growth_trend) — a plain rotation refresh reuses the last
+    known value instead, since that figure can't change between quarterly
+    reports. earnings_surprises/consecutive_beats (Finnhub, free) refresh
+    every time regardless. See get_all_fundamentals's fetch_eps_growth_trend
+    parameter.
     At most _FUNDAMENTAL_MAX_TICKERS_PER_DAY tickers actually fetch per calendar
     day in total (in that priority order), counted across every call today —
     every scan x every sector shares this one state file, so the budget is
@@ -283,6 +292,7 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
     logger.info(f"Fetching fundamental data for: {to_fetch}")
     client = FundamentalClient()
+    bootstrap_or_earnings = set(bootstrap) | set(earnings_priority)
     # Save after every ticker, not just once at the end — a full refresh can take
     # several minutes (each sub-call retries on rate limits), and a mid-batch
     # interruption (manual Ctrl+C, crash, hitting the AV budget cap) must not
@@ -290,10 +300,24 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     # as each one succeeds, so a crash mid-loop leaves completed tickers correctly
     # marked "fetched today" and only the remainder gets retried next opportunity.
     for ticker in to_fetch:
+        # Alpha Vantage's eps_growth_trend only gets refreshed for a cold-start
+        # ticker or one near its own earnings date — a plain weekly rotation
+        # refresh reuses the last known value instead of spending an AV call to
+        # get back the same answer (see get_all_fundamentals's docstring).
+        fetch_growth = ticker in bootstrap_or_earnings
         try:
-            state["tickers"][ticker] = client.get_all_fundamentals(ticker)
+            new_data = client.get_all_fundamentals(ticker, fetch_eps_growth_trend=fetch_growth)
+            if not fetch_growth:
+                old_earnings = ((state["tickers"].get(ticker) or {}).get("earnings")) or {}
+                old_growth = old_earnings.get("eps_growth_trend")
+                if old_growth is not None:
+                    if new_data.get("earnings") is None:
+                        new_data["earnings"] = {}
+                    new_data["earnings"].setdefault("eps_growth_trend", old_growth)
+            state["tickers"][ticker] = new_data
             state["fetched_dates"][ticker] = today_str
-            logger.info(f"  {ticker}: fundamental data fetched OK")
+            suffix = "" if fetch_growth else " (EPS growth trend carried forward, not AV-refreshed)"
+            logger.info(f"  {ticker}: fundamental data fetched OK{suffix}")
         except Exception as exc:
             logger.error(f"  {ticker}: fundamental fetch failed — {exc}")
             write_validation_entry(ticker, "fundamental_fetch_error", str(exc))

@@ -14,6 +14,7 @@ from typing import Optional
 
 
 from shared.utils.logger import get_logger
+from paper_trading.paper_trade_metrics import evaluate_paper_trading_pass, load_paper_trade_gate_inputs
 
 logger = get_logger(__name__)
 
@@ -31,6 +32,7 @@ _PERF_LOG_COLUMNS = [
 def generate_weekly_summary(
     trade_outcomes_path: str = "data/logs/trade_outcomes.csv",
     cfg: Optional[dict] = None,
+    paper_trades_path: Optional[Path] = None,
 ) -> dict:
     """
     Generate weekly performance summary and send to Discord.
@@ -43,8 +45,15 @@ def generate_weekly_summary(
     - Peak-to-trough drawdown
     - Days since last review trigger
 
-    Returns summary dict and logs to performance_log.csv.
+    Returns summary dict (including go_live_gate — see _compute_go_live_gate_summary)
+    and logs to performance_log.csv.
     """
+    # Independent of trade_outcomes_path/rows below — the go-live gate reads
+    # paper_trading/paper_trades.csv (the system that's actually running), not
+    # data/logs/trade_outcomes.csv (the live/manual-confirmation path's file,
+    # unused since no version has gone live) — see load_paper_trade_gate_inputs.
+    go_live_gate = _compute_go_live_gate_summary(paper_trades_path)
+
     path = Path(trade_outcomes_path)
     if not path.exists():
         return {
@@ -56,6 +65,7 @@ def generate_weekly_summary(
             "peak_to_trough_pct": 0.0,
             "total_trades": 0,
             "review_triggered": False,
+            "go_live_gate": go_live_gate,
         }
 
     try:
@@ -63,7 +73,7 @@ def generate_weekly_summary(
             rows = list(csv.DictReader(f))
     except OSError as exc:
         logger.warning(f"Cannot read trade outcomes: {exc}")
-        return {"status": "error", "message": str(exc)}
+        return {"status": "error", "message": str(exc), "go_live_gate": go_live_gate}
 
     if not rows:
         return {
@@ -71,6 +81,7 @@ def generate_weekly_summary(
             "win_rate_10": 0.0, "win_rate_20": 0.0, "win_rate_50": 0.0,
             "avg_rr_20": 0.0, "peak_to_trough_pct": 0.0,
             "total_trades": 0, "review_triggered": False,
+            "go_live_gate": go_live_gate,
         }
 
     # Rolling win rates
@@ -109,6 +120,7 @@ def generate_weekly_summary(
         "confidence_distribution": conf_dist,
         "ev_accuracy_by_structure": ev_by_structure,
         "review_triggered": review_triggered,
+        "go_live_gate": go_live_gate,
     }
 
     log_performance_entry(summary)
@@ -155,6 +167,21 @@ def log_performance_entry(summary: dict) -> None:
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+def _compute_go_live_gate_summary(paper_trades_path: Optional[Path] = None) -> dict:
+    """
+    Best-effort wrapper around evaluate_paper_trading_pass() for the weekly
+    summary — a read failure here (missing file, malformed CSV row) shouldn't
+    take down the rest of the performance report, so it degrades to an
+    explicit error status rather than raising.
+    """
+    try:
+        inputs = load_paper_trade_gate_inputs(paper_trades_path)
+        return evaluate_paper_trading_pass(**inputs)
+    except Exception as exc:
+        logger.warning(f"Could not compute go-live gate: {exc}")
+        return {"overall_pass": False, "data_status": "error", "failures": [str(exc)]}
+
 
 def _rolling_win_rate(rows: list[dict], n: int) -> float:
     window = rows[-n:] if len(rows) >= n else rows
@@ -223,3 +250,25 @@ def _ev_accuracy_by_structure(rows: list[dict]) -> dict:
                 "count": d["count"],
             }
     return result
+
+
+if __name__ == "__main__":
+    # generate_weekly_summary() has no scheduled/cron caller yet (confirmed:
+    # nothing outside tests calls it) — this lets the go-live gate status
+    # (and the rest of the summary) actually be checked on demand rather than
+    # only via test coverage.
+    result = generate_weekly_summary()
+    print(f"\nPerformance summary — status: {result.get('status')}\n")
+
+    gate = result.get("go_live_gate", {})
+    print(f"Go-live gate: overall_pass={gate.get('overall_pass')}  data_status={gate.get('data_status')}")
+    if gate.get("failures"):
+        print(f"  Failures: {', '.join(gate['failures'])}")
+
+    if result.get("status") == "ok":
+        print(f"\nWin rate (10/20/50): {result['win_rate_10']:.1%} / {result['win_rate_20']:.1%} / {result['win_rate_50']:.1%}")
+        print(f"Avg R:R (last 20 wins): {result['avg_rr_20']:.2f}")
+        print(f"Peak-to-trough drawdown: {result['peak_to_trough_pct']:.2f}%")
+        print(f"Total trades: {result['total_trades']}")
+        if result.get("review_triggered"):
+            print("\n*** PERFORMANCE REVIEW TRIGGERED ***")

@@ -72,7 +72,6 @@ scan_schedule:
 
 model:
   version_file: "CHANGELOG.md"
-  live_weights_file: "data/processed/live_weights.json"
   position_state_file: "data/processed/position_state.json"
   signal_win_rates_file: "data/processed/signal_win_rates.json"
   macro_state_file: "data/processed/macro_state.json"

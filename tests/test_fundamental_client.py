@@ -1,11 +1,16 @@
 """
-Tests for shared/api_clients/fundamental_client.py's get_estimate_revisions().
+Tests for shared/api_clients/fundamental_client.py's get_estimate_revisions(),
+get_earnings_surprises(), get_eps_growth_trend(), and get_all_fundamentals().
 
-Covers the hybrid AV-budget reduction: analyst target price now comes from
-yfinance and the rating breakdown from Finnhub's /stock/recommendation, instead
-of Alpha Vantage's OVERVIEW call — get_earnings_history() still uses Alpha
-Vantage (kept deliberately, see its module docstring), so this also guards
-against that call accidentally being touched by this change.
+Covers two AV-budget reductions:
+- get_estimate_revisions(): analyst target price now comes from yfinance and the
+  rating breakdown from Finnhub's /stock/recommendation, instead of Alpha
+  Vantage's OVERVIEW call.
+- get_earnings_history() was split: earnings_surprises/consecutive_beats moved
+  to Finnhub's /stock/earnings (free, same shape needed), leaving Alpha Vantage
+  responsible only for eps_growth_trend (the one figure needing 8-quarter depth
+  neither free-tier source provides) — and even that call is now gated by
+  get_all_fundamentals's fetch_eps_growth_trend parameter, not fetched every time.
 """
 
 from unittest.mock import MagicMock, patch
@@ -85,11 +90,42 @@ class TestEstimateRevisions:
         assert result["analyst_rating_breakdown"]["strongBuy"] == 10
 
 
-class TestEarningsHistoryUnaffected:
-    def test_earnings_history_still_calls_alpha_vantage(self):
-        """Regression guard: this hybrid change must not touch get_earnings_history
-        at all — it stays on Alpha Vantage deliberately (8-quarter YoY depth that
-        Finnhub/yfinance free tiers can't match)."""
+class TestEarningsSurprisesFromFinnhub:
+    def test_computes_surprises_and_consecutive_beats(self):
+        client = FundamentalClient()
+        finnhub_response = [
+            {"period": "2026-06-30", "actual": 1.87, "estimate": 1.79},
+            {"period": "2026-03-31", "actual": 1.50, "estimate": 1.40},
+            {"period": "2025-12-31", "actual": 1.20, "estimate": 1.30},  # miss
+            {"period": "2025-09-30", "actual": 1.10, "estimate": 1.00},
+        ]
+        with patch.object(client, "_with_backoff", return_value=finnhub_response) as mock_backoff:
+            result = client.get_earnings_surprises("NVDA")
+
+        assert result["consecutive_beats"] == 2  # most recent 2 quarters beat, 3rd missed
+        assert result["earnings_surprises"][0] == pytest.approx((1.87 - 1.79) / 1.79, abs=1e-4)
+        assert mock_backoff.call_args[0][2] == "earnings_surprises"
+
+    def test_never_touches_alpha_vantage_budget(self):
+        """The whole point of this move: get_earnings_surprises must not spend AV budget."""
+        client = FundamentalClient()
+        with patch.object(client, "_with_backoff", return_value=[]):
+            with patch("shared.api_clients.fundamental_client.check_av_budget") as mock_budget:
+                with patch("shared.api_clients.fundamental_client.increment_av_call_count") as mock_incr:
+                    client.get_earnings_surprises("NVDA")
+        mock_budget.assert_not_called()
+        mock_incr.assert_not_called()
+
+    def test_missing_finnhub_key_returns_none(self):
+        client = FundamentalClient()
+        client._finnhub_key = ""
+        assert client.get_earnings_surprises("NVDA") is None
+
+
+class TestEpsGrowthTrendFromAlphaVantage:
+    def test_still_calls_alpha_vantage_and_spends_budget(self):
+        """Regression guard: eps_growth_trend must stay on Alpha Vantage — 8-quarter
+        YoY depth that Finnhub/yfinance free tiers can't match."""
         client = FundamentalClient()
         fake_av_data = {
             "quarterlyEarnings": [
@@ -99,8 +135,45 @@ class TestEarningsHistoryUnaffected:
         with patch.object(client, "_with_backoff", return_value=fake_av_data) as mock_backoff:
             with patch("shared.api_clients.fundamental_client.check_av_budget", return_value=True):
                 with patch("shared.api_clients.fundamental_client.increment_av_call_count") as mock_incr:
-                    result = client.get_earnings_history("NVDA")
+                    result = client.get_eps_growth_trend("NVDA")
 
         assert result is not None
+        assert "eps_growth_trend" in result
+        assert "earnings_surprises" not in result  # that's Finnhub's job now
         mock_incr.assert_called_once()
-        assert mock_backoff.call_args[0][2] == "earnings_history"
+        assert mock_backoff.call_args[0][2] == "eps_growth_trend"
+
+    def test_budget_exhausted_returns_none_without_calling_av(self):
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.check_av_budget", return_value=False):
+            with patch.object(client, "_with_backoff") as mock_backoff:
+                result = client.get_eps_growth_trend("NVDA")
+        assert result is None
+        mock_backoff.assert_not_called()
+
+
+class TestGetAllFundamentalsGating:
+    def test_fetch_eps_growth_trend_true_calls_both_sources(self):
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=_mock_yf_info()):
+            with patch.object(client, "get_earnings_surprises", return_value={"earnings_surprises": [0.1], "consecutive_beats": 1}) as mock_surprises:
+                with patch.object(client, "get_eps_growth_trend", return_value={"eps_growth_trend": [0.2]}) as mock_growth:
+                    with patch.object(client, "get_estimate_revisions", return_value={}):
+                        result = client.get_all_fundamentals("NVDA", fetch_eps_growth_trend=True)
+
+        mock_surprises.assert_called_once()
+        mock_growth.assert_called_once()
+        assert result["earnings"]["eps_growth_trend"] == [0.2]
+        assert result["earnings"]["earnings_surprises"] == [0.1]
+
+    def test_fetch_eps_growth_trend_false_skips_alpha_vantage(self):
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=_mock_yf_info()):
+            with patch.object(client, "get_earnings_surprises", return_value={"earnings_surprises": [0.1], "consecutive_beats": 1}):
+                with patch.object(client, "get_eps_growth_trend") as mock_growth:
+                    with patch.object(client, "get_estimate_revisions", return_value={}):
+                        result = client.get_all_fundamentals("NVDA", fetch_eps_growth_trend=False)
+
+        mock_growth.assert_not_called()
+        assert "eps_growth_trend" not in result["earnings"]
+        assert result["earnings"]["earnings_surprises"] == [0.1]  # Finnhub side still refreshes

@@ -8,6 +8,7 @@ import pytest
 
 from app_ui import db as app_db
 from paper_trading.live_collinearity_diagnostic import collect_score_pairs
+from shared.utils.tail_dependence import conditional_top_quantile_rate
 
 
 @pytest.fixture
@@ -82,3 +83,17 @@ class TestCorrelationComputation:
         df = collect_score_pairs(db_path)
         r = df["technical_total"].corr(df["sentiment_total"])
         assert abs(r) < 0.5
+
+
+class TestTailDependenceIntegration:
+    def test_conditional_top_quantile_rate_runs_against_collected_scores(self, db_path):
+        # Regression check that collect_score_pairs' output shape (column names,
+        # dtypes) is what conditional_top_quantile_rate expects — not re-testing
+        # the math itself (see tests/test_tail_dependence.py for that).
+        for i in range(20):
+            _log_result(db_path, "NVDA", technical=float(i), sentiment=float(i % 5))
+        df = collect_score_pairs(db_path)
+        result = conditional_top_quantile_rate(df, "technical_total", "sentiment_total", quantile=0.75)
+        assert result["n"] == 20
+        assert 0.0 <= result["conditional_rate"] <= 1.0
+        assert 0.0 <= result["unconditional_rate"] <= 1.0

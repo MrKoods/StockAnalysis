@@ -5,24 +5,33 @@ Fetches valuation metrics, earnings history, and estimate revisions for each wat
 ticker using yfinance (no API key needed), Alpha Vantage (ALPHA_VANTAGE_API_KEY), and
 Finnhub (FINNHUB_API_KEY).
 
-Update cadence: staggered per-ticker (see indicator_pipeline.fetch_fundamental_data),
-1 Alpha Vantage call/ticker (EARNINGS only — see below). Alpha Vantage's free-tier
-limit is a single per-account daily cap, not partitioned by "scan type" — this call
-shares data/processed/av_call_count.json with shared/api_clients/news_client.py's
-scan-time AV usage.
+Update cadence: staggered per-ticker (see indicator_pipeline.fetch_fundamental_data).
+Alpha Vantage is now used for exactly one figure — eps_growth_trend, the 8-quarter
+year-over-year EPS comparison — fetched only near a ticker's own earnings date (or on
+its first-ever fetch), not on routine weekly refresh, since that figure can't change
+between quarterly reports. Everything else that used to require AV (earnings surprises,
+consecutive-beat streak) now comes from Finnhub, refreshed every time, at zero AV cost.
+Alpha Vantage's free-tier limit is a single per-account daily cap, not partitioned by
+"scan type" — this call shares data/processed/av_call_count.json with
+shared/api_clients/news_client.py's scan-time AV usage.
 
 Data sources:
-  - yfinance Ticker.info         — valuation metrics (P/E, EV/EBITDA) + analyst target price
-  - Alpha Vantage EARNINGS       — historical EPS actuals vs. estimates (needs 8 quarters
-                                    for a full 4-quarter YoY growth trend — Finnhub's free
-                                    tier and yfinance's quarterly statements both cap out at
-                                    4-5 quarters, only enough for 1 of 4 YoY points, so AV
-                                    stays the source for this one call specifically)
+  - yfinance Ticker.info          — valuation metrics (P/E, EV/EBITDA) + analyst target price
+  - Finnhub /stock/earnings       — actual vs. estimated EPS, last 4 quarters (feeds
+                                     earnings_surprises/consecutive_beats — this is exactly
+                                     the shape needed, no AV call required)
+  - Alpha Vantage EARNINGS        — up to 8 quarters of reported EPS, used only to compute
+                                     eps_growth_trend (YoY). Finnhub's free tier and
+                                     yfinance's quarterly statements both cap out at 4-5
+                                     quarters — not deep enough for a YoY comparison — so AV
+                                     remains the only source for this one figure specifically.
+                                     Called sparingly (see get_eps_growth_trend), not on
+                                     every refresh.
   - Finnhub /stock/recommendation — analyst rating breakdown (replaced Alpha Vantage
-                                    OVERVIEW here — AV's own prior docstring already noted
-                                    that call was low-value on the free tier: current
-                                    target price only, no revision history — Finnhub gives
-                                    the same rating-snapshot depth for zero AV budget)
+                                     OVERVIEW here — AV's own prior docstring already noted
+                                     that call was low-value on the free tier: current
+                                     target price only, no revision history — Finnhub gives
+                                     the same rating-snapshot depth for zero AV budget)
 """
 
 import os
@@ -127,26 +136,88 @@ class FundamentalClient:
         logger.debug(f"{ticker}: valuation_metrics fetched — suspect={suspect}")
         return result
 
-    def get_earnings_history(self, ticker: str) -> Optional[dict]:
+    def get_earnings_surprises(self, ticker: str) -> Optional[dict]:
         """
-        Fetch the last 4 quarters of EPS actuals vs. estimates via Alpha Vantage EARNINGS.
+        Fetch the last 4 quarters of EPS actuals vs. estimates via Finnhub
+        /stock/earnings — free tier, no Alpha Vantage budget cost, and already
+        in exactly the shape needed (no computation Alpha Vantage's EARNINGS
+        endpoint was doing that this doesn't already get directly).
 
         Computes:
-          eps_growth_trend     — list of 4 YoY EPS growth rates (most-recent-first)
-          earnings_surprises   — list of 4 (reported - estimated) / abs(estimated) values
+          earnings_surprises   — list of up to 4 (reported - estimated) / abs(estimated)
+                                 values, most-recent-first
           consecutive_beats    — count of consecutive quarters (from most recent) where
                                  reported > estimated
 
         Uses exponential backoff (30s → 60s → 120s). Returns None if all retries fail.
+        """
+        if not self._finnhub_key:
+            logger.warning(f"{ticker}: skipping earnings surprises — no Finnhub key")
+            return None
+
+        def _fetch_earnings():
+            params = {"symbol": ticker, "token": self._finnhub_key}
+            resp = requests.get(f"{_FINNHUB_BASE_URL}/stock/earnings", params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected /stock/earnings response shape: {type(data)}")
+            return data
+
+        data = self._with_backoff(_fetch_earnings, ticker, "earnings_surprises")
+        if not data:
+            return None
+
+        # Finnhub returns most-recent-period-first already.
+        recent = data[:4]
+        earnings_surprises = []
+        for q in recent:
+            reported = _safe_float(q.get("actual"))
+            estimated = _safe_float(q.get("estimate"))
+            if reported is not None and estimated is not None and estimated != 0:
+                surprise = (reported - estimated) / abs(estimated)
+                earnings_surprises.append(round(surprise, 4))
+            else:
+                earnings_surprises.append(None)
+
+        consecutive_beats = 0
+        for surprise in earnings_surprises:
+            if surprise is None:
+                break
+            if surprise > 0:
+                consecutive_beats += 1
+            else:
+                break
+
+        return {
+            "earnings_surprises": earnings_surprises,
+            "consecutive_beats": consecutive_beats,
+        }
+
+    def get_eps_growth_trend(self, ticker: str) -> Optional[dict]:
+        """
+        Fetch up to 8 quarters of reported EPS via Alpha Vantage EARNINGS, used
+        only for the year-over-year growth trend — the one figure that genuinely
+        needs history deeper than Finnhub's/yfinance's free-tier 4-5 quarters.
+
+        Computes:
+          eps_growth_trend — list of up to 4 YoY EPS growth rates (most-recent-first)
+
+        Uses exponential backoff (30s → 60s → 120s). Returns None if all retries fail.
 
         Alpha Vantage free tier has a single 25-call/day limit shared across this
-        client and shared/api_clients/news_client.py — see module docstring.
+        client and shared/api_clients/news_client.py — see module docstring. Callers
+        should only invoke this near a ticker's own earnings date or on first-ever
+        fetch (see indicator_pipeline.fetch_fundamental_data's fetch_eps_growth_trend
+        gating), not on every routine refresh — this figure can't change between a
+        company's quarterly reports, so refreshing it weekly would just be spending
+        AV budget to get back the same answer.
         """
         if not self._av_key:
-            logger.warning(f"{ticker}: skipping earnings history — no AV key")
+            logger.warning(f"{ticker}: skipping EPS growth trend — no AV key")
             return None
         if not check_av_budget():
-            logger.warning(f"{ticker}: AV daily budget exhausted — skipping earnings history")
+            logger.warning(f"{ticker}: AV daily budget exhausted — skipping EPS growth trend")
             return None
 
         def _fetch_earnings():
@@ -162,7 +233,7 @@ class FundamentalClient:
                 raise ValueError(f"No quarterlyEarnings key in response: {list(data.keys())}")
             return data
 
-        data = self._with_backoff(_fetch_earnings, ticker, "earnings_history")
+        data = self._with_backoff(_fetch_earnings, ticker, "eps_growth_trend")
         increment_av_call_count()
         if data is None:
             return None
@@ -176,16 +247,11 @@ class FundamentalClient:
         recent = quarterly[:8]
 
         eps_growth_trend = []
-        earnings_surprises = []
-
-        for i, q in enumerate(recent[:4]):
-            reported = _safe_float(q.get("reportedEPS"))
-            estimated = _safe_float(q.get("estimatedEPS"))
-
+        for i in range(min(4, len(recent))):
+            reported = _safe_float(recent[i].get("reportedEPS"))
             # YoY growth: compare quarter i to quarter i+4 (same quarter prior year)
             if i + 4 < len(recent):
-                prior_year_q = recent[i + 4]
-                prior_eps = _safe_float(prior_year_q.get("reportedEPS"))
+                prior_eps = _safe_float(recent[i + 4].get("reportedEPS"))
                 if prior_eps is not None and prior_eps != 0 and reported is not None:
                     growth = (reported - prior_eps) / abs(prior_eps)
                     eps_growth_trend.append(round(growth, 4))
@@ -194,28 +260,7 @@ class FundamentalClient:
             else:
                 eps_growth_trend.append(None)
 
-            # Earnings surprise: (reported - estimated) / abs(estimated)
-            if reported is not None and estimated is not None and estimated != 0:
-                surprise = (reported - estimated) / abs(estimated)
-                earnings_surprises.append(round(surprise, 4))
-            else:
-                earnings_surprises.append(None)
-
-        # Consecutive beats from most recent quarter
-        consecutive_beats = 0
-        for surprise in earnings_surprises:
-            if surprise is None:
-                break
-            if surprise > 0:
-                consecutive_beats += 1
-            else:
-                break
-
-        return {
-            "eps_growth_trend": eps_growth_trend,
-            "earnings_surprises": earnings_surprises,
-            "consecutive_beats": consecutive_beats,
-        }
+        return {"eps_growth_trend": eps_growth_trend}
 
     def get_estimate_revisions(self, ticker: str) -> dict:
         """
@@ -284,13 +329,25 @@ class FundamentalClient:
 
         return result
 
-    def get_all_fundamentals(self, ticker: str) -> dict:
+    def get_all_fundamentals(self, ticker: str, fetch_eps_growth_trend: bool = True) -> dict:
         """
-        Orchestrate calls to all three fundamental methods.
+        Orchestrate calls to all fundamental data sources.
 
-        Returns combined dict with keys: valuation, earnings, revisions.
-        Any sub-call failure is caught and logged to validation_log.csv.
-        Never raises — always returns a dict (fields may be None on failure).
+        fetch_eps_growth_trend: whether to also call Alpha Vantage for the deeper
+        8-quarter YoY trend (get_eps_growth_trend). Callers should only pass True
+        near a ticker's own earnings date or on its first-ever fetch — a routine
+        weekly refresh doesn't need it, since that figure can't change between
+        quarterly reports (see indicator_pipeline.fetch_fundamental_data).
+        earnings_surprises/consecutive_beats (Finnhub, free) always refresh
+        regardless of this flag.
+
+        Returns combined dict with keys: valuation, earnings, revisions. "earnings"
+        merges get_earnings_surprises() (Finnhub) and, when requested,
+        get_eps_growth_trend() (Alpha Vantage) into the one dict shape
+        fundamental_layer.py expects: {eps_growth_trend, earnings_surprises,
+        consecutive_beats}. Any sub-call failure is caught and logged to
+        validation_log.csv. Never raises — always returns a dict (fields may be
+        None on failure).
         """
         result = {
             "ticker": ticker,
@@ -305,11 +362,26 @@ class FundamentalClient:
             logger.error(f"{ticker}: get_valuation_metrics failed — {exc}")
             write_validation_entry(ticker, "fundamental_valuation_error", str(exc))
 
+        earnings: dict = {}
+
         try:
-            result["earnings"] = self.get_earnings_history(ticker)
+            surprises = self.get_earnings_surprises(ticker)
+            if surprises:
+                earnings.update(surprises)
         except Exception as exc:
-            logger.error(f"{ticker}: get_earnings_history failed — {exc}")
-            write_validation_entry(ticker, "fundamental_earnings_error", str(exc))
+            logger.error(f"{ticker}: get_earnings_surprises failed — {exc}")
+            write_validation_entry(ticker, "fundamental_earnings_surprises_error", str(exc))
+
+        if fetch_eps_growth_trend:
+            try:
+                growth = self.get_eps_growth_trend(ticker)
+                if growth:
+                    earnings.update(growth)
+            except Exception as exc:
+                logger.error(f"{ticker}: get_eps_growth_trend failed — {exc}")
+                write_validation_entry(ticker, "fundamental_eps_growth_error", str(exc))
+
+        result["earnings"] = earnings or None
 
         try:
             result["revisions"] = self.get_estimate_revisions(ticker)

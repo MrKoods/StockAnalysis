@@ -30,8 +30,14 @@ import pandas as pd
 import yfinance as yf
 
 from shared.utils.logger import get_logger
-from shared.utils.discord_alerts import send_paper_outcome_alert
+from shared.utils.discord_alerts import send_paper_outcome_alert, send_calibration_alert
 from shared.utils.atomic_io import atomic_write_text
+from swing_model.feedback_loop import (
+    load_calibration_outcomes_from_paper_trades,
+    run_calibration,
+    should_recalibrate,
+)
+from swing_model.indicator_pipeline import load_config
 
 logger = get_logger(__name__)
 
@@ -234,7 +240,51 @@ def update_paper_trades() -> int:
 
     _save_trades(trades)
     logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
+
+    if closed_count > 0:
+        _maybe_run_calibration(trades)
+
     return closed_count
+
+
+def _maybe_run_calibration(trades: list[dict]) -> None:
+    """
+    Check whether a feedback-loop calibration pass is due (see
+    feedback_loop.should_recalibrate) and, if so, run it against paper
+    trading's own closed-trade history. A calibration that passes holdout and
+    doesn't need a version bump saves automatically (feedback_loop.run_calibration
+    handles that); a failure or a >5pp change needing a version bump is
+    surfaced via Discord rather than silently dropped, since that's a human
+    decision point. Best-effort throughout — a failure here shouldn't affect
+    the trade-outcome update this function's caller cares about.
+    """
+    try:
+        cfg = load_config()
+    except Exception as exc:
+        logger.warning(f"Could not load config for calibration check — {exc}")
+        cfg = {}
+
+    closed_count_total = sum(1 for t in trades if t.get("outcome"))
+    if not should_recalibrate(closed_count_total, cfg=cfg):
+        return
+
+    try:
+        outcomes = load_calibration_outcomes_from_paper_trades()
+        result = run_calibration(outcomes=outcomes, cfg=cfg)
+    except Exception as exc:
+        logger.warning(f"Calibration run failed — {exc}")
+        return
+
+    logger.info(f"Calibration check: status={result.get('status')} weights_updated={result.get('weights_updated')}")
+
+    needs_alert = result.get("status") == "fail" or (
+        result.get("status") == "pass" and result.get("needs_version_increment")
+    )
+    if needs_alert:
+        try:
+            send_calibration_alert(result)
+        except Exception as exc:
+            logger.warning(f"Calibration Discord alert failed — {exc}")
 
 
 def print_summary() -> None:

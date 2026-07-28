@@ -191,6 +191,46 @@ def send_signal_decay_alert(position: dict, new_confidence: float, drop: float) 
     return _post_to_webhook({"embeds": [embed]})
 
 
+def send_calibration_alert(result: dict) -> bool:
+    """
+    🟡 Feedback-loop calibration pass needs human attention — either it failed
+    its out-of-sample holdout check (weights unchanged) or it passed but a
+    weight moved >5pp, which this project's own rule requires a version bump
+    + re-backtest for before it can be applied (see
+    swing_model.feedback_loop.run_calibration/model_versioning.check_backtest_required).
+    Matches feedback_loop.py's own module docstring intent ("if failing:
+    Discord alert + keep old weights"), not previously implemented anywhere.
+    """
+    status = result.get("status", "unknown")
+    needs_version = bool(result.get("needs_version_increment"))
+
+    if status == "pass" and needs_version:
+        title = "🟡 CALIBRATION PASSED — Version Bump Required Before Applying"
+        footer = "Weight change exceeds 5pp. Bump model version + re-backtest before applying (see CHANGELOG.md rule)."
+    else:
+        title = "🟡 CALIBRATION FAILED HOLDOUT — Weights Unchanged"
+        footer = "New weights did not beat the current weights on held-out trades. Kept existing weights."
+
+    current = result.get("current_weights", {})
+    new = result.get("new_weights", {})
+    embed = {
+        "title": title,
+        "color": _COLORS["yellow"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Status", "value": status, "inline": True},
+            {"name": "Train / Holdout", "value": f"{result.get('train_count', '?')} / {result.get('holdout_count', '?')}", "inline": True},
+            {"name": "Holdout score (old → new)",
+             "value": f"{result.get('holdout_win_rate_old', 0.0):.3f} → {result.get('holdout_win_rate_new', 0.0):.3f}",
+             "inline": True},
+            {"name": "Current weights", "value": str(current) or "n/a", "inline": False},
+            {"name": "Proposed weights", "value": str(new) or "n/a", "inline": False},
+        ],
+        "footer": {"text": footer},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
 def send_circuit_breaker_alert(level: str, account_equity: float, peak_equity: float) -> bool:
     """🟡/🟠/🔴 Circuit breaker alert (Yellow/Orange/Red)."""
     emoji = {"yellow": "🟡", "orange": "🟠", "red": "🔴"}.get(level, "⚠️")

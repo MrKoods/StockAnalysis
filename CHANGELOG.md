@@ -12,6 +12,67 @@ backtest entry in this file.
 
 ---
 
+## [v2.2.20] — 2026-07-28 — Live score-distribution diagnostics; paper-trading go-live gate reporting fix; feedback-loop calibration wired to the system that's actually running
+
+**Status:** Code updated. No scoring, threshold, or weight value changed — `confidence.min_threshold` (90) and every category weight are byte-for-byte unchanged. This is measurement tooling, a reporting fix, and dormant-pipeline wiring, all of which stay inert (`live_weights=None` in practice) until real calibration data exists. See "Backtest result" below.
+
+### What changed
+
+**Diagnostics (new, read-only):**
+- New `paper_trading/score_distribution_diagnostic.py`: percentile distribution of real logged composite scores, per-category ceiling utilization (mean/best-ever as % of each category's max points), a joint-peak-rate measure (how often 2+/all 5 categories are simultaneously in their own top 20%), and a live-data threshold-sensitivity table (companion to `backtesting/metrics.py::run_sensitivity_analysis()`, same default threshold candidates). Run via `python -m paper_trading.score_distribution_diagnostic`.
+- New `shared/utils/tail_dependence.py::conditional_top_quantile_rate()`: measures whether two score columns tend to hit their own top quantile together more than chance would predict (lift), independent of bulk Pearson/Spearman correlation — wired into both `backtesting/collinearity_diagnostic.py` and `paper_trading/live_collinearity_diagnostic.py`'s `main()` output.
+- `shared/utils/macro_overlay.py`: `save_macro_state()`/`load_macro_state()` were dead code — nothing called them, and `data/processed/macro_state.json` had never been updated (`computed_at_utc: null`) despite its own comment claiming otherwise. `run_swing_model.py` and `paper_runner.py` now call `save_macro_state()` right after computing macro state each scan — observability only, doesn't feed back into scoring.
+
+**Paper-trading go-live gate:**
+- `paper_trading/paper_trade_metrics.py::evaluate_paper_trading_pass()`: new `data_status` field (`"evaluated"` vs. `"insufficient_trades"`, floor = 15 trades, matching `feedback_loop.run_calibration()`'s own minimum). Below the floor, `overall_pass` still reports `False` (unchanged, safe default) but the failure reason now says `insufficient_trade_data_...` instead of `expectancy_ci_lower_...` — at n=0 the CI lower bound is trivially 0.0, which previously read identically to "the edge genuinely failed."
+- New `load_paper_trade_gate_inputs()` reads `paper_trading/paper_trades.csv` (written by `paper_updater.py` — the system that's actually been running) rather than `data/logs/trade_outcomes.csv` (`feedback_loop.py`'s file, fed only by `portfolio_manager.py`'s manual-Discord-confirmation flow, which has stayed empty since no version has gone live). Wired into `monitoring/performance_dashboard.py::generate_weekly_summary()` (new `go_live_gate` field on every return path) and a new `python -m monitoring.performance_dashboard` CLI entry point — `generate_weekly_summary()` had no scheduled caller before this either, confirmed via repo-wide search.
+
+**Feedback-loop calibration, wired to the real data source:**
+- `swing_model/feedback_loop.py::run_calibration()` now accepts an explicit `outcomes` list (falls back to reading `_TRADE_OUTCOMES_FILE` if omitted, unchanged default behavior) and actually reads `cfg`'s `feedback_loop` block (`out_of_sample_holdout`, `weight_change_version_threshold`) instead of silently ignoring it in favor of hardcoded defaults that merely happened to match.
+- New `load_calibration_outcomes_from_paper_trades()` adapts `paper_trades.csv` rows into `run_calibration()`'s expected shape (`technical_score`→`technical_total` etc.). Known, explicitly scoped-out gap: `signal_key` stays `"unknown"` for every row — `build_signal_key()` needs raw indicator flags (`breakout_confirmed`, `sentiment_direction`) that `paper_trades.csv`'s schema doesn't capture; win-rate-by-signal-combination bucketing needs a separate follow-up to `paper_runner.py`'s row-writer, not done here.
+- `_save_live_weights()` now writes `last_calibrated`/`n_trades` metadata alongside the weight fractions; new `load_live_weights_if_calibrated()` returns `None` unless that metadata is present — so `calibrated_weights.json`'s current on-disk placeholder (`{"technical": 0.6, "sentiment": 0.25, "news": 0.15}`, never produced by an actual calibration) can't silently start affecting live scoring. `needs_version_increment`'s >5pp check now calls `swing_model.model_versioning.check_backtest_required()` directly (previously a duplicate inline re-implementation that never actually cross-called it, despite `model_versioning.py`'s own docstring claiming otherwise).
+- New `should_recalibrate()` (trade-count-since-last-calibration or monthly cadence, both from `cfg`) called from a new `paper_updater.py::_maybe_run_calibration()`, invoked right after `update_paper_trades()` saves closed trades. A calibration that fails holdout, or passes but needs a version bump, now sends a Discord alert (`shared/utils/discord_alerts.py::send_calibration_alert()`, new) — `feedback_loop.py`'s own module docstring has said "if failing: Discord alert" since Phase 14; nothing actually sent one until now.
+- `run_swing_model.py` and `paper_runner.py` now pass `live_weights=load_live_weights_if_calibrated()` into `compute_confidence_score()` (previously always `None`, the implicit default). With zero real calibrations on record, this resolves to `None` today exactly as before — confirmed by the full suite passing unchanged.
+- Removed dead `data/processed/live_weights.json` (nested `technical_max`/sub-signal-cap schema) and `config/global_config.yaml`'s `live_weights_file` key — zero readers anywhere in the codebase (confirmed via repo-wide grep), and the file's own header comment ("Read by scoring.py on every scan") was false; `scoring.py`'s `live_weights` parameter has always read the differently-shaped `calibrated_weights.json` instead.
+
+**Evidence produced (not applied):**
+- New `paper_trading/reports/threshold_evidence_proposal_DRAFT.md`: collects the diagnostic findings below into a draft, unapplied evidence review for `confidence.min_threshold`. Explicitly stops short of picking a replacement number or running the formal fixed-slice re-backtest — those are the actual tuning decision, which stays a separate, versioned, human-approved step per this file's own rule.
+
+### Why it was changed
+
+A review of the workspace and 9 days of real paper-trading history (215 ticker-scans, 20 scan runs, 11 tickers across two sectors) found the composite score has never once reached 90 — or even 80 — with a max ever observed of 71.72. `evaluate_paper_trading_pass()`'s go-live gate therefore had `n_trades=0` the entire time, which read identically to a genuine expectancy failure without a way to tell the two apart. Digging into why surfaced that the calibration feedback loop everyone assumed would eventually resolve this (`feedback_loop.py`, `live_weights`) was reading from and writing to files nothing in the live/paper pipeline actually used or trusted: `trade_outcomes.csv` (empty, wrong system), `data/processed/live_weights.json` (dead, wrong schema), and `run_calibration()` itself was never invoked outside tests. This entry makes the measurement tooling honest, fixes the reporting gap that was hiding the "no data yet" state, and connects the calibration pipeline to `paper_trades.csv` — the file that's actually been accumulating real data — while keeping every live-scoring effect inert until a real calibration genuinely earns it.
+
+### Backtest result
+
+N/A — no scoring weight, category maximum, modifier bound, or the 90-point `confidence.min_threshold` was touched. `compute_confidence_score()`'s `live_weights` branch was already implemented and already a no-op with the default `None` (see v2.2.x history); this entry only changes what feeds that parameter once real calibration data exists, which it does not yet. 637 tests pass (was 582), 3 skipped (unchanged, stale stress-test skips). `ruff check .` clean.
+
+### Approved by
+
+[pending]
+
+---
+
+## [v2.2.19] — 2026-07-28 — Move earnings surprises to Finnhub; gate Alpha Vantage's remaining call by earnings proximity
+
+**Status:** Code updated. Same not-yet-eligible-to-go-live status as v2.1.0-v2.2.18 — data-source and fetch-cadence change only, no scoring formula impact. `earnings_momentum_score`'s four sub-scores and their point ranges are completely unchanged; only where three of the four get their data, and how often the fourth's data source gets called, changed.
+
+### What changed
+- `shared/api_clients/fundamental_client.py`: `get_earnings_history()` split into two methods. `get_earnings_surprises()` now sources `earnings_surprises`/`consecutive_beats` from Finnhub's `/stock/earnings` (free tier, already-configured key, no Alpha Vantage budget cost) — confirmed it returns exactly the `{actual, estimate}` shape needed, 4 quarters deep, same depth AV's EARNINGS response was already limited to for this sub-calculation. `get_eps_growth_trend()` keeps the Alpha Vantage EARNINGS call, now scoped to only the one figure that genuinely needs 8-quarter depth neither Finnhub nor yfinance's free tiers provide (the year-over-year comparison). `get_all_fundamentals()` gained a `fetch_eps_growth_trend: bool = True` parameter — when `False`, `get_earnings_surprises()` (Finnhub) still runs every time, but `get_eps_growth_trend()` (AV) is skipped entirely.
+- `swing_model/indicator_pipeline.py`: `fetch_fundamental_data()` now only requests `fetch_eps_growth_trend=True` for cold-start (bootstrap) or earnings-priority tickers — a plain weekly rotation refresh passes `False` and carries the last known `eps_growth_trend` value forward from cache instead of spending an AV call to get back an answer that can't have changed since the last quarterly report.
+- `tests/test_fundamental_client.py`: replaced the old `get_earnings_history`-still-uses-AV regression guard with coverage for both new methods and `get_all_fundamentals`'s gating (12 tests, was 6).
+- `tests/test_indicator_pipeline_fundamental_refresh.py`: added `TestEpsGrowthTrendGating` (3 tests) covering the bootstrap/earnings-priority-vs-rotation gating and the carry-forward behavior; existing mock signatures updated for the new `fetch_eps_growth_trend` parameter.
+
+### Why it was changed
+Alpha Vantage's `EARNINGS` call had failed on every fetch attempt since the staggered refresh (v2.2.12) went live — confirmed via a direct, unmocked call against the real API that it's a genuine 25-requests/day account-level cap (Alpha Vantage's own response: *"our standard API rate limit is 25 requests per day"*), not a bug in the retry/budget logic. Investigating what that EARNINGS call was actually used for found `earnings_momentum_score` is built from four ±2/±3-point sub-scores, and only one of them (`eps_growth_score`, needing the 8-quarter YoY comparison) actually requires AV's depth — `earnings_surprise_score` was being computed from the same AV response but needs only 4 quarters, which Finnhub already provides for free. Moving that sub-score off AV and gating the remaining AV call to only fire near real earnings events (instead of every ticker's weekly rotation slot) cuts routine EARNINGS usage from up to 3 calls/day to roughly 1-2/month across the whole 11-ticker watchlist.
+
+### Backtest result
+N/A — doesn't touch the scoring formula, weights, or thresholds; `fundamental_layer.py`'s `earnings_momentum_score` computation is byte-for-byte unchanged, since `get_all_fundamentals()`'s combined `earnings` dict still returns the exact same `{eps_growth_trend, earnings_surprises, consecutive_beats}` shape it always did — only the data source and fetch frequency changed underneath it. Verified end-to-end against real (unmocked) Finnhub and Alpha Vantage APIs: a real `get_all_fundamentals("AVGO", fetch_eps_growth_trend=False)` call returned real `earnings_surprises` data from Finnhub while `data/processed/av_call_count.json`'s count stayed unchanged, confirming zero AV budget spent on the routine path. 582 tests pass (was 573), 3 skipped (unchanged).
+
+### Approved by
+[pending]
+
+---
+
 ## [v2.2.18] — 2026-07-26 — Healthcare sector pulled as a third, non-rate-sensitive diversification test
 
 **Status:** Code updated. **Research-only, same as regional banks (v2.2.6) — `config/swing_config.yaml`'s live watchlist is unchanged, zero live/paper trading impact.** Not a scoring or threshold change; no re-backtest of the live model required.

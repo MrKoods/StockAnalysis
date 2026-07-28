@@ -8,7 +8,12 @@ import pytest
 
 from paper_trading.fill_tracker import log_fill, compute_avg_slippage, check_slippage_threshold
 from paper_trading.paper_trade_engine import simulate_fill
-from paper_trading.paper_trade_metrics import evaluate_paper_trading_pass, compute_forward_ev_accuracy
+from paper_trading.paper_trade_metrics import (
+    evaluate_paper_trading_pass,
+    compute_forward_ev_accuracy,
+    load_paper_trade_gate_inputs,
+)
+from paper_trading.paper_updater import _CSV_COLUMNS
 
 
 # ---------------------------------------------------------------------------
@@ -167,10 +172,36 @@ class TestEvaluatePaperTradingPass:
 
     def test_result_contains_required_keys(self):
         result = evaluate_paper_trading_pass([], [], 0)
-        for key in ("overall_pass", "win_rate", "avg_rr", "expectancy_r_mean",
+        for key in ("overall_pass", "data_status", "win_rate", "avg_rr", "expectancy_r_mean",
                     "expectancy_r_ci_lower", "expectancy_r_ci_upper", "expectancy_pass",
                     "avg_slippage_excess", "slippage_pass", "duration_pass", "failures"):
             assert key in result
+
+    def test_zero_trades_reports_insufficient_data_not_expectancy_failure(self):
+        """
+        v2.2.20: at n=0 (paper trading's actual current state — see
+        score_distribution_diagnostic.py), the CI lower bound is trivially 0.0,
+        which reads identically to "the edge genuinely failed" without this
+        distinction. overall_pass must still stay False (safe default), but the
+        failure reason should say so, not imply a real expectancy miss.
+        """
+        result = evaluate_paper_trading_pass([], [], trading_days_elapsed=60)
+        assert result["overall_pass"] is False
+        assert result["data_status"] == "insufficient_trades"
+        assert any(f.startswith("insufficient_trade_data_") for f in result["failures"])
+        assert not any(f.startswith("expectancy_ci_lower_") for f in result["failures"])
+
+    def test_few_trades_still_reports_insufficient_data(self):
+        outcomes = self._win_outcomes(3, 2, rr=0.5)  # n=5, below the 15-trade floor
+        fills = self._fill_log(10)
+        result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60)
+        assert result["data_status"] == "insufficient_trades"
+
+    def test_enough_trades_reports_evaluated(self):
+        outcomes = self._win_outcomes(90, 10, rr=3.0)  # n=100, well above the floor
+        fills = self._fill_log(10)
+        result = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60)
+        assert result["data_status"] == "evaluated"
 
 
 # ---------------------------------------------------------------------------
@@ -201,3 +232,58 @@ class TestForwardEVAccuracy:
         outcomes = [{"pnl_pct": 2.0, "theoretical_ev": 4.0}]
         ratio = compute_forward_ev_accuracy(outcomes)
         assert ratio < 1.0
+
+
+# ---------------------------------------------------------------------------
+# load_paper_trade_gate_inputs
+# ---------------------------------------------------------------------------
+
+class TestLoadPaperTradeGateInputs:
+    def _write_trades(self, tmp_path, rows):
+        path = tmp_path / "paper_trades.csv"
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+        return path
+
+    def test_missing_file_returns_empty_defaults(self, tmp_path):
+        result = load_paper_trade_gate_inputs(tmp_path / "does_not_exist.csv")
+        assert result == {"trade_outcomes": [], "fill_log": [], "trading_days_elapsed": 0}
+
+    def test_only_closed_trades_included_in_outcomes(self, tmp_path):
+        rows = [
+            {"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"},
+            {"signal_date": "2026-07-02", "ticker": "AMD", "outcome": ""},  # still open
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = load_paper_trade_gate_inputs(path)
+        assert len(result["trade_outcomes"]) == 1
+        assert result["trade_outcomes"][0]["ticker"] == "NVDA"
+
+    def test_fill_log_always_empty(self, tmp_path):
+        rows = [{"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"}]
+        path = self._write_trades(tmp_path, rows)
+        result = load_paper_trade_gate_inputs(path)
+        assert result["fill_log"] == []
+
+    def test_trading_days_elapsed_counts_from_earliest_signal_date(self, tmp_path):
+        # Includes an open trade's signal_date too — duration is about how long
+        # the system has run, not how many trades closed.
+        rows = [
+            {"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"},
+            {"signal_date": "2026-06-20", "ticker": "AMD", "outcome": ""},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = load_paper_trade_gate_inputs(path)
+        assert result["trading_days_elapsed"] > 0
+
+    def test_result_feeds_directly_into_evaluate_paper_trading_pass(self, tmp_path):
+        rows = [
+            {"signal_date": "2026-01-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"},
+            {"signal_date": "2026-01-02", "ticker": "AMD", "outcome": "loss", "achieved_rr": "-1.0"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        inputs = load_paper_trade_gate_inputs(path)
+        result = evaluate_paper_trading_pass(**inputs)
+        assert result["data_status"] == "insufficient_trades"  # n=2, below the 15-trade floor

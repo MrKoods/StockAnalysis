@@ -25,6 +25,7 @@ from typing import Optional
 import pandas as pd
 
 from app_ui import db as app_db
+from shared.utils.tail_dependence import conditional_top_quantile_rate
 
 _MIN_ROWS_FOR_MEANINGFUL_READ = 30
 
@@ -86,6 +87,15 @@ def main() -> None:
         "since it would mean the redundancy is real, not a simulation artifact. |r| < 0.3 "
         "means the categories are adding meaningfully separate information live, "
         "consistent with (or better than) the backtest's own reading (v2.2.16: r=0.115)."
+    )
+
+    tail = conditional_top_quantile_rate(df, "technical_total", "sentiment_total", quantile=0.75)
+    print(
+        f"\nTail dependence (top-quartile co-occurrence): P(sentiment top 25%% | technical top 25%%) "
+        f"= {tail['conditional_rate']:.1%} vs. unconditional {tail['unconditional_rate']:.1%} "
+        f"(lift={tail['lift']:.2f}x, n_conditioned={tail['n_conditioned']}). Complements the bulk "
+        "r/rho above — a low bulk correlation doesn't rule out the two categories still tending "
+        "to peak together, which is what a fixed 90-point composite threshold actually depends on."
     )
 
     report_dir = Path("paper_trading/reports")
