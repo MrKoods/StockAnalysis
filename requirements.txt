@@ -38,4 +38,7 @@ python-dateutil>=2.8.0
 pytz>=2023.3
 
 # Desktop app UI (see App_UI_Scope.md)
-PySide6>=6.11.0
+# Capped below 6.10 — 6.10.0+ has never shipped a Linux wheel (Windows-only
+# so far), which breaks `pip install` in CI (ubuntu-latest). Raise the cap
+# once a Linux wheel appears for a newer release.
+PySide6>=6.7.0,<6.10.0
