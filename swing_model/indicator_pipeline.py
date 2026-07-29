@@ -410,7 +410,7 @@ def _load_positioning_state() -> dict:
     if not _POSITIONING_STATE_PATH.exists():
         return default
     try:
-        with open(_POSITIONING_STATE_PATH, "r") as f:
+        with open(_POSITIONING_STATE_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         if "tickers" not in data:
             data["tickers"] = {}
@@ -436,7 +436,7 @@ def _save_positioning_state(state: dict) -> None:
     try:
         _POSITIONING_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         tmp = _POSITIONING_STATE_PATH.with_suffix(".tmp")
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, default=str)
         tmp.replace(_POSITIONING_STATE_PATH)
         logger.info("positioning_state.json updated.")
@@ -456,7 +456,7 @@ def _load_fundamental_state() -> dict:
     if not _FUNDAMENTAL_STATE_PATH.exists():
         return default
     try:
-        with open(_FUNDAMENTAL_STATE_PATH, "r") as f:
+        with open(_FUNDAMENTAL_STATE_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         # Ensure tickers key exists
         if "tickers" not in data:
@@ -480,7 +480,7 @@ def _save_fundamental_state(state: dict) -> None:
     try:
         _FUNDAMENTAL_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         tmp = _FUNDAMENTAL_STATE_PATH.with_suffix(".tmp")
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, default=str)
         tmp.replace(_FUNDAMENTAL_STATE_PATH)
         logger.info("fundamental_state.json updated.")
@@ -504,7 +504,7 @@ def _archive_fundamental_snapshot(state: dict) -> None:
     try:
         _FUNDAMENTAL_HISTORY_DIR.mkdir(parents=True, exist_ok=True)
         path = _FUNDAMENTAL_HISTORY_DIR / f"{date_str}.json"
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump({"date": date_str, "tickers": state.get("tickers", {})}, f, indent=2, default=str)
         logger.info(f"Archived fundamental snapshot: {path}")
     except Exception as exc:
@@ -549,5 +549,5 @@ def load_config(config_path: str = "config/swing_config.yaml") -> dict:
     if not path.exists():
         logger.warning(f"Config not found at {config_path} — using defaults.")
         return {}
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}

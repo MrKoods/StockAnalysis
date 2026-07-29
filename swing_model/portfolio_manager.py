@@ -52,7 +52,7 @@ _CORRELATED_GROUPS = [
 def load_position_state() -> dict:
     """Load position state from JSON. Returns empty state if file doesn't exist."""
     if _POSITION_STATE_FILE.exists():
-        return json.loads(_POSITION_STATE_FILE.read_text())
+        return json.loads(_POSITION_STATE_FILE.read_text(encoding="utf-8"))
     return _EMPTY_STATE.copy()
 
 
@@ -405,7 +405,7 @@ def _log_override(ticker: str, reason: str, position_details: Optional[dict]) ->
     _OVERRIDE_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     write_header = not _OVERRIDE_LOG_FILE.exists()
     fieldnames = ["timestamp_utc", "ticker", "reason", "confidence"]
-    with _OVERRIDE_LOG_FILE.open("a", newline="") as f:
+    with _OVERRIDE_LOG_FILE.open("a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         if write_header:
             writer.writeheader()

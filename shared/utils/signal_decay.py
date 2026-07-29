@@ -96,7 +96,7 @@ def load_signal_win_rates() -> dict:
     if not _WIN_RATES_FILE.exists():
         return {}
     try:
-        return json.loads(_WIN_RATES_FILE.read_text())
+        return json.loads(_WIN_RATES_FILE.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return {}
 
@@ -122,7 +122,7 @@ def update_signal_win_rate(
         rates[signal_type]["scratches"] += 1
 
     _WIN_RATES_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _WIN_RATES_FILE.write_text(json.dumps(rates, indent=2))
+    _WIN_RATES_FILE.write_text(json.dumps(rates, indent=2), encoding="utf-8")
 
 
 def get_win_rate(signal_type: str) -> Optional[float]:

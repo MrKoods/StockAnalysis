@@ -27,6 +27,23 @@ _VALIDATION_LOG_PATH = Path("data/logs/validation_log.csv")
 _OVERRIDE_LOG_PATH = Path("data/logs/override_log.csv")
 
 
+_FMT = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s — %(message)s")
+
+# Referenced by name (not a default arg) so tests/conftest.py can monkeypatch
+# it — same reasoning as the CSV log paths above — and redirect app.log
+# writes for loggers created before the test session's isolation fixture runs.
+_LOG_DIR = Path("data/logs")
+
+
+def _make_file_handler(log_dir: Path) -> logging.handlers.RotatingFileHandler:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    fh = logging.handlers.RotatingFileHandler(
+        log_dir / "app.log", maxBytes=5_000_000, backupCount=3, encoding="utf-8"
+    )
+    fh.setFormatter(_FMT)
+    return fh
+
+
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     """Return (or create) a named logger with console + file handlers."""
     if name in _loggers:
@@ -36,19 +53,10 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger.setLevel(level)
 
     if not logger.handlers:
-        fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s — %(message)s")
-
         ch = logging.StreamHandler()
-        ch.setFormatter(fmt)
+        ch.setFormatter(_FMT)
         logger.addHandler(ch)
-
-        log_dir = Path("data/logs")
-        log_dir.mkdir(parents=True, exist_ok=True)
-        fh = logging.handlers.RotatingFileHandler(
-            log_dir / "app.log", maxBytes=5_000_000, backupCount=3
-        )
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
+        logger.addHandler(_make_file_handler(_LOG_DIR))
 
     _loggers[name] = logger
     return logger

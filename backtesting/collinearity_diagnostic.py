@@ -56,7 +56,7 @@ def collect_score_pairs(
     outcome simulation, since correlation only needs the score components.
     """
     try:
-        cfg = yaml.safe_load(Path(config_path).read_text()) or {}
+        cfg = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
     except Exception:
         cfg = {}
 

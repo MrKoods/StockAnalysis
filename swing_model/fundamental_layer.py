@@ -551,6 +551,6 @@ class FundamentalScorer:
     @staticmethod
     def _load_config() -> dict:
         if _CONFIG_PATH.exists():
-            with open(_CONFIG_PATH, "r") as f:
+            with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f) or {}
         return {}

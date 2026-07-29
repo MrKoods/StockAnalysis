@@ -148,14 +148,14 @@ def _period_pct_change(series: pd.Series, window: int) -> Optional[float]:
 def load_macro_state() -> dict:
     """Load last computed macro state from data/processed/macro_state.json."""
     if _MACRO_STATE_FILE.exists():
-        return json.loads(_MACRO_STATE_FILE.read_text())
+        return json.loads(_MACRO_STATE_FILE.read_text(encoding="utf-8"))
     return {"macro_state": MACRO_NEUTRAL, "confidence_modifier": 0.0}
 
 
 def save_macro_state(state: dict) -> None:
     """Persist macro state to data/processed/macro_state.json."""
     _MACRO_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _MACRO_STATE_FILE.write_text(json.dumps(state, indent=2))
+    _MACRO_STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
 
 def get_macro_modifier(macro_state: str, cfg: Optional[dict] = None) -> float:

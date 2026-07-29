@@ -2,10 +2,33 @@
 Repo-wide pytest fixtures.
 """
 
+import logging.handlers
+
 import pytest
 
 import shared.utils.logger as logger_module
 import backtesting.backtest_engine as backtest_engine_module
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _isolate_app_log(tmp_path_factory):
+    """
+    Same issue as _isolate_csv_logs, for the RotatingFileHandler get_logger()
+    attaches to every logger. Loggers created at import time (most modules do
+    `logger = get_logger(__name__)` at module scope) already have a handler
+    bound to the real data/logs/app.log before any per-test fixture runs, so
+    monkeypatching _LOG_DIR alone wouldn't touch them — swap the handler
+    directly on every logger created so far, and repoint _LOG_DIR so any
+    logger created for the first time later in the session follows suit.
+    """
+    tmp_log_dir = tmp_path_factory.mktemp("logs")
+    logger_module._LOG_DIR = tmp_log_dir
+    for logger in logger_module._loggers.values():
+        for handler in list(logger.handlers):
+            if isinstance(handler, logging.handlers.RotatingFileHandler):
+                logger.removeHandler(handler)
+                handler.close()
+        logger.addHandler(logger_module._make_file_handler(tmp_log_dir))
 
 
 @pytest.fixture(autouse=True)

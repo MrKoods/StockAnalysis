@@ -196,7 +196,7 @@ def get_av_call_count() -> dict:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if _AV_COUNTER_FILE.exists():
         try:
-            data = json.loads(_AV_COUNTER_FILE.read_text())
+            data = json.loads(_AV_COUNTER_FILE.read_text(encoding="utf-8"))
             if data.get("date") == today:
                 return data
         except (json.JSONDecodeError, KeyError):

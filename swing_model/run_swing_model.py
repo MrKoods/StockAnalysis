@@ -466,8 +466,8 @@ def main(scan_type: str = "post_close") -> None:
                     "ticker": ticker,
                     "notes": f"pipeline_error: {exc}",
                 })
-            except Exception:
-                pass
+            except Exception as audit_exc:
+                logger.error(f"{ticker}: failed to write audit_log.csv error row — {audit_exc}")
 
     # Event Severity Gate — expire blocks whose cooling-off condition is met:
     # a post_close scan that completes after the block's event timestamp (a full
@@ -523,7 +523,7 @@ def check_for_missed_scan(audit_log_path: str, scan_type: str) -> bool:
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
     try:
-        with open(path, newline="") as f:
+        with open(path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 ts_str = row.get("timestamp_utc", "")

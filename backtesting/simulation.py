@@ -148,7 +148,7 @@ def _load_fundamental_history(tickers: list, cfg: dict) -> list[tuple[datetime, 
     snapshots = []
     for path in sorted(history_dir.glob("*.json")):
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 snapshot = _json.load(f)
             snap_date = datetime.strptime(snapshot["date"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
             scores = scorer.score_all_tickers(watchlist, snapshot)
@@ -272,7 +272,7 @@ def _simulate_test_signals(
     from backtesting.historical_news_loader import load_historical_news
 
     try:
-        cfg = yaml.safe_load(Path(config_path).read_text()) or {}
+        cfg = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
     except Exception:
         cfg = {}
 

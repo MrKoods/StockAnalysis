@@ -80,7 +80,7 @@ def _all_quarters() -> list[tuple[str, str, str]]:
 def _load_progress() -> dict:
     if _PROGRESS_FILE.exists():
         try:
-            return json.loads(_PROGRESS_FILE.read_text())
+            return json.loads(_PROGRESS_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
     return {}
@@ -88,14 +88,14 @@ def _load_progress() -> dict:
 
 def _save_progress(prog: dict) -> None:
     _PROGRESS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _PROGRESS_FILE.write_text(json.dumps(prog, indent=2))
+    _PROGRESS_FILE.write_text(json.dumps(prog, indent=2), encoding="utf-8")
 
 
 def _calls_today() -> int:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if _DAILY_LOG.exists():
         try:
-            data = json.loads(_DAILY_LOG.read_text())
+            data = json.loads(_DAILY_LOG.read_text(encoding="utf-8"))
             if data.get("date") == today:
                 return int(data.get("count", 0))
         except Exception:
@@ -108,7 +108,7 @@ def _increment_daily(n: int = 1) -> int:
     count = _calls_today()
     count += n
     _DAILY_LOG.parent.mkdir(parents=True, exist_ok=True)
-    _DAILY_LOG.write_text(json.dumps({"date": today, "count": count}))
+    _DAILY_LOG.write_text(json.dumps({"date": today, "count": count}), encoding="utf-8")
     return count
 
 

@@ -219,6 +219,6 @@ def _save_report(result: dict) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     path = report_dir / f"swing_backtest_{date_str}.json"
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         import json
         json.dump(result, f, indent=2, default=str)
