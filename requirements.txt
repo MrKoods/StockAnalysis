@@ -22,6 +22,11 @@ py_vollib>=1.0.1
 
 # NER (named entity recognition)
 spacy>=3.7.0
+# spacy's CLI (spacy/cli/_util.py, used by `python -m spacy download`) imports
+# click directly but doesn't declare it as a dependency — it used to arrive
+# transitively via typer, until typer dropped its own click dependency in a
+# newer release. Declared explicitly so `spacy download` doesn't ModuleNotFoundError.
+click>=8.0.0
 
 # Scheduling (paper trading / run cadence)
 schedule>=1.2.0

@@ -29,6 +29,8 @@ cffi==2.0.0
     # via curl-cffi
 charset-normalizer==3.4.7
     # via requests
+click==8.4.2
+    # via -r requirements.txt
 cloudpathlib==0.24.0
     # via weasel
 cody-special==1.0.0
@@ -37,6 +39,7 @@ cody-special==1.0.0
     #   vollib
 colorama==0.4.6
     # via
+    #   click
     #   pytest
     #   tqdm
     #   typer
