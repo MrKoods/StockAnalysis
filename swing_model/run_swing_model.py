@@ -24,6 +24,7 @@ from shared.api_clients.market_data_client import (
 )
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
+from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state, save_macro_state
 from shared.utils.sector_rotation import compute_rotation_state
@@ -164,7 +165,7 @@ def main(scan_type: str = "post_close") -> None:
     candidates = []
     data_sources = {
         "yfinance": True, "StockTwits": False, "SeekingAlpha": False,
-        "Alpha Vantage": True, "Finnhub": False,
+        "Alpha Vantage": True, "Finnhub": False, "SEC EDGAR": False,
     }
 
     for ticker in watchlist:
@@ -217,7 +218,10 @@ def main(scan_type: str = "post_close") -> None:
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
-            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles
+            sec_edgar_filings = _fetch_sec_edgar_safe(ticker)
+            if sec_edgar_filings:
+                data_sources["SEC EDGAR"] = True
+            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
             fetch_av_now = free_sources_flag_critical_event(
                 free_source_articles, ticker, cfg, sector=sector
             )
@@ -225,6 +229,7 @@ def main(scan_type: str = "post_close") -> None:
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
+                sec_edgar_filings=sec_edgar_filings,
             )
 
             # Earnings proximity modifier
@@ -888,6 +893,14 @@ def _fetch_finnhub_news_safe(ticker: str) -> list[dict]:
         return fetch_news_finnhub(ticker) or []
     except Exception as exc:
         logger.warning(f"{ticker}: Finnhub news fetch failed — {exc}")
+        return []
+
+
+def _fetch_sec_edgar_safe(ticker: str) -> list[dict]:
+    try:
+        return fetch_recent_8k_filings(ticker) or []
+    except Exception as exc:
+        logger.warning(f"{ticker}: SEC EDGAR 8-K fetch failed — {exc}")
         return []
 
 

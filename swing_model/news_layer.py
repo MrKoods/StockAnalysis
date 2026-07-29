@@ -87,6 +87,7 @@ def compute_news_score(
     finnhub_articles: Optional[list[dict]] = None,
     sector: Optional[str] = None,
     seeking_alpha_articles: Optional[list[dict]] = None,
+    sec_edgar_filings: Optional[list[dict]] = None,
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -125,6 +126,14 @@ def compute_news_score(
     is the same "accumulates going forward, not backtestable yet" caveat
     already accepted for Positioning and live StockTwits sentiment — track it
     the same way, don't treat backtest parity as a blocker for this change.
+    Same caveat applies to sec_edgar_filings below — no historical 8-K archive
+    is cached, so backtesting always passes None for it too.
+
+    `sec_edgar_filings`: recent 8-K filings for `ticker` from SEC EDGAR (see
+    shared/api_clients/sec_edgar_client.py) — a company's own regulatory
+    disclosure, scored at the highest source credibility (1.0) since it's a
+    primary source, not third-party reporting. Folded into the same scored
+    total and Event Severity Gate classification as every other source.
 
     Returns dict with all fields required by scoring.py.
     """
@@ -137,7 +146,7 @@ def compute_news_score(
 
     all_articles = (
         list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
-        + list(seeking_alpha_articles or [])
+        + list(seeking_alpha_articles or []) + list(sec_edgar_filings or [])
     )
 
     # ---------------------------------------------------------------------------

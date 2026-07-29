@@ -11,6 +11,74 @@ this is enforced automatically by the code (`model_versioning.py`).
 
 ---
 
+## [v2.2.26] — 2026-07-29 — Added SEC EDGAR 8-K filings as a News source
+
+**Status:** Live. A new free data source folded into the existing News layer's scoring and
+Event Severity Gate — no scoring weights or thresholds changed.
+
+### What changed
+- New `shared/api_clients/sec_edgar_client.py` fetches each ticker's recent 8-K filings from
+  SEC EDGAR's public company-filings feed (no API key required — SEC EDGAR is free and
+  public) and extracts the human-readable Item description from each one (e.g. "Item 5.02:
+  Departure of Directors...") rather than the generic, unvarying filing title.
+- Folded into `news_layer.compute_news_score()` as a fifth article source alongside Alpha
+  Vantage/Yahoo/Finnhub/Seeking Alpha, fetched on every scan.
+- Scored at 1.0 source credibility (`source_credibility.py`) — higher than any journalism
+  outlet, since an 8-K is the company's own regulatory disclosure, not third-party reporting.
+- Added "SEC EDGAR" to the Event Severity Gate's `principal_sources` — a filing matching a
+  trigger keyword is always treated as critical, same tier as FDA/Federal Reserve statements.
+- Also counts toward the free-source pool that decides whether a scan spends its one Alpha
+  Vantage confirmation call.
+- Added 10 new tests, built against real response payloads captured from the live endpoint
+  rather than invented fixtures.
+
+### Why
+Identified as a genuine, unfilled gap while reviewing what each scoring layer actually draws
+on: a company's own 8-K is about as authoritative and immediate as a News source gets —
+unlike Yahoo/Finnhub headlines, it's a primary disclosure filed straight with the regulator,
+not a third party reporting on it after the fact.
+
+### Backtest result
+Not applicable — no historical 8-K archive is cached, same "accumulates going forward, not
+backtestable yet" caveat already accepted for Seeking Alpha and live StockTwits sentiment;
+`backtesting/simulation.py` always passes `sec_edgar_filings=None`. 696 tests pass (was 686),
+3 skipped.
+
+### Approved by
+[pending]
+
+---
+
+## [v2.2.25] — 2026-07-29 — Fixed a pre-market data bug: NaN close price could reach scoring
+
+**Status:** Live. Data-integrity fix only — doesn't touch scoring weights or thresholds.
+
+### What changed
+- `market_data_client.py`'s `fetch_ohlcv()` and `fetch_ohlcv_batch()` now trim any trailing
+  OHLCV row whose Close is NaN before returning it.
+- `technical_common.py` now raises a clear error if a NaN close somehow still reaches
+  indicator computation, instead of silently scoring on it — caught by
+  `indicator_pipeline.py`'s existing per-ticker error handling, which logs a validation entry
+  and excludes just that ticker for the scan rather than failing the whole run.
+- Added 7 new tests covering both the trim helper and the guard.
+
+### Why
+Every daily-interval yfinance request made during market hours (including pre-market)
+includes an in-progress "today" bar — Open/Volume may already have partial pre-market
+prints, but Close stays NaN until the session actually closes. Observed live: the 5:30am
+pre-market scan logged `close=nan` for all 17 watchlist tickers; it self-resolved by the
+9:00am mid-session scan once yfinance backfilled the row, but a NaN close feeding into
+stop/target/position-size math is a real risk regardless of how quickly it self-resolves.
+
+### Backtest result
+Not applicable — this only affects the live/paper-trading data-fetch path; the backtest
+doesn't call `fetch_ohlcv_batch` during market hours. 686 tests pass (was 679), 3 skipped.
+
+### Approved by
+[pending]
+
+---
+
 ## [v2.2.24] — 2026-07-28 — Turned on the third sector (healthcare) for paper trading
 
 **Status:** Live. Healthcare (6 tickers) is now actively scanned in paper trading, alongside semiconductors and regional banks. Still no real money at risk — no version of this model has ever passed its backtest requirements, so this only expands what paper trading watches, the same way regional banks did in v2.2.10.

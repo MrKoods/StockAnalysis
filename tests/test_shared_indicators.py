@@ -285,3 +285,22 @@ class TestComputeTechnicalIndicators:
         result = compute_technical_indicators(ohlcv_trending_up, benchmark, cfg)
         for key in ["close", "rsi_14", "atr_14", "breakout_volume_zscore"]:
             assert isinstance(result[key], float), f"{key} should be float, got {type(result[key])}"
+
+    def test_raises_on_nan_close_in_latest_bar(self, ohlcv_trending_up):
+        """
+        A NaN close in the last row (e.g. an in-progress daily bar that slipped
+        past the data-fetch layer's trim) must not be silently scored — close
+        feeds stop/target/position-size math downstream with no safe fallback.
+        """
+        df = ohlcv_trending_up.copy()
+        df.loc[df.index[-1], "Close"] = float("nan")
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        with pytest.raises(ValueError, match="NaN close"):
+            compute_technical_indicators(df, benchmark, cfg)

@@ -19,6 +19,23 @@ logger = get_logger(__name__)
 _BACKOFF_DELAYS = [30, 60, 120]
 
 
+def _trim_incomplete_last_bar(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop trailing rows with a NaN Close.
+
+    yfinance includes an in-progress bar for the current calendar day whenever a
+    daily-interval request is made during market hours (including pre-market) —
+    Open/Volume may already have partial prints, but Close stays NaN until the
+    session actually closes. Every downstream indicator (SMA/RSI/ATR/MACD) assumes
+    the last row is a completed bar, so trim it rather than let a NaN close through.
+    Retrying won't fix this (the bar stays incomplete for hours), so this returns
+    the trimmed — possibly empty — DataFrame rather than raising.
+    """
+    while not df.empty and pd.isna(df["Close"].iloc[-1]):
+        df = df.iloc[:-1]
+    return df
+
+
 def fetch_ohlcv(
     ticker: str,
     period: str = "6mo",
@@ -45,6 +62,7 @@ def fetch_ohlcv(
             df.index = df.index.tz_convert("UTC")
         # Keep standard columns only
         df = df[["Open", "High", "Low", "Close", "Volume"]].copy()
+        df = _trim_incomplete_last_bar(df)
         return df
 
     return _fetch_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
@@ -88,6 +106,7 @@ def fetch_ohlcv_batch(
             if ticker in raw.columns.get_level_values(0):
                 df = raw[ticker][["Open", "High", "Low", "Close", "Volume"]].copy()
                 df = df.dropna(how="all")
+                df = _trim_incomplete_last_bar(df)
                 if df.empty:
                     result[ticker] = None
                     continue

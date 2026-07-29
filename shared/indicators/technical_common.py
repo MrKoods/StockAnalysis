@@ -248,6 +248,14 @@ def compute_technical_indicators(
     breakout_bool_series = is_breakout(close, high, ma_short)
 
     c_close = float(close.iloc[latest])
+    if pd.isna(c_close):
+        # An in-progress daily bar (e.g. pre-market, before the session has a
+        # real close) should have been trimmed at the data-fetch layer. Unlike
+        # atr/sma/etc. below, there's no safe numeric fallback for a stock's
+        # close — it feeds stop/target/position-size math — so raise instead
+        # of silently scoring on a fabricated price. Caller already treats
+        # this the same as any other indicator-computation failure.
+        raise ValueError("Latest bar has a NaN close — cannot compute indicators")
     c_sma20 = float(sma_20_series.iloc[latest]) if not pd.isna(sma_20_series.iloc[latest]) else c_close
     c_sma50 = float(sma_50_series.iloc[latest]) if not pd.isna(sma_50_series.iloc[latest]) else c_close
     c_rsi = float(rsi_series.iloc[latest])

@@ -66,6 +66,7 @@ from swing_model.run_swing_model import (
     _fetch_av_news_safe,
     _fetch_yahoo_news_safe,
     _fetch_finnhub_news_safe,
+    _fetch_sec_edgar_safe,
     _fetch_earnings_safe,
     get_model_version,
     _try_send_event_gate_alert,
@@ -336,7 +337,8 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             ]
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
-            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles
+            sec_edgar_filings = _fetch_sec_edgar_safe(ticker)
+            free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
             fetch_av_now = free_sources_flag_critical_event(
                 free_source_articles, ticker, cfg, sector=sector
             )
@@ -344,6 +346,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
+                sec_edgar_filings=sec_edgar_filings,
             )
 
             # Earnings + cross-ticker modifiers
@@ -589,7 +592,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             )
             _db_insert_layer_scores_safe(result_id, score)
 
-            news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles)
+            news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles) + len(sec_edgar_filings)
             dominant_theme = str(news.get("dominant_theme", "")) if isinstance(news, dict) else ""
 
             row: dict = {

@@ -6,6 +6,10 @@ A Reuters article on NVDA carries more weight than an obscure financial blog.
 
 # Default outlet credibility scores (0.0-1.0, calibrated manually)
 _DEFAULT_OUTLET_SCORES: dict[str, float] = {
+    # A company's own SEC filing — not reported through a third party, so it
+    # outranks even wire services for accuracy (it IS the primary source).
+    "sec.gov": 1.0,
+    "SEC EDGAR": 1.0,
     "Reuters": 0.95,
     "Bloomberg": 0.95,
     "Wall Street Journal": 0.90,

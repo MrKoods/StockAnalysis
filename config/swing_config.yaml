@@ -548,6 +548,7 @@ event_severity_gate:
     - "Commerce Department"
     - "USTR"
     - "FDA"
+    - "SEC EDGAR"                       # a company's own 8-K filing — always critical if it matches a trigger
   min_source_credibility: 0.5          # below this, trigger match logs WARNING but does not gate
   require_headline_match: true         # case-insensitive match against post-NER headline text
 
