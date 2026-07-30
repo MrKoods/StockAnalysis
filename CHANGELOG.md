@@ -11,6 +11,50 @@ this is enforced automatically by the code (`model_versioning.py`).
 
 ---
 
+## [v2.2.27] — 2026-07-29 — Added hyperscaler capex signal for the semiconductor sector
+
+**Status:** Live. Extends the v2.2.26 SEC EDGAR work — same News/Event Severity Gate
+mechanism, no new scoring category or modifier, no weight/threshold change.
+
+### What changed
+- New `fetch_hyperscaler_capex_snippets()` in `shared/api_clients/sec_edgar_client.py`
+  fetches AMZN/MSFT/GOOGL/META's recent earnings-related 8-Ks (Items 2.02/7.01/8.01),
+  locates each filing's Exhibit 99.x press release via its `index.json` (SEC's near-
+  universal naming convention for exhibits includes "ex99"), and extracts short text
+  snippets around capex-context terms ("purchases of property and equipment", "capital
+  expenditures", "AI infrastructure", etc.) as article-shaped dicts.
+- Added `capex_context_tickers: [AMZN, MSFT, GOOGL, META]` under
+  `watchlist.sectors.semiconductors` in `config/swing_config.yaml` — fetched once per
+  scan (not once per semiconductor ticker) and folded into every semiconductor ticker's
+  News article pool alongside its own 8-Ks.
+- Added capex-guidance-cut keywords to `event_severity_gate.sector_triggers.
+  semiconductors` (e.g. "reducing capital expenditures", "scaling back AI
+  infrastructure") — a hyperscaler capex cut now gets the same sector-wide caution flag
+  a tariff or export-ban headline already gets.
+- Added 15 new tests covering snippet extraction, exhibit discovery, item-code
+  filtering, and end-to-end fetch behavior.
+
+### Why
+SEC EDGAR's atom feed `<summary>` (what v2.2.26 reads) only ever contains generic
+Item-code boilerplate ("Item 2.02: Results of Operations and Financial Condition") —
+verified live against AMZN's own filings: never actual company commentary, so a
+capex-cut keyword could never have matched it. The real number lives in the filing's
+attached press release exhibit, one level deeper. Verified against AMZN's Q1 2026
+earnings 8-K: the atom summary has zero capex-related text, while the actual exhibit
+states a $59.3 billion year-over-year increase in "purchases of property and
+equipment" (Amazon's capex line item) with real AI-infrastructure commentary attached.
+AI infrastructure capex is the demand driver behind semiconductor sector moves, and it
+shows up in these four companies' own filings before it reaches general news.
+
+### Backtest result
+Not applicable — same "accumulates going forward, not backtestable yet" caveat as
+v2.2.26; no historical exhibit archive is cached. 707 tests pass (was 696), 3 skipped.
+
+### Approved by
+[pending]
+
+---
+
 ## [v2.2.26] — 2026-07-29 — Added SEC EDGAR 8-K filings as a News source
 
 **Status:** Live. A new free data source folded into the existing News layer's scoring and

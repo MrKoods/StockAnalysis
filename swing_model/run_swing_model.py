@@ -24,7 +24,7 @@ from shared.api_clients.market_data_client import (
 )
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
-from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings, fetch_hyperscaler_capex_snippets
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state, save_macro_state
 from shared.utils.sector_rotation import compute_rotation_state
@@ -132,6 +132,10 @@ def main(scan_type: str = "post_close") -> None:
             bench_df, mkt["spy_df"]
         ).get("confidence_modifier", 0.0)
 
+    # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
+    # META) — fetched once per scan, reused for every ticker in that sector.
+    sector_context_filings = _compute_sector_context_filings(active_sectors)
+
     macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
     macro_modifier_val = macro_state_result.get("confidence_modifier", 0.0)
     # Persist for observability (app UI, debugging) — computed fresh every run
@@ -218,7 +222,7 @@ def main(scan_type: str = "post_close") -> None:
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             if finnhub_articles:
                 data_sources["Finnhub"] = True
-            sec_edgar_filings = _fetch_sec_edgar_safe(ticker)
+            sec_edgar_filings = _fetch_sec_edgar_safe(ticker) + sector_context_filings.get(sector, [])
             if sec_edgar_filings:
                 data_sources["SEC EDGAR"] = True
             free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
@@ -902,6 +906,34 @@ def _fetch_sec_edgar_safe(ticker: str) -> list[dict]:
     except Exception as exc:
         logger.warning(f"{ticker}: SEC EDGAR 8-K fetch failed — {exc}")
         return []
+
+
+def _fetch_hyperscaler_capex_safe(ticker: str) -> list[dict]:
+    try:
+        return fetch_hyperscaler_capex_snippets(ticker) or []
+    except Exception as exc:
+        logger.warning(f"{ticker}: hyperscaler capex snippet fetch failed — {exc}")
+        return []
+
+
+def _compute_sector_context_filings(active_sectors: dict) -> dict[str, list[dict]]:
+    """
+    Fetch each active sector's configured capex_context_tickers (e.g.
+    semiconductors' AMZN/MSFT/GOOGL/META — see config/swing_config.yaml)
+    ONCE per scan, not once per ticker, since every ticker in that sector
+    shares the same context filings. Sectors with no capex_context_tickers
+    configured are simply absent from the returned dict.
+    """
+    context_filings: dict[str, list[dict]] = {}
+    for sector_name, sector_cfg in active_sectors.items():
+        capex_tickers = sector_cfg.get("capex_context_tickers", [])
+        if not capex_tickers:
+            continue
+        snippets: list[dict] = []
+        for hs_ticker in capex_tickers:
+            snippets.extend(_fetch_hyperscaler_capex_safe(hs_ticker))
+        context_filings[sector_name] = snippets
+    return context_filings
 
 
 def _fetch_earnings_safe(ticker: str) -> Optional[dict]:

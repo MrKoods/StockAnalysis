@@ -36,6 +36,16 @@ watchlist:
         - TSM
         - MU
         - ASML
+      # Not part of the tradeable watchlist — these 4 hyperscalers' own SEC
+      # filings are checked as a sector-wide capex demand signal (see v2.2.27
+      # CHANGELOG entry): AI infrastructure capex guidance from AMZN/MSFT/
+      # GOOGL/META is the demand driver behind semiconductor sector moves,
+      # and it shows up in their own 8-Ks before it reaches general news.
+      capex_context_tickers:
+        - AMZN
+        - MSFT
+        - GOOGL
+        - META
     regional_banks:
       active: true                # paper trading only — see v2.2.10 CHANGELOG entry
       benchmark: KRE
@@ -513,6 +523,15 @@ event_severity_gate:
       - "trade war"
       - "Taiwan Strait"
       - "semiconductor embargo"
+      # Hyperscaler capex guidance cuts (see capex_context_tickers above) —
+      # a cut is the adverse case worth a caution flag; a capex INCREASE is
+      # ordinary bullish news that already flows through normal News scoring
+      # and doesn't need a veto-style trigger.
+      - "reducing capital expenditures"
+      - "lower capex guidance"
+      - "cutting data center spending"
+      - "scaling back AI infrastructure"
+      - "pausing data center"
       - "entity list"
       - "national security review"
     regional_banks:

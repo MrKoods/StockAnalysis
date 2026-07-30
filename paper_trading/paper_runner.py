@@ -67,6 +67,7 @@ from swing_model.run_swing_model import (
     _fetch_yahoo_news_safe,
     _fetch_finnhub_news_safe,
     _fetch_sec_edgar_safe,
+    _compute_sector_context_filings,
     _fetch_earnings_safe,
     get_model_version,
     _try_send_event_gate_alert,
@@ -271,6 +272,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             bench_df, mkt["spy_df"]
         ).get("confidence_modifier", 0.0)
 
+    # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
+    # META) — fetched once per scan, reused for every ticker in that sector.
+    sector_context_filings = _compute_sector_context_filings(active_sectors)
+
     macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
     macro_mod = macro_state_result.get("confidence_modifier", 0.0)
     # Persist for observability (app UI, debugging) — computed fresh every run
@@ -337,7 +342,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             ]
             yahoo_articles = _fetch_yahoo_news_safe(ticker)
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
-            sec_edgar_filings = _fetch_sec_edgar_safe(ticker)
+            sec_edgar_filings = _fetch_sec_edgar_safe(ticker) + sector_context_filings.get(sector, [])
             free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
             fetch_av_now = free_sources_flag_critical_event(
                 free_source_articles, ticker, cfg, sector=sector
