@@ -265,6 +265,28 @@ class TestSeasonality:
             assert result["quarter"] == 4
             assert result["confidence_modifier"] >= 3.0
 
+    def test_config_override_int_keys(self):
+        # yaml.safe_load() parses swing_config.yaml's unquoted numeric keys
+        # (e.g. `12: -1.0`) as int, not str — a string-keyed test dict like
+        # test_config_override's above can pass even when the real int-keyed
+        # lookup is broken. This test uses int keys to match real YAML parsing.
+        cfg = {"modifiers": {"seasonality": {"monthly_modifiers": {12: -1.0}}}}
+        dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
+        result = get_seasonality_modifier(date=dec, cfg=cfg)
+        assert result["confidence_modifier"] == -1.0
+
+    def test_real_config_file_august(self):
+        # End-to-end: load the actual swing_config.yaml (not a hand-built test
+        # dict) and confirm August resolves to its real configured value (0),
+        # not the hardcoded quarterly fallback (+1.0 for Q3) a broken int/str
+        # key lookup would silently substitute instead.
+        import yaml
+        from pathlib import Path
+        cfg = yaml.safe_load(Path("config/swing_config.yaml").read_text(encoding="utf-8"))
+        aug = datetime(2026, 8, 1, tzinfo=timezone.utc)
+        result = get_seasonality_modifier(date=aug, cfg=cfg)
+        assert result["confidence_modifier"] == 0.0
+
 
 # ---------------------------------------------------------------------------
 # Macro Overlay

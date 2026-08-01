@@ -31,6 +31,7 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.30 | 2026-08-01 | Bug Fix | v2.2.28's seasonality fix was incomplete — a second, deeper key-type bug meant live scans still weren't reading the real config values |
 | v2.2.29 | 2026-08-01 | Backtest Methodology / Scoring Change | Re-tested stale entry-filter defaults under the current scoring formula; backtest passes its own go-live gate for the first time |
 | v2.2.28 | 2026-07-31 | Bug Fix | Fixed dead/miscalibrated sub-signals found via live paper-trading review |
 | v2.2.27 | 2026-07-29 | Data Source | Added hyperscaler capex signal for the semiconductor sector |
@@ -69,6 +70,43 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
 | v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+
+---
+
+## [v2.2.30] — 2026-08-01 — [Bug Fix] v2.2.28's seasonality fix was incomplete
+
+**Status:** Live.
+
+**Problem:** v2.2.28 fixed the config key mismatch (`monthly_adjustments`→`monthly_modifiers`)
+but missed a second bug underneath it. `get_seasonality_modifier()` looked up
+`monthly.get(str(month), ...)` — a string key ("8"). `yaml.safe_load()` parses
+`swing_config.yaml`'s unquoted numeric keys (`8: 0`) as **int**, not str, so
+`monthly.get("8")` on that real, int-keyed dict always returned `None` and silently
+fell through to the quarterly fallback — which itself falls back to a second
+hardcoded default (`_DEFAULT_QUARTERLY`) since the config has no
+`quarterly_adjustments` key either. Verified live: an August scan was computing
+seasonality=+1.0 (Q3's hardcoded quarterly value) instead of the config's real,
+calibrated August value of 0. The v2.2.28 fix was necessary but not sufficient —
+after that fix "shipped," live scans still weren't reading the config.
+Caught because the unit test written to cover the v2.2.28 fix used a string-keyed
+test dict (`{"12": -1.0}`), which happens to match the buggy string lookup and
+passed regardless of whether the real bug was fixed — the same failure mode as
+the original bug, one level up.
+
+**Fix:** `shared/utils/seasonality.py` now tries an int key lookup first (matching
+real YAML parsing), falling back to a str key lookup (for hand-authored quoted
+configs or programmatic callers), before falling through to the quarterly default.
+Added two tests: one with int keys mirroring real YAML parsing, and one that loads
+the actual `config/swing_config.yaml` end-to-end and asserts August resolves to its
+real configured value (0) — so this class of bug can't hide behind a hand-built,
+string-keyed test dict again.
+
+**Backtest result:** Not applicable — this is a data-correctness fix (the modifier now
+reads the intended value instead of a wrong fallback), not a calibration change to
+re-validate. Confirmed directly against the real config file rather than via backtest.
+707 tests pass (709 after the two new tests are added), 3 skipped.
+
+**Approved by:** [pending]
 
 ---
 

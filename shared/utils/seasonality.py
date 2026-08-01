@@ -38,10 +38,19 @@ def get_seasonality_modifier(
     monthly = seasonal_cfg.get("monthly_modifiers", _DEFAULT_MONTHLY)
     quarterly = seasonal_cfg.get("quarterly_adjustments", _DEFAULT_QUARTERLY)
 
-    # Monthly modifier takes precedence over quarterly
-    month_key = str(month)
+    # Monthly modifier takes precedence over quarterly. yaml.safe_load() parses
+    # swing_config.yaml's unquoted numeric keys (e.g. `8: 0`) as int, not str — a
+    # str(month) lookup against that real, int-keyed dict always misses and falls
+    # through to the quarterly default. Try int first (matches real YAML parsing),
+    # then str (hand-authored quoted configs, programmatic callers, _DEFAULT_MONTHLY
+    # itself which is str-keyed), before falling through to quarterly.
     quarter_key = f"Q{quarter}"
-    raw = monthly.get(month_key, quarterly.get(quarter_key, 0.0))
+    if month in monthly:
+        raw = monthly[month]
+    elif str(month) in monthly:
+        raw = monthly[str(month)]
+    else:
+        raw = quarterly.get(quarter_key, 0.0)
     modifier = max(-5.0, min(5.0, float(raw)))
 
     if modifier >= 2.0:
