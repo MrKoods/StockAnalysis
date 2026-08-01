@@ -8,6 +8,8 @@ before they are combined in scoring.py.
 import numpy as np
 import pandas as pd
 
+from shared.utils.volume_profile import compute_volume_profile, score_volume_profile_position
+
 
 # ---------------------------------------------------------------------------
 # Z-Score normalization
@@ -277,6 +279,28 @@ def compute_technical_indicators(
     c_rsi_z = float(rsi_z_series.iloc[latest])
     c_breakout = bool(breakout_bool_series.iloc[latest]) if not pd.isna(breakout_bool_series.iloc[latest]) else False
 
+    # ---------------------------------------------------------------------------
+    # Volume profile score (0-8): previously computed by volume_profile.py but
+    # never called from any live call site (run_swing_model.py, paper_runner.py) —
+    # scoring.py's compute_technical_sub_scores() always fell back to its neutral
+    # 4.0 default for every ticker, every scan. Computed here instead of at each
+    # caller so every consumer of this function's output (live pipeline, backtest
+    # simulation.py, tests) picks it up automatically. score_volume_profile_position()
+    # returns on a 0-12 scale (pre-dates the 5×8-point technical redesign) — rescaled
+    # to 0-8 to match volume_profile's current 8-point sub-signal max.
+    # ---------------------------------------------------------------------------
+    vp_cfg = cfg.get("volume_profile", {})
+    try:
+        vp_df = compute_volume_profile(
+            ohlcv,
+            lookback_days=vp_cfg.get("lookback_days", 60),
+            price_bucket_pct=vp_cfg.get("price_bucket_pct", 0.005),
+        )
+        c_volume_profile_score = score_volume_profile_position(c_close, vp_df) * (8.0 / 12.0)
+    except Exception:
+        c_volume_profile_score = 4.0  # neutral fallback — matches scoring.py's prior default
+    c_volume_profile_score = round(max(0.0, min(8.0, c_volume_profile_score)), 2)
+
     return {
         # Latest bar scalars
         "close": c_close,
@@ -308,4 +332,6 @@ def compute_technical_indicators(
         "price_above_sma_50": c_close > c_sma50,
         "macd_bullish": (c_macd > c_signal) if macd_data_available else False,
         "macd_data_available": macd_data_available,
+
+        "volume_profile_score": c_volume_profile_score,
     }

@@ -250,7 +250,10 @@ class TestSeasonality:
             assert key in result
 
     def test_config_override(self):
-        cfg = {"modifiers": {"seasonality": {"monthly_adjustments": {"12": -1.0}}}}
+        # Key must match swing_config.yaml's actual schema (modifiers.seasonality.
+        # monthly_modifiers) — this test previously used "monthly_adjustments",
+        # silently matching the code's pre-fix key mismatch instead of catching it.
+        cfg = {"modifiers": {"seasonality": {"monthly_modifiers": {"12": -1.0}}}}
         dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
         result = get_seasonality_modifier(date=dec, cfg=cfg)
         assert result["confidence_modifier"] == -1.0

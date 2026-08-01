@@ -45,7 +45,17 @@ _MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history's growth, ol
 # still shared with post-close news (1 call/ticker), so capping refreshes/day and
 # spreading tickers across weekdays keeps fundamental usage to a handful of AV calls
 # a month, not a day, instead of a periodic spike that starves news.
-_FUNDAMENTAL_MAX_TICKERS_PER_DAY = 3
+#
+# Raised 3 -> 5 (2026-07-31): this cap was set when the watchlist was 6 semiconductor
+# tickers only. It was never revisited when regional_banks (+5) and healthcare (+6)
+# went live, taking the watchlist to 17. Steady-state rotation alone (17 tickers /
+# _FUNDAMENTAL_ROTATION_WINDOW_DAYS=7) needs ~2.4 tickers/day, leaving almost no
+# daily slack for bootstrap catch-up — confirmed live: 4 of 6 healthcare tickers were
+# still showing fundamental_score=0/as_of=never a week after going live in v2.2.24,
+# each one capped ~10 points below its true ceiling for a reason unrelated to the
+# stock itself. Bootstrap is a one-time cost per ticker (not recurring), so this
+# raise mainly speeds up catch-up after watchlist growth, not steady-state AV usage.
+_FUNDAMENTAL_MAX_TICKERS_PER_DAY = 5
 _FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
 _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3
 

@@ -38,6 +38,25 @@ _TICKER_TO_COMPANY: dict[str, list[str]] = {
     "TSM": ["TSMC", "Taiwan Semiconductor", "Taiwan Semi", "TSM"],
     "MU": ["Micron", "MU"],
     "ASML": ["ASML"],
+    # Regional banks (v2.2.10) and healthcare (v2.2.24) were added to the
+    # watchlist without corresponding entries here — every headline for these
+    # 11 tickers was falling through to the ticker-symbol-only fallback
+    # (_TICKER_TO_COMPANY.get(ticker, [ticker])), and none of these symbols
+    # realistically appear as literal text in a news headline (coverage uses
+    # company names, e.g. "Zions Bancorporation", not "ZION"). Confirmed live:
+    # HBAN/RF/FITB/KEY were scoring news=0.0/15 on every scan despite Finnhub
+    # returning real articles for them.
+    "ZION": ["Zions Bancorporation", "Zions Bank", "ZION"],
+    "KEY": ["KeyCorp", "KeyBank"],  # bare "Key" deliberately excluded — too generic, would false-match unrelated headlines
+    "HBAN": ["Huntington Bancshares", "Huntington Bank", "HBAN"],
+    "RF": ["Regions Financial", "Regions Bank"],  # bare "RF" excluded — collides with common word substrings (e.g. "perform")
+    "FITB": ["Fifth Third Bancorp", "Fifth Third Bank", "FITB"],
+    "LLY": ["Eli Lilly", "Lilly", "LLY"],
+    "PFE": ["Pfizer", "PFE"],
+    "MRK": ["Merck", "MRK"],
+    "ABBV": ["AbbVie", "ABBV"],
+    "UNH": ["UnitedHealth", "UnitedHealth Group", "UNH"],
+    "JNJ": ["Johnson & Johnson", "Johnson and Johnson", "JNJ"],
 }
 
 _BULLISH_KEYWORDS = [

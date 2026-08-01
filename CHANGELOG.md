@@ -11,6 +11,74 @@ this is enforced automatically by the code (`model_versioning.py`).
 
 ---
 
+## [v2.2.28] — 2026-07-31 — Fixed dead/miscalibrated sub-signals found via live paper-trading review
+
+**Status:** Live. Bug fixes and one reliability improvement surfaced while investigating
+why paper trading logged zero qualifying signals for 2+ weeks. No scoring weight, category
+maximum, or the 90-point confidence threshold changed. Two calibration experiments (RS
+z-score anchor, breakout proximity scaling) were tested against the backtest and reverted —
+both produced zero measurable effect, so per the no-unproven-changes rule they were not kept.
+
+### What changed
+- **Technical:** wired the volume-profile sub-signal into `compute_technical_indicators()`
+  (`shared/indicators/technical_common.py`). `score_volume_profile_position()` was fully
+  implemented in `volume_profile.py` but never called from any live call site — every
+  ticker, every scan, was scoring a flat neutral 4.0/8 on this sub-signal regardless of
+  actual volume-node positioning. Rescaled from its native 0-12 scale to the current 0-8
+  sub-signal max. Computed once here so every consumer (live pipeline, backtest, tests)
+  picks it up automatically with no call-site changes.
+- **News:** added company-name aliases for the 11 of 17 watchlist tickers that had none in
+  `shared/utils/ner_extractor.py`'s `_TICKER_TO_COMPANY` (regional_banks and healthcare,
+  added in v2.2.10/v2.2.24, were never added here). `is_ticker_relevant()`'s fallback
+  matches the bare ticker symbol when no alias entry exists, and none of these 11 symbols
+  realistically appear as literal text in a news headline — confirmed live: HBAN/RF/FITB/KEY
+  were scoring news=0.0/15 on every scan despite Finnhub returning real articles for them.
+- **Fundamental:** raised `_FUNDAMENTAL_MAX_TICKERS_PER_DAY` 3→5 in
+  `swing_model/indicator_pipeline.py`. This cap was set when the watchlist was 6
+  semiconductor tickers; steady-state rotation for the current 17-ticker watchlist alone
+  needs ~2.4 tickers/day, leaving almost no daily slack for bootstrap catch-up — confirmed
+  live: 4 of 6 healthcare tickers were still showing fundamental_score=0/as_of=never a week
+  after going live in v2.2.24.
+- **Sentiment:** added a last-known-good cache (`data/processed/sentiment_engagement_cache.json`,
+  48h freshness) for Seeking Alpha engagement data in `shared/api_clients/sentiment_client.py`.
+  A transient RapidAPI outage previously hard-zeroed this sub-signal for every ticker scanned
+  while the API was down; now falls back to the most recent successful fetch instead.
+- **Modifiers (seasonality):** fixed a config key mismatch in `shared/utils/seasonality.py` —
+  the code read `monthly_adjustments`, but `swing_config.yaml`'s actual key is
+  `monthly_modifiers`. The lookup silently fell through to the module's own hardcoded
+  defaults every time, some of which disagree in sign with the YAML's documented
+  "Phase 12 calibrated" values (January: config -5 vs. hardcoded +2). The model has never
+  actually run on the seasonality values in the config file until this fix.
+- **Reverted (tested, no effect):** RS z-score anchor loosening (3σ→2σ) and breakout-score
+  proximity scaling (soften the hard binary breakout_confirmed gate) both produced
+  bit-for-bit identical backtest results before and after. This indicates the Technical
+  layer's pre-filters (trend_intact, sector trend, rs_zscore>0, RS>SMH, RSI 45-82) already
+  restrict candidates to a pool where Technical sub-scores saturate near max — fine-tuning
+  the curves inside that pool doesn't change which bars qualify.
+
+### Why
+Live paper trading (all three sectors) logged 0 qualifying signals for 2+ weeks. Backtest
+re-run (first valid run since the 07-19 Sharpe fix) showed qualifying trades had also fallen
+from 149 (07-04) to 18 on the same 13.5-year dataset — the accumulated effect of correctness
+fixes since then (real R:R filter enforcement, real liquidity/slippage filter, warmup-buffer
+boundary fix), not new market data. Investigation found two categories of issue: dead/
+miscalibrated code (volume-profile, seasonality, News aliases — fixed here) and structural
+selectivity (the 90-point threshold and Technical layer's AND-gates) — the latter intentionally
+left untouched pending a separate strategic decision, not a bug.
+
+### Backtest result
+18 → 19 qualifying trades, win rate 66.7% → 68.4%, avg R:R 2.35 → 2.18, Sharpe unchanged at
+0.34, max drawdown unchanged at 3.0%. **Still FAILS** the go-live gate (min_qualifying_trades:
+100, sharpe >= 1.0) — this patch fixes bugs and closes data gaps, it does not attempt to
+close the trade-count/Sharpe gap, which is a separate, larger question. 707 tests pass (was
+706 — one pre-existing test encoded the same wrong seasonality config key as the bug and was
+corrected alongside the fix), 3 skipped.
+
+### Approved by
+[pending]
+
+---
+
 ## [v2.2.27] — 2026-07-29 — Added hyperscaler capex signal for the semiconductor sector
 
 **Status:** Live. Extends the v2.2.26 SEC EDGAR work — same News/Event Severity Gate

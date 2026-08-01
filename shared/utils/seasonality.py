@@ -35,7 +35,7 @@ def get_seasonality_modifier(
     quarter = (month - 1) // 3 + 1
 
     seasonal_cfg = cfg.get("modifiers", {}).get("seasonality", {})
-    monthly = seasonal_cfg.get("monthly_adjustments", _DEFAULT_MONTHLY)
+    monthly = seasonal_cfg.get("monthly_modifiers", _DEFAULT_MONTHLY)
     quarterly = seasonal_cfg.get("quarterly_adjustments", _DEFAULT_QUARTERLY)
 
     # Monthly modifier takes precedence over quarterly

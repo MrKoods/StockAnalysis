@@ -13,13 +13,16 @@ Implements exponential backoff. Never raises — returns [] on any failure so
 the sentiment layer can fall back to its offline/degraded-scoring path.
 """
 
+import json
 import os
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import requests
 
+from shared.utils.atomic_io import atomic_write_json
 from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -27,6 +30,16 @@ logger = get_logger(__name__)
 _STOCKTWITS_HOST = "stocktwits.p.rapidapi.com"
 _SEEKING_ALPHA_HOST = "seeking-alpha-finance.p.rapidapi.com"
 _BACKOFF_DELAYS = [30, 60, 120]
+
+# Last-known-good cache for Seeking Alpha engagement items, keyed by ticker.
+# A transient RapidAPI outage (observed live: repeated "All retries exhausted"
+# across multiple tickers on the same day) used to make _score_engagement()
+# hard-zero that sub-signal for every ticker scanned while the API was down,
+# capping total sentiment at 12/15 for reasons unrelated to the stock. Falling
+# back to the most recent successful fetch (within _ENGAGEMENT_CACHE_MAX_AGE_HOURS)
+# instead of an empty list keeps that sub-signal informative through a short outage.
+_ENGAGEMENT_CACHE_PATH = Path("data/processed/sentiment_engagement_cache.json")
+_ENGAGEMENT_CACHE_MAX_AGE_HOURS = 48
 
 
 def fetch_stocktwits(ticker: str, limit: int = 30) -> list[dict]:
@@ -113,12 +126,12 @@ def fetch_seeking_alpha_engagement(ticker: str, limit: int = 10) -> list[dict]:
     params = {"ticker_slug": ticker, "page_number": 1, "category": "all"}
     data = _rapidapi_get(url, _SEEKING_ALPHA_HOST, api_key, params=params)
     if data is None:
-        return []
+        return _load_cached_engagement(ticker)
 
     raw_items = data.get("data", [])
     if not isinstance(raw_items, list):
         logger.warning(f"Seeking Alpha: unexpected response shape for {ticker}: {list(data.keys())}")
-        return []
+        return _load_cached_engagement(ticker)
 
     items = []
     for item in raw_items[:limit]:
@@ -137,7 +150,55 @@ def fetch_seeking_alpha_engagement(ticker: str, limit: int = 10) -> list[dict]:
         })
 
     logger.info(f"Seeking Alpha: fetched {len(items)} engagement items for {ticker}.")
-    return items
+    if items:
+        _save_cached_engagement(ticker, items)
+        return items
+    return _load_cached_engagement(ticker)
+
+
+def _load_cached_engagement(ticker: str) -> list[dict]:
+    """
+    Return the last successful Seeking Alpha engagement fetch for `ticker` if
+    it's within _ENGAGEMENT_CACHE_MAX_AGE_HOURS, else []. Never raises — a
+    missing/corrupt cache file just means no fallback is available.
+    """
+    try:
+        if not _ENGAGEMENT_CACHE_PATH.exists():
+            return []
+        cache = json.loads(_ENGAGEMENT_CACHE_PATH.read_text(encoding="utf-8"))
+        entry = cache.get(ticker)
+        if not entry:
+            return []
+        fetched_at = datetime.fromisoformat(entry["fetched_at"])
+        age_hours = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600.0
+        if age_hours > _ENGAGEMENT_CACHE_MAX_AGE_HOURS:
+            return []
+        logger.warning(
+            f"Seeking Alpha: live fetch unavailable for {ticker} — using cached "
+            f"engagement data from {age_hours:.1f}h ago."
+        )
+        return entry.get("items", [])
+    except Exception as exc:
+        logger.warning(f"Seeking Alpha: failed to read engagement cache for {ticker}: {exc}")
+        return []
+
+
+def _save_cached_engagement(ticker: str, items: list[dict]) -> None:
+    """Persist the latest successful engagement fetch for `ticker`, keyed alongside other tickers."""
+    try:
+        cache = {}
+        if _ENGAGEMENT_CACHE_PATH.exists():
+            try:
+                cache = json.loads(_ENGAGEMENT_CACHE_PATH.read_text(encoding="utf-8"))
+            except Exception:
+                cache = {}
+        cache[ticker] = {
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "items": items,
+        }
+        atomic_write_json(_ENGAGEMENT_CACHE_PATH, cache)
+    except Exception as exc:
+        logger.warning(f"Seeking Alpha: failed to write engagement cache for {ticker}: {exc}")
 
 
 def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = None, retries: int = 3) -> Optional[dict]:

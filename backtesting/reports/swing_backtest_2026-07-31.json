@@ -1,0 +1,84 @@
+{
+  "passed": false,
+  "win_rate": 0.6842,
+  "avg_rr": 2.18,
+  "expectancy_r_mean": 1.174,
+  "expectancy_r_ci_lower": 0.385,
+  "expectancy_r_ci_upper": 1.948,
+  "sharpe_ratio": 0.34,
+  "max_drawdown_pct": 0.0297,
+  "qualifying_trades": 19,
+  "total_signals": 50,
+  "max_consecutive_losses": 3,
+  "per_regime": {
+    "trending_up": {
+      "win_rate": 0.6842105263157895,
+      "avg_rr": 2.1773630545887825,
+      "trade_count": 19
+    }
+  },
+  "walk_forward": [
+    {
+      "window": 1,
+      "train_through": "2014-07-02 00:00:00+00:00",
+      "validate_through": "2016-07-01 00:00:00+00:00",
+      "qualifying_trades": 6,
+      "win_rate": 0.1667,
+      "avg_rr": 2.5,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 2,
+      "train_through": "2016-07-01 00:00:00+00:00",
+      "validate_through": "2018-07-03 00:00:00+00:00",
+      "qualifying_trades": 12,
+      "win_rate": 0.4167,
+      "avg_rr": 1.48,
+      "verdict": "fail",
+      "passed": false
+    },
+    {
+      "window": 3,
+      "train_through": "2018-07-03 00:00:00+00:00",
+      "validate_through": "2020-07-06 00:00:00+00:00",
+      "qualifying_trades": 14,
+      "win_rate": 0.6429,
+      "avg_rr": 2.11,
+      "verdict": "pass",
+      "passed": true
+    },
+    {
+      "window": 4,
+      "train_through": "2020-07-06 00:00:00+00:00",
+      "validate_through": "2022-07-06 00:00:00+00:00",
+      "qualifying_trades": 14,
+      "win_rate": 0.5,
+      "avg_rr": 0.78,
+      "verdict": "fail",
+      "passed": false
+    },
+    {
+      "window": 5,
+      "train_through": "2022-07-06 00:00:00+00:00",
+      "validate_through": "2024-07-09 00:00:00+00:00",
+      "qualifying_trades": 4,
+      "win_rate": 0.75,
+      "avg_rr": 2.42,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 6,
+      "train_through": "2024-07-09 00:00:00+00:00",
+      "validate_through": "2026-07-02 00:00:00+00:00",
+      "qualifying_trades": 14,
+      "win_rate": 0.7143,
+      "avg_rr": 2.1,
+      "verdict": "pass",
+      "passed": true
+    }
+  ],
+  "train_period": "2013-01-02 00:00:00+00:00",
+  "test_period": "2022-06-09 00:00:00+00:00"
+}
