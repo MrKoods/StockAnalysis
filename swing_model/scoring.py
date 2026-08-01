@@ -344,8 +344,8 @@ def compute_technical_sub_scores(
     # rs_z=+3 → 8 (strongly outperforming), rs_z=-3 → 0 (underperforming)
     # ---------------------------------------------------------------------------
     rs_z = float(technical.get("rs_zscore", 0.0))
-    rs_z_clamp = max(-3.0, min(3.0, rs_z))
-    rs_score = round(max(0.0, min(8.0, 4.0 + rs_z_clamp * (4.0 / 3.0))), 2)
+    rs_z_clamp = max(-2.0, min(2.0, rs_z))
+    rs_score = round(max(0.0, min(8.0, 4.0 + rs_z_clamp * (4.0 / 2.0))), 2)
 
     # ---------------------------------------------------------------------------
     # RSI score (0-8): RSI position mapping (scaled from 0-10 to 0-8)

@@ -206,9 +206,9 @@ def _simulate_test_signals(
     config_path: str = "config/swing_config.yaml",
     signal_cutoff: "pd.Timestamp | None" = None,
     rsi_min: float = 45.0,
-    rsi_max: float = 70.0,
+    rsi_max: float = 82.0,
     min_breakout_volume_zscore: "float | None" = None,
-    require_confirmation_bar: bool = True,
+    require_confirmation_bar: bool = False,
 ) -> list[dict]:
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.

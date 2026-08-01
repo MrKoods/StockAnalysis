@@ -39,6 +39,11 @@ VARIANTS = {
     "volume_confirmed_0.5z": {"min_breakout_volume_zscore": 0.5, "require_confirmation_bar": False},
     "current_default_confirmation_bar": {},
     "rsi_tightened_plus_volume": {"rsi_min": 45.0, "rsi_max": 70.0, "min_breakout_volume_zscore": 0.5, "require_confirmation_bar": False},
+    # Isolate RSI band alone against today's current live default (confirmation
+    # bar required) — original_baseline_45_82 above changes RSI AND drops the
+    # confirmation-bar requirement at once, confounding which change did what.
+    "rsi_82_confirmation_bar_true": {"rsi_min": 45.0, "rsi_max": 82.0},
+    "rsi_75_confirmation_bar_true": {"rsi_min": 45.0, "rsi_max": 75.0},
 }
 
 
