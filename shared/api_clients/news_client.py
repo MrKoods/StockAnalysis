@@ -96,6 +96,50 @@ def fetch_news_alpha_vantage(
     return articles
 
 
+def _parse_yahoo_news_item(item: dict) -> dict:
+    """
+    Parse one raw item from yf.Ticker(ticker).news into this client's article shape.
+
+    yfinance's news response nests the real content under item["content"]
+    (title, pubDate, provider.displayName, canonicalUrl.url) — item["title"] etc.
+    at the top level are always absent under this shape. Every article was
+    silently carrying title="" before this was handled (confirmed live:
+    is_ticker_relevant can never match an empty string, so no Yahoo article ever
+    counted toward News regardless of any alias list — this starved every ticker's
+    News score, worst for tickers with thin Finnhub coverage as their only other
+    free source, e.g. regional banks). Falls back to the old flat top-level fields
+    when "content" isn't present, in case yfinance reverts or an older cached
+    client version returns the pre-change shape.
+    """
+    content = item.get("content") or {}
+    title = content.get("title") or item.get("title", "")
+    pub_date = content.get("pubDate") or content.get("displayTime")
+    link = (content.get("canonicalUrl") or {}).get("url") or item.get("link", "")
+    publisher = (content.get("provider") or {}).get("displayName") or item.get("publisher", "Yahoo Finance")
+
+    if pub_date:
+        try:
+            ts = datetime.fromisoformat(pub_date.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            ts = datetime.now(timezone.utc)
+    else:
+        # yfinance returns Unix timestamp under the old flat shape
+        ts_raw = item.get("providerPublishTime") or item.get("publishedAt")
+        ts = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc) if ts_raw else datetime.now(timezone.utc)
+
+    return {
+        "article_id": content.get("id") or item.get("uuid") or link,
+        "timestamp_utc": ts.isoformat(),
+        "title": title,
+        "link": link,
+        "publisher": publisher,
+        "source_domain": "finance.yahoo.com",
+        "overall_sentiment_score": None,
+        "overall_sentiment_label": None,
+        "ticker_sentiment": [],
+    }
+
+
 def fetch_news_yahoo(ticker: str, limit: int = 10) -> list[dict]:
     """
     Fetch Yahoo Finance headlines via yfinance as secondary/fallback news source.
@@ -110,26 +154,7 @@ def fetch_news_yahoo(ticker: str, limit: int = 10) -> list[dict]:
             logger.info(f"Yahoo Finance: no news for {ticker}.")
             return []
 
-        articles = []
-        for item in info[:limit]:
-            # yfinance returns Unix timestamp
-            ts_raw = item.get("providerPublishTime") or item.get("publishedAt")
-            if ts_raw:
-                ts = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc)
-            else:
-                ts = datetime.now(timezone.utc)
-
-            articles.append({
-                "article_id": item.get("uuid") or item.get("link", ""),
-                "timestamp_utc": ts.isoformat(),
-                "title": item.get("title", ""),
-                "link": item.get("link", ""),
-                "publisher": item.get("publisher", "Yahoo Finance"),
-                "source_domain": "finance.yahoo.com",
-                "overall_sentiment_score": None,
-                "overall_sentiment_label": None,
-                "ticker_sentiment": [],
-            })
+        articles = [_parse_yahoo_news_item(item) for item in info[:limit]]
 
         logger.info(f"Yahoo Finance: fetched {len(articles)} articles for {ticker}.")
         return articles

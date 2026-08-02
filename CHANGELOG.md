@@ -31,6 +31,7 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article has been silently carrying an empty title since yfinance changed its response shape — no Yahoo article could ever count toward News, for any ticker |
 | v2.2.33 | 2026-08-02 | Scoring Change | Re-swept RS z-score anchor, RSI sweet-spot band, and choppy-regime penalty against the 3-sector pooled backtest; kept 3 real improvements, rejected 2 that looked appealing but cost Sharpe |
 | v2.2.32 | 2026-08-01 | Scoring Change | Sector-rotation penalty now softens for individual tickers with strong relative strength, instead of applying uniformly to every ticker in a weak sector |
 | v2.2.31 | 2026-08-01 | Backtest Methodology / Feature | Wired regional_banks/healthcare into the backtest for the first time; re-confirmed the RSI entry band against all 3 sectors pooled |
@@ -73,6 +74,53 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
 | v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+
+---
+
+## [v2.2.34] — 2026-08-02 — [Bug Fix] yfinance news response shape change silently emptied every Yahoo article's title
+
+**Status:** Live.
+
+**Problem:** Investigating why News remained the weakest scoring layer (40.1% of max, live paper
+trading average) despite v2.2.28's ticker-alias fix for regional_banks/healthcare found a much
+larger, independent bug. `yf.Ticker(ticker).news` now nests real content under `item["content"]`
+(title, pubDate, provider, canonicalUrl) — `fetch_news_yahoo()` was still reading
+`item.get("title", "")` at the top level, which is always absent under this shape. Every Yahoo
+Finance article, for every ticker, has been carrying `title=""` — meaning `is_ticker_relevant()`
+could never match a single one of them, regardless of any alias list, since an empty string
+contains no ticker name. This had zero test coverage (`fetch_news_yahoo` was never tested at all).
+v2.2.28's alias fix was correct but had nothing to match against until this fix.
+
+**Fix:** `shared/api_clients/news_client.py`: extracted parsing into a new pure `_parse_yahoo_news_item()`
+helper that reads `item["content"]["title"/"pubDate"/"provider"/"canonicalUrl"]`, falling back to
+the old flat top-level fields if `"content"` isn't present (in case yfinance reverts or an older
+cached client returns the pre-change shape). Added 5 new tests
+(`tests/test_news_client.py`) covering the current nested shape, the legacy flat-shape fallback,
+and malformed/missing-field inputs — following this project's existing convention of testing pure
+parsing helpers rather than mocking the live yfinance call.
+
+**Verified against real live data:** direct relevance-matching test for regional banks went from
+0/10 relevant articles (before, for every ticker — titles were always empty) to 8/10 (ZION), 6/10
+(KEY), 7/10 (HBAN), 5/10 (RF), 6/10 (FITB) after the fix. A same-day paired live-scan comparison
+(pre-fix vs. post-fix, all 17 tickers) showed the aggregate News layer average move 40.1% → 41.1%.
+
+**Important finding — the gain was smaller than the relevance-matching numbers suggested, for a
+real and separate reason, not a bug:** inspecting article ages directly, almost all of the newly-
+relevant regional-bank articles are 11-16 day old Q2 2026 earnings-call recaps, past the News
+layer's 5-day decay cutoff (`zero_at_days=5.0`) — deliberately, so a swing-entry decision isn't
+driven by stale news. Only 0-3 genuinely fresh (≤5 day) relevant articles exist per bank ticker on
+any given day. Higher-news-volume tickers (NVDA, ASML, ABBV) showed clearer gains (10.4→10.7,
+8.7→9.9, 8.9→10.0) because they have enough daily volume for the fix to surface something fresh;
+thin-coverage tickers are structurally capped by real news scarcity, not by this bug. Loosening the
+decay window to capture more of the earnings-season backlog was considered and rejected — it would
+score stale information as if current, undermining the reason the decay curve exists.
+
+**Backtest result:** Not applicable — the 13.5-year backtest sources News from a separate archived
+Alpha Vantage dataset (Q4 2025+) or a neutral fallback, never from live `fetch_news_yahoo()`, so
+this bug never affected any backtest result quoted in this CHANGELOG. Verified via direct live-data
+inspection and the new unit tests instead. 717 tests pass (was 712), 3 skipped.
+
+**Approved by:** [pending]
 
 ---
 
