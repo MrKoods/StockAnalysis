@@ -22513,3 +22513,988 @@
 2026-07-29 13:31:09,737 [__main__] INFO — JNJ: SCORE 52.6/100 (technical=25.3/40, positioning=7.0/20, sentiment=2.0/15, news=7.2/15, fundamental=0.0/10 as_of=never) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+1.0, total=+11.0) direction=bullish qualifies=no
 2026-07-29 13:31:10,870 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
 2026-07-29 15:09:43,474 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AMD.
+2026-08-01 14:40:28,392 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:40:28,399 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:40:28,407 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:40:28,416 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:40:28,424 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:40:28,434 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:40:28,443 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:40:28,443 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:40:42,906 [__main__] INFO — Backtest complete. Passed=True WinRate=61.6% Sharpe=3.33
+2026-08-01 14:41:00,061 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:41:00,068 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:41:00,075 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:41:00,082 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:41:00,090 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:41:00,097 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:41:00,104 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:41:00,104 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:41:14,124 [__main__] INFO — Backtest complete. Passed=True WinRate=61.6% Sharpe=3.33
+2026-08-01 14:42:52,137 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:42:52,144 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:42:52,151 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:42:52,158 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:42:52,165 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:42:52,172 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:42:52,179 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:42:52,180 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:43:05,201 [__main__] INFO — Backtest complete. Passed=False WinRate=57.1% Sharpe=1.16
+2026-08-01 14:43:44,768 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:43:44,775 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:43:44,782 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:43:44,789 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 14:43:44,796 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:43:44,805 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:43:44,813 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:04,406 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:45:04,414 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:45:04,421 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:45:04,429 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 14:45:04,436 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:45:04,448 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:45:04,455 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:04,463 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 14:45:04,471 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 14:45:04,479 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 14:45:04,487 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 14:45:04,494 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 14:45:04,501 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 14:45:04,508 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 14:45:04,515 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 14:45:04,523 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 14:45:04,531 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 14:45:04,540 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 14:45:04,548 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 14:45:04,555 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 14:45:13,388 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:45:13,395 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:45:13,402 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:45:13,410 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 14:45:13,417 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:45:13,426 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:45:13,446 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:13,456 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 14:45:13,473 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 14:45:13,481 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 14:45:13,488 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 14:45:13,495 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 14:45:13,502 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 14:45:13,509 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 14:45:13,517 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 14:45:13,533 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 14:45:13,546 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 14:45:13,554 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 14:45:13,561 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 14:45:13,569 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 14:45:21,508 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:45:21,515 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:45:21,522 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:45:21,529 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 14:45:21,537 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:45:21,544 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:45:21,552 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:21,564 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 14:45:21,571 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 14:45:21,577 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 14:45:21,584 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 14:45:21,591 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 14:45:21,598 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 14:45:21,605 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 14:45:21,612 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 14:45:21,619 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 14:45:21,626 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 14:45:21,634 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 14:45:21,642 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 14:45:21,649 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 14:45:49,921 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:45:49,929 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:45:49,937 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:45:49,944 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 14:45:49,951 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:45:49,958 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:45:49,965 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:49,973 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 14:45:49,981 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 14:45:49,988 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 14:45:49,995 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 14:45:50,002 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 14:45:50,009 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 14:45:50,016 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 14:45:50,024 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 14:45:50,035 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 14:45:50,043 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 14:45:50,050 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 14:45:50,058 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 14:45:50,065 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 14:45:51,660 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:45:51,667 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:45:51,674 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:45:51,682 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:45:51,690 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:45:51,700 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:45:51,708 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:45:51,708 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:46:10,730 [__main__] INFO — Backtest complete. Passed=False WinRate=57.1% Sharpe=1.16
+2026-08-01 14:46:35,858 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:46:35,865 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:46:35,873 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:46:35,880 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:46:35,887 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:46:35,895 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:46:35,903 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:46:35,903 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:46:50,574 [__main__] INFO — Backtest complete. Passed=False WinRate=57.1% Sharpe=1.16
+2026-08-01 14:46:55,529 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 14:46:55,537 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 14:46:55,544 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 14:46:55,551 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 14:46:55,558 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 14:46:55,565 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 14:46:55,572 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 14:46:55,572 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 14:47:10,632 [__main__] INFO — Backtest complete. Passed=False WinRate=56.7% Sharpe=1.19
+2026-08-01 21:50:45,585 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:50:45,594 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:50:45,603 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:50:45,612 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 21:50:45,621 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:50:45,630 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:50:45,639 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:50:45,654 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 21:50:45,664 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 21:50:45,674 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 21:50:45,683 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 21:50:45,692 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 21:50:45,700 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 21:50:45,710 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 21:50:45,719 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 21:50:45,727 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 21:50:45,737 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 21:50:45,746 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 21:50:45,754 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 21:50:45,762 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 21:53:03,840 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:53:03,856 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:53:03,867 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:53:03,879 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 21:53:03,892 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:53:03,904 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:53:03,916 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:53:03,916 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 21:53:26,000 [__main__] INFO — Backtest complete. Passed=True WinRate=60.2% Sharpe=2.81
+2026-08-01 21:53:38,042 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:53:38,053 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:53:38,065 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:53:38,078 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 21:53:38,089 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:53:38,101 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:53:38,113 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:53:38,131 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 21:53:38,142 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 21:53:38,154 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 21:53:38,164 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 21:53:38,175 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 21:53:38,185 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 21:53:38,196 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 21:53:38,207 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 21:53:38,219 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 21:53:38,230 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 21:53:38,242 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 21:53:38,253 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 21:53:38,264 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 21:57:26,814 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:57:26,825 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:57:26,834 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:57:26,845 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 21:57:26,856 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:57:26,867 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:57:26,878 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:57:26,897 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 21:57:26,907 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 21:57:26,918 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 21:57:26,929 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 21:57:26,938 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 21:57:26,948 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 21:57:26,958 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 21:57:26,967 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 21:57:26,978 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 21:57:26,987 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 21:57:26,996 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 21:57:27,006 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 21:57:27,015 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 21:58:44,708 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:58:44,720 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:58:44,732 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:58:44,744 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 21:58:44,755 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:58:44,768 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:58:44,780 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:58:44,800 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 21:58:44,811 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 21:58:44,823 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 21:58:44,834 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 21:58:44,846 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 21:58:44,857 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 21:58:44,869 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 21:58:44,882 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 21:58:44,894 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 21:58:44,906 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 21:58:44,919 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 21:58:44,931 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 21:58:44,945 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 21:59:24,818 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 21:59:24,829 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 21:59:24,838 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 21:59:24,848 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 21:59:24,858 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 21:59:24,870 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 21:59:24,880 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 21:59:24,898 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 21:59:24,908 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 21:59:24,919 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 21:59:24,930 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 21:59:24,942 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 21:59:24,952 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 21:59:24,963 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 21:59:24,973 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 21:59:24,983 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 21:59:24,995 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 21:59:25,005 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 21:59:25,015 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 21:59:25,026 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:00:07,854 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:00:07,864 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:00:07,874 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:00:07,882 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:00:07,892 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:00:07,902 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:00:07,911 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:00:07,925 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:00:07,935 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:00:07,944 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:00:07,952 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:00:07,960 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:00:07,969 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:00:07,978 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:00:07,988 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:00:08,006 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:00:08,019 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:00:08,030 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:00:08,039 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:00:08,049 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:00:36,516 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:00:36,528 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:00:36,538 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:00:36,548 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:00:36,558 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:00:36,568 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:00:36,578 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:00:36,594 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:00:36,604 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:00:36,615 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:00:36,626 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:00:36,636 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:00:36,649 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:00:36,662 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:00:36,672 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:00:36,683 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:00:36,694 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:00:36,707 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:00:36,719 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:00:36,729 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:01:29,836 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:01:29,848 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:01:29,859 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:01:29,868 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:01:29,879 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:01:29,889 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:01:29,898 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:01:29,914 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:01:29,924 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:01:29,932 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:01:29,941 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:01:29,951 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:01:29,960 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:01:29,970 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:01:29,979 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:01:29,989 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:01:30,000 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:01:30,012 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:01:30,022 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:01:30,032 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:02:03,408 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:02:03,420 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:02:03,428 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:02:03,437 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:02:03,446 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:02:03,457 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:02:03,467 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:02:03,485 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:02:03,495 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:02:03,504 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:02:03,513 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:02:03,522 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:02:03,530 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:02:03,540 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:02:03,549 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:02:03,558 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:02:03,567 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:02:03,576 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:02:03,586 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:02:03,595 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:02:49,178 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:02:49,188 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:02:49,198 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:02:49,209 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:02:49,219 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:02:49,229 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:02:49,238 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:02:49,252 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:02:49,262 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:02:49,270 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:02:49,281 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:02:49,292 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:02:49,302 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:02:49,311 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:02:49,319 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:02:49,329 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:02:49,337 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:02:49,347 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:02:49,356 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:02:49,365 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:03:26,349 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:03:26,362 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:03:26,373 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:03:26,384 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:03:26,396 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:03:26,411 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:03:26,424 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:03:26,440 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:03:26,451 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:03:26,461 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:03:26,472 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:03:26,484 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:03:26,495 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:03:26,505 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:03:26,515 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:03:26,526 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:03:26,538 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:03:26,552 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:03:26,565 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:03:26,575 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:04:17,702 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:04:17,714 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:04:17,723 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:04:17,732 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:04:17,744 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:04:17,756 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:04:17,768 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:04:17,785 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:04:17,797 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:04:17,807 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:04:17,818 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:04:17,828 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:04:17,837 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:04:17,848 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:04:17,857 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:04:17,868 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:04:17,877 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:04:17,889 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:04:17,900 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:04:17,910 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:04:59,093 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:04:59,103 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:04:59,113 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:04:59,122 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:04:59,133 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:04:59,144 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:04:59,153 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:04:59,171 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:04:59,180 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:04:59,192 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:04:59,203 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:04:59,212 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:04:59,224 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:04:59,234 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:04:59,243 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:04:59,253 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:04:59,265 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:04:59,275 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:04:59,285 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:04:59,294 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:05:28,624 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:05:28,633 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:05:28,645 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:05:28,656 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:05:28,667 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:05:28,679 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:05:28,691 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:05:28,708 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:05:28,720 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:05:28,730 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:05:28,741 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:05:28,750 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:05:28,760 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:05:28,771 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:05:28,781 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:05:28,790 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:05:28,800 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:05:28,811 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:05:28,821 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:05:28,831 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:06:01,357 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:06:01,368 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:06:01,380 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:06:01,392 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:06:01,403 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:06:01,413 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:06:01,423 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:06:01,439 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:06:01,451 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:06:01,460 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:06:01,471 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:06:01,483 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:06:01,493 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:06:01,503 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:06:01,513 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:06:01,523 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:06:01,534 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:06:01,543 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:06:01,552 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:06:01,562 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:07:03,715 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:07:03,725 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:07:03,735 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:07:03,746 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:07:03,758 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:07:03,770 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:07:03,780 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:07:03,797 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:07:03,808 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:07:03,817 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:07:03,828 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:07:03,838 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:07:03,847 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:07:03,859 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:07:03,869 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:07:03,880 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:07:03,893 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:07:03,904 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:07:03,914 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:07:03,923 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:07:32,608 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:07:32,620 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:07:32,632 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:07:32,645 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:07:32,661 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:07:32,680 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:07:32,696 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:07:32,728 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:07:32,742 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:07:32,753 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:07:32,764 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:07:32,776 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:07:32,785 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:07:32,796 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:07:32,806 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:07:32,816 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:07:32,828 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:07:32,840 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:07:32,856 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:07:32,867 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:08:00,517 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:08:00,528 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:08:00,538 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:08:00,547 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:08:00,556 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:08:00,566 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:08:00,576 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:08:00,591 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:08:00,601 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:08:00,610 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:08:00,621 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:08:00,630 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:08:00,639 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:08:00,648 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:08:00,657 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:08:00,669 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:08:00,679 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:08:00,688 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:08:00,699 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:08:00,708 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:09:24,852 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:09:24,864 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:09:24,876 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:09:24,887 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-01 22:09:24,898 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:09:24,910 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:09:24,920 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:09:24,938 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-01 22:09:24,952 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-01 22:09:24,964 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-01 22:09:24,975 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-01 22:09:24,986 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-01 22:09:24,997 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-01 22:09:25,010 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-01 22:09:25,021 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-01 22:09:25,032 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-01 22:09:25,044 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-01 22:09:25,053 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-01 22:09:25,065 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-01 22:09:25,078 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-01 22:09:42,630 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-01 22:09:42,643 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-01 22:09:42,658 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-01 22:09:42,672 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-01 22:09:42,691 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-01 22:09:42,709 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-01 22:09:42,720 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-01 22:09:42,721 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-01 22:10:06,265 [__main__] INFO — Backtest complete. Passed=True WinRate=63.3% Sharpe=3.39
+2026-08-01 22:34:06,553 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-08-01 22:34:07,009 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=200.75, rsi=48.3, atr=7.47)
+2026-08-01 22:34:07,019 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=476.15, rsi=45.2, atr=40.33)
+2026-08-01 22:34:07,028 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=389.28, rsi=51.5, atr=16.56)
+2026-08-01 22:34:07,037 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=404.25, rsi=46.2, atr=18.98)
+2026-08-01 22:34:07,047 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=823.03, rsi=43.6, atr=90.54)
+2026-08-01 22:34:07,056 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1629.00, rsi=42.7, atr=87.10)
+2026-08-01 22:34:07,449 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['AMD']
+2026-08-01 22:34:09,199 [swing_model.indicator_pipeline] INFO —   AMD: fundamental data fetched OK
+2026-08-01 22:34:09,201 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:09,203 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:09,205 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-08-02.json
+2026-08-01 22:34:09,214 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML']
+2026-08-01 22:34:09,718 [swing_model.indicator_pipeline] INFO —   NVDA: positioning data fetched OK
+2026-08-01 22:34:10,254 [swing_model.indicator_pipeline] INFO —   AMD: positioning data fetched OK
+2026-08-01 22:34:10,787 [swing_model.indicator_pipeline] INFO —   AVGO: positioning data fetched OK
+2026-08-01 22:34:11,343 [swing_model.indicator_pipeline] INFO —   TSM: positioning data fetched OK
+2026-08-01 22:34:11,994 [swing_model.indicator_pipeline] INFO —   MU: positioning data fetched OK
+2026-08-01 22:34:12,506 [swing_model.indicator_pipeline] INFO —   ASML: positioning data fetched OK
+2026-08-01 22:34:12,569 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-08-01 22:34:12,569 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-01 22:34:12,570 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB', 'KRE']
+2026-08-01 22:34:12,756 [swing_model.indicator_pipeline] INFO — ZION: indicators computed (close=69.70, rsi=52.5, atr=1.55)
+2026-08-01 22:34:12,765 [swing_model.indicator_pipeline] INFO — KEY: indicators computed (close=22.59, rsi=46.7, atr=0.46)
+2026-08-01 22:34:12,773 [swing_model.indicator_pipeline] INFO — HBAN: indicators computed (close=17.04, rsi=42.9, atr=0.40)
+2026-08-01 22:34:12,784 [swing_model.indicator_pipeline] INFO — RF: indicators computed (close=30.95, rsi=55.0, atr=0.62)
+2026-08-01 22:34:12,793 [swing_model.indicator_pipeline] INFO — FITB: indicators computed (close=56.50, rsi=50.9, atr=1.27)
+2026-08-01 22:34:13,246 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-02T05:34:09.201661+00:00)
+2026-08-01 22:34:13,270 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB']
+2026-08-01 22:34:13,773 [swing_model.indicator_pipeline] INFO —   ZION: positioning data fetched OK
+2026-08-01 22:34:14,223 [swing_model.indicator_pipeline] INFO —   KEY: positioning data fetched OK
+2026-08-01 22:34:14,697 [swing_model.indicator_pipeline] INFO —   HBAN: positioning data fetched OK
+2026-08-01 22:34:15,231 [swing_model.indicator_pipeline] INFO —   RF: positioning data fetched OK
+2026-08-01 22:34:15,689 [swing_model.indicator_pipeline] INFO —   FITB: positioning data fetched OK
+2026-08-01 22:34:15,749 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-08-01 22:34:15,750 [swing_model.indicator_pipeline] INFO — Pipeline complete: 5/5 tickers processed successfully.
+2026-08-01 22:34:15,751 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ', 'XLV']
+2026-08-01 22:34:16,000 [swing_model.indicator_pipeline] INFO — LLY: indicators computed (close=1148.84, rsi=45.8, atr=36.38)
+2026-08-01 22:34:16,009 [swing_model.indicator_pipeline] INFO — PFE: indicators computed (close=25.01, rsi=57.1, atr=0.49)
+2026-08-01 22:34:16,018 [swing_model.indicator_pipeline] INFO — MRK: indicators computed (close=130.20, rsi=58.8, atr=3.28)
+2026-08-01 22:34:16,029 [swing_model.indicator_pipeline] INFO — ABBV: indicators computed (close=250.94, rsi=51.8, atr=6.62)
+2026-08-01 22:34:16,038 [swing_model.indicator_pipeline] INFO — UNH: indicators computed (close=414.40, rsi=47.1, atr=12.17)
+2026-08-01 22:34:16,048 [swing_model.indicator_pipeline] INFO — JNJ: indicators computed (close=256.35, rsi=52.3, atr=6.40)
+2026-08-01 22:34:16,048 [swing_model.indicator_pipeline] INFO — Fetching fundamental data for: ['LLY', 'PFE', 'MRK', 'ABBV']
+2026-08-01 22:34:17,880 [swing_model.indicator_pipeline] INFO —   LLY: fundamental data fetched OK
+2026-08-01 22:34:17,882 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:19,663 [swing_model.indicator_pipeline] INFO —   PFE: fundamental data fetched OK
+2026-08-01 22:34:19,665 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:21,559 [swing_model.indicator_pipeline] INFO —   MRK: fundamental data fetched OK
+2026-08-01 22:34:21,561 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:23,299 [swing_model.indicator_pipeline] INFO —   ABBV: fundamental data fetched OK
+2026-08-01 22:34:23,301 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:23,303 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-01 22:34:23,305 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-08-02.json
+2026-08-01 22:34:23,316 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ']
+2026-08-01 22:34:23,782 [swing_model.indicator_pipeline] INFO —   LLY: positioning data fetched OK
+2026-08-01 22:34:24,352 [swing_model.indicator_pipeline] INFO —   PFE: positioning data fetched OK
+2026-08-01 22:34:24,772 [swing_model.indicator_pipeline] INFO —   MRK: positioning data fetched OK
+2026-08-01 22:34:25,245 [swing_model.indicator_pipeline] INFO —   ABBV: positioning data fetched OK
+2026-08-01 22:34:25,718 [swing_model.indicator_pipeline] INFO —   UNH: positioning data fetched OK
+2026-08-01 22:34:26,214 [swing_model.indicator_pipeline] INFO —   JNJ: positioning data fetched OK
+2026-08-01 22:34:26,290 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-08-01 22:34:26,291 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-01 22:34:29,564 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 3 capex-context snippet(s) for AMZN.
+2026-08-01 22:34:32,139 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 1 capex-context snippet(s) for MSFT.
+2026-08-01 22:34:34,277 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 4 capex-context snippet(s) for GOOGL.
+2026-08-01 22:34:35,753 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 capex-context snippet(s) for META.
+2026-08-01 22:34:36,437 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NVDA.
+2026-08-01 22:34:38,661 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for NVDA.
+2026-08-01 22:34:38,821 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-08-01 22:34:39,236 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for NVDA.
+2026-08-01 22:34:39,723 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for NVDA.
+2026-08-01 22:34:40,381 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-08-01 22:34:40,638 [shared.utils.event_gate] WARNING — EVENT GATE TRIGGERED — scope=sector tickers=['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML'] trigger='tariff' source='yahoo.com'
+2026-08-01 22:34:41,201 [__main__] INFO — NVDA: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:34:41,202 [__main__] INFO — NVDA: SCORE 36.9/100 (technical=20.5/40, positioning=9.2/20, sentiment=6.5/15, news=10.4/15, fundamental=10.0/10 as_of=2026-07-29) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-14.7, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-19.7) direction=bullish qualifies=no
+2026-08-01 22:34:41,202 [__main__] INFO — NVDA: NOTE — regime (-5.0) and sector_rotation (-14.7) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:34:41,870 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMD.
+2026-08-01 22:34:44,153 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMD.
+2026-08-01 22:34:44,381 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-08-01 22:34:44,811 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for AMD.
+2026-08-01 22:34:45,291 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AMD.
+2026-08-01 22:34:45,425 [__main__] INFO — AMD: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:34:45,425 [__main__] INFO — AMD: SCORE 6.9/100 (technical=13.6/40, positioning=12.1/20, sentiment=7.2/15, news=8.7/15, fundamental=5.3/10 as_of=2026-08-02) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-40.0) direction=bullish qualifies=no
+2026-08-01 22:34:45,425 [__main__] INFO — AMD: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:34:46,165 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AVGO.
+2026-08-01 22:34:48,068 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AVGO.
+2026-08-01 22:34:48,238 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-08-01 22:34:48,635 [shared.api_clients.news_client] INFO — Finnhub: fetched 139 articles for AVGO.
+2026-08-01 22:34:49,055 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AVGO.
+2026-08-01 22:34:49,112 [__main__] INFO — AVGO: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:34:49,112 [__main__] INFO — AVGO: SCORE 37.6/100 (technical=29.1/40, positioning=8.4/20, sentiment=3.0/15, news=7.6/15, fundamental=7.3/10 as_of=2026-07-24) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-12.8, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-17.8) direction=bullish qualifies=no
+2026-08-01 22:34:49,112 [__main__] INFO — AVGO: NOTE — regime (-5.0) and sector_rotation (-12.8) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:34:49,742 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSM.
+2026-08-01 22:34:51,424 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TSM.
+2026-08-01 22:34:51,551 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-08-01 22:34:51,974 [shared.api_clients.news_client] INFO — Finnhub: fetched 38 articles for TSM.
+2026-08-01 22:34:52,395 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 8-K filing(s) for TSM.
+2026-08-01 22:34:52,448 [__main__] INFO — TSM: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:34:52,448 [__main__] INFO — TSM: SCORE 31.7/100 (technical=24.3/40, positioning=8.4/20, sentiment=1.9/15, news=7.2/15, fundamental=10.0/10 as_of=2026-07-23) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 22:34:52,448 [__main__] INFO — TSM: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:34:53,056 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MU.
+2026-08-01 22:34:55,435 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MU.
+2026-08-01 22:34:55,604 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-08-01 22:34:56,018 [shared.api_clients.news_client] INFO — Finnhub: fetched 248 articles for MU.
+2026-08-01 22:34:56,458 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for MU.
+2026-08-01 22:34:56,520 [__main__] INFO — MU: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:34:56,520 [__main__] INFO — MU: SCORE 29.2/100 (technical=9.3/40, positioning=10.8/20, sentiment=11.4/15, news=7.6/15, fundamental=10.0/10 as_of=2026-07-28) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 22:34:56,520 [__main__] INFO — MU: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:34:57,245 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ASML.
+2026-08-01 22:34:59,186 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ASML.
+2026-08-01 22:34:59,326 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-08-01 22:34:59,752 [shared.api_clients.news_client] INFO — Finnhub: fetched 75 articles for ASML.
+2026-08-01 22:35:00,162 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 8-K filing(s) for ASML.
+2026-08-01 22:35:00,217 [__main__] INFO — ASML: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:35:00,217 [__main__] INFO — ASML: SCORE 36.1/100 (technical=12.2/40, positioning=12.9/20, sentiment=15.0/15, news=8.7/15, fundamental=7.3/10 as_of=2026-07-29) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 22:35:00,217 [__main__] INFO — ASML: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:35:01,003 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ZION.
+2026-08-01 22:35:02,703 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ZION.
+2026-08-01 22:35:02,974 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 22:35:03,393 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for ZION.
+2026-08-01 22:35:03,954 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for ZION.
+2026-08-01 22:35:04,006 [__main__] INFO — ZION: SCORE 52.5/100 (technical=25.8/40, positioning=8.1/20, sentiment=7.5/15, news=2.1/15, fundamental=4.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 22:35:04,651 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for KEY.
+2026-08-01 22:35:06,500 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for KEY.
+2026-08-01 22:35:06,643 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for KEY.
+2026-08-01 22:35:07,067 [shared.api_clients.news_client] INFO — Finnhub: fetched 10 articles for KEY.
+2026-08-01 22:35:07,531 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for KEY.
+2026-08-01 22:35:07,585 [__main__] INFO — KEY: SCORE 53.8/100 (technical=24.9/40, positioning=7.7/20, sentiment=9.0/15, news=1.9/15, fundamental=5.3/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 22:35:08,235 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HBAN.
+2026-08-01 22:35:10,127 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for HBAN.
+2026-08-01 22:35:10,290 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HBAN.
+2026-08-01 22:35:10,711 [shared.api_clients.news_client] INFO — Finnhub: fetched 13 articles for HBAN.
+2026-08-01 22:35:11,180 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for HBAN.
+2026-08-01 22:35:11,235 [__main__] INFO — HBAN: SCORE 41.2/100 (technical=10.8/40, positioning=10.8/20, sentiment=9.0/15, news=1.0/15, fundamental=4.7/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 22:35:11,899 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for RF.
+2026-08-01 22:35:13,986 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for RF.
+2026-08-01 22:35:14,126 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for RF.
+2026-08-01 22:35:14,656 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for RF.
+2026-08-01 22:35:15,188 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for RF.
+2026-08-01 22:35:15,242 [__main__] INFO — RF: SCORE 49.0/100 (technical=29.2/40, positioning=8.1/20, sentiment=1.0/15, news=1.7/15, fundamental=4.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 22:35:15,953 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for FITB.
+2026-08-01 22:35:17,806 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for FITB.
+2026-08-01 22:35:17,950 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for FITB.
+2026-08-01 22:35:18,371 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for FITB.
+2026-08-01 22:35:18,855 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for FITB.
+2026-08-01 22:35:18,912 [__main__] INFO — FITB: SCORE 54.0/100 (technical=26.0/40, positioning=12.3/20, sentiment=6.0/15, news=2.7/15, fundamental=2.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 22:35:19,683 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for LLY.
+2026-08-01 22:35:21,513 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for LLY.
+2026-08-01 22:35:21,642 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for LLY.
+2026-08-01 22:35:22,188 [shared.api_clients.news_client] INFO — Finnhub: fetched 72 articles for LLY.
+2026-08-01 22:35:22,670 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for LLY.
+2026-08-01 22:35:22,731 [__main__] INFO — LLY: SCORE 32.5/100 (technical=24.2/40, positioning=6.7/20, sentiment=9.5/15, news=7.4/15, fundamental=6.7/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-22.0) direction=bullish qualifies=no
+2026-08-01 22:35:23,442 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for PFE.
+2026-08-01 22:35:25,093 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for PFE.
+2026-08-01 22:35:25,252 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for PFE.
+2026-08-01 22:35:25,767 [shared.api_clients.news_client] INFO — Finnhub: fetched 54 articles for PFE.
+2026-08-01 22:35:26,260 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for PFE.
+2026-08-01 22:35:26,323 [__main__] INFO — PFE: SCORE 43.4/100 (technical=24.5/40, positioning=11.8/20, sentiment=10.4/15, news=7.1/15, fundamental=6.7/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+5.0, seasonality=+0.0, total=-17.0) direction=bullish qualifies=no
+2026-08-01 22:35:27,065 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-08-01 22:35:28,604 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MRK.
+2026-08-01 22:35:28,795 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MRK.
+2026-08-01 22:35:29,202 [shared.api_clients.news_client] INFO — Finnhub: fetched 48 articles for MRK.
+2026-08-01 22:35:29,715 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for MRK.
+2026-08-01 22:35:29,770 [__main__] INFO — MRK: SCORE 35.2/100 (technical=32.5/40, positioning=11.2/20, sentiment=0.6/15, news=7.5/15, fundamental=5.3/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-22.0) direction=bullish qualifies=no
+2026-08-01 22:35:30,478 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ABBV.
+2026-08-01 22:35:32,133 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ABBV.
+2026-08-01 22:35:32,289 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ABBV.
+2026-08-01 22:35:32,702 [shared.api_clients.news_client] INFO — Finnhub: fetched 70 articles for ABBV.
+2026-08-01 22:35:33,195 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for ABBV.
+2026-08-01 22:35:33,256 [__main__] INFO — ABBV: SCORE 57.3/100 (technical=26.0/40, positioning=10.4/20, sentiment=9.9/15, news=8.9/15, fundamental=4.0/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 22:35:33,920 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for UNH.
+2026-08-01 22:35:40,642 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for UNH.
+2026-08-01 22:35:40,801 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for UNH.
+2026-08-01 22:35:41,230 [shared.api_clients.news_client] INFO — Finnhub: fetched 52 articles for UNH.
+2026-08-01 22:35:41,737 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for UNH.
+2026-08-01 22:35:41,856 [__main__] INFO — UNH: SCORE 46.4/100 (technical=25.2/40, positioning=11.7/20, sentiment=4.2/15, news=7.2/15, fundamental=0.0/10 as_of=never) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 22:35:42,517 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for JNJ.
+2026-08-01 22:35:44,205 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for JNJ.
+2026-08-01 22:35:44,334 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for JNJ.
+2026-08-01 22:35:44,756 [shared.api_clients.news_client] INFO — Finnhub: fetched 99 articles for JNJ.
+2026-08-01 22:35:45,440 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for JNJ.
+2026-08-01 22:35:45,496 [__main__] INFO — JNJ: SCORE 47.5/100 (technical=27.0/40, positioning=11.9/20, sentiment=6.1/15, news=4.5/15, fundamental=0.0/10 as_of=never) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 22:35:45,555 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-08-01 22:36:52,882 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 22:36:52,883 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:36:53,007 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for KEY.
+2026-08-01 22:36:53,007 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:36:53,162 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HBAN.
+2026-08-01 22:36:53,163 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:36:53,306 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for RF.
+2026-08-01 22:36:53,306 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:36:53,681 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for FITB.
+2026-08-01 22:36:53,681 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:37:04,215 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 22:37:04,215 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:37:54,277 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 22:38:47,440 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 22:38:47,589 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for KEY.
+2026-08-01 22:38:47,735 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HBAN.
+2026-08-01 22:38:47,865 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for RF.
+2026-08-01 22:38:47,988 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for FITB.
+2026-08-01 22:41:00,371 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-08-01 22:41:00,949 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=200.75, rsi=48.3, atr=7.47)
+2026-08-01 22:41:00,958 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=476.15, rsi=45.2, atr=40.33)
+2026-08-01 22:41:00,965 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=389.28, rsi=51.5, atr=16.56)
+2026-08-01 22:41:00,975 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=404.25, rsi=46.2, atr=18.98)
+2026-08-01 22:41:00,986 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=823.03, rsi=43.6, atr=90.54)
+2026-08-01 22:41:00,994 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1629.00, rsi=42.7, atr=87.10)
+2026-08-01 22:41:01,357 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-02T05:34:23.301824+00:00)
+2026-08-01 22:41:01,369 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-02T05:34:26.214495+00:00)
+2026-08-01 22:41:01,369 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-01 22:41:01,370 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB', 'KRE']
+2026-08-01 22:41:01,587 [swing_model.indicator_pipeline] INFO — ZION: indicators computed (close=69.70, rsi=52.5, atr=1.55)
+2026-08-01 22:41:01,602 [swing_model.indicator_pipeline] INFO — KEY: indicators computed (close=22.59, rsi=46.7, atr=0.46)
+2026-08-01 22:41:01,614 [swing_model.indicator_pipeline] INFO — HBAN: indicators computed (close=17.04, rsi=42.9, atr=0.40)
+2026-08-01 22:41:01,623 [swing_model.indicator_pipeline] INFO — RF: indicators computed (close=30.95, rsi=55.0, atr=0.62)
+2026-08-01 22:41:01,633 [swing_model.indicator_pipeline] INFO — FITB: indicators computed (close=56.50, rsi=50.9, atr=1.27)
+2026-08-01 22:41:02,014 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-02T05:34:23.301824+00:00)
+2026-08-01 22:41:02,035 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-02T05:34:26.214495+00:00)
+2026-08-01 22:41:02,036 [swing_model.indicator_pipeline] INFO — Pipeline complete: 5/5 tickers processed successfully.
+2026-08-01 22:41:02,037 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ', 'XLV']
+2026-08-01 22:41:02,236 [swing_model.indicator_pipeline] INFO — LLY: indicators computed (close=1148.84, rsi=45.8, atr=36.38)
+2026-08-01 22:41:02,244 [swing_model.indicator_pipeline] INFO — PFE: indicators computed (close=25.01, rsi=57.1, atr=0.49)
+2026-08-01 22:41:02,254 [swing_model.indicator_pipeline] INFO — MRK: indicators computed (close=130.20, rsi=58.8, atr=3.28)
+2026-08-01 22:41:02,264 [swing_model.indicator_pipeline] INFO — ABBV: indicators computed (close=250.94, rsi=51.8, atr=6.62)
+2026-08-01 22:41:02,273 [swing_model.indicator_pipeline] INFO — UNH: indicators computed (close=414.40, rsi=47.1, atr=12.17)
+2026-08-01 22:41:02,281 [swing_model.indicator_pipeline] INFO — JNJ: indicators computed (close=256.35, rsi=52.3, atr=6.40)
+2026-08-01 22:41:02,282 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-02T05:34:23.301824+00:00)
+2026-08-01 22:41:02,293 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-02T05:34:26.214495+00:00)
+2026-08-01 22:41:02,293 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-01 22:41:05,605 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 3 capex-context snippet(s) for AMZN.
+2026-08-01 22:41:08,223 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 1 capex-context snippet(s) for MSFT.
+2026-08-01 22:41:10,307 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 4 capex-context snippet(s) for GOOGL.
+2026-08-01 22:41:11,746 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 capex-context snippet(s) for META.
+2026-08-01 22:41:12,458 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NVDA.
+2026-08-01 22:41:12,905 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:41:43,341 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 60s.
+2026-08-01 22:42:43,771 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 120s.
+2026-08-01 22:44:43,771 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 22:44:43,773 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for NVDA — using cached engagement data from 0.2h ago.
+2026-08-01 22:44:43,934 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-08-01 22:44:44,395 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for NVDA.
+2026-08-01 22:44:44,879 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for NVDA.
+2026-08-01 22:44:45,493 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-08-01 22:44:45,710 [__main__] INFO — NVDA: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:44:45,710 [__main__] INFO — NVDA: SCORE 37.2/100 (technical=20.5/40, positioning=9.2/20, sentiment=6.5/15, news=10.7/15, fundamental=10.0/10 as_of=2026-07-29) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-14.7, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-19.7) direction=bullish qualifies=no
+2026-08-01 22:44:45,710 [__main__] INFO — NVDA: NOTE — regime (-5.0) and sector_rotation (-14.7) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:44:46,495 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMD.
+2026-08-01 22:44:46,930 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:45:17,557 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 60s.
+2026-08-01 22:46:17,988 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 120s.
+2026-08-01 22:48:17,988 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 22:48:17,990 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for AMD — using cached engagement data from 0.2h ago.
+2026-08-01 22:48:18,187 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-08-01 22:48:18,625 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for AMD.
+2026-08-01 22:48:19,091 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AMD.
+2026-08-01 22:48:19,185 [__main__] INFO — AMD: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:48:19,185 [__main__] INFO — AMD: SCORE 7.1/100 (technical=13.6/40, positioning=12.1/20, sentiment=7.2/15, news=8.9/15, fundamental=5.3/10 as_of=2026-08-02) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-40.0) direction=bullish qualifies=no
+2026-08-01 22:48:19,185 [__main__] INFO — AMD: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:48:19,935 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AVGO.
+2026-08-01 22:48:20,354 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:48:50,771 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 60s.
+2026-08-01 22:49:51,267 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 120s.
+2026-08-01 22:51:51,268 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 22:51:51,270 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for AVGO — using cached engagement data from 0.3h ago.
+2026-08-01 22:51:51,529 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-08-01 22:51:52,107 [shared.api_clients.news_client] INFO — Finnhub: fetched 139 articles for AVGO.
+2026-08-01 22:51:52,580 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AVGO.
+2026-08-01 22:51:52,677 [__main__] INFO — AVGO: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:51:52,677 [__main__] INFO — AVGO: SCORE 37.5/100 (technical=29.1/40, positioning=8.4/20, sentiment=3.0/15, news=7.5/15, fundamental=7.3/10 as_of=2026-07-24) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-12.8, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-17.8) direction=bullish qualifies=no
+2026-08-01 22:51:52,677 [__main__] INFO — AVGO: NOTE — regime (-5.0) and sector_rotation (-12.8) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:51:53,317 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSM.
+2026-08-01 22:51:53,728 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:52:24,135 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 60s.
+2026-08-01 22:53:24,553 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 120s.
+2026-08-01 22:55:24,554 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 22:55:24,556 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for TSM — using cached engagement data from 0.3h ago.
+2026-08-01 22:55:24,812 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-08-01 22:55:25,231 [shared.api_clients.news_client] INFO — Finnhub: fetched 38 articles for TSM.
+2026-08-01 22:55:25,703 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 8-K filing(s) for TSM.
+2026-08-01 22:55:25,801 [__main__] INFO — TSM: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:55:25,801 [__main__] INFO — TSM: SCORE 31.8/100 (technical=24.3/40, positioning=8.4/20, sentiment=1.9/15, news=7.3/15, fundamental=10.0/10 as_of=2026-07-23) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 22:55:25,801 [__main__] INFO — TSM: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:55:26,528 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MU.
+2026-08-01 22:55:26,952 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:55:57,356 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 60s.
+2026-08-01 22:56:57,880 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 120s.
+2026-08-01 22:58:57,880 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 22:58:57,882 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for MU — using cached engagement data from 0.4h ago.
+2026-08-01 22:58:58,073 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-08-01 22:58:58,526 [shared.api_clients.news_client] INFO — Finnhub: fetched 248 articles for MU.
+2026-08-01 22:58:59,086 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for MU.
+2026-08-01 22:58:59,184 [__main__] INFO — MU: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 22:58:59,184 [__main__] INFO — MU: SCORE 28.9/100 (technical=9.3/40, positioning=10.8/20, sentiment=11.2/15, news=7.6/15, fundamental=10.0/10 as_of=2026-07-28) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 22:58:59,184 [__main__] INFO — MU: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 22:58:59,823 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ASML.
+2026-08-01 22:59:00,241 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 30s.
+2026-08-01 22:59:30,691 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:00:31,149 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:02:31,149 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:02:31,151 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for ASML — using cached engagement data from 0.5h ago.
+2026-08-01 23:02:31,383 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ASML.
+2026-08-01 23:02:31,896 [shared.api_clients.news_client] INFO — Finnhub: fetched 75 articles for ASML.
+2026-08-01 23:02:32,318 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 8-K filing(s) for ASML.
+2026-08-01 23:02:32,502 [__main__] INFO — ASML: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-01 23:02:32,502 [__main__] INFO — ASML: SCORE 37.3/100 (technical=12.2/40, positioning=12.9/20, sentiment=15.0/15, news=9.9/15, fundamental=7.3/10 as_of=2026-07-29) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-20.0) direction=bullish qualifies=no
+2026-08-01 23:02:32,502 [__main__] INFO — ASML: NOTE — regime (-5.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-01 23:02:33,347 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ZION.
+2026-08-01 23:02:33,811 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ZION&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:03:04,216 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ZION&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:04:04,684 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ZION&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:06:04,684 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:06:04,686 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for ZION — using cached engagement data from 0.5h ago.
+2026-08-01 23:06:04,958 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 23:06:05,386 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for ZION.
+2026-08-01 23:06:05,952 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for ZION.
+2026-08-01 23:06:06,045 [__main__] INFO — ZION: SCORE 53.0/100 (technical=25.8/40, positioning=8.1/20, sentiment=7.5/15, news=2.6/15, fundamental=4.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 23:06:06,828 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for KEY.
+2026-08-01 23:06:07,299 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=KEY&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:06:37,762 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=KEY&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:07:38,193 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=KEY&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:09:38,193 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:09:38,195 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for KEY — using cached engagement data from 0.6h ago.
+2026-08-01 23:09:38,388 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for KEY.
+2026-08-01 23:09:39,139 [shared.api_clients.news_client] INFO — Finnhub: fetched 10 articles for KEY.
+2026-08-01 23:09:39,684 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for KEY.
+2026-08-01 23:09:39,770 [__main__] INFO — KEY: SCORE 53.9/100 (technical=24.9/40, positioning=7.7/20, sentiment=9.0/15, news=2.0/15, fundamental=5.3/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 23:09:40,445 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HBAN.
+2026-08-01 23:09:40,929 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HBAN&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:10:11,359 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HBAN&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:11:11,920 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HBAN&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:13:11,921 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:13:11,923 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for HBAN — using cached engagement data from 0.6h ago.
+2026-08-01 23:13:12,242 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HBAN.
+2026-08-01 23:13:12,675 [shared.api_clients.news_client] INFO — Finnhub: fetched 13 articles for HBAN.
+2026-08-01 23:13:13,143 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for HBAN.
+2026-08-01 23:13:13,228 [__main__] INFO — HBAN: SCORE 40.8/100 (technical=10.8/40, positioning=10.8/20, sentiment=9.0/15, news=0.6/15, fundamental=4.7/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 23:13:13,982 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for RF.
+2026-08-01 23:13:14,420 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=RF&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:13:45,127 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=RF&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:14:45,580 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=RF&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:16:45,580 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:16:45,582 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for RF — using cached engagement data from 0.7h ago.
+2026-08-01 23:16:45,802 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for RF.
+2026-08-01 23:16:46,300 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for RF.
+2026-08-01 23:16:46,758 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for RF.
+2026-08-01 23:16:46,838 [__main__] INFO — RF: SCORE 49.0/100 (technical=29.2/40, positioning=8.1/20, sentiment=1.0/15, news=1.7/15, fundamental=4.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 23:16:47,632 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for FITB.
+2026-08-01 23:16:48,063 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=FITB&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:17:18,494 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=FITB&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:18:18,918 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=FITB&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:20:18,918 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:20:18,920 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for FITB — using cached engagement data from 0.8h ago.
+2026-08-01 23:20:19,130 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for FITB.
+2026-08-01 23:20:19,843 [shared.api_clients.news_client] INFO — Finnhub: fetched 6 articles for FITB.
+2026-08-01 23:20:20,336 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for FITB.
+2026-08-01 23:20:20,431 [__main__] INFO — FITB: SCORE 54.0/100 (technical=26.0/40, positioning=12.3/20, sentiment=6.0/15, news=2.7/15, fundamental=2.0/10 as_of=2026-07-23) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
+2026-08-01 23:20:21,141 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for LLY.
+2026-08-01 23:20:21,595 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=LLY&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:20:52,055 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=LLY&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:21:52,492 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=LLY&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:23:52,493 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:23:52,495 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for LLY — using cached engagement data from 0.8h ago.
+2026-08-01 23:23:52,729 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for LLY.
+2026-08-01 23:23:53,237 [shared.api_clients.news_client] INFO — Finnhub: fetched 72 articles for LLY.
+2026-08-01 23:23:53,709 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for LLY.
+2026-08-01 23:23:53,802 [__main__] INFO — LLY: SCORE 32.5/100 (technical=24.2/40, positioning=6.7/20, sentiment=9.5/15, news=7.4/15, fundamental=6.7/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-22.0) direction=bullish qualifies=no
+2026-08-01 23:23:54,547 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for PFE.
+2026-08-01 23:23:54,960 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=PFE&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:24:25,380 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=PFE&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:25:25,834 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=PFE&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:27:25,835 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:27:25,836 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for PFE — using cached engagement data from 0.9h ago.
+2026-08-01 23:27:26,051 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for PFE.
+2026-08-01 23:27:26,484 [shared.api_clients.news_client] INFO — Finnhub: fetched 54 articles for PFE.
+2026-08-01 23:27:27,026 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for PFE.
+2026-08-01 23:27:27,104 [__main__] INFO — PFE: SCORE 43.2/100 (technical=24.5/40, positioning=11.8/20, sentiment=10.4/15, news=6.8/15, fundamental=6.7/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+5.0, seasonality=+0.0, total=-17.0) direction=bullish qualifies=no
+2026-08-01 23:27:27,826 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-08-01 23:27:28,251 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:27:58,742 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:28:59,178 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:30:59,179 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:30:59,180 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for MRK — using cached engagement data from 0.9h ago.
+2026-08-01 23:30:59,377 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MRK.
+2026-08-01 23:31:00,267 [shared.api_clients.news_client] INFO — Finnhub: fetched 48 articles for MRK.
+2026-08-01 23:31:00,938 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for MRK.
+2026-08-01 23:31:01,023 [__main__] INFO — MRK: SCORE 35.1/100 (technical=32.5/40, positioning=11.2/20, sentiment=0.6/15, news=7.4/15, fundamental=5.3/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-22.0) direction=bullish qualifies=no
+2026-08-01 23:31:01,723 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ABBV.
+2026-08-01 23:31:02,156 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ABBV&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:31:32,583 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ABBV&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:32:33,037 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ABBV&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:34:33,038 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:34:33,040 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for ABBV — using cached engagement data from 1.0h ago.
+2026-08-01 23:34:33,227 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ABBV.
+2026-08-01 23:34:33,904 [shared.api_clients.news_client] INFO — Finnhub: fetched 70 articles for ABBV.
+2026-08-01 23:34:34,346 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for ABBV.
+2026-08-01 23:34:34,453 [__main__] INFO — ABBV: SCORE 59.9/100 (technical=26.0/40, positioning=10.4/20, sentiment=11.5/15, news=10.0/15, fundamental=4.0/10 as_of=2026-08-02) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 23:34:35,168 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for UNH.
+2026-08-01 23:34:35,636 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=UNH&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:35:06,070 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=UNH&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:36:06,505 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=UNH&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:38:06,505 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:38:06,507 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for UNH — using cached engagement data from 1.0h ago.
+2026-08-01 23:38:06,709 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for UNH.
+2026-08-01 23:38:07,354 [shared.api_clients.news_client] INFO — Finnhub: fetched 52 articles for UNH.
+2026-08-01 23:38:07,882 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for UNH.
+2026-08-01 23:38:07,967 [__main__] INFO — UNH: SCORE 46.4/100 (technical=25.2/40, positioning=11.7/20, sentiment=4.2/15, news=7.2/15, fundamental=0.0/10 as_of=never) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 23:38:08,682 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for JNJ.
+2026-08-01 23:38:09,146 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=JNJ&page_number=1&category=all. Retry in 30s.
+2026-08-01 23:38:39,817 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=JNJ&page_number=1&category=all. Retry in 60s.
+2026-08-01 23:39:40,301 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=JNJ&page_number=1&category=all. Retry in 120s.
+2026-08-01 23:41:40,301 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-01 23:41:40,303 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for JNJ — using cached engagement data from 1.1h ago.
+2026-08-01 23:41:40,506 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for JNJ.
+2026-08-01 23:41:40,972 [shared.api_clients.news_client] INFO — Finnhub: fetched 99 articles for JNJ.
+2026-08-01 23:41:41,414 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for JNJ.
+2026-08-01 23:41:41,570 [__main__] INFO — JNJ: SCORE 47.5/100 (technical=27.0/40, positioning=11.9/20, sentiment=6.1/15, news=4.4/15, fundamental=0.0/10 as_of=never) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-08-01 23:41:42,139 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-08-01 23:42:41,562 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 23:42:41,562 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-01 23:42:42,484 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for ZION.
+2026-08-01 23:43:27,475 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for ZION.
+2026-08-01 23:43:27,604 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for KEY.
+2026-08-01 23:43:27,737 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HBAN.
+2026-08-01 23:43:27,869 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for RF.
+2026-08-01 23:43:28,028 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for FITB.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-01 23:48:01,343 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-01 23:48:40,265 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-02 00:08:23,004 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-02 00:08:23,004 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-02 00:08:53,449 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-08-02 00:08:53,916 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 30s.
+2026-08-02 00:09:24,387 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 60s.
+2026-08-02 00:10:24,781 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MRK&page_number=1&category=all. Retry in 120s.
+2026-08-02 00:12:24,781 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-02 00:12:24,783 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for MRK — using cached engagement data from 1.6h ago.
+2026-08-02 00:12:49,823 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-08-02 00:18:23,208 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-08-02 12:17:49,561 [swing_model.indicator_pipeline] INFO — fundamental_state.json updated.
+2026-08-02 12:17:49,562 [swing_model.indicator_pipeline] INFO — Archived fundamental snapshot: data\processed\fundamental_history\2026-08-02.json

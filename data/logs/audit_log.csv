@@ -27,3 +27,5 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-07-29T12:31:00.068039+00:00,v2.2.24,pre_market,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='Simply Wall Street',True,fraud
 2026-07-29T20:31:10.442456+00:00,v2.2.24,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-07-29T20:31:10.869919+00:00,v2.2.24,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-08-02T05:34:41.201477+00:00,v2.2.33,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-08-02T06:41:42.139527+00:00,v2.2.33,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff

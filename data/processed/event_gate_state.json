@@ -244,6 +244,26 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-07-29T20:31:09.804906+00:00"
+    },
+    {
+      "id": "aff74ca7-bd59-4f1e-979f-b6f2bbe536ef",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Trump Says the Market Is Going to \"Go Through the Roof.\" His Iran Escalation and New Tariffs Suggest Otherwise.",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-08-01T07:30:00+00:00",
+      "created_at_utc": "2026-08-02T05:34:40.638553+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-08-02T06:41:41.633344+00:00"
     }
   ]
 }
