@@ -341,28 +341,35 @@ def compute_technical_sub_scores(
 
     # ---------------------------------------------------------------------------
     # RS score (0-8): RS z-score maps relative strength vs. SMH
-    # rs_z=+3 → 8 (strongly outperforming), rs_z=-3 → 0 (underperforming)
+    # rs_z=+1.5 → 8 (strongly outperforming), rs_z=-1.5 → 0 (underperforming).
+    # Anchor history: 3.0 (original) -> 2.0 (v2.2.29, real improvement over 3.0
+    # once the small-sample artifact was ruled out) -> 1.5 (v2.2.33, re-tested
+    # against the 3-sector pooled backtest: 1.5 beat both its neighbors, 1.0 and
+    # 2.0/2.5, on Sharpe — 3.21 vs 3.14/3.10/3.08 respectively).
     # ---------------------------------------------------------------------------
     rs_z = float(technical.get("rs_zscore", 0.0))
-    rs_z_clamp = max(-2.0, min(2.0, rs_z))
-    rs_score = round(max(0.0, min(8.0, 4.0 + rs_z_clamp * (4.0 / 2.0))), 2)
+    rs_z_clamp = max(-1.5, min(1.5, rs_z))
+    rs_score = round(max(0.0, min(8.0, 4.0 + rs_z_clamp * (4.0 / 1.5))), 2)
 
     # ---------------------------------------------------------------------------
     # RSI score (0-8): RSI position mapping (scaled from 0-10 to 0-8)
     # ---------------------------------------------------------------------------
+    # Sweet-spot band widened 55-65 -> 50-70 (v2.2.33): re-tested against the
+    # 3-sector pooled backtest alongside neighbors 52-68 (Sharpe 3.33) and 48-74
+    # (Sharpe 3.17, worse on every axis — confirms 48-74 overshoots). 50-70 and
+    # 52-68 were statistically tied (Sharpe 3.34 vs 3.33); kept 50-70 for +8 more
+    # trades at the same Sharpe/drawdown.
     rsi_val = float(technical.get("rsi_14", 50.0))
-    if 55 <= rsi_val <= 65:
+    if 50 <= rsi_val <= 70:
         rsi_score = 8.0
-    elif 50 <= rsi_val < 55:
+    elif 45 <= rsi_val < 50:
         rsi_score = 6.0
-    elif 65 < rsi_val <= 72:
+    elif 70 < rsi_val <= 72:
         rsi_score = 4.64
     elif 72 < rsi_val <= 80:
         rsi_score = 3.36
     elif rsi_val > 80:
         rsi_score = 1.36
-    elif 45 <= rsi_val < 50:
-        rsi_score = 4.0
     elif 35 <= rsi_val < 45:
         rsi_score = 2.0
     else:

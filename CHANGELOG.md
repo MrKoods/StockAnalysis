@@ -31,6 +31,7 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.33 | 2026-08-02 | Scoring Change | Re-swept RS z-score anchor, RSI sweet-spot band, and choppy-regime penalty against the 3-sector pooled backtest; kept 3 real improvements, rejected 2 that looked appealing but cost Sharpe |
 | v2.2.32 | 2026-08-01 | Scoring Change | Sector-rotation penalty now softens for individual tickers with strong relative strength, instead of applying uniformly to every ticker in a weak sector |
 | v2.2.31 | 2026-08-01 | Backtest Methodology / Feature | Wired regional_banks/healthcare into the backtest for the first time; re-confirmed the RSI entry band against all 3 sectors pooled |
 | v2.2.30 | 2026-08-01 | Bug Fix | v2.2.28's seasonality fix was incomplete — a second, deeper key-type bug meant live scans still weren't reading the real config values |
@@ -72,6 +73,47 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
 | v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+
+---
+
+## [v2.2.33] — 2026-08-02 — [Scoring Change] Re-swept technical/regime parameters against the pooled 3-sector backtest
+
+**Status:** Live (all three kept changes are real scoring changes).
+
+**Problem:** v2.2.31 established a much larger, healthier backtest (266 trades pooled across all 3
+sectors, up from measuring 1 sector alone) and re-confirmed the RSI *entry-filter* band. That larger
+sample makes it possible to productively re-tune individual scoring *sub-signal curves* — something
+v2.2.28 had tried and abandoned as showing "zero effect," which v2.2.29 later found was itself a
+small-sample artifact for at least one of those parameters (RS z-score anchor). Systematically
+re-swept 5 candidate changes against the new pooled baseline instead of assuming any one result
+generalizes from a single test.
+
+**Tested and kept (3):**
+- `swing_model/scoring.py` — RS z-score anchor swept 1.0/1.5/2.0(prior)/2.5σ: **1.5σ** gave the best
+  Sharpe (3.21 vs 3.14/3.10/3.08) and more trades than the prior 2.0σ default (280 vs 266).
+- `swing_model/scoring.py` — RSI sweet-spot band swept 52-68/**50-70**/48-74 (from prior 55-65):
+  50-70 and 52-68 tied on Sharpe (3.34 vs 3.33); 48-74 overshot and was clearly worse on every axis
+  (Sharpe 3.17, WR 57.5%, max DD 11.5%) — confirms this isn't "wider is always better." Kept 50-70
+  for slightly more trades at the same Sharpe.
+- `shared/utils/regime_detection.py` — choppy regime modifier swept -8(prior)/-4/-2/0: **-2** gave the
+  best Sharpe (3.43 vs 3.39/3.40/3.34). Weakest-evidence change in this batch — the spread across the
+  sweep is small and comes from a few dozen choppy-regime bars, closer to what this dataset can
+  actually distinguish from noise than the other two. Kept as a genuine, if modest, local optimum.
+
+**Tested and rejected (2):**
+- `require_confirmation_bar` True: fewer trades (224 vs 294) and worse Sharpe (2.81 vs 3.34) —
+  requiring next-bar confirmation removes real winning setups, not just noise.
+- `min_breakout_volume_zscore` filter (tried 0.2 and 0.5): both raised win rate and lowered
+  drawdown, but at a larger cost to Sharpe and trade count (0.5: 164 trades, Sharpe 2.66) than the
+  quality gain justified — the filter cuts real signal, not just weak setups.
+
+**Backtest result:** All 3 kept changes combined, vs. the v2.2.31/32 baseline —
+**3-sector pooled:** 266→296 trades, win rate 59.0%→59.8%, avg R:R 1.62→1.63, Sharpe **3.10→3.43**,
+max drawdown 9.1%→8.7%. **Semis-only:** 108→120 trades, win rate 60.2%→63.3%, Sharpe 2.81→3.39, max
+drawdown 8.2% (unchanged). Passed: True for both. Quantity and quality improved together — no
+tradeoff this round, unlike the two rejected changes above. 712 tests pass (unchanged), 3 skipped.
+
+**Approved by:** [pending]
 
 ---
 

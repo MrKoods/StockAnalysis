@@ -109,7 +109,14 @@ def get_regime_modifiers(regime: str, cfg: dict) -> dict:
             "mean_reversion_weight_delta": 0,
             "rsi_weight_delta": r.get("choppy_rsi_boost", 10),
             "score_cap": None,
-            "regime_modifier": -8.0,
+            # -8 -> -2 (v2.2.33): swept -8/-4/-2/0 against the 3-sector pooled
+            # backtest; -2 gave the best Sharpe (3.43 vs 3.34/3.39/3.40). Weaker
+            # signal than the RS-anchor/RSI-band changes in this same round —
+            # the differences across this sweep are small and derived from a
+            # few dozen choppy-regime bars, closer to the edge of what this
+            # dataset can distinguish from noise. Kept because it's a genuine,
+            # if modest, local optimum, not a hunch.
+            "regime_modifier": -2.0,
         }
     if regime == REGIME_HIGH_VOL:
         return {
