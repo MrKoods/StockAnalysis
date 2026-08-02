@@ -174,8 +174,21 @@ def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[fl
     if sent_changes or vol_changes:
         avg_sent = statistics.mean(sent_changes) if sent_changes else 0.0
         avg_vol = statistics.mean(vol_changes) if vol_changes else 0.0
-        combined = (avg_sent + avg_vol) / 2.0
-        score = 2.5 + combined * 10.0
+        # StockTwits' sentiment_change and volume_change are not on the same scale —
+        # confirmed live: sentiment_change stays small (-0.29 to 0.0 observed across
+        # several tickers) while volume_change ranges much wider (0.0 to -7.59
+        # observed) despite both feeding the same *10 multiplier below. Unclamped,
+        # a routine volume_change reading (not even an extreme one) blew straight
+        # through the +/-5 range, making velocity_score nearly binary (always 0 or
+        # 5) whenever native fields were present — defeating the point of a graded
+        # sub-signal. Clamping each to +/-1.0 (+/-100% change) before combining
+        # treats them as equally-weighted directional signals once normalized, and
+        # anything beyond +/-100% as maximally significant rather than letting it
+        # dominate the average.
+        avg_sent_clamped = max(-1.0, min(1.0, avg_sent))
+        avg_vol_clamped = max(-1.0, min(1.0, avg_vol))
+        combined = (avg_sent_clamped + avg_vol_clamped) / 2.0
+        score = 2.5 + combined * 2.5
         return max(0.0, min(VELOCITY_MAX, score)), "complete"
 
     # Fallback: derive velocity from the daily bullish-ratio trajectory
@@ -249,11 +262,23 @@ def _build_daily_bullish_ratios(messages: list[dict], days: int = 5) -> tuple[li
     ratios = []
     totals = []
     for b in buckets:
-        if b["total"] > 0:
-            ratios.append(b["bull"] / b["total"])
+        # bull / (bull + bear), not bull / total — total includes untagged
+        # messages (StockTwits' entities.sentiment.basic is often absent; confirmed
+        # live: 20 of 30 messages for one ticker carried no tag at all). Dividing
+        # by total silently treated every untagged message as diluting toward
+        # bearish, crushing the ratio toward 0 even when the tagged messages were
+        # unanimously bullish (observed live: 10 bullish, 0 bearish, 20 untagged
+        # produced a near-zero ratio under the old formula). totals below now
+        # tracks tagged-message count specifically, since that's what the ratio
+        # is actually built from — _score_ratio's baseline-trust threshold means
+        # "5 tagged messages," which is the correct bar now, not "5 messages of
+        # any kind including ones that expressed no opinion."
+        tagged = b["bull"] + b["bear"]
+        if tagged > 0:
+            ratios.append(b["bull"] / tagged)
         else:
-            ratios.append(0.5)  # neutral when no data
-        totals.append(b["total"])
+            ratios.append(0.5)  # neutral when no tagged sentiment that day
+        totals.append(tagged)
     return ratios, totals
 
 

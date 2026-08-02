@@ -31,6 +31,7 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.35 | 2026-08-02 | Bug Fix | Sentiment's ratio and velocity sub-signals had two independent, well-evidenced bugs: untagged StockTwits messages diluted the bullish ratio toward bearish, and a scale mismatch between two native fields made velocity nearly binary |
 | v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article has been silently carrying an empty title since yfinance changed its response shape — no Yahoo article could ever count toward News, for any ticker |
 | v2.2.33 | 2026-08-02 | Scoring Change | Re-swept RS z-score anchor, RSI sweet-spot band, and choppy-regime penalty against the 3-sector pooled backtest; kept 3 real improvements, rejected 2 that looked appealing but cost Sharpe |
 | v2.2.32 | 2026-08-01 | Scoring Change | Sector-rotation penalty now softens for individual tickers with strong relative strength, instead of applying uniformly to every ticker in a weak sector |
@@ -74,6 +75,66 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
 | v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+
+---
+
+## [v2.2.35] — 2026-08-02 — [Bug Fix] Sentiment's ratio and velocity sub-signals had two independent bugs
+
+**Status:** Live.
+
+**Problem:** Following up v2.2.34's News fix, checked the other layers for the same class of
+silent bug against real live data (not just re-scoring the same numbers). Sentiment was the
+weakest remaining layer (46.9% of max). Traced MRK's near-zero sentiment score (0.6/15) against
+its real StockTwits messages and found two separate, independent bugs:
+
+1. `_build_daily_bullish_ratios()` computed `bull / total`, where `total` includes messages with
+   no sentiment tag at all (StockTwits' `entities.sentiment.basic` is frequently absent — observed
+   live: 20 of 30 messages for MRK carried no tag). Every untagged message silently diluted the
+   ratio toward bearish exactly as if it had voted bearish. MRK's real tagged messages were 10
+   bullish, 0 bearish — unanimously bullish — but the ratio computed under the old formula was
+   near zero, and `dominant_sentiment` did not reflect reality.
+2. `_score_velocity()` averages StockTwits' native `sentiment_change` and `volume_change` fields
+   and applies one `x10` multiplier to the result. Live inspection across several tickers showed
+   these two fields are not on the same scale: `sentiment_change` stayed small (0.0, -0.15, -0.29
+   observed), while `volume_change` ranged much wider (0.0, -0.8, -5.68, -7.59 observed) — a
+   routine, not even unusually extreme, `volume_change` reading blows straight through the
+   intended +/-5 range every time, making velocity_score nearly binary (0 or 5) instead of graded.
+
+**Fix:** `swing_model/sentiment_layer.py`:
+- `_build_daily_bullish_ratios()` now divides by `bull + bear` (tagged messages only), falling
+  back to the neutral 0.5 only when a bucket has zero tagged messages. The function's `totals`
+  return value now tracks tagged-message count too, since that's what the ratio is actually built
+  from — `_score_ratio()`'s existing baseline-trust threshold (`_RATIO_MIN_BASELINE_MESSAGES`)
+  correctly now means "5 tagged messages," not "5 messages of any kind including ones that
+  expressed no opinion."
+- `_score_velocity()` now clamps `avg_sent` and `avg_vol` independently to [-1.0, 1.0] before
+  combining, and rescales the combined-to-score multiplier from 10.0 to 2.5 to match (so a
+  worst-case combined value of +/-1.0 still spans the full 0-5 range). Each field is treated as an
+  equally-weighted directional signal once normalized, instead of letting whichever field happens
+  to run on a larger raw scale dominate the average.
+- 6 new tests: 3 directly on `_build_daily_bullish_ratios()` (ignores untagged, neutral when zero
+  tagged, still reflects genuine bearish sentiment correctly), 3 on `_score_velocity()`'s clamping
+  behavior via `compute_sentiment_score()` (extreme volume_change no longer floors the score;
+  strong positive sentiment_change can still lift it above neutral even against a large negative
+  volume_change).
+
+**Verified against real live data (MRK):** `ratio_score` 0.0 -> 1.75, `velocity_score` 0.0 -> 1.25,
+`dominant_sentiment` now correctly reports "bullish" (matching the real 10-bullish/0-bearish tagged
+read) instead of a diluted/incorrect reading.
+
+**Backtest result:** Not applicable — the 13.5-year backtest uses a synthetic price-momentum proxy
+for Sentiment (`_sentiment_from_price_momentum`), never live StockTwits data, so this bug never
+affected any backtest result quoted in this CHANGELOG. Verified via direct live-data inspection and
+the new unit tests instead. 723 tests pass (was 717), 3 skipped.
+
+**Note on Positioning and Fundamental, checked in the same pass:** Positioning's low scorer (LLY)
+was traced end-to-end and found to reflect real, correctly-computed, genuinely bearish-leaning
+market data (put-heavy option chain, increasing short interest) — no bug found. Fundamental's
+remaining `as_of=never` tickers (UNH, JNJ) are next in the bootstrap queue and expected to clear
+within 1-2 days under the v2.2.28 budget increase, competing with same-day earnings-priority
+refreshes for the daily slot — not a bug, a queue-ordering tradeoff already accepted in v2.2.28.
+
+**Approved by:** [pending]
 
 ---
 

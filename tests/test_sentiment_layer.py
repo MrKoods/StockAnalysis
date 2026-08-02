@@ -26,7 +26,7 @@ from shared.utils.source_credibility import (
 )
 from shared.utils.ner_extractor import extract_ticker_sentiments, is_ticker_relevant
 from shared.utils.narrative_tracker import identify_dominant_theme, theme_alignment_modifier
-from swing_model.sentiment_layer import compute_sentiment_score, SENTIMENT_MAX
+from swing_model.sentiment_layer import compute_sentiment_score, SENTIMENT_MAX, _build_daily_bullish_ratios
 from swing_model.news_layer import compute_news_score, count_independent_cluster
 
 
@@ -247,6 +247,48 @@ class TestSentimentLayer:
         result_flat = compute_sentiment_score(flat, [], "NVDA", {})
         assert result_rising["velocity_score"] > result_flat["velocity_score"]
 
+    def test_extreme_volume_change_does_not_swamp_velocity(self):
+        # Regression test: StockTwits' volume_change runs on a much wider scale
+        # than sentiment_change (observed live: -7.59 vs. sentiment_change values
+        # like -0.29/0.0) despite both feeding the same formula. Unclamped, this
+        # exact reading computes combined=(0.2-7.59)/2=-3.695, score=2.5-36.95,
+        # slammed to the hard floor of 0.0 regardless of the mildly positive
+        # sentiment_change. A large negative volume_change should still pull the
+        # score down (it's genuinely a negative signal, even clamped) — the fix
+        # is that it no longer wipes out every other input and hits the floor.
+        messages = self._make_messages(10, 2, sentiment_change=0.2, volume_change=-7.59)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        assert result["velocity_score"] > 0.0
+
+    def test_extreme_volume_change_still_allows_positive_sentiment_to_show(self):
+        # A strongly positive sentiment_change should be able to lift the score
+        # above neutral even when volume_change is a large negative outlier,
+        # since each field is now clamped independently before combining rather
+        # than one dominating the raw average.
+        messages = self._make_messages(10, 2, sentiment_change=0.9, volume_change=-7.59)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        # combined = (0.9 + (-1.0)) / 2 = -0.05 -> just under neutral, not floored
+        assert result["velocity_score"] > 2.0
+
+    def test_untagged_messages_do_not_dilute_ratio_toward_bearish(self):
+        # Regression test: _build_daily_bullish_ratios used to divide bullish
+        # count by ALL messages (including ones with no sentiment tag at all),
+        # not by tagged (bullish+bearish) messages. Observed live for a real
+        # ticker: 10 bullish, 0 bearish, 20 untagged produced a near-zero ratio
+        # under the old formula, even though every message that expressed an
+        # opinion was bullish. Untagged messages should be ignored, not treated
+        # as diluting toward bearish.
+        now = datetime.now(timezone.utc)
+        ts = (now - timedelta(hours=2)).isoformat()
+        messages = []
+        for i in range(10):
+            messages.append({"message_id": str(i), "timestamp_utc": ts, "sentiment": "bullish"})
+        for i in range(20):
+            messages.append({"message_id": str(10 + i), "timestamp_utc": ts, "sentiment": None})
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        assert result["dominant_sentiment"] == "bullish"
+        assert result["ratio_score"] > 3.5  # above the neutral midpoint, not crushed toward 0
+
     def test_rising_comment_count_lifts_engagement_score(self):
         rising = self._make_sa_items([10, 20, 40, 80])
         flat = self._make_sa_items([40, 40, 40, 40])
@@ -265,6 +307,35 @@ class TestSentimentLayer:
         ]
         for key in required:
             assert key in result, f"Missing key: {key}"
+
+
+class TestBuildDailyBullishRatios:
+    def _msg(self, hours_ago, sentiment):
+        now = datetime.now(timezone.utc)
+        ts = (now - timedelta(hours=hours_ago)).isoformat()
+        return {"timestamp_utc": ts, "sentiment": sentiment}
+
+    def test_ratio_ignores_untagged_messages(self):
+        # 10 bullish, 0 bearish, 20 untagged, all "today" (bucket -1) — ratio
+        # must reflect the tagged messages only (1.0), not be diluted by the
+        # untagged ones toward 0 (10/30 under the old bull/total formula).
+        messages = [self._msg(2, "bullish") for _ in range(10)] + [self._msg(2, None) for _ in range(20)]
+        ratios, totals = _build_daily_bullish_ratios(messages, days=5)
+        assert ratios[-1] == 1.0
+        assert totals[-1] == 10  # tagged count, not all 30 messages
+
+    def test_ratio_neutral_when_zero_tagged_messages(self):
+        messages = [self._msg(2, None) for _ in range(15)]
+        ratios, totals = _build_daily_bullish_ratios(messages, days=5)
+        assert ratios[-1] == 0.5
+        assert totals[-1] == 0
+
+    def test_ratio_reflects_real_bearish_when_actually_bearish(self):
+        # Untagged-dilution fix shouldn't mask genuine bearish sentiment either.
+        messages = [self._msg(2, "bearish") for _ in range(8)] + [self._msg(2, "bullish") for _ in range(2)]
+        ratios, totals = _build_daily_bullish_ratios(messages, days=5)
+        assert ratios[-1] == 0.2
+        assert totals[-1] == 10
 
 
 # ---------------------------------------------------------------------------
