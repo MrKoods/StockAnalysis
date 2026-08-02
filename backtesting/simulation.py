@@ -123,7 +123,7 @@ def simulate_trade_outcome(
     }
 
 
-def _load_fundamental_history(tickers: list, cfg: dict) -> list[tuple[datetime, dict]]:
+def _load_fundamental_history(tickers: list, cfg: dict, benchmark_ticker: str = "SMH") -> list[tuple[datetime, dict]]:
     """
     Load every archived weekly fundamental snapshot (data/processed/fundamental_history/*.json),
     scored and sorted oldest-to-newest, for point-in-time lookup during backtest replay.
@@ -144,7 +144,7 @@ def _load_fundamental_history(tickers: list, cfg: dict) -> list[tuple[datetime, 
         return []
 
     scorer = FundamentalScorer(cfg)
-    watchlist = [t for t in tickers if t != "SMH"]
+    watchlist = [t for t in tickers if t != benchmark_ticker]
     snapshots = []
     for path in sorted(history_dir.glob("*.json")):
         try:
@@ -209,6 +209,7 @@ def _simulate_test_signals(
     rsi_max: float = 82.0,
     min_breakout_volume_zscore: "float | None" = None,
     require_confirmation_bar: bool = False,
+    benchmark_ticker: str = "SMH",
 ) -> list[dict]:
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.
@@ -221,14 +222,25 @@ def _simulate_test_signals(
     signal — those days had real prior history available, it just wasn't included.
 
     rsi_min/rsi_max: entry-filter RSI band, overridable for research experiments
-    (see backtesting/entry_filter_variants.py). Default tightened from the
-    original 45-82 to 45-70 in v2.2.5 — walk-forward evidence pooled across all
-    24 windows (2014-2026) showed 82 lets through too many already-extended
-    moves with less runway left to reach target: 45-70 improved pooled win rate
-    49.4%→60.8% at a real cost of ~3x fewer qualifying candidates. This is a
+    (see backtesting/entry_filter_variants.py). v2.2.5 (2026-07-19) tightened this
+    from 45-82 to 45-70 on walk-forward evidence that was valid for the scoring
+    formula at the time. v2.2.29 (2026-08-01) re-tested both bands under the current
+    5-category formula and found the 45-70 tightening's benefit had evaporated —
+    reverted to 45-82. Re-confirmed again here (2026-08-01) against both the
+    semis-only test AND the newly-wired 3-sector pooled test
+    (run_multi_sector_backtest): 82 beats 70 on every axis that matters — trade
+    count (108 vs 28 semis-only, 266 vs 91 pooled), Sharpe (2.81 vs 1.16 semis-only,
+    3.10 vs 2.29 pooled), and go-live-gate pass/fail (82 passes both slices, 70
+    fails both). Do not revert to 70 without a similarly direct A/B result — a
+    plausible-sounding rationale is not sufficient given this parameter's history
+    of being flipped back and forth without being re-validated each time. This is a
     backtest-only candidate-selection filter — it does not exist in and does
     not change live/paper scoring, which already scores RSI continuously
     (swing_model/scoring.py, 0-8 points, no hard cutoff).
+
+    benchmark_ticker: the sector benchmark to compare tickers against (SMH for
+    semiconductors, KRE for regional banks, XLV for healthcare) — must be a key
+    in test_data. Excluded from the candidate loop itself.
 
     min_breakout_volume_zscore: if set, requires the breakout bar's volume
     z-score (vs. its own 20-day history) to be at or above this value — a
@@ -310,7 +322,7 @@ def _simulate_test_signals(
 
     # Load the archived weekly fundamental snapshots once; each bar looks up the
     # snapshot on or before its own date (see _fundamental_as_of).
-    fundamental_history = _load_fundamental_history(list(test_data.keys()), cfg)
+    fundamental_history = _load_fundamental_history(list(test_data.keys()), cfg, benchmark_ticker=benchmark_ticker)
 
     # Load cached TNX/DXY series once for point-in-time macro_overlay computation
     # (v2.2.7 — previously hardcoded to macro_modifier=0.0 always; see CHANGELOG).
@@ -318,7 +330,7 @@ def _simulate_test_signals(
     # full backtest window) — neutral-when-unavailable, same as News/Fundamental.
     tnx_series, dxy_series = _load_macro_series()
 
-    smh_df = test_data.get("SMH")
+    smh_df = test_data.get(benchmark_ticker)
     rr_cfg = cfg.get("risk_reward", {})
     outcomes = []
 
@@ -334,7 +346,7 @@ def _simulate_test_signals(
         smh_sector_trend = (smh_sma20 > smh_sma50) & (smh_df["Close"] > smh_sma50)
 
     for ticker, df in test_data.items():
-        if ticker == "SMH" or df.empty or len(df) < 65:
+        if ticker == benchmark_ticker or df.empty or len(df) < 65:
             continue
 
         # Align SMH benchmark to ticker index

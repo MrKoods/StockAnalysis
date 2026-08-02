@@ -163,10 +163,116 @@ def run_backtest(
     return result
 
 
+# Sector -> (historical data directory, sector benchmark ticker). The live model
+# trades all three sectors (config/swing_config.yaml watchlist.sectors); until now
+# run_backtest() only ever validated the semiconductors sector (data/historical/,
+# 6 tickers) — regional_banks and healthcare have had a matching historical dataset
+# sitting in data/historical_banks/ and data/historical_healthcare/ (gitignored
+# research data, same 2013-2026 date range) that was never wired into the backtest.
+_SECTOR_DATASETS = {
+    "semiconductors": ("data/historical", "SMH"),
+    "regional_banks": ("data/historical_banks", "KRE"),
+    "healthcare": ("data/historical_healthcare", "XLV"),
+}
+
+
+def run_multi_sector_backtest(
+    sector_historical_data: dict[str, dict[str, pd.DataFrame]],
+    config_path: str = "config/swing_config.yaml",
+    train_split: float = 0.70,
+    min_qualifying_trades: int = 100,
+    min_expectancy_r: float = 0.3,
+) -> dict:
+    """
+    Same replay + metrics pipeline as run_backtest(), but run once per sector
+    (each against its own benchmark — SMH/KRE/XLV) and the resulting out-of-sample
+    signal sets pooled into one combined qualifying-trade population before
+    computing win rate/R:R/Sharpe/drawdown/expectancy. A stock's technical setup
+    is only ever compared against its own sector's benchmark (mixing sectors into
+    one _simulate_test_signals() call would benchmark bank tickers against SMH,
+    which is meaningless) — this is why pooling happens at the outcome level, not
+    the raw OHLCV level.
+
+    sector_historical_data: {sector_name: {ticker: OHLCV_df}} — each inner dict
+    must include that sector's benchmark ticker (see _SECTOR_DATASETS) alongside
+    its tradeable tickers, same shape run_backtest() expects for a single sector.
+
+    Does not run walk-forward validation (per-sector walk-forward pooling is a
+    separate, larger change) — this covers the same headline 70/30 single-slice
+    metric every other backtest result in this project is compared against.
+
+    Returns the same result dict shape as run_backtest(), plus a "per_sector"
+    breakdown of qualifying trade count per sector.
+    """
+    all_outcomes: list[dict] = []
+    per_sector_counts: dict[str, int] = {}
+    earliest_date = None
+    train_cutoff_label = ""
+
+    for sector, historical_data in sector_historical_data.items():
+        if not historical_data:
+            continue
+        _, benchmark = _SECTOR_DATASETS.get(sector, (None, "SMH"))
+        outcomes, _months, dates, train_cutoff = _get_test_outcomes(
+            historical_data, config_path, train_split, benchmark_ticker=benchmark
+        )
+        per_sector_counts[sector] = len(outcomes)
+        all_outcomes.extend(outcomes)
+        if dates and (earliest_date is None or dates[0] < earliest_date):
+            earliest_date = dates[0]
+        if train_cutoff is not None:
+            train_cutoff_label = str(train_cutoff)
+
+    if not all_outcomes:
+        return {"passed": False, "error": "no_dates", "win_rate": 0.0, "per_sector": per_sector_counts}
+
+    qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
+
+    win_rate = compute_win_rate(qualifying)
+    avg_rr = compute_avg_rr(qualifying)
+    regime_metrics = per_regime_metrics(qualifying)
+    expectancy_ci = bootstrap_expectancy_ci(compute_r_multiples(qualifying))
+
+    qualifying_chrono = sorted(qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
+    equity_curve = _build_equity_curve(qualifying_chrono, starting_equity=15000.0)
+    max_dd = compute_max_drawdown(equity_curve)
+    trade_returns = equity_curve.pct_change().dropna()
+    sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
+
+    max_consec_losses = compute_consecutive_losses(qualifying)
+
+    passed = (
+        len(qualifying) >= min_qualifying_trades
+        and expectancy_ci["ci_lower"] >= min_expectancy_r
+        and sharpe >= 1.0
+        and max_dd <= 0.15
+    )
+
+    result = {
+        "passed": passed,
+        "win_rate": round(win_rate, 4),
+        "avg_rr": round(avg_rr, 2),
+        "expectancy_r_mean": round(expectancy_ci["mean_r"], 3),
+        "expectancy_r_ci_lower": round(expectancy_ci["ci_lower"], 3),
+        "expectancy_r_ci_upper": round(expectancy_ci["ci_upper"], 3),
+        "sharpe_ratio": round(sharpe, 2),
+        "max_drawdown_pct": round(max_dd, 4),
+        "qualifying_trades": len(qualifying),
+        "total_signals": len(all_outcomes),
+        "max_consecutive_losses": max_consec_losses,
+        "per_regime": regime_metrics,
+        "per_sector": per_sector_counts,
+        "train_period": str(earliest_date) if earliest_date else "",
+        "test_period": train_cutoff_label,
+    }
+    return result
+
+
 def _get_test_outcomes(
     historical_data: dict[str, pd.DataFrame],
     config_path: str = "config/swing_config.yaml",
     train_split: float = 0.70,
+    benchmark_ticker: str = "SMH",
 ) -> tuple[list[dict], float, list, "pd.Timestamp | None"]:
     """
     Split historical_data into train/test (70/30 by default) and simulate every
@@ -206,7 +312,9 @@ def _get_test_outcomes(
         pos = df.index.searchsorted(train_cutoff, side="right")
         test_data[t] = df.iloc[max(0, pos - _WARMUP_BARS):]
 
-    all_outcomes = _simulate_test_signals(test_data, config_path, signal_cutoff=train_cutoff)
+    all_outcomes = _simulate_test_signals(
+        test_data, config_path, signal_cutoff=train_cutoff, benchmark_ticker=benchmark_ticker
+    )
 
     test_months = max(1.0, (all_dates[-1] - train_cutoff).days / 30.44)
 

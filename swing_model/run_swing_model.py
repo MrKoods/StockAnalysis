@@ -27,7 +27,7 @@ from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_
 from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings, fetch_hyperscaler_capex_snippets
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state, save_macro_state
-from shared.utils.sector_rotation import compute_rotation_state
+from shared.utils.sector_rotation import compute_rotation_state, dampen_rotation_penalty_for_leader
 from shared.utils.earnings_calendar import get_earnings_modifier
 from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
@@ -189,7 +189,10 @@ def main(scan_type: str = "post_close") -> None:
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
             regime_modifier_val = regime_modifier_by_sector.get(sector, 0.0)
-            rotation_modifier_val = rotation_modifier_by_sector.get(sector, 0.0)
+            rotation_modifier_val = dampen_rotation_penalty_for_leader(
+                rotation_modifier_by_sector.get(sector, 0.0),
+                float(indicators.get("rs_zscore", 0.0)),
+            )
 
             # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)

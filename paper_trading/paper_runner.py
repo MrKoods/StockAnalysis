@@ -38,6 +38,7 @@ from swing_model.scoring import compute_confidence_score
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from shared.utils.regime_detection import get_regime_modifiers
+from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.logger import get_logger
@@ -319,7 +320,10 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
             regime_mod = regime_mod_by_sector.get(sector, 0.0)
-            rotation_mod = rotation_mod_by_sector.get(sector, 0.0)
+            rotation_mod = dampen_rotation_penalty_for_leader(
+                rotation_mod_by_sector.get(sector, 0.0),
+                float(indicators.get("rs_zscore", 0.0)),
+            )
 
             # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)

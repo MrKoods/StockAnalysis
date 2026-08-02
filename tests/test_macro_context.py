@@ -23,6 +23,7 @@ from shared.utils.regime_detection import (
 from shared.utils.sector_rotation import (
     compute_rotation_state,
     get_rotation_modifier,
+    dampen_rotation_penalty_for_leader,
     ROTATION_INFLOW,
     ROTATION_NEUTRAL,
     ROTATION_OUTFLOW,
@@ -168,6 +169,21 @@ class TestSectorRotation:
         assert get_rotation_modifier(ROTATION_OUTFLOW, {}) == -15.0
         assert get_rotation_modifier(ROTATION_INFLOW, {}) == 5.0
         assert get_rotation_modifier(ROTATION_NEUTRAL, {}) == 0.0
+
+    def test_dampen_rotation_penalty_leaves_neutral_and_positive_untouched(self):
+        assert dampen_rotation_penalty_for_leader(0.0, 5.0) == 0.0
+        assert dampen_rotation_penalty_for_leader(5.0, 5.0) == 5.0
+
+    def test_dampen_rotation_penalty_below_threshold_unchanged(self):
+        assert dampen_rotation_penalty_for_leader(-15.0, 0.0) == -15.0
+        assert dampen_rotation_penalty_for_leader(-15.0, 1.4) == -15.0
+
+    def test_dampen_rotation_penalty_scales_to_50pct_cap(self):
+        assert dampen_rotation_penalty_for_leader(-15.0, 1.5) == -15.0
+        assert dampen_rotation_penalty_for_leader(-15.0, 2.25) == -11.25
+        assert dampen_rotation_penalty_for_leader(-15.0, 3.0) == -7.5
+        # Beyond the anchor, dampening stays capped at 50% — never over-dampens
+        assert dampen_rotation_penalty_for_leader(-15.0, 5.0) == -7.5
 
 
 # ---------------------------------------------------------------------------

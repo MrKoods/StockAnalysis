@@ -31,6 +31,8 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.32 | 2026-08-01 | Scoring Change | Sector-rotation penalty now softens for individual tickers with strong relative strength, instead of applying uniformly to every ticker in a weak sector |
+| v2.2.31 | 2026-08-01 | Backtest Methodology / Feature | Wired regional_banks/healthcare into the backtest for the first time; re-confirmed the RSI entry band against all 3 sectors pooled |
 | v2.2.30 | 2026-08-01 | Bug Fix | v2.2.28's seasonality fix was incomplete — a second, deeper key-type bug meant live scans still weren't reading the real config values |
 | v2.2.29 | 2026-08-01 | Backtest Methodology / Scoring Change | Re-tested stale entry-filter defaults under the current scoring formula; backtest passes its own go-live gate for the first time |
 | v2.2.28 | 2026-07-31 | Bug Fix | Fixed dead/miscalibrated sub-signals found via live paper-trading review |
@@ -70,6 +72,88 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
 | v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+
+---
+
+## [v2.2.32] — 2026-08-01 — [Scoring Change] Sector-rotation penalty now respects individual relative strength
+
+**Status:** Live.
+
+**Problem:** `sector_rotation_modifier` (up to -15 during SMH/KRE/XLV outflow) applied uniformly to
+every ticker in a sector, regardless of that ticker's own relative strength. A stock significantly
+outperforming its own trailing RS history despite a weak sector — the most interesting kind of
+candidate, arguably — was penalized identically to the sector's laggards. Flagged as a live-scoring
+improvement candidate during the multi-layer review (2026-07-31); this is the corresponding fix.
+
+**Fix:** `shared/utils/sector_rotation.py`: new `dampen_rotation_penalty_for_leader(base_modifier,
+rs_zscore)` softens a negative rotation modifier for tickers with `rs_zscore >= 1.5`, scaling linearly
+to a 50% reduction cap by `rs_zscore >= 3.0`. Never touches a neutral or positive modifier, and never
+cancels the penalty outright — a leader in a declining sector still carries real correlated risk, this
+tempers the penalty rather than removing it. Wired into both live entry points
+(`swing_model/run_swing_model.py`, `paper_trading/paper_runner.py`) where `rotation_modifier_val`/
+`rotation_mod` is computed. 9 new/existing tests cover the dampening curve directly
+(`tests/test_macro_context.py`).
+
+**Backtest result:** Not applicable — the backtest hardcodes `sector_rotation_modifier=0.0` for every
+bar (no historical per-sector rotation-state archive exists to replay), so this function is
+structurally unreachable in `_simulate_test_signals()`, the same "live-only, not backtest-provable"
+category as the earnings and cross-ticker modifiers. Verified via targeted unit tests instead
+(dampening curve at rs_zscore 0/1.4/1.5/2.25/3.0/5.0) plus the full suite. 712 tests pass, 3 skipped.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.31] — 2026-08-01 — [Backtest Methodology / Feature] Multi-sector backtest; RSI band re-confirmed under it
+
+**Status:** Backtest-only. No live/paper scoring behavior changed.
+
+**Problem:** The live model has traded three sectors (semiconductors, regional_banks, healthcare)
+since v2.2.24, but `run_backtest()` had only ever validated semiconductors — `data/historical_banks/`
+and `data/historical_healthcare/` (the same 2013-2026 gitignored research datasets used for the
+sector's own live rollout backtests) existed on disk but were never wired into the go-live gate.
+Every backtest result quoted in this CHANGELOG through v2.2.29, including the "backtest passes for
+the first time" milestone, was measuring 1 of the 3 sectors the live model actually trades.
+
+Separately, mid-investigation work (not committed, recovered from a stash) had reverted v2.2.29's
+`rsi_max` decision (45-82) back to 45-70 — the pre-v2.2.29 value — based on a docstring rationale
+that was never actually re-validated against data before being written down. Left as-is, this would
+have shipped an unvalidated, in-progress reversal of a decision that v2.2.29 had explicitly tested
+and documented.
+
+**Fix:**
+- `backtesting/backtest_engine.py`: new `run_multi_sector_backtest()` — runs the same replay +
+  metrics pipeline once per sector (each against its own benchmark: SMH/KRE/XLV via
+  `_SECTOR_DATASETS`), pools the resulting out-of-sample signals into one combined qualifying
+  population before computing win rate/R:R/Sharpe/drawdown/expectancy. Sectors are scored against
+  their own benchmark and never mixed at the raw-OHLCV level (benchmarking a bank ticker against
+  SMH would be meaningless) — pooling happens at the outcome level. Does not yet run walk-forward
+  per sector (a separate, larger change); covers the same 70/30 single-slice headline metric every
+  other result here is compared against.
+- `backtesting/simulation.py` / `backtest_engine.py`: `_simulate_test_signals()`/`_get_test_outcomes()`
+  take a `benchmark_ticker` parameter (default `"SMH"`, so single-sector `run_backtest()` callers are
+  unaffected) instead of hardcoding `"SMH"` in three places.
+- Re-tested `rsi_max` 70 vs. 82 directly against both the semis-only backtest and the new pooled
+  3-sector backtest before touching anything: 82 wins on every axis in both — trade count (108 vs 28
+  semis-only, 266 vs 91 pooled), Sharpe (2.81 vs 1.16 semis-only, 3.10 vs 2.29 pooled), and gate
+  pass/fail (82 passes both, 70 fails both). Restored 82 as the default and rewrote the docstring to
+  record this A/B result directly, replacing the unvalidated reversal.
+
+**Backtest result:** Semis-only (unchanged from v2.2.29): 108 trades, WR 60.2%, Sharpe 2.81, max DD
+8.2%, passed=True. **New — all 3 sectors pooled:** 266 qualifying trades (semiconductors 249,
+regional_banks 149, healthcare 146 — note trades aren't mutually exclusive across the funnel stages,
+this is the final qualifying count per sector), win rate 59.0%, avg R:R 1.62, Sharpe **3.10**, max
+drawdown 9.1%, expectancy CI lower bound 0.452 (≥ 0.3 ✓). **Passed: True.** This is the first backtest
+result that actually reflects all three sectors the live model trades, not just one of them.
+712 tests pass (was 707 — 2 seasonality tests from v2.2.30 plus 3 covering the new
+`run_multi_sector_backtest`), 3 skipped.
+
+**What this does and doesn't mean:** this is backtest infrastructure and a re-validated parameter —
+it does not change what live/paper scoring does. It does substantially change how much confidence
+to place in "the backtest passes" as a claim about the live model, since it now actually covers what
+the live model trades.
+
+**Approved by:** [pending]
 
 ---
 

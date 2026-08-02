@@ -80,3 +80,27 @@ def get_rotation_modifier(rotation_state: str, cfg: dict) -> float:
     if rotation_state == ROTATION_INFLOW:
         return float(m.get("inflow_boost", 5))
     return 0.0
+
+
+def dampen_rotation_penalty_for_leader(base_modifier: float, rs_zscore: float) -> float:
+    """
+    Soften the sector-wide outflow penalty for an individual ticker with strong
+    relative strength vs. its own history.
+
+    rotation_state (this sector's SMH/KRE/XLV-vs-SPY flow) and rs_zscore (this
+    stock vs. its own trailing relative-strength history) measure different
+    things — a genuine sector leader can keep outperforming its own history
+    even while the sector as a whole is in outflow. Applying the full sector
+    penalty uniformly to every ticker in the sector, leaders and laggards
+    alike, throws away that distinction. Only softens negative modifiers
+    (outflow's -15) — never touches a neutral or positive one — and caps the
+    reduction at 50%: a leader in a declining sector still carries real
+    correlated risk, this tempers the penalty, it doesn't cancel it.
+
+    rs_zscore >= 1.5 (a real, statistically notable outperformance) starts the
+    dampening; it scales linearly to the full 50% cap by rs_zscore >= 3.0.
+    """
+    if base_modifier >= 0.0 or rs_zscore < 1.5:
+        return base_modifier
+    dampen_fraction = min(1.0, (rs_zscore - 1.5) / 1.5) * 0.5
+    return base_modifier * (1.0 - dampen_fraction)
