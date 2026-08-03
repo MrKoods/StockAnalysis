@@ -149,9 +149,8 @@ class TestLongPremiumStructures:
 
     def test_higher_iv_increases_long_option_premium(self):
         low_iv = resolve_structure_economics("long_call", _ENTRY, _STOP, _TARGET, 0.15, _DTE)
-        high_iv = resolve_structure_economics("long_put", _ENTRY, _STOP, _TARGET, 0.15, _DTE)
-        low_iv2 = resolve_structure_economics("long_call", _ENTRY, _STOP, _TARGET, 0.60, _DTE)
-        assert low_iv2["capital_required"] > low_iv["capital_required"]
+        high_iv = resolve_structure_economics("long_call", _ENTRY, _STOP, _TARGET, 0.60, _DTE)
+        assert high_iv["capital_required"] > low_iv["capital_required"]
 
 
 class TestDefinedRiskSpreads:
