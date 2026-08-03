@@ -536,7 +536,13 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                             "atr_14": atr,
                             "force_defined_risk": force_defined_risk,
                         },
-                        account_equity=15000.0,
+                        # Sourced from config, not a duplicated literal — paper trading has
+                        # no dollar-equity tracking of its own (paper_trades.csv logs pnl_pct
+                        # only), so there's no live, updating balance to read yet. This at
+                        # least keeps the diagnostic evaluator's starting figure in sync with
+                        # config/swing_config.yaml's position_sizing.starting_capital instead
+                        # of silently drifting from it if that config value is ever changed.
+                        account_equity=float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0)),
                         options_approval_level=int(cfg.get("options_approval_level", 2)),
                         iv_percentile=options_raw.get("iv_percentile", 50.0),
                         option_chain=options_raw.get("chain"),

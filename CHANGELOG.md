@@ -60,6 +60,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.37 | 2026-08-03 | Infrastructure | Paper trading's account size was a hardcoded duplicate of the config value, not read from it |
 | v2.2.36 | 2026-08-03 | Bug Fix | The options-structure picker had 35 of 42 strategies silently mis-costed — real formulas now, so protective_put stops winning by accident |
 | v2.2.35 | 2026-08-02 | Bug Fix | Two more hidden bugs in how the model reads public sentiment |
 | v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article had a blank title — none of them could ever be used |
@@ -105,6 +106,34 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.37] — 2026-08-03 — [Infrastructure] Paper trading's account size read from a hardcoded duplicate, not the config value
+
+**Status:** Live.
+
+**Problem:** `paper_trading/paper_runner.py` passed `account_equity=15000.0` to the diagnostic
+trade-structure evaluator as a hardcoded literal, duplicating `config/swing_config.yaml`'s
+`position_sizing.starting_capital`. Raised while confirming both values agreed (they did, $15,000)
+— but a literal duplicate silently drifts the moment either one is changed without the other, and
+nothing would catch it. Checked whether this could instead read a live, updating balance (the
+better fix, if a real one existed): it doesn't — paper trading has no dollar-equity tracking of its
+own at all. `paper_trades.csv` logs each trade's `pnl_pct` only; the account-equity/peak-equity
+tracking in `swing_model/portfolio_manager.py` (`data/processed/position_state.json`) belongs to a
+separate system (`run_swing_model.py`'s own position tracking), not paper trading, and reading from
+it here would have silently mixed two unrelated pipelines' state.
+
+**Fix:** `paper_trading/paper_runner.py` now reads `cfg.get("position_sizing", {}).get(
+"starting_capital", 15000.0)` instead of a hardcoded `15000.0` — single source of truth, config
+changes now actually take effect here. Building real running-balance tracking for paper trading
+(computing position-sized dollar P&L per closed trade, the way `portfolio_manager.py` already does
+for the separate live-tracking pipeline) is a separate, larger feature, not done here.
+
+**Backtest result:** Not applicable — this only affects the diagnostic trade-structure evaluator's
+starting capital figure, not any backtested scoring path. 745 tests pass (unchanged), 3 skipped.
+
+**Approved by:** [pending]
 
 ---
 
