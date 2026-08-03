@@ -1,20 +1,43 @@
 # CHANGELOG — AI-Assisted Swing Trading Signal System
 
-Version numbers follow MAJOR.MINOR.PATCH:
-- **MAJOR** — a fundamental change to how the strategy scores or picks trades
-- **MINOR** — a new indicator, modifier, or scoring category
-- **PATCH** — a threshold tweak, bug fix, or calibration update
+This is the history of every change made to an automated stock-trading model. It has **never
+traded real money** — every version so far has been building, testing, and fixing a strategy
+that is still only running in "paper trading" (see glossary below), which uses fake money.
 
-**Rule:** No change to scoring weights, indicator settings, or thresholds goes live without a
-version bump and a fresh backtest result logged below it. Enforced automatically by
-`model_versioning.py` — no exceptions.
+If you're new here, read **every entry's "In short" line** — that's the plain-English version.
+Everything below it (Problem / Fix / Backtest) is the technical detail, for anyone who wants it.
 
-Every entry follows the same shape: **Problem** (what was wrong or missing) → **Fix** (what
-changed to address it) → **Backtest/Result** (the measured outcome).
+## Where things stand right now
+
+The model has been rebuilt and re-tested many times but has never once passed all the
+requirements to trade real money. The biggest recent milestone: on 2026-08-01, its historical
+performance test passed its own safety bar for the first time ever, after realizing an old
+setting no longer fit how the model has evolved. Several more real bugs were found and fixed
+right after that — mostly things hiding in parts of the model that the historical test can't
+check, because they depend on live, real-time data. None of this changes whether the model is
+allowed to trade real money — it still isn't, and won't be until it's approved.
+
+## Plain-English glossary
+
+| Term | What it means |
+|---|---|
+| **Live** | The change is active right now, in the real running system. |
+| **Paper trading** | The model makes real trading decisions using real, live market data — but with fake money. A dry run to prove it works before any real money is at risk. |
+| **Backtest** | Running the strategy against years of *past* stock-market data to see how it would have done, before trusting it with money (real or fake). |
+| **Signal / qualifying trade** | A stock the model considers actually worth trading — it has to score 90 out of 100 or higher. |
+| **Win rate** | The percentage of trades that ended up profitable. |
+| **Reward:risk (R:R)** | For every $1 a trade risks, how many dollars it's aiming to make. "2:1" means "risk $1 to try to make $2." |
+| **Sharpe ratio** | One number measuring how good the returns are compared to how bumpy the ride was to get them. Higher is better; the model needs at least 1.0 to be allowed to go live. |
+| **Go-live bar / gate** | The specific numbers (win rate, Sharpe ratio, number of trades, etc.) a version must hit in a backtest before it's allowed to risk real money. Nothing has passed all of these yet. |
+| **Expectancy** | The average amount a trade is expected to make or lose, per dollar risked. |
+| **Walk-forward window** | One specific slice of history (e.g. a 2-year stretch) used to test the strategy, so results aren't based on just one lucky or unlucky period. |
+| **Sector / watchlist** | A sector is a group of related stocks (e.g. semiconductor companies) the model watches together. The watchlist is the full list of stocks it's currently scanning. |
+| **Sub-signal / modifier** | One small ingredient that feeds into a stock's overall score — e.g. how its price is moving, or how positive the news about it is. |
+| **Alpha Vantage, Finnhub, Yahoo, Seeking Alpha, SEC EDGAR, StockTwits** | Outside services the model pulls stock prices, news, and public sentiment from. |
 
 ## Categories
 
-Each entry below is tagged with the kind of change it is, so you can scan for what matters to you:
+Every entry is tagged with the kind of change it is:
 
 | Tag | Meaning |
 |---|---|
@@ -27,54 +50,60 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 | **Sector Rollout** | Turns a sector on/off for live paper trading |
 | **Research** | Investigation or test run — not shipped to live trading |
 
+Version numbers follow MAJOR.MINOR.PATCH: MAJOR = a fundamental change to how the strategy
+scores or picks trades; MINOR = a new indicator, modifier, or scoring category; PATCH = a
+threshold tweak, bug fix, or calibration update. **Rule:** no change to scoring weights,
+indicator settings, or thresholds goes live without a version bump and a fresh backtest result
+logged below it — enforced automatically by the code, no exceptions.
+
 ## Quick reference
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
-| v2.2.35 | 2026-08-02 | Bug Fix | Sentiment's ratio and velocity sub-signals had two independent, well-evidenced bugs: untagged StockTwits messages diluted the bullish ratio toward bearish, and a scale mismatch between two native fields made velocity nearly binary |
-| v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article has been silently carrying an empty title since yfinance changed its response shape — no Yahoo article could ever count toward News, for any ticker |
-| v2.2.33 | 2026-08-02 | Scoring Change | Re-swept RS z-score anchor, RSI sweet-spot band, and choppy-regime penalty against the 3-sector pooled backtest; kept 3 real improvements, rejected 2 that looked appealing but cost Sharpe |
-| v2.2.32 | 2026-08-01 | Scoring Change | Sector-rotation penalty now softens for individual tickers with strong relative strength, instead of applying uniformly to every ticker in a weak sector |
-| v2.2.31 | 2026-08-01 | Backtest Methodology / Feature | Wired regional_banks/healthcare into the backtest for the first time; re-confirmed the RSI entry band against all 3 sectors pooled |
-| v2.2.30 | 2026-08-01 | Bug Fix | v2.2.28's seasonality fix was incomplete — a second, deeper key-type bug meant live scans still weren't reading the real config values |
-| v2.2.29 | 2026-08-01 | Backtest Methodology / Scoring Change | Re-tested stale entry-filter defaults under the current scoring formula; backtest passes its own go-live gate for the first time |
-| v2.2.28 | 2026-07-31 | Bug Fix | Fixed dead/miscalibrated sub-signals found via live paper-trading review |
-| v2.2.27 | 2026-07-29 | Data Source | Added hyperscaler capex signal for the semiconductor sector |
-| v2.2.26 | 2026-07-29 | Data Source | Added SEC EDGAR 8-K filings as a News source |
-| v2.2.25 | 2026-07-29 | Bug Fix | Fixed a pre-market bug: NaN close price could reach scoring |
-| v2.2.24 | 2026-07-28 | Sector Rollout | Turned on healthcare for paper trading |
-| v2.2.23 | 2026-07-28 | Feature | Collect trade-structure data down to score 60, without lowering the real bar |
-| v2.2.22 | 2026-07-28 | Feature | Real options Greeks filter, real IV percentile, real liquidity check |
-| v2.2.21 | 2026-07-28 | Infrastructure | Alpha Vantage news is now a confirmation check, not a routine call |
-| v2.2.20 | 2026-07-28 | Infrastructure | Better diagnostics, fixed a misleading pass/fail report, reconnected calibration |
-| v2.2.19 | 2026-07-28 | Data Source | Moved one earnings data point off Alpha Vantage |
-| v2.2.18 | 2026-07-26 | Research | Tested healthcare as an unrelated third sector |
-| v2.2.17 | 2026-07-26 | Backtest Methodology | Replaced the win-rate pass/fail bar with a statistical one |
-| v2.2.16 | 2026-07-26 | Research | Checked for hidden overlap between Technical and Sentiment |
-| v2.2.15 | 2026-07-26 | Feature | Seeking Alpha can trigger an immediate Alpha Vantage double-check |
-| v2.2.14 | 2026-07-26 | Data Source / Infrastructure | Seeking Alpha now counts toward News score; CI, lockfile, file split |
-| v2.2.13 | 2026-07-24 | Data Source / Bug Fix | Seeking Alpha feeds breaking-news too; cut a wasted API call; test-log fix |
-| v2.2.12 | 2026-07-23 | Infrastructure | Spread out the weekly fundamentals refresh |
-| v2.2.11 | 2026-07-20 | Bug Fix | A whole sector's data could silently never refresh |
-| v2.2.10 | 2026-07-19 | Sector Rollout | Turned on regional banks; results grouped by sector in the app |
-| v2.2.9 | 2026-07-19 | Bug Fix | Sector-average valuation wasn't actually sector-scoped |
-| v2.2.8 | 2026-07-19 | Infrastructure | Groundwork for a second sector; AV news moved to post-close only |
-| v2.2.7 | 2026-07-19 | Backtest Methodology | Backtest now uses the real macro signal instead of always-neutral |
-| v2.2.6 | 2026-07-19 | Backtest Methodology / Research | Fixed a validation bug; adopted a better entry filter; tested a 2nd sector |
-| v2.2.5 | 2026-07-19 | Backtest Methodology | Tightened the entry filter, even though the headline number got worse |
-| v2.2.4 | 2026-07-19 | Backtest Methodology | Fixed a broken analysis tool; found validation has never passed |
-| v2.2.3 | 2026-07-19 | Bug Fix | Config bug silently ignored a setting; toned down a triple-counted penalty |
-| v2.2.2 | 2026-07-19 | Bug Fix | Fixed 24 issues found in a full code review |
-| v2.2.1 | 2026-07-18 | Infrastructure | Removed email/SMS alerts — Discord and the app are the only channels now |
-| v2.2.0 | 2026-07-18 | Feature | Added near-miss awareness alerts; flagged an overlapping-penalty risk |
-| v2.1.5 | 2026-07-17 | Bug Fix | Fundamental data now saves after each ticker, not just at the end |
-| v2.1.4 | 2026-07-16 | Scoring Change | Excluded statistical outliers from sector-average valuation |
-| v2.1.3 | 2026-07-16 | Bug Fix | Fixed a stale-news bug that could re-trigger blocks forever |
-| v2.1.2 | 2026-07-15 | Infrastructure | Paper trading now logs every ticker's score, not just qualifying ones |
-| v2.1.1 | 2026-07-15 | Feature | Breaking-news block: "hide the signal" → "show it with a warning" |
-| v2.1.0 | 2026-07-14 | Feature | Added a breaking-news safety block (not a scoring category) |
-| v2.0.0 | 2026-07-13 | Scoring Change | Added two new scoring categories; switched the sentiment data source |
-| v1.0.0 | 2026-06-29 | Infrastructure | Initial project scaffold |
+| v2.2.35 | 2026-08-02 | Bug Fix | Two more hidden bugs in how the model reads public sentiment |
+| v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article had a blank title — none of them could ever be used |
+| v2.2.33 | 2026-08-02 | Scoring Change | Re-checked several scoring settings against the bigger 3-sector test; kept 3, dropped 2 |
+| v2.2.32 | 2026-08-01 | Scoring Change | Stopped punishing strong individual stocks as hard as their weak sector |
+| v2.2.31 | 2026-08-01 | Backtest Methodology / Feature | Performance test now covers all 3 sectors instead of just one |
+| v2.2.30 | 2026-08-01 | Bug Fix | Last version's seasonal-calendar fix was incomplete — a second bug was hiding under it |
+| v2.2.29 | 2026-08-01 | Backtest Methodology / Scoring Change | An outdated filter was loosened — backtest passes its own bar for the first time |
+| v2.2.28 | 2026-07-31 | Bug Fix | Found and fixed 5 separate bugs quietly suppressing real trade signals |
+| v2.2.27 | 2026-07-29 | Data Source | Added a signal for big tech companies cutting chip-related spending |
+| v2.2.26 | 2026-07-29 | Data Source | Started reading companies' official SEC filings as a news source |
+| v2.2.25 | 2026-07-29 | Bug Fix | An incomplete, still-forming stock price could sneak into the model's math |
+| v2.2.24 | 2026-07-28 | Sector Rollout | Turned on healthcare stocks for practice trading |
+| v2.2.23 | 2026-07-28 | Feature | Started recording near-miss opportunities to learn from, without treating them as real trades |
+| v2.2.22 | 2026-07-28 | Feature | The model can now actually check an options trade's risk profile, instead of skipping it |
+| v2.2.21 | 2026-07-28 | Infrastructure | One news service is now called only when something looks urgent, to save its limited budget |
+| v2.2.20 | 2026-07-28 | Infrastructure | Fixed misleading reports and reconnected a disconnected self-correction system |
+| v2.2.19 | 2026-07-28 | Data Source | Switched one earnings data point to a free source instead of a paid, limited one |
+| v2.2.18 | 2026-07-26 | Research | Tested the strategy on an unrelated group of stocks (healthcare) — it still worked |
+| v2.2.17 | 2026-07-26 | Backtest Methodology | Replaced an unrealistically strict pass/fail bar with a smarter one |
+| v2.2.16 | 2026-07-26 | Research | Checked whether two scoring categories were secretly measuring the same thing — they aren't |
+| v2.2.15 | 2026-07-26 | Feature | The model now double-checks urgent headlines immediately instead of waiting hours |
+| v2.2.14 | 2026-07-26 | Data Source / Infrastructure | Counted one more news source toward the real score; engineering cleanup |
+| v2.2.13 | 2026-07-24 | Data Source / Bug Fix | Sped up news reactions, saved an API call, stopped fake test data leaking into real logs |
+| v2.2.12 | 2026-07-23 | Infrastructure | Spread a weekly data refresh across the week instead of doing it all at once |
+| v2.2.11 | 2026-07-20 | Bug Fix | Adding more stock groups could make some of them silently stop getting fresh data |
+| v2.2.10 | 2026-07-19 | Sector Rollout | Turned on regional bank stocks for practice trading |
+| v2.2.9 | 2026-07-19 | Bug Fix | A leftover bug — one stock group was still accidentally averaged in with another |
+| v2.2.8 | 2026-07-19 | Infrastructure | Behind-the-scenes prep work for safely adding a second group of stocks |
+| v2.2.7 | 2026-07-19 | Backtest Methodology | The historical test now accounts for interest rates and the dollar's strength |
+| v2.2.6 | 2026-07-19 | Backtest Methodology / Research | Fixed a grading bug, adopted a better filter, tested a second stock group |
+| v2.2.5 | 2026-07-19 | Backtest Methodology | Tightened a filter based on solid evidence, even though one headline number got worse |
+| v2.2.4 | 2026-07-19 | Backtest Methodology | Fixed a broken tool and discovered the strategy has never passed its own internal check |
+| v2.2.3 | 2026-07-19 | Bug Fix | Fixed a setting that was silently ignored, and stopped one warning sign counting three times |
+| v2.2.2 | 2026-07-19 | Bug Fix | A full code review found and fixed 24 separate problems |
+| v2.2.1 | 2026-07-18 | Infrastructure | Removed email/text alerts — Discord and the app are the only channels now |
+| v2.2.0 | 2026-07-18 | Feature | Added a heads-up alert for stocks that almost, but didn't quite, qualify |
+| v2.1.5 | 2026-07-17 | Bug Fix | One interruption during a data refresh could throw away a lot of finished work |
+| v2.1.4 | 2026-07-16 | Scoring Change | Stopped one extreme stock from skewing its whole sector's average score |
+| v2.1.3 | 2026-07-16 | Bug Fix | One old news story could keep blocking the entire watchlist forever |
+| v2.1.2 | 2026-07-15 | Infrastructure | Started logging every stock's score, not just the ones that qualified |
+| v2.1.1 | 2026-07-15 | Feature | A serious news event now shows a trade signal with a warning, instead of hiding it |
+| v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
+| v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
+| v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
 
 ---
 
@@ -82,589 +111,515 @@ Each entry below is tagged with the kind of change it is, so you can scan for wh
 
 **Status:** Live.
 
-**Problem:** Following up v2.2.34's News fix, checked the other layers for the same class of
-silent bug against real live data (not just re-scoring the same numbers). Sentiment was the
-weakest remaining layer (46.9% of max). Traced MRK's near-zero sentiment score (0.6/15) against
-its real StockTwits messages and found two separate, independent bugs:
+**In short:** Found two more hidden bugs in how the model reads public sentiment — one made
+genuinely bullish stocks look bearish, and one made a "how fast is mood changing" measurement
+almost always pinned at max or zero instead of properly graded.
 
-1. `_build_daily_bullish_ratios()` computed `bull / total`, where `total` includes messages with
-   no sentiment tag at all (StockTwits' `entities.sentiment.basic` is frequently absent — observed
-   live: 20 of 30 messages for MRK carried no tag). Every untagged message silently diluted the
-   ratio toward bearish exactly as if it had voted bearish. MRK's real tagged messages were 10
-   bullish, 0 bearish — unanimously bullish — but the ratio computed under the old formula was
-   near zero, and `dominant_sentiment` did not reflect reality.
-2. `_score_velocity()` averages StockTwits' native `sentiment_change` and `volume_change` fields
-   and applies one `x10` multiplier to the result. Live inspection across several tickers showed
-   these two fields are not on the same scale: `sentiment_change` stayed small (0.0, -0.15, -0.29
-   observed), while `volume_change` ranged much wider (0.0, -0.8, -5.68, -7.59 observed) — a
-   routine, not even unusually extreme, `volume_change` reading blows straight through the
-   intended +/-5 range every time, making velocity_score nearly binary (0 or 5) instead of graded.
+**Problem:** Following up v2.2.34's News fix, checked the other scoring layers for the same kind
+of silent bug, using real live data rather than just re-running old numbers. Sentiment was the
+weakest remaining layer. Tracing one healthcare stock's near-zero sentiment score against its
+real StockTwits messages turned up two separate bugs:
+1. The bullish-vs-bearish ratio calculation counted every message toward the total, including
+   ones with no bullish/bearish tag at all (most StockTwits messages don't carry one). Every
+   untagged message silently dragged the ratio toward "bearish," even though it expressed no
+   opinion either way. On real data, 10 tagged messages were unanimously bullish, 0 bearish — but
+   the ratio came out near zero anyway.
+2. The "how fast is sentiment changing" score averaged two raw numbers that aren't on the same
+   scale — one stays small, the other swings much wider — so the wider one dominated almost every
+   time, making the result nearly always pinned at the extreme ends instead of a graded score.
 
-**Fix:** `swing_model/sentiment_layer.py`:
-- `_build_daily_bullish_ratios()` now divides by `bull + bear` (tagged messages only), falling
-  back to the neutral 0.5 only when a bucket has zero tagged messages. The function's `totals`
-  return value now tracks tagged-message count too, since that's what the ratio is actually built
-  from — `_score_ratio()`'s existing baseline-trust threshold (`_RATIO_MIN_BASELINE_MESSAGES`)
-  correctly now means "5 tagged messages," not "5 messages of any kind including ones that
-  expressed no opinion."
-- `_score_velocity()` now clamps `avg_sent` and `avg_vol` independently to [-1.0, 1.0] before
-  combining, and rescales the combined-to-score multiplier from 10.0 to 2.5 to match (so a
-  worst-case combined value of +/-1.0 still spans the full 0-5 range). Each field is treated as an
-  equally-weighted directional signal once normalized, instead of letting whichever field happens
-  to run on a larger raw scale dominate the average.
-- 6 new tests: 3 directly on `_build_daily_bullish_ratios()` (ignores untagged, neutral when zero
-  tagged, still reflects genuine bearish sentiment correctly), 3 on `_score_velocity()`'s clamping
-  behavior via `compute_sentiment_score()` (extreme volume_change no longer floors the score;
-  strong positive sentiment_change can still lift it above neutral even against a large negative
-  volume_change).
+**Fix:**
+- The ratio calculation now only counts messages that actually carry a bullish/bearish tag,
+  instead of treating "no opinion" the same as "bearish."
+- The rate-of-change score now puts both underlying numbers on the same scale before combining
+  them, so neither one silently dominates the other.
+- Added 6 new tests covering both fixes directly.
 
-**Verified against real live data (MRK):** `ratio_score` 0.0 -> 1.75, `velocity_score` 0.0 -> 1.25,
-`dominant_sentiment` now correctly reports "bullish" (matching the real 10-bullish/0-bearish tagged
-read) instead of a diluted/incorrect reading.
+**Verified against real data:** the affected stock's sentiment score moved from 0.0 to a properly
+graded value, and its overall sentiment reading correctly flipped from "bearish" to "bullish" —
+matching what its real messages actually showed.
 
-**Backtest result:** Not applicable — the 13.5-year backtest uses a synthetic price-momentum proxy
-for Sentiment (`_sentiment_from_price_momentum`), never live StockTwits data, so this bug never
-affected any backtest result quoted in this CHANGELOG. Verified via direct live-data inspection and
-the new unit tests instead. 723 tests pass (was 717), 3 skipped.
+**Backtest:** N/A — the 13.5-year historical test doesn't use real StockTwits data at all (it
+uses a stand-in based on price movement), so this bug never affected any backtest result in this
+file. Verified with live data and new tests instead. 723 tests pass (was 717), 3 skipped.
 
-**Note on Positioning and Fundamental, checked in the same pass:** Positioning's low scorer (LLY)
-was traced end-to-end and found to reflect real, correctly-computed, genuinely bearish-leaning
-market data (put-heavy option chain, increasing short interest) — no bug found. Fundamental's
-remaining `as_of=never` tickers (UNH, JNJ) are next in the bootstrap queue and expected to clear
-within 1-2 days under the v2.2.28 budget increase, competing with same-day earnings-priority
-refreshes for the daily slot — not a bug, a queue-ordering tradeoff already accepted in v2.2.28.
+**Also checked in the same pass:** two other low-scoring stocks were traced end-to-end and found
+to be scoring correctly based on genuinely weak real data — not further bugs.
 
-**Approved by:** [pending]
+**Approved:** [pending]
 
 ---
 
-## [v2.2.34] — 2026-08-02 — [Bug Fix] yfinance news response shape change silently emptied every Yahoo article's title
+## [v2.2.34] — 2026-08-02 — [Bug Fix] A data-source change silently emptied every Yahoo Finance article's title
 
 **Status:** Live.
 
-**Problem:** Investigating why News remained the weakest scoring layer (40.1% of max, live paper
-trading average) despite v2.2.28's ticker-alias fix for regional_banks/healthcare found a much
-larger, independent bug. `yf.Ticker(ticker).news` now nests real content under `item["content"]`
-(title, pubDate, provider, canonicalUrl) — `fetch_news_yahoo()` was still reading
-`item.get("title", "")` at the top level, which is always absent under this shape. Every Yahoo
-Finance article, for every ticker, has been carrying `title=""` — meaning `is_ticker_relevant()`
-could never match a single one of them, regardless of any alias list, since an empty string
-contains no ticker name. This had zero test coverage (`fetch_news_yahoo` was never tested at all).
-v2.2.28's alias fix was correct but had nothing to match against until this fix.
+**In short:** Discovered that every single news article pulled from Yahoo Finance had a blank
+title, because Yahoo changed how it structures that data and the model was never updated to
+match — meaning no Yahoo News article, for any stock, could ever have counted toward the News
+score, until now.
 
-**Fix:** `shared/api_clients/news_client.py`: extracted parsing into a new pure `_parse_yahoo_news_item()`
-helper that reads `item["content"]["title"/"pubDate"/"provider"/"canonicalUrl"]`, falling back to
-the old flat top-level fields if `"content"` isn't present (in case yfinance reverts or an older
-cached client returns the pre-change shape). Added 5 new tests
-(`tests/test_news_client.py`) covering the current nested shape, the legacy flat-shape fallback,
-and malformed/missing-field inputs — following this project's existing convention of testing pure
-parsing helpers rather than mocking the live yfinance call.
+**Problem:** Investigating why News remained the weakest scoring category found a bigger,
+separate bug: Yahoo Finance's data now nests the actual article details one level deeper than
+before, but the code reading it was still looking in the old spot — which is always empty under
+the new format. The result: every Yahoo article's title has effectively been blank the entire
+time, so the model could never match it to a real ticker, no matter how good its list of company
+names was. This had no test coverage at all, so nothing ever caught it.
 
-**Verified against real live data:** direct relevance-matching test for regional banks went from
-0/10 relevant articles (before, for every ticker — titles were always empty) to 8/10 (ZION), 6/10
-(KEY), 7/10 (HBAN), 5/10 (RF), 6/10 (FITB) after the fix. A same-day paired live-scan comparison
-(pre-fix vs. post-fix, all 17 tickers) showed the aggregate News layer average move 40.1% → 41.1%.
+**Fix:** Updated the Yahoo News reader to pull from the correct, current location, with a
+fallback to the old location in case Yahoo changes its format back. Added 5 new tests covering
+both the current format and the fallback.
 
-**Important finding — the gain was smaller than the relevance-matching numbers suggested, for a
-real and separate reason, not a bug:** inspecting article ages directly, almost all of the newly-
-relevant regional-bank articles are 11-16 day old Q2 2026 earnings-call recaps, past the News
-layer's 5-day decay cutoff (`zero_at_days=5.0`) — deliberately, so a swing-entry decision isn't
-driven by stale news. Only 0-3 genuinely fresh (≤5 day) relevant articles exist per bank ticker on
-any given day. Higher-news-volume tickers (NVDA, ASML, ABBV) showed clearer gains (10.4→10.7,
-8.7→9.9, 8.9→10.0) because they have enough daily volume for the fix to surface something fresh;
-thin-coverage tickers are structurally capped by real news scarcity, not by this bug. Loosening the
-decay window to capture more of the earnings-season backlog was considered and rejected — it would
-score stale information as if current, undermining the reason the decay curve exists.
+**Verified against real live data:** relevance-matching for a sample of regional bank stocks went
+from 0 out of 10 matched articles (every title was blank) to 5-8 out of 10 after the fix.
 
-**Backtest result:** Not applicable — the 13.5-year backtest sources News from a separate archived
-Alpha Vantage dataset (Q4 2025+) or a neutral fallback, never from live `fetch_news_yahoo()`, so
-this bug never affected any backtest result quoted in this CHANGELOG. Verified via direct live-data
-inspection and the new unit tests instead. 717 tests pass (was 712), 3 skipped.
+**A real limit found along the way, not a bug:** the gain was smaller than that jump suggests,
+because most of the newly-matched articles are older than the 5-day cutoff the News score already
+uses to avoid trading on stale information — so only a handful of genuinely fresh articles per
+stock exist on any given day regardless. That cutoff is working as intended and wasn't changed.
 
-**Approved by:** [pending]
+**Backtest:** N/A — the 13.5-year historical test never uses this live Yahoo News function, so
+this bug never affected any backtest result in this file. Verified with live data and new tests
+instead. 717 tests pass (was 712), 3 skipped.
+
+**Approved:** [pending]
 
 ---
 
-## [v2.2.33] — 2026-08-02 — [Scoring Change] Re-swept technical/regime parameters against the pooled 3-sector backtest
+## [v2.2.33] — 2026-08-02 — [Scoring Change] Re-checked several scoring settings against the bigger 3-sector test
 
 **Status:** Live (all three kept changes are real scoring changes).
 
-**Problem:** v2.2.31 established a much larger, healthier backtest (266 trades pooled across all 3
-sectors, up from measuring 1 sector alone) and re-confirmed the RSI *entry-filter* band. That larger
-sample makes it possible to productively re-tune individual scoring *sub-signal curves* — something
-v2.2.28 had tried and abandoned as showing "zero effect," which v2.2.29 later found was itself a
-small-sample artifact for at least one of those parameters (RS z-score anchor). Systematically
-re-swept 5 candidate changes against the new pooled baseline instead of assuming any one result
-generalizes from a single test.
+**In short:** Now that the performance test covers all three groups of stocks together (see
+v2.2.31) instead of just one, re-checked five candidate scoring-setting changes against that
+bigger, more trustworthy sample. Kept three that genuinely helped; rejected two that looked good
+at first but actually made results worse overall.
 
-**Tested and kept (3):**
-- `swing_model/scoring.py` — RS z-score anchor swept 1.0/1.5/2.0(prior)/2.5σ: **1.5σ** gave the best
-  Sharpe (3.21 vs 3.14/3.10/3.08) and more trades than the prior 2.0σ default (280 vs 266).
-- `swing_model/scoring.py` — RSI sweet-spot band swept 52-68/**50-70**/48-74 (from prior 55-65):
-  50-70 and 52-68 tied on Sharpe (3.34 vs 3.33); 48-74 overshot and was clearly worse on every axis
-  (Sharpe 3.17, WR 57.5%, max DD 11.5%) — confirms this isn't "wider is always better." Kept 50-70
-  for slightly more trades at the same Sharpe.
-- `shared/utils/regime_detection.py` — choppy regime modifier swept -8(prior)/-4/-2/0: **-2** gave the
-  best Sharpe (3.43 vs 3.39/3.40/3.34). Weakest-evidence change in this batch — the spread across the
-  sweep is small and comes from a few dozen choppy-regime bars, closer to what this dataset can
-  actually distinguish from noise than the other two. Kept as a genuine, if modest, local optimum.
+**Problem:** v2.2.28 had tried tuning a couple of scoring settings and found "no effect" — but
+that test only had a small, one-sector sample to check against. v2.2.31's much bigger, combined
+test made it possible to properly re-check that and a few other settings, instead of trusting a
+result from a small sample.
 
-**Tested and rejected (2):**
-- `require_confirmation_bar` True: fewer trades (224 vs 294) and worse Sharpe (2.81 vs 3.34) —
-  requiring next-bar confirmation removes real winning setups, not just noise.
-- `min_breakout_volume_zscore` filter (tried 0.2 and 0.5): both raised win rate and lowered
-  drawdown, but at a larger cost to Sharpe and trade count (0.5: 164 trades, Sharpe 2.66) than the
-  quality gain justified — the filter cuts real signal, not just weak setups.
+**Kept (3 real improvements):**
+- A relative-strength scoring setting was loosened slightly — produced a better risk-adjusted
+  return and more qualifying trades than the old setting.
+- The "sweet spot" range for one momentum indicator was widened slightly — matched the best
+  result on the risk-adjusted return measure while keeping more trades; a version widened even
+  further was clearly worse on every measure, confirming wider isn't automatically better.
+- A penalty for choppy, directionless markets was eased — modest improvement, the weakest-evidence
+  change of the three, but a real one.
 
-**Backtest result:** All 3 kept changes combined, vs. the v2.2.31/32 baseline —
-**3-sector pooled:** 266→296 trades, win rate 59.0%→59.8%, avg R:R 1.62→1.63, Sharpe **3.10→3.43**,
-max drawdown 9.1%→8.7%. **Semis-only:** 108→120 trades, win rate 60.2%→63.3%, Sharpe 2.81→3.39, max
-drawdown 8.2% (unchanged). Passed: True for both. Quantity and quality improved together — no
-tradeoff this round, unlike the two rejected changes above. 712 tests pass (unchanged), 3 skipped.
+**Rejected (2 that looked appealing but weren't worth it):**
+- Requiring an extra day of confirmation before entering a trade: fewer trades and a noticeably
+  worse risk-adjusted return — it was filtering out real winning trades, not just weak ones.
+- A minimum-volume filter on breakouts: improved win rate and reduced the worst losing stretch,
+  but at too high a cost to overall risk-adjusted return and trade count to be worth it.
 
-**Approved by:** [pending]
+**Backtest:** All three kept changes together, across all three stock groups: qualifying trades
+266→296, win rate 59.0%→59.8%, reward:risk 1.62→1.63, Sharpe ratio 3.10→3.43, worst drawdown
+9.1%→8.7%. Still passes its safety bar. 712 tests pass (unchanged), 3 skipped.
+
+**Approved:** [pending]
 
 ---
 
-## [v2.2.32] — 2026-08-01 — [Scoring Change] Sector-rotation penalty now respects individual relative strength
+## [v2.2.32] — 2026-08-01 — [Scoring Change] Stopped punishing strong individual stocks as hard as their weak sector
 
 **Status:** Live.
 
-**Problem:** `sector_rotation_modifier` (up to -15 during SMH/KRE/XLV outflow) applied uniformly to
-every ticker in a sector, regardless of that ticker's own relative strength. A stock significantly
-outperforming its own trailing RS history despite a weak sector — the most interesting kind of
-candidate, arguably — was penalized identically to the sector's laggards. Flagged as a live-scoring
-improvement candidate during the multi-layer review (2026-07-31); this is the corresponding fix.
+**In short:** A stock doing genuinely well even though its whole sector is struggling was being
+penalized exactly as hard as the sector's laggards. That penalty is now eased off for real
+standouts, instead of applying evenly to everyone.
 
-**Fix:** `shared/utils/sector_rotation.py`: new `dampen_rotation_penalty_for_leader(base_modifier,
-rs_zscore)` softens a negative rotation modifier for tickers with `rs_zscore >= 1.5`, scaling linearly
-to a 50% reduction cap by `rs_zscore >= 3.0`. Never touches a neutral or positive modifier, and never
-cancels the penalty outright — a leader in a declining sector still carries real correlated risk, this
-tempers the penalty rather than removing it. Wired into both live entry points
-(`swing_model/run_swing_model.py`, `paper_trading/paper_runner.py`) where `rotation_modifier_val`/
-`rotation_mod` is computed. 9 new/existing tests cover the dampening curve directly
-(`tests/test_macro_context.py`).
+**Problem:** The model applies a penalty to every stock in a sector that's losing money overall
+(sector "rotation" out of it), regardless of how that individual stock is actually performing. A
+stock significantly outperforming its own history despite a weak sector — arguably the most
+interesting kind of opportunity — was getting the exact same penalty as the sector's weakest
+performers. Flagged as worth fixing during a broader review.
 
-**Backtest result:** Not applicable — the backtest hardcodes `sector_rotation_modifier=0.0` for every
-bar (no historical per-sector rotation-state archive exists to replay), so this function is
-structurally unreachable in `_simulate_test_signals()`, the same "live-only, not backtest-provable"
-category as the earnings and cross-ticker modifiers. Verified via targeted unit tests instead
-(dampening curve at rs_zscore 0/1.4/1.5/2.25/3.0/5.0) plus the full suite. 712 tests pass, 3 skipped.
+**Fix:** The sector penalty now softens (by up to half) for a stock with strong-enough relative
+strength, scaling in gradually rather than as an on/off switch. It never fully cancels the
+penalty — a strong stock in a falling sector still carries real risk — and never affects a stock
+that isn't already being penalized. Added 9 tests covering the softening curve directly.
 
-**Approved by:** [pending]
+**Backtest:** N/A — the historical test doesn't yet track this kind of live, real-time sector data
+at all (a known, pre-existing gap, not something this change caused), so this can only be verified
+with live-behavior unit tests, which it was. 712 tests pass, 3 skipped.
+
+**Approved:** [pending]
 
 ---
 
-## [v2.2.31] — 2026-08-01 — [Backtest Methodology / Feature] Multi-sector backtest; RSI band re-confirmed under it
+## [v2.2.31] — 2026-08-01 — [Backtest Methodology / Feature] Performance test now covers all 3 sectors instead of just one
 
-**Status:** Backtest-only. No live/paper scoring behavior changed.
+**Status:** Backtest-only. No live/paper trading behavior changed.
 
-**Problem:** The live model has traded three sectors (semiconductors, regional_banks, healthcare)
-since v2.2.24, but `run_backtest()` had only ever validated semiconductors — `data/historical_banks/`
-and `data/historical_healthcare/` (the same 2013-2026 gitignored research datasets used for the
-sector's own live rollout backtests) existed on disk but were never wired into the go-live gate.
-Every backtest result quoted in this CHANGELOG through v2.2.29, including the "backtest passes for
-the first time" milestone, was measuring 1 of the 3 sectors the live model actually trades.
+**In short:** The historical performance test had only ever been checking one of the three
+groups of stocks the model actually trades. It now checks all three together, which is a much
+more honest measure of how the real, live model would have performed. Also confirmed a filter
+setting that had been accidentally reverted without being properly re-checked first.
 
-Separately, mid-investigation work (not committed, recovered from a stash) had reverted v2.2.29's
-`rsi_max` decision (45-82) back to 45-70 — the pre-v2.2.29 value — based on a docstring rationale
-that was never actually re-validated against data before being written down. Left as-is, this would
-have shipped an unvalidated, in-progress reversal of a decision that v2.2.29 had explicitly tested
-and documented.
+**Problem:** The live model has traded three sectors (semiconductors, regional banks, healthcare)
+for a while now, but the historical performance test had only ever been validated against
+semiconductors — the other two sectors' historical data existed but was never actually plugged
+in. Every backtest result reported in this file up to this point, including the "passed for the
+first time" milestone, was really only measuring one of the three sectors the live model trades.
+
+Separately, some in-progress work had reverted a recently-tested filter setting back to an older
+value, based on a note that was never actually re-checked against real data before being written
+down. Left alone, this would have shipped an unvalidated reversal of a decision that had
+explicitly been tested and confirmed.
 
 **Fix:**
-- `backtesting/backtest_engine.py`: new `run_multi_sector_backtest()` — runs the same replay +
-  metrics pipeline once per sector (each against its own benchmark: SMH/KRE/XLV via
-  `_SECTOR_DATASETS`), pools the resulting out-of-sample signals into one combined qualifying
-  population before computing win rate/R:R/Sharpe/drawdown/expectancy. Sectors are scored against
-  their own benchmark and never mixed at the raw-OHLCV level (benchmarking a bank ticker against
-  SMH would be meaningless) — pooling happens at the outcome level. Does not yet run walk-forward
-  per sector (a separate, larger change); covers the same 70/30 single-slice headline metric every
-  other result here is compared against.
-- `backtesting/simulation.py` / `backtest_engine.py`: `_simulate_test_signals()`/`_get_test_outcomes()`
-  take a `benchmark_ticker` parameter (default `"SMH"`, so single-sector `run_backtest()` callers are
-  unaffected) instead of hardcoding `"SMH"` in three places.
-- Re-tested `rsi_max` 70 vs. 82 directly against both the semis-only backtest and the new pooled
-  3-sector backtest before touching anything: 82 wins on every axis in both — trade count (108 vs 28
-  semis-only, 266 vs 91 pooled), Sharpe (2.81 vs 1.16 semis-only, 3.10 vs 2.29 pooled), and gate
-  pass/fail (82 passes both, 70 fails both). Restored 82 as the default and rewrote the docstring to
-  record this A/B result directly, replacing the unvalidated reversal.
+- Built a new version of the performance test that runs the same process once per sector (each
+  against its own appropriate benchmark) and then combines the results into one overall measure —
+  sectors are never mixed at the raw price-data level, only at the final outcome level.
+- Re-tested the reverted filter setting directly against both the old, single-sector test and the
+  new, combined 3-sector test before touching anything. The original (less strict) setting won on
+  every measure in both tests — more qualifying trades, a better risk-adjusted return, and it's
+  the one that actually passes the safety bar. Restored it as the default.
 
-**Backtest result:** Semis-only (unchanged from v2.2.29): 108 trades, WR 60.2%, Sharpe 2.81, max DD
-8.2%, passed=True. **New — all 3 sectors pooled:** 266 qualifying trades (semiconductors 249,
-regional_banks 149, healthcare 146 — note trades aren't mutually exclusive across the funnel stages,
-this is the final qualifying count per sector), win rate 59.0%, avg R:R 1.62, Sharpe **3.10**, max
-drawdown 9.1%, expectancy CI lower bound 0.452 (≥ 0.3 ✓). **Passed: True.** This is the first backtest
-result that actually reflects all three sectors the live model trades, not just one of them.
-712 tests pass (was 707 — 2 seasonality tests from v2.2.30 plus 3 covering the new
-`run_multi_sector_backtest`), 3 skipped.
+**Backtest:** Semiconductors-only result unchanged. **New, combined 3-sector result:** 266
+qualifying trades, 59.0% win rate, 1.62 avg reward:risk, Sharpe ratio 3.10, worst drawdown 9.1%.
+**Passes its safety bar.** This is the first backtest result that actually reflects all three
+sectors the live model trades, not just one of them. 712 tests pass (was 707), 3 skipped.
 
-**What this does and doesn't mean:** this is backtest infrastructure and a re-validated parameter —
-it does not change what live/paper scoring does. It does substantially change how much confidence
-to place in "the backtest passes" as a claim about the live model, since it now actually covers what
-the live model trades.
+**What this means:** this changes how much confidence to place in "the backtest passes" as a
+statement about the real, live model — it does not change what live or paper trading actually
+does.
 
-**Approved by:** [pending]
+**Approved:** [pending]
 
 ---
 
-## [v2.2.30] — 2026-08-01 — [Bug Fix] v2.2.28's seasonality fix was incomplete
+## [v2.2.30] — 2026-08-01 — [Bug Fix] Last version's seasonal-calendar fix was incomplete
 
 **Status:** Live.
 
-**Problem:** v2.2.28 fixed the config key mismatch (`monthly_adjustments`→`monthly_modifiers`)
-but missed a second bug underneath it. `get_seasonality_modifier()` looked up
-`monthly.get(str(month), ...)` — a string key ("8"). `yaml.safe_load()` parses
-`swing_config.yaml`'s unquoted numeric keys (`8: 0`) as **int**, not str, so
-`monthly.get("8")` on that real, int-keyed dict always returned `None` and silently
-fell through to the quarterly fallback — which itself falls back to a second
-hardcoded default (`_DEFAULT_QUARTERLY`) since the config has no
-`quarterly_adjustments` key either. Verified live: an August scan was computing
-seasonality=+1.0 (Q3's hardcoded quarterly value) instead of the config's real,
-calibrated August value of 0. The v2.2.28 fix was necessary but not sufficient —
-after that fix "shipped," live scans still weren't reading the config.
-Caught because the unit test written to cover the v2.2.28 fix used a string-keyed
-test dict (`{"12": -1.0}`), which happens to match the buggy string lookup and
-passed regardless of whether the real bug was fixed — the same failure mode as
-the original bug, one level up.
+**In short:** v2.2.28 fixed a bug where the model wasn't reading its seasonal-calendar settings
+correctly — but that fix turned out to be incomplete. A second, sneakier bug meant live scans
+were still silently ignoring the real settings even after the first fix "shipped." Both are now
+actually fixed.
 
-**Fix:** `shared/utils/seasonality.py` now tries an int key lookup first (matching
-real YAML parsing), falling back to a str key lookup (for hand-authored quoted
-configs or programmatic callers), before falling through to the quarterly default.
-Added two tests: one with int keys mirroring real YAML parsing, and one that loads
-the actual `config/swing_config.yaml` end-to-end and asserts August resolves to its
-real configured value (0) — so this class of bug can't hide behind a hand-built,
-string-keyed test dict again.
+**Problem:** The first fix corrected a misspelled setting name, but missed that the settings file
+stores month numbers in a way that didn't match how the code was looking them up (a technical
+type mismatch — the code was searching for "8" as text, but the file stores it as a plain
+number). That mismatch meant the lookup always silently failed and fell back to a generic
+default, even after the name was corrected. Confirmed live: an August scan was using a
+placeholder value instead of the real, calibrated August setting. This was caught because the
+test written for the first fix happened to use test data that accidentally matched the buggy
+lookup, so it passed regardless of whether the real bug was fixed.
 
-**Backtest result:** Not applicable — this is a data-correctness fix (the modifier now
-reads the intended value instead of a wrong fallback), not a calibration change to
-re-validate. Confirmed directly against the real config file rather than via backtest.
-707 tests pass (709 after the two new tests are added), 3 skipped.
+**Fix:** The lookup now tries both the number-based and text-based formats before falling back to
+a default. Added two tests: one that mirrors how the settings file is actually structured, and
+one that loads the real settings file end-to-end and checks it resolves correctly — so this exact
+kind of bug can't hide behind a hand-built test again.
 
-**Approved by:** [pending]
+**Backtest:** N/A — this is a correctness fix (the setting now reads its real intended value),
+not a calibration change. Verified directly against the real settings file. 707 tests pass (709
+once the two new tests are counted), 3 skipped.
+
+**Approved:** [pending]
 
 ---
 
-## [v2.2.29] — 2026-08-01 — [Backtest Methodology / Scoring Change] Re-tested stale entry-filter defaults; backtest now passes its own go-live gate
+## [v2.2.29] — 2026-08-01 — [Backtest Methodology / Scoring Change] An outdated filter was loosened — backtest passes its own bar for the first time
 
-**Status:** Live (RS z-score anchor — real scoring change). Backtest-only (RSI band, confirmation
-bar — see Problem below for why these don't touch live scoring).
+**Status:** Live (one real scoring change — see below). Backtest-only for the rest.
 
-**Problem:** v2.2.28 found and fixed 5 bugs but left the core question open: only 18-19 trades
-qualify in the primary 70/30 backtest split, nowhere close to the 100-trade minimum, with Sharpe
-stuck at 0.34. Diagnostic instrumentation of the candidate funnel (breakout bars → confirmation →
-trend_intact → sector trend → rs_zscore → 20d RS → RSI band) found the RSI 45-70 entry band
-eliminates 79% of an already-filtered candidate pool — by far the largest cut in the entire chain,
-dwarfing every other filter combined. That band was deliberately tightened from 45-82 in v2.2.5,
-justified at the time by real walk-forward evidence (pooled win rate 49.4%→60.8%). Re-running
-`entry_filter_variants.py` (pooled across walk-forward windows, isolating RSI band alone against
-today's confirmation-bar default) found that improvement has evaporated under the current 5-category
-scoring formula — pooled win rate is now statistically flat (54.7%-56.7%) whether RSI is 45-70 or
-45-82. The model has changed substantially since v2.2.5 (Positioning layer, Fundamental layer, new
-modifiers); the evidence that justified the tightening no longer holds against the system it was
-tuned for.
+**In short:** A filter that was tightened years ago, based on evidence from a much older version
+of the model, no longer helps now that the model has changed so much — loosening it back up
+(plus one other small, real scoring tweak) is what finally let the historical performance test
+pass its own safety bar for the first time ever.
 
-**Also retested against the larger, corrected sample:** the RS z-score anchor loosening (3σ→2σ) and
-breakout proximity scaling from v2.2.28, both reverted at the time for showing zero effect. RS anchor
-now shows a real, positive effect (below) — the earlier "zero effect" verdict was an artifact of
-testing against a tiny (19-trade) sample where no candidate happened to be sensitive to that curve.
-Breakout proximity scaling still shows zero effect, for a cleanly understood structural reason this
-time: the backtest only ever scores bars that are already confirmed breakouts by construction
-(`Close > prior_20d_high` is the candidate-selection criterion itself), so the "not yet confirmed"
-code path this change touches is structurally unreachable in this test harness — not a sample-size
-problem. Also tested dropping the 20-day RS-vs-SMH filter as a hypothesized redundant check (it
-barely filters anything: 234→242 in the raw funnel) — this one is not redundant after all: removing
-it added 4 trades but dropped Sharpe 3.33→3.13 and win rate 61.6%→59.7%, a net loss. Reverted.
+**Problem:** v2.2.28 fixed five real bugs but left the core problem unsolved: the historical test
+was only finding 18-19 qualifying trades, far short of the 100 needed, with a poor risk-adjusted
+return. Digging into exactly where candidates were getting filtered out found one particular
+momentum-indicator cutoff was throwing away the vast majority of an already-narrowed pool of
+candidates — by far the single biggest filter in the whole chain. That cutoff had been tightened
+years ago (v2.2.5) based on real evidence at the time, but re-testing it against today's version
+of the model (which has since gained two entire new scoring categories) found that old evidence
+no longer holds — win rate is now statistically flat whether the cutoff is tight or loose.
+
+**Also re-checked, now that a bigger sample was available:** two settings that v2.2.28 had tested
+and found "no effect" were re-tested. One (a relative-strength setting) turned out to have a real,
+positive effect after all — the earlier "no effect" verdict was simply an artifact of testing
+against too small a sample. The other genuinely still shows no effect, for a clear structural
+reason this time, not a sample-size problem. A third setting (dropping a filter that looked
+possibly redundant) was tested and found not to be redundant after all — removing it made results
+worse, so it was kept as-is.
 
 **Fix:**
-- `backtesting/simulation.py`: `_simulate_test_signals()` defaults changed `rsi_max` 70.0→82.0 (back
-  to the pre-v2.2.5 original) and `require_confirmation_bar` True→False. **Important distinction:**
-  both parameters are backtest-only candidate-selection filters — the docstring is explicit that
-  live/paper scoring has no such hard gate (RSI scores continuously, 0-8 points, no cutoff; there is
-  no "confirmation bar" concept in live scoring at all). This fix corrects how fairly the backtest
-  measures the model's true historical edge — it does **not** change what live paper trading does.
-- `swing_model/scoring.py`: RS z-score anchor loosened 3σ→2σ (rs_z=+2 now maps to the full 8/8, was
-  +3). **This one is a real, live scoring change** — it changes how every ticker's Technical layer
-  RS sub-signal is computed, in production, immediately.
+- Loosened the momentum-indicator cutoff back toward its original, pre-v2.2.5 value, and removed
+  a same-day confirmation requirement — both are backtest-only settings that correct how fairly
+  the historical test measures the model's edge. **Neither of these changes what live or paper
+  trading actually does** — live scoring never had a hard cutoff here to begin with.
+- Loosened the relative-strength setting identified above. **This one is a real, live scoring
+  change** — it changes how every stock's technical score is computed, starting immediately.
 
-**Backtest result:** Primary 70/30 split: 19→125 qualifying trades, win rate 68.4%→61.6%, avg R:R
-2.18→2.04, Sharpe **0.34→3.33**, max drawdown 3.0%→8.2% (still well under the 15% ceiling), max
-consecutive losses 3→15. **Passed: True — the first time this backtest has passed its own go-live
-gate** (min_qualifying_trades=100 ✓, expectancy CI lower bound 0.593 ≥ 0.3 ✓, Sharpe 3.33 ≥ 1.0 ✓,
-max drawdown 8.2% ≤ 15% ✓). 3 of 6 individual walk-forward windows pass; window 1 (2014-2016) remains
-a genuinely weak period for this strategy (35% WR) worth watching, not an artifact of this change.
-707 tests pass (unchanged), 3 skipped.
+**Backtest:** Qualifying trades jumped from 19 to 125, win rate 68.4%→61.6%, reward:risk
+2.18→2.04, Sharpe ratio **0.34→3.33**, worst drawdown 3.0%→8.2% (still comfortably under the
+ceiling). **Passed — the first time this backtest has ever passed its own safety bar.** One
+historical stretch (2014-2016) remains a genuinely weak period for this strategy, worth watching,
+not a fluke of this change. 707 tests pass (unchanged), 3 skipped.
 
-**What this does and doesn't mean:** the backtest's measured historical edge is now dramatically
-healthier — a real, useful correction to a stale test methodology. It does not, by itself, explain
-or fix live paper trading's 2+ week zero-signal drought: live scoring never had the RSI/confirmation
-gates this fix touches, so nothing changes there except the RS z-score anchor's small, real effect.
-The live drought's likely drivers — the 90-point confidence threshold and the current choppy/
-weak-sector regime — were left untouched this round, per prior discussion.
+**What this means:** the backtest's measured historical performance is now dramatically
+healthier — a real, useful correction. It does not, by itself, explain why paper trading went
+quiet for 2+ weeks around this time: live scoring never had the two backtest-only gates this fix
+touches, so nothing changes there except the one real scoring tweak above. The live model's
+90-point threshold and the market conditions at the time were left untouched this round.
 
-**Approved by:** [pending]
+**Approved:** [pending]
 
 ---
 
-## [v2.2.28] — 2026-07-31 — [Bug Fix] Fixed dead/miscalibrated sub-signals found via live paper-trading review
+## [v2.2.28] — 2026-07-31 — [Bug Fix] Found and fixed 5 separate bugs quietly suppressing real trade signals
 
 **Status:** Live. No scoring weight, category max, or the 90-point threshold changed. Two
-calibration experiments (RS z-score anchor, breakout proximity scaling) were tested and
-reverted — no measurable effect.
+tested calibration ideas were reverted after showing no measurable effect.
 
-**Problem:** Paper trading logged 0 qualifying signals for 2+ weeks across all three sectors,
-and a fresh backtest showed qualifying trades falling from 149 (07-04) to 18. Digging into why
-turned up five separate, unrelated bugs quietly suppressing real signal:
+**In short:** Paper trading had gone quiet — zero real trade signals for over two weeks. Digging
+into why turned up five completely separate, unrelated bugs across different parts of the model,
+each one quietly suppressing real signal in its own way. All five are now fixed.
+
+**Problem:** Paper trading logged 0 qualifying signals for 2+ weeks across all three sectors, and
+a fresh backtest showed qualifying trades falling sharply too. Investigating turned up five
+separate bugs:
 
 **Fix** — one bug and fix per area:
-- **Technical:** `score_volume_profile_position()` was fully built in `volume_profile.py` but
-  never actually called anywhere live — every ticker scored a flat neutral 4.0/8 regardless of
-  real volume-node position, on every scan. Wired it into `compute_technical_indicators()`
-  (`shared/indicators/technical_common.py`) and rescaled to the 0-8 sub-signal max.
-- **News:** 11 of 17 watchlist tickers (regional banks + healthcare, added v2.2.10/v2.2.24) had
-  no company-name alias in `ner_extractor.py`. Without one, relevance-matching falls back to the
-  bare ticker symbol, which almost never appears literally in a headline — confirmed live,
-  HBAN/RF/FITB/KEY scored News=0.0/15 every scan despite Finnhub returning real articles. Added
-  the missing aliases.
-- **Fundamental:** `_FUNDAMENTAL_MAX_TICKERS_PER_DAY` was still 3, a cap sized for the original
-  6-ticker watchlist. The current 17-ticker watchlist needs ~2.4/day just to keep up, leaving no
-  slack for catch-up — confirmed live, 4 of 6 healthcare tickers still showed
-  fundamental_score=0 a week after going live. Raised the cap to 5 (`indicator_pipeline.py`).
-- **Sentiment:** a RapidAPI outage was hard-zeroing the Seeking Alpha engagement sub-signal for
-  every ticker while the API was down, with no fallback. Added a 48h last-known-good cache
-  (`data/processed/sentiment_engagement_cache.json`, `sentiment_client.py`) that now falls back
-  to the last successful fetch.
-- **Modifiers (seasonality):** `seasonality.py` read a config key `monthly_adjustments` that
-  doesn't exist — `swing_config.yaml` actually calls it `monthly_modifiers`. The lookup silently
-  fell through to hardcoded defaults that disagree in sign with the calibrated config values
-  (January: config -5 vs. hardcoded +2) — the model had never once run on the config's real
-  seasonality values. Corrected the key name.
-- **Tested and reverted (no effect):** RS z-score anchor loosening (3σ→2σ) and breakout
-  proximity scaling both produced bit-for-bit identical backtest results — the Technical layer's
-  existing pre-filters already narrow candidates to a pool where sub-scores saturate near max,
-  so tuning inside that pool changed nothing. Not kept.
+- **Technical:** a piece of scoring logic for where a stock's price sits relative to its trading
+  volume history was fully built but never actually wired in anywhere — every stock scored a flat,
+  meaningless neutral value regardless of the real picture. Wired it in properly.
+- **News:** 11 of 17 watchlist stocks had no company-name entry in the list the model uses to
+  match news headlines to tickers. Without one, matching falls back to the bare ticker symbol,
+  which almost never appears literally in a headline — several bank stocks scored zero News
+  points every single scan despite real articles existing about them. Added the missing entries.
+- **Fundamental:** a daily cap on how many stocks' fundamental data could refresh was still set
+  for the model's original, much smaller watchlist — nowhere near enough for the current, larger
+  one, so some stocks' fundamental data was going stale indefinitely. Raised the cap.
+- **Sentiment:** a temporary outage at one data provider was zeroing out a sentiment sub-score
+  for every stock while it was down, with no fallback. Added a short-term cache that now falls
+  back to the last successful reading instead.
+- **Seasonality:** the model was reading its seasonal-calendar settings under the wrong internal
+  name, so it silently ignored the real, calibrated settings and used generic hardcoded values
+  instead — some of which pointed in the opposite direction of the real settings. Corrected the
+  name. (This fix later turned out to be incomplete — see v2.2.30.)
+- **Tested and reverted (no real effect found at the time):** two other scoring-setting tweaks
+  were tried and produced identical results before and after — not kept. (One of these was later
+  re-tested against a bigger sample and did turn out to help — see v2.2.29.)
 
-**Backtest:** 18 → 19 qualifying trades, win rate 66.7% → 68.4%, avg R:R 2.35 → 2.18, Sharpe
-unchanged at 0.34, max drawdown unchanged at 3.0%. Still **FAILS** the go-live gate (100 trades
-min, Sharpe ≥ 1.0) — this patch fixes bugs and data gaps, not the trade-count/Sharpe gap
-(structural selectivity from the 90-point threshold and Technical AND-gates, left alone pending
-a separate strategic decision). 707 tests pass (was 706), 3 skipped.
+**Backtest:** Qualifying trades ticked up slightly, but the test still fails its safety bar
+overall — this update fixes real bugs and data gaps, not the deeper reason too few trades qualify
+in the first place (a separate, bigger question, addressed starting in v2.2.29). 707 tests pass
+(was 706), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.27] — 2026-07-29 — [Data Source] Added hyperscaler capex signal for the semiconductor sector
+## [v2.2.27] — 2026-07-29 — [Data Source] Added a signal for big tech companies cutting chip-related spending
 
-**Status:** Live. Extends v2.2.26's SEC EDGAR work via the same News/Event Severity Gate
-mechanism — no new scoring category, no weight/threshold change.
+**Status:** Live. Extends v2.2.26's work — no new scoring category, no weight/threshold change.
 
-**Problem:** SEC EDGAR's atom feed `<summary>` (what v2.2.26 reads) only ever contains generic
-Item-code boilerplate, never real company commentary — verified against AMZN's own filings. The
-real numbers live one level deeper, in the filing's attached press-release exhibit. Hyperscaler
-capex (AMZN/MSFT/GOOGL/META) is the demand driver behind semiconductor sector moves, and it
-shows up in these filings before it reaches general news — but the exhibit text was never read.
+**In short:** Added a way to catch big tech companies (Amazon, Microsoft, Google, Meta) signaling
+they're cutting back on AI/chip-related spending, straight from their own official filings —
+before it shows up in general news.
 
-**Fix:**
-- New `fetch_hyperscaler_capex_snippets()` (`sec_edgar_client.py`) pulls each company's recent
-  earnings 8-Ks (Items 2.02/7.01/8.01), locates the Exhibit 99.x press release via the filing's
-  `index.json`, and extracts short snippets around capex terms ("purchases of property and
-  equipment", "capital expenditures", "AI infrastructure"). Confirmed against AMZN's Q1 2026
-  8-K: the atom summary has zero capex text, while the exhibit states a $59.3B YoY increase with
-  real commentary.
-- Added `capex_context_tickers: [AMZN, MSFT, GOOGL, META]` under semiconductors in
-  `swing_config.yaml` — fetched once per scan, folded into every semiconductor ticker's News pool.
-- Added capex-cut keywords to the semiconductor sector's Event Severity Gate triggers.
-- 15 new tests.
+**Problem:** The official-filings feed added in v2.2.26 only ever contains generic boilerplate
+text, never real company commentary — the actual numbers live one step deeper, in an attached
+press release. Big tech's spending on AI infrastructure is a major demand driver for semiconductor
+stocks, and shows up in these filings before it reaches general news — but that deeper text was
+never actually being read.
 
-**Backtest:** N/A — same "accumulates going forward" caveat as v2.2.26; no historical exhibit
-archive exists. 707 tests pass (was 696), 3 skipped.
+**Fix:** Built a way to locate and read the attached press release inside each of these four
+companies' filings, pull out short snippets around spending-related terms, and fold that into the
+News score for every semiconductor stock. Also added spending-cut-related keywords to the
+breaking-news safety check, so a real spending pullback gets flagged the same way a tariff or
+export-ban headline already does. Added 15 new tests.
+
+**Backtest:** N/A — same as v2.2.26, no historical archive of this data exists yet to test
+against. 707 tests pass (was 696), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.26] — 2026-07-29 — [Data Source] Added SEC EDGAR 8-K filings as a News source
+## [v2.2.26] — 2026-07-29 — [Data Source] Started reading companies' official SEC filings as a news source
 
-**Status:** Live. New free source folded into existing News scoring and the Event Severity
-Gate — no weight/threshold change.
+**Status:** Live. New free source folded into existing News scoring — no weight/threshold change.
 
-**Problem:** A company's own 8-K regulatory filing is about as authoritative and immediate as a
-News source gets — a primary disclosure, not third-party reporting after the fact — but nothing
-in the News layer read it. Identified as a genuine, unfilled gap while reviewing what each
-scoring layer actually draws on.
+**In short:** Started treating companies' own official regulatory filings as a News source,
+since they're often more reliable and immediate than articles written about them after the fact.
 
-**Fix:**
-- New `sec_edgar_client.py` fetches each ticker's recent 8-Ks from SEC EDGAR's free public feed
-  and extracts the human-readable Item description (e.g. "Item 5.02: Departure of Directors")
-  instead of the generic, unvarying filing title.
-- Folded in as a fifth News source alongside Alpha Vantage/Yahoo/Finnhub/Seeking Alpha.
-- Scored at 1.0 source credibility — higher than any journalism outlet, since it's the
-  company's own regulatory disclosure.
-- Added "SEC EDGAR" to the Event Severity Gate's `principal_sources` — same critical tier as
-  FDA/Fed statements.
-- Also counts toward the free-source pool that decides whether a scan spends its one AV
-  confirmation call.
-- 10 new tests, built against real captured response payloads.
+**Problem:** A company's own official filing is about as authoritative and immediate as news gets
+— but nothing in the model read it. Identified as a real, unfilled gap in what the News category
+draws on.
 
-**Backtest:** N/A — no historical 8-K archive; `simulation.py` always passes
-`sec_edgar_filings=None`, same caveat already accepted for Seeking Alpha/StockTwits. 696 tests
-pass (was 686), 3 skipped.
+**Fix:** Built a way to fetch each stock's recent official filings and extract a readable summary
+of what changed, and folded it in as a fifth News source (alongside the four already in use).
+Given the highest credibility rating of any source, since it's the company's own disclosure, not
+someone else's reporting on it. Also added to the list of always-critical sources for the
+breaking-news safety check. Added 10 new tests.
+
+**Backtest:** N/A — no historical archive of this data exists yet to test against, same as later
+added for Seeking Alpha/StockTwits. 696 tests pass (was 686), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.25] — 2026-07-29 — [Bug Fix] Fixed a pre-market bug: NaN close price could reach scoring
+## [v2.2.25] — 2026-07-29 — [Bug Fix] An incomplete, still-forming stock price could sneak into the model's math
 
 **Status:** Live. Data-integrity fix only.
 
-**Problem:** Every daily-interval yfinance request made during market hours (including
-pre-market) includes an in-progress "today" bar — Open/Volume may already have partial
-pre-market prints, but Close stays NaN until the session actually closes. Live: the 5:30am
-pre-market scan logged `close=nan` for all 17 watchlist tickers. It self-resolved by the 9am
-mid-session scan once yfinance backfilled the row, but a NaN close feeding stop/target/
-position-size math is a real risk regardless of how quickly it self-resolves.
+**In short:** Fixed a bug where an incomplete "today" stock price — one that hasn't finished
+forming yet during pre-market hours — could sneak into the model's stop-loss and target-price
+math.
 
-**Fix:**
-- `fetch_ohlcv()`/`fetch_ohlcv_batch()` (`market_data_client.py`) now trim any trailing OHLCV
-  row with a NaN Close before returning it.
-- `technical_common.py` now raises a clear error if a NaN close still reaches indicator
-  computation, instead of silently scoring on it — caught by `indicator_pipeline.py`'s existing
-  per-ticker error handling (logs a validation entry, excludes just that ticker).
-- 7 new tests.
+**Problem:** Every request for today's price data made during market hours includes a
+still-forming, incomplete entry for the current day — its closing price genuinely doesn't exist
+yet. Live: an early-morning scan logged a missing closing price for every single watchlist stock.
+It resolved itself an hour later once the data caught up, but feeding a missing/incomplete price
+into stop-loss and target math is a real risk regardless of how quickly it resolves itself.
 
-**Backtest:** N/A — only affects the live/paper fetch path; the backtest doesn't call
-`fetch_ohlcv_batch` during market hours. 686 tests pass (was 679), 3 skipped.
+**Fix:** The data-fetching code now trims off any still-forming "today" row before using the
+data. Added a backup check further downstream that raises a clear error if a missing price ever
+slips through anyway, instead of silently scoring on it. Added 7 new tests.
 
-**Approved:** [pending]
-
----
-
-## [v2.2.24] — 2026-07-28 — [Sector Rollout] Turned on healthcare for paper trading
-
-**Status:** Live. Healthcare (6 tickers) now actively scanned alongside semiconductors and
-regional banks. Still no real money at risk — no version has passed backtest requirements yet.
-
-**Problem:** Healthcare had already been tested as research-only in v2.2.18 (63.4% win rate,
-comparable to the other sectors), but the remaining blocker to actually turning it on was Alpha
-Vantage's daily call budget — adding 6 more tickers to an already-11-ticker watchlist risked
-exceeding the daily limit. Two earlier changes removed that blocker: confirmation-only AV news
-calls (v2.2.21) and the 3-ticker/day fundamentals cap (v2.2.19/v2.2.12), so a bigger watchlist
-no longer means a bigger daily API bill.
-
-**Fix:**
-- Added healthcare to live config: LLY, PFE, MRK, ABBV, UNH, JNJ, benchmarked against XLV. Code
-  already supported multiple sectors generically since v2.2.8 — config-only change.
-- Added healthcare breaking-news keywords (FDA rejection, trial failure, drug recall) so a
-  serious event blocks only healthcare tickers. Added FDA as an always-critical source, like
-  the Fed.
-- Gave healthcare its own position limit and correlated-position group. Total position ceiling
-  across all sectors: 4 → 6.
-- Fixed a stale comment describing the old pre-v2.2.21 Alpha Vantage budget behavior.
-- Updated one test expecting exactly two active sectors to expect three.
-
-**Backtest:** Unchanged from v2.2.18's research result — 141 combined trades, 59.6% win rate,
-1.63 avg R:R, still well short of go-live. Expands what paper trading observes only. 679 tests
-pass (one updated for the new sector count).
+**Backtest:** N/A — only affects live/paper trading's real-time data fetch; the historical test
+doesn't run during live market hours. 686 tests pass (was 679), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.23] — 2026-07-28 — [Feature] Collect trade-structure data down to score 60, without lowering the real bar
+## [v2.2.24] — 2026-07-28 — [Sector Rollout] Turned on healthcare stocks for practice trading
 
-**Status:** Live. Real trading threshold stays at 90. This only makes the model also evaluate
-(not act on) 60-89 scores, to build a bigger research dataset.
+**Status:** Live. Healthcare stocks now actively scanned alongside semiconductors and regional
+banks. Still practice money only — no version of this model has ever been approved for real
+trading.
 
-**Problem:** Real 90+ signals are rare — zero in over 9 days of paper trading. Waiting for
-enough real signals to judge the new Greeks/liquidity filters (v2.2.22) would take too long.
+**In short:** Turned on a third group of stocks (healthcare) for practice trading, joining the
+two groups already running.
+
+**Problem:** Healthcare had already been tested as research-only and looked promising, but the
+remaining blocker to actually turning it on for real (practice) trading was a shared daily limit
+on paid data calls — adding 6 more stocks risked exceeding it. Two earlier changes already fixed
+that: one data source is now called far less often, and another has a daily cap regardless of
+watchlist size — so a bigger watchlist no longer means a bigger daily bill.
 
 **Fix:**
-- Added a threshold (60) that triggers trade-structure evaluation without qualifying as a real
-  signal.
-- Scores 60-89 get their evaluated structure and EV saved to the database for review — never
-  written to the real trade log, never alerted, don't count as a signal.
-- Updated tests, including a check that sub-60 scores still get nothing recorded.
+- Added 6 healthcare stocks to the real, live watchlist. The code already supported multiple
+  sectors generically, so this was mostly a settings change.
+- Added healthcare-specific breaking-news keywords (drug rejections, failed trials, recalls) so a
+  serious healthcare event only blocks healthcare stocks, not the whole watchlist.
+- Gave healthcare its own position limit, separate from the other two groups. Total position
+  limit across all three groups increased accordingly.
 
-**Backtest:** N/A — the backtest doesn't use this code path. 679 tests pass, 3 skipped.
+**Backtest:** Unchanged from the earlier research result — still well short of the bar needed to
+trade real money. This only expands what practice trading watches. 679 tests pass (one updated
+for the new group count).
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.22] — 2026-07-28 — [Feature] Real options Greeks filter, real IV percentile, real liquidity check
+## [v2.2.23] — 2026-07-28 — [Feature] Started recording near-miss opportunities to learn from
+
+**Status:** Live. The real trading bar stays at 90 — nothing changed there. This just makes the
+model also evaluate (never act on) stocks scoring 60-89, purely to build a bigger research
+dataset.
+
+**In short:** Started quietly recording data on decent-but-not-quite-good-enough opportunities
+too, purely to learn from them — they're never treated as real trade signals.
+
+**Problem:** Real, qualifying signals are rare — zero in over 9 days of practice trading.
+Waiting for enough real signals to properly judge some recent improvements would take far too
+long.
+
+**Fix:** Added a lower threshold (60) that triggers the model to fully evaluate a stock — what
+trade structure it would pick, expected value — without it counting as a real signal or ever
+reaching the real trade log or an alert.
+
+**Backtest:** N/A — the historical test doesn't use this part of the code. 679 tests pass, 3
+skipped.
+
+**Approved:** [pending]
+
+---
+
+## [v2.2.22] — 2026-07-28 — [Feature] The model can now actually check an options trade's risk profile
 
 **Status:** Live. Doesn't touch the trading score or 90-point threshold — only affects which
-options structure gets picked once a signal already qualifies.
+specific options trade gets picked once a stock already qualifies.
 
-**Problem:** The Greeks filter had said "not implemented" since it was written, because the
-real options chain (strikes, bid/ask, IV) was fetched and then thrown away right after computing
-a couple of averages. Two structures could look equally profitable on paper while one secretly
-depended on time or volatility working out — with no way to tell them apart. The liquidity
-filter (bid/ask spread) was also silently a no-op, since no real spread data ever reached it, and
-IV percentile always assumed a neutral 50 instead of using real history.
+**In short:** The model can now actually check whether an options trade's risk profile makes
+sense, instead of skipping that check entirely like it always claimed to do.
 
-**Fix:**
-- Keeps the real options chain instead of discarding it after computing averages.
-- Added a real Greeks filter: for 20 of 42 possible structures, rejects a structure if theta or
-  vega is too large relative to risk. Complex structures (LEAPS, calendars, condors,
-  butterflies) are left alone — a single chain snapshot can't represent them accurately.
-- The liquidity filter now actually works, fed by the real spread data it was always meant to use.
-- IV percentile is now computed from real history. Needs ~10 days of history to activate;
-  reports "not enough history yet" before that instead of guessing.
-- Fixed a bug where missing options data was read as a real but blank quote instead of being
-  skipped.
-- 47 new tests.
+**Problem:** A safety check meant to filter out overly risky options trades had said "not
+implemented" since it was first written, because the real market data needed for it was being
+fetched and then thrown away right after a quick summary calculation. Two trades could look
+equally good on paper while one secretly depended on time or volatility working out in a very
+specific way — with no way to tell them apart. Two related checks (a liquidity check and a
+volatility-history check) were also silently broken or missing real data.
 
-**Backtest:** N/A — the backtest only tests the buy/sell signal, not option-structure selection.
-679 tests pass (was 638), 3 skipped.
+**Fix:** Kept the real market data around instead of discarding it, and used it to build a
+working version of all three checks: a real risk-profile filter for most trade types (complex
+ones are deliberately left alone, since one data snapshot can't represent them accurately), a
+working liquidity check, and a real volatility-history reading instead of always assuming an
+average value. Also fixed a bug where missing data was being read as real-but-empty instead of
+being properly skipped. Added 47 new tests.
+
+**Backtest:** N/A — the historical test only checks the buy/sell signal itself, not which
+specific options trade gets picked. 679 tests pass (was 638), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.21] — 2026-07-28 — [Infrastructure] Alpha Vantage news is now a confirmation check, not a routine call
+## [v2.2.21] — 2026-07-28 — [Infrastructure] One news service is now called only when something looks urgent
 
-**Status:** Live. Only changes how often a news API gets called — no scoring/threshold impact.
+**Status:** Live. Only changes how often a news service gets called — no scoring impact.
 
-**Problem:** Alpha Vantage has a strict daily call limit shared across features. AV was
-previously called once per ticker automatically on every post-close scan, whether or not
-anything happened. On 2026-07-28 the model burned most of that budget on routine per-ticker
-calls, most of which came back rate-limited instead of returning real articles.
+**In short:** One particular news service, which has a strict daily call limit, is now only
+called to double-check something that already looks serious — instead of being called
+automatically and routinely for every single stock, which was wasting its limited daily budget.
 
-**Fix:**
-- Checks free news sources (Yahoo, Finnhub, Seeking Alpha) first, every scan. Only spends an AV
-  call when a free source already flagged something serious, to cross-check it.
-- Updated tests to match.
+**Problem:** That service has a strict daily call limit shared across several features. It was
+being called automatically for every stock on every scan, whether or not anything newsworthy had
+happened — and on one particular day, most of that budget got burned on calls that came back
+rate-limited instead of returning anything useful.
 
-**Backtest:** N/A — live API-call cadence only; the backtest doesn't model call budgets. 638
-tests pass (was 637), 3 skipped.
+**Fix:** The model now checks its free news sources first, every scan, and only spends a call to
+this limited service when a free source already flagged something serious worth double-checking.
+
+**Backtest:** N/A — a live API-usage change only; the historical test doesn't model daily call
+budgets. 638 tests pass (was 637), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.20] — 2026-07-28 — [Infrastructure] Better diagnostics, fixed a misleading pass/fail report, reconnected calibration
+## [v2.2.20] — 2026-07-28 — [Infrastructure] Fixed misleading reports and reconnected a disconnected self-correction system
 
-**Status:** Live. No scoring weight or threshold change — measurement tools, a reporting fix,
-and wiring a dormant feature to the right data source.
+**Status:** Live. No scoring weight or threshold change — measurement tools, a reporting fix, and
+reconnecting a dormant feature to the right data.
 
-**Problem:** A review of 9 days of real paper-trading data found the score has never reached
-90, or even 80 — topping out around 72. But the pass/fail system couldn't tell "no data yet"
-from "genuinely underperforming," so it was impossible to know how bad the gap really was.
-Digging into why also revealed the calibration/feedback-loop system (meant to compare fresh
-results against training data) had been silently reading and writing files nothing in the live
-system actually used.
+**In short:** Fixed a report that made "we don't have enough data yet" look identical to "the
+strategy is failing," and discovered a planned self-correction system had been quietly
+disconnected from real data the whole time. Reconnected it (though it still isn't switched on).
 
-**Fix:**
-- New read-only diagnostics showing real paper-trading score distributions and how close each
-  category gets to its max.
-- Fixed the "zero trades yet" vs. "the strategy failed" reporting bug — now distinguished.
-- Reconnected calibration to the real, running paper-trading data. Recalibration itself stays
-  switched off until it has real data to work from — confirmed this change produces the exact
-  same score as before.
-- Removed a dead, unused config file that falsely claimed to be read by the scoring code.
+**Problem:** A review of real practice-trading results found scores were consistently coming in
+well below the qualifying threshold — but the pass/fail reporting couldn't distinguish "not
+enough data yet" from "genuinely underperforming," making it impossible to know how serious that
+actually was. Digging into why also revealed a planned system meant to compare fresh results
+against how the model was originally trained had been silently reading and writing to files that
+nothing in the live system actually used.
+
+**Fix:** Fixed the misleading report so the two situations are now told apart. Reconnected the
+self-correction system to real, live data — though it stays switched off until it has enough real
+data to trust; confirmed this reconnection alone doesn't change any live score. Also removed a
+leftover, unused settings file that falsely appeared to be part of the real scoring logic.
 
 **Backtest:** N/A — no scoring weight or threshold changed. 637 tests pass (was 582), 3 skipped.
 
@@ -672,41 +627,44 @@ system actually used.
 
 ---
 
-## [v2.2.19] — 2026-07-28 — [Data Source] Moved one earnings data point off Alpha Vantage
+## [v2.2.19] — 2026-07-28 — [Data Source] Switched one earnings data point to a free source
 
-**Status:** Live. Data-source change only — the earnings score formula is unchanged, just fed
-by cheaper sources most of the time.
+**Status:** Live. Data-source change only — the earnings score formula itself is unchanged.
 
-**Problem:** AV's earnings call had been silently failing on every attempt — a real daily limit
-(25 calls/day) on the account, not a bug. Investigating showed only one of the four earnings
-sub-scores actually needed AV's extra depth; the rest worked fine on Finnhub's free data.
+**In short:** Switched one small piece of earnings data over to a free source, since the paid
+one it was using kept silently hitting its daily limit.
 
-**Fix:**
-- One of four earnings sub-score inputs now comes from Finnhub (free) instead of AV.
-- The piece that genuinely needs AV's deeper history now only calls it for brand-new tickers or
-  near a real earnings date, not on every weekly refresh — cutting routine AV earnings calls
-  from a few/day to ~1-2/month.
+**Problem:** One paid data source's earnings calls had been silently failing every time — a real
+daily limit on the account, not a bug. Investigating found only one of four earnings sub-scores
+actually needed that source's extra depth; the rest worked fine on a free alternative.
 
-**Backtest:** N/A — formula unchanged, only the data supplier. Verified against real API calls
-that AV's budget counter stayed untouched on the routine path. 582 tests pass (was 573), 3
-skipped.
+**Fix:** Switched the non-critical piece to a free source, and limited the piece that genuinely
+needs the paid source's depth to only run for brand-new stocks or right around a real earnings
+date — cutting how often the paid source gets called by roughly 95%.
+
+**Backtest:** N/A — the earnings formula itself is unchanged, only where the numbers come from.
+582 tests pass (was 573), 3 skipped.
 
 **Approved:** [pending]
 
 ---
 
-## [v2.2.18] — 2026-07-26 — [Research] Tested healthcare as an unrelated third sector
+## [v2.2.18] — 2026-07-26 — [Research] Tested the strategy on an unrelated group of stocks (healthcare)
 
 **Status:** Live code, research-only — nothing about the real trading watchlist changed.
 
-**Problem:** Semiconductors and regional banks (already tested) both react to the same
-interest-rate cycle, so their agreement was weaker proof of a real, general edge than it
-looked — they could just be responding to the same underlying factor. Healthcare stocks move on
-different triggers (drug approvals, trial results), making it a cleaner check of whether the
-entry strategy generalizes, or only works on rate-sensitive stocks.
+**In short:** Tested the strategy on healthcare stocks — a group with nothing in common with the
+two already tested — just to check it isn't secretly only working because of one shared factor.
+It held up well.
 
-**Fix:** Downloaded 13 years of price history for 6 healthcare/pharma stocks and ran the same
-backtest, purely for research. Not added to live trading.
+**Problem:** The two sectors already tested (semiconductors and regional banks) both move with
+the same interest-rate cycle, so their agreement was weaker proof of a real, general edge than it
+first looked — they could just be reacting to the same underlying factor. Healthcare stocks move
+on different triggers (drug approvals, trial results), making it a cleaner test of whether the
+strategy actually generalizes.
+
+**Fix:** Downloaded 13 years of price history for 6 healthcare stocks and ran the same historical
+test, purely for research. Not added to live trading yet.
 
 **Result**
 
@@ -717,320 +675,314 @@ backtest, purely for research. Not added to live trading.
 | Healthcare | 41 | 63.4% | 1.31 |
 | **All three combined** | **141** | **59.6%** | **1.63** |
 
-Healthcare's win rate held up as well as the others — a good sign this isn't just a rate-cycle
-fluke — though its avg R:R was lower (wins about as often, pays out less). Logged as new
-evidence per the no-retuning rule, not used to retune.
+Healthcare's win rate held up just as well as the other two — a good sign this isn't just a
+rate-cycle coincidence — though its typical payout per win was smaller. Logged as new evidence,
+not used to retune anything.
 
 **Approved:** MrKoods — 2026-07-26
 
 ---
 
-## [v2.2.17] — 2026-07-26 — [Backtest Methodology] Replaced the win-rate pass/fail bar with a statistical one
+## [v2.2.17] — 2026-07-26 — [Backtest Methodology] Replaced an unrealistically strict pass/fail bar with a smarter one
 
-**Status:** Live. Still not eligible for real money — this changes how pass/fail is measured,
+**Status:** Live. Still not eligible for real money — this changes *how* pass/fail is measured,
 not what passes. Required a fresh backtest since it changes the pass/fail rule itself.
 
-**Problem:** The old go-live bar (flat 80% win rate, 1.8 R:R) implied a consistency level far
-beyond what this strategy — or most trading strategies — has ever shown, even in its best years.
-A flat percentage also can't tell a real edge apart from a small sample that got lucky.
+**In short:** The old rule for "is this good enough to trade real money" was so strict that
+almost no realistic strategy could ever pass it. Replaced it with a smarter, statistics-based
+version that accounts for how much data actually exists.
 
-**Fix:**
-- Replaced the flat bar with a statistical confidence interval on the strategy's actual expected
-  return per trade — a stricter, more honest test that accounts for how much data actually
-  exists, not just a raw percentage.
-- Applied the same new rule to paper trading's own pass/fail check.
+**Problem:** The old bar (a flat win rate and payout ratio) implied a level of consistency far
+beyond what this — or most — trading strategies ever show, even in a great year. A flat
+percentage also can't tell a real edge apart from a small sample that just got lucky.
 
-**Backtest:** 66.67% win rate, 2.35 avg R:R, EV per trade 1.24R (low-end estimate 0.42R, still
-positive). Still fails — not because the edge looks fake, but only 18 qualifying trades exist
-(100 required) and Sharpe (0.34) is below the 1.0 bar. A more useful failure reason than before:
-the signal looks statistically real, there's just not enough of it yet. 566 tests pass (was
-559), 3 skipped. Extended to paper trading 2026-07-27 — correctly reports "not enough trades
-yet" instead of a misleading pass/fail. 573 tests pass, 3 skipped.
+**Fix:** Replaced the flat bar with a statistical confidence check on the strategy's actual
+expected return per trade — a stricter, more honest test that accounts for how much data exists,
+not just a raw percentage. Applied the same new rule to practice trading's own pass/fail check.
 
-**Approved:** MrKoods — 2026-07-26 (paper trading extension: [pending])
+**Backtest:** Still fails — but for a clearer, more honest reason than before: the underlying
+signal looks statistically real, there just isn't enough of it yet (not enough qualifying trades,
+and the risk-adjusted return is still below the bar). 566 tests pass (was 559), 3 skipped.
+Applied to practice trading too on 2026-07-27 — it now correctly reports "not enough trades yet"
+instead of a misleading pass/fail. 573 tests pass, 3 skipped.
+
+**Approved:** MrKoods — 2026-07-26 (practice-trading extension: [pending])
 
 ---
 
-## [v2.2.16] — 2026-07-26 — [Research] Checked for hidden overlap between Technical and Sentiment
+## [v2.2.16] — 2026-07-26 — [Research] Checked whether two scoring categories secretly measure the same thing
 
-**Status:** Live. Pure measurement plus a process rule — no scoring/threshold change, no
-backtest needed.
+**Status:** Live. Pure measurement plus a process rule — no scoring/threshold change, no backtest
+needed.
 
-**Problem:** Five rounds of tuning against the same ~12-year sample risked quietly overfitting
-to it. Before locking in a rule against further tuning, it was worth checking a related worry:
-is part of the backtest's apparent "5 independent categories" an illusion, because the backtest's
-Sentiment stand-in is built from price movement — the same data Technical already uses directly?
+**In short:** Double-checked that two of the model's five scoring categories weren't secretly
+measuring the same underlying thing, which would make the model look more diversified than it
+really is. They aren't — the worry didn't hold up.
 
-**Fix:** Built a tool to directly measure the correlation between Technical and Sentiment scores
-in the backtest, and made an existing informal decision official: no backtest data from before
-2026-07-26 may be used again to tune entry filters. Re-running the backtest for reporting is
-fine; retuning against the same old data is not.
+**Problem:** Repeated rounds of tuning against the same historical sample risked quietly
+overfitting to it. Before locking in a rule against further tuning, it was worth checking a
+related worry: is part of the model's apparent "5 independent categories" an illusion, since the
+historical test's stand-in for public sentiment is itself built from price movement — the same
+data the technical category already uses directly?
 
-**Result:** The worry didn't hold up — the two categories' scores were only weakly correlated,
-well below the level that would signal real overlap. Re-checked later against real live
-paper-trading data (not just the backtest's price-based stand-in) with the same result. 573
-tests pass (was 566), 3 skipped.
+**Fix:** Built a tool to directly measure how correlated the two categories' scores actually are,
+and made an existing informal rule official: no historical data from before this date may be used
+again to tune entry settings going forward.
+
+**Result:** The worry didn't hold up — the two categories were only weakly related, well below a
+level that would signal real double-counting. Re-checked later against real live data with the
+same result. 573 tests pass (was 566), 3 skipped.
 
 **Approved:** MrKoods — 2026-07-26
 
 ---
 
-## [v2.2.15] — 2026-07-26 — [Feature] Seeking Alpha can trigger an immediate Alpha Vantage double-check
+## [v2.2.15] — 2026-07-26 — [Feature] The model now double-checks urgent headlines immediately
 
-**Status:** Live. Only changes when a pre-market/mid-session scan spends an AV call — no
-scoring impact.
+**Status:** Live. Only changes when a scan spends a limited API call — no scoring impact.
 
-**Problem:** AV news was normally only checked post-close, so a genuinely serious event flagged
-by Seeking Alpha (checked every scan, free) could sit unconfirmed for up to 13 hours before the
-next post-close scan caught it.
+**In short:** If a serious headline turns up, the model now double-checks it with an independent
+source right away, instead of waiting up to 13 hours for the next scheduled check.
 
-**Fix:** If Seeking Alpha flags a serious headline about a ticker, the model now immediately
-spends one AV call to cross-check it with an independent source, instead of waiting for the next
-scan.
+**Problem:** One limited data source was normally only checked once a day, so a genuinely
+serious event flagged by a free, always-on source could sit unconfirmed for up to 13 hours.
 
-**Backtest:** N/A — live/paper timing change, not replayable. 559 tests pass (was 553), 3
-skipped.
+**Fix:** A serious flagged headline now immediately triggers one independent double-check call,
+instead of waiting for the next scheduled scan.
+
+**Backtest:** N/A — a live/paper timing change, not something the historical test can replay.
+559 tests pass (was 553), 3 skipped.
 
 **Approved:** MrKoods — 2026-07-26
 
 ---
 
-## [v2.2.14] — 2026-07-26 — [Data Source / Infrastructure] Seeking Alpha now counts toward News score; CI, lockfile, file split
+## [v2.2.14] — 2026-07-26 — [Data Source / Infrastructure] Counted one more news source toward the real score; engineering cleanup
 
 **Status:** Live. Adds a fourth live-only News source — no weight/threshold change. The
-engineering cleanup has no scoring effect.
+engineering cleanup has no scoring effect at all.
 
-**Problem:** No automated testing (CI) meant a bad change only got caught if someone remembered
-to test it locally by hand. A 951-line file had accumulated the highest concentration of past
-bugs in the project by doing too much in one place. Separately, Seeking Alpha's headlines were
-already fetched free every scan but only used for breaking-news detection, not counted toward
-the actual News score — leaving that category weaker than it needed to be on days AV data was
-thin.
+**In short:** Started counting one more news source toward the model's actual score (it was
+already being read, just not counted), and did some behind-the-scenes engineering cleanup —
+automated testing, and splitting up an overgrown file that had caused more bugs than any other.
 
-**Fix:**
-- Seeking Alpha headlines now also count toward the scored News total.
-- Split the 951-line file into three smaller, focused files. No behavior change.
-- Added CI (runs on every code push) and a locked dependency file, so a library update can't
-  silently change behavior without a test catching it.
-- Manually vetted an unfamiliar new dependency before trusting it — confirmed legitimate, not a
-  supply-chain risk.
+**Problem:** With no automated testing, a bad change only got caught if someone remembered to
+test it by hand. A 951-line file had accumulated more bugs than anywhere else in the project by
+doing too much in one place. Separately, one news source was already being fetched for free every
+scan but only used to detect breaking news, not counted toward the actual News score — leaving
+that score weaker than it needed to be.
 
-**Backtest:** No effect — no historical Seeking Alpha archive exists, so this path is inactive
-in replay. Re-ran anyway: 66.7% win rate, 18 trades, 2.35 avg R:R — consistent with the prior
-64.7%/17 trades (normal re-run noise). 553 tests pass (was 552), 3 skipped.
+**Fix:** Started counting that source toward the real News score. Split the oversized file into
+three smaller, focused ones with no behavior change. Added automated testing that runs on every
+code change, and locked dependency versions so an outside library update can't silently change
+behavior unnoticed.
+
+**Backtest:** No effect — no historical archive of that news source exists, so this path doesn't
+run during the historical test. Re-ran it anyway to confirm nothing else broke: results were
+consistent with the prior run. 553 tests pass (was 552), 3 skipped.
 
 **Approved:** MrKoods — 2026-07-26
 
 ---
 
-## [v2.2.13] — 2026-07-24 — [Data Source / Bug Fix] Seeking Alpha feeds breaking-news too; cut a wasted API call; test-log fix
+## [v2.2.13] — 2026-07-24 — [Data Source / Bug Fix] Sped up news reactions, saved an API call, stopped fake test data leaking into real logs
 
-**Status:** Live. Affects breaking-news detection speed and one data source — not the scoring
-formula.
+**Status:** Live. Affects how fast the model reacts to breaking news, and one small data source —
+not the scoring formula.
 
-**Problem:** Investigating why paper trading kept missing news that later showed up hours later
-found a real, measured detection delay: AV news was normally only checked post-close, so
-pre-market/mid-session scans couldn't catch a breaking story until much later. Separately, test
-runs had been quietly writing fake entries into the real production log files for a long time —
-one log file turned out to be 99.7% test noise.
+**In short:** Sped up how quickly the model reacts to breaking news, swapped one paid data point
+for a free equivalent, and stopped test runs from quietly writing fake entries into real log
+files.
 
-**Fix:**
-- Seeking Alpha headlines now also feed the breaking-news detector (previously Sentiment scoring
-  only) — closes the detection gap without changing the scored News total.
-- Alerts now show the real time a news story broke, not just when the alert was posted, so a
-  delayed detection isn't mistaken for a fresh one.
-- Replaced one Alpha Vantage call (analyst target price) with the same data from Yahoo/Finnhub
-  for free — same accuracy, one less API call per ticker.
-- Isolated tests from real logs so test runs stop polluting production log files.
+**Problem:** Investigating why practice trading kept missing news that only showed up hours
+later found a real, measured delay: one key data source was normally only checked once a day.
+Separately, running the automated tests had been quietly writing fake entries into the real
+production log files for a long time — one log file turned out to be almost entirely test noise.
 
-**Backtest:** N/A — none of this changes the scored News total or the earnings sub-score
-formula, only detection timing and data source for less-important pieces.
+**Fix:** A free, always-on news source now also feeds the breaking-news detector immediately,
+closing that detection gap. Alerts now show when a story actually broke, not just when the alert
+was sent. Swapped one paid data point for the same information from a free source. Isolated
+automated tests from the real log files so they stop writing fake data into them.
+
+**Backtest:** N/A — none of this changes the scored News total or the earnings formula, only
+detection speed and data source for minor pieces.
 
 **Approved:** MrKoods — 2026-07-24
 
 ---
 
-## [v2.2.12] — 2026-07-23 — [Infrastructure] Spread out the weekly fundamentals refresh
+## [v2.2.12] — 2026-07-23 — [Infrastructure] Spread a weekly data refresh across the week
 
 **Status:** Live. Scheduling change only — no scoring impact.
 
-**Problem:** Every ticker's fundamentals refreshed in one Monday-night burst. As the watchlist
-grows to cover more sectors, refreshing everything at once risks blowing through the daily API
-call budget in a single night.
+**In short:** A weekly data-refresh task used to run for every stock all at once; now it's spread
+across the week instead, to avoid risking a daily data-call limit.
 
-**Fix:**
-- Each ticker now gets its own day of the week, with earnings-week tickers prioritized and a
-  daily cap on how many refresh at once — spreading the same total cost across the week.
-- The score breakdown now shows how recent each ticker's fundamental data actually is, since
-  different tickers can now be refreshed on different days.
+**Problem:** As the watchlist grows to cover more stocks, refreshing all of them in one burst
+risks blowing through a shared daily data-call limit in a single night.
 
-**Backtest:** N/A — scheduling only, doesn't change the fundamental scoring formula.
+**Fix:** Each stock now gets its own day of the week for its refresh, with stocks near their
+earnings date prioritized, and a daily cap on how many refresh at once.
+
+**Backtest:** N/A — scheduling only, doesn't change the underlying scoring formula.
 
 **Approved:** MrKoods — 2026-07-23
 
 ---
 
-## [v2.2.11] — 2026-07-20 — [Bug Fix] A whole sector's data could silently never refresh
+## [v2.2.11] — 2026-07-20 — [Bug Fix] Adding more stock groups could make some of them silently stop getting fresh data
 
 **Status:** Live. Bug fix — no scoring impact.
 
-**Problem:** Fundamental and Positioning data refresh tracking used one shared "last updated"
-timestamp for the whole file. With more than one sector active, a sector processed later in the
-same scan run would see an earlier sector's refresh timestamp and wrongly assume its own
-tickers were already up to date — even though they'd never actually been fetched. That could
-have silently left a newly added sector's tickers with no real data indefinitely, with no error
-to flag it.
+**In short:** Found and fixed a bug where, once more than one group of stocks was active, some
+stocks could silently stop getting fresh data without anyone noticing.
 
-**Fix:** Refresh tracking is now done per ticker, instead of one shared timestamp for the whole
-file.
+**Problem:** Data-freshness tracking used a single shared "last updated" timestamp for the whole
+file, rather than one per stock. With more than one group active, a group processed later in the
+same run would see an earlier group's timestamp and wrongly assume its own stocks were already
+up to date — even though they'd never actually been refreshed. Left unfixed, this could have
+silently left an entire new group's data stale indefinitely, with no error to flag it.
 
-**Backtest:** N/A — this only affects live/paper data-fetch tracking, a part of the code the
-backtest doesn't use.
+**Fix:** Freshness is now tracked per stock, instead of one shared timestamp for everything.
+
+**Backtest:** N/A — only affects live/paper data-fetch tracking, a part of the code the
+historical test doesn't use.
 
 **Approved:** MrKoods — 2026-07-20
 
 ---
 
-## [v2.2.10] — 2026-07-19 — [Sector Rollout] Turned on regional banks; results grouped by sector in the app
+## [v2.2.10] — 2026-07-19 — [Sector Rollout] Turned on regional bank stocks for practice trading
 
-**Status:** Live. Regional banks now scanned alongside semiconductors. Still no real money at
-risk — no version of this model has ever passed its backtest requirements, so this only expands
-what paper trading watches.
+**Status:** Live. Regional bank stocks now scanned alongside semiconductors. Still practice money
+only — no version of this model has ever been approved for real trading.
 
-**Problem:** Before turning on a second sector, a direct code review found several parts of the
-code had hidden single-sector assumptions (mixed valuation numbers across sectors, wrong
-benchmark for relative strength, one shared position-limit pool instead of per-sector limits) —
-fixed in v2.2.8/v2.2.9. With those confirmed fixed and tested, the second sector could safely go
-live.
+**In short:** Turned on a second group of stocks (regional banks) for practice trading, after
+confirming the code correctly keeps the two groups from interfering with each other.
 
-**Fix:**
-- Regional banks (5 tickers) now scanned alongside semiconductors — 11 tickers total.
-- Desktop app now groups results by sector, then category.
-- Re-ran the cross-sector backtest to confirm results were unchanged after the recent groundwork.
-- Built a new end-to-end test that actually runs a full two-sector scan (previous tests only
-  checked individual pieces in isolation) to confirm the sectors don't interfere with each other.
-- Found, but didn't yet fix: a market-crash safety check still only watches semiconductors, not
-  each sector separately. Not currently wired into live scans either way, so not an active gap —
-  flagged for a future fix.
+**Problem:** Before turning on a second group, a direct review found several places in the code
+had hidden assumptions that only one group of stocks would ever be active — mixed data across
+groups, wrong comparison benchmarks, one shared limit instead of separate ones per group. Fixed
+in the previous two entries; with those confirmed fixed and tested, the second group could safely
+go live.
 
-**Backtest:** Unchanged from prior research — 100 combined trades, 58.0% win rate, 1.78 avg
-R:R, still short of go-live. Expands what paper trading observes only. 536 tests pass (was 532).
+**Fix:** Turned on regional bank stocks alongside semiconductors — nearly doubling the watchlist.
+The desktop app now groups results by sector. Re-ran the historical test to confirm nothing
+changed unexpectedly, and built a new test that runs a full two-group scan end-to-end to confirm
+the groups genuinely don't interfere with each other.
+
+**Backtest:** Unchanged from the earlier research result — still well short of the bar needed to
+trade real money. This only expands what practice trading watches. 536 tests pass (was 532).
 
 **Approved:** MrKoods — 2026-07-19
 
 ---
 
-## [v2.2.9] — 2026-07-19 — [Bug Fix] Sector-average valuation wasn't actually sector-scoped
+## [v2.2.9] — 2026-07-19 — [Bug Fix] A leftover bug — one stock group was still accidentally averaged in with another
 
-**Status:** Live. Same not-yet-eligible status as before — regional banks are still switched
-off, so this only matters once that's turned on.
+**Status:** Live. Regional banks are still switched off, so this only matters once that's turned
+on.
 
-**Problem:** Double-checking whether the second sector gets the full scoring treatment revealed
-that v2.2.8 had described a fix to the Fundamental category's "sector average" valuation
-comparison but never actually made it — it was still averaging every sector's tickers together.
-Left unfixed, it would have blended semiconductor valuations (much higher P/E) with bank
-valuations (much lower P/E) into one meaningless average the moment both sectors had data
-cached — undercutting the exact problem v2.2.8 was supposed to prevent.
+**In short:** A bug that was supposed to be fixed in the last update actually wasn't — one group
+of stocks' valuation comparison was still accidentally blending in another group's numbers.
 
-**Fix:** Fixed the valuation comparison to only average tickers within the same sector. Checked
-every other scoring category directly and confirmed none of them had the same bug.
+**Problem:** Double-checking the previous entry's work found it had described a fix to a
+valuation comparison but never actually made it — it was still averaging every group's stocks
+together. Left unfixed, this would have blended two very different groups' typical valuations
+into one meaningless average the moment both had data — the exact problem the previous entry was
+supposed to prevent.
 
-**Backtest:** N/A — the backtest doesn't model this yet either way, and this has no effect on
-live scoring while the second sector stays switched off. Verified with new tests instead. 532
-tests pass (was 529).
+**Fix:** Fixed the comparison to only average stocks within the same group. Checked every other
+scoring category directly and confirmed none of them had the same bug.
 
-**Approved:** MrKoods — 2026-07-19
-
----
-
-## [v2.2.8] — 2026-07-19 — [Infrastructure] Groundwork for a second sector; AV news moved to post-close only
-
-**Status:** Live. The actual live/paper watchlist is unchanged — still just the original 6
-semiconductor tickers. This entry only builds the plumbing to safely support a second sector
-later.
-
-**Problem:** The goal was to actually track a second sector live, following earlier backtest
-evidence that the entry strategy generalizes beyond semiconductors — but a direct code review
-first found multiple places that had hidden single-sector assumptions and would have silently
-produced wrong results the moment a second sector was simply added: mismatched benchmarks,
-blended valuations, pooled correlation checks across unrelated sectors, and a breaking-news
-block that would have covered every sector instead of just the one it was about.
-
-**Fix:**
-- Config can now describe multiple sectors, each with its own benchmark. Live watchlist stays
-  semiconductors-only for now; regional banks exist in config but stay switched off.
-- Fixed all 7 places with hidden single-sector assumptions, including one unrelated bug found
-  along the way: a sector-wide news block was incorrectly treated as covering every ticker, not
-  just the sector it was actually about.
-- Position limits and correlated-position protection are now tracked per sector instead of one
-  shared pool.
-- Restricted Alpha Vantage news calls to the post-close scan only, for every ticker — a real
-  budget necessity, since an 11-ticker two-sector watchlist at the old calling pattern would
-  have blown through the free daily API limit.
-
-**Backtest:** N/A for the infrastructure work — behavior-preserving, confirmed by 529 passing
-tests with zero regressions (was 497 before this entry). The Alpha Vantage cadence change has no
-meaningful backtest comparison available, since the backtest doesn't model call timing at all —
-flagged as a known gap, not a result being hidden.
-
-**Approved:** MrKoods — 2026-07-19 (second-sector activation deliberately left for a separate,
-later entry)
-
----
-
-## [v2.2.7] — 2026-07-19 — [Backtest Methodology] Backtest now uses the real macro signal instead of always-neutral
-
-**Status:** Live. This only fixes a gap in the backtest — live/paper trading was already using
-the real macro signal.
-
-**Problem:** The strategy performed noticeably worse in more recent years than in 2018-2021.
-Investigating found a real pattern: every well-performing period lined up with falling or low
-interest rates, and every poorly-performing period lined up with rising or high rates (a
-well-known effect — cheap money favors momentum strategies, rising rates make price action
-choppier). Live trading had already computed a real macro modifier since early on, but the
-backtest always treated it as exactly zero for every simulated trade.
-
-**Fix:** Fixed the backtest to use real historical interest-rate and dollar-index data instead
-of a hardcoded zero.
-
-**What using it actually showed:** Recent 2-year windows that used to fail now pass (69-75% win
-rate). The strategy never once produced a qualifying trade during an unfavorable macro reading
-in the corrected backtest — confirming the fix works by filtering out weak setups during bad
-macro conditions, as intended.
-
-**Backtest:** 66.7% win rate (was 64.7%), 2.35 avg R:R, 18 qualifying trades (100 required —
-still not enough), 3.0% max drawdown. Still not eligible for live trading — not enough trades
-yet, regardless of the improved win rate.
+**Backtest:** N/A — no live effect while the second group stays switched off. Verified with new
+tests instead. 532 tests pass (was 529).
 
 **Approved:** MrKoods — 2026-07-19
 
 ---
 
-## [v2.2.6] — 2026-07-19 — [Backtest Methodology / Research] Fixed a validation bug; adopted a better entry filter; tested a 2nd sector
+## [v2.2.8] — 2026-07-19 — [Infrastructure] Behind-the-scenes prep work for safely adding a second group of stocks
 
-**Status:** Live. The entry-filter change is backtest-methodology only. The real go-live safety
-bar (80% win rate, minimum reward:risk) is untouched by this entry.
+**Status:** Live. The real watchlist is unchanged — still just the original 6 semiconductor
+stocks. This entry only builds the groundwork to safely support a second group later.
 
-**Problem:** The strategy had "never once passed" its rolling validation check across 24
-historical windows. Investigating why found the real cause was a methodology bug, not a real
-feature of the strategy: the validation windows (6 months) were too short for how rarely this
-strategy actually fires, so almost every window had too few trades to judge fairly.
+**In short:** Before turning on a second group of stocks, did a direct review and found — and
+fixed — several hidden bugs that would have quietly broken the moment a second group was simply
+added.
 
-**Fix:**
-- Lengthened validation windows from 6 to 24 months. With the fix, one window (2018-2020)
-  clearly passed and most others had enough data to judge fairly, rather than being starved of
-  trades.
-- Lowered the internal diagnostic pass bar (a looser stability check, separate from the real 80%
-  go-live bar) to match what the strategy has actually, repeatedly shown.
-- Re-tested an entry-filter idea (requiring the breakout to hold for one more day before
-  entering) that had earlier looked unhelpful — that earlier read turned out to be distorted by
-  the same too-short-windows bug. With the fix, it's the single best-performing filter change
-  tested, so it was adopted.
-- Also tested regional banks as a second, unrelated sector purely as research (not added to live
-  trading), to check whether the strategy's edge is real and general, or just a
-  semiconductor-specific fluke.
+**Problem:** The plan was to actually add a second group of stocks live, based on earlier
+evidence the strategy works beyond just semiconductors — but a direct review first found multiple
+places that assumed only one group would ever exist and would have silently produced wrong
+results the moment that changed: mismatched comparison benchmarks, blended valuations, and a
+breaking-news block that would have covered every group instead of just the one it was about.
 
-**Combined result (both sectors, with the adopted filter)**
+**Fix:** Fixed all of the places found with this hidden assumption. Position limits are now
+tracked separately per group instead of one shared pool. Also restricted one paid news source to
+being called only once a day per stock instead of more often, since a bigger, two-group watchlist
+at the old calling pattern would have blown through its daily limit.
+
+**Backtest:** N/A for this groundwork — confirmed to change nothing, via 529 passing tests with
+zero regressions.
+
+**Approved:** MrKoods — 2026-07-19 (turning the second group on was deliberately left for a
+later, separate entry)
+
+---
+
+## [v2.2.7] — 2026-07-19 — [Backtest Methodology] The historical test now accounts for interest rates and the dollar's strength
+
+**Status:** Live. This only fixes a gap in the historical test — live/paper trading was already
+accounting for this.
+
+**In short:** The historical performance test was ignoring interest rates and the dollar's
+strength the whole time, even though live trading already accounted for them. Fixed the
+historical test to match.
+
+**Problem:** The strategy performed noticeably worse in recent history than in earlier years.
+Investigating found a real pattern: good stretches lined up with falling or low interest rates,
+and poor stretches lined up with rising or high rates — a well-known effect (cheap money favors
+this kind of strategy; rising rates make price action choppier). Live trading had already
+accounted for this for a while, but the historical test always pretended it was neutral for every
+single simulated trade.
+
+**Fix:** Fixed the historical test to use real historical interest-rate and dollar-strength data
+instead of pretending it was always neutral.
+
+**What it showed:** Recent stretches that used to fail now pass. The strategy never once
+produced a qualifying trade during an unfavorable rate environment in the corrected test —
+confirming the fix filters out weak setups exactly when it should.
+
+**Backtest:** Win rate improved, still not enough qualifying trades to pass the bar. Not eligible
+for real trading — trade count, not win rate, is the blocker.
+
+**Approved:** MrKoods — 2026-07-19
+
+---
+
+## [v2.2.6] — 2026-07-19 — [Backtest Methodology / Research] Fixed a grading bug, adopted a better filter, tested a second stock group
+
+**Status:** Live. The filter change is backtest-methodology only. The real safety bar for going
+live is untouched by this entry.
+
+**In short:** Found and fixed the real reason the strategy had never once passed its internal
+stability check — the test windows used were simply too short. With that fixed, a previously
+rejected filter idea turned out to actually be the best one tested, and the strategy was
+confirmed to also work on a second, unrelated group of stocks.
+
+**Problem:** The strategy had never once passed its rolling stability check. Investigating found
+the real cause was a testing bug, not a real weakness: the test periods were too short for how
+rarely this strategy actually fires, so almost every period simply didn't have enough trades to
+judge fairly.
+
+**Fix:** Lengthened the test periods substantially — with that fix, most periods now had enough
+data to judge fairly. Re-tested an entry-filter idea that had earlier looked unhelpful — that
+earlier read turned out to be distorted by the same too-short-periods bug; with the fix, it's the
+best-performing filter change tested, so it was adopted. Also tested regional bank stocks as a
+second, unrelated group purely as research, to check whether the strategy's edge is real and
+general, or just a coincidence specific to semiconductors.
+
+**Combined result (both groups, with the adopted filter)**
 
 | | Trades | Win rate | Avg R:R |
 |---|---|---|---|
@@ -1038,172 +990,167 @@ strategy actually fires, so almost every window had too few trades to judge fair
 | Regional banks only | 51 | 52.9% | 1.73 |
 | **Combined** | **104** | **58.7%** | **1.78** |
 
-A real, modest, positive edge that holds up (same direction, similar size) across two unrelated
-sectors — more convincing than semiconductor-only evidence could ever be on its own.
+A real, modest, positive edge that holds up across two unrelated stock groups — more convincing
+than semiconductor-only evidence could ever be on its own.
 
-**Decision: paused further backtest tuning.** Five rounds of tweaking the entry filter against
-the same historical sample is starting to risk overfitting to it. The current filter is treated
-as settled for now; real, new paper-trading data — not more backtest tuning — is the next real
-test.
+**Decision: paused further tuning.** Five rounds of tweaking the filter against the same
+historical sample risked overfitting to it. The current filter is treated as settled; real new
+practice-trading data is the next real test, not more historical tuning.
 
-**Backtest:** 64.7% win rate, 2.29 avg R:R, 17 qualifying trades (100 required — still not
-enough on this slice alone). Still not eligible for live trading due to the trade-count
-shortfall, despite the encouraging win rate. The combined two-sector result above is the more
-statistically meaningful number and the actual basis for adopting this filter.
+**Backtest:** Still not enough qualifying trades to pass on the single-group slice alone. The
+combined two-group result above is the more meaningful number and the actual basis for adopting
+this filter.
 
 **Approved:** MrKoods — 2026-07-19
 
 ---
 
-## [v2.2.5] — 2026-07-19 — [Backtest Methodology] Tightened the entry filter, even though the headline number got worse
+## [v2.2.5] — 2026-07-19 — [Backtest Methodology] Tightened a filter based on solid evidence, even though one headline number got worse
 
-**Status:** Live. Backtest-methodology change only — doesn't touch live/paper scoring, which
-already scores RSI without a hard cutoff.
+**Status:** Live. Backtest-methodology change only — doesn't touch live/paper scoring.
 
-**Problem:** A losing trade was typically taking 5-9 days to resolve, not 1-2 — a sign of
-overextended entries rather than fast false breakouts. Testing this properly (pooled across many
-independent time windows, not just the one held-out test slice, to avoid overfitting) showed
-tightening the RSI ceiling clearly improved win rate (49.4% → 60.8%) across the broader sample.
+**In short:** Tightened one entry filter after solid evidence showed it clearly helped overall —
+even though, on the one specific test slice used as the official headline number, this same
+change made results look worse. Both facts are reported here rather than only the favorable one.
 
-**Fix:** Lowered the backtest's upper RSI cutoff for what counts as a valid breakout entry, from
-82 to 70 — filtering out more "already extended" moves.
+**Problem:** A losing trade was typically taking much longer to resolve than a winning one — a
+sign of entering too late in a move, not of fast false starts. Testing this properly, pooled
+across many independent time periods (not just the one official test slice, to avoid fooling
+itself), showed tightening one particular cutoff clearly improved win rate across the broader
+sample.
 
-**An honest tension:** On the broad, pooled sample this change clearly helps. But on the one
-specific historical slice the backtest reports as its headline number, this same change makes
-the result look worse and drops the trade count below the minimum needed for a reliable read.
-Both facts are reported here rather than only the favorable one — the broader, pooled sample is
-judged the more trustworthy evidence, so the change was adopted anyway.
+**Fix:** Tightened that cutoff.
 
-**Backtest:** The official single-slice number got worse with this change: 51.8% win rate (was
-57.0%), 27 qualifying trades (was 107, now below the 100 minimum). Already not eligible for live
-trading before this change; unaffected by it either way. The real basis for adopting this filter
-is the broader pooled evidence above, not this one slice.
+**Backtest:** The official single-slice number got worse with this change — fewer qualifying
+trades, lower win rate on that one slice. Already not eligible for real trading before this
+change either way. The real basis for adopting it is the broader, pooled evidence, not this one
+slice, which the previous "Problem" section explains.
 
-**Approved:** MrKoods — 2026-07-19 (adopted knowing the single-slice headline number got worse;
+**Approved:** MrKoods — 2026-07-19 (adopted knowing the single-slice headline number got worse,
 based on the broader evidence)
 
 ---
 
-## [v2.2.4] — 2026-07-19 — [Backtest Methodology] Fixed a broken analysis tool; found validation has never passed
+## [v2.2.4] — 2026-07-19 — [Backtest Methodology] Fixed a broken tool and discovered the strategy has never passed its own internal check
 
 **Status:** Live. Tooling/analysis fix only — no scoring or threshold impact.
 
-**Problem:** Checking whether the 90-point score threshold was well calibrated required running
-a tool meant to show how win rate changes at different score thresholds — but it had a bug that
-made it silently return all zeros every single time it had ever been run, so nobody could
-actually see the answer.
+**In short:** A tool meant to answer "is the 90-point bar set correctly?" turned out to have been
+silently broken the entire time. Fixed it — and in the process, discovered the strategy has never
+once passed its own internal stability check either.
 
-**Fix:** Fixed the tool. Also made the strategy's existing rolling validation check (running the
-strategy across many historical windows, not just one) actually get printed and reviewed — it
-had been computed all along but never surfaced. Separately tried adding a volume-confirmation
-requirement to the entry filter — it looked better on the single test slice, but that's exactly
-the kind of overfitting risk the held-out test slice exists to prevent, so it was not adopted
-without broader validation.
+**Problem:** Checking whether the qualifying-score threshold was set sensibly required running a
+tool that had a bug making it silently return meaningless results every single time it had ever
+been run — so nobody could actually see the real answer.
 
-**What the fix revealed:** Win rate barely changes across every threshold from 85 to 95 —
-meaning a stricter cutoff alone won't push win rate toward the go-live bar; the score itself
-needs to get better at ranking candidates. Separately, the rolling validation check has never
-once passed in any of its 24 historical windows — most windows simply don't have enough
-qualifying trades to judge fairly (a signal that fires this rarely needs longer windows, fixed
-in the next entry).
+**Fix:** Fixed the tool, and made an existing internal stability check (that had been computed
+all along but never actually reviewed) get surfaced and read. Separately tried adding one more
+requirement to the entry filter — it looked better on the one official test slice, but that's
+exactly the kind of coincidence the official slice can be fooled by, so it wasn't adopted without
+broader confirmation.
 
-**Backtest:** N/A for this entry specifically — the main backtest result itself is unchanged by
-this fix; only the previously-broken analysis tools now work correctly and reveal existing facts
-about the model.
+**What the fix revealed:** the qualifying-score threshold barely matters across a wide range —
+meaning a stricter cutoff alone won't help; the scoring itself needs to get better at ranking
+candidates. Separately, the internal stability check has never once passed — most test periods
+simply don't have enough trades to judge fairly (fixed in the next entry).
+
+**Backtest:** N/A for this entry specifically — the headline result is unchanged; only the
+previously-broken tools now work and reveal real facts about the model.
 
 **Approved:** MrKoods — 2026-07-19
 
 ---
 
-## [v2.2.3] — 2026-07-19 — [Bug Fix] Config bug silently ignored a setting; toned down a triple-counted penalty
+## [v2.2.3] — 2026-07-19 — [Bug Fix] Fixed a setting that was silently ignored, and stopped one warning sign counting three times
 
 **Status:** Live.
 
-**Problem:** Investigating why paper trading had produced zero qualifying signals found two
-separate issues. First, a modifier's config setting was never actually being read due to a
-naming mismatch — it had silently been using a hardcoded default the whole time. Second, three
-separate penalties were all firing at once, all tracing back to the exact same underlying market
-signal, stacking to a large combined penalty across the entire watchlist regardless of any
-individual stock's own merit.
+**In short:** Found two separate bugs while investigating a quiet stretch: one setting was being
+silently ignored, and one warning sign was effectively being counted three times over for the
+same underlying reason.
 
-**Fix:**
-- Fixed the naming mismatch so the modifier's real config setting is actually read.
-- Reduced one particular sector-wide penalty from -10 to 0, since it was found to overlap
-  heavily with two other penalties, effectively triple-counting one observation as three
-  separate warning signs.
+**Problem:** Investigating why practice trading had produced zero qualifying signals found two
+issues. First, one setting was never actually being read due to a naming mismatch, so it had
+silently been using a generic default the whole time. Second, three separate penalties were all
+firing together, all tracing back to the exact same underlying market condition, stacking into an
+unfairly large combined penalty regardless of any individual stock's own merit.
 
-**Backtest:** N/A — the backtest doesn't model this particular modifier at all, so this change
-has no effect on the existing backtest result. All 500 tests pass (497 passed, 3 skipped).
+**Fix:** Fixed the naming mismatch so the real setting is now actually used. Reduced one of the
+three overlapping penalties to zero, since it was found to duplicate the other two.
+
+**Backtest:** N/A — the historical test doesn't model this particular setting. All 500 tests
+pass (497 passed, 3 skipped).
 
 **Approved:** MrKoods — 2026-07-19
 
 ---
 
-## [v2.2.2] — 2026-07-19 — [Bug Fix] Fixed 24 issues found in a full code review
+## [v2.2.2] — 2026-07-19 — [Bug Fix] A full code review found and fixed 24 separate problems
 
 **Status:** Live. Several of these fixes changed real scoring/risk calculations (called out
 below), so this isn't just a cleanup pass.
 
-**Problem:** A full code review was requested "thinking like a senior developer and market
-analyst." It surfaced 24 separate issues across six areas of the codebase — most consequential:
-the Sharpe ratio bug below, since it invalidated a previously-reported headline number.
+**In short:** A full code review turned up 24 separate problems across the codebase — some
+cosmetic, some serious enough to have quietly affected real numbers (including one that made a
+previously-reported "great" result actually wrong). All 24 were fixed.
 
-**Fix** — grouped by area, problem then fix:
-- **Backtest accuracy** — Trade-counting order was scrambling the performance-over-time
-  calculation, and Sharpe ratio annualization was wrong (the previously reported figure of 9.1
-  was inflated by this bug and must not be cited) — both fixed. The historical test window was
-  losing its first ~2 months to warm-up with no chance of producing a trade — fixed. Fundamental
-  data in the backtest was using today's live numbers for the entire multi-year replay instead
-  of what would have actually been known at each point in time (a real look-ahead bias) — fixed.
-- **Scoring accuracy** — Fixed several places where scores could be subtly wrong: missing
-  technical data reading as "bearish" instead of "unknown," a harsh cliff in the
-  earnings-growth score that treated any decline the same regardless of severity, a
-  data-unavailable safety cap that could be silently skipped, sentiment scores trusting a single
-  data point too much, three different and disagreeing ways of counting insider trades, and a
-  credibility-scoring bug that could mistakenly treat a garbled source name as a trusted outlet.
-- **Risk and execution enforcement** — The documented minimum reward-to-risk filter and a
-  liquidity filter were being calculated but never actually checked, so a bad-risk trade could
-  still get recommended — fixed. Also fixed: position sizing silently exceeding its own 5% cap,
-  two same-direction positions able to open on the same stock, bad price data producing
-  backwards stop-loss/target levels, and a volatility-regime classification gap that skipped an
-  important safety brake during elevated (but not extreme) market volatility.
-- **Calibration/feedback loop** — The safety check meant to catch a bad recalibration was
-  comparing a number to itself and could never actually fail — fixed. A scoring parameter that
-  had been defined but never actually used was implemented.
-- **Dead code removed** — Deleted an old paper-trading module that could never actually do
-  anything (nothing ever fed it real data), and implemented a previously-stubbed position
-  re-scoring feature (not yet turned on for live use).
+**Problem:** A full code review was requested. It surfaced 24 separate issues across six areas —
+most consequential: a risk-adjusted-return calculation was wrong, which had inflated a
+previously-reported headline number that must no longer be trusted.
+
+**Fix** — grouped by area:
+- **Historical-test accuracy** — Fixed the trade-counting order (was scrambling the
+  performance-over-time picture), fixed the wrong risk-adjusted-return calculation described
+  above, fixed the test losing its first couple of months to warm-up with zero chance of a trade,
+  and fixed the test using today's live data for the entire multi-year replay instead of only
+  what would have actually been known at each point in time.
+- **Scoring accuracy** — Fixed several places scores could be subtly wrong: missing data reading
+  as "bad" instead of "unknown," an overly harsh cliff for earnings declines that ignored how
+  severe the decline actually was, a safety cap that could be silently skipped, sentiment trusting
+  a single data point too much, three different and disagreeing ways of counting insider trades,
+  and a bug that could mistake a garbled source name for a trusted one.
+- **Risk and execution enforcement** — A documented minimum payout-ratio filter and a liquidity
+  filter were being calculated but never actually enforced, so a bad-risk trade could still get
+  recommended. Also fixed: position sizing silently exceeding its own cap, two same-direction
+  trades able to open on the same stock, bad price data able to produce backwards stop-loss/
+  target levels, and a safety brake that was being skipped during elevated (not extreme) market
+  volatility.
+- **Self-correction system** — A safety check meant to catch a bad recalibration was comparing a
+  number to itself and could never actually fail. Fixed. A scoring setting that had been defined
+  but never actually used was properly wired in.
+- **Dead code removed** — Deleted an old module that could never actually do anything (nothing
+  ever fed it real data), and finished a previously-unfinished feature (not yet turned on for
+  live use).
 - **Reliability/security** — API keys are now stripped out of error messages before they get
-  logged (previously an error could leak a live key into a log file in plain text). Two Alpha
-  Vantage calls that weren't being counted against the daily budget now are. Critical files now
-  save safely (crash-proof) instead of risking corruption if interrupted mid-write. Fixed a bug
-  that mislabeled the cause of a failed scan.
+  logged (previously an error could leak a live key into a log file in plain text). Two data
+  calls that weren't being counted against a daily budget now are. Critical files now save
+  safely, without risk of corruption if interrupted mid-write. Fixed a bug that mislabeled the
+  cause of a failed scan.
 
-**Backtest:** Ran fresh against real historical data: **57.0% win rate** (required 80% — fail),
-**2.01 avg reward:risk** (required 3:1 — fail), 107 qualifying trades (required 100 — pass),
-Sharpe ratio 2.45 (this replaces the earlier, incorrect 9.1 figure). All 107 qualifying trades
-happened to fall in the same market regime (trending up) — the available historical data
-doesn't have enough variety to test other market conditions. Not eligible for live trading — win
-rate and reward:risk both fall well short, and the lack of market-condition variety means even
-the passing-regime result can't be generalized yet.
+**Backtest:** Ran fresh against real historical data — still fails the bar for going live
+(win rate and payout ratio both fall short), though it did pass the minimum-trade-count check.
+The corrected risk-adjusted-return number is meaningfully different from what was previously
+reported, and the earlier number should no longer be cited. Not eligible for real trading.
 
-**Approved:** MrKoods — 2026-07-19 (code changes only; backtest failed, not approved for live
-trading)
+**Approved:** MrKoods — 2026-07-19 (code changes only; the backtest still failed, not approved
+for real trading)
 
 ---
 
-## [v2.2.1] — 2026-07-18 — [Infrastructure] Removed email/SMS alerts — Discord and the app are the only channels now
+## [v2.2.1] — 2026-07-18 — [Infrastructure] Removed email/text alerts — Discord and the app are the only channels now
 
 **Status:** Live. Infrastructure simplification — no scoring impact.
 
-**Problem:** The project is still in paper trading with no real money at risk, so the
-"guaranteed delivery" reason for having email/SMS as backup alert channels doesn't apply yet.
-Maintaining those credentials and the extra priority-escalation logic to pick between channels
-was ongoing overhead for a guarantee that isn't currently needed.
+**In short:** Removed email and text-message alerts, since Discord and the desktop app already
+cover the real need and the extra channels were just ongoing upkeep for a guarantee that isn't
+needed yet.
 
-**Fix:** Removed email and SMS as alert delivery methods, along with the priority-escalation
-logic that decided which channel to use, and the now-unused credentials/settings. Discord (plus
-the desktop app's own notification feed) is now the only delivery channel.
+**Problem:** The project is still practice-trading only, with no real money at risk, so the
+"must never miss an alert" reason for having backup alert channels doesn't apply yet. Maintaining
+those extra channels was ongoing overhead for a guarantee not currently needed.
+
+**Fix:** Removed email and text-message alerts entirely, along with the logic that decided which
+channel to use. Discord (plus the desktop app's own notification feed) is now the only channel.
 
 **Backtest:** N/A — alert delivery only, no effect on scoring or trade selection.
 
@@ -1211,21 +1158,21 @@ the desktop app's own notification feed) is now the only delivery channel.
 
 ---
 
-## [v2.2.0] — 2026-07-18 — [Feature] Added near-miss awareness alerts; flagged an overlapping-penalty risk
+## [v2.2.0] — 2026-07-18 — [Feature] Added a heads-up alert for stocks that almost, but didn't quite, qualify
 
 **Status:** Live. A new notification type, not a scoring change.
 
-**Problem:** Reviewing a day's real scan results showed the 90-point cutoff was a hard cliff
-with zero visibility — a score of 89 and a score of 12 looked identical (invisible) from
-outside the system.
+**In short:** Added a low-key alert for a stock that scores close to, but just under, the real
+90-point trading bar — so a near-miss is at least visible, instead of looking identical to a
+stock scoring nowhere close.
 
-**Fix:**
-- Added a low-key Discord alert for a ticker that scores 80-89 — close to, but not over, the
-  real 90-point trading threshold. Clearly labeled as "not a trade signal," and never logged as
-  a real trade.
-- Added a log note for when two particular penalties are negative in the same scan, since
-  they're both ultimately driven by the same underlying market signal — flagged as informational
-  only, not auto-corrected.
+**Problem:** Reviewing a day's real scan results showed the 90-point cutoff was an all-or-nothing
+cliff with zero visibility — a score of 89 and a score of 12 looked exactly the same (invisible)
+from outside the system.
+
+**Fix:** Added a clearly-labeled "not a trade signal" alert for a stock scoring 80-89. Also added
+a log note for when two related penalties both fire in the same scan, since they're driven by the
+same underlying cause — informational only, not auto-corrected.
 
 **Backtest:** N/A — new alert type and logging only, no effect on scoring or trade selection.
 
@@ -1233,18 +1180,22 @@ outside the system.
 
 ---
 
-## [v2.1.5] — 2026-07-17 — [Bug Fix] Fundamental data now saves after each ticker, not just at the end
+## [v2.1.5] — 2026-07-17 — [Bug Fix] One interruption during a data refresh could throw away a lot of finished work
 
 **Status:** Live. Reliability fix — no scoring impact.
 
-**Problem:** Found the fundamentals file 11 days stale. Traced it to a manual interruption
-partway through a refresh — because the old code only saved once at the very end, that single
-interruption threw away several tickers that had already successfully finished, with no warning
-anywhere. The interruption itself was a one-off, but the "all-or-nothing" save was a real
-structural weakness that could recur from any crash, network drop, or API limit hit mid-batch.
+**In short:** One manual interruption during a weekly data refresh accidentally threw away
+several stocks' worth of already-finished work, because progress was only saved once, at the
+very end. Now it saves as it goes.
 
-**Fix:** The weekly fundamentals refresh now saves progress after every ticker completes,
-instead of only once the whole batch finishes.
+**Problem:** Found the fundamentals data 11 days stale. Traced it to a manual interruption
+partway through a refresh — because the old code only saved once at the very end, that single
+interruption threw away everything that had already successfully finished, with no warning
+anywhere. The interruption itself was a one-off, but the all-or-nothing save was a real weakness
+that could recur from any crash, network drop, or data-limit hit mid-refresh.
+
+**Fix:** The weekly refresh now saves progress after every single stock completes, instead of
+only once the whole batch finishes.
 
 **Backtest:** N/A — reliability fix only, no effect on scoring or trade selection.
 
@@ -1252,64 +1203,68 @@ instead of only once the whole batch finishes.
 
 ---
 
-## [v2.1.4] — 2026-07-16 — [Scoring Change] Excluded statistical outliers from sector-average valuation
+## [v2.1.4] — 2026-07-16 — [Scoring Change] Stopped one extreme stock from skewing its whole sector's average score
 
-**Status:** Live. This one does change a real scoring calculation (the valuation sub-score), so
-it's flagged carefully.
+**Status:** Live. This one does change a real scoring calculation, so it's flagged carefully.
 
-**Problem:** Found that three tickers all hit the maximum possible fundamental score at the same
-time — investigating showed one ticker's price-to-earnings ratio was wildly inflated (from a
-temporary earnings drop), dragging the whole sector's "average" valuation up and making everyone
-else look artificially cheap by comparison. With only 5-6 tickers in the watchlist, one distorted
-number doesn't just mis-score itself — it quietly biases every comparison.
+**In short:** One stock's unusually distorted valuation was dragging up the entire sector's
+"average," making every other stock in that sector look artificially cheap by comparison. Now
+extreme outliers are excluded before averaging.
 
-**Fix:** The Fundamental category's valuation score now excludes statistical outliers before
-averaging peer valuations, instead of letting one distorted value skew the average for the whole
-sector. Confirmed directly against real data: excluding the outlier corrected the sector average
-significantly and spread the scores back out realistically.
+**Problem:** Found three stocks all hitting the maximum possible fundamental score at the same
+time — investigating showed one stock's valuation ratio was wildly inflated by a temporary
+earnings drop, dragging the whole sector's "average" up and making everyone else look
+artificially cheap. With only a handful of stocks in each sector, one distorted number doesn't
+just mis-score itself — it quietly biases every comparison in that sector.
 
-**Backtest:** Inherited the same not-yet-passing status as before, not independently re-tested
-— the existing backtest already fails for unrelated reasons. This specific fix was verified
-directly against real current data instead.
+**Fix:** The valuation score now excludes statistical outliers before averaging, instead of
+letting one distorted value skew the whole sector's comparison. Confirmed against real data: the
+fix corrected the sector average and spread scores back out realistically.
+
+**Backtest:** Inherited the same not-yet-passing status as before — verified directly against
+real current data instead of a fresh full re-run.
 
 **Approved:** MrKoods — 2026-07-16
 
 ---
 
-## [v2.1.3] — 2026-07-16 — [Bug Fix] Fixed a stale-news bug that could re-trigger blocks forever
+## [v2.1.3] — 2026-07-16 — [Bug Fix] One old news story could keep blocking the entire watchlist forever
 
 **Status:** Live. Bug fix plus logging — no scoring impact.
 
-**Problem:** A 6-day-old news story kept re-triggering a fresh block on the entire watchlist
-every day, because the sector-wide breaking-news check never aged out old articles the way the
-ticker-specific check already did — left unfixed, this one headline could have kept re-blocking
-the whole watchlist indefinitely. Separately, real scan data showed every ticker's score falling
-in lockstep across a single day, which couldn't be explained without seeing the shared modifiers
-alongside the per-ticker scores.
+**In short:** A 6-day-old news story was re-triggering a fresh safety block on the entire
+watchlist every single day, because the whole-sector version of that check never aged out old
+articles the way the single-stock version already did. Fixed — and score logs are now more
+complete too.
 
-**Fix:**
-- The breaking-news block system now correctly ages out old articles for sector-wide triggers,
-  the same way it already did for ticker-specific ones.
-- Score logs now also show all six shared modifiers (market regime, sector rotation, macro,
-  earnings timing, cross-ticker, seasonality), not just the five main category scores.
+**Problem:** Left unfixed, that one headline could have kept re-blocking the whole watchlist
+indefinitely. Separately, real scan data showed every stock's score dropping in lockstep on the
+same day, which couldn't be explained without seeing the shared background factors alongside each
+stock's individual score.
 
-**Backtest:** N/A — bug fix and logging only. The stale-news fix was verified directly against
-the real headline that caused the bug.
+**Fix:** The breaking-news block now correctly ages out old articles for whole-sector triggers,
+the same way it already did for single-stock ones. Score logs now also show all six shared
+background factors, not just the five main category scores.
+
+**Backtest:** N/A — bug fix and logging only. The fix was verified directly against the real
+headline that caused it.
 
 **Approved:** MrKoods — 2026-07-16
 
 ---
 
-## [v2.1.2] — 2026-07-15 — [Infrastructure] Paper trading now logs every ticker's score, not just qualifying ones
+## [v2.1.2] — 2026-07-15 — [Infrastructure] Started logging every stock's score, not just the ones that qualified
 
 **Status:** Live. Logging-only change — no scoring impact.
 
-**Problem:** On the first full day of paper trading, nothing qualified — meaning there was zero
-record anywhere of what any ticker had actually scored, making it impossible to check whether
-the scoring categories were working sensibly.
+**In short:** On the first full day of practice trading, nothing qualified — meaning there was
+zero record of what any stock had actually scored. Now every stock's full score gets logged
+every scan, regardless of outcome.
 
-**Fix:** Added a log line showing every ticker's full score breakdown on every scan, regardless
-of whether it clears the trading threshold.
+**Problem:** With zero record of what didn't qualify, it was impossible to check whether the
+scoring categories were even working sensibly.
+
+**Fix:** Added a log line showing every stock's full score breakdown on every scan.
 
 **Backtest:** N/A — logging only.
 
@@ -1317,102 +1272,97 @@ of whether it clears the trading threshold.
 
 ---
 
-## [v2.1.1] — 2026-07-15 — [Feature] Breaking-news block: "hide the signal" → "show it with a warning"
+## [v2.1.1] — 2026-07-15 — [Feature] A serious news event now shows a trade signal with a warning, instead of hiding it
 
-**Status:** Live. Doesn't affect the existing not-yet-eligible-for-live-trading status either
-way.
+**Status:** Live. Doesn't affect the existing not-yet-eligible status either way.
 
-**Problem:** During early paper trading, a real breaking-news event blocked the entire
+**In short:** A serious breaking-news event used to hide a qualifying trade signal completely.
+Now it shows the signal with a clear warning attached, so a person can make the final call
+instead of the system deciding silently on their behalf.
+
+**Problem:** During early practice trading, a real breaking-news event blocked the entire
 watchlist for a scan. Hiding every signal outright during an active event risks hiding a
-genuinely valid opportunity — the system was deciding silently for the trader instead of
-surfacing the situation and letting a human judge it.
+genuinely good opportunity along with the bad ones.
 
-**Fix:** A serious breaking-news event no longer hides a qualifying trade signal completely — it
-now surfaces normally, with a clear warning attached, so a human can make the final judgment
-call.
+**Fix:** A serious breaking-news event no longer hides a qualifying trade signal — it now shows
+up normally, with a clear warning attached.
 
-**Backtest:** Inherited the same not-yet-passing status as before, unaffected by this change.
-The prior full backtest run scored 64.5% win rate against the 80% requirement — everything else
-passed except win rate, for reasons unrelated to this change. The historical data used for
-backtesting has no real breaking-news events in it, so this specific change can't be tested by
-the backtest either way.
+**Backtest:** Inherited the same not-yet-passing status, unaffected by this change. The
+historical data used for testing has no real breaking-news events in it, so this specific change
+can't be tested against history either way.
 
-**Approved:** MrKoods — 2026-07-15 (paper-trading behavior change; not approved for live trading)
+**Approved:** MrKoods — 2026-07-15 (practice-trading behavior change; not approved for real
+trading)
 
 ---
 
-## [v2.1.0] — 2026-07-14 — [Feature] Added a breaking-news safety block (not a scoring category)
+## [v2.1.0] — 2026-07-14 — [Feature] Added a safety switch that can hide a trade signal during a serious news event
 
-**Status:** Not yet eligible to go live — see Backtest result below.
+**Status:** Not yet eligible to go live — see Backtest below.
 
-**Problem:** The existing 5-category score has a real blind spot: news only makes up 15 of 100
-points, so a genuinely severe, fast-moving story (a company scandal, an export ban, fraud
-allegations) can be outvoted by four much slower-moving categories that haven't caught up yet.
+**In short:** Added a safety switch that can hide a stock's trade signal if a seriously damaging
+news story breaks about it (a scandal, fraud allegations, and similar) — even if its score would
+otherwise qualify.
 
-**Fix:** Added a new safety mechanism that can block a ticker from surfacing as a trade signal
-when a serious, thesis-opposing breaking-news event is detected — a separate veto layer, not a
-sixth scoring category; News still scores exactly as before. The block only ever suppresses a
-signal, never boosts one, and automatically expires after a set cooling-off period. Deliberately
-one-directional — chasing a shock headline that already confirms a trade thesis is a good way to
-buy the top of a spike; the goal here is loss prevention, not extra upside chasing. Also added
-new alert types for when a block triggers or expires, and a safety net that auto-repairs
-corrupted block-tracking data.
+**Problem:** The scoring system has a real blind spot: news only makes up a small slice of the
+total score, so a genuinely severe, fast-moving story can be outvoted by four much slower-moving
+categories that haven't caught up yet.
 
-**Backtest:** Not run, and can't be meaningfully backtested with the currently available
-historical data — the historical news archive wasn't curated to include real trigger events like
-these, so there's nothing genuine to test the block against yet. Not eligible for live trading
+**Fix:** Added a safety mechanism that can block a stock from surfacing as a trade signal when a
+serious, damaging news event is detected — a separate safety layer, not a change to how News
+itself is scored. It only ever hides a signal, never boosts one, and automatically expires after
+a set cooling-off period. Deliberately one-directional — the goal is avoiding a bad trade, not
+chasing a shock headline that already confirms good news.
+
+**Backtest:** Not run, and can't be meaningfully tested with the currently available historical
+data — it doesn't include real events like these to test against. Not eligible for real trading
 until a real backtest is run and passes.
 
 **Approved:** Pending — do not go live on this version until a backtest is run and passes.
 
 ---
 
-## [v2.0.0] — 2026-07-13 — [Scoring Change] Added two new scoring categories; switched the sentiment data source
+## [v2.0.0] — 2026-07-13 — [Scoring Change] Added a whole new scoring category and switched how the model reads public mood
 
-**Status:** Not yet eligible to go live — see Backtest result below.
+**Status:** Not yet eligible to go live — see Backtest below.
 
-**Problem:** Reddit access (the prior sentiment source) had stalled with no clear path forward.
-Separately, options activity, institutional ownership changes, short interest, insider trading,
-and analyst ratings were all real, distinct signals the original design never captured — and
-insider trading data was being counted twice, in its own separate bonus/penalty as well as
-implicitly elsewhere. The written design document had also drifted out of sync with the actual
-code.
+**In short:** Added a brand-new scoring category based on options activity, ownership changes,
+and insider trading, and switched the service used to gauge public sentiment to a better one.
 
-**Fix:**
-- Added a new **Market Positioning** category (worth 20 points) covering options activity,
-  institutional ownership, short interest, insider trading, and analyst ratings — all free data.
-- Removed Reddit as a sentiment source entirely and replaced it with StockTwits (a paid
-  subscription with clearly tagged bullish/bearish posts) plus a Seeking Alpha engagement
-  measure — a real quality upgrade, not just a substitute.
-- Moved insider trading data out of its own separate bonus/penalty and into the new Positioning
-  category, fixing the double-count.
-- Rebalanced category weights: Technical 50→40, Positioning (new) →20, Sentiment 20→15, News
-  unchanged at 15, Fundamental 15→10.
-- Brought the written design document back in sync with the actual code.
+**Problem:** The prior public-sentiment source had become unreliable with no clear fix in sight.
+Separately, real signals like options activity, big ownership changes, and insider trading
+weren't being captured by the model at all — and insider trading data was accidentally being
+counted twice over.
 
-**Backtest:** Not run yet — there's no historical data for StockTwits or the new Positioning
-category; both need to build up real history from this point forward, the same way Fundamental
-data did. Not eligible for live trading until a real backtest is run and passes.
+**Fix:** Added a new scoring category covering options activity, ownership changes, short
+interest, insider trading, and analyst ratings. Switched to a better, clearly-tagged public
+sentiment source. Fixed the insider-trading double-count by folding it into the new category.
+Rebalanced how many points each category is worth to make room for the new one.
+
+**Backtest:** Not run yet — there's no historical data yet for the new source or category; both
+need to build up real history from this point forward. Not eligible for real trading until a real
+backtest is run and passes.
 
 **Approved:** Pending — do not go live on this version until a backtest is run and passes.
 
 ---
 
-## [v1.0.0] — 2026-06-29 — [Infrastructure] Initial project scaffold
+## [v1.0.0] — 2026-06-29 — [Infrastructure] The very first version
 
-**Status:** Scaffolding complete — the basic skeleton is built, but most of the real logic
-isn't written yet.
+**Status:** Basic structure built, but almost none of the real logic was written yet.
+
+**In short:** The starting point — the project's skeleton was laid out, with a rough plan for
+how scoring would work, but almost nothing was actually implemented yet.
 
 **What's in this version**
-- The full project structure and configuration, matching the original design document.
-- All 14 planned build phases stubbed out with placeholder functions.
-- The scoring formula design: Technical 60 / Sentiment 25 / News 15, plus 7 modifier types.
-- 42 possible trade structures defined, with a framework for ranking them.
-- Position sizing and circuit-breaker rules defined.
+- The full project structure, matching the original design plan.
+- Every planned build phase stubbed out as placeholders.
+- A first-draft scoring formula and a framework for ranking different trade structures.
+- Position-sizing and safety-brake rules defined, but not yet proven.
 
 **What's not built yet**
-- The real scoring logic, real expected-value calculations, and backtesting. Every weight is a
-  starting hypothesis until backtesting proves it out.
+- The real scoring logic, real profit/loss projections, and any historical testing. Every
+  setting at this point is just a starting guess, not yet proven by testing.
 
 **Backtest:** N/A — no backtest has been run yet; this version is scaffolding only.
 
@@ -1425,6 +1375,9 @@ isn't written yet.
 ## [vX.Y.Z] — YYYY-MM-DD — [Category] Short description
 
 **Status:** ...
+
+**In short:** One plain-English sentence — no jargon, no file names. What happened and why it
+matters, in words anyone could understand.
 
 **Problem:** What was wrong or missing, and why it mattered.
 
