@@ -65,19 +65,43 @@
     ]
   },
   "AMD": {
-    "fetched_at": "2026-08-02T05:34:44.154324+00:00",
+    "fetched_at": "2026-08-03T21:32:45.078985+00:00",
     "items": [
+      {
+        "article_id": "4623647",
+        "timestamp_utc": "2026-08-03T14:30:00-04:00",
+        "title": "Advanced Micro Devices options market prices an 8.5% post-Q2 earnings move",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4623812",
+        "timestamp_utc": "2026-08-03T13:35:10-04:00",
+        "title": "AMD earnings: Sky-high expectations leave little room for missteps",
+        "comment_count": 5
+      },
+      {
+        "article_id": "4623357",
+        "timestamp_utc": "2026-08-03T08:19:39-04:00",
+        "title": "AMD, Texas Instruments in focus as Citi reiterates Buy ratings",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4622681",
+        "timestamp_utc": "2026-08-02T08:07:55-04:00",
+        "title": "Earnings Week Ahead: PLTR, AMD, PFE, DIS, SHOP, VTRS, CGC, MCD, ROKU, ABNB, and more",
+        "comment_count": 8
+      },
       {
         "article_id": "4623049",
         "timestamp_utc": "2026-08-01T14:00:38-04:00",
         "title": "Earnings Scoreboard: Apple slumps after Tim Cook's final earnings; Microsoft rallies in big-tech results week",
-        "comment_count": 1
+        "comment_count": 3
       },
       {
         "article_id": "4622971",
         "timestamp_utc": "2026-08-01T10:05:36-04:00",
         "title": "Notable tech headlines for the week: Apple, Microsoft, Qualcomm in focus",
-        "comment_count": 2
+        "comment_count": 3
       },
       {
         "article_id": "4621896",
@@ -102,35 +126,11 @@
         "timestamp_utc": "2026-07-28T07:24:07-04:00",
         "title": "AMD partners with Core Scientific for 500 MW AI infrastructure deal",
         "comment_count": 12
-      },
-      {
-        "article_id": "4618672",
-        "timestamp_utc": "2026-07-27T08:44:05-04:00",
-        "title": "AMD's 2026, 2027 data center revenue growing faster than expected: Wedbush",
-        "comment_count": 6
-      },
-      {
-        "article_id": "4618374",
-        "timestamp_utc": "2026-07-25T10:05:10-04:00",
-        "title": "Notable tech headlines for the week: Alphabet, Intel, AMD in focus",
-        "comment_count": 2
-      },
-      {
-        "article_id": "4618259",
-        "timestamp_utc": "2026-07-24T12:24:06-04:00",
-        "title": "ClearBridge ESG Strategy adds SpaceX, AMD, and Micron; exits Roblox, AbbVie",
-        "comment_count": 11
-      },
-      {
-        "article_id": "4618067",
-        "timestamp_utc": "2026-07-24T08:53:21-04:00",
-        "title": "AMD in spotlight as bullish AI event praised by Wall Street",
-        "comment_count": 8
       }
     ]
   },
   "AVGO": {
-    "fetched_at": "2026-08-02T05:34:48.069153+00:00",
+    "fetched_at": "2026-08-03T21:32:52.432782+00:00",
     "items": [
       {
         "article_id": "4622419",
