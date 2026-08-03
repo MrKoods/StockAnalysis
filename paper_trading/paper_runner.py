@@ -541,6 +541,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         iv_percentile=options_raw.get("iv_percentile", 50.0),
                         option_chain=options_raw.get("chain"),
                         dte=options_raw.get("dte"),
+                        atm_iv=options_raw.get("atm_iv"),
                         cfg=cfg,
                     )
                     ranked = trade_result.get("ranked_structures", [])

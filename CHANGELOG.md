@@ -60,6 +60,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.36 | 2026-08-03 | Bug Fix | The options-structure picker had 35 of 42 strategies silently mis-costed — real formulas now, so protective_put stops winning by accident |
 | v2.2.35 | 2026-08-02 | Bug Fix | Two more hidden bugs in how the model reads public sentiment |
 | v2.2.34 | 2026-08-02 | Bug Fix | Every Yahoo Finance news article had a blank title — none of them could ever be used |
 | v2.2.33 | 2026-08-02 | Scoring Change | Re-checked several scoring settings against the bigger 3-sector test; kept 3, dropped 2 |
@@ -104,6 +105,81 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.36] — 2026-08-03 — [Bug Fix] 35 of 42 trade structures had mis-costed EV; protective_put's ranking dominance was an artifact, not merit
+
+**Status:** Live (this is the trade-structure diagnostic tier — score 60-89, not the 90+ real
+signal path — but the ranking is real, collected data, not inert).
+
+**Problem:** Investigating why the diagnostic trade-structure evaluator (see v2.2.23, scores
+60-89) had picked `protective_put` in all 4 real evaluations recorded since it started collecting
+data found two compounding bugs, not a genuine 4-for-4 preference:
+
+1. `STRUCTURE_MULTIPLIERS` (`shared/utils/options_math.py`) stores a `profit_mult`/`loss_mult` pair
+   per structure meant to model its real risk/reward shape. For 35 of 42 structures, these were
+   descriptive placeholder strings (`"leverage"`, `"spread_width_minus_debit"`, `"put_premium"`,
+   `"theta_decay"`, ...) that read like they were meant to become real formulas but never did.
+   `_compute_structure_ev`'s `isinstance` guard silently converted every one of them to `1.0`,
+   making 35 structures' modeled EV indistinguishable from plain long/short stock — none of their
+   actual leverage, defined-risk cap, or premium cost was ever being modeled.
+2. `_estimate_capital_required`'s `protective_put` branch used a special-cased shortcut
+   (`entry * 0.3`) that its economically near-identical siblings `married_put`/`collar` didn't get
+   — they fell through to a generic default ~15-30x larger. Verified directly: a real capital
+   requirement for 100 shares + a put (even at 50% margin) is $1,250-$15,000 for this watchlist's
+   tickers, vs. the old estimate's $8-$90 — nowhere close to affordable at a $15k account's $750
+   per-trade cap. `protective_put` was winning because its capital denominator was ~100x too small,
+   not because it was a better trade. Since bug #1 also meant almost every *other* structure's EV
+   was computed identically to plain stock, the ranking effectively reduced to "whichever structure
+   has the smallest capital estimate" — exactly the property `protective_put`'s shortcut exploited.
+3. (Found while fixing #1) `iv_percentile` (0-100, where today's IV ranks against its own history —
+   a rank, not a volatility value) was being divided by 100 and fed into option-pricing math as if
+   it were the actual IV fraction, conflating "IV is unusually high for this stock right now" with
+   "this stock's IV is 80%" — two different, independent facts.
+
+**Fix:**
+- `shared/utils/options_math.py`: new `resolve_structure_economics()` — real Black-Scholes-derived
+  `avg_win`/`avg_loss`/`capital_required` for all 35 affected structures, replacing the placeholder-
+  multiplier lookup. Strike conventions reuse this module's own `select_directional_leg_strike()`
+  offsets (otm=6%, far_otm=12%, deep_itm=15%) for consistency with the existing Greeks filter.
+  EV and capital are computed together per structure so they can never disagree the way
+  `protective_put`'s did — the actual root cause above. The 4 ratio/back-spread structures already
+  routed through a separate real (if simplified) surface calculation and are untouched; the 3 pure-
+  stock structures were already correct and are untouched.
+- `swing_model/trade_selector.py`: `_compute_structure_ev` now calls `resolve_structure_economics`
+  first, falling back to the old numeric-multiplier path only for the 3 pure-stock structures it
+  doesn't cover. Removed a redundant second `_estimate_capital_required` call later in
+  `rank_trade_structures` that was silently overwriting the newly-consistent capital figure with the
+  old one — found while wiring this in; without removing it, the fix would have had no effect.
+  Added `atm_iv` parameter (sourced from `positioning_client.py`'s real chain data via
+  `_options_raw`) so real option pricing uses actual IV instead of a mislabeled percentile.
+- Found and fixed a bug in my own new code during verification: `diagonal_call`/`diagonal_put`'s net
+  debit could come out at or near zero given this module's strike/expiry approximation, and a fixed
+  `max(net_debit, 0.01)` floor turned that into an absurd ~$1 capital figure (`ev_per_dollar_risked`
+  364 — instantly ranked #1 above everything else). Replaced every such floor with one proportional
+  to the stock's own price instead of a fixed tiny constant.
+- 22 new tests (`tests/test_structure_economics.py`) — broad sweep across all 35 structures for
+  degenerate/absurd output (the exact class of bug above) plus targeted checks per category (debit
+  spreads' loss bounded by net debit, credit spreads' win+loss ≈ width, protective_put/married_put
+  now getting equal treatment, long options' loss bounded by premium paid). One pre-existing test
+  (`tests/test_phase7_trade_math.py`) updated: it asserted `long_call` passes the default Greeks
+  theta bound on the *old* $2,500 capital heuristic; the new, more accurate ~$984 real premium makes
+  the same real theta correctly show as exceeding 5% of capital — swapped to `bull_put_spread`,
+  which clears the bound by construction (its two legs' theta partially offset).
+
+**Verified against real live market data** (JNJ, RF — fetching real chains/prices, not synthetic
+inputs): `protective_put`/`married_put`/`collar` no longer appear in either ticker's ranking at all
+(correctly excluded — genuinely unaffordable at this account size). Top-ranked structures are now
+`diagonal_call`, `long_call`, `bull_call_spread` — real, sensible, capital-efficient structures with
+realistic dollar figures ($16-$608 range), not a single outlier dominating by ranking artifact.
+
+**Backtest result:** Not applicable — this is the diagnostic trade-structure tier (score 60-89),
+which the 13.5-year backtest doesn't exercise (it measures only the win-rate/R:R/Sharpe of the
+90+ signal path). Verified via direct live-data inspection and the new test suite instead. 745 tests
+pass (was 723), 3 skipped.
+
+**Approved by:** [pending]
 
 ---
 

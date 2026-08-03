@@ -304,6 +304,345 @@ def capital_efficiency_score(
 
 
 # ---------------------------------------------------------------------------
+# Real per-structure economics (v2.2.36)
+# ---------------------------------------------------------------------------
+# STRUCTURE_MULTIPLIERS' profit_mult/loss_mult were, for 35 of the 42
+# structures below, descriptive placeholder strings ("leverage",
+# "spread_width_minus_debit", "put_premium", "theta_decay", ...) that read
+# like they were meant to become real formulas but never did.
+# _compute_structure_ev's isinstance guard (trade_selector.py) silently
+# converted every one of them to 1.0, making 35 structures' modeled EV
+# indistinguishable from plain long/short stock regardless of their actual
+# leverage, defined-risk cap, or premium cost. Separately, protective_put's
+# capital estimate (entry * 0.3) was a special-cased shortcut its economically
+# near-identical siblings married_put/collar didn't get (they fell through to
+# a generic default ~15-30x larger) — the real reason protective_put won every
+# real ranking evaluation observed live, not genuine economic merit.
+#
+# resolve_structure_economics() replaces both: real Black-Scholes-derived
+# avg_win/avg_loss AND a capital estimate that's actually consistent with them,
+# computed together so a structure can't get an artificially cheap capital
+# figure paired with an EV that assumes real economics. Strike conventions
+# reuse this module's own select_directional_leg_strike() offsets (otm=6%,
+# far_otm=12%, deep_itm=15%) for consistency with the Greeks filter elsewhere
+# in this project.
+#
+# Scaling convention: results are per-100-share/1-contract lot (x100) for
+# every options-involving structure, matching how real contracts trade and
+# how this module's capital filter (max_capital, $750 at $15k) is meant to be
+# read. The 3 pure-stock structures (long_stock, short_stock,
+# long_stock_trailing_stop) stay per-share, unchanged — they were already
+# correctly modeled and their own numerator/denominator are self-consistent;
+# ev_per_dollar_risked is scale-invariant as long as each structure's own
+# avg_win/avg_loss and capital share the same basis, which is the only
+# property cross-structure ranking actually depends on.
+#
+# fav/unfav below are abs(target-entry)/abs(entry-stop) — this project's
+# direction handling defaults every observed live signal to bullish (see
+# scoring.py's determine_direction docstring: "Default to bullish per system
+# bias"), and this function has no reliable way to re-derive bullish/bearish
+# sign conventions for entry/stop/target that this module doesn't itself set —
+# option-side conventions (which strike is "otm", which direction is
+# protective) are chosen by each structure's own option_type instead, which
+# doesn't depend on that assumption.
+#
+# The 4 ratio/back-spread structures (call_ratio_spread, put_ratio_spread,
+# call_back_spread, put_back_spread) are deliberately not handled here — they
+# already route through compute_ev_surface() via their ev_method="surface"
+# key, a real (if simplified) multi-scenario P&L model, not a broken
+# placeholder. Calendar/diagonal spreads (2 different expirations) and the
+# wheel (a repeating CSP/CC cycle) are modeled here as clearly-documented
+# single-snapshot approximations, not full multi-expiry/multi-cycle surfaces —
+# still a large improvement on a silent 1.0 default, but flagged as the
+# least-precise formulas in this set for future refinement.
+# ---------------------------------------------------------------------------
+
+_DEFAULT_DTE_IF_UNKNOWN = 10  # midpoint of this project's 5-15 day holding period
+_LEAPS_MIN_DAYS = 270         # LEAPS are long-dated; ~9 months out is typical
+_MIN_IV = 0.05                # Black-Scholes is undefined at iv<=0; near-zero is never realistic
+_STOCK_MARGIN_FRACTION = 0.5  # Reg-T initial margin assumption for a marginable long stock leg
+# Floor for net-debit/net-credit-width type formulas below, proportional to
+# entry rather than a fixed tiny absolute number. A fixed floor (e.g. 0.01)
+# produced an artificial ~$1 "capital required" for diagonal_call/diagonal_put
+# whenever the far leg's longer time-to-expiry didn't outweigh its OTM strike
+# discount enough to keep the near-short-leg-minus-far-long-leg debit
+# comfortably positive -- the ratio (real EV / near-zero capital) exploded to
+# an absurd ev_per_dollar_risked that briefly ranked diagonal_call #1 above
+# everything else. Scaling the floor to the stock's own price keeps it a
+# plausible minimum real-world premium instead of an arbitrary constant that
+# can be tiny relative to whatever price level a given ticker trades at.
+_MIN_PREMIUM_FLOOR_FRACTION = 0.005
+
+# Structures already correctly modeled (pure stock, per-share, numeric
+# multipliers) or handled by compute_ev_surface() — resolve_structure_economics
+# is a no-op passthrough signal for these; callers should keep using the
+# existing profit_mult/loss_mult/_estimate_capital_required path for them.
+PASSTHROUGH_STRUCTURES = frozenset({
+    "long_stock", "short_stock", "long_stock_trailing_stop",
+    "call_ratio_spread", "put_ratio_spread", "call_back_spread", "put_back_spread",
+})
+
+
+def _otm_k(entry: float, option_type: str, magnitude: float) -> float:
+    """Strike `magnitude` fraction OTM of `entry` for a call (above) or put (below)."""
+    sign = 1.0 if option_type == "call" else -1.0
+    return entry * (1 + sign * magnitude)
+
+
+def _itm_k(entry: float, option_type: str, magnitude: float) -> float:
+    """Strike `magnitude` fraction ITM of `entry` for a call (below) or put (above)."""
+    sign = -1.0 if option_type == "call" else 1.0
+    return entry * (1 + sign * magnitude)
+
+
+def resolve_structure_economics(
+    structure_name: str,
+    entry: float,
+    stop: float,
+    target: float,
+    iv: float,
+    dte: Optional[int],
+    r: float = 0.04,
+) -> Optional[dict]:
+    """
+    Real avg_win/avg_loss/capital_required for one structure. Returns None for
+    PASSTHROUGH_STRUCTURES (caller should fall back to the existing
+    profit_mult/loss_mult/_estimate_capital_required path) or if entry/stop/
+    target aren't usable (mirrors _compute_structure_ev's own guard).
+
+    Returns {"avg_win": float, "avg_loss": float, "capital_required": float}
+    — all already x100-scaled per the module-level convention above, ready to
+    feed straight into compute_ev_simple() and the capital filter.
+    """
+    if structure_name in PASSTHROUGH_STRUCTURES:
+        return None
+    if entry <= 0 or stop <= 0 or target <= 0 or stop >= entry:
+        return None
+
+    fav = abs(target - entry)
+    unfav = abs(entry - stop)
+    iv = max(iv, _MIN_IV)
+    T = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1) / 365.0
+
+    def bs(S: float, K: float, T_: float, opt: str) -> float:
+        return black_scholes_price(S, K, T_, r, iv, opt)
+
+    def single_leg_long(option_type: str, k: float, T_: float) -> tuple[float, float, float]:
+        """avg_win, avg_loss, premium for one long call/put at strike k."""
+        premium = bs(entry, k, T_, option_type)
+        s_fav = entry + fav if option_type == "call" else entry - fav
+        s_unfav = entry - unfav if option_type == "call" else entry + unfav
+        val_fav = bs(s_fav, k, T_, option_type)
+        val_unfav = bs(s_unfav, k, T_, option_type)
+        return (val_fav - premium) * 100, (premium - val_unfav) * 100, premium
+
+    # --- Category 1: Equity + protective (100-share lot + option leg(s)) ---
+    if structure_name in ("protective_put", "married_put"):
+        k = _otm_k(entry, "put", 0.06)
+        premium = bs(entry, k, T, "put")
+        avg_win = (fav - premium) * 100
+        avg_loss = (unfav + premium) * 100
+        capital = (entry * _STOCK_MARGIN_FRACTION + premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital}
+
+    if structure_name == "collar":
+        put_k, call_k = _otm_k(entry, "put", 0.06), _otm_k(entry, "call", 0.06)
+        put_premium, call_premium = bs(entry, put_k, T, "put"), bs(entry, call_k, T, "call")
+        net_premium = put_premium - call_premium  # negative = net credit
+        capped_upside = min(fav, call_k - entry)
+        avg_win = (capped_upside - net_premium) * 100
+        avg_loss = (unfav + net_premium) * 100
+        capital = (entry * _STOCK_MARGIN_FRACTION + max(0.0, net_premium)) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital}
+
+    # --- Category 2: Long premium, single leg (real leveraged option payoff) ---
+    if structure_name in ("long_call", "long_put"):
+        opt = "call" if structure_name == "long_call" else "put"
+        avg_win, avg_loss, premium = single_leg_long(opt, entry, T)
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+
+    if structure_name in ("deep_itm_call", "deep_itm_put"):
+        opt = "call" if structure_name == "deep_itm_call" else "put"
+        k = _itm_k(entry, opt, 0.15)
+        avg_win, avg_loss, premium = single_leg_long(opt, k, T)
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+
+    if structure_name in ("leaps_call", "leaps_put"):
+        opt = "call" if structure_name == "leaps_call" else "put"
+        T_leaps = max(dte if dte is not None else _LEAPS_MIN_DAYS, _LEAPS_MIN_DAYS) / 365.0
+        avg_win, avg_loss, premium = single_leg_long(opt, entry, T_leaps)
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+
+    # --- Category 3: Debit spreads (2 legs, defined risk = net debit) ---
+    if structure_name in ("bull_call_spread", "bear_put_spread"):
+        opt = "call" if structure_name == "bull_call_spread" else "put"
+        long_k = entry
+        short_k = _otm_k(entry, opt, 0.12)
+        long_premium, short_premium = bs(entry, long_k, T, opt), bs(entry, short_k, T, opt)
+        net_debit = long_premium - short_premium
+        width = abs(short_k - long_k)
+        avg_win = (min(fav, width) - net_debit) * 100
+        avg_loss = net_debit * 100
+        floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(net_debit, floor) * 100}
+
+    if structure_name in ("calendar_call", "calendar_put", "diagonal_call", "diagonal_put"):
+        # Approximation, documented above: single-snapshot, not a true 2-expiry
+        # surface. Calendars/diagonals profit mainly from time decay near the
+        # short strike, not large directional moves — damped participation
+        # (0.4x) reflects that a big move away from the strike hurts a
+        # calendar's P&L even in the "favorable" direction, unlike a plain
+        # directional option. Max loss bounded at the net debit, as in reality.
+        opt = "call" if "call" in structure_name else "put"
+        is_diagonal = "diagonal" in structure_name
+        near_k = entry
+        far_k = _otm_k(entry, opt, 0.06) if is_diagonal else entry
+        short_premium = bs(entry, near_k, T, opt)
+        long_T = (max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1) + 30) / 365.0
+        long_premium = bs(entry, far_k, long_T, opt)
+        floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
+        net_debit = max(long_premium - short_premium, floor)
+        avg_win = (fav * 0.4 - net_debit) * 100
+        avg_loss = net_debit * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": net_debit * 100}
+
+    # --- Category 4: Credit spreads (2 legs, defined risk = width - credit) ---
+    if structure_name in ("bull_put_spread", "bear_call_spread"):
+        opt = "put" if structure_name == "bull_put_spread" else "call"
+        short_k = _otm_k(entry, opt, 0.06)
+        long_k = _otm_k(entry, opt, 0.12)
+        short_premium, long_premium = bs(entry, short_k, T, opt), bs(entry, long_k, T, opt)
+        net_credit = short_premium - long_premium
+        width = abs(long_k - short_k)
+        avg_win = net_credit * 100
+        avg_loss = max(width - net_credit, 0.0) * 100
+        floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - net_credit, floor) * 100}
+
+    # --- Category 5: Undefined risk (excluded under $50k by Filter 1 regardless;
+    #     still given a real, bounded-tail-risk formula for correctness) ---
+    if structure_name in ("naked_short_call", "naked_short_put"):
+        opt = "call" if structure_name == "naked_short_call" else "put"
+        k = _otm_k(entry, opt, 0.06)
+        premium = bs(entry, k, T, opt)
+        # True risk is unlimited (call) / bounded by stock-to-zero (put) — use a
+        # 2-standard-deviation move as a finite tail-risk proxy for ranking
+        # purposes only; the $50k+Level 3 filter is what actually gates this,
+        # not this estimate.
+        two_sigma_move = entry * iv * math.sqrt(T) * 2
+        avg_win = premium * 100
+        avg_loss = max(two_sigma_move - premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100}
+
+    # --- Category 6: Income (require real share ownership/cash-securing) ---
+    if structure_name == "cash_secured_put":
+        k = _otm_k(entry, "put", 0.06)
+        premium = bs(entry, k, T, "put")
+        avg_win = premium * 100
+        avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100}
+
+    if structure_name == "covered_call":
+        k = _otm_k(entry, "call", 0.06)
+        premium = bs(entry, k, T, "call")
+        avg_win = (min(fav, k - entry) + premium) * 100
+        avg_loss = max(unfav - premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100}
+
+    if structure_name == "covered_strangle":
+        call_k, put_k = _otm_k(entry, "call", 0.06), _otm_k(entry, "put", 0.06)
+        call_premium, put_premium = bs(entry, call_k, T, "call"), bs(entry, put_k, T, "put")
+        total_premium = call_premium + put_premium
+        avg_win = (min(fav, call_k - entry) + total_premium) * 100
+        # Short the put too, on top of owning stock — doubles downside exposure
+        # below the put strike relative to a plain covered call.
+        avg_loss = max(unfav * 2 - total_premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100 + max(put_k - entry, 0) * 100}
+
+    if structure_name == "wheel":
+        # Single-cycle approximation of a repeating CSP->assignment->CC cycle:
+        # modeled as one cash-secured put snapshot, documented above as one of
+        # the least-precise formulas here.
+        k = _otm_k(entry, "put", 0.06)
+        premium = bs(entry, k, T, "put")
+        avg_win = premium * 100
+        avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100}
+
+    # --- Category 7: Neutral/volatility (multi-leg) ---
+    if structure_name in ("iron_condor", "iron_butterfly", "short_butterfly", "condor_spread"):
+        # 4-leg (condor/iron_condor) or 3-leg (butterfly) credit structure,
+        # modeled as a put-side + call-side credit spread pair. Iron butterfly/
+        # short butterfly use ATM short strikes (narrower, higher credit);
+        # condor/iron condor use OTM short strikes (wider, lower credit).
+        at_money = structure_name in ("iron_butterfly", "short_butterfly")
+        put_short_k = entry if at_money else _otm_k(entry, "put", 0.06)
+        put_long_k = _otm_k(entry, "put", 0.12)
+        call_short_k = entry if at_money else _otm_k(entry, "call", 0.06)
+        call_long_k = _otm_k(entry, "call", 0.12)
+        credit = (
+            bs(entry, put_short_k, T, "put") - bs(entry, put_long_k, T, "put")
+            + bs(entry, call_short_k, T, "call") - bs(entry, call_long_k, T, "call")
+        )
+        width = min(put_short_k - put_long_k, call_long_k - call_short_k)
+        avg_win = credit * 100
+        avg_loss = max(width - credit, 0.0) * 100
+        floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - credit, floor) * 100}
+
+    if structure_name == "long_butterfly_call":
+        k_low, k_mid, k_high = _itm_k(entry, "call", 0.06), entry, _otm_k(entry, "call", 0.06)
+        premium = (
+            bs(entry, k_low, T, "call") + bs(entry, k_high, T, "call") - 2 * bs(entry, k_mid, T, "call")
+        )
+        max_profit = (k_mid - k_low) - premium
+        avg_win = min(fav, max_profit) * 100 if max_profit > 0 else 0.0
+        avg_loss = max(premium, 0.0) * 100
+        floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(premium, floor) * 100}
+
+    if structure_name in ("long_straddle", "long_strangle"):
+        call_k = entry if structure_name == "long_straddle" else _otm_k(entry, "call", 0.06)
+        put_k = entry if structure_name == "long_straddle" else _otm_k(entry, "put", 0.06)
+        call_premium, put_premium = bs(entry, call_k, T, "call"), bs(entry, put_k, T, "put")
+        total_premium = call_premium + put_premium
+        # Profits from a big move either direction; "fav" proxies the size of
+        # whichever move materializes, "unfav" (flat/small move) is this
+        # structure's real loss scenario since both legs decay together.
+        call_val_at_fav = bs(entry + fav, call_k, T, "call")
+        put_val_at_fav = bs(entry - fav, put_k, T, "put")
+        avg_win = (max(call_val_at_fav, put_val_at_fav) - total_premium) * 100
+        avg_loss = total_premium * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": total_premium * 100}
+
+    if structure_name in ("short_straddle", "short_strangle"):
+        call_k = entry if structure_name == "short_straddle" else _otm_k(entry, "call", 0.06)
+        put_k = entry if structure_name == "short_straddle" else _otm_k(entry, "put", 0.06)
+        call_premium, put_premium = bs(entry, call_k, T, "call"), bs(entry, put_k, T, "put")
+        total_credit = call_premium + put_premium
+        two_sigma_move = entry * iv * math.sqrt(T) * 2
+        avg_win = total_credit * 100
+        avg_loss = max(two_sigma_move - total_credit, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100}
+
+    # --- Category 9: Synthetic (stock-replacement combos) ---
+    if structure_name in ("risk_reversal", "synthetic_long", "synthetic_short"):
+        is_synthetic = "synthetic" in structure_name
+        call_k = entry if is_synthetic else _otm_k(entry, "call", 0.06)
+        put_k = entry if is_synthetic else _otm_k(entry, "put", 0.06)
+        call_premium, put_premium = bs(entry, call_k, T, "call"), bs(entry, put_k, T, "put")
+        if structure_name == "synthetic_short":
+            net_cost = put_premium - call_premium
+            avg_win, avg_loss = (unfav - net_cost) * 100, (fav + net_cost) * 100
+        else:
+            net_cost = call_premium - put_premium
+            avg_win, avg_loss = (fav - net_cost) * 100, (unfav + net_cost) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.25 * 100}
+
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Structure multipliers — profit/loss multipliers per structure type
 # All 42 structures must have entries here for EV calculation.
 # ---------------------------------------------------------------------------

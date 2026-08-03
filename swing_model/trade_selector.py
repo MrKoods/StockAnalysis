@@ -44,6 +44,7 @@ from shared.utils.options_math import (
     capital_efficiency_score,
     select_directional_leg_strike,
     net_structure_greeks,
+    resolve_structure_economics,
 )
 
 ALL_42_STRUCTURES = list(STRUCTURE_MULTIPLIERS.keys())
@@ -159,12 +160,27 @@ def rank_trade_structures(
     cfg: Optional[dict] = None,
     option_chain: Optional[list] = None,
     dte: Optional[int] = None,
+    atm_iv: Optional[float] = None,
 ) -> dict:
     """
     Evaluate all 42 structures and return EV-ranked output.
 
     candidate: {ticker, direction, confidence, entry, stop, target, atr_14, ...}
-    iv_percentile: current IV percentile (0-100) — affects structure preference
+    iv_percentile: current IV percentile (0-100, where today's IV sits relative
+      to its own trailing history) — a RANK, not an IV value. Kept as a
+      parameter for callers/future use but no longer used as a stand-in for
+      real IV in the EV math (see atm_iv below) — iv_percentile/100 was
+      previously passed straight into Black-Scholes-adjacent calculations as
+      if it were an actual volatility fraction, conflating "IV is unusually
+      high for this stock" with "this stock's IV is 80%", two different things
+      that can each be true independently of the other.
+    atm_iv: the real current at-the-money implied volatility (e.g. 0.35 for
+      35% annualized), from positioning_client.py's fetch_option_chain_metrics
+      ('atm_iv' field, available via positioning's _options_raw passthrough).
+      Used for every real-option-pricing formula in resolve_structure_economics.
+      When not supplied, falls back to a mild iv_percentile-scaled estimate
+      (0.20-0.50 range) — an approximation for when no live chain was fetched,
+      not a substitute for the real figure when it's available.
     option_chain: real near-the-money contracts from positioning_client.py's
       fetch_option_chain_metrics ('chain' field) — enables Filter 4 (Greeks) for
       structures in _GREEKS_RESOLVABLE_LEGS, and (when bid_ask_spreads isn't
@@ -173,6 +189,9 @@ def rank_trade_structures(
       stay as inert as they were before this parameter existed.
     dte: days to option_chain's expiration — required alongside option_chain for
       Filter 4 to run (Greeks need a real time-to-expiry, not an assumed one).
+      Also now used by resolve_structure_economics for every structure's own
+      option-pricing time-to-expiry, defaulting to a mid-holding-period
+      estimate when not supplied.
 
     Returns:
     {
@@ -206,6 +225,10 @@ def rank_trade_structures(
     win_prob = confidence / 100.0
     max_capital = account_equity * 0.05
     force_defined_risk = bool(candidate.get("force_defined_risk", False))
+    # Real IV when a live chain supplied one; otherwise a mild iv_percentile-
+    # scaled approximation (0.20-0.50) rather than misusing the percentile
+    # rank itself as a volatility fraction — see atm_iv's docstring above.
+    resolved_iv = atm_iv if atm_iv is not None else 0.20 + (iv_percentile / 100.0) * 0.30
 
     # Filter 3 input: R:R of the shared entry/stop/target setup. Identical for every
     # structure (none of them change the underlying's own price levels), so it's
@@ -234,12 +257,12 @@ def rank_trade_structures(
         if legs is not None and name not in bid_ask_spreads:
             bid_ask_spreads[name] = sum(c["ask"] - c["bid"] for c in legs) / len(legs)
 
-        ev_result = _compute_structure_ev(name, structure, candidate, iv_percentile / 100.0,
-                                          win_prob, bid_ask_spreads.get(name, 0.0))
+        ev_result = _compute_structure_ev(name, structure, candidate, resolved_iv,
+                                          win_prob, bid_ask_spreads.get(name, 0.0), dte)
         if ev_result is None:
             excluded.append({"name": name, "reasons": ["ev_computation_failed"]})
             continue
-        ev, ev_raw, ev_adjusted = ev_result
+        ev, ev_raw, ev_adjusted, est_capital = ev_result
 
         # Filter 5: Liquidity — a wide bid/ask can consume most of a structure's
         # edge on multi-leg fills. Exclude when slippage eats >=50% of the raw EV
@@ -251,8 +274,11 @@ def rank_trade_structures(
                 excluded.append({"name": name, "reasons": ["wide_bid_ask_liquidity"]})
                 continue
 
-        # Estimate capital required (simplified — contract-level sizing not available here)
-        est_capital = _estimate_capital_required(name, structure, entry, stop, target)
+        # est_capital already computed above by _compute_structure_ev, from the
+        # same resolve_structure_economics() call that produced this
+        # structure's EV — guarantees the ranking ratio and this cap check
+        # always agree on the same capital figure (see _compute_structure_ev's
+        # docstring for why that used to not be true).
         if est_capital > max_capital:
             excluded.append({"name": name, "reasons": ["capital_exceeds_5pct"]})
             continue
@@ -386,12 +412,22 @@ def _compute_structure_ev(
     iv: float,
     win_prob: float,
     bid_ask_spread: float = 0.0,
-) -> Optional[tuple[float, float, float]]:
+    dte: Optional[int] = None,
+) -> Optional[tuple[float, float, float, float]]:
     """
-    Compute EV for a structure. Uses surface method for complex structures.
-    Returns (ev_per_dollar_risked, ev_raw, ev_adjusted) or None if insufficient data.
-    ev_raw/ev_adjusted (pre/post slippage) let the liquidity filter (filter 5)
-    measure how much of the edge a wide bid/ask consumes.
+    Compute EV for a structure. Uses surface method for complex (ratio/back
+    spread) structures; resolve_structure_economics() (real Black-Scholes-
+    derived avg_win/avg_loss/capital, see options_math.py) for the 35
+    structures it covers; the original numeric-multiplier path only for the 3
+    pure-stock structures neither of those two apply to.
+    Returns (ev_per_dollar_risked, ev_raw, ev_adjusted, capital_required) or
+    None if insufficient data. ev_raw/ev_adjusted (pre/post slippage) let the
+    liquidity filter (filter 5) measure how much of the edge a wide bid/ask
+    consumes. capital_required is returned (not recomputed separately by the
+    caller) so the ranking ratio and the $-cap filter always agree on the same
+    number — the two disagreeing was the root cause of protective_put's
+    capital estimate (a special-cased shortcut) making it rank far above
+    married_put/collar despite near-identical real economics.
     """
     entry = float(candidate.get("entry", candidate.get("entry_mid", 0.0)))
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
@@ -410,22 +446,29 @@ def _compute_structure_ev(
             win_probability=win_prob, iv=iv,
         )
         ev = surface["ev_weighted"]
+        capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
     else:
-        # Simple EV with numeric multipliers; string multipliers default to 1.0
-        pm = structure.get("profit_mult", 1.0)
-        lm = structure.get("loss_mult", 1.0)
-        pm = pm if isinstance(pm, (int, float)) else 1.0
-        lm = lm if isinstance(lm, (int, float)) else 1.0
-        avg_win = up_move * pm
-        avg_loss = down_move * lm
-        ev = compute_ev_simple(win_prob, avg_win, avg_loss)
+        econ = resolve_structure_economics(structure_name, entry, stop, target, iv, dte)
+        if econ is not None:
+            ev = compute_ev_simple(win_prob, econ["avg_win"], econ["avg_loss"])
+            capital = econ["capital_required"]
+        else:
+            # Pure-stock structures only at this point — numeric multipliers,
+            # already correct (see PASSTHROUGH_STRUCTURES in options_math.py).
+            pm = structure.get("profit_mult", 1.0)
+            lm = structure.get("loss_mult", 1.0)
+            pm = pm if isinstance(pm, (int, float)) else 1.0
+            lm = lm if isinstance(lm, (int, float)) else 1.0
+            avg_win = up_move * pm
+            avg_loss = down_move * lm
+            ev = compute_ev_simple(win_prob, avg_win, avg_loss)
+            capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
 
     legs = structure.get("legs", 1)
     ev_adjusted = adjust_ev_for_slippage(ev, structure_name, bid_ask_spread, legs)
-    capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
     if capital <= 0:
         return None
-    return ev_adjusted / capital, ev, ev_adjusted
+    return ev_adjusted / capital, ev, ev_adjusted, capital
 
 
 def _estimate_capital_required(

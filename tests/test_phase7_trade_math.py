@@ -501,9 +501,21 @@ class TestGreeksFilter:
         assert result["structures_greeks_evaluated"] > 0
 
     def test_resolvable_structure_carries_greeks_detail(self):
-        # account_equity raised to 100k so long_call's ~$2,500 estimated capital
+        # account_equity raised to 100k so bull_put_spread's real capital
         # clears the pre-existing 5%-of-account filter (unrelated to Greeks) —
-        # at 15k, long_call would be excluded before Filter 4 ever runs.
+        # at 15k it would be excluded before Filter 4 ever runs. Uses
+        # bull_put_spread, not long_call: since resolve_structure_economics()
+        # (v2.2.36) replaced the old capital heuristic (entry*0.05*100=$2,500,
+        # a rough guess) with a real Black-Scholes premium (~$984 here), the
+        # SAME real theta now represents a larger % of a smaller, more
+        # accurate capital figure — long_call genuinely exceeds the default
+        # 5% theta bound at these parameters now, which is a more correct risk
+        # read, not a bug (see test_tight_theta_bound_excludes_long_premium_
+        # structures below, which already covered long_call's theta
+        # sensitivity under a tightened bound). A credit spread's net theta is
+        # much smaller relative to its capital by construction (the short and
+        # long legs partially offset), so bull_put_spread reliably clears the
+        # default bound while still exercising the same Greeks-detail path.
         chain = _fake_chain(current_price=500.0, step=10.0)
         result = rank_trade_structures(
             self._candidate(), account_equity=100_000,
@@ -511,9 +523,9 @@ class TestGreeksFilter:
             option_chain=chain, dte=10,
         )
         by_name = {s["name"]: s for s in result["ranked_structures"]}
-        assert "long_call" in by_name
-        assert by_name["long_call"]["greeks"] is not None
-        assert "net_greeks" in by_name["long_call"]["greeks"]
+        assert "bull_put_spread" in by_name
+        assert by_name["bull_put_spread"]["greeks"] is not None
+        assert "net_greeks" in by_name["bull_put_spread"]["greeks"]
 
     def test_tight_theta_bound_excludes_long_premium_structures(self):
         chain = _fake_chain(current_price=500.0, step=10.0)
