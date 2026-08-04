@@ -57,6 +57,18 @@ _TICKER_TO_COMPANY: dict[str, list[str]] = {
     "ABBV": ["AbbVie", "ABBV"],
     "UNH": ["UnitedHealth", "UnitedHealth Group", "UNH"],
     "JNJ": ["Johnson & Johnson", "Johnson and Johnson", "JNJ"],
+    # consumer_discretionary — added proactively at sector creation this time
+    # (see the note above: two prior sectors both scored News=0.0/15 silently
+    # for weeks before this table caught up). "Target" and bare "HD" are
+    # deliberately excluded as too generic (any "price target"/"rate target"
+    # headline, or "HD" as in high-definition, would false-match) — same
+    # reasoning as KEY/RF above.
+    "AMZN": ["Amazon", "Amazon.com", "AMZN"],
+    "TSLA": ["Tesla", "TSLA"],
+    "HD": ["Home Depot"],
+    "NKE": ["Nike", "NKE"],
+    "SBUX": ["Starbucks", "SBUX"],
+    "TGT": ["Target Corp", "Target Corporation", "TGT"],
 }
 
 _BULLISH_KEYWORDS = [

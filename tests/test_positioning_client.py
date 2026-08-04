@@ -81,6 +81,35 @@ class TestBuildChainList:
         assert len(result) == 1
         assert result[0]["strike"] == 102.0
 
+    def test_void_bid_ask_pair_is_skipped(self):
+        """
+        bid=0.0 AND ask=0.0 together (not NaN) is a void/unquoted contract, not
+        a real market — confirmed live (2026-08-03) across NVDA/ZION/ASML/HD/
+        TGT/SBUX, where yfinance's free-tier chain returned real volume/lastPrice
+        alongside bid=ask=0.0 on every near-the-money contract. Left in, this
+        would look like a perfect $0.00-wide spread instead of the absent quote
+        it actually is.
+        """
+        calls = self._chain_df([
+            {"strike": 100.0, "bid": 0.0, "ask": 0.0, "impliedVolatility": 0.25, "openInterest": 0},
+            {"strike": 101.0, "bid": 1.0, "ask": 1.2, "impliedVolatility": 0.3, "openInterest": 50},
+        ])
+        puts = self._chain_df([])
+        result = _build_chain_list(calls, puts, current_price=100.0, expiration="2027-01-01")
+        assert len(result) == 1
+        assert result[0]["strike"] == 101.0
+
+    def test_real_zero_bid_with_nonzero_ask_is_kept(self):
+        """A genuinely far-OTM contract can legitimately have bid=0 (no one will
+        pay anything) while still carrying a real ask — that's a real, if
+        unattractive, one-sided quote, not the void bid=ask=0.0 failure mode."""
+        calls = self._chain_df([
+            {"strike": 100.0, "bid": 0.0, "ask": 0.05, "impliedVolatility": 0.25, "openInterest": 3},
+        ])
+        puts = self._chain_df([])
+        result = _build_chain_list(calls, puts, current_price=100.0, expiration="2027-01-01")
+        assert len(result) == 1
+
     def test_output_shape(self):
         calls = self._chain_df([
             {"strike": 100.0, "bid": 2.0, "ask": 2.2, "impliedVolatility": 0.35, "openInterest": 123},

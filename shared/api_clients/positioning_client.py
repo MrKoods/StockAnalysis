@@ -89,6 +89,15 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
                          expiration} within +/-20% of current_price, real contracts
                          only (used for Greeks/leg selection, not scoring)
       suspect_fields
+
+    avg_call_iv/avg_put_iv (and therefore iv_skew/atm_iv) are only computed from
+    contracts with a real two-sided quote (bid>0 AND ask>0) — yfinance's free-tier
+    chain has been observed to return bid=ask=0.0 (not NaN) across an entire
+    near-the-money band even alongside genuinely live volume/lastPrice, with a
+    non-NaN but degenerate impliedVolatility riding along, so the IV column alone
+    can't be trusted as the signal that data is missing. `chain` excludes those
+    same void bid=ask=0.0 contracts too (see _build_chain_list) so Greeks/leg
+    selection never treats an absent quote as a real $0.00-wide market.
     """
     result = {
         "put_call_ratio": None, "avg_call_iv": None, "avg_put_iv": None,
@@ -131,8 +140,22 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
         else:
             band_calls, band_puts = calls, puts
 
-        call_ivs = band_calls["impliedVolatility"].dropna()
-        put_ivs = band_puts["impliedVolatility"].dropna()
+        # yfinance's free-tier option chain has been observed to return a real,
+        # live `volume`/`lastPrice` alongside a completely void bid/ask surface —
+        # bid=0.0 and ask=0.0 (not NaN) on every near-the-money contract, even for
+        # NVDA at min_dte>=5 with tens of thousands of contracts traded per strike
+        # (confirmed live 2026-08-03, also true for ZION/ASML/HD/TGT/SBUX). The
+        # impliedVolatility column can't be trusted as the tell here — it holds
+        # non-NaN, suspiciously round placeholder values (0.0625, 0.125, 0.25)
+        # in exactly this scenario, not NaN. Trust IV only when at least one
+        # near-the-money contract has a real two-sided quote (bid>0 AND ask>0)
+        # backing it; average across just that quotable subset so one bad
+        # placeholder row can't corrupt the mean.
+        quotable_calls = band_calls[(band_calls["bid"] > 0) & (band_calls["ask"] > 0)]
+        quotable_puts = band_puts[(band_puts["bid"] > 0) & (band_puts["ask"] > 0)]
+
+        call_ivs = quotable_calls["impliedVolatility"].dropna()
+        put_ivs = quotable_puts["impliedVolatility"].dropna()
 
         if len(call_ivs) > 0:
             result["avg_call_iv"] = round(float(call_ivs.mean()), 4)
@@ -185,6 +208,16 @@ def _build_chain_list(calls, puts, current_price: Optional[float], expiration: s
             # routinely, so an `is None` check alone would silently let those
             # through as if they were real, tradeable quotes.
             if pd.isna(iv) or pd.isna(bid) or pd.isna(ask):
+                continue
+            # bid=0.0 AND ask=0.0 together (not NaN) is a separate failure mode:
+            # a void/unquoted contract, not a real two-sided market where both
+            # sides happen to be worthless — confirmed live (2026-08-03) across
+            # every ticker tested, including highly-liquid NVDA with real,
+            # current `volume`. Left in, this would look like a perfect $0.00-
+            # wide spread to the Greeks filter and leg selection below instead
+            # of the absent quote it actually is — the most dangerous shape of
+            # bad data because it doesn't look broken.
+            if bid == 0 and ask == 0:
                 continue
             contracts.append({
                 "strike": float(row["strike"]),

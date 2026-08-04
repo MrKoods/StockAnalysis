@@ -24185,3 +24185,129 @@
 2026-08-03 15:31:33,833 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for JNJ.
 2026-08-03 15:31:33,930 [__main__] INFO — JNJ: SCORE 67.6/100 (technical=27.4/40, positioning=10.4/20, sentiment=9.5/15, news=8.6/15, fundamental=6.7/10 as_of=2026-08-02) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=+5.0) direction=bullish qualifies=no
 2026-08-03 15:31:34,800 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — StockTwits sentiment unavailable.
+2026-08-03 16:08:03,907 [shared.api_clients.sentiment_client] WARNING — RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.
+2026-08-03 16:08:04,130 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMZN.
+2026-08-03 16:08:04,130 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:04,130 [shared.api_clients.news_client] WARNING — ALPHA_VANTAGE_API_KEY not set — AV news unavailable.
+2026-08-03 16:08:04,267 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSLA.
+2026-08-03 16:08:04,267 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:04,490 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HD.
+2026-08-03 16:08:04,490 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:04,811 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NKE.
+2026-08-03 16:08:04,811 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:04,949 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for SBUX.
+2026-08-03 16:08:04,949 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:05,248 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TGT.
+2026-08-03 16:08:05,248 [shared.api_clients.news_client] WARNING — FINNHUB_API_KEY not set — Finnhub news unavailable.
+2026-08-03 16:08:05,249 [shared.api_clients.fundamental_client] WARNING — ALPHA_VANTAGE_API_KEY not set — earnings call will fail gracefully.
+2026-08-03 16:08:05,249 [shared.api_clients.fundamental_client] WARNING — FINNHUB_API_KEY not set — analyst rating call will fail gracefully.
+2026-08-03 16:08:05,373 [shared.api_clients.fundamental_client] WARNING — AMZN: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:05,373 [shared.api_clients.fundamental_client] WARNING — AMZN: skipping EPS growth trend — no AV key
+2026-08-03 16:08:05,388 [shared.api_clients.fundamental_client] WARNING — AMZN: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:05,504 [shared.api_clients.fundamental_client] WARNING — TSLA: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:05,524 [shared.api_clients.fundamental_client] WARNING — TSLA: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:05,696 [shared.api_clients.fundamental_client] WARNING — HD: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:05,762 [shared.api_clients.fundamental_client] WARNING — HD: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:05,868 [shared.api_clients.fundamental_client] WARNING — NKE: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:05,885 [shared.api_clients.fundamental_client] WARNING — NKE: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:05,997 [shared.api_clients.fundamental_client] WARNING — SBUX: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:06,016 [shared.api_clients.fundamental_client] WARNING — SBUX: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:06,126 [shared.api_clients.fundamental_client] WARNING — TGT: skipping earnings surprises — no Finnhub key
+2026-08-03 16:08:06,154 [shared.api_clients.fundamental_client] WARNING — TGT: skipping analyst rating — no Finnhub key
+2026-08-03 16:08:36,757 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMZN.
+2026-08-03 16:08:37,143 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:09:07,695 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:10:08,454 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:12:08,454 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:12:09,062 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSLA.
+2026-08-03 16:12:09,437 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:12:39,857 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:13:40,262 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:15:40,263 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:15:40,882 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HD.
+2026-08-03 16:15:41,257 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:15:52,456 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMZN.
+2026-08-03 16:15:52,832 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:16:11,627 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:16:23,198 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:17:12,021 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:17:23,566 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMZN&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:19:12,022 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:19:12,707 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NKE.
+2026-08-03 16:19:13,065 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:19:23,566 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:19:24,224 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSLA.
+2026-08-03 16:19:24,590 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:19:43,603 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:19:54,956 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:20:43,971 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:20:55,322 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSLA&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:22:43,972 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:22:44,626 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for SBUX.
+2026-08-03 16:22:45,000 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:22:55,322 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:22:55,951 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HD.
+2026-08-03 16:22:56,319 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:23:15,371 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:23:26,674 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:24:15,739 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:24:27,036 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=HD&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:26:15,739 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:26:16,258 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TGT.
+2026-08-03 16:26:16,628 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:26:27,036 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:26:27,663 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NKE.
+2026-08-03 16:26:28,016 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:26:47,202 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:26:58,386 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:27:47,571 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:27:58,762 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NKE&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:29:47,571 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:29:47,794 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMZN.
+2026-08-03 16:29:48,323 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for AMZN.
+2026-08-03 16:29:48,875 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMZN.
+2026-08-03 16:29:49,012 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSLA.
+2026-08-03 16:29:49,657 [shared.api_clients.news_client] INFO — Finnhub: fetched 247 articles for TSLA.
+2026-08-03 16:29:49,818 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HD.
+2026-08-03 16:29:50,283 [shared.api_clients.news_client] INFO — Finnhub: fetched 29 articles for HD.
+2026-08-03 16:29:50,448 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NKE.
+2026-08-03 16:29:50,846 [shared.api_clients.news_client] INFO — Finnhub: fetched 30 articles for NKE.
+2026-08-03 16:29:50,990 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for SBUX.
+2026-08-03 16:29:51,394 [shared.api_clients.news_client] INFO — Finnhub: fetched 116 articles for SBUX.
+2026-08-03 16:29:51,562 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TGT.
+2026-08-03 16:29:51,935 [shared.api_clients.news_client] INFO — Finnhub: fetched 39 articles for TGT.
+2026-08-03 16:29:58,762 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:29:59,277 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for SBUX.
+2026-08-03 16:29:59,630 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:30:30,043 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:31:30,419 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=SBUX&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:33:30,419 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:33:31,000 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TGT.
+2026-08-03 16:33:31,389 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 30s.
+2026-08-03 16:34:01,771 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 60s.
+2026-08-03 16:35:02,139 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TGT&page_number=1&category=all. Retry in 120s.
+2026-08-03 16:37:02,140 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-03 16:37:02,444 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMZN.
+2026-08-03 16:37:02,871 [shared.api_clients.news_client] INFO — Finnhub: fetched 250 articles for AMZN.
+2026-08-03 16:37:03,315 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for AMZN.
+2026-08-03 16:37:03,442 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSLA.
+2026-08-03 16:37:04,002 [shared.api_clients.news_client] INFO — Finnhub: fetched 247 articles for TSLA.
+2026-08-03 16:37:04,177 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for HD.
+2026-08-03 16:37:04,845 [shared.api_clients.news_client] INFO — Finnhub: fetched 29 articles for HD.
+2026-08-03 16:37:05,322 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NKE.
+2026-08-03 16:37:05,828 [shared.api_clients.news_client] INFO — Finnhub: fetched 30 articles for NKE.
+2026-08-03 16:37:05,967 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for SBUX.
+2026-08-03 16:37:06,637 [shared.api_clients.news_client] INFO — Finnhub: fetched 116 articles for SBUX.
+2026-08-03 16:37:06,799 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TGT.
+2026-08-03 16:37:07,163 [shared.api_clients.news_client] INFO — Finnhub: fetched 39 articles for TGT.

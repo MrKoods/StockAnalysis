@@ -2,36 +2,38 @@
 Fundamental data client for the semiconductor swing trading model.
 
 Fetches valuation metrics, earnings history, and estimate revisions for each watchlist
-ticker using yfinance (no API key needed), Alpha Vantage (ALPHA_VANTAGE_API_KEY), and
-Finnhub (FINNHUB_API_KEY).
+ticker using yfinance (no API key needed) and Finnhub (FINNHUB_API_KEY). No longer
+touches Alpha Vantage at all as of the eps_growth_trend migration below — this client
+used to be the last consumer of the shared data/processed/av_call_count.json budget
+outside news_client.py; it no longer draws from that pool.
 
 Update cadence: staggered per-ticker (see indicator_pipeline.fetch_fundamental_data).
-Alpha Vantage is now used for exactly one figure — eps_growth_trend, the 8-quarter
-year-over-year EPS comparison — fetched only near a ticker's own earnings date (or on
-its first-ever fetch), not on routine weekly refresh, since that figure can't change
-between quarterly reports. Everything else that used to require AV (earnings surprises,
-consecutive-beat streak) now comes from Finnhub, refreshed every time, at zero AV cost.
-Alpha Vantage's free-tier limit is a single per-account daily cap, not partitioned by
-"scan type" — this call shares data/processed/av_call_count.json with
-shared/api_clients/news_client.py's scan-time AV usage.
+eps_growth_trend (the 8-quarter YoY EPS comparison) is still only fetched near a
+ticker's own earnings date or on first-ever fetch, not on routine weekly refresh,
+since that figure can't change between quarterly reports — that gating is about
+avoiding wasted work, not budget, now that the source is free.
 
 Data sources:
-  - yfinance Ticker.info          — valuation metrics (P/E, EV/EBITDA) + analyst target price
-  - Finnhub /stock/earnings       — actual vs. estimated EPS, last 4 quarters (feeds
-                                     earnings_surprises/consecutive_beats — this is exactly
-                                     the shape needed, no AV call required)
-  - Alpha Vantage EARNINGS        — up to 8 quarters of reported EPS, used only to compute
-                                     eps_growth_trend (YoY). Finnhub's free tier and
-                                     yfinance's quarterly statements both cap out at 4-5
-                                     quarters — not deep enough for a YoY comparison — so AV
-                                     remains the only source for this one figure specifically.
-                                     Called sparingly (see get_eps_growth_trend), not on
-                                     every refresh.
-  - Finnhub /stock/recommendation — analyst rating breakdown (replaced Alpha Vantage
-                                     OVERVIEW here — AV's own prior docstring already noted
-                                     that call was low-value on the free tier: current
-                                     target price only, no revision history — Finnhub gives
-                                     the same rating-snapshot depth for zero AV budget)
+  - yfinance Ticker.info              — valuation metrics (P/E, EV/EBITDA) + analyst
+                                         target price
+  - Finnhub /stock/earnings           — actual vs. estimated EPS, last 4 quarters (feeds
+                                         earnings_surprises/consecutive_beats)
+  - yfinance Ticker.get_earnings_dates — up to 24 quarters of reported EPS (confirmed
+                                         live across mega-cap, regional-bank, and ADR
+                                         tickers), used to compute eps_growth_trend (YoY).
+                                         Replaced the prior Alpha Vantage EARNINGS call —
+                                         Finnhub's free tier and yfinance's quarterly
+                                         income-statement both cap out at 4-5 quarters,
+                                         not deep enough for a YoY comparison, but this
+                                         endpoint (Yahoo's earnings-calendar history, via
+                                         pandas.read_html — requires the lxml package)
+                                         goes back multiple years for every ticker tested.
+  - Finnhub /stock/recommendation     — analyst rating breakdown (replaced Alpha Vantage
+                                         OVERVIEW here — AV's own prior docstring already
+                                         noted that call was low-value on the free tier:
+                                         current target price only, no revision history —
+                                         Finnhub gives the same rating-snapshot depth for
+                                         zero AV budget)
 """
 
 import os
@@ -42,14 +44,12 @@ import requests
 import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
-from shared.api_clients.news_client import check_av_budget, increment_av_call_count
 
 logger = get_logger(__name__)
 
-_AV_BASE_URL = "https://www.alphavantage.co/query"
 _FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 _BACKOFF_DELAYS = [30, 60, 120]
-_MAX_TOTAL_BACKOFF_SECONDS = 90  # caps worst-case stall per AV call (see _with_backoff)
+_MAX_TOTAL_BACKOFF_SECONDS = 90  # caps worst-case stall per Finnhub call (see _with_backoff)
 
 
 class FundamentalClient:
@@ -58,17 +58,14 @@ class FundamentalClient:
 
     Methods:
       get_valuation_metrics(ticker)  — P/E, EV/EBITDA via yfinance
-      get_earnings_history(ticker)   — EPS actuals/estimates (4Q YoY trend) via Alpha Vantage
+      get_eps_growth_trend(ticker)   — EPS actuals (4Q YoY trend) via yfinance
       get_estimate_revisions(ticker) — analyst target price (yfinance) + rating breakdown
-                                        (Finnhub) — no Alpha Vantage usage
+                                        (Finnhub)
       get_all_fundamentals(ticker)   — orchestrates all three; logs failures gracefully
     """
 
     def __init__(self):
-        self._av_key = os.getenv("ALPHA_VANTAGE_API_KEY", "")
         self._finnhub_key = os.getenv("FINNHUB_API_KEY", "")
-        if not self._av_key:
-            logger.warning("ALPHA_VANTAGE_API_KEY not set — earnings call will fail gracefully.")
         if not self._finnhub_key:
             logger.warning("FINNHUB_API_KEY not set — analyst rating call will fail gracefully.")
 
@@ -196,64 +193,55 @@ class FundamentalClient:
 
     def get_eps_growth_trend(self, ticker: str) -> Optional[dict]:
         """
-        Fetch up to 8 quarters of reported EPS via Alpha Vantage EARNINGS, used
-        only for the year-over-year growth trend — the one figure that genuinely
-        needs history deeper than Finnhub's/yfinance's free-tier 4-5 quarters.
+        Fetch up to 8 quarters of reported EPS via yfinance's earnings-date
+        history, used only for the year-over-year growth trend — the one figure
+        that genuinely needs history deeper than Finnhub's/yfinance's quarterly
+        income-statement 4-5 quarters.
 
         Computes:
           eps_growth_trend — list of up to 4 YoY EPS growth rates (most-recent-first)
 
-        Uses exponential backoff (30s → 60s → 120s). Returns None if all retries fail.
+        Replaced the prior Alpha Vantage EARNINGS call (see module docstring) —
+        confirmed live across NVDA/AMZN/ZION/LLY/ASML/TSM that this endpoint
+        returns 24 quarters of real reported EPS, comfortably past the 8 needed.
+        No retry/backoff here (matches get_valuation_metrics's plain try/except
+        for yfinance calls elsewhere in this class) — a single transient failure
+        just yields None, same as before.
 
-        Alpha Vantage free tier has a single 25-call/day limit shared across this
-        client and shared/api_clients/news_client.py — see module docstring. Callers
-        should only invoke this near a ticker's own earnings date or on first-ever
-        fetch (see indicator_pipeline.fetch_fundamental_data's fetch_eps_growth_trend
-        gating), not on every routine refresh — this figure can't change between a
-        company's quarterly reports, so refreshing it weekly would just be spending
-        AV budget to get back the same answer.
+        Callers should still only invoke this near a ticker's own earnings date
+        or on first-ever fetch (see indicator_pipeline.fetch_fundamental_data's
+        fetch_eps_growth_trend gating) — not because of any budget now, but
+        because this figure can't change between a company's quarterly reports,
+        so a weekly refresh would just be redoing the same lookup.
         """
-        if not self._av_key:
-            logger.warning(f"{ticker}: skipping EPS growth trend — no AV key")
-            return None
-        if not check_av_budget():
-            logger.warning(f"{ticker}: AV daily budget exhausted — skipping EPS growth trend")
-            return None
-
-        def _fetch_earnings():
-            params = {
-                "function": "EARNINGS",
-                "symbol": ticker,
-                "apikey": self._av_key,
-            }
-            resp = requests.get(_AV_BASE_URL, params=params, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            if "quarterlyEarnings" not in data:
-                raise ValueError(f"No quarterlyEarnings key in response: {list(data.keys())}")
-            return data
-
-        data = self._with_backoff(_fetch_earnings, ticker, "eps_growth_trend")
-        increment_av_call_count()
-        if data is None:
+        try:
+            df = yf.Ticker(ticker).get_earnings_dates(limit=12)
+        except Exception as exc:
+            logger.warning(f"{ticker}: get_earnings_dates failed — {exc}")
+            write_validation_entry(ticker, "fundamental_eps_growth_error", str(exc))
             return None
 
-        quarterly = data["quarterlyEarnings"]
-        if not quarterly:
-            logger.warning(f"{ticker}: quarterlyEarnings list is empty")
+        if df is None or df.empty or "Reported EPS" not in df.columns:
+            logger.warning(f"{ticker}: no Reported EPS in earnings-date history")
+            return None
+
+        # Most-recent-first, dropping future/unreported quarters (NaN).
+        reported = df["Reported EPS"].sort_index(ascending=False).dropna()
+        if reported.empty:
+            logger.warning(f"{ticker}: earnings-date history has no reported EPS yet")
             return None
 
         # Take up to 8 quarters so we can compute 4 YoY growth rates
-        recent = quarterly[:8]
+        recent = list(reported.values)[:8]
 
         eps_growth_trend = []
         for i in range(min(4, len(recent))):
-            reported = _safe_float(recent[i].get("reportedEPS"))
+            reported_eps = recent[i]
             # YoY growth: compare quarter i to quarter i+4 (same quarter prior year)
             if i + 4 < len(recent):
-                prior_eps = _safe_float(recent[i + 4].get("reportedEPS"))
-                if prior_eps is not None and prior_eps != 0 and reported is not None:
-                    growth = (reported - prior_eps) / abs(prior_eps)
+                prior_eps = recent[i + 4]
+                if prior_eps is not None and prior_eps != 0 and reported_eps is not None:
+                    growth = (reported_eps - prior_eps) / abs(prior_eps)
                     eps_growth_trend.append(round(growth, 4))
                 else:
                     eps_growth_trend.append(None)
@@ -402,8 +390,6 @@ class FundamentalClient:
         apikey and token are query params), so an unredacted 429/403/5xx would
         otherwise write the live key to disk in plaintext.
         """
-        if self._av_key:
-            text = text.replace(self._av_key, "***REDACTED***")
         if self._finnhub_key:
             text = text.replace(self._finnhub_key, "***REDACTED***")
         return text

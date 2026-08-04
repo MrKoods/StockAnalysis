@@ -8,6 +8,9 @@ yfinance>=0.2.36
 pandas>=2.0.0
 numpy>=1.26.0
 scipy>=1.11.0
+# yfinance's get_earnings_dates() (fundamental_client.get_eps_growth_trend) reads
+# Yahoo's earnings-calendar history via pandas.read_html, which needs lxml.
+lxml>=5.0.0
 
 # Config / env
 pyyaml>=6.0

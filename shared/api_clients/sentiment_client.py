@@ -31,6 +31,24 @@ _STOCKTWITS_HOST = "stocktwits.p.rapidapi.com"
 _SEEKING_ALPHA_HOST = "seeking-alpha-finance.p.rapidapi.com"
 _BACKOFF_DELAYS = [30, 60, 120]
 
+# The live scan loop (run_swing_model.py, paper_runner.py) calls fetch_stocktwits
+# and fetch_seeking_alpha_engagement once per ticker in a tight loop with no
+# delay between tickers — confirmed live (2026-08-03) to 429 Seeking Alpha for
+# 6 consecutive tickers, each burning the full 30s->60s->120s backoff before
+# giving up (~25 min of a scan spent retrying). Paced per-host, independently,
+# since StockTwits and Seeking Alpha are separate RapidAPI subscriptions with
+# presumably separate quotas — StockTwits had zero failures in that same test.
+_MIN_SECONDS_BETWEEN_CALLS = 2.0
+_last_call_at: dict[str, float] = {}
+
+
+def _wait_for_rate_limit(host: str) -> None:
+    elapsed = time.monotonic() - _last_call_at.get(host, 0.0)
+    remaining = _MIN_SECONDS_BETWEEN_CALLS - elapsed
+    if remaining > 0:
+        time.sleep(remaining)
+    _last_call_at[host] = time.monotonic()
+
 # Last-known-good cache for Seeking Alpha engagement items, keyed by ticker.
 # A transient RapidAPI outage (observed live: repeated "All retries exhausted"
 # across multiple tickers on the same day) used to make _score_engagement()
@@ -212,6 +230,7 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
     # "Just a moment..." challenge page) — a browser/curl-like UA passes.
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": host, "User-Agent": "curl/8.4.0"}
     delays = _BACKOFF_DELAYS
+    _wait_for_rate_limit(host)
     for attempt in range(retries):
         try:
             resp = requests.get(url, headers=headers, params=params, timeout=15)

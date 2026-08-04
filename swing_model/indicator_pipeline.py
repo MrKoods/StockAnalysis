@@ -37,24 +37,24 @@ _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
 _MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history's growth, oldest dropped first
 
 # Fundamental refresh is staggered rather than bursting the whole watchlist on one
-# day. Alpha Vantage is now down to a single call per ticker (eps_growth_trend only
-# — earnings_surprises/consecutive_beats moved to Finnhub, free, in
-# fundamental_client.py), and even that one call only fires for a cold-start ticker
-# or one near its own earnings date, not on routine rotation refresh — see
-# get_all_fundamentals's fetch_eps_growth_trend parameter. The AV daily budget is
-# still shared with post-close news (1 call/ticker), so capping refreshes/day and
-# spreading tickers across weekdays keeps fundamental usage to a handful of AV calls
-# a month, not a day, instead of a periodic spike that starves news.
+# day. eps_growth_trend (the one figure that used to require Alpha Vantage) now
+# comes from yfinance's earnings-date history instead (see
+# fundamental_client.get_eps_growth_trend) — this pipeline no longer touches Alpha
+# Vantage's budget at all. It still only fires for a cold-start ticker or one near
+# its own earnings date, not on routine rotation refresh (see get_all_fundamentals's
+# fetch_eps_growth_trend parameter), but that's now about avoiding redundant yfinance
+# lookups for a figure that can't change between quarterly reports, not budget.
 #
-# Raised 3 -> 5 (2026-07-31): this cap was set when the watchlist was 6 semiconductor
-# tickers only. It was never revisited when regional_banks (+5) and healthcare (+6)
-# went live, taking the watchlist to 17. Steady-state rotation alone (17 tickers /
-# _FUNDAMENTAL_ROTATION_WINDOW_DAYS=7) needs ~2.4 tickers/day, leaving almost no
-# daily slack for bootstrap catch-up — confirmed live: 4 of 6 healthcare tickers were
-# still showing fundamental_score=0/as_of=never a week after going live in v2.2.24,
-# each one capped ~10 points below its true ceiling for a reason unrelated to the
-# stock itself. Bootstrap is a one-time cost per ticker (not recurring), so this
-# raise mainly speeds up catch-up after watchlist growth, not steady-state AV usage.
+# Raised 3 -> 5 (2026-07-31), back when this cap existed to ration a shared AV daily
+# budget: set when the watchlist was 6 semiconductor tickers only, never revisited
+# when regional_banks (+5) and healthcare (+6) took it to 17 — confirmed live: 4 of 6
+# healthcare tickers were still showing fundamental_score=0/as_of=never a week after
+# going live in v2.2.24. Left at 5 for now even though the AV-budget rationale is
+# gone and the watchlist has since grown to 23 (consumer_discretionary +6) — raising
+# or removing this cap is a reasonable fast follow-up now that yfinance/Finnhub (not
+# a 20-25/day account limit) are the only remaining constraints, but that's a
+# deliberate cadence decision worth its own sign-off rather than a silent side effect
+# of the AV migration.
 _FUNDAMENTAL_MAX_TICKERS_PER_DAY = 5
 _FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
 _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3

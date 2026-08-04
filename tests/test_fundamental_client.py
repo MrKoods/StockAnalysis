@@ -2,19 +2,24 @@
 Tests for shared/api_clients/fundamental_client.py's get_estimate_revisions(),
 get_earnings_surprises(), get_eps_growth_trend(), and get_all_fundamentals().
 
-Covers two AV-budget reductions:
+Covers three Alpha Vantage removals — this client no longer touches AV at all:
 - get_estimate_revisions(): analyst target price now comes from yfinance and the
   rating breakdown from Finnhub's /stock/recommendation, instead of Alpha
   Vantage's OVERVIEW call.
 - get_earnings_history() was split: earnings_surprises/consecutive_beats moved
-  to Finnhub's /stock/earnings (free, same shape needed), leaving Alpha Vantage
-  responsible only for eps_growth_trend (the one figure needing 8-quarter depth
-  neither free-tier source provides) — and even that call is now gated by
-  get_all_fundamentals's fetch_eps_growth_trend parameter, not fetched every time.
+  to Finnhub's /stock/earnings (free, same shape needed).
+- get_eps_growth_trend() (the one figure needing 8-quarter depth neither
+  Finnhub's nor yfinance's quarterly-statement free tiers provide) moved from
+  Alpha Vantage EARNINGS to yfinance's get_earnings_dates() history, confirmed
+  live to return 24 quarters of real reported EPS across every ticker type in
+  the watchlist. Still gated by get_all_fundamentals's fetch_eps_growth_trend
+  parameter, not fetched every time — that's now about avoiding redundant
+  lookups for a figure that can't change mid-quarter, not budget.
 """
 
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
 import pytest
 
 from shared.api_clients.fundamental_client import FundamentalClient
@@ -58,15 +63,12 @@ class TestEstimateRevisions:
         }
 
     def test_no_alpha_vantage_call_made(self):
-        """The whole point of this change: get_estimate_revisions must never touch
-        Alpha Vantage — check_av_budget/increment_av_call_count should not fire."""
+        """get_estimate_revisions must never touch Alpha Vantage — the only
+        backoff-wrapped call in this method is the Finnhub one."""
         client = FundamentalClient()
         with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=_mock_yf_info()):
             with patch.object(client, "_with_backoff", return_value=None) as mock_backoff:
-                with patch("shared.api_clients.fundamental_client.check_av_budget") as mock_budget:
-                    client.get_estimate_revisions("NVDA")
-                    mock_budget.assert_not_called()
-        # The only backoff-wrapped call in this method must be the Finnhub one.
+                client.get_estimate_revisions("NVDA")
         assert mock_backoff.call_count == 1
         assert mock_backoff.call_args[0][2] == "analyst_recommendation"
 
@@ -107,14 +109,13 @@ class TestEarningsSurprisesFromFinnhub:
         assert mock_backoff.call_args[0][2] == "earnings_surprises"
 
     def test_never_touches_alpha_vantage_budget(self):
-        """The whole point of this move: get_earnings_surprises must not spend AV budget."""
+        """get_earnings_surprises must not spend AV budget — see
+        TestEpsGrowthTrendFromYfinance.test_never_touches_alpha_vantage for the
+        module-level guard confirming AV isn't imported anywhere in this file."""
         client = FundamentalClient()
-        with patch.object(client, "_with_backoff", return_value=[]):
-            with patch("shared.api_clients.fundamental_client.check_av_budget") as mock_budget:
-                with patch("shared.api_clients.fundamental_client.increment_av_call_count") as mock_incr:
-                    client.get_earnings_surprises("NVDA")
-        mock_budget.assert_not_called()
-        mock_incr.assert_not_called()
+        with patch.object(client, "_with_backoff", return_value=[]) as mock_backoff:
+            client.get_earnings_surprises("NVDA")
+        assert mock_backoff.call_args[0][2] == "earnings_surprises"
 
     def test_missing_finnhub_key_returns_none(self):
         client = FundamentalClient()
@@ -122,34 +123,77 @@ class TestEarningsSurprisesFromFinnhub:
         assert client.get_earnings_surprises("NVDA") is None
 
 
-class TestEpsGrowthTrendFromAlphaVantage:
-    def test_still_calls_alpha_vantage_and_spends_budget(self):
-        """Regression guard: eps_growth_trend must stay on Alpha Vantage — 8-quarter
-        YoY depth that Finnhub/yfinance free tiers can't match."""
+def _mock_earnings_dates_df(eps_values, end="2026-08-01"):
+    """
+    Build a DataFrame shaped like yf.Ticker(t).get_earnings_dates() — a
+    "Reported EPS" column indexed by earnings date, most-recent-first (index 0
+    is closest to `end`). `None` entries simulate a scheduled-but-not-yet-
+    reported future quarter (yfinance leaves those NaN).
+    """
+    dates = pd.date_range(end=end, periods=len(eps_values), freq="90D")[::-1]
+    return pd.DataFrame({"Reported EPS": eps_values}, index=dates)
+
+
+class TestEpsGrowthTrendFromYfinance:
+    """
+    eps_growth_trend moved off Alpha Vantage's EARNINGS endpoint onto yfinance's
+    get_earnings_dates() history (confirmed live: 24 quarters of real reported
+    EPS for NVDA/AMZN/ZION/LLY/ASML/TSM — comfortably past the 8 needed).
+    """
+
+    def test_computes_yoy_growth_from_earnings_dates(self):
         client = FundamentalClient()
-        fake_av_data = {
-            "quarterlyEarnings": [
-                {"reportedEPS": "1.0", "estimatedEPS": "0.9"} for _ in range(8)
-            ]
-        }
-        with patch.object(client, "_with_backoff", return_value=fake_av_data) as mock_backoff:
-            with patch("shared.api_clients.fundamental_client.check_av_budget", return_value=True):
-                with patch("shared.api_clients.fundamental_client.increment_av_call_count") as mock_incr:
-                    result = client.get_eps_growth_trend("NVDA")
+        # 8 quarters, most-recent-first: index i compares against index i+4 (YoY).
+        eps_values = [2.0, 1.8, 1.6, 1.4, 1.0, 0.9, 0.8, 0.7]
+        mock_ticker = MagicMock()
+        mock_ticker.get_earnings_dates.return_value = _mock_earnings_dates_df(eps_values)
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_eps_growth_trend("NVDA")
 
         assert result is not None
-        assert "eps_growth_trend" in result
-        assert "earnings_surprises" not in result  # that's Finnhub's job now
-        mock_incr.assert_called_once()
-        assert mock_backoff.call_args[0][2] == "eps_growth_trend"
+        assert len(result["eps_growth_trend"]) == 4
+        assert result["eps_growth_trend"][0] == pytest.approx((2.0 - 1.0) / 1.0, abs=1e-4)
+        assert "earnings_surprises" not in result  # that's Finnhub's job
 
-    def test_budget_exhausted_returns_none_without_calling_av(self):
+    def test_drops_future_unreported_quarter_before_computing(self):
         client = FundamentalClient()
-        with patch("shared.api_clients.fundamental_client.check_av_budget", return_value=False):
-            with patch.object(client, "_with_backoff") as mock_backoff:
-                result = client.get_eps_growth_trend("NVDA")
+        eps_values = [None, 2.0, 1.8, 1.6, 1.4, 1.0, 0.9, 0.8, 0.7]
+        mock_ticker = MagicMock()
+        mock_ticker.get_earnings_dates.return_value = _mock_earnings_dates_df(eps_values)
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_eps_growth_trend("NVDA")
+
+        assert result["eps_growth_trend"][0] == pytest.approx((2.0 - 1.0) / 1.0, abs=1e-4)
+
+    def test_missing_reported_eps_column_returns_none(self):
+        client = FundamentalClient()
+        mock_ticker = MagicMock()
+        mock_ticker.get_earnings_dates.return_value = pd.DataFrame({"EPS Estimate": [1.0]})
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_eps_growth_trend("NVDA")
         assert result is None
-        mock_backoff.assert_not_called()
+
+    def test_empty_history_returns_none(self):
+        client = FundamentalClient()
+        mock_ticker = MagicMock()
+        mock_ticker.get_earnings_dates.return_value = pd.DataFrame()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_eps_growth_trend("NVDA")
+        assert result is None
+
+    def test_yfinance_failure_returns_none(self):
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", side_effect=Exception("network error")):
+            result = client.get_eps_growth_trend("NVDA")
+        assert result is None
+
+    def test_never_touches_alpha_vantage(self):
+        """Module-level regression guard for the migration: fundamental_client no
+        longer imports or references anything Alpha Vantage related."""
+        import shared.api_clients.fundamental_client as fc_module
+        assert not hasattr(fc_module, "check_av_budget")
+        assert not hasattr(fc_module, "increment_av_call_count")
+        assert not hasattr(fc_module, "_AV_BASE_URL")
 
 
 class TestGetAllFundamentalsGating:

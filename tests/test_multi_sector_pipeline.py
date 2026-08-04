@@ -48,10 +48,10 @@ def _multi_sector_cfg() -> dict:
 
 class TestRealConfigAllSectorsActive:
     """
-    Sanity check on the real config file itself: as of v2.2.24 all three
-    sectors are active for paper trading (healthcare flipped on alongside the
-    existing semiconductors/regional_banks). This class exists to catch
-    exactly this kind of drift — if it ever fails, someone changed
+    Sanity check on the real config file itself: as of the consumer_discretionary
+    addition all four sectors are active for paper trading (semiconductors,
+    regional_banks, healthcare, consumer_discretionary). This class exists to
+    catch exactly this kind of drift — if it ever fails, someone changed
     watchlist.sectors.*.active without updating this test's expectations,
     which is worth noticing either way.
     """
@@ -60,7 +60,9 @@ class TestRealConfigAllSectorsActive:
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         active = get_active_sectors(cfg)
-        assert set(active.keys()) == {"semiconductors", "regional_banks", "healthcare"}
+        assert set(active.keys()) == {
+            "semiconductors", "regional_banks", "healthcare", "consumer_discretionary",
+        }
 
     def test_real_config_watchlist_includes_all_sectors(self):
         import yaml
@@ -70,6 +72,7 @@ class TestRealConfigAllSectorsActive:
             "NVDA", "AMD", "AVGO", "TSM", "MU", "ASML",
             "ZION", "KEY", "HBAN", "RF", "FITB",
             "LLY", "PFE", "MRK", "ABBV", "UNH", "JNJ",
+            "AMZN", "TSLA", "HD", "NKE", "SBUX", "TGT",
         ]
 
 

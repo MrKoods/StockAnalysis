@@ -75,6 +75,8 @@ jinja2==3.1.6
     # via spacy
 lets-be-rational==1.1.2
     # via vollib
+lxml==6.1.1
+    # via -r requirements.txt
 markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.3
