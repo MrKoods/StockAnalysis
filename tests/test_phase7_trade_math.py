@@ -446,8 +446,30 @@ class TestTradeSelector:
         )
         for key in ("ticker", "direction", "confidence", "structures_evaluated",
                     "structures_eligible_after_filters", "ranked_structures",
-                    "exclusion_summary"):
+                    "exclusion_summary", "win_prob_used", "win_prob_calibrated"):
             assert key in result
+
+    def test_default_win_prob_is_uncalibrated_confidence_over_100(self):
+        result = rank_trade_structures(
+            self._candidate(confidence=92), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+        )
+        assert result["win_prob_calibrated"] is False
+        assert result["win_prob_used"] == pytest.approx(0.92)
+
+    def test_calibration_points_change_win_prob_and_flag_calibrated(self):
+        calibration = [
+            {"threshold": 60, "win_rate": 0.55}, {"threshold": 95, "win_rate": 0.62},
+        ]
+        result = rank_trade_structures(
+            self._candidate(confidence=92), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+            win_probability_calibration=calibration,
+        )
+        assert result["win_prob_calibrated"] is True
+        # 92 is well below the uncalibrated 0.92 given real ~55-62% win rates.
+        assert result["win_prob_used"] < 0.92
+        assert 0.55 <= result["win_prob_used"] <= 0.62
 
     def test_top_ranked_is_recommended(self):
         result = rank_trade_structures(

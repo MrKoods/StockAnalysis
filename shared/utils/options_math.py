@@ -410,9 +410,17 @@ def resolve_structure_economics(
     profit_mult/loss_mult/_estimate_capital_required path) or if entry/stop/
     target aren't usable (mirrors _compute_structure_ev's own guard).
 
-    Returns {"avg_win": float, "avg_loss": float, "capital_required": float}
-    — all already x100-scaled per the module-level convention above, ready to
-    feed straight into compute_ev_simple() and the capital filter.
+    Returns {"avg_win": float, "avg_loss": float, "capital_required": float,
+    "effective_days": float} — avg_win/avg_loss/capital_required already
+    x100-scaled per the module-level convention above, ready to feed straight
+    into compute_ev_simple() and the capital filter. effective_days is how
+    many days of time-exposure this structure's own EV was actually computed
+    against — max(dte, 1) for most structures, but leaps_call/leaps_put use
+    _LEAPS_MIN_DAYS-scale exposure and calendar_*/diagonal_* use dte+30 for
+    their longer-dated leg (see those branches below) — a caller comparing EV
+    per dollar risked across structures without dividing by this would be
+    comparing a ~10-day trade's edge against a ~270-day trade's edge as if
+    they tied up capital for the same length of time.
     """
     if structure_name in PASSTHROUGH_STRUCTURES:
         return None
@@ -422,7 +430,8 @@ def resolve_structure_economics(
     fav = abs(target - entry)
     unfav = abs(entry - stop)
     iv = max(iv, _MIN_IV)
-    T = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1) / 365.0
+    effective_days = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1)
+    T = effective_days / 365.0
 
     def bs(S: float, K: float, T_: float, opt: str) -> float:
         return black_scholes_price(S, K, T_, r, iv, opt)
@@ -443,7 +452,7 @@ def resolve_structure_economics(
         avg_win = (fav - premium) * 100
         avg_loss = (unfav + premium) * 100
         capital = (entry * _STOCK_MARGIN_FRACTION + premium) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital, "effective_days": effective_days}
 
     if structure_name == "collar":
         put_k, call_k = _otm_k(entry, "put", 0.06), _otm_k(entry, "call", 0.06)
@@ -453,25 +462,26 @@ def resolve_structure_economics(
         avg_win = (capped_upside - net_premium) * 100
         avg_loss = (unfav + net_premium) * 100
         capital = (entry * _STOCK_MARGIN_FRACTION + max(0.0, net_premium)) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital, "effective_days": effective_days}
 
     # --- Category 2: Long premium, single leg (real leveraged option payoff) ---
     if structure_name in ("long_call", "long_put"):
         opt = "call" if structure_name == "long_call" else "put"
         avg_win, avg_loss, premium = single_leg_long(opt, entry, T)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": effective_days}
 
     if structure_name in ("deep_itm_call", "deep_itm_put"):
         opt = "call" if structure_name == "deep_itm_call" else "put"
         k = _itm_k(entry, opt, 0.15)
         avg_win, avg_loss, premium = single_leg_long(opt, k, T)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": effective_days}
 
     if structure_name in ("leaps_call", "leaps_put"):
         opt = "call" if structure_name == "leaps_call" else "put"
-        T_leaps = max(dte if dte is not None else _LEAPS_MIN_DAYS, _LEAPS_MIN_DAYS) / 365.0
+        leaps_days = max(dte if dte is not None else _LEAPS_MIN_DAYS, _LEAPS_MIN_DAYS)
+        T_leaps = leaps_days / 365.0
         avg_win, avg_loss, premium = single_leg_long(opt, entry, T_leaps)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": leaps_days}
 
     # --- Category 3: Debit spreads (2 legs, defined risk = net debit) ---
     if structure_name in ("bull_call_spread", "bear_put_spread"):
@@ -484,7 +494,7 @@ def resolve_structure_economics(
         avg_win = (min(fav, width) - net_debit) * 100
         avg_loss = net_debit * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(net_debit, floor) * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(net_debit, floor) * 100, "effective_days": effective_days}
 
     if structure_name in ("calendar_call", "calendar_put", "diagonal_call", "diagonal_put"):
         # Approximation, documented above: single-snapshot, not a true 2-expiry
@@ -498,13 +508,19 @@ def resolve_structure_economics(
         near_k = entry
         far_k = _otm_k(entry, opt, 0.06) if is_diagonal else entry
         short_premium = bs(entry, near_k, T, opt)
-        long_T = (max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1) + 30) / 365.0
+        diagonal_days = effective_days + 30
+        long_T = diagonal_days / 365.0
         long_premium = bs(entry, far_k, long_T, opt)
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
         net_debit = max(long_premium - short_premium, floor)
         avg_win = (fav * 0.4 - net_debit) * 100
         avg_loss = net_debit * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": net_debit * 100}
+        # effective_days uses the long (back) leg's expiration, not the near
+        # leg's — the position isn't fully closed, and this structure's own
+        # capital (net_debit) isn't freed, until that longer-dated leg is
+        # closed, so that's the exposure this structure's EV is really priced
+        # against, not the shared short-leg dte every other structure uses.
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": net_debit * 100, "effective_days": diagonal_days}
 
     # --- Category 4: Credit spreads (2 legs, defined risk = width - credit) ---
     if structure_name in ("bull_put_spread", "bear_call_spread"):
@@ -517,7 +533,7 @@ def resolve_structure_economics(
         avg_win = net_credit * 100
         avg_loss = max(width - net_credit, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - net_credit, floor) * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - net_credit, floor) * 100, "effective_days": effective_days}
 
     # --- Category 5: Undefined risk (excluded under $50k by Filter 1 regardless;
     #     still given a real, bounded-tail-risk formula for correctness) ---
@@ -532,7 +548,7 @@ def resolve_structure_economics(
         two_sigma_move = entry * iv * math.sqrt(T) * 2
         avg_win = premium * 100
         avg_loss = max(two_sigma_move - premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100, "effective_days": effective_days}
 
     # --- Category 6: Income (require real share ownership/cash-securing) ---
     if structure_name == "cash_secured_put":
@@ -540,14 +556,14 @@ def resolve_structure_economics(
         premium = bs(entry, k, T, "put")
         avg_win = premium * 100
         avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100, "effective_days": effective_days}
 
     if structure_name == "covered_call":
         k = _otm_k(entry, "call", 0.06)
         premium = bs(entry, k, T, "call")
         avg_win = (min(fav, k - entry) + premium) * 100
         avg_loss = max(unfav - premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100, "effective_days": effective_days}
 
     if structure_name == "covered_strangle":
         call_k, put_k = _otm_k(entry, "call", 0.06), _otm_k(entry, "put", 0.06)
@@ -557,7 +573,7 @@ def resolve_structure_economics(
         # Short the put too, on top of owning stock — doubles downside exposure
         # below the put strike relative to a plain covered call.
         avg_loss = max(unfav * 2 - total_premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100 + max(put_k - entry, 0) * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100 + max(put_k - entry, 0) * 100, "effective_days": effective_days}
 
     if structure_name == "wheel":
         # Single-cycle approximation of a repeating CSP->assignment->CC cycle:
@@ -567,7 +583,7 @@ def resolve_structure_economics(
         premium = bs(entry, k, T, "put")
         avg_win = premium * 100
         avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100, "effective_days": effective_days}
 
     # --- Category 7: Neutral/volatility (multi-leg) ---
     if structure_name in ("iron_condor", "iron_butterfly", "short_butterfly", "condor_spread"):
@@ -588,7 +604,7 @@ def resolve_structure_economics(
         avg_win = credit * 100
         avg_loss = max(width - credit, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - credit, floor) * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - credit, floor) * 100, "effective_days": effective_days}
 
     if structure_name == "long_butterfly_call":
         k_low, k_mid, k_high = _itm_k(entry, "call", 0.06), entry, _otm_k(entry, "call", 0.06)
@@ -599,7 +615,7 @@ def resolve_structure_economics(
         avg_win = min(fav, max_profit) * 100 if max_profit > 0 else 0.0
         avg_loss = max(premium, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(premium, floor) * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(premium, floor) * 100, "effective_days": effective_days}
 
     if structure_name in ("long_straddle", "long_strangle"):
         call_k = entry if structure_name == "long_straddle" else _otm_k(entry, "call", 0.06)
@@ -613,7 +629,7 @@ def resolve_structure_economics(
         put_val_at_fav = bs(entry - fav, put_k, T, "put")
         avg_win = (max(call_val_at_fav, put_val_at_fav) - total_premium) * 100
         avg_loss = total_premium * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": total_premium * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": total_premium * 100, "effective_days": effective_days}
 
     if structure_name in ("short_straddle", "short_strangle"):
         call_k = entry if structure_name == "short_straddle" else _otm_k(entry, "call", 0.06)
@@ -623,7 +639,7 @@ def resolve_structure_economics(
         two_sigma_move = entry * iv * math.sqrt(T) * 2
         avg_win = total_credit * 100
         avg_loss = max(two_sigma_move - total_credit, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100, "effective_days": effective_days}
 
     # --- Category 9: Synthetic (stock-replacement combos) ---
     if structure_name in ("risk_reversal", "synthetic_long", "synthetic_short"):
@@ -637,7 +653,7 @@ def resolve_structure_economics(
         else:
             net_cost = call_premium - put_premium
             avg_win, avg_loss = (fav - net_cost) * 100, (unfav + net_cost) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.25 * 100}
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.25 * 100, "effective_days": effective_days}
 
     return None
 

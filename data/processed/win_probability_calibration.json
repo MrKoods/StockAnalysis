@@ -1,0 +1,65 @@
+{
+  "source": "backtesting.fit_win_probability_calibration, generated 2026-08-06T07:35:35.669551+00:00, pooled sectors=['semiconductors', 'regional_banks', 'healthcare'], per_sector_outcome_counts={'semiconductors': 249, 'regional_banks': 149, 'healthcare': 146}, threshold_grid=[40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]",
+  "calibration_points": [
+    {
+      "threshold": 40,
+      "win_rate": 0.5615,
+      "n_trades": 544
+    },
+    {
+      "threshold": 45,
+      "win_rate": 0.5615,
+      "n_trades": 542
+    },
+    {
+      "threshold": 50,
+      "win_rate": 0.5615,
+      "n_trades": 541
+    },
+    {
+      "threshold": 55,
+      "win_rate": 0.5615,
+      "n_trades": 535
+    },
+    {
+      "threshold": 60,
+      "win_rate": 0.5626,
+      "n_trades": 519
+    },
+    {
+      "threshold": 65,
+      "win_rate": 0.5657,
+      "n_trades": 495
+    },
+    {
+      "threshold": 70,
+      "win_rate": 0.5741,
+      "n_trades": 470
+    },
+    {
+      "threshold": 75,
+      "win_rate": 0.5741,
+      "n_trades": 444
+    },
+    {
+      "threshold": 80,
+      "win_rate": 0.5741,
+      "n_trades": 418
+    },
+    {
+      "threshold": 85,
+      "win_rate": 0.5741,
+      "n_trades": 368
+    },
+    {
+      "threshold": 90,
+      "win_rate": 0.598,
+      "n_trades": 296
+    },
+    {
+      "threshold": 95,
+      "win_rate": 0.625,
+      "n_trades": 192
+    }
+  ]
+}

@@ -11,11 +11,18 @@ from backtesting.metrics import (
     compute_win_rate,
     compute_avg_rr,
     compute_max_drawdown,
+    compute_max_drawdown_duration,
+    compute_ulcer_index,
     compute_sharpe,
+    compute_sortino,
     per_regime_metrics,
     compute_consecutive_losses,
     compute_r_multiples,
     bootstrap_expectancy_ci,
+    run_sensitivity_analysis,
+    _build_equity_curve,
+    _ROUND_TRIP_SLIPPAGE_PER_SHARE,
+    build_portfolio_equity_curve,
 )
 from backtesting.backtest_engine import simulate_trade_outcome, run_backtest
 from backtesting.stress_test import run_all_scenarios, run_scenario, SCENARIOS
@@ -144,6 +151,186 @@ class TestMetrics:
     def test_sharpe_zero_on_flat(self):
         sharpe = compute_sharpe(pd.Series([0.0] * 10))
         assert sharpe == 0.0
+
+    def test_sortino_positive_on_positive_returns(self):
+        np.random.seed(42)
+        returns = pd.Series(np.random.normal(loc=0.005, scale=0.01, size=252))
+        sortino = compute_sortino(returns, risk_free_rate=0.0)
+        assert sortino > 0
+
+    def test_sortino_zero_on_empty(self):
+        assert compute_sortino(pd.Series([], dtype=float)) == 0.0
+
+    def test_sortino_zero_when_no_downside_observations(self):
+        # All returns above the risk-free rate — no downside deviation to
+        # compute a ratio against.
+        returns = pd.Series([0.01, 0.02, 0.015, 0.03])
+        assert compute_sortino(returns, risk_free_rate=0.0) == 0.0
+
+    def test_sortino_ignores_upside_variance_unlike_sharpe(self):
+        # Two return series with identical downside values and identical mean,
+        # but very different upside spread — Sortino should be IDENTICAL
+        # between them (it only ever looks at the downside values, which
+        # didn't change), while Sharpe differs since total variance did.
+        low_upside_var = pd.Series([-0.01, -0.02, 0.05, 0.05, 0.05, 0.05])
+        high_upside_var = pd.Series([-0.01, -0.02, 0.01, 0.03, 0.07, 0.09])
+        assert low_upside_var.mean() == pytest.approx(high_upside_var.mean())
+
+        sharpe_low = compute_sharpe(low_upside_var, risk_free_rate=0.0, periods_per_year=1)
+        sharpe_high = compute_sharpe(high_upside_var, risk_free_rate=0.0, periods_per_year=1)
+        sortino_low = compute_sortino(low_upside_var, risk_free_rate=0.0, periods_per_year=1)
+        sortino_high = compute_sortino(high_upside_var, risk_free_rate=0.0, periods_per_year=1)
+
+        assert sortino_low == pytest.approx(sortino_high)
+        assert sharpe_low != pytest.approx(sharpe_high)
+
+    def test_max_drawdown_duration_zero_on_empty(self):
+        assert compute_max_drawdown_duration(pd.Series([], dtype=float)) == 0
+
+    def test_max_drawdown_duration_zero_on_monotonic_rise(self):
+        equity = pd.Series([100, 105, 110, 120, 130])
+        assert compute_max_drawdown_duration(equity) == 0
+
+    def test_max_drawdown_duration_counts_steps_underwater(self):
+        # Peak at index 0 (100), underwater for indices 1-4, new high at index 5.
+        equity = pd.Series([100, 90, 85, 95, 99, 101])
+        assert compute_max_drawdown_duration(equity) == 4
+
+    def test_max_drawdown_duration_takes_the_longest_stretch(self):
+        # Two drawdown stretches: 2 steps underwater, then recovers, then 4 steps underwater.
+        equity = pd.Series([100, 90, 95, 105, 95, 90, 92, 94, 110])
+        assert compute_max_drawdown_duration(equity) == 4
+
+    def test_ulcer_index_zero_on_flat_or_rising_equity(self):
+        assert compute_ulcer_index(pd.Series([100, 100, 100])) == pytest.approx(0.0)
+        assert compute_ulcer_index(pd.Series([100, 110, 120])) == pytest.approx(0.0)
+
+    def test_ulcer_index_zero_on_empty(self):
+        assert compute_ulcer_index(pd.Series([], dtype=float)) == 0.0
+
+    def test_ulcer_index_positive_on_drawdown(self):
+        equity = pd.Series([100, 90, 85, 95, 100])
+        assert compute_ulcer_index(equity) > 0.0
+
+    def test_ulcer_index_penalizes_longer_drawdown_more_than_max_drawdown_does(self):
+        # Same max depth (-10%), but one recovers immediately and the other
+        # stays down for several steps — Ulcer Index should differ even
+        # though max_drawdown_pct is identical for both.
+        quick_recovery = pd.Series([100, 90, 100, 100, 100])
+        slow_recovery = pd.Series([100, 90, 90, 90, 90])
+        dd_quick = compute_max_drawdown(quick_recovery)
+        dd_slow = compute_max_drawdown(slow_recovery)
+        assert dd_quick == pytest.approx(dd_slow)  # same max depth
+        ui_quick = compute_ulcer_index(quick_recovery)
+        ui_slow = compute_ulcer_index(slow_recovery)
+        assert ui_slow > ui_quick
+
+    def test_equity_curve_with_slippage_underperforms_frictionless(self):
+        outcomes = [
+            {"pnl_pct": 0.05, "entry_price": 100.0, "stop": 97.0},
+            {"pnl_pct": 0.03, "entry_price": 100.0, "stop": 97.0},
+            {"pnl_pct": -0.02, "entry_price": 100.0, "stop": 97.0},
+        ]
+        with_slippage = _build_equity_curve(outcomes, starting_equity=15000.0, include_slippage=True)
+        frictionless = _build_equity_curve(outcomes, starting_equity=15000.0, include_slippage=False)
+        assert with_slippage.iloc[-1] < frictionless.iloc[-1]
+
+    def test_slippage_is_default_behavior(self):
+        outcomes = [{"pnl_pct": 0.05, "entry_price": 100.0, "stop": 97.0}]
+        default_curve = _build_equity_curve(outcomes, starting_equity=15000.0)
+        explicit_curve = _build_equity_curve(outcomes, starting_equity=15000.0, include_slippage=True)
+        assert default_curve.iloc[-1] == pytest.approx(explicit_curve.iloc[-1])
+
+    def test_higher_priced_stock_pays_proportionally_less_slippage(self):
+        # $0.02/share round-trip is a smaller fraction of a $1000 stock than
+        # a $10 stock — the slippage drag on pnl_pct should scale accordingly.
+        cheap = _build_equity_curve(
+            [{"pnl_pct": 0.05, "entry_price": 10.0, "stop": 9.7}], starting_equity=15000.0,
+        )
+        expensive = _build_equity_curve(
+            [{"pnl_pct": 0.05, "entry_price": 1000.0, "stop": 970.0}], starting_equity=15000.0,
+        )
+        frictionless = _build_equity_curve(
+            [{"pnl_pct": 0.05, "entry_price": 10.0, "stop": 9.7}], starting_equity=15000.0, include_slippage=False,
+        )
+        cheap_drag = frictionless.iloc[-1] - cheap.iloc[-1]
+        expensive_drag = frictionless.iloc[-1] - expensive.iloc[-1]
+        assert cheap_drag > expensive_drag
+
+    def test_zero_trades_returns_starting_equity_only(self):
+        curve = _build_equity_curve([], starting_equity=15000.0)
+        assert list(curve) == [15000.0]
+
+    def test_round_trip_slippage_constant_matches_options_math_convention(self):
+        # shared/utils/options_math.py's adjust_ev_for_slippage defaults to
+        # $0.02/share; this is that same per-share cost applied twice (entry + exit).
+        assert _ROUND_TRIP_SLIPPAGE_PER_SHARE == pytest.approx(0.04)
+
+    def test_portfolio_curve_empty_outcomes(self):
+        curve, stats = build_portfolio_equity_curve([], starting_equity=10000.0)
+        assert list(curve) == [10000.0]
+        assert stats["max_concurrent_positions"] == 0
+        assert stats["max_concurrent_risk_pct"] == 0.0
+
+    def test_non_overlapping_trades_never_concurrent(self):
+        outcomes = [
+            {"signal_date": "2026-01-01", "exit_date": "2026-01-05",
+             "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03},
+            {"signal_date": "2026-01-06", "exit_date": "2026-01-10",
+             "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03},
+        ]
+        _, stats = build_portfolio_equity_curve(outcomes, starting_equity=10000.0, include_slippage=False)
+        assert stats["max_concurrent_positions"] == 1
+
+    def test_overlapping_trades_are_flagged_concurrent(self):
+        outcomes = [
+            {"signal_date": "2026-01-01", "exit_date": "2026-01-10",
+             "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03},
+            {"signal_date": "2026-01-03", "exit_date": "2026-01-08",
+             "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03},
+        ]
+        _, stats = build_portfolio_equity_curve(outcomes, starting_equity=10000.0, include_slippage=False)
+        assert stats["max_concurrent_positions"] == 2
+        # Both risk 1% of the same starting equity simultaneously -> 2%.
+        assert stats["max_concurrent_risk_pct"] == pytest.approx(0.02)
+
+    def test_four_concurrent_correlated_losses_compound_worse_than_serial(self):
+        # Four semiconductor-like names all opened the same day, all losing
+        # -1R, all closing the same day — the concurrent view should show
+        # all four losses landing on the SAME starting equity (a real
+        # simultaneous drawdown), unlike a serial curve where later trades'
+        # risk shrinks as earlier losses compound in first.
+        outcomes = [
+            {"signal_date": "2026-01-01", "exit_date": "2026-01-05",
+             "entry_price": 100.0, "stop": 97.0, "pnl_pct": -0.03}
+            for _ in range(4)
+        ]
+        portfolio_curve, stats = build_portfolio_equity_curve(
+            outcomes, starting_equity=10000.0, risk_pct=0.01, include_slippage=False,
+        )
+        serial_curve = _build_equity_curve(
+            sorted(outcomes, key=lambda o: o["exit_date"]), starting_equity=10000.0, include_slippage=False,
+        )
+        assert stats["max_concurrent_positions"] == 4
+        assert stats["max_concurrent_risk_pct"] == pytest.approx(0.04)
+        # Portfolio view: each of the 4 losses is exactly 1% of the ORIGINAL
+        # 10000 (all sized before any of them realized) -> ends at 9600.
+        assert portfolio_curve.iloc[-1] == pytest.approx(9600.0)
+        # Serial view: each loss shrinks the base for the next -> a smaller
+        # total dollar loss than the concurrent view, understating the real
+        # simultaneous exposure.
+        assert portfolio_curve.iloc[-1] < serial_curve.iloc[-1]
+
+    def test_missing_exit_date_falls_back_to_same_day_round_trip(self):
+        outcomes = [{"signal_date": "2026-01-01", "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03}]
+        curve, stats = build_portfolio_equity_curve(outcomes, starting_equity=10000.0, include_slippage=False)
+        assert len(curve) == 2  # starting value + one realized trade
+        assert curve.iloc[-1] > 10000.0
+
+    def test_outcomes_missing_signal_date_are_skipped_not_crashed(self):
+        outcomes = [{"exit_date": "2026-01-05", "entry_price": 100.0, "stop": 97.0, "pnl_pct": 0.03}]
+        curve, stats = build_portfolio_equity_curve(outcomes, starting_equity=10000.0)
+        assert list(curve) == [10000.0]
 
     def test_per_regime_splits_correctly(self):
         outcomes = [
@@ -337,3 +524,56 @@ class TestStressTest:
         result = run_scenario(SCENARIOS["smh_30_pct_drop"], positions, 15000.0)
         # Circuit breaker check is based on total_pnl / equity
         assert result["circuit_breaker_triggered"] in ("none", "yellow", "orange", "red")
+
+
+# ---------------------------------------------------------------------------
+# Sensitivity analysis — deflated Sharpe / multiple-testing correction
+# ---------------------------------------------------------------------------
+
+def _sensitivity_outcome(confidence, outcome, pnl_pct, day_offset, achieved_rr=None):
+    """One synthetic outcome with the fields run_sensitivity_analysis's equity
+    curve / Sharpe computation actually needs (pnl_pct, entry_price, stop,
+    exit_date) alongside the confidence it filters on."""
+    return {
+        "confidence": confidence,
+        "outcome": outcome,
+        "pnl_pct": pnl_pct,
+        "achieved_rr": achieved_rr if achieved_rr is not None else (3.0 if outcome == "win" else -1.0),
+        "entry_price": 100.0,
+        "stop": 97.0,
+        "exit_date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=day_offset),
+        "regime": "trending_up",
+    }
+
+
+class TestSensitivityAnalysisDeflatedSharpe:
+    def test_reports_sharpe_per_threshold(self):
+        # 30 outcomes spread across confidence levels so every default
+        # threshold (85/87/90/92/95) has at least a few qualifying trades.
+        outcomes = [
+            _sensitivity_outcome(85 + (i % 11), "win" if i % 3 else "loss", 0.03 if i % 3 else -0.01, i)
+            for i in range(30)
+        ]
+        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        assert "sharpe_ratio" in df.columns
+        assert len(df) == 5
+
+    def test_adds_deflated_sharpe_columns_when_any_threshold_has_trades(self):
+        outcomes = [
+            _sensitivity_outcome(85 + (i % 11), "win" if i % 3 else "loss", 0.03 if i % 3 else -0.01, i)
+            for i in range(30)
+        ]
+        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        assert "psr_best_threshold_vs_sweep" in df.columns
+        assert "deflated_sharpe_best_threshold" in df.columns
+        assert (df["psr_best_threshold_vs_sweep"] >= 0.0).all()
+        assert (df["psr_best_threshold_vs_sweep"] <= 1.0).all()
+
+    def test_no_deflated_sharpe_columns_when_nothing_qualifies(self):
+        # All outcomes below every threshold — every row is the zero-trades
+        # branch, sharpe_ratio stays 0.0 everywhere, so there's nothing to
+        # deflate and the extra columns should be skipped entirely.
+        outcomes = [_sensitivity_outcome(50.0, "loss", -0.01, i) for i in range(10)]
+        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        assert (df["qualifying_trades"] == 0).all()
+        assert "psr_best_threshold_vs_sweep" not in df.columns

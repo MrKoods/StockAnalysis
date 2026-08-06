@@ -30,6 +30,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+from scipy.optimize import minimize
+
 from shared.utils.atomic_io import atomic_write_json
 from swing_model import model_versioning
 
@@ -388,10 +391,93 @@ def load_live_weights_if_calibrated() -> Optional[dict]:
     return {k: raw[k] for k in _WEIGHT_KEYS if k in raw}
 
 
+_MIN_SAMPLES_FOR_REGRESSION = 20
+_LOGISTIC_L2_PENALTY = 1.0  # regularization strength — keeps a small holdout-gated
+# calibration sample from fitting noise, same spirit as the ±2pp/10pp caps below.
+
+
+def _sigmoid(z: np.ndarray) -> np.ndarray:
+    return 1.0 / (1.0 + np.exp(-np.clip(z, -30, 30)))
+
+
+def _fit_logistic_weights(outcomes: list[dict]) -> Optional[dict]:
+    """
+    Regularized logistic regression: predict win (1) vs. loss (0) from
+    [technical_total, sentiment_total, news_total], L2-penalized. Returns
+    normalized weight fractions (summing to 1.0) from the fitted
+    coefficients' relative magnitudes, or None when there isn't enough
+    data or the fit is degenerate (e.g. every sample has identical feature
+    values, so there's no real signal to separate wins from losses) —
+    callers should fall back to the coarser heuristic in that case.
+
+    Replaces the previous sign-only heuristic (_recompute_weights' old
+    body), which only asked "is this sub-signal's average higher in wins
+    than losses" and applied the same fixed ±2pp nudge regardless of how
+    large or reliable that gap was — a sub-signal with a huge, consistent
+    edge and one with a coin-flip-sized edge got an identical adjustment.
+    A regression naturally weighs each sub-signal by how much it actually
+    separates outcomes, and standardizing features first (see X_std below)
+    keeps a large-scale sub-signal (technical: 0-40) from mechanically
+    dominating a small-scale one (news: 0-15) purely from units, not
+    predictive power.
+    """
+    rows = []
+    for o in outcomes:
+        outcome = o.get("outcome")
+        if outcome not in ("win", "loss", "time_stop"):
+            continue
+        try:
+            tech = float(o.get("technical_total", ""))
+            sent = float(o.get("sentiment_total", ""))
+            news = float(o.get("news_total", ""))
+        except (TypeError, ValueError):
+            continue
+        rows.append((tech, sent, news, 1.0 if outcome == "win" else 0.0))
+
+    if len(rows) < _MIN_SAMPLES_FOR_REGRESSION:
+        return None
+
+    X = np.array([[r[0], r[1], r[2]] for r in rows])
+    y = np.array([r[3] for r in rows])
+    if len(set(y.tolist())) < 2:
+        return None  # all wins or all losses — nothing to separate
+
+    X_mean = X.mean(axis=0)
+    X_std = X.std(axis=0)
+    if np.any(X_std == 0):
+        return None  # a sub-signal with zero variance can't be fit meaningfully
+    X_norm = (X - X_mean) / X_std
+
+    def neg_log_likelihood(beta: np.ndarray) -> float:
+        p = _sigmoid(X_norm @ beta)
+        eps = 1e-9
+        ll = np.sum(y * np.log(p + eps) + (1 - y) * np.log(1 - p + eps))
+        return float(-ll + _LOGISTIC_L2_PENALTY * np.sum(beta ** 2))
+
+    result = minimize(neg_log_likelihood, x0=np.zeros(3), method="L-BFGS-B")
+    if not result.success:
+        return None
+
+    coefs = np.abs(result.x)
+    total = float(coefs.sum())
+    if total <= 1e-9:
+        return None  # no sub-signal showed any separating power
+
+    fractions = coefs / total
+    return {"technical": float(fractions[0]), "sentiment": float(fractions[1]), "news": float(fractions[2])}
+
+
 def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
     """
     Recompute weights based on which signal components correlate with wins.
-    Simple win/loss comparison per sub-signal; ±2pp adjustments capped at 10pp.
+
+    Tries a regularized logistic regression first (_fit_logistic_weights) —
+    weighs each sub-signal by how much it actually separates wins from
+    losses, not just its sign. Falls back to a coarser win/loss-average
+    heuristic (±2pp nudge per sub-signal, direction only) when there isn't
+    enough data to fit a regression reliably (see
+    _MIN_SAMPLES_FOR_REGRESSION) or the fit is degenerate — the same
+    30-80%/5-40%/5-30% bounds and normalization apply either way.
     """
     if not outcomes:
         return current_weights.copy()
@@ -402,27 +488,35 @@ def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
     if not wins or not losses:
         return current_weights.copy()
 
-    def avg(outcomes, field):
-        vals = [float(o.get(field, 0)) for o in outcomes if o.get(field)]
-        return sum(vals) / len(vals) if vals else 0.0
+    fitted = _fit_logistic_weights(outcomes)
+    if fitted is not None:
+        new_weights = {
+            "technical": max(0.30, min(0.80, fitted["technical"])),
+            "sentiment": max(0.05, min(0.40, fitted["sentiment"])),
+            "news": max(0.05, min(0.30, fitted["news"])),
+        }
+    else:
+        def avg(outcomes, field):
+            vals = [float(o.get(field, 0)) for o in outcomes if o.get(field)]
+            return sum(vals) / len(vals) if vals else 0.0
 
-    # If technical signal higher on wins → increase technical weight
-    tech_win = avg(wins, "technical_total")
-    tech_loss = avg(losses, "technical_total")
-    sent_win = avg(wins, "sentiment_total")
-    sent_loss = avg(losses, "sentiment_total")
-    news_win = avg(wins, "news_total")
-    news_loss = avg(losses, "news_total")
+        # If technical signal higher on wins → increase technical weight
+        tech_win = avg(wins, "technical_total")
+        tech_loss = avg(losses, "technical_total")
+        sent_win = avg(wins, "sentiment_total")
+        sent_loss = avg(losses, "sentiment_total")
+        news_win = avg(wins, "news_total")
+        news_loss = avg(losses, "news_total")
 
-    adj_tech = 0.02 if tech_win > tech_loss else -0.02
-    adj_sent = 0.02 if sent_win > sent_loss else -0.02
-    adj_news = 0.02 if news_win > news_loss else -0.02
+        adj_tech = 0.02 if tech_win > tech_loss else -0.02
+        adj_sent = 0.02 if sent_win > sent_loss else -0.02
+        adj_news = 0.02 if news_win > news_loss else -0.02
 
-    new_weights = {
-        "technical": round(max(0.30, min(0.80, current_weights.get("technical", 0.60) + adj_tech)), 4),
-        "sentiment": round(max(0.05, min(0.40, current_weights.get("sentiment", 0.25) + adj_sent)), 4),
-        "news": round(max(0.05, min(0.30, current_weights.get("news", 0.15) + adj_news)), 4),
-    }
+        new_weights = {
+            "technical": max(0.30, min(0.80, current_weights.get("technical", 0.60) + adj_tech)),
+            "sentiment": max(0.05, min(0.40, current_weights.get("sentiment", 0.25) + adj_sent)),
+            "news": max(0.05, min(0.30, current_weights.get("news", 0.15) + adj_news)),
+        }
 
     # Normalize to sum to 1.0
     total = sum(new_weights.values())

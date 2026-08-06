@@ -42,7 +42,10 @@ CREATE TABLE IF NOT EXISTS ticker_results (
     expected_value REAL,
     event_gate_blocked INTEGER NOT NULL DEFAULT 0,
     event_gate_trigger TEXT,
-    sector TEXT
+    sector TEXT,
+    structures_eligible_after_filters INTEGER,
+    exclusion_summary TEXT,
+    ev_outlier_z REAL
 );
 CREATE INDEX IF NOT EXISTS idx_ticker_results_run_id ON ticker_results(run_id);
 
@@ -93,6 +96,24 @@ def _migrate(conn: sqlite3.Connection) -> None:
         # an "Unknown Sector" bucket in results_tab.py rather than dropped.
         conn.execute("ALTER TABLE ticker_results ADD COLUMN sector TEXT")
         conn.commit()
+    if "structures_eligible_after_filters" not in cols:
+        # rank_trade_structures() already computes structures_eligible_after_filters
+        # and exclusion_summary for every ticker that clears
+        # STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD, but paper_runner.py was discarding
+        # both after reading only the top-ranked structure — leaving no way to
+        # tell why a ticker scoring above the diagnostic threshold (e.g. TSM,
+        # AMZN, PFE) ended up with zero eligible structures instead of one.
+        conn.execute("ALTER TABLE ticker_results ADD COLUMN structures_eligible_after_filters INTEGER")
+        conn.execute("ALTER TABLE ticker_results ADD COLUMN exclusion_summary TEXT")
+        conn.commit()
+    if "ev_outlier_z" not in cols:
+        # robust_z_score(expected_value, <same structure's trailing history>) —
+        # computed live in paper_runner.py against get_expected_values_for_structure()
+        # so an anomaly like MU's long_strangle EV/$/day (~8x AVGO/NVDA's reading
+        # on the same structure) gets flagged at scan time, not discovered later
+        # by manually comparing scans by hand.
+        conn.execute("ALTER TABLE ticker_results ADD COLUMN ev_outlier_z REAL")
+        conn.commit()
 
 
 def create_scan_run(
@@ -119,6 +140,9 @@ def insert_ticker_result(
     event_gate_blocked: bool = False,
     event_gate_trigger: Optional[str] = None,
     sector: Optional[str] = None,
+    structures_eligible_after_filters: Optional[int] = None,
+    exclusion_summary: Optional[str] = None,
+    ev_outlier_z: Optional[float] = None,
     db_path: Optional[Path] = None,
 ) -> int:
     """Insert a ticker_results row for one ticker in one scan run. Returns the new result_id.
@@ -126,21 +150,54 @@ def insert_ticker_result(
     sector: which watchlist.sectors entry `ticker` belongs to (e.g.
     "semiconductors", "regional_banks") — None for callers that haven't
     threaded sector through yet, shown under "Unknown Sector" in results_tab.py.
+
+    structures_eligible_after_filters / exclusion_summary: rank_trade_structures()'s
+    own diagnostic output for *why* trade_structure is None despite the ticker
+    clearing STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD — None for callers that never
+    ran structure ranking (score below that threshold).
+
+    ev_outlier_z: robust_z_score(expected_value, <trailing history of this same
+    trade_structure's expected_value>) — None when there wasn't a recommended
+    structure, or not enough trailing history yet to judge from.
     """
     with get_connection(db_path) as conn:
         cur = conn.execute(
             """
             INSERT INTO ticker_results
                 (run_id, ticker, category, composite_score, trade_structure,
-                 expected_value, event_gate_blocked, event_gate_trigger, sector)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 expected_value, event_gate_blocked, event_gate_trigger, sector,
+                 structures_eligible_after_filters, exclusion_summary, ev_outlier_z)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id, ticker, category, composite_score, trade_structure,
                 expected_value, int(bool(event_gate_blocked)), event_gate_trigger, sector,
+                structures_eligible_after_filters, exclusion_summary, ev_outlier_z,
             ),
         )
         return int(cur.lastrowid)
+
+
+def get_expected_values_for_structure(
+    structure_name: str,
+    db_path: Optional[Path] = None,
+) -> list[float]:
+    """
+    Every logged expected_value for `structure_name` across all scans/tickers —
+    the trailing history paper_runner.py's ev_outlier check compares a new
+    reading against (see shared/utils/robust_stats.py). Ordered oldest-first
+    isn't required by the caller (only the distribution matters, not order),
+    so this is left in whatever order SQLite returns.
+    """
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT expected_value FROM ticker_results
+            WHERE trade_structure = ? AND expected_value IS NOT NULL
+            """,
+            (structure_name,),
+        ).fetchall()
+    return [float(r["expected_value"]) for r in rows]
 
 
 def insert_layer_score(

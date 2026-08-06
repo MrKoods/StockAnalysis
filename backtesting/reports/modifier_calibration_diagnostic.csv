@@ -1,0 +1,10 @@
+modifier,bucket,n_trades,win_rate,avg_rr
+regime_modifier,negative,130,0.5,1.62
+regime_modifier,zero,0,,
+regime_modifier,positive,414,0.5821,1.57
+seasonality_modifier,negative,149,0.6577,1.91
+seasonality_modifier,zero,230,0.5391,1.35
+seasonality_modifier,positive,165,0.5091,1.53
+macro_modifier,negative,27,0.5185,1.47
+macro_modifier,zero,295,0.5627,1.56
+macro_modifier,positive,222,0.5676,1.61

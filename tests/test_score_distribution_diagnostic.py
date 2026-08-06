@@ -12,6 +12,7 @@ from paper_trading.score_distribution_diagnostic import (
     collect_category_scores,
     collect_composite_scores,
     joint_peak_rate,
+    saturation_rates,
     threshold_qualification_rates,
 )
 
@@ -94,6 +95,47 @@ class TestJointPeakRate:
             _log_result(db_path, "NVDA", 20.0, scores)
         df = collect_category_scores(db_path)
         assert joint_peak_rate(df, quantile=0.8, min_categories=2) < 0.3
+
+
+class TestSaturationRates:
+    def test_empty_df_returns_empty(self, db_path):
+        df = collect_category_scores(db_path)
+        result = saturation_rates(df)
+        assert result.empty
+
+    def test_category_always_at_ceiling_shows_full_saturation(self, db_path):
+        for _ in range(5):
+            _log_result(db_path, "NVDA", 90.0, {"technical": 40.0})  # at the exact ceiling
+        df = collect_category_scores(db_path)
+        result = saturation_rates(df)
+        row = result[result["category"] == "technical"].iloc[0]
+        assert row["saturation_rate"] == pytest.approx(1.0)
+        assert row["saturated_count"] == 5
+
+    def test_category_never_near_ceiling_shows_zero_saturation(self, db_path):
+        for _ in range(5):
+            _log_result(db_path, "NVDA", 30.0, {"technical": 10.0})  # 25% of max
+        df = collect_category_scores(db_path)
+        result = saturation_rates(df)
+        row = result[result["category"] == "technical"].iloc[0]
+        assert row["saturation_rate"] == pytest.approx(0.0)
+
+    def test_custom_near_ceiling_fraction_widens_the_band(self, db_path):
+        _log_result(db_path, "NVDA", 30.0, {"technical": 30.0})  # 75% of 40
+        df = collect_category_scores(db_path)
+        strict = saturation_rates(df, near_ceiling_fraction=0.98)
+        loose = saturation_rates(df, near_ceiling_fraction=0.70)
+        assert strict[strict["category"] == "technical"].iloc[0]["saturation_rate"] == pytest.approx(0.0)
+        assert loose[loose["category"] == "technical"].iloc[0]["saturation_rate"] == pytest.approx(1.0)
+
+    def test_mixed_rows_partial_saturation_rate(self, db_path):
+        _log_result(db_path, "NVDA", 90.0, {"technical": 40.0})  # saturated
+        _log_result(db_path, "AMD", 90.0, {"technical": 40.0})   # saturated
+        _log_result(db_path, "MU", 30.0, {"technical": 10.0})    # not saturated
+        df = collect_category_scores(db_path)
+        result = saturation_rates(df)
+        row = result[result["category"] == "technical"].iloc[0]
+        assert row["saturation_rate"] == pytest.approx(2 / 3, abs=0.001)
 
 
 def pd_isna(value) -> bool:

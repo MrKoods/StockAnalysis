@@ -7,6 +7,7 @@ import logging.handlers
 import pytest
 
 import shared.utils.logger as logger_module
+import shared.utils.scan_lock as scan_lock_module
 import backtesting.backtest_engine as backtest_engine_module
 
 
@@ -63,3 +64,17 @@ def _isolate_backtest_reports(tmp_path, monkeypatch):
     suite ran.
     """
     monkeypatch.setattr(backtest_engine_module, "_REPORTS_DIR", tmp_path / "reports")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_scan_lock(tmp_path, monkeypatch):
+    """
+    Same issue, different subsystem: run_paper_scan() now acquires a file lock
+    (shared/utils/scan_lock.py) at its default path, data/processed/scan_locks/,
+    before every test that exercises it even indirectly (test_app_ui_persistence.py
+    calls pr.run_paper_scan() directly). Without this, tests would create/remove
+    a real lock file in the actual project directory and — if a test ever
+    crashed between acquiring and releasing it — could leave a stale lock
+    behind that blocks a real future scan.
+    """
+    monkeypatch.setattr(scan_lock_module, "_LOCK_DIR", tmp_path / "scan_locks")

@@ -45,7 +45,9 @@ from shared.utils.options_math import (
     select_directional_leg_strike,
     net_structure_greeks,
     resolve_structure_economics,
+    _DEFAULT_DTE_IF_UNKNOWN,
 )
+from swing_model.win_probability_calibration import calibrate_win_probability
 
 ALL_42_STRUCTURES = list(STRUCTURE_MULTIPLIERS.keys())
 
@@ -161,6 +163,7 @@ def rank_trade_structures(
     option_chain: Optional[list] = None,
     dte: Optional[int] = None,
     atm_iv: Optional[float] = None,
+    win_probability_calibration: Optional[list] = None,
 ) -> dict:
     """
     Evaluate all 42 structures and return EV-ranked output.
@@ -192,6 +195,15 @@ def rank_trade_structures(
       Also now used by resolve_structure_economics for every structure's own
       option-pricing time-to-expiry, defaulting to a mid-holding-period
       estimate when not supplied.
+    win_probability_calibration: real (threshold -> historical win rate) points
+      from swing_model.win_probability_calibration.fit_calibration_curve(), used
+      to convert `confidence` into every structure's win_prob input instead of
+      the literal (and unevidenced) confidence/100 identity — a score of 90
+      does not mean a 90% chance of winning; the model's own backtested win
+      rate at that threshold is ~60% (see win_probability_calibration.py's
+      module docstring). None (the default) falls back to the old
+      confidence/100 behavior — see win_prob_calibrated in the return dict for
+      whether a call actually used real calibration or that fallback.
 
     Returns:
     {
@@ -202,6 +214,8 @@ def rank_trade_structures(
         exclusion_summary: str,
         greeks_filter_status: "applied" | "not_implemented_no_options_chain_data",
         structures_greeks_evaluated: int,
+        win_prob_used: float,
+        win_prob_calibrated: bool,
     }
     """
     if cfg is None:
@@ -222,12 +236,34 @@ def rank_trade_structures(
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
     target = float(candidate.get("target", 0.0))
 
-    win_prob = confidence / 100.0
+    if win_probability_calibration:
+        win_prob = calibrate_win_probability(confidence, win_probability_calibration)
+        win_prob_calibrated = True
+    else:
+        win_prob = confidence / 100.0
+        win_prob_calibrated = False
     max_capital = account_equity * 0.05
     force_defined_risk = bool(candidate.get("force_defined_risk", False))
     # Real IV when a live chain supplied one; otherwise a mild iv_percentile-
     # scaled approximation (0.20-0.50) rather than misusing the percentile
     # rank itself as a volatility fraction — see atm_iv's docstring above.
+    #
+    # This fallback ignores the candidate's own ATR/price ratio entirely —
+    # confirmed (see tests/test_structure_economics.py::
+    # TestHighAtrPriceRatioCharacterization) that resolve_structure_economics'
+    # fixed-OTM-offset structures (long_strangle et al.) price their premium
+    # from entry/iv/dte only, never from ATR, while their payoff scales
+    # directly with ATR — so a high-ATR-ratio candidate hitting this fallback
+    # (no live chain) gets a mechanically inflated ev_per_dollar_per_day
+    # regardless of whether that stock's *real* IV is actually elevated to
+    # match. A real atm_iv (when available) partially self-corrects this
+    # since volatile stocks usually do trade at higher real IV; this
+    # approximation has no such link. Deliberately not patched here with an
+    # ATR-derived IV floor — that would be a new, uncalibrated formula on top
+    # of an already-approximate one. The actual safety net is
+    # shared/utils/robust_stats.py's outlier check (paper_runner.py), which
+    # flags exactly this shape of anomaly against each structure's own
+    # trailing history instead of guessing at a fix with no real data behind it.
     resolved_iv = atm_iv if atm_iv is not None else 0.20 + (iv_percentile / 100.0) * 0.30
 
     # Filter 3 input: R:R of the shared entry/stop/target setup. Identical for every
@@ -262,7 +298,7 @@ def rank_trade_structures(
         if ev_result is None:
             excluded.append({"name": name, "reasons": ["ev_computation_failed"]})
             continue
-        ev, ev_raw, ev_adjusted, est_capital = ev_result
+        ev, ev_raw, ev_adjusted, est_capital, effective_days = ev_result
 
         # Filter 5: Liquidity — a wide bid/ask can consume most of a structure's
         # edge on multi-leg fills. Exclude when slippage eats >=50% of the raw EV
@@ -308,10 +344,21 @@ def rank_trade_structures(
             }
 
         ev_per_dollar = capital_efficiency_score(ev, est_capital, max_capital)
+        # Per-day, not just per-dollar — ev_per_dollar_risked alone compares a
+        # ~10-day trade's edge against a leaps_call's ~270-day edge (or a
+        # diagonal's dte+30) as if both tied up capital for the same length of
+        # time. effective_days is the actual time exposure this structure's
+        # own EV was computed against (see resolve_structure_economics'
+        # docstring) — dividing by it is what makes structures with very
+        # different holding requirements comparable on capital velocity, not
+        # just capital-at-risk.
+        ev_per_dollar_per_day = ev_per_dollar / max(effective_days, 1)
 
         ranked_structures.append({
             "name": name,
             "ev_per_dollar_risked": round(ev_per_dollar, 4),
+            "ev_per_dollar_per_day": round(ev_per_dollar_per_day, 5),
+            "effective_days": round(effective_days, 1),
             "ev": round(ev, 4),
             "capital_required": round(est_capital, 2),
             "rr_ratio": round(rr, 2),
@@ -320,8 +367,10 @@ def rank_trade_structures(
             "filter_notes": [],
         })
 
-    # Sort by EV per dollar risked, descending
-    ranked_structures.sort(key=lambda x: x["ev_per_dollar_risked"], reverse=True)
+    # Sort by EV per dollar risked *per day held* — see ev_per_dollar_per_day's
+    # inline comment above for why the un-normalized ratio alone isn't a fair
+    # comparison across structures with different time exposure.
+    ranked_structures.sort(key=lambda x: x["ev_per_dollar_per_day"], reverse=True)
     for i, s in enumerate(ranked_structures):
         s["rank"] = i + 1
         s["recommended"] = (i == 0)
@@ -342,6 +391,8 @@ def rank_trade_structures(
         # identical to this filter's behavior before it existed.
         "greeks_filter_status": "applied" if greeks_available else "not_implemented_no_options_chain_data",
         "structures_greeks_evaluated": structures_greeks_evaluated,
+        "win_prob_used": round(win_prob, 4),
+        "win_prob_calibrated": win_prob_calibrated,
     }
 
 
@@ -413,21 +464,26 @@ def _compute_structure_ev(
     win_prob: float,
     bid_ask_spread: float = 0.0,
     dte: Optional[int] = None,
-) -> Optional[tuple[float, float, float, float]]:
+) -> Optional[tuple[float, float, float, float, float]]:
     """
     Compute EV for a structure. Uses surface method for complex (ratio/back
     spread) structures; resolve_structure_economics() (real Black-Scholes-
     derived avg_win/avg_loss/capital, see options_math.py) for the 35
     structures it covers; the original numeric-multiplier path only for the 3
     pure-stock structures neither of those two apply to.
-    Returns (ev_per_dollar_risked, ev_raw, ev_adjusted, capital_required) or
-    None if insufficient data. ev_raw/ev_adjusted (pre/post slippage) let the
-    liquidity filter (filter 5) measure how much of the edge a wide bid/ask
-    consumes. capital_required is returned (not recomputed separately by the
-    caller) so the ranking ratio and the $-cap filter always agree on the same
-    number — the two disagreeing was the root cause of protective_put's
-    capital estimate (a special-cased shortcut) making it rank far above
-    married_put/collar despite near-identical real economics.
+    Returns (ev_per_dollar_risked, ev_raw, ev_adjusted, capital_required,
+    effective_days) or None if insufficient data. ev_raw/ev_adjusted
+    (pre/post slippage) let the liquidity filter (filter 5) measure how much
+    of the edge a wide bid/ask consumes. capital_required is returned (not
+    recomputed separately by the caller) so the ranking ratio and the $-cap
+    filter always agree on the same number — the two disagreeing was the root
+    cause of protective_put's capital estimate (a special-cased shortcut)
+    making it rank far above married_put/collar despite near-identical real
+    economics. effective_days is resolve_structure_economics' own per-structure
+    time exposure (see its docstring — leaps_call/leaps_put and calendar_*/
+    diagonal_* use more days than the shared dte) — falls back to the same
+    shared dte/default for the surface-method and pure-stock-multiplier paths,
+    which don't have a differentiated longer-dated leg to report.
     """
     entry = float(candidate.get("entry", candidate.get("entry_mid", 0.0)))
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
@@ -438,6 +494,7 @@ def _compute_structure_ev(
 
     up_move = target - entry
     down_move = entry - stop
+    default_days = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1)
 
     if structure.get("ev_method") == "surface":
         surface = compute_ev_surface(
@@ -447,11 +504,13 @@ def _compute_structure_ev(
         )
         ev = surface["ev_weighted"]
         capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
+        effective_days = default_days
     else:
         econ = resolve_structure_economics(structure_name, entry, stop, target, iv, dte)
         if econ is not None:
             ev = compute_ev_simple(win_prob, econ["avg_win"], econ["avg_loss"])
             capital = econ["capital_required"]
+            effective_days = econ.get("effective_days", default_days)
         else:
             # Pure-stock structures only at this point — numeric multipliers,
             # already correct (see PASSTHROUGH_STRUCTURES in options_math.py).
@@ -463,12 +522,13 @@ def _compute_structure_ev(
             avg_loss = down_move * lm
             ev = compute_ev_simple(win_prob, avg_win, avg_loss)
             capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
+            effective_days = default_days
 
     legs = structure.get("legs", 1)
     ev_adjusted = adjust_ev_for_slippage(ev, structure_name, bid_ask_spread, legs)
     if capital <= 0:
         return None
-    return ev_adjusted / capital, ev, ev_adjusted, capital
+    return ev_adjusted / capital, ev, ev_adjusted, capital, effective_days
 
 
 def _estimate_capital_required(

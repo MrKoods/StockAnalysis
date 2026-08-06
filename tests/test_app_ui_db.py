@@ -5,6 +5,8 @@ Each test uses its own tmp_path db file; no shared state between tests.
 
 import sqlite3
 
+import pytest
+
 from app_ui import db
 
 
@@ -49,6 +51,40 @@ class TestTickerResultsAndLayerScores:
         assert row["category"] == db.CATEGORY_TRADE_RECOMMENDED
         assert row["event_gate_blocked"] == 1
         assert row["event_gate_trigger"] == "tariff"
+
+    def test_insert_and_fetch_result_with_exclusion_summary(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        result_id = db.insert_ticker_result(
+            run_id, "TSM", db.CATEGORY_NO_SIGNAL, composite_score=60.8,
+            structures_eligible_after_filters=0,
+            exclusion_summary="long_strangle: R:R below minimum; diagonal_call: capital filter",
+            db_path=path,
+        )
+        row = db.get_ticker_results(run_id, db_path=path)[0]
+        assert row["result_id"] == result_id
+        assert row["structures_eligible_after_filters"] == 0
+        assert row["exclusion_summary"] == "long_strangle: R:R below minimum; diagonal_call: capital filter"
+
+    def test_insert_and_fetch_result_with_ev_outlier_z(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        result_id = db.insert_ticker_result(
+            run_id, "MU", db.CATEGORY_NO_SIGNAL, composite_score=61.5,
+            trade_structure="long_strangle", expected_value=1.5,
+            ev_outlier_z=8.2,
+            db_path=path,
+        )
+        row = db.get_ticker_results(run_id, db_path=path)[0]
+        assert row["result_id"] == result_id
+        assert row["ev_outlier_z"] == pytest.approx(8.2)
+
+    def test_ev_outlier_z_defaults_to_none(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        db.insert_ticker_result(run_id, "AVGO", db.CATEGORY_NO_SIGNAL, db_path=path)
+        row = db.get_ticker_results(run_id, db_path=path)[0]
+        assert row["ev_outlier_z"] is None
 
     def test_layer_scores_roundtrip(self, tmp_path):
         path = tmp_path / "history.db"
@@ -166,3 +202,34 @@ class TestNotifications:
         second = db.insert_notification("near_miss", "sent", run_id=run_id, db_path=path)
         notes = db.get_notifications(db_path=path)
         assert [n["notification_id"] for n in notes] == [second, first]
+
+
+class TestGetExpectedValuesForStructure:
+    def test_empty_when_never_logged(self, tmp_path):
+        path = tmp_path / "history.db"
+        assert db.get_expected_values_for_structure("long_strangle", db_path=path) == []
+
+    def test_pulls_only_matching_structure_across_runs_and_tickers(self, tmp_path):
+        path = tmp_path / "history.db"
+        run1 = db.create_scan_run("pre_market", "cfg", db_path=path)
+        run2 = db.create_scan_run("post_close", "cfg", db_path=path)
+        db.insert_ticker_result(
+            run1, "AVGO", db.CATEGORY_NO_SIGNAL, trade_structure="long_strangle",
+            expected_value=1.5, db_path=path,
+        )
+        db.insert_ticker_result(
+            run2, "NVDA", db.CATEGORY_NO_SIGNAL, trade_structure="long_strangle",
+            expected_value=1.8, db_path=path,
+        )
+        db.insert_ticker_result(
+            run2, "HBAN", db.CATEGORY_NO_SIGNAL, trade_structure="diagonal_call",
+            expected_value=0.3, db_path=path,
+        )
+        values = db.get_expected_values_for_structure("long_strangle", db_path=path)
+        assert sorted(values) == [1.5, 1.8]
+
+    def test_excludes_rows_with_no_expected_value(self, tmp_path):
+        path = tmp_path / "history.db"
+        run_id = db.create_scan_run("post_close", "cfg", db_path=path)
+        db.insert_ticker_result(run_id, "TSM", db.CATEGORY_NO_SIGNAL, trade_structure="long_strangle", db_path=path)
+        assert db.get_expected_values_for_structure("long_strangle", db_path=path) == []

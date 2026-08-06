@@ -548,6 +548,23 @@ def _simulate_test_signals(
             )
             outcome["ticker"] = ticker
             outcome["macro_state"] = macro_state_label
+            # Numeric modifier values actually used for this bar's score, not
+            # just the categorical regime/macro_state labels — needed to
+            # measure whether each modifier's real-world outcome correlation
+            # matches the magnitude config/swing_config.yaml's modifiers block
+            # assigns it (see backtesting/modifier_calibration_diagnostic.py).
+            # sector_rotation/earnings/cross_ticker aren't included since
+            # they're hardcoded to 0.0 above and carry no information here.
+            outcome["regime_modifier"] = regime_mod
+            outcome["seasonality_modifier"] = seas_mod
+            outcome["macro_modifier"] = macro_mod
+            # Category sub-totals — needed by feedback_loop._fit_logistic_weights'
+            # regression (technical/sentiment/news weight calibration) to have
+            # anything to fit against; previously only the blended confidence
+            # score survived past this point, discarding the components.
+            outcome["technical_total"] = score.get("technical_total", 0.0)
+            outcome["sentiment_total"] = score.get("sentiment_total", 0.0)
+            outcome["news_total"] = score.get("news_total", 0.0)
             outcomes.append(outcome)
 
     return outcomes

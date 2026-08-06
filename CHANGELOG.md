@@ -60,6 +60,11 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.42 | 2026-08-06 | Research | Extended the collinearity check to every scoring pair; new diagnostics for modifier calibration, score saturation, and threshold optimization; weight calibration upgraded to a real regression |
+| v2.2.41 | 2026-08-06 | Backtest Methodology | Added Sortino ratio, Ulcer Index, drawdown duration, concurrent-position portfolio simulation, and real transaction costs to the backtest's own metrics |
+| v2.2.40 | 2026-08-06 | Infrastructure | The post-close scan could run twice at once — a file lock now stops it, fixing why retail-sector tickers dropped out of an entire day's results |
+| v2.2.39 | 2026-08-06 | Scoring Change | The model was treating its own confidence score as a literal win probability; two scoring modifiers were quietly double-counting the same signal; stale fundamental data was weighted the same as same-day data |
+| v2.2.38 | 2026-08-06 | Bug Fix | The trade-structure picker was computing real diagnostic data every scan and throwing it away; a statistical outlier check now catches anomalies like MU's 2-2.5x-inflated reading |
 | v2.2.37 | 2026-08-03 | Infrastructure | Paper trading's account size was a hardcoded duplicate of the config value, not read from it |
 | v2.2.36 | 2026-08-03 | Bug Fix | The options-structure picker had 35 of 42 strategies silently mis-costed — real formulas now, so protective_put stops winning by accident |
 | v2.2.35 | 2026-08-02 | Bug Fix | Two more hidden bugs in how the model reads public sentiment |
@@ -106,6 +111,306 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.42] — 2026-08-06 — [Research] Extended the collinearity check to every scoring pair; new diagnostics for modifier calibration, score saturation, and threshold optimization; weight calibration upgraded to a real regression
+
+**Status:** Research/diagnostic only. No live scoring behavior changed except `feedback_loop.py`'s
+weight-calibration algorithm, which has no real trade data to run against yet (see Fix below).
+
+**In short:** Built five new tools to answer questions the model's own math couldn't answer about
+itself: whether any two scoring signals are secretly the same signal twice, whether the six scoring
+modifiers are actually backed by evidence, how often a score gets artificially capped, whether 90 is
+really the right cutoff, and whether the fixed 60/25/15 technical/sentiment/news split is the right
+split. None of the answers were applied automatically — each one is reported as a real finding for a
+human to weigh in on, following the same pattern as v2.2.39's regime/sector_rotation fix.
+
+**Problem/context:** Following v2.2.39's regime/sector_rotation fix, several adjacent questions had
+no tooling to answer them:
+1. The live collinearity check (`paper_trading/live_collinearity_diagnostic.py`, introduced v2.2.16)
+   only ever compared Technical vs. Sentiment — structurally unable to have caught the regime/
+   sector_rotation double-count itself, since that's a modifier-to-modifier pair.
+2. Of the six scoring modifiers, only `seasonality.monthly_modifiers` carries any comment claiming
+   backtest calibration (`config/swing_config.yaml`) — `regime`, `sector_rotation`, `earnings`,
+   `cross_ticker`, `macro_overlay` are hand-set round numbers with no such lineage.
+3. No visibility into how often each of the 5 scoring categories actually saturates at its own point
+   ceiling, compressing resolution exactly where a 90-point threshold needs it most.
+4. No data-driven read on whether 90 is a good cutoff now that v2.2.39 maps scores to a real
+   probability instead of treating the raw number as one.
+5. `feedback_loop.py`'s live weight-calibration heuristic (`_recompute_weights`) only asked "is this
+   sub-signal's average higher in wins than losses," applying an identical ±2pp nudge regardless of
+   how large or statistically reliable that gap actually was.
+
+**Fix:**
+- `paper_trading/live_collinearity_diagnostic.py`: generalized `collect_score_pairs()` from a
+  hardcoded technical/sentiment pull to a full pivot of every layer logged to `layer_scores` (5
+  categories + 6 modifiers), and added `compute_pairwise_collinearity()` — Pearson r, Spearman rho,
+  and tail-dependence lift for every one of the resulting 55 pairs, flagging any pair where
+  `|r| >= 0.5` or tail-lift `>= 1.5x`. Run against 676 real logged scans: flagged
+  `sentiment_total <-> technical_total` on tail dependence (1.65x lift) despite a near-zero bulk
+  correlation (r=0.094) — a real finding a bulk-correlation-only check would have missed entirely.
+  `regime_modifier <-> sector_rotation_modifier` itself read r=0.407 on this data (below the flag
+  threshold) — confirms the double-count fixed in v2.2.39 only manifests when both are negative at
+  once, which averaging over the full range dilutes into an unremarkable bulk correlation.
+- New `backtesting/modifier_calibration_diagnostic.py`: buckets real pooled 3-sector backtest
+  outcomes by each exercised modifier's sign, reporting win rate/avg R:R per bucket.
+  `sector_rotation_modifier`/`earnings_modifier`/`cross_ticker_modifier` are flagged explicitly as
+  **not measurable this way** — `backtesting/simulation.py` hardcodes all three to 0.0 during replay
+  (no historical sector-rotation-vs-benchmark alignment, earnings calendar, or cross-ticker joint
+  data covering the full backtest window exists), so no amount of outcome analysis on this data can
+  speak to their calibration. Of the 3 modifiers that do vary during replay: `regime_modifier` and
+  `macro_modifier` point the correct direction (positive bucket beats negative bucket on win rate).
+  `seasonality_modifier` — the one modifier with any claimed calibration lineage — read **inverted**
+  on pooled 3-sector data: negative-seasonality trades won 65.8% of the time vs. 50.9% for
+  positive-seasonality trades. Not corrected here — flagged for review before touching
+  `config/swing_config.yaml`'s `monthly_modifiers`; possible causes include the original calibration
+  being fit on semiconductors alone and not generalizing, or a genuine sign error.
+- Extended `paper_trading/score_distribution_diagnostic.py` with `saturation_rates()` — fraction of
+  logged rows within 2% of each category's own point ceiling. Real result on 676 logged scans:
+  `fundamental` sits at its ceiling 15.7% of the time; `technical`/`positioning`/`news` never do
+  (0.0%), `sentiment` rarely (1.6%) — a narrower, more concentrated problem than assumed going in.
+- New `backtesting/threshold_optimization_analysis.py`: sweeps confidence thresholds 40-95 against
+  real pooled backtest data, computing win rate, avg R:R, expected R per trade, and whether each
+  threshold alone clears the existing go-live gate (bootstrapped expectancy CI, Sharpe, drawdown).
+  Real result: expected R per trade increases monotonically through the top of the tested grid (95);
+  85 is the lowest threshold that clears the existing go-live gate on its own. `CONFIDENCE_THRESHOLD`
+  (90, `swing_model/scoring.py`) was **not** changed — this is reported as a data point for a
+  live-trading-behavior decision, not something to apply automatically from a backtest reading.
+- `swing_model/feedback_loop.py`: `_recompute_weights` now tries a regularized logistic regression
+  first (new `_fit_logistic_weights` — scipy, L2-penalized, standardized features so a large-scale
+  sub-signal like technical (0-40) can't mechanically dominate a small-scale one like news (0-15)
+  purely from units), falling back to the old sign-only heuristic when there's too little data
+  (<20 samples), all-one-outcome-class data, or a zero-variance feature. Run against real pooled
+  backtest outcomes as a sanity check (not live data — none exists yet, see below): assigned
+  sentiment ~48-54% vs. technical's ~29-42%, nearly inverting the current fixed 60/25/15 split.
+  Flagged with an important caveat, not applied: this backtest's "sentiment" is a price-momentum
+  proxy, not real StockTwits data (documented in `backtesting/collinearity_diagnostic.py` since
+  v2.2.16), so this result likely re-states price momentum under a different label rather than
+  reflecting genuine crowd-sentiment predictive power. Needs re-running against real paper-trading
+  sentiment once enough trades have closed — `_recompute_weights` itself is unreachable in production
+  today regardless, since `data/logs/trade_outcomes.csv` and paper trading's closed-trade log are
+  both still empty (no version has gone live).
+
+**Backtest result:** Not applicable — diagnostic/research tooling only; no scoring path changed.
+34 new tests. 915 tests pass, 3 skipped.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.41] — 2026-08-06 — [Backtest Methodology] Added Sortino ratio, Ulcer Index, drawdown duration, concurrent-position portfolio simulation, and real transaction costs to the backtest's own metrics
+
+**Status:** Backtest-only — no live scoring path affected.
+
+**In short:** The backtest's own scorecard had four blind spots: it judged bumpy-but-profitable
+swings as harshly as genuine losses, couldn't tell a quick dip from a months-long slump, could only
+ever model one open trade at a time even though this project holds several at once in real life, and
+assumed every trade fills for free. All four are now measured for real.
+
+**Problem:** The backtest's performance metrics (`backtesting/metrics.py`,
+`backtesting/backtest_engine.py`) had four gaps versus what a real risk review needs:
+1. Sharpe penalizes upside variance identically to downside — the wrong lens for this project's
+   deliberately asymmetric structures (`long_strangle` convex, credit spreads concave — see
+   v2.2.36's real EV formulas).
+2. `max_drawdown_pct` reports depth only — a drawdown that's deep-and-brief and one that's
+   equally-deep-and-months-long are indistinguishable from this one number alone.
+3. `_build_equity_curve` stepped through outcomes one trade at a time, always fully realizing one
+   trade's P&L before the next could affect the curve — structurally unable to represent several
+   correlated positions (e.g. multiple semiconductor names) losing simultaneously, which is exactly
+   how this project can be positioned live.
+4. The simulated P&L had zero transaction costs, making Sharpe/expectancy systematically optimistic
+   versus what real fills (bid/ask spread, slippage) will actually produce.
+
+**Fix (all in `backtesting/metrics.py`, wired into `backtest_engine.py`'s `run_backtest()` and
+`run_multi_sector_backtest()`):**
+- `compute_sortino()` — Sharpe's downside-deviation-only counterpart.
+- `compute_max_drawdown_duration()` / `compute_ulcer_index()` — longest stretch of consecutive
+  steps underwater, and the Ulcer Index (Martin, 1987): root-mean-square of drawdown across the
+  whole curve, combining depth and duration into one number instead of reporting depth alone.
+- New `build_portfolio_equity_curve()` — walks entry/exit events in true chronological order instead
+  of one trade at a time; each position's risk is locked in at its own entry against whatever equity
+  existed at that moment, and multiple positions can have risk locked in simultaneously against the
+  same starting equity. Run against real pooled 3-sector history: peak concurrency was **38
+  positions open at once**, committing **35.2% of equity at risk simultaneously** — well past what
+  the 1%-per-trade framing suggests in isolation. Portfolio-view Sharpe (3.12) and drawdown (9.47%)
+  came out modestly worse than the serial view (3.34 / 9.29%) on this dataset.
+- `_build_equity_curve()` now subtracts round-trip slippage from every simulated trade's P&L by
+  default ($0.02/share × 2 — reusing the exact per-share convention already established in
+  `shared/utils/options_math.py`'s `adjust_ev_for_slippage`, not a new, uncalibrated number).
+- None of the four new metrics gate `passed` — reported alongside, not folded into, the existing
+  Sharpe/drawdown/expectancy-CI floors. Raising the go-live bar on new metrics is a deliberate
+  decision for a human to make, not something to apply silently by adding a new field.
+
+**Backtest result:** Methodology change, not a scoring change — see v2.2.39's logged PASS for the
+current gate result computed under this same methodology. 30 new tests. 892 tests passed at the
+point this landed (915 after v2.2.42's later additions), 3 skipped.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.40] — 2026-08-06 — [Infrastructure] The post-close scan could run twice at once — a file lock now stops it, fixing why retail-sector tickers dropped out of an entire day's results
+
+**Status:** Live.
+
+**In short:** Traced a real incident — an entire trading day's post-close scan lost all its retail
+stock results (Amazon, Nike, Starbucks, Target, Home Depot, Tesla) twice in a row — to the scan
+being relaunched before the previous run had finished. A new safety lock stops that from happening
+again, even though what's actually triggering the double-launch is outside this project's code.
+
+**Problem:** 08-04's post-close scan restarted from scratch twice within 5 minutes — `app.log` shows
+a fresh `[post_close] Fetching OHLCV for: ['NVDA', ...]` at 13:48:34 and again at 13:53:30, each one
+re-fetching every sector from the very beginning. Almost certainly an external scheduler (Windows
+Task Scheduler or similar; nothing in this repo triggers a 5-minute cadence) relaunching the job
+without checking whether a previous instance was still alive. Because retail tickers
+(AMZN/TSLA/HD/NKE/SBUX/TGT) are processed last in ticker order, and the Seeking Alpha/RapidAPI 429
+retry storm (`sentiment_client.py`, confirmed live 2026-08-03) was making every earlier ticker take
+several minutes, every relaunched instance got killed before it ever reached them — retail dropped
+out of that day's post-close results twice in a row.
+
+**Fix:** New `shared/utils/scan_lock.py` — a file-based mutex
+(`data/processed/scan_locks/{scan_type}.lock`, storing PID + timestamp, with a cross-platform
+liveness check via `os.kill(pid, 0)`). `paper_trading/paper_runner.py`'s `run_paper_scan()` now
+acquires this lock before doing any work; a second invocation for the same `scan_type` while one is
+already running logs a warning and exits immediately instead of duplicating work and contending for
+the same rate-limited APIs. This does not fix whatever is triggering the repeated external
+relaunches (outside this repo's control) — it stops the actual damage regardless of that root cause.
+
+**Backtest result:** Not applicable — no scoring-path change. 11 new tests
+(`tests/test_scan_lock.py`). 915 tests pass, 3 skipped.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.39] — 2026-08-06 — [Scoring Change] The model was treating its own confidence score as a literal win probability; two scoring modifiers were quietly double-counting the same signal; stale fundamental data was weighted the same as same-day data
+
+**Status:** Live.
+
+**In short:** Three real bugs found while reviewing the scoring formula end to end. The biggest one:
+every options-structure calculation assumed a score of 90 meant a 90% chance of winning — the
+model's own historical win rate at that score is actually about 60%. Every profit estimate for every
+stock was overstated, and overstated by more the higher a stock's score was. Also fixed: two scoring
+adjustments that were really the same underlying signal counted twice, and financial data that's up
+to two weeks old counting exactly as much as data from this morning.
+
+**Problem:**
+1. `swing_model/trade_selector.py` fed every EV formula (all 42 trade structures)
+   `win_prob = confidence / 100.0` — treating the raw 0-100 composite score as a literal win
+   probability. A score of 90 was assumed to mean a 90% chance of winning; this project's own
+   backtested win rate at that threshold is ~60%. Every EV number computed for every ticker every
+   scan was systematically overstated, and by a different amount depending on each ticker's own
+   score — directly undermining the outlier detection and exclusion-mining tooling added in v2.2.38,
+   since part of what looked like "this ticker's EV is unusually high" could just be "this ticker
+   scored higher, so it got a more inflated assumed win probability."
+2. `regime_modifier` (SMH vs. its own SMA trend) and `sector_rotation_modifier` (SMH return vs. SPY)
+   are both derived from the same underlying SMH price action but were summed in
+   `swing_model/scoring.py` as if independent — self-flagged by the code's own NOTE, firing
+   repeatedly on live scans (e.g. NVDA, 08-05 mid-session: regime -2.0, sector_rotation -15.0,
+   summed to -17.0 as if two separate corroborating signals).
+3. `fundamental_data_as_of` routinely lags the scan date by 1-13+ days (Alpha Vantage's own fetch
+   cadence/rate limits, not a bug — see `fundamental_layer.py`), yet `fundamental_contribution` was
+   summed into the base score at full weight regardless of age, as if a same-day technical signal
+   and a two-week-old fundamental snapshot were equally current.
+
+**Fix:**
+- New `swing_model/win_probability_calibration.py`: `calibrate_win_probability()` — piecewise-linear
+  interpolation over real (confidence threshold -> historical win rate) points, isotonic-smoothed
+  (new `shared/utils/isotonic.py`, a small weighted Pool-Adjacent-Violators implementation, avoiding
+  a new scikit-learn dependency for one algorithm) so a single noisy threshold's small-sample dip
+  doesn't get taken at face value. Calibration points generated by new
+  `backtesting/fit_win_probability_calibration.py` from a real pooled 3-sector backtest run (544
+  outcomes) — at confidence 90, the real isotonic-smoothed win rate is 59.8%, not 90%.
+  `rank_trade_structures()` and `compute_confidence_score()` both take an optional
+  `win_probability_calibration` parameter; `paper_runner.py` loads the real calibration file
+  (`data/processed/win_probability_calibration.json`) once per scan and passes it through. Falls
+  back to the old `confidence/100` behavior only when the calibration file is missing, flagged
+  explicitly via a new `win_prob_calibrated` field so callers/DB rows can tell which happened.
+- `swing_model/scoring.py`: when `regime_modifier` and `sector_rotation_modifier` clamp to the same
+  sign, `total_modifier` now uses whichever has the larger magnitude instead of summing both.
+  Opposite signs still sum normally — a real disagreement between the two lenses (SMH's own trend
+  vs. SMH's return relative to SPY), not a double-count. The raw per-modifier values are unchanged
+  in the returned breakdown (new `regime_sector_rotation_combined` field shows the deduped
+  contribution) so audit logs and the v2.2.42 NOTE-detection logic still see both real numbers.
+- `swing_model/scoring.py`: new `_fundamental_staleness_weight()` — full weight within 3 days of
+  `fundamental_data_as_of` (this project's normal refresh cadence), linearly ramping down to a 0.5
+  floor by 15 days old, and held at that floor beyond — never fully zeroed, since earnings/EPS-
+  growth facts don't actually go stale as fast as a same-day price-derived valuation ratio would.
+- Also added in the same pass: `calibrated_win_probability`/`win_prob_calibrated` and a new
+  `compute_data_sufficiency()` (`data_confidence`: high/medium/low, from counting degraded
+  sentiment/positioning/fundamental sub-signals against their own existing `data_quality` flags) on
+  the score breakdown — visibility for a future calibration decision, not new gating logic.
+
+**Backtest result:** **PASS.** Multi-sector (semiconductors + regional_banks + healthcare), 296
+qualifying trades: win rate 59.8%, avg R:R 1.63, Sharpe 3.34, Sortino 13.69, max drawdown 9.29%
+(43-trade duration, Ulcer Index 3.23), expectancy CI lower bound 0.482R (bar: 0.3R). 915 tests pass,
+3 skipped.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.38] — 2026-08-06 — [Bug Fix] The trade-structure picker was computing real diagnostic data every scan and throwing it away; a statistical outlier check now catches anomalies like MU's 2-2.5x-inflated reading
+
+**Status:** Live (this is the trade-structure diagnostic tier — score 60-89, not the 90+ real
+signal path, but the data is real and now actually kept).
+
+**In short:** The system was already computing useful data about why a stock's options structure got
+rejected, and about how a structure's estimated profitability compared to similar past readings —
+but was throwing both away right after using them once. Now it keeps them, and automatically flags a
+reading like MU's — 2-2.5x higher than very similar stocks on the same structure the same day — for
+a second look instead of silently accepting it.
+
+**Problem:** Reviewing a batch of live paper-trading scans found three related problems in the
+diagnostic trade-structure evaluator (introduced v2.2.23, real EV formulas added v2.2.36):
+1. When a ticker cleared the diagnostic threshold but every one of the 42 structures got filtered
+   out (TSM, AMZN, PFE — repeatedly, across multiple separate scans), `rank_trade_structures()`
+   already computes `exclusion_summary`/`structures_eligible_after_filters` explaining exactly why —
+   but the caller discarded both after reading only the top-ranked structure, leaving no way to audit
+   which filter was actually eliminating every candidate for these specific tickers.
+2. `ev_per_dollar_risked` compared structures with very different real time exposure on equal
+   footing — a `leaps_call` (~270 days) or `diagonal_call` (dte+30 days) was ranked directly against
+   a `long_strangle` (~10 days) as if both tied up capital for the same length of time. Confirmed
+   live: MU's `long_strangle` reading (~119 EV/$) was ~2-2.5x AVGO/NVDA's on the same structure, same
+   scan, same day.
+3. No mechanism existed to flag when a structure's EV reading was a statistical outlier against its
+   own trailing history, the way the MU case above should have been.
+
+**Fix:**
+- `app_ui/db.py`: `ticker_results` gained `structures_eligible_after_filters`, `exclusion_summary`,
+  and `ev_outlier_z` columns (migrated automatically on connection open, verified against the live
+  676-row database with zero data loss); `paper_trading/paper_runner.py` now persists all three
+  instead of discarding them after reading the top-ranked structure.
+- `shared/utils/options_math.py`: `resolve_structure_economics()` now returns `effective_days` — the
+  actual time exposure each structure's own EV was computed against (most structures: `dte`;
+  `leaps_call`/`leaps_put`: `_LEAPS_MIN_DAYS`-scale; `calendar_*`/`diagonal_*`: `dte+30` for the
+  longer-dated back leg). `swing_model/trade_selector.py` now ranks by `ev_per_dollar_per_day`
+  (EV/$ divided by `effective_days`) instead of the un-normalized ratio. Verified directly: for a
+  MU-like high-ATR candidate, `diagonal_call` looked like the near-#1 pick under the old metric
+  (13.95 vs. `long_strangle`'s 15.44) but drops to 0.35/day once its real 40-day exposure is applied
+  — correctly demoted below `long_strangle`'s 1.54/day, which achieves comparable-or-better edge in
+  a quarter of the time.
+- New `shared/utils/robust_stats.py`: a MAD-based (median absolute deviation) modified z-score,
+  resistant to the very outlier it's checking for — unlike a mean/std z-score, one extreme historical
+  value can't drag the reference distribution toward it. Wired into `paper_runner.py`: every
+  recommended structure's EV is now checked against its own trailing history
+  (`get_expected_values_for_structure()`); `|z| >= 3.5` logs a NOTE and persists `ev_outlier_z`.
+  Root cause of the MU-shaped anomaly confirmed directly with a new characterization test suite
+  (`tests/test_structure_economics.py::TestHighAtrPriceRatioCharacterization`):
+  `resolve_structure_economics`' fixed-OTM-offset structures price their premium from
+  entry/IV/dte only — never from the underlying's ATR — while the payoff scales directly with ATR,
+  so a high-ATR/price-ratio candidate mechanically gets a larger `avg_win` for the same premium.
+  Deliberately not patched in the formula itself (risks over- or under-correcting every structure
+  sharing that strike convention, not just `long_strangle`) — the new outlier check is the safety net.
+- New `paper_trading/ev_outlier_and_exclusion_diagnostic.py`: mines the newly-persisted columns —
+  aggregates exclusion reasons by sector/ticker, flags tickers repeatedly clearing the diagnostic
+  threshold with zero eligible structures, summarizes outlier-flag rates per structure.
+
+**Backtest result:** Not applicable to this diagnostic tier (score 60-89) — doesn't touch the 90+
+signal path's backtest. 66 new/updated tests. 869 tests pass, 3 skipped (at the point this landed).
+
+**Approved by:** [pending]
 
 ---
 

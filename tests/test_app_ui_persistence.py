@@ -95,7 +95,9 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
     monkeypatch.setattr(
         pr, "rank_trade_structures",
-        lambda *a, **k: {"ranked_structures": [{"name": "bull_call_spread", "ev_per_dollar_risked": 0.03}]},
+        lambda *a, **k: {"ranked_structures": [
+            {"name": "bull_call_spread", "ev_per_dollar_risked": 0.03, "ev_per_dollar_per_day": 0.003},
+        ]},
     )
 
     near_miss_calls = []
@@ -120,7 +122,10 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     assert results["NVDA"]["category"] == app_db.CATEGORY_TRADE_RECOMMENDED
     assert results["NVDA"]["composite_score"] == 95.0
     assert results["NVDA"]["trade_structure"] == "bull_call_spread"
-    assert results["NVDA"]["expected_value"] == 0.03
+    # expected_value now persists ev_per_dollar_per_day, not ev_per_dollar_risked —
+    # trade_selector.py ranks (and paper_runner.py reads ranked[0] from) the
+    # per-day metric, so this must be whichever field actually drove the pick.
+    assert results["NVDA"]["expected_value"] == 0.003
     assert results["AMD"]["category"] == app_db.CATEGORY_NEAR_MISS
     assert results["AMD"]["composite_score"] == 85.0
     # AMD (85) clears STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60) even though it's
@@ -128,7 +133,7 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     # recorded as research data on the near_miss row itself, never surfaced as
     # a real trade (see CHANGELOG's diagnostic-widening entry).
     assert results["AMD"]["trade_structure"] == "bull_call_spread"
-    assert results["AMD"]["expected_value"] == 0.03
+    assert results["AMD"]["expected_value"] == 0.003
     # MU (55) is below even the diagnostic threshold — no structure ranking at all.
     assert results["MU"]["category"] == app_db.CATEGORY_NO_SIGNAL
     assert results["MU"]["composite_score"] == 55.0
@@ -208,6 +213,93 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     results = app_db.get_ticker_results(run_id, db_path=db_path)
     assert results[0]["category"] == app_db.CATEGORY_PASSED_NO_TRADE
     assert results[0]["trade_structure"] is None
+
+
+def test_run_paper_scan_flags_ev_outlier_against_structure_history(tmp_path, monkeypatch, caplog):
+    """
+    Mirrors the actual MU long_strangle incident this fix exists for: seed
+    long_strangle's trailing history with tightly-clustered readings (like
+    AVGO/NVDA's), then have this scan's ticker come back with an EV/$/day far
+    outside that cluster. paper_runner.py should compute a large ev_outlier_z,
+    persist it, and log a NOTE — not silently accept the number.
+    """
+    import logging
+
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    # Seed history.db with a clean cluster of long_strangle readings from
+    # "other tickers" before this scan runs — this is what a new outlier
+    # reading gets compared against.
+    seed_run = app_db.create_scan_run("pre_market", "cfg", db_path=db_path)
+    for i, val in enumerate([1.5, 1.6, 1.7, 1.55, 1.65, 1.75, 1.62]):
+        app_db.insert_ticker_result(
+            seed_run, f"SEED{i}", app_db.CATEGORY_NO_SIGNAL,
+            trade_structure="long_strangle", expected_value=val, db_path=db_path,
+        )
+
+    monkeypatch.setattr(pr, "load_config", lambda: {
+        "watchlist": {"tickers": ["NVDA"]}, "risk_reward": {}, "options_approval_level": 2,
+    })
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {
+        "NVDA": _fake_indicators()["NVDA"],
+    })
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {}, "spy_df": None, "tnx_series": None,
+        "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "compute_news_score", lambda *a, **k: {"critical_events": [], "dominant_theme": ""})
+    monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
+    monkeypatch.setattr(
+        pr, "rank_trade_structures",
+        lambda *a, **k: {"ranked_structures": [
+            # ~7x the seeded cluster — the MU-vs-AVGO/NVDA shape of anomaly.
+            {"name": "long_strangle", "ev_per_dollar_risked": 12.0, "ev_per_dollar_per_day": 12.0},
+        ]},
+    )
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version: True)
+
+    with caplog.at_level(logging.INFO, logger="paper_trading.paper_runner"):
+        pr.run_paper_scan(scan_type="post_close")
+
+    run_id = app_db.get_latest_run_id(db_path=db_path)
+    results = {r["ticker"]: r for r in app_db.get_ticker_results(run_id, db_path=db_path)}
+    nvda = results["NVDA"]
+    assert nvda["trade_structure"] == "long_strangle"
+    assert nvda["ev_outlier_z"] is not None
+    assert abs(nvda["ev_outlier_z"]) >= 3.5
+
+    assert any("outlier" in record.message for record in caplog.records)
 
 
 def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str, cfg_extra: dict = None, yahoo_articles: list = None) -> list:

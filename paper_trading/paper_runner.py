@@ -36,6 +36,7 @@ from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
 from swing_model.scoring import compute_confidence_score
 from swing_model.feedback_loop import load_live_weights_if_calibrated
+from swing_model.win_probability_calibration import load_calibration
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from shared.utils.regime_detection import get_regime_modifiers
 from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader
@@ -43,6 +44,8 @@ from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_signal_alert, send_near_miss_alert
+from shared.utils.robust_stats import robust_z_score, DEFAULT_OUTLIER_THRESHOLD
+from shared.utils.scan_lock import acquire_scan_lock
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.regime_detection import REGIME_HIGH_VOL
 from shared.utils.event_gate import (
@@ -179,6 +182,9 @@ def _db_insert_ticker_result_safe(
     event_gate_blocked: bool = False,
     event_gate_trigger: Optional[str] = None,
     sector: Optional[str] = None,
+    structures_eligible_after_filters: Optional[int] = None,
+    exclusion_summary: Optional[str] = None,
+    ev_outlier_z: Optional[float] = None,
 ) -> Optional[int]:
     if run_id is None:
         return None
@@ -188,9 +194,27 @@ def _db_insert_ticker_result_safe(
             trade_structure=trade_structure, expected_value=expected_value,
             event_gate_blocked=event_gate_blocked, event_gate_trigger=event_gate_trigger,
             sector=sector,
+            structures_eligible_after_filters=structures_eligible_after_filters,
+            exclusion_summary=exclusion_summary,
+            ev_outlier_z=ev_outlier_z,
         )
     except Exception as exc:
         logger.warning(f"app_ui DB: could not insert ticker_result for {ticker} — {exc}")
+        return None
+
+
+def _ev_outlier_z_safe(structure_name: str, ev_value: float) -> Optional[float]:
+    """
+    robust_z_score(ev_value, <trailing history of this structure's own
+    expected_value>) — wrapped the same way every other DB read/write in this
+    module is, so a locked/missing DB degrades this diagnostic rather than
+    breaking the scan that doesn't depend on it.
+    """
+    try:
+        history = app_db.get_expected_values_for_structure(structure_name)
+        return robust_z_score(ev_value, history)
+    except Exception as exc:
+        logger.warning(f"app_ui DB: could not compute ev_outlier_z for {structure_name} — {exc}")
         return None
 
 
@@ -224,7 +248,28 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     """
     Run the full swing model pipeline and log qualifying signals to paper_trades.csv.
     Returns number of new signals logged this session.
+
+    Guarded by a file lock (shared.utils.scan_lock) so an external scheduler
+    relaunching this scan_type before a previous instance finished can't run
+    two copies concurrently — see scan_lock.py's module docstring for the
+    2026-08-04 incident this exists to stop (post-close restarted from
+    scratch every ~5 minutes; retail-sector tickers, processed last in ticker
+    order, never survived long enough to be scored, twice in a row). Returns
+    0 without doing any work if another instance already holds the lock.
     """
+    with acquire_scan_lock(scan_type) as acquired:
+        if not acquired:
+            logger.warning(
+                f"{scan_type}: another instance appears to already be running this scan_type — "
+                "skipping this invocation rather than duplicating work and doubling up on the same "
+                "rate-limited APIs (see shared/utils/scan_lock.py)."
+            )
+            return 0
+        return _run_paper_scan_locked(scan_type)
+
+
+def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
+    """The actual scan body — see run_paper_scan() for the lock guard around this."""
     cfg = load_config()
     model_version = get_model_version()
     today_str = date.today().isoformat()
@@ -294,6 +339,15 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
     # compute_confidence_score's live_weights branch stays a no-op; computed
     # once here rather than per ticker since it's the same value all scan.
     live_weights_calibrated = load_live_weights_if_calibrated()
+
+    # Real backtest-derived (threshold -> win rate) points — see
+    # win_probability_calibration.py's module docstring for why
+    # confidence/100 alone was never a real probability. None when
+    # data/processed/win_probability_calibration.json hasn't been generated
+    # yet (backtesting.fit_win_probability_calibration), in which case
+    # rank_trade_structures falls back to the old uncalibrated behavior and
+    # flags it via win_prob_calibrated=False.
+    win_probability_calibration = load_calibration()
 
     # Cross-ticker analysis, once per sector so pooling stays within-sector.
     cross_ticker: dict = {}
@@ -395,6 +449,7 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
                 event_gate_trigger=event_gate_trigger,
+                win_probability_calibration=win_probability_calibration,
             )
 
             final_score = float(score.get("final_score", 0.0))
@@ -503,6 +558,9 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
             rr_ratio = 0.0
             structure_recommended = ""
             ev_per_dollar = ""
+            structures_eligible = None
+            exclusion_summary = None
+            ev_outlier_z = None
             if final_score >= STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD:
                 close_px = float(indicators.get("close", 0.0))
                 atr = float(indicators.get("atr_14", close_px * 0.02))
@@ -549,12 +607,37 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                         dte=options_raw.get("dte"),
                         atm_iv=options_raw.get("atm_iv"),
                         cfg=cfg,
+                        win_probability_calibration=win_probability_calibration,
                     )
                     ranked = trade_result.get("ranked_structures", [])
+                    structures_eligible = trade_result.get("structures_eligible_after_filters")
+                    exclusion_summary = trade_result.get("exclusion_summary") or None
                     if ranked:
                         best = ranked[0]
                         structure_recommended = best.get("name", "")
-                        ev_per_dollar = f"{best.get('ev_per_dollar_risked', 0.0):.3f}"
+                        # ev_per_dollar_per_day, not the un-normalized ev_per_dollar_risked —
+                        # trade_selector.py now ranks (and picks ranked[0]) on the
+                        # per-day metric, so persisting the un-normalized figure here
+                        # would silently disagree with which structure was actually
+                        # recommended and why.
+                        ev_per_dollar = f"{best.get('ev_per_dollar_per_day', 0.0):.5f}"
+
+                        # Statistical outlier check — is this reading in line with
+                        # what this same structure has produced historically, or
+                        # is it a MU-long_strangle-style anomaly (~8x AVGO/NVDA's
+                        # reading on the same structure, same scan)? MAD-based
+                        # rather than a fixed multiplier so the bar self-adjusts as
+                        # more history accumulates instead of a hand-picked cutoff
+                        # (see shared/utils/robust_stats.py).
+                        ev_outlier_z = _ev_outlier_z_safe(structure_recommended, float(ev_per_dollar))
+                        if ev_outlier_z is not None and abs(ev_outlier_z) >= DEFAULT_OUTLIER_THRESHOLD:
+                            logger.info(
+                                f"{ticker}: NOTE — {structure_recommended}'s ev_per_dollar_per_day "
+                                f"({float(ev_per_dollar):.5f}) is a statistical outlier vs. this "
+                                f"structure's own history (z={ev_outlier_z:+.2f}, threshold="
+                                f"{DEFAULT_OUTLIER_THRESHOLD}) — worth checking the underlying "
+                                f"inputs (ATR/price ratio, IV, dte) before trusting this ranking"
+                            )
                 except Exception as exc:
                     logger.warning(f"{ticker}: structure ranking failed — {exc}")
 
@@ -569,6 +652,9 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                     event_gate_blocked=bool(score.get("event_gate_blocked", False)),
                     event_gate_trigger=score.get("event_gate_trigger"),
                     sector=sector,
+                    structures_eligible_after_filters=structures_eligible,
+                    exclusion_summary=exclusion_summary,
+                    ev_outlier_z=ev_outlier_z,
                 )
                 _db_insert_layer_scores_safe(result_id, score)
 
@@ -605,6 +691,9 @@ def run_paper_scan(scan_type: str = "post_close") -> int:
                 event_gate_blocked=bool(score.get("event_gate_blocked", False)),
                 event_gate_trigger=score.get("event_gate_trigger"),
                 sector=sector,
+                structures_eligible_after_filters=structures_eligible,
+                exclusion_summary=exclusion_summary,
+                ev_outlier_z=ev_outlier_z,
             )
             _db_insert_layer_scores_safe(result_id, score)
 

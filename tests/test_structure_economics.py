@@ -195,3 +195,80 @@ class TestUndefinedRiskStructures:
     def test_short_straddle_win_is_the_combined_credit(self):
         econ = resolve_structure_economics("short_straddle", _ENTRY, _STOP, _TARGET, _IV, _DTE)
         assert econ["avg_win"] > 0
+
+
+class TestHighAtrPriceRatioCharacterization:
+    """
+    Confirms/characterizes the hypothesis behind the MU long_strangle EV/$/day
+    outlier (~119, vs. AVGO/NVDA's ~46-59 on the same structure, same scan) —
+    is a high-ATR/price-ratio candidate mechanically inflated by this
+    formula, independent of anything ticker-specific like real market IV?
+
+    Root cause confirmed: for long_strangle (and every other structure whose
+    strikes come from _otm_k(entry, ..., <fixed magnitude>)), the premium
+    (capital_required) depends only on entry/iv/dte — never on the swing
+    model's own ATR-derived stop/target — while avg_win depends on `fav`
+    (target - entry), which the swing model sizes directly off ATR. A stock
+    with a larger ATR/price ratio gets a proportionally bigger avg_win for
+    the *same* premium, so ev_per_dollar_risked scales faster than the ATR
+    ratio itself. Live, this is partly offset when a real option chain
+    supplies atm_iv (more volatile stocks usually do trade at higher real
+    IV) — but the formula has no explicit link between ATR and IV, so a
+    high-ATR/low-supplied-IV combination (e.g. the iv_percentile fallback,
+    which ignores ATR entirely) still triggers this inflation. This is why
+    the fix landed as a statistical outlier check against each structure's
+    own trailing history (shared/utils/robust_stats.py, wired into
+    paper_runner.py) rather than a change to this formula — patching the
+    formula itself risks under- or over-correcting every structure that
+    shares this strike convention, not just long_strangle.
+    """
+
+    def _long_strangle_ev_per_dollar(self, atr_pct: float, win_prob: float = 0.60) -> tuple[float, float]:
+        entry = 150.0
+        atr = entry * atr_pct
+        stop = entry - atr * 2.0
+        target = entry + atr * 2.0 * 3.0
+        econ = resolve_structure_economics("long_strangle", entry, stop, target, _IV, _DTE)
+        from shared.utils.options_math import compute_ev_simple
+        ev = compute_ev_simple(win_prob, econ["avg_win"], econ["avg_loss"])
+        return ev / econ["capital_required"], econ["capital_required"]
+
+    def test_capital_required_is_independent_of_atr_price_ratio(self):
+        # The actual root cause: premium (and therefore capital_required)
+        # comes from entry + the fixed 6% OTM offset + iv/dte only — never
+        # from ATR — so it's identical whether the underlying's ATR/price
+        # ratio is small or MU-sized, holding iv/dte/entry fixed.
+        _, capital_low = self._long_strangle_ev_per_dollar(atr_pct=0.04)
+        _, capital_high = self._long_strangle_ev_per_dollar(atr_pct=0.095)
+        assert capital_low == capital_high
+
+    def test_ev_per_dollar_scales_faster_than_the_atr_ratio_itself(self):
+        # AVGO-like (~4.1%) vs. MU-like (~9.5%) ATR/price ratios, same iv/dte —
+        # ev_per_dollar should scale by MORE than the ~2.3x ATR ratio itself,
+        # since avg_win scales with ATR while the premium paid for it doesn't.
+        ev_per_dollar_low, _ = self._long_strangle_ev_per_dollar(atr_pct=0.04)
+        ev_per_dollar_high, _ = self._long_strangle_ev_per_dollar(atr_pct=0.095)
+        atr_ratio = 0.095 / 0.04
+        ev_ratio = ev_per_dollar_high / ev_per_dollar_low
+        assert ev_ratio > atr_ratio
+
+    def test_effect_holds_for_other_fixed_otm_offset_structures_too(self):
+        # Not unique to long_strangle — any structure whose strike comes from
+        # _otm_k(entry, ..., <fixed magnitude>) shares this same decoupling.
+        # long_straddle uses at-the-money strikes (no _otm_k offset at all),
+        # so it's the natural contrast: its premium DOES move with the
+        # payoff's implied strikes... but still not with ATR directly either,
+        # since long_straddle's strikes are pinned to entry regardless of ATR.
+        # The property that generalizes across both is capital_required's
+        # independence from ATR, checked directly instead of asserting a
+        # specific inflation ratio that would vary structure to structure.
+        entry, iv, dte = 150.0, _IV, _DTE
+        for structure_name in ("long_strangle", "long_straddle", "bull_call_spread"):
+            capitals = []
+            for atr_pct in (0.04, 0.095):
+                atr = entry * atr_pct
+                stop = entry - atr * 2.0
+                target = entry + atr * 2.0 * 3.0
+                econ = resolve_structure_economics(structure_name, entry, stop, target, iv, dte)
+                capitals.append(econ["capital_required"])
+            assert capitals[0] == capitals[1], f"{structure_name}: capital_required unexpectedly moved with ATR"

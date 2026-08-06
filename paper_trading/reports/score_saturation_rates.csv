@@ -1,0 +1,6 @@
+category,max_points,n_rows,saturated_count,saturation_rate
+technical,40,676,0,0.0
+market_positioning,20,676,0,0.0
+sentiment,15,676,11,0.0163
+news,15,676,0,0.0
+fundamental,10,676,106,0.1568

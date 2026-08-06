@@ -109,6 +109,39 @@ def threshold_qualification_rates(
     return pd.DataFrame(rows)
 
 
+_NEAR_CEILING_FRACTION = 0.98  # within 2% of a category's own max counts as "saturated"
+
+
+def saturation_rates(category_df: pd.DataFrame, near_ceiling_fraction: float = _NEAR_CEILING_FRACTION) -> pd.DataFrame:
+    """
+    What fraction of logged rows sit at or within `near_ceiling_fraction` of
+    each category's own max points — distinct from "best-ever reached the
+    ceiling once" (a single occurrence tells you nothing about frequency).
+    A category saturating often means many different tickers/scans are
+    getting compressed into the same top score, losing exactly the resolution
+    a threshold-based decision near that ceiling needs most.
+
+    Returns one row per category: n_rows, saturated_count, saturation_rate.
+    """
+    rows = []
+    for cat, max_pts in _CATEGORY_MAX_POINTS.items():
+        if cat not in category_df.columns:
+            continue
+        vals = category_df[cat].dropna()
+        if vals.empty:
+            continue
+        threshold = max_pts * near_ceiling_fraction
+        saturated = int((vals >= threshold).sum())
+        rows.append({
+            "category": cat,
+            "max_points": max_pts,
+            "n_rows": len(vals),
+            "saturated_count": saturated,
+            "saturation_rate": round(saturated / len(vals), 4),
+        })
+    return pd.DataFrame(rows)
+
+
 def joint_peak_rate(category_df: pd.DataFrame, quantile: float = 0.8, min_categories: int = 2) -> float:
     """
     Fraction of logged rows where at least `min_categories` of the 5 scoring
@@ -164,6 +197,14 @@ def main() -> None:
             "best_ever_score": round(vals.max(), 2), "best_ever_pct_of_max": round(max_pct, 4),
         })
 
+    sat_df = saturation_rates(category_df)
+    print(f"\nCeiling saturation rate (fraction of rows within {_NEAR_CEILING_FRACTION:.0%} of category max):")
+    for _, row in sat_df.iterrows():
+        print(
+            f"  {row['category']:20s} {row['saturated_count']:4d}/{row['n_rows']:4d} rows "
+            f"saturated ({row['saturation_rate']:.1%})"
+        )
+
     joint_rate_2 = joint_peak_rate(category_df, quantile=0.8, min_categories=2)
     joint_rate_all5 = joint_peak_rate(category_df, quantile=0.8, min_categories=5)
     print(
@@ -194,9 +235,11 @@ def main() -> None:
     pd.DataFrame(rows_out).to_csv(report_dir / "score_distribution_diagnostic.csv", index=False)
     scores_df.to_csv(report_dir / "score_distribution_composite_scores.csv", index=False)
     threshold_df.to_csv(report_dir / "threshold_sensitivity_live.csv", index=False)
+    sat_df.to_csv(report_dir / "score_saturation_rates.csv", index=False)
     print("\nSaved category summary to paper_trading/reports/score_distribution_diagnostic.csv")
     print("Saved raw composite scores to paper_trading/reports/score_distribution_composite_scores.csv")
     print("Saved threshold sensitivity to paper_trading/reports/threshold_sensitivity_live.csv")
+    print("Saved saturation rates to paper_trading/reports/score_saturation_rates.csv")
 
 
 if __name__ == "__main__":

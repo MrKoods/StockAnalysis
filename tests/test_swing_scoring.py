@@ -11,6 +11,7 @@ import pytest
 from swing_model.scoring import (
     compute_confidence_score,
     compute_technical_sub_scores,
+    compute_data_sufficiency,
     apply_high_vol_regime_cap,
     TECHNICAL_MAX,
     POSITIONING_MAX,
@@ -190,6 +191,191 @@ class TestBaseScore:
 
 
 # ---------------------------------------------------------------------------
+# Fundamental staleness discount
+# ---------------------------------------------------------------------------
+
+class TestFundamentalStaleness:
+    def _score_with_fundamental(self, fundamental, as_of_date=None):
+        return compute_confidence_score(
+            technical={}, positioning=_zero_positioning(), sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            fundamental=fundamental, as_of_date=as_of_date,
+        )
+
+    def test_missing_data_as_of_gets_full_weight(self):
+        result = self._score_with_fundamental({"fundamental_score": 15.0, "data_quality": "complete"})
+        assert result["fundamental_staleness_weight"] == pytest.approx(1.0)
+        assert result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX)
+
+    def test_same_day_data_gets_full_weight(self):
+        import datetime
+        today = datetime.date(2026, 8, 5)
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "2026-08-05"},
+            as_of_date=today,
+        )
+        assert result["fundamental_staleness_weight"] == pytest.approx(1.0)
+        assert result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX)
+
+    def test_within_full_weight_window_no_discount(self):
+        import datetime
+        today = datetime.date(2026, 8, 5)
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "2026-08-03"},  # 2 days old
+            as_of_date=today,
+        )
+        assert result["fundamental_staleness_weight"] == pytest.approx(1.0)
+
+    def test_beyond_floor_days_clamps_at_floor_not_zero(self):
+        import datetime
+        today = datetime.date(2026, 8, 5)
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "2026-07-01"},  # 35 days old
+            as_of_date=today,
+        )
+        assert result["fundamental_staleness_weight"] == pytest.approx(0.5)
+        assert result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX * 0.5)
+
+    def test_linear_ramp_midpoint(self):
+        import datetime
+        # 3-day full-weight window, 15-day floor window -> midpoint age 9 days
+        # should sit halfway between weight 1.0 and floor 0.5, i.e. 0.75.
+        today = datetime.date(2026, 8, 12)
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "2026-08-03"},  # 9 days old
+            as_of_date=today,
+        )
+        assert result["fundamental_staleness_weight"] == pytest.approx(0.75, abs=0.01)
+
+    def test_matches_real_observed_staleness_e_g_tsm(self):
+        # Mirrors an actual value seen in production scan logs: TSM's
+        # fundamental data_as_of lagging 13 days behind a 2026-08-05 scan.
+        import datetime
+        today = datetime.date(2026, 8, 5)
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "2026-07-23"},
+            as_of_date=today,
+        )
+        assert 0.5 <= result["fundamental_staleness_weight"] < 1.0
+        assert result["fundamental_score"] < FUNDAMENTAL_MAX
+
+    def test_unparseable_data_as_of_falls_back_to_full_weight(self):
+        result = self._score_with_fundamental(
+            {"fundamental_score": 15.0, "data_quality": "complete", "data_as_of": "not-a-date"},
+        )
+        assert result["fundamental_staleness_weight"] == pytest.approx(1.0)
+
+    def test_negative_fundamental_contribution_also_discounted(self):
+        import datetime
+        today = datetime.date(2026, 8, 5)
+        result = self._score_with_fundamental(
+            {"fundamental_score": -15.0, "data_quality": "complete", "data_as_of": "2026-07-01"},
+            as_of_date=today,
+        )
+        assert result["fundamental_score"] == pytest.approx(-FUNDAMENTAL_MAX * 0.5)
+
+
+# ---------------------------------------------------------------------------
+# Data-sufficiency proxy (heuristic, not a statistical CI)
+# ---------------------------------------------------------------------------
+
+class TestDataSufficiency:
+    def _all_complete_positioning(self):
+        return {"sub_signal_data_quality": {
+            "options": "complete", "institutional": "complete",
+            "short_interest": "complete", "insider": "complete", "analyst": "complete",
+        }}
+
+    def _all_complete_sentiment(self):
+        return {"sub_signal_data_quality": {
+            "ratio": "complete", "velocity": "complete", "engagement": "complete",
+        }}
+
+    def test_all_complete_gives_high_confidence(self):
+        result = compute_data_sufficiency(
+            self._all_complete_positioning(), self._all_complete_sentiment(),
+            {"data_quality": "complete"},
+        )
+        assert result["data_confidence"] == "high"
+        assert result["degraded_sub_signal_count"] == 0
+
+    def test_fundamental_unavailable_alone_drops_to_medium(self):
+        result = compute_data_sufficiency(
+            self._all_complete_positioning(), self._all_complete_sentiment(),
+            {"data_quality": "unavailable"},
+        )
+        assert result["degraded_sub_signal_count"] == 1
+        assert result["data_confidence"] == "medium"
+
+    def test_three_or_more_degraded_gives_low_confidence(self):
+        positioning = self._all_complete_positioning()
+        positioning["sub_signal_data_quality"]["options"] = "unavailable"
+        positioning["sub_signal_data_quality"]["insider"] = "unavailable"
+        result = compute_data_sufficiency(
+            positioning, self._all_complete_sentiment(), {"data_quality": "unavailable"},
+        )
+        assert result["degraded_sub_signal_count"] == 3
+        assert result["data_confidence"] == "low"
+
+    def test_insufficient_baseline_counts_as_degraded(self):
+        sentiment = self._all_complete_sentiment()
+        sentiment["sub_signal_data_quality"]["ratio"] = "insufficient_baseline"
+        result = compute_data_sufficiency(
+            self._all_complete_positioning(), sentiment, {"data_quality": "complete"},
+        )
+        assert result["degraded_sub_signal_count"] == 1
+
+    def test_missing_sub_signal_data_quality_only_counts_fundamental(self):
+        result = compute_data_sufficiency({}, {}, {"data_quality": "complete"})
+        assert result["total_sub_signals_checked"] == 1
+        assert result["degraded_sub_signal_count"] == 0
+        assert result["data_confidence"] == "high"
+
+    def test_total_sub_signals_checked_counts_all_eight(self):
+        result = compute_data_sufficiency(
+            self._all_complete_positioning(), self._all_complete_sentiment(),
+            {"data_quality": "complete"},
+        )
+        # 5 positioning + 3 sentiment + 1 fundamental = 9
+        assert result["total_sub_signals_checked"] == 9
+
+    def test_wired_into_compute_confidence_score_output(self):
+        result = compute_confidence_score(
+            technical=_max_technical(), positioning={"sub_signal_data_quality": {"options": "unavailable"}},
+            sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            fundamental={"fundamental_score": 0.0, "data_quality": "unavailable"},
+        )
+        assert "data_confidence" in result
+        assert "degraded_sub_signal_count" in result
+        assert result["degraded_sub_signal_count"] >= 2  # options + fundamental at least
+
+
+class TestCalibratedWinProbability:
+    def _score(self, confidence_inputs, calibration=None):
+        return compute_confidence_score(
+            technical=confidence_inputs, positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0, win_probability_calibration=calibration,
+        )
+
+    def test_no_calibration_falls_back_to_final_score_over_100(self):
+        result = self._score(_max_technical())
+        assert result["win_prob_calibrated"] is False
+        assert result["calibrated_win_probability"] == pytest.approx(result["final_score"] / 100.0)
+
+    def test_with_calibration_uses_real_curve_not_identity(self):
+        calibration = [{"threshold": 50, "win_rate": 0.55}, {"threshold": 100, "win_rate": 0.62}]
+        result = self._score(_max_technical(), calibration=calibration)
+        assert result["win_prob_calibrated"] is True
+        assert result["calibrated_win_probability"] != pytest.approx(result["final_score"] / 100.0)
+        assert 0.55 <= result["calibrated_win_probability"] <= 0.62
+
+
+# ---------------------------------------------------------------------------
 # Modifier and clamping tests
 # ---------------------------------------------------------------------------
 
@@ -232,13 +418,17 @@ class TestModifiers:
         assert result["macro_modifier"] == 3.0
 
     def test_total_modifier_is_sum_of_all_modifiers(self):
+        # regime (+5) and sector_rotation (-3) are opposite-signed here — a
+        # real disagreement between the two lenses, not a double-count — so
+        # they're expected to sum plainly, same as every other modifier pair.
+        # See TestRegimeSectorRotationDedup below for the same-sign case.
         result = compute_confidence_score(
             technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
-            regime_modifier=5, sector_rotation_modifier=3, earnings_modifier=-10,
+            regime_modifier=5, sector_rotation_modifier=-3, earnings_modifier=-10,
             cross_ticker_modifier=2, seasonality_modifier=3, macro_modifier=2,
             volume_profile_score=8.0,
         )
-        expected_mod = 5 + 3 + (-10) + 2 + 3 + 2
+        expected_mod = 5 + (-3) + (-10) + 2 + 3 + 2
         assert result["total_modifier"] == pytest.approx(expected_mod, abs=0.01)
 
     def test_final_score_equals_base_plus_total_modifier(self):
@@ -255,6 +445,62 @@ class TestModifiers:
         from shared.utils.earnings_calendar import get_earnings_modifier
         result = get_earnings_modifier(ticker="NVDA", earnings_date=None)
         assert -20 <= result["confidence_modifier"] <= 0
+
+
+# ---------------------------------------------------------------------------
+# Regime x sector_rotation double-count dedup
+# ---------------------------------------------------------------------------
+
+class TestRegimeSectorRotationDedup:
+    def _score(self, regime_modifier, sector_rotation_modifier):
+        return compute_confidence_score(
+            technical=_max_technical(), positioning=_max_positioning(), sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=regime_modifier, sector_rotation_modifier=sector_rotation_modifier,
+            earnings_modifier=0, cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
+        )
+
+    def test_both_negative_uses_larger_magnitude_not_sum(self):
+        # Mirrors the actual live pattern (e.g. NVDA mid-session 08-05:
+        # regime=-2.0, sector_rotation=-15.0) — both SMH-derived and both
+        # negative should combine to -15.0 (the larger magnitude), not -17.0.
+        result = self._score(regime_modifier=-2.0, sector_rotation_modifier=-15.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(-15.0)
+        assert result["total_modifier"] == pytest.approx(-15.0)
+
+    def test_both_positive_uses_larger_magnitude_not_sum(self):
+        result = self._score(regime_modifier=5.0, sector_rotation_modifier=3.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(5.0)
+        assert result["total_modifier"] == pytest.approx(5.0)
+
+    def test_opposite_signs_still_sum_plainly(self):
+        # A real disagreement between the two lenses — not a double-count —
+        # so this case is left as a plain sum.
+        result = self._score(regime_modifier=5.0, sector_rotation_modifier=-3.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(2.0)
+        assert result["total_modifier"] == pytest.approx(2.0)
+
+    def test_one_zero_sums_plainly(self):
+        result = self._score(regime_modifier=5.0, sector_rotation_modifier=0.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(5.0)
+
+    def test_both_zero(self):
+        result = self._score(regime_modifier=0.0, sector_rotation_modifier=0.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(0.0)
+
+    def test_raw_individual_modifiers_still_reported_unchanged(self):
+        # The dedup only affects total_modifier's bottom line — the raw
+        # per-modifier values must stay visible for audit/NOTE-detection
+        # logic (paper_runner.py) that reads them individually.
+        result = self._score(regime_modifier=-2.0, sector_rotation_modifier=-15.0)
+        assert result["regime_modifier"] == pytest.approx(-2.0)
+        assert result["sector_rotation_modifier"] == pytest.approx(-15.0)
+
+    def test_dedup_applied_after_clamping_to_bounds(self):
+        # regime clamps to -15 (from -100), sector_rotation clamps to -15 too
+        # — same sign after clamping, so combined should be -15, not -30.
+        result = self._score(regime_modifier=-100.0, sector_rotation_modifier=-100.0)
+        assert result["regime_sector_rotation_combined"] == pytest.approx(-15.0)
 
 
 # ---------------------------------------------------------------------------

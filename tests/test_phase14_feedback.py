@@ -142,6 +142,109 @@ class TestUpdateSignalWinRates:
 
 
 # ---------------------------------------------------------------------------
+# _fit_logistic_weights — regularized regression replacing the sign-only
+# ±2pp heuristic for technical/sentiment/news weight calibration
+# ---------------------------------------------------------------------------
+
+def _synthetic_outcomes_technical_separates(n=60, seed=7):
+    """
+    technical_total clearly separates win/loss (wins centered higher, with
+    noise); sentiment_total/news_total are pure noise unrelated to outcome.
+    A correctly-working fit should identify technical as the dominant
+    sub-signal.
+    """
+    import random
+    rng = random.Random(seed)
+    outcomes = []
+    for i in range(n):
+        is_win = i % 2 == 0
+        tech = rng.gauss(32.0, 3.0) if is_win else rng.gauss(15.0, 3.0)
+        sent = rng.gauss(7.5, 3.0)  # noise, same distribution regardless of outcome
+        news = rng.gauss(7.5, 3.0)  # noise, same distribution regardless of outcome
+        outcomes.append({
+            "outcome": "win" if is_win else "loss",
+            "technical_total": max(0.0, min(40.0, tech)),
+            "sentiment_total": max(0.0, min(15.0, sent)),
+            "news_total": max(0.0, min(15.0, news)),
+        })
+    return outcomes
+
+
+class TestFitLogisticWeights:
+    def test_none_with_too_few_samples(self):
+        from swing_model.feedback_loop import _fit_logistic_weights, _MIN_SAMPLES_FOR_REGRESSION
+        outcomes = _synthetic_outcomes_technical_separates(n=_MIN_SAMPLES_FOR_REGRESSION - 1)
+        assert _fit_logistic_weights(outcomes) is None
+
+    def test_none_when_all_same_outcome(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        outcomes = [
+            {"outcome": "win", "technical_total": 30.0, "sentiment_total": 8.0, "news_total": 6.0}
+            for _ in range(30)
+        ]
+        assert _fit_logistic_weights(outcomes) is None
+
+    def test_none_when_a_feature_has_zero_variance(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        import random
+        rng = random.Random(1)
+        outcomes = []
+        for i in range(30):
+            is_win = i % 2 == 0
+            outcomes.append({
+                "outcome": "win" if is_win else "loss",
+                "technical_total": rng.gauss(30.0, 3.0) if is_win else rng.gauss(15.0, 3.0),
+                "sentiment_total": 8.0,  # identical every row -> zero variance
+                "news_total": rng.gauss(7.0, 2.0),
+            })
+        assert _fit_logistic_weights(outcomes) is None
+
+    def test_identifies_the_actually_separating_sub_signal(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        outcomes = _synthetic_outcomes_technical_separates()
+        result = _fit_logistic_weights(outcomes)
+        assert result is not None
+        # technical clearly separates wins/losses; sentiment/news are pure
+        # noise -> technical should end up with by far the largest fraction.
+        assert result["technical"] > result["sentiment"]
+        assert result["technical"] > result["news"]
+
+    def test_weights_sum_to_one(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        outcomes = _synthetic_outcomes_technical_separates()
+        result = _fit_logistic_weights(outcomes)
+        assert sum(result.values()) == pytest.approx(1.0, abs=1e-6)
+
+    def test_non_numeric_fields_are_skipped_not_crashed(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        outcomes = _synthetic_outcomes_technical_separates()
+        outcomes.append({"outcome": "win", "technical_total": "bad", "sentiment_total": 5.0, "news_total": 5.0})
+        result = _fit_logistic_weights(outcomes)
+        assert result is not None  # the one bad row is skipped, rest still fit
+
+
+class TestRecomputeWeightsUsesRegressionWhenPossible:
+    def test_falls_back_to_heuristic_below_regression_threshold(self):
+        from swing_model.feedback_loop import _recompute_weights
+        outcomes = [_outcome(result="win")] * 4 + [_outcome(result="loss", tech=10.0)] * 4
+        current = {"technical": 0.60, "sentiment": 0.25, "news": 0.15}
+        # Should not raise, should still produce a valid normalized weight dict
+        # via the old heuristic path (too few samples for regression).
+        result = _recompute_weights(outcomes, current)
+        assert sum(result.values()) == pytest.approx(1.0, abs=1e-3)
+
+    def test_uses_regression_result_when_enough_varied_data(self):
+        from swing_model.feedback_loop import _recompute_weights
+        outcomes = _synthetic_outcomes_technical_separates()
+        current = {"technical": 0.60, "sentiment": 0.25, "news": 0.15}
+        result = _recompute_weights(outcomes, current)
+        assert sum(result.values()) == pytest.approx(1.0, abs=1e-3)
+        # technical clearly dominates in the synthetic data -> should end up
+        # at or near its upper bound (0.80) after normalization.
+        assert result["technical"] > current["technical"]
+
+
+# ---------------------------------------------------------------------------
 # run_calibration
 # ---------------------------------------------------------------------------
 

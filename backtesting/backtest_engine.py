@@ -31,13 +31,17 @@ from backtesting.metrics import (
     compute_win_rate,
     compute_avg_rr,
     compute_max_drawdown,
+    compute_max_drawdown_duration,
+    compute_ulcer_index,
     compute_sharpe,
+    compute_sortino,
     per_regime_metrics,
     compute_consecutive_losses,
     compute_r_multiples,
     bootstrap_expectancy_ci,
     _trades_per_year,
     _build_equity_curve,
+    build_portfolio_equity_curve,
 )
 from backtesting.simulation import _simulate_test_signals, simulate_trade_outcome  # noqa: F401 (simulate_trade_outcome re-exported for tests/test_phase12_backtest.py)
 from backtesting.walk_forward import run_walk_forward
@@ -93,7 +97,14 @@ def run_backtest(
             "expectancy_r_ci_lower": 0.0,
             "expectancy_r_ci_upper": 0.0,
             "sharpe_ratio": 0.0,
+            "sortino_ratio": 0.0,
             "max_drawdown_pct": 0.0,
+            "max_drawdown_duration_trades": 0,
+            "ulcer_index": 0.0,
+            "portfolio_sharpe_ratio": 0.0,
+            "portfolio_max_drawdown_pct": 0.0,
+            "max_concurrent_positions": 0,
+            "max_concurrent_risk_pct": 0.0,
             "qualifying_trades": 0,
             "per_regime": {},
             "walk_forward": [],
@@ -120,10 +131,23 @@ def run_backtest(
     qualifying_chrono = sorted(qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
     equity_curve = _build_equity_curve(qualifying_chrono, starting_equity=15000.0)
     max_dd = compute_max_drawdown(equity_curve)
+    max_dd_duration = compute_max_drawdown_duration(equity_curve)
+    ulcer_index = compute_ulcer_index(equity_curve)
     trade_returns = equity_curve.pct_change().dropna()
     # Each step in trade_returns is one trade, not one calendar day — annualize
     # using the actual observed trade frequency rather than assuming sqrt(252).
     sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
+    sortino = compute_sortino(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
+
+    # Portfolio-level view: concurrently open positions realistically compound
+    # risk together (a correlated adverse move hits several open positions at
+    # once), which the serial curve above — one trade fully closed before the
+    # next affects the curve — structurally can't represent. Reported
+    # alongside, not in place of, the serial figures above.
+    portfolio_curve, portfolio_stats = build_portfolio_equity_curve(qualifying_chrono, starting_equity=15000.0)
+    portfolio_max_dd = compute_max_drawdown(portfolio_curve)
+    portfolio_returns = portfolio_curve.pct_change().dropna()
+    portfolio_sharpe = compute_sharpe(portfolio_returns, periods_per_year=_trades_per_year(qualifying_chrono))
 
     max_consec_losses = compute_consecutive_losses(qualifying)
 
@@ -132,7 +156,11 @@ def run_backtest(
 
     # Determine pass/fail (v2.2.17): trade count + expectancy CI lower bound +
     # Sharpe + drawdown. win_rate/avg_rr no longer gate "passed" directly — see
-    # module docstring for why the old flat pair was replaced.
+    # module docstring for why the old flat pair was replaced. Sortino/Ulcer/
+    # drawdown-duration are reported but don't gate "passed" — the existing
+    # Sharpe/drawdown floors are what this project's go-live decision has
+    # actually been validated against; adding new gates on new metrics is a
+    # deliberate bar-raising decision, not something to fold in silently.
     passed = (
         len(qualifying) >= min_qualifying_trades
         and expectancy_ci["ci_lower"] >= min_expectancy_r
@@ -148,7 +176,14 @@ def run_backtest(
         "expectancy_r_ci_lower": round(expectancy_ci["ci_lower"], 3),
         "expectancy_r_ci_upper": round(expectancy_ci["ci_upper"], 3),
         "sharpe_ratio": round(sharpe, 2),
+        "sortino_ratio": round(sortino, 2),
         "max_drawdown_pct": round(max_dd, 4),
+        "max_drawdown_duration_trades": max_dd_duration,
+        "ulcer_index": round(ulcer_index, 4),
+        "portfolio_sharpe_ratio": round(portfolio_sharpe, 2),
+        "portfolio_max_drawdown_pct": round(portfolio_max_dd, 4),
+        "max_concurrent_positions": portfolio_stats["max_concurrent_positions"],
+        "max_concurrent_risk_pct": portfolio_stats["max_concurrent_risk_pct"],
         "qualifying_trades": len(qualifying),
         "total_signals": len(all_outcomes),
         "max_consecutive_losses": max_consec_losses,
@@ -236,8 +271,19 @@ def run_multi_sector_backtest(
     qualifying_chrono = sorted(qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
     equity_curve = _build_equity_curve(qualifying_chrono, starting_equity=15000.0)
     max_dd = compute_max_drawdown(equity_curve)
+    max_dd_duration = compute_max_drawdown_duration(equity_curve)
+    ulcer_index = compute_ulcer_index(equity_curve)
     trade_returns = equity_curve.pct_change().dropna()
     sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
+    sortino = compute_sortino(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
+
+    # Especially relevant here vs. the single-sector run_backtest(): this
+    # pools outcomes across all 3 sectors, so concurrent positions can now
+    # span sectors too — exactly what live trading actually does.
+    portfolio_curve, portfolio_stats = build_portfolio_equity_curve(qualifying_chrono, starting_equity=15000.0)
+    portfolio_max_dd = compute_max_drawdown(portfolio_curve)
+    portfolio_returns = portfolio_curve.pct_change().dropna()
+    portfolio_sharpe = compute_sharpe(portfolio_returns, periods_per_year=_trades_per_year(qualifying_chrono))
 
     max_consec_losses = compute_consecutive_losses(qualifying)
 
@@ -256,7 +302,14 @@ def run_multi_sector_backtest(
         "expectancy_r_ci_lower": round(expectancy_ci["ci_lower"], 3),
         "expectancy_r_ci_upper": round(expectancy_ci["ci_upper"], 3),
         "sharpe_ratio": round(sharpe, 2),
+        "sortino_ratio": round(sortino, 2),
         "max_drawdown_pct": round(max_dd, 4),
+        "max_drawdown_duration_trades": max_dd_duration,
+        "ulcer_index": round(ulcer_index, 4),
+        "portfolio_sharpe_ratio": round(portfolio_sharpe, 2),
+        "portfolio_max_drawdown_pct": round(portfolio_max_dd, 4),
+        "max_concurrent_positions": portfolio_stats["max_concurrent_positions"],
+        "max_concurrent_risk_pct": portfolio_stats["max_concurrent_risk_pct"],
         "qualifying_trades": len(qualifying),
         "total_signals": len(all_outcomes),
         "max_consecutive_losses": max_consec_losses,

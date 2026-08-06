@@ -22,7 +22,15 @@ from pathlib import Path
 import pandas as pd
 
 from backtesting.backtest_engine import run_walk_forward
-from backtesting.metrics import compute_win_rate, compute_avg_rr, compute_consecutive_losses
+from backtesting.metrics import (
+    compute_win_rate,
+    compute_avg_rr,
+    compute_consecutive_losses,
+    compute_sharpe,
+    compute_deflated_sharpe_ratio,
+    _build_equity_curve,
+    _trades_per_year,
+)
 from backtesting.run_backtest import load_historical_data
 from shared.utils.logger import get_logger
 
@@ -51,6 +59,13 @@ def run_variant_comparison(historical_data: dict[str, pd.DataFrame]) -> pd.DataF
     """
     Run every variant in VARIANTS across all walk-forward windows, pool each
     variant's qualifying trades, and return a comparison DataFrame.
+
+    Includes pooled_sharpe per variant and a deflated-Sharpe/PSR check
+    (compute_deflated_sharpe_ratio) against whichever variant has the best
+    pooled Sharpe — testing len(VARIANTS) configurations and reporting the
+    winner without correcting for having tried that many is the same
+    multiple-testing trap run_sensitivity_analysis's threshold sweep has,
+    just with filter variants as the trials instead of thresholds.
     """
     rows = []
 
@@ -62,11 +77,17 @@ def run_variant_comparison(historical_data: dict[str, pd.DataFrame]) -> pd.DataF
         windows_with_trades = [w for w in windows if w["qualifying_trades"] > 0]
         windows_passed = sum(1 for w in windows if w["passed"])
 
+        pooled_chrono = sorted(pooled, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
+        equity_curve = _build_equity_curve(pooled_chrono)
+        trade_returns = equity_curve.pct_change().dropna()
+        sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(pooled_chrono)) if pooled_chrono else 0.0
+
         rows.append({
             "variant": name,
             "pooled_trades": len(pooled),
             "pooled_win_rate": round(compute_win_rate(pooled), 4),
             "pooled_avg_rr": round(compute_avg_rr(pooled), 2),
+            "pooled_sharpe": round(sharpe, 2),
             "pooled_max_consec_losses": compute_consecutive_losses(pooled),
             "windows_with_any_trades": len(windows_with_trades),
             "windows_passed": windows_passed,
@@ -74,6 +95,17 @@ def run_variant_comparison(historical_data: dict[str, pd.DataFrame]) -> pd.DataF
         })
 
     df = pd.DataFrame(rows)
+
+    if not df.empty and (df["pooled_sharpe"] != 0.0).any():
+        best_idx = df["pooled_sharpe"].idxmax()
+        best_row = df.loc[best_idx]
+        dsr = compute_deflated_sharpe_ratio(
+            sharpe_ratios=df["pooled_sharpe"].tolist(),
+            selected_sharpe=float(best_row["pooled_sharpe"]),
+            n_observations=int(best_row["pooled_trades"]),
+        )
+        df["psr_best_variant_vs_sweep"] = dsr["psr"]
+        df["deflated_sharpe_best_variant"] = dsr["deflated_sharpe"]
 
     report_dir = Path("backtesting/reports")
     report_dir.mkdir(parents=True, exist_ok=True)

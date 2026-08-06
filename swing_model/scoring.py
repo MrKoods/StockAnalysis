@@ -32,9 +32,19 @@ Modifier bounds (applied after base score):
   Cross-ticker:    -10 to +5
   Seasonality:     -5  to +5
   Macro overlay:   -10 to +3
+
+Regime and sector rotation are both derived from the same underlying SMH
+price action (regime: SMH vs. its own SMA trend; sector rotation: SMH return
+vs. SPY) — when their clamped values agree in sign, only the larger-magnitude
+one counts toward total_modifier (not their sum), since that's one real
+observation counted once, not two independent corroborating signals. See
+regime_sector_rotation_combined in the returned dict for the exact value used.
 """
 
+from datetime import date
 from typing import Optional
+
+from swing_model.win_probability_calibration import calibrate_win_probability
 
 
 
@@ -48,6 +58,97 @@ SENTIMENT_MAX = 15
 NEWS_MAX = 15
 FUNDAMENTAL_MAX = 10
 FUNDAMENTAL_INTERNAL_MAX = 15  # FundamentalScorer's own -15..+15 scale, unchanged
+
+# Fundamental staleness discount — fundamental_data_as_of routinely lags the
+# scan date by 1-13+ days (Alpha Vantage's own fetch cadence/rate limits, not
+# a bug — see fundamental_layer.py), yet fundamental_contribution was being
+# summed at full weight regardless of age, as if a same-day technical signal
+# and a two-week-old fundamental snapshot were equally current. No discount
+# inside _FULL_WEIGHT_MAX_DAYS (normal refresh cadence); linear ramp down to
+# a floor (not to zero) by _STALENESS_FLOOR_DAYS — earnings/EPS-growth facts
+# don't actually go stale as fast as a same-day price-derived valuation ratio
+# would, so a floor avoids over-punishing data that's still largely valid.
+_FUNDAMENTAL_FULL_WEIGHT_MAX_DAYS = 3
+_FUNDAMENTAL_STALENESS_FLOOR_DAYS = 15
+_FUNDAMENTAL_STALENESS_WEIGHT_FLOOR = 0.5
+
+
+def _fundamental_staleness_weight(data_as_of: Optional[str], today: Optional[date] = None) -> float:
+    """
+    1.0 (no discount) when data_as_of is missing/unparseable/within the normal
+    refresh window, linearly ramping down to _FUNDAMENTAL_STALENESS_WEIGHT_FLOOR
+    as age grows from _FUNDAMENTAL_FULL_WEIGHT_MAX_DAYS to
+    _FUNDAMENTAL_STALENESS_FLOOR_DAYS, held at the floor beyond that (never
+    fully zeroed — see module-level comment for why).
+
+    today: injectable for deterministic tests / backtest replay; defaults to
+    the real current date for live scans.
+    """
+    if not data_as_of:
+        return 1.0
+    try:
+        as_of_date = date.fromisoformat(str(data_as_of)[:10])
+    except (ValueError, TypeError):
+        return 1.0
+
+    reference = today if today is not None else date.today()
+    age_days = (reference - as_of_date).days
+    if age_days <= _FUNDAMENTAL_FULL_WEIGHT_MAX_DAYS:
+        return 1.0
+    if age_days >= _FUNDAMENTAL_STALENESS_FLOOR_DAYS:
+        return _FUNDAMENTAL_STALENESS_WEIGHT_FLOOR
+
+    span_days = _FUNDAMENTAL_STALENESS_FLOOR_DAYS - _FUNDAMENTAL_FULL_WEIGHT_MAX_DAYS
+    progress = (age_days - _FUNDAMENTAL_FULL_WEIGHT_MAX_DAYS) / span_days
+    return 1.0 - progress * (1.0 - _FUNDAMENTAL_STALENESS_WEIGHT_FLOOR)
+
+
+# Data-sufficiency proxy — NOT a statistical confidence interval on
+# final_score. A real CI would need repeated-sampling variance estimates per
+# sub-signal, which this codebase has no infrastructure to produce for a
+# single live score. This instead counts how many of the sub-signals that
+# ALREADY self-report a data_quality flag (sentiment_layer.py's ratio/
+# velocity/engagement, positioning_layer.py's options/institutional/
+# short_interest/insider/analyst, plus fundamental's own top-level
+# data_quality) actually had real data behind them, so two scores landing on
+# the same final number aren't treated as equally trustworthy when one is
+# backed by degraded/missing inputs (e.g. sentiment estimated from as few as
+# 30 StockTwits messages, or an "insufficient_baseline" ratio read) and the
+# other isn't.
+_FULLY_AVAILABLE_DATA_QUALITY = {"complete"}
+
+
+def compute_data_sufficiency(positioning: dict, sentiment: dict, fundamental: dict) -> dict:
+    """
+    Returns {"degraded_sub_signal_count", "total_sub_signals_checked",
+    "data_confidence"}. data_confidence is "high" (0 degraded), "medium"
+    (1-2 degraded), or "low" (3+ degraded) — a coarse, honestly-labeled
+    heuristic, not a precision statistical bound.
+    """
+    sub_signal_quality: dict = {}
+    sub_signal_quality.update(sentiment.get("sub_signal_data_quality", {}) or {})
+    sub_signal_quality.update(positioning.get("sub_signal_data_quality", {}) or {})
+
+    degraded = sum(1 for v in sub_signal_quality.values() if v not in _FULLY_AVAILABLE_DATA_QUALITY)
+    total = len(sub_signal_quality)
+
+    fundamental_quality = fundamental.get("data_quality", "unavailable")
+    if fundamental_quality not in _FULLY_AVAILABLE_DATA_QUALITY:
+        degraded += 1
+    total += 1
+
+    if degraded == 0:
+        confidence = "high"
+    elif degraded <= 2:
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    return {
+        "degraded_sub_signal_count": degraded,
+        "total_sub_signals_checked": total,
+        "data_confidence": confidence,
+    }
 
 
 def compute_confidence_score(
@@ -68,6 +169,8 @@ def compute_confidence_score(
     fundamental: Optional[dict] = None,
     event_gate_blocked: bool = False,
     event_gate_trigger: Optional[str] = None,
+    as_of_date: Optional[date] = None,
+    win_probability_calibration: Optional[list] = None,
 ) -> dict:
     """
     Compute final confidence score for one ticker.
@@ -92,6 +195,21 @@ def compute_confidence_score(
                   can make their own call on a ticker with an active critical event.
     event_gate_trigger:  the trigger headline/keyword reference to attach alongside
                   the score, when event_gate_blocked is True.
+    as_of_date:   reference date for judging fundamental_data_as_of's staleness
+                  (see _fundamental_staleness_weight) — injectable for
+                  deterministic tests/backtest replay; defaults to the real
+                  current date for live scans.
+    win_probability_calibration: real (threshold -> historical win rate)
+                  points from win_probability_calibration.fit_calibration_curve()
+                  — used to compute calibrated_win_probability in the return
+                  dict. CONFIDENCE_THRESHOLD (90) itself is deliberately left
+                  untouched here: once final_score maps to a real probability,
+                  "90" stops being the natural cutoff, but changing what
+                  actually gates a trade is a live-behavior decision, not a
+                  calibration bug — see backtesting/threshold_optimization_
+                  analysis.py for what the data suggests instead of silently
+                  swapping this constant. None (the default) leaves
+                  calibrated_win_probability as final_score/100, unchanged.
 
     Returns full score breakdown dict for audit_log and Discord alert.
     """
@@ -160,6 +278,8 @@ def compute_confidence_score(
     fundamental_contribution = max(-float(FUNDAMENTAL_MAX), min(float(FUNDAMENTAL_MAX), fundamental_contribution))
     fundamental_data_quality = fundamental.get("data_quality", "unavailable")
     fundamental_data_as_of = fundamental.get("data_as_of")
+    fundamental_staleness_weight = _fundamental_staleness_weight(fundamental_data_as_of, today=as_of_date)
+    fundamental_contribution *= fundamental_staleness_weight
 
     # ---------------------------------------------------------------------------
     # Step 6: Base Score = technical + positioning + sentiment + news + fundamental
@@ -180,7 +300,23 @@ def compute_confidence_score(
     seas_mod = max(-5.0, min(5.0, float(seasonality_modifier)))
     mac_mod = max(-10.0, min(3.0, float(macro_modifier)))
 
-    total_modifier = r_mod + sr_mod + e_mod + ct_mod + seas_mod + mac_mod
+    # regime_modifier (SMH vs. its own SMA trend) and sector_rotation_modifier
+    # (SMH return vs. SPY) are both derived from the same underlying SMH price
+    # action. When they agree in sign, that's one real observation ("SMH is
+    # weak"/"SMH is strong") being counted twice, not two independent
+    # corroborating signals — take whichever has the larger magnitude instead
+    # of summing both. Opposite signs are left summed unchanged: that's a real
+    # disagreement between the two lenses (SMH's own trend vs. SMH's relative
+    # return), not a double-count. r_mod/sr_mod themselves are left untouched
+    # in the returned breakdown below so the raw per-modifier values (and the
+    # collinearity/NOTE detection that reads them) stay visible — only the
+    # bottom-line total_modifier reflects the dedup.
+    if (r_mod < 0 and sr_mod < 0) or (r_mod > 0 and sr_mod > 0):
+        regime_sector_combined = max(r_mod, sr_mod, key=abs)
+    else:
+        regime_sector_combined = r_mod + sr_mod
+
+    total_modifier = regime_sector_combined + e_mod + ct_mod + seas_mod + mac_mod
 
     # ---------------------------------------------------------------------------
     # Step 8: Final Score = Base Score + Sum(modifiers), clamped [0, 100]
@@ -209,6 +345,15 @@ def compute_confidence_score(
     # its own merits; event_gate_blocked/event_gate_trigger are carried through
     # below so the caller can flag the active event alongside the signal.
     meets_threshold = final_score >= CONFIDENCE_THRESHOLD
+
+    data_sufficiency = compute_data_sufficiency(positioning, sentiment, fundamental)
+
+    if win_probability_calibration:
+        calibrated_win_probability = calibrate_win_probability(final_score, win_probability_calibration)
+        win_prob_calibrated = True
+    else:
+        calibrated_win_probability = final_score / 100.0
+        win_prob_calibrated = False
 
     return {
         # Technical sub-scores
@@ -253,6 +398,7 @@ def compute_confidence_score(
         "ev_ebitda_vs_peers_score": fundamental.get("ev_ebitda_vs_peers_score", 0),
         "fundamental_data_quality": fundamental_data_quality,
         "fundamental_data_as_of": fundamental_data_as_of,
+        "fundamental_staleness_weight": round(fundamental_staleness_weight, 3),
         "fundamental_breakdown": {
             "earnings": fundamental.get("earnings_breakdown", {}),
             "valuation": fundamental.get("valuation_breakdown", {}),
@@ -263,6 +409,7 @@ def compute_confidence_score(
         "base_score": round(base_score, 2),
         "regime_modifier": r_mod,
         "sector_rotation_modifier": sr_mod,
+        "regime_sector_rotation_combined": round(regime_sector_combined, 2),
         "earnings_modifier": e_mod,
         "cross_ticker_modifier": ct_mod,
         "seasonality_modifier": seas_mod,
@@ -271,6 +418,18 @@ def compute_confidence_score(
         "final_score": round(final_score, 2),
         "direction": direction,
         "meets_threshold": meets_threshold,
+
+        # Data-sufficiency proxy — see compute_data_sufficiency's docstring
+        # for why this is a heuristic, not a statistical confidence interval.
+        "data_confidence": data_sufficiency["data_confidence"],
+        "degraded_sub_signal_count": data_sufficiency["degraded_sub_signal_count"],
+        "total_sub_signals_checked": data_sufficiency["total_sub_signals_checked"],
+
+        # Calibrated win probability — see win_probability_calibration param's
+        # docstring above for why final_score/100 alone was never a real
+        # probability, and why CONFIDENCE_THRESHOLD itself isn't changed here.
+        "calibrated_win_probability": round(calibrated_win_probability, 4),
+        "win_prob_calibrated": win_prob_calibrated,
 
         # Event Severity Gate
         "event_gate_blocked": event_gate_blocked,
