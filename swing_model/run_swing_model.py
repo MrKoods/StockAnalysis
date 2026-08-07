@@ -34,7 +34,7 @@ from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
-from swing_model.scoring import compute_confidence_score
+from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.position_sizer import get_risk_pct
@@ -349,7 +349,7 @@ def main(scan_type: str = "post_close") -> None:
             if score.get("event_gate_blocked"):
                 notes = f"⚠️ ACTIVE EVENT ALERT — trigger: {score.get('event_gate_trigger')} — review before trading"
 
-            if final_score >= 90:
+            if final_score >= CONFIDENCE_THRESHOLD:
                 close_px = indicators.get("close", 0.0)
                 atr = indicators.get("atr_14", close_px * 0.02)
                 breakout_level = indicators.get("rolling_high_20", close_px)
@@ -404,7 +404,7 @@ def main(scan_type: str = "post_close") -> None:
                     geo_note = f"Geopolitical risk ticker ({cfg.get('geopolitical_penalty', -5)} confidence penalty applied)"
                     notes = f"{notes} | {geo_note}" if notes else geo_note
 
-            signal_surfaced = final_score >= 90
+            signal_surfaced = final_score >= CONFIDENCE_THRESHOLD
 
             # Step 11: Write audit log entry for every scanned ticker
             write_audit_entry({

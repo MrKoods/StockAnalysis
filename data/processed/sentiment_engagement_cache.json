@@ -390,7 +390,7 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-08-02T05:35:02.704255+00:00",
+    "fetched_at": "2026-08-07T05:27:28.696898+00:00",
     "items": [
       {
         "article_id": "4622388",
@@ -1040,8 +1040,20 @@
     ]
   },
   "JNJ": {
-    "fetched_at": "2026-08-02T05:35:44.205808+00:00",
+    "fetched_at": "2026-08-07T05:27:31.936312+00:00",
     "items": [
+      {
+        "article_id": "4627816",
+        "timestamp_utc": "2026-08-06T10:22:53-04:00",
+        "title": "'Most Favored Nation' drug pricing would save Medicare more than $200B: AARP",
+        "comment_count": 17
+      },
+      {
+        "article_id": "4623413",
+        "timestamp_utc": "2026-08-03T09:35:53-04:00",
+        "title": "Most and least shorted mid- to mega-cap healthcare stocks at the end of July",
+        "comment_count": 0
+      },
       {
         "article_id": "4622570",
         "timestamp_utc": "2026-08-01T11:05:45-04:00",
@@ -1089,18 +1101,136 @@
         "timestamp_utc": "2026-07-23T09:09:09-04:00",
         "title": "J&J multiple myeloma drugs Tecvayli and Talvey boost cancer-free survival in late-stage trial",
         "comment_count": 1
+      }
+    ]
+  },
+  "AAPL": {
+    "fetched_at": "2026-08-07T05:59:55.304331+00:00",
+    "items": [
+      {
+        "article_id": "4628076",
+        "timestamp_utc": "2026-08-06T13:52:21-04:00",
+        "title": "SA Asks: After last Friday's sell-off, is Apple a buy, hold, or sell? (Update)",
+        "comment_count": 4
       },
       {
-        "article_id": "4616752",
-        "timestamp_utc": "2026-07-22T12:23:44-04:00",
-        "title": "Intuitive Surgical, Medtronic down as J&J wins FDA nod for surgical robot",
-        "comment_count": 12
+        "article_id": "4628023",
+        "timestamp_utc": "2026-08-06T13:40:56-04:00",
+        "title": "Apple raises trade-in values and adds several Android models to the list",
+        "comment_count": 5
       },
       {
-        "article_id": "4616535",
-        "timestamp_utc": "2026-07-22T08:35:08-04:00",
-        "title": "J&J wins FDA nod for Ottava surgical robot",
-        "comment_count": 0
+        "article_id": "4627282",
+        "timestamp_utc": "2026-08-06T02:49:25-04:00",
+        "title": "OpenAI asks court to dismiss Apple's 'baseless' trade secrets lawsuit",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4626529",
+        "timestamp_utc": "2026-08-05T14:02:32-04:00",
+        "title": "SA analyst upgrades/downgrades: AAPL, PLTR, SNDK, AMZN",
+        "comment_count": 6
+      },
+      {
+        "article_id": "4626306",
+        "timestamp_utc": "2026-08-05T12:14:02-04:00",
+        "title": "Apple reportedly rebuffed by CXMT in push for lower memory prices: report",
+        "comment_count": 28
+      },
+      {
+        "article_id": "4625732",
+        "timestamp_utc": "2026-08-05T06:54:16-04:00",
+        "title": "AI-driven tech melt-up fuels $3.5T Nasdaq 100 surge in four days",
+        "comment_count": 22
+      },
+      {
+        "article_id": "4625140",
+        "timestamp_utc": "2026-08-04T15:16:31-04:00",
+        "title": "Apple receives rare downgrade from China Renaissance after mixed guidance",
+        "comment_count": 9
+      },
+      {
+        "article_id": "4624368",
+        "timestamp_utc": "2026-08-04T06:27:31-04:00",
+        "title": "Apple\u2019s India sales surpass $10B amid retail push: report",
+        "comment_count": 5
+      },
+      {
+        "article_id": "4624305",
+        "timestamp_utc": "2026-08-04T03:37:24-04:00",
+        "title": "Apple seeks injunction against OpenAI in trade secrets lawsuit",
+        "comment_count": 3
+      },
+      {
+        "article_id": "4624270",
+        "timestamp_utc": "2026-08-04T00:08:52-04:00",
+        "title": "Apple temporarily pulled Telegram over child abuse content",
+        "comment_count": 2
+      }
+    ]
+  },
+  "AMZN": {
+    "fetched_at": "2026-08-07T05:27:35.092469+00:00",
+    "items": [
+      {
+        "article_id": "4627474",
+        "timestamp_utc": "2026-08-06T06:58:30-04:00",
+        "title": "Amazon delivers GLP-1s for $50 per month for Medicare recipients",
+        "comment_count": 3
+      },
+      {
+        "article_id": "4627221",
+        "timestamp_utc": "2026-08-06T00:17:10-04:00",
+        "title": "Bezos cash out: Billionaire unloads $350M in Amazon stock right at record peak",
+        "comment_count": 9
+      },
+      {
+        "article_id": "4626529",
+        "timestamp_utc": "2026-08-05T14:02:32-04:00",
+        "title": "SA analyst upgrades/downgrades: AAPL, PLTR, SNDK, AMZN",
+        "comment_count": 6
+      },
+      {
+        "article_id": "4624711",
+        "timestamp_utc": "2026-08-04T10:19:44-04:00",
+        "title": "Jeff Bezos files to sell more Amazon shares amid record share price high",
+        "comment_count": 21
+      },
+      {
+        "article_id": "4624278",
+        "timestamp_utc": "2026-08-04T01:20:21-04:00",
+        "title": "OpenAI, Anthropic stakes distort Big Tech earnings picture",
+        "comment_count": 6
+      },
+      {
+        "article_id": "4623993",
+        "timestamp_utc": "2026-08-03T15:57:44-04:00",
+        "title": "Short Interest: Most and least shorted large and mega-cap consumer discretionary stocks",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4623478",
+        "timestamp_utc": "2026-08-03T10:23:12-04:00",
+        "title": "Amazon rallies to all-time high as it powers past $3T market cap threshold",
+        "comment_count": 26
+      },
+      {
+        "article_id": "4623138",
+        "timestamp_utc": "2026-08-02T12:01:00-04:00",
+        "title": "Goldman Sachs sees AI trade stabilizing as strong earnings keep bull market intact",
+        "comment_count": 69
+      },
+      {
+        "article_id": "4622425",
+        "timestamp_utc": "2026-08-01T12:30:53-04:00",
+        "title": "Earnings Scoreboard: 84% of S&P 500 reporting firms top EPS estimates as 72% post Y/Y profit growth",
+        "comment_count": 8
+      },
+      {
+        "article_id": "4622969",
+        "timestamp_utc": "2026-07-31T17:17:56-04:00",
+        "title": "Amazon finishes 15% higher after blowout earnings",
+        "comment_count": 11
       }
     ]
   }

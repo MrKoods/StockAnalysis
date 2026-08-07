@@ -1849,3 +1849,110 @@ Done — 0 paper signal(s) logged.
 2026-08-05 15:56:56,314 [__main__] INFO — TGT: SCORE 42.0/100 (technical=27.7/40, positioning=13.1/20, sentiment=7.8/15, news=3.4/15, fundamental=0.0/10 as_of=never) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=-5.0, cross_ticker=-10.0, seasonality=+0.0, total=-10.0) direction=bullish qualifies=no
 2026-08-05 15:56:56,914 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
 Done — 0 paper signal(s) logged.
+2026-08-06 13:30:02,286 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'SMH']
+2026-08-06 13:30:02,714 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=218.99, rsi=61.4, atr=7.77)
+2026-08-06 13:30:02,721 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=489.28, rsi=47.8, atr=39.45)
+2026-08-06 13:30:02,726 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=420.57, rsi=62.6, atr=17.05)
+2026-08-06 13:30:02,732 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=418.20, rsi=51.5, atr=17.51)
+2026-08-06 13:30:02,739 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=881.47, rsi=47.9, atr=84.95)
+2026-08-06 13:30:02,746 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1704.37, rsi=49.1, atr=81.86)
+2026-08-06 13:30:03,188 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-06T12:30:24.638089+00:00)
+2026-08-06 13:30:03,199 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-06T12:30:27.874049+00:00)
+2026-08-06 13:30:03,199 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-06 13:30:03,200 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB', 'KRE']
+2026-08-06 13:30:03,421 [swing_model.indicator_pipeline] INFO — ZION: indicators computed (close=70.58, rsi=54.2, atr=1.54)
+2026-08-06 13:30:03,427 [swing_model.indicator_pipeline] INFO — KEY: indicators computed (close=22.66, rsi=47.4, atr=0.47)
+2026-08-06 13:30:03,433 [swing_model.indicator_pipeline] INFO — HBAN: indicators computed (close=17.36, rsi=48.1, atr=0.39)
+2026-08-06 13:30:03,440 [swing_model.indicator_pipeline] INFO — RF: indicators computed (close=31.39, rsi=56.4, atr=0.63)
+2026-08-06 13:30:03,447 [swing_model.indicator_pipeline] INFO — FITB: indicators computed (close=56.96, rsi=52.4, atr=1.28)
+2026-08-06 13:30:03,770 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-06T12:30:24.638089+00:00)
+2026-08-06 13:30:03,779 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-06T12:30:27.874049+00:00)
+2026-08-06 13:30:03,779 [swing_model.indicator_pipeline] INFO — Pipeline complete: 5/5 tickers processed successfully.
+2026-08-06 13:30:03,780 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ', 'XLV']
+2026-08-06 13:30:03,993 [swing_model.indicator_pipeline] INFO — LLY: indicators computed (close=1191.94, rsi=54.9, atr=42.79)
+2026-08-06 13:30:03,999 [swing_model.indicator_pipeline] INFO — PFE: indicators computed (close=26.20, rsi=70.4, atr=0.52)
+2026-08-06 13:30:04,005 [swing_model.indicator_pipeline] INFO — MRK: indicators computed (close=128.37, rsi=54.0, atr=3.41)
+2026-08-06 13:30:04,011 [swing_model.indicator_pipeline] INFO — ABBV: indicators computed (close=243.87, rsi=45.1, atr=6.87)
+2026-08-06 13:30:04,016 [swing_model.indicator_pipeline] INFO — UNH: indicators computed (close=403.97, rsi=41.8, atr=12.24)
+2026-08-06 13:30:04,023 [swing_model.indicator_pipeline] INFO — JNJ: indicators computed (close=256.98, rsi=52.9, atr=6.26)
+2026-08-06 13:30:04,651 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-06T12:30:24.638089+00:00)
+2026-08-06 13:30:04,659 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-06T12:30:27.874049+00:00)
+2026-08-06 13:30:04,659 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-06 13:30:04,660 [swing_model.indicator_pipeline] INFO — [post_close] Fetching OHLCV for: ['AMZN', 'TSLA', 'HD', 'NKE', 'SBUX', 'TGT', 'XLY']
+2026-08-06 13:30:04,828 [swing_model.indicator_pipeline] INFO — AMZN: indicators computed (close=272.26, rsi=63.2, atr=9.58)
+2026-08-06 13:30:04,835 [swing_model.indicator_pipeline] INFO — TSLA: indicators computed (close=319.53, rsi=36.9, atr=14.87)
+2026-08-06 13:30:04,841 [swing_model.indicator_pipeline] INFO — HD: indicators computed (close=349.52, rsi=57.9, atr=8.75)
+2026-08-06 13:30:04,847 [swing_model.indicator_pipeline] INFO — NKE: indicators computed (close=42.00, rsi=46.6, atr=1.34)
+2026-08-06 13:30:04,854 [swing_model.indicator_pipeline] INFO — SBUX: indicators computed (close=105.16, rsi=53.1, atr=2.98)
+2026-08-06 13:30:04,860 [swing_model.indicator_pipeline] INFO — TGT: indicators computed (close=147.08, rsi=64.1, atr=4.00)
+2026-08-06 13:30:04,860 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-08-06T12:30:24.638089+00:00)
+2026-08-06 13:30:04,868 [swing_model.indicator_pipeline] INFO — Loading cached positioning data (last_updated: 2026-08-06T12:30:27.874049+00:00)
+2026-08-06 13:30:04,868 [swing_model.indicator_pipeline] INFO — Pipeline complete: 6/6 tickers processed successfully.
+2026-08-06 13:30:07,938 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 3 capex-context snippet(s) for AMZN.
+2026-08-06 13:30:10,216 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 1 capex-context snippet(s) for MSFT.
+2026-08-06 13:30:11,994 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 4 capex-context snippet(s) for GOOGL.
+2026-08-06 13:30:13,457 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 capex-context snippet(s) for META.
+2026-08-06 13:30:14,008 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NVDA.
+2026-08-06 13:30:14,373 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:30:44,762 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:31:45,272 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=NVDA&page_number=1&category=all. Retry in 120s.
+2026-08-06 13:33:45,272 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-06 13:33:45,456 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for NVDA.
+2026-08-06 13:33:45,828 [shared.api_clients.news_client] INFO — Finnhub: fetched 249 articles for NVDA.
+2026-08-06 13:33:50,416 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for NVDA.
+2026-08-06 13:33:50,993 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for NVDA.
+2026-08-06 13:33:51,282 [__main__] INFO — NVDA: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-06 13:33:51,283 [__main__] INFO — NVDA: SCORE 56.3/100 (technical=32.8/40, positioning=10.4/20, sentiment=8.5/15, news=9.6/15, fundamental=10.0/10 as_of=2026-08-05) modifiers(regime=-2.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-08-06 13:33:51,283 [__main__] INFO — NVDA: NOTE — regime (-2.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-06 13:33:51,872 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMD.
+2026-08-06 13:33:52,365 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:34:22,743 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:35:23,113 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AMD&page_number=1&category=all. Retry in 120s.
+2026-08-06 13:37:23,113 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-06 13:37:23,301 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AMD.
+2026-08-06 13:37:23,814 [shared.api_clients.news_client] INFO — Finnhub: fetched 246 articles for AMD.
+2026-08-06 13:37:27,450 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AMD.
+2026-08-06 13:37:27,555 [__main__] INFO — AMD: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-06 13:37:27,555 [__main__] INFO — AMD: SCORE 38.0/100 (technical=18.8/40, positioning=12.3/20, sentiment=7.4/15, news=10.5/15, fundamental=4.0/10 as_of=2026-08-05) modifiers(regime=-2.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-08-06 13:37:27,556 [__main__] INFO — AMD: NOTE — regime (-2.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-06 13:37:28,127 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AVGO.
+2026-08-06 13:37:28,502 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:37:58,878 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:38:59,239 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=AVGO&page_number=1&category=all. Retry in 120s.
+2026-08-06 13:40:59,239 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-06 13:40:59,444 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for AVGO.
+2026-08-06 13:40:59,821 [shared.api_clients.news_client] INFO — Finnhub: fetched 137 articles for AVGO.
+2026-08-06 13:41:15,080 [shared.api_clients.sec_edgar_client] WARNING — [sec_edgar] Request failed (attempt 1): HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=15). Retry in 30s.
+2026-08-06 13:41:45,482 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for AVGO.
+2026-08-06 13:41:45,565 [__main__] INFO — AVGO: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-06 13:41:45,565 [__main__] INFO — AVGO: SCORE 47.4/100 (technical=28.5/40, positioning=9.8/20, sentiment=10.4/15, news=9.5/15, fundamental=4.3/10 as_of=2026-07-24) modifiers(regime=-2.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-08-06 13:41:45,565 [__main__] INFO — AVGO: NOTE — regime (-2.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-06 13:41:46,264 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSM.
+2026-08-06 13:41:46,601 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:42:16,979 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:43:17,342 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=TSM&page_number=1&category=all. Retry in 120s.
+2026-08-06 13:45:17,342 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-06 13:45:17,549 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for TSM.
+2026-08-06 13:45:17,917 [shared.api_clients.news_client] INFO — Finnhub: fetched 19 articles for TSM.
+2026-08-06 13:45:33,171 [shared.api_clients.sec_edgar_client] WARNING — [sec_edgar] Request failed (attempt 1): HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=15). Retry in 30s.
+2026-08-06 13:46:18,427 [shared.api_clients.sec_edgar_client] WARNING — [sec_edgar] Request failed (attempt 2): HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=15). Retry in 60s.
+2026-08-06 13:47:26,984 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 8-K filing(s) for TSM.
+2026-08-06 13:47:27,106 [__main__] INFO — TSM: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-06 13:47:27,106 [__main__] INFO — TSM: SCORE 46.9/100 (technical=25.3/40, positioning=9.1/20, sentiment=7.0/15, news=10.4/15, fundamental=10.0/10 as_of=2026-08-06) modifiers(regime=-2.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-08-06 13:47:27,106 [__main__] INFO — TSM: NOTE — regime (-2.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-06 13:47:27,652 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MU.
+2026-08-06 13:47:28,038 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:47:58,422 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:48:58,785 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=MU&page_number=1&category=all. Retry in 120s.
+2026-08-06 13:50:58,785 [shared.api_clients.sentiment_client] ERROR — All retries exhausted for https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news
+2026-08-06 13:50:58,983 [shared.api_clients.news_client] INFO — Yahoo Finance: fetched 10 articles for MU.
+2026-08-06 13:50:59,349 [shared.api_clients.news_client] INFO — Finnhub: fetched 244 articles for MU.
+2026-08-06 13:50:59,863 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for MU.
+2026-08-06 13:50:59,965 [__main__] INFO — MU: ACTIVE EVENT (trigger='tariff') — signal still logged, flagged for review
+2026-08-06 13:50:59,965 [__main__] INFO — MU: SCORE 41.1/100 (technical=19.3/40, positioning=11.7/20, sentiment=5.7/15, news=9.5/15, fundamental=10.0/10 as_of=2026-08-04) modifiers(regime=-2.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-08-06 13:50:59,965 [__main__] INFO — MU: NOTE — regime (-2.0) and sector_rotation (-15.0) are both negative and both derived from SMH price action — likely the same underlying weakness counted twice, not two independent signals
+2026-08-06 13:51:00,686 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ASML.
+2026-08-06 13:51:01,036 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 1): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 30s.
+2026-08-06 13:51:31,392 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 2): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 60s.
+2026-08-06 13:52:31,769 [shared.api_clients.sentiment_client] WARNING — RapidAPI request failed (attempt 3): 429 Client Error: Too Many Requests for url: https://seeking-alpha-finance.p.rapidapi.com/v1/symbols/news?ticker_slug=ASML&page_number=1&category=all. Retry in 120s.
+^C

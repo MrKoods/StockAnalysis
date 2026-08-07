@@ -53,7 +53,8 @@ class TestBootstrap:
         assert result["fetched_dates"]["NVDA"] == "2026-07-20"
         assert result["fetched_dates"]["AMD"] == "2026-07-20"
 
-    def test_daily_cap_limits_how_many_bootstrap_in_one_call(self):
+    def test_daily_cap_limits_how_many_bootstrap_in_one_call(self, monkeypatch):
+        monkeypatch.setattr(ip, "_FUNDAMENTAL_MAX_TICKERS_PER_DAY", 3)
         tickers = ["NVDA", "AMD", "AVGO", "TSM", "MU"]  # 5 candidates, cap is 3
         with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
             with _frozen_now(datetime(2026, 7, 20, 9, 0)):
@@ -62,7 +63,7 @@ class TestBootstrap:
         fetched_today = [t for t in tickers if result["fetched_dates"].get(t) == "2026-07-20"]
         assert len(fetched_today) == ip._FUNDAMENTAL_MAX_TICKERS_PER_DAY
 
-    def test_daily_cap_holds_across_multiple_calls_same_day(self):
+    def test_daily_cap_holds_across_multiple_calls_same_day(self, monkeypatch):
         """
         The real incident this guards against: fetch_fundamental_data runs once
         per scan (pre-market, mid-session, post-close) per sector, all sharing one
@@ -70,6 +71,7 @@ class TestBootstrap:
         3 candidates left over from call 1 plus 3 more capacity in call 2 fetched
         6 tickers in one day in production, double the intended daily ceiling.
         """
+        monkeypatch.setattr(ip, "_FUNDAMENTAL_MAX_TICKERS_PER_DAY", 8)
         semis = ["NVDA", "AMD", "AVGO", "TSM", "MU", "ASML"]  # 6 candidates
         banks = ["ZION", "KEY", "HBAN", "RF", "FITB"]  # 5 candidates
         with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):

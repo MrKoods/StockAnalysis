@@ -1,6 +1,7 @@
 """
 Paper trading signal runner. Run post-close each session day to detect qualifying
-signals (confidence >= 90) and log them to paper_trading/paper_trades.csv.
+signals (confidence >= CONFIDENCE_THRESHOLD, see swing_model/scoring.py) and log
+them to paper_trading/paper_trades.csv.
 
 Records every layer's raw scores, regime state, and trade parameters so the paper
 trading period produces a rich dataset for model calibration.
@@ -34,7 +35,7 @@ from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
-from swing_model.scoring import compute_confidence_score
+from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
@@ -83,8 +84,12 @@ logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 CONFIG_PATH = Path("config/swing_config.yaml")
-CONFIDENCE_THRESHOLD = 90
-NEAR_MISS_THRESHOLD = 80  # awareness-only Discord ping; never logged as a trade
+# CONFIDENCE_THRESHOLD imported from swing_model.scoring above — used to be its
+# own separate literal here (both at 90), which is exactly the kind of drift
+# risk that let this and scoring.py's copy silently agree by coincidence
+# rather than by construction. Single-sourced there now; see that constant's
+# comment for why it's 70, not 90.
+NEAR_MISS_THRESHOLD = 65  # awareness-only Discord ping; never logged as a trade — kept just below CONFIDENCE_THRESHOLD (70)
 # Below CONFIDENCE_THRESHOLD, still run rank_trade_structures() and record its
 # output on the ticker_results DB row (trade_structure/expected_value columns)
 # for scores in this range — pure research data on Filter 4/5's real behavior

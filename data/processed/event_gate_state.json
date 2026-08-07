@@ -304,6 +304,26 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-08-05T22:56:56.384150+00:00"
+    },
+    {
+      "id": "dbeb892c-1d6c-4739-9131-7f6e6d6ab91f",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Donald Trump's 10% Global Tariff Expired on July 24. Its Section 301 Replacement Covers 60 Countries at Rates of 10% to 12.5%.",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-08-06T08:35:00+00:00",
+      "created_at_utc": "2026-08-06T12:35:27.005321+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-08-06T22:23:04.761807+00:00"
     }
   ]
 }

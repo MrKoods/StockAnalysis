@@ -48,8 +48,27 @@ from swing_model.win_probability_calibration import calibrate_win_probability
 
 
 
-# Minimum final score to surface a trade recommendation
-CONFIDENCE_THRESHOLD = 90
+# Minimum final score to surface a trade recommendation.
+#
+# Lowered 90 -> 70 (2026-08-06): confirmed live that 90 was structurally
+# unreachable, not just a rough patch — 750 real logged scans across 23
+# tickers never once exceeded 79.84 (see paper_trading/score_distribution_
+# diagnostic.py). The backtest's own "90 clears the go-live gate" reading
+# (backtesting/threshold_optimization_analysis.py) turned out not to be a
+# fair comparison: backtesting/simulation.py hardcodes sector_rotation_
+# modifier/earnings_modifier/cross_ticker_modifier to 0.0 for every
+# simulated bar (no historical archive exists yet to compute them) and uses
+# a fixed neutral Positioning score plus a price-momentum Sentiment proxy —
+# live pays real penalties (e.g. -15 sector_rotation during an active
+# tariff event, hit every semiconductor ticker on 2026-08-06) that the
+# backtest never simulates for any historical bar. 70 sits just below the
+# real live max ever observed, keeping this genuinely selective (~1.7% of
+# real scans clear it) while no longer requiring a combination of
+# conditions the current model has never once produced live. Revisit
+# upward once enough live/paper-trading history accumulates to build the
+# missing modifier/positioning/sentiment archives the backtest needs to
+# simulate a fair comparison.
+CONFIDENCE_THRESHOLD = 70
 
 # Category maximums (updated for 5-category system)
 TECHNICAL_MAX = 40
@@ -202,10 +221,11 @@ def compute_confidence_score(
     win_probability_calibration: real (threshold -> historical win rate)
                   points from win_probability_calibration.fit_calibration_curve()
                   — used to compute calibrated_win_probability in the return
-                  dict. CONFIDENCE_THRESHOLD (90) itself is deliberately left
+                  dict. CONFIDENCE_THRESHOLD itself is deliberately left
                   untouched here: once final_score maps to a real probability,
-                  "90" stops being the natural cutoff, but changing what
-                  actually gates a trade is a live-behavior decision, not a
+                  the fixed composite cutoff stops being the natural gate,
+                  but changing what actually gates a trade is a live-behavior
+                  decision, not a
                   calibration bug — see backtesting/threshold_optimization_
                   analysis.py for what the data suggests instead of silently
                   swapping this constant. None (the default) leaves

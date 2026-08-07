@@ -3,9 +3,9 @@
   "tnx_trend": "neutral",
   "dxy_trend": "neutral",
   "china_tension_level": "normal",
-  "tnx_20d_pct": 0.01050555073337851,
-  "dxy_20d_pct": -0.013191490775341253,
+  "tnx_20d_pct": 0.028860991621680196,
+  "dxy_20d_pct": -0.009748376618468606,
   "adverse_signal_count": 0,
   "confidence_modifier": 0.0,
-  "computed_at_utc": "2026-08-05T20:30:17.046932+00:00"
+  "computed_at_utc": "2026-08-06T20:58:32.574021+00:00"
 }

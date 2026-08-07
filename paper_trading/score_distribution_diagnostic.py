@@ -16,6 +16,8 @@ from typing import Optional
 import pandas as pd
 
 from app_ui import db as app_db
+from paper_trading.paper_runner import NEAR_MISS_THRESHOLD
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 
 _MIN_ROWS_FOR_MEANINGFUL_READ = 30
 
@@ -174,8 +176,8 @@ def main() -> None:
     for p, val in zip(percentiles, pct_values):
         print(f"  p{p}: {val:.2f}")
 
-    print(f"\nRows >= 90 (qualifying):  {(scores_df['composite_score'] >= 90).sum()}")
-    print(f"Rows >= 80 (near-miss+):  {(scores_df['composite_score'] >= 80).sum()}")
+    print(f"\nRows >= {CONFIDENCE_THRESHOLD} (qualifying):  {(scores_df['composite_score'] >= CONFIDENCE_THRESHOLD).sum()}")
+    print(f"Rows >= {NEAR_MISS_THRESHOLD} (near-miss+):  {(scores_df['composite_score'] >= NEAR_MISS_THRESHOLD).sum()}")
     print(f"Rows >= 70:               {(scores_df['composite_score'] >= 70).sum()}")
 
     category_df = collect_category_scores()

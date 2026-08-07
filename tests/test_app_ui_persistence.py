@@ -20,7 +20,7 @@ def _fake_indicators():
         "AMD": {
             "close": 50.0, "sma_20": 48.0, "atr_14": 1.0, "rolling_high_20": 51.0,
             "rsi_14": 55.0, "rs_zscore": 0.5, "mom_5d": 0.01, "trend_intact": True,
-            "_fundamental_full": {}, "_positioning_full": {}, "_test_final_score": 85.0,
+            "_fundamental_full": {}, "_positioning_full": {}, "_test_final_score": 68.0,
         },
         "MU": {
             "close": 80.0, "sma_20": 78.0, "atr_14": 1.5, "rolling_high_20": 81.0,
@@ -127,11 +127,11 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     # per-day metric, so this must be whichever field actually drove the pick.
     assert results["NVDA"]["expected_value"] == 0.003
     assert results["AMD"]["category"] == app_db.CATEGORY_NEAR_MISS
-    assert results["AMD"]["composite_score"] == 85.0
-    # AMD (85) clears STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60) even though it's
-    # below the real go-live gate (90) — trade_structure/expected_value are
-    # recorded as research data on the near_miss row itself, never surfaced as
-    # a real trade (see CHANGELOG's diagnostic-widening entry).
+    assert results["AMD"]["composite_score"] == 68.0
+    # AMD (68) clears STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60) even though it's
+    # below the real go-live gate (CONFIDENCE_THRESHOLD, 70) — trade_structure/
+    # expected_value are recorded as research data on the near_miss row itself,
+    # never surfaced as a real trade (see CHANGELOG's diagnostic-widening entry).
     assert results["AMD"]["trade_structure"] == "bull_call_spread"
     assert results["AMD"]["expected_value"] == 0.003
     # MU (55) is below even the diagnostic threshold — no structure ranking at all.

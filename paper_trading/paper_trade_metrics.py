@@ -9,7 +9,7 @@ duration floors. win_rate/avg_rr are still computed and returned for continuity
 with existing reports/dashboards — they no longer gate pass/fail directly, for the
 same reason the backtest gate changed: a flat percentage pair can't distinguish a
 real edge from a small sample that got lucky, which matters even more here since
-qualifying paper trades (score >= 90) accumulate far slower than backtest replay.
+qualifying paper trades (score >= CONFIDENCE_THRESHOLD) accumulate far slower than backtest replay.
 
 data_status ("evaluated" vs. "insufficient_trades"): below _MIN_TRADES_FOR_MEANINGFUL_READ
 closed trades, overall_pass still reports False (safe default, unchanged) but the

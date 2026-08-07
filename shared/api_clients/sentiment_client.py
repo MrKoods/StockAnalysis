@@ -28,7 +28,12 @@ from shared.utils.logger import get_logger
 logger = get_logger(__name__)
 
 _STOCKTWITS_HOST = "stocktwits.p.rapidapi.com"
-_SEEKING_ALPHA_HOST = "seeking-alpha-finance.p.rapidapi.com"
+# Switched 2026-08-06 from tipsters/seeking-alpha-finance to apidojo/seeking-alpha:
+# the account's Pro plan (10,000/month) was subscribed on apidojo's listing, not
+# tipsters' — different RapidAPI publishers, different hosts, different quotas,
+# despite the near-identical product name. tipsters' subscription was still on its
+# original Basic/500 plan, which is what was causing every scan to 429 all day.
+_SEEKING_ALPHA_HOST = "seeking-alpha.p.rapidapi.com"
 _BACKOFF_DELAYS = [30, 60, 120]
 
 # The live scan loop (run_swing_model.py, paper_runner.py) calls fetch_stocktwits
@@ -48,6 +53,21 @@ def _wait_for_rate_limit(host: str) -> None:
     if remaining > 0:
         time.sleep(remaining)
     _last_call_at[host] = time.monotonic()
+
+# Per-host circuit breaker: confirmed live (2026-08-06) that once a RapidAPI
+# host starts 429ing, it 429s for every remaining ticker in the scan too —
+# not a one-off blip. Paying the full 30s->60s->120s backoff per ticker on a
+# host that's already proven dead this run turned a ~20min scan into ~90min
+# for zero benefit (falls back to cache either way). After one full retry
+# exhaustion, skip the retries for the rest of this process — one fast
+# no-backoff attempt per call, so the host can still be used the moment it
+# recovers, without re-paying the 210s tax each time.
+_CIRCUIT_BREAKER_THRESHOLD = 1
+_consecutive_failures: dict[str, int] = {}
+
+
+def _circuit_open(host: str) -> bool:
+    return _consecutive_failures.get(host, 0) >= _CIRCUIT_BREAKER_THRESHOLD
 
 # Last-known-good cache for Seeking Alpha engagement items, keyed by ticker.
 # A transient RapidAPI outage (observed live: repeated "All retries exhausted"
@@ -126,10 +146,10 @@ def fetch_seeking_alpha_engagement(ticker: str, limit: int = 10) -> list[dict]:
     Fetch recent Seeking Alpha editorial news items for a ticker and surface
     each item's commentCount as an engagement-velocity proxy.
 
-    This is a proxy, not true community sentiment — this RapidAPI subscription's
-    Instablogs endpoints only support single-post lookup by numeric ID (no
-    ticker-searchable community-blog feed), so commentCount velocity on
-    editorial news is used instead as a weaker retail-engagement signal.
+    This is a proxy, not true community sentiment — apidojo's `news/v2/list-by-symbol`
+    is a ticker-scoped editorial news feed (not a community-blog feed), so
+    commentCount velocity on editorial news is used instead as a weaker
+    retail-engagement signal.
 
     Returns list of dicts:
     {article_id, timestamp_utc, title, comment_count}
@@ -140,8 +160,8 @@ def fetch_seeking_alpha_engagement(ticker: str, limit: int = 10) -> list[dict]:
         logger.warning("RAPIDAPI_KEY not set — Seeking Alpha engagement unavailable.")
         return []
 
-    url = f"https://{_SEEKING_ALPHA_HOST}/v1/symbols/news"
-    params = {"ticker_slug": ticker, "page_number": 1, "category": "all"}
+    url = f"https://{_SEEKING_ALPHA_HOST}/news/v2/list-by-symbol"
+    params = {"id": ticker.lower(), "size": limit, "number": 1}
     data = _rapidapi_get(url, _SEEKING_ALPHA_HOST, api_key, params=params)
     if data is None:
         return _load_cached_engagement(ticker)
@@ -224,17 +244,27 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
     GET a RapidAPI endpoint with the required auth headers and exponential
     backoff (30s -> 60s -> 120s). 4xx client errors (except 429) are not
     retried. Returns parsed JSON or None.
+
+    If this host has already exhausted its retries once this process (circuit
+    open — see _CIRCUIT_BREAKER_THRESHOLD), skips the backoff and makes a
+    single fast probe instead: the host has proven dead for the rest of this
+    scan often enough that paying 210s/ticker to confirm it again isn't worth
+    it, but a single cheap attempt still lets it recover mid-run if it comes
+    back.
     """
     # StockTwits' backend fronts this RapidAPI endpoint with Cloudflare bot
     # protection that blocks the default python-requests User-Agent (403 +
     # "Just a moment..." challenge page) — a browser/curl-like UA passes.
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": host, "User-Agent": "curl/8.4.0"}
-    delays = _BACKOFF_DELAYS
+    circuit_open = _circuit_open(host)
+    delays = [] if circuit_open else _BACKOFF_DELAYS
+    attempts = 1 if circuit_open else retries
     _wait_for_rate_limit(host)
-    for attempt in range(retries):
+    for attempt in range(attempts):
         try:
             resp = requests.get(url, headers=headers, params=params, timeout=15)
             resp.raise_for_status()
+            _consecutive_failures[host] = 0
             return resp.json()
         except requests.exceptions.HTTPError as exc:
             status = exc.response.status_code if exc.response is not None else 0
@@ -248,5 +278,9 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
             if attempt < len(delays):
                 logger.warning(f"RapidAPI request failed (attempt {attempt + 1}): {exc}. Retry in {delays[attempt]}s.")
                 time.sleep(delays[attempt])
-    logger.error(f"All retries exhausted for {url}")
+    _consecutive_failures[host] = _consecutive_failures.get(host, 0) + 1
+    if circuit_open:
+        logger.warning(f"RapidAPI circuit open for {host} — skipped backoff, single probe failed for {url}")
+    else:
+        logger.error(f"All retries exhausted for {url}")
     return None

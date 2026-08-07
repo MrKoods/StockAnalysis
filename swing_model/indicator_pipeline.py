@@ -45,17 +45,17 @@ _MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history's growth, ol
 # fetch_eps_growth_trend parameter), but that's now about avoiding redundant yfinance
 # lookups for a figure that can't change between quarterly reports, not budget.
 #
-# Raised 3 -> 5 (2026-07-31), back when this cap existed to ration a shared AV daily
-# budget: set when the watchlist was 6 semiconductor tickers only, never revisited
-# when regional_banks (+5) and healthcare (+6) took it to 17 — confirmed live: 4 of 6
-# healthcare tickers were still showing fundamental_score=0/as_of=never a week after
-# going live in v2.2.24. Left at 5 for now even though the AV-budget rationale is
-# gone and the watchlist has since grown to 23 (consumer_discretionary +6) — raising
-# or removing this cap is a reasonable fast follow-up now that yfinance/Finnhub (not
-# a 20-25/day account limit) are the only remaining constraints, but that's a
-# deliberate cadence decision worth its own sign-off rather than a silent side effect
-# of the AV migration.
-_FUNDAMENTAL_MAX_TICKERS_PER_DAY = 5
+# Raised 5 -> 25 (2026-08-06): the healthcare starvation this comment used to
+# describe (4 of 6 tickers stuck at fundamental_score=0/as_of=never for a week after
+# v2.2.24) recurred identically for consumer_discretionary — HD/NKE/SBUX/TGT (last
+# sector processed, last 4 tickers in its list) never won a bootstrap slot against
+# the 3 earlier sectors' daily rotation/bootstrap needs sharing the same cap. The
+# AV-budget rationale this cap was sized for no longer applies (fundamental_client.py
+# is fully off Alpha Vantage — yfinance + Finnhub only, neither with a meaningful
+# daily quota at 23 tickers), so there's no longer a real constraint to ration
+# against. Set above the full watchlist size (23) so a cold-start day can bootstrap
+# every ticker in one pass instead of starving whichever sector is processed last.
+_FUNDAMENTAL_MAX_TICKERS_PER_DAY = 25
 _FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
 _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3
 
