@@ -17,7 +17,6 @@ bucket-level win rate/avg R against its own configured point swing.
 Usage: python -m backtesting.modifier_calibration_diagnostic
 """
 
-from typing import Optional
 
 import pandas as pd
 

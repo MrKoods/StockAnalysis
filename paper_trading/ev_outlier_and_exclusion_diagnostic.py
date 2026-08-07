@@ -13,7 +13,6 @@ Usage: python -m paper_trading.ev_outlier_and_exclusion_diagnostic
 """
 
 import re
-from collections import Counter
 from pathlib import Path
 from typing import Optional
 
