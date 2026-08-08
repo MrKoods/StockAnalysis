@@ -31,7 +31,7 @@ from shared.utils.sector_rotation import compute_rotation_state, dampen_rotation
 from shared.utils.earnings_calendar import get_earnings_modifier
 from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
-from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
+from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from swing_model.sentiment_layer import compute_sentiment_score
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
@@ -352,22 +352,35 @@ def main(scan_type: str = "post_close") -> None:
             if final_score >= CONFIDENCE_THRESHOLD:
                 close_px = indicators.get("close", 0.0)
                 atr = indicators.get("atr_14", close_px * 0.02)
-                breakout_level = indicators.get("rolling_high_20", close_px)
+                # Breakout (rolling high) anchors a bullish entry zone; breakdown
+                # (rolling low) anchors a bearish one — see risk_reward.py's
+                # module docstring for why bearish mirrors every formula here.
+                level = indicators.get(
+                    "rolling_low_20" if direction == "bearish" else "rolling_high_20", close_px
+                )
                 rr_cfg = cfg.get("risk_reward", {})
 
                 entry_lower, entry_upper = compute_entry_zone(
-                    close_px, breakout_level, atr,
+                    close_px, level, atr,
                     rr_cfg.get("entry_zone_half_width_atr", 0.25),
+                    direction=direction,
                 )
                 entry_mid = (entry_lower + entry_upper) / 2.0
                 stop_loss = compute_stop_loss(
-                    entry_lower, atr,
+                    entry_upper if direction == "bearish" else entry_lower, atr,
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                    direction=direction,
                 )
-                target = compute_target(entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
+                target = compute_target(
+                    entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+                )
 
-                if target and target > entry_mid > stop_loss:
-                    rr_ratio = round((target - entry_mid) / (entry_mid - stop_loss), 2)
+                valid_setup = (
+                    target and (target < entry_mid < stop_loss if direction == "bearish"
+                                else target > entry_mid > stop_loss)
+                )
+                if valid_setup:
+                    rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target, direction=direction)
                     risk_pct = get_risk_pct(final_score)
                     force_defined_risk = (
                         earnings_result.get("force_defined_risk", False)

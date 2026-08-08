@@ -38,8 +38,9 @@ from swing_model.news_layer import compute_news_score, free_sources_flag_critica
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
-from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
+from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from shared.utils.regime_detection import get_regime_modifiers
+from shared.utils.position_sizer import get_risk_pct
 from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
@@ -116,16 +117,22 @@ _LAYER_SCORE_FIELDS = {
 }
 
 _CSV_COLUMNS = [
-    "signal_date", "ticker", "confidence",
+    "signal_date", "ticker", "confidence", "direction",
     "technical_score", "positioning_score", "sentiment_score", "news_score", "fundamental_score",
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "structure_recommended", "ev_per_dollar",
+    # Position sizing, locked in at signal time against config's starting_capital
+    # (position_sizing.starting_capital, $15k by default) — see get_risk_pct's
+    # tiers. capital_deployed/dollar_risk are frozen here rather than
+    # recomputed later so a trade's sizing can't silently drift if config or
+    # the structure ranking changes after the fact.
+    "risk_pct", "dollar_risk", "position_type", "position_size", "capital_deployed",
     "event_gate_blocked", "event_gate_trigger",
     # Outcome fields — blank until paper_updater.py fills them in
-    "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
+    "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days", "pnl_dollars",
 ]
 
 
@@ -539,26 +546,30 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
 
             # regime_modifier and sector_rotation_modifier are both derived
             # from the same underlying SMH price action (regime: SMH vs. its
-            # own SMA trend; sector_rotation: SMH return vs. SPY) but summed
-            # as if independent. When both are negative at once, it's one
-            # real observation ("SMH is weak") being counted twice, not two
-            # separate corroborating signals — worth knowing when reading a
-            # heavily-penalized score, not something to silently auto-adjust.
-            if score.get("regime_modifier", 0.0) < 0 and score.get("sector_rotation_modifier", 0.0) < 0:
+            # own SMA trend; sector_rotation: SMH return vs. SPY). scoring.py
+            # already dedupes this — when the two agree in sign, total_modifier
+            # uses whichever has the larger magnitude instead of summing both
+            # (see regime_sector_rotation_combined). This log line is now
+            # informational only, confirming the dedup fired; it used to warn
+            # about an unfixed double-count, which stopped being true once
+            # that dedup landed (v2.2.38-42).
+            r_mod = score.get("regime_modifier", 0.0)
+            sr_mod = score.get("sector_rotation_modifier", 0.0)
+            if (r_mod < 0 and sr_mod < 0) or (r_mod > 0 and sr_mod > 0):
                 logger.info(
-                    f"{ticker}: NOTE — regime ({score.get('regime_modifier', 0.0):+.1f}) and "
-                    f"sector_rotation ({score.get('sector_rotation_modifier', 0.0):+.1f}) are both "
-                    f"negative and both derived from SMH price action — likely the same underlying "
-                    f"weakness counted twice, not two independent signals"
+                    f"{ticker}: NOTE — regime ({r_mod:+.1f}) and sector_rotation ({sr_mod:+.1f}) "
+                    f"both reflect the same SMH move; deduped to "
+                    f"{score.get('regime_sector_rotation_combined', 0.0):+.1f} in total_modifier "
+                    f"(larger magnitude used, not summed)"
                 )
 
             # Entry/stop/target + trade structure ranking — computed for any score
             # clearing STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60), not just real
-            # qualifying signals (>=CONFIDENCE_THRESHOLD, 90). Below 90 this is
-            # research data only: recorded on the ticker_results DB row's
-            # trade_structure/expected_value columns, never written to
-            # paper_trades.csv and never fires the real trade alert — see
-            # STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD's own comment.
+            # qualifying signals (>=CONFIDENCE_THRESHOLD, currently 70). Below
+            # threshold this is research data only: recorded on the
+            # ticker_results DB row's trade_structure/expected_value columns,
+            # never written to paper_trades.csv and never fires the real trade
+            # alert — see STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD's own comment.
             entry_mid = stop_loss = target_px = None
             rr_ratio = 0.0
             structure_recommended = ""
@@ -566,23 +577,32 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             structures_eligible = None
             exclusion_summary = None
             ev_outlier_z = None
+            capital_required = None
             if final_score >= STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD:
                 close_px = float(indicators.get("close", 0.0))
                 atr = float(indicators.get("atr_14", close_px * 0.02))
-                breakout_level = float(indicators.get("rolling_high_20", close_px))
+                # Breakout (rolling high) anchors a bullish entry zone; breakdown
+                # (rolling low) anchors a bearish one — see risk_reward.py's
+                # module docstring for why bearish mirrors every formula here.
+                level = float(indicators.get(
+                    "rolling_low_20" if direction == "bearish" else "rolling_high_20", close_px
+                ))
 
                 entry_lower, entry_upper = compute_entry_zone(
-                    close_px, breakout_level, atr,
+                    close_px, level, atr,
                     rr_cfg.get("entry_zone_half_width_atr", 0.25),
+                    direction=direction,
                 )
                 entry_mid = (entry_lower + entry_upper) / 2.0
                 stop_loss = compute_stop_loss(
-                    entry_lower, atr,
+                    entry_upper if direction == "bearish" else entry_lower, atr,
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                    direction=direction,
                 )
-                target_px = compute_target(entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
-                risk = entry_mid - stop_loss
-                rr_ratio = round((target_px - entry_mid) / risk, 2) if (target_px and risk > 0) else 0.0
+                target_px = compute_target(
+                    entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+                )
+                rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target_px, direction=direction) if target_px else 0.0
 
                 try:
                     force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
@@ -600,8 +620,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                             "force_defined_risk": force_defined_risk,
                         },
                         # Sourced from config, not a duplicated literal — paper trading has
-                        # no dollar-equity tracking of its own (paper_trades.csv logs pnl_pct
-                        # only), so there's no live, updating balance to read yet. This at
+                        # no live, updating account balance (every trade sizes off the same
+                        # fixed starting_capital, not equity net of prior wins/losses). This at
                         # least keeps the diagnostic evaluator's starting figure in sync with
                         # config/swing_config.yaml's position_sizing.starting_capital instead
                         # of silently drifting from it if that config value is ever changed.
@@ -620,6 +640,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     if ranked:
                         best = ranked[0]
                         structure_recommended = best.get("name", "")
+                        capital_required = best.get("capital_required")
                         # ev_per_dollar_per_day, not the un-normalized ev_per_dollar_risked —
                         # trade_selector.py now ranks (and picks ranked[0]) on the
                         # per-day metric, so persisting the un-normalized figure here
@@ -705,9 +726,69 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles) + len(sec_edgar_filings)
             dominant_theme = str(news.get("dominant_theme", "")) if isinstance(news, dict) else ""
 
+            # Position sizing, locked in now so it can't drift if config or the
+            # structure ranking changes before this trade closes. Uses
+            # get_risk_pct() directly rather than position_sizer.compute_position_size()
+            # — that helper also folds in circuit-breaker size reduction, a
+            # portfolio-state concept paper trading deliberately has none of
+            # (see this module's docstring: "does not enforce circuit breakers
+            # or position size limits" — that's about not BLOCKING a signal
+            # from being logged, unrelated to the capital cap below, which
+            # only shrinks the size *of* a signal that's logged either way).
+            # risk_per_unit is capital_required for an options structure (a
+            # defined-risk debit trade's max loss == its premium) or the
+            # entry-to-stop distance for a bare equity trade — both are "what
+            # one unit costs if the stop is hit," so the same dollar_risk /
+            # risk_per_unit division sizes either case correctly.
+            #
+            # Risk-based sizing alone isn't enough: it only asks "how far to
+            # my stop," so a tight-stop, low-volatility name can size to an
+            # arbitrarily large capital commitment for the same dollar risk as
+            # a wide-stop name (this is exactly what happened live — PFE's
+            # $1.16 stop sized to $1,676 deployed, 11% of a $15k account, off
+            # the same $75 risk budget that gave AMZN a $861 position). Every
+            # real position-sizing framework pairs risk-based sizing with a
+            # hard capital/concentration cap and takes whichever binds first —
+            # same principle trade_selector.py already enforces for options
+            # (max_capital = account_equity * 5%), applied here for shares too
+            # so both position types are held to the same concentration limit.
+            account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
+            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
+            max_capital = account_equity * max_capital_pct
+            risk_pct = get_risk_pct(final_score)
+            dollar_risk = round(risk_pct * account_equity, 2)
+            if structure_recommended and capital_required:
+                position_type = "options"
+                risk_per_unit = float(capital_required)
+                per_unit_cost = risk_per_unit
+            else:
+                position_type = "shares"
+                # abs(): bearish stops sit above entry, not below — the
+                # magnitude of the risk is what matters for sizing either way.
+                risk_per_unit = abs(entry_mid - stop_loss)
+                per_unit_cost = entry_mid
+            risk_based_size = int(dollar_risk // risk_per_unit) if risk_per_unit and risk_per_unit > 0 else 0
+            capital_based_size = int(max_capital // per_unit_cost) if per_unit_cost and per_unit_cost > 0 else 0
+            position_size = min(risk_based_size, capital_based_size)
+            capital_deployed = round(position_size * per_unit_cost, 2)
+            if position_size == 0:
+                binding = "risk budget" if risk_based_size == 0 else "capital cap"
+                logger.info(
+                    f"{ticker}: NOTE — signal qualifies but sizes to 0 {position_type} at this "
+                    f"account size ({binding} was the binding constraint) — logged for tracking, "
+                    "not practically tradeable at this account size"
+                )
+            elif capital_based_size < risk_based_size:
+                logger.info(
+                    f"{ticker}: NOTE — capital cap (${max_capital:.2f}, {max_capital_pct:.0%} of "
+                    f"account) capped this position at {position_size} {position_type} instead of "
+                    f"the {risk_based_size} the ${dollar_risk:.2f} risk budget alone would allow"
+                )
+
             row: dict = {
                 "signal_date": today_str,
                 "ticker": ticker,
+                "direction": direction,
                 "confidence": f"{final_score:.1f}",
                 "technical_score": f"{score.get('technical_total', 0.0):.1f}",
                 "positioning_score": f"{score.get('positioning_total', 0.0):.1f}",
@@ -731,6 +812,11 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
                 "structure_recommended": structure_recommended,
                 "ev_per_dollar": ev_per_dollar,
+                "risk_pct": f"{risk_pct:.4f}",
+                "dollar_risk": f"{dollar_risk:.2f}",
+                "position_type": position_type,
+                "position_size": str(position_size),
+                "capital_deployed": f"{capital_deployed:.2f}",
                 "event_gate_blocked": bool(score.get("event_gate_blocked", False)),
                 "event_gate_trigger": score.get("event_gate_trigger", "") or "",
                 # Outcome fields filled by paper_updater.py
@@ -740,6 +826,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "pnl_pct": "",
                 "achieved_rr": "",
                 "holding_days": "",
+                "pnl_dollars": "",
             }
 
             _append_row(row)

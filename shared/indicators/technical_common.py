@@ -64,6 +64,11 @@ def rolling_high(series: pd.Series, period: int = 20) -> pd.Series:
     return series.rolling(window=period, min_periods=period).max()
 
 
+def rolling_low(series: pd.Series, period: int = 20) -> pd.Series:
+    """Rolling minimum over `period` bars — used as the breakdown level for bearish entries."""
+    return series.rolling(window=period, min_periods=period).min()
+
+
 def is_breakout(close: pd.Series, high: pd.Series, period: int = 20) -> pd.Series:
     """
     Returns boolean Series: True where close exceeds the prior `period`-bar high.
@@ -192,7 +197,7 @@ def compute_technical_indicators(
         close, open, high, low, volume,
         sma_20, sma_50, rsi_14, atr_14,
         macd_line, macd_signal, macd_hist,
-        rolling_high_20, volume_sma_20,
+        rolling_high_20, rolling_low_20, volume_sma_20,
         rs_vs_benchmark,
 
         # Z-scores (normalized, used for sub-scoring)
@@ -233,6 +238,7 @@ def compute_technical_indicators(
     atr_series = atr(high, low, close, atr_period)
     macd_line_s, macd_signal_s, macd_hist_s = macd(close, macd_fast, macd_slow, macd_sig)
     rolling_high_20 = rolling_high(high, ma_short)
+    rolling_low_20 = rolling_low(low, ma_short)
     volume_sma = sma(volume.astype(float), vol_period)
 
     # RS vs. benchmark (align on common index)
@@ -272,6 +278,7 @@ def compute_technical_indicators(
     c_signal = float(macd_signal_s.iloc[latest]) if macd_data_available else 0.0
     c_hist = float(macd_hist_s.iloc[latest]) if not pd.isna(macd_hist_s.iloc[latest]) else 0.0
     c_rolling_high = float(rolling_high_20.iloc[latest]) if not pd.isna(rolling_high_20.iloc[latest]) else c_close
+    c_rolling_low = float(rolling_low_20.iloc[latest]) if not pd.isna(rolling_low_20.iloc[latest]) else c_close
     c_vol_sma = float(volume_sma.iloc[latest]) if not pd.isna(volume_sma.iloc[latest]) else 0.0
     c_rs = float(rs_series.iloc[latest]) if not pd.isna(rs_series.iloc[latest]) else 0.0
     c_vol_z = float(vol_z_series.iloc[latest])
@@ -316,6 +323,7 @@ def compute_technical_indicators(
         "macd_signal": c_signal,
         "macd_hist": c_hist,
         "rolling_high_20": c_rolling_high,
+        "rolling_low_20": c_rolling_low,
         "volume_sma_20": c_vol_sma,
         "rs_vs_benchmark": c_rs,
 

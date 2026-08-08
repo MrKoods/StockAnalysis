@@ -38,21 +38,21 @@ from swing_model.feedback_loop import (
     should_recalibrate,
 )
 from swing_model.indicator_pipeline import load_config
+# Imported, not duplicated — this module previously kept its own copy of the
+# column list that had already drifted from paper_runner.py's real schema
+# (missing positioning_score, structure_recommended, ev_per_dollar,
+# event_gate_blocked, event_gate_trigger). _save_trades' DictWriter runs with
+# extrasaction="ignore", so that drift wasn't a KeyError — it was silent data
+# loss: the first paper_updater.py run to close *any* trade would rewrite the
+# whole CSV and drop those columns from every row, not just the closed one.
+# One shared list closes that gap structurally instead of relying on the two
+# modules being hand-kept in sync.
+from paper_trading.paper_runner import _CSV_COLUMNS
 
 logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 MAX_HOLDING_DAYS = 15  # trading days before automatic time stop
-
-_CSV_COLUMNS = [
-    "signal_date", "ticker", "confidence",
-    "technical_score", "sentiment_score", "news_score", "fundamental_score",
-    "regime", "vix_at_signal",
-    "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
-    "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
-    "news_article_count", "dominant_news_theme", "fundamental_data_quality",
-    "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days",
-]
 
 
 def _load_trades() -> list[dict]:
@@ -93,24 +93,32 @@ def _resolve_outcome(
     entry_price: float,
     stop_loss: float,
     target: float,
+    direction: str = "bullish",
 ) -> Optional[dict]:
     """
     Walk bars chronologically and return outcome dict when stop, target,
     or time stop is triggered. Returns None if trade is still open.
 
     Stop is checked before target within each bar (conservative — worst case first).
+    Bullish: stop is below entry (loss when price falls to/through it, Low <=
+    stop_loss), target is above entry (win when price rises to/through it,
+    High >= target). Bearish is the mirror image — stop above entry (loss on
+    High >= stop_loss), target below entry (win on Low <= target).
     """
     trading_days = 0
+    bearish = direction == "bearish"
 
     for bar_date, bar in df.iterrows():
         trading_days += 1
         high = float(bar["High"])
         low = float(bar["Low"])
         close = float(bar["Close"])
+        open_px = float(bar["Open"])
 
-        if low <= stop_loss:
-            # Stop hit — could also check if open gapped below stop
-            exit_px = min(stop_loss, float(bar["Open"]))
+        stop_hit = (high >= stop_loss) if bearish else (low <= stop_loss)
+        if stop_hit:
+            # Stop hit — could also check if open gapped through the stop
+            exit_px = max(stop_loss, open_px) if bearish else min(stop_loss, open_px)
             return {
                 "outcome": "loss",
                 "exit_date": bar_date.strftime("%Y-%m-%d"),
@@ -118,7 +126,8 @@ def _resolve_outcome(
                 "holding_days": trading_days,
             }
 
-        if high >= target:
+        target_hit = (low <= target) if bearish else (high >= target)
+        if target_hit:
             return {
                 "outcome": "win",
                 "exit_date": bar_date.strftime("%Y-%m-%d"),
@@ -191,6 +200,11 @@ def update_paper_trades() -> int:
                 logger.warning(f"{ticker} {signal_date}: invalid entry/stop/target — skipping")
                 continue
 
+            # Defaults to "bullish" for rows logged before this column existed —
+            # matches how every trade was actually built at signal time.
+            direction = trade.get("direction") or "bullish"
+            bearish = direction == "bearish"
+
             # Only look at bars strictly after the signal date
             signal_dt = pd.Timestamp(signal_date)
             df_after = df[df.index > signal_dt]
@@ -198,16 +212,40 @@ def update_paper_trades() -> int:
                 logger.info(f"{ticker} {signal_date}: no bars after signal yet — still open")
                 continue
 
-            result = _resolve_outcome(df_after, entry_price, stop_loss, target)
+            result = _resolve_outcome(df_after, entry_price, stop_loss, target, direction=direction)
             if result is None:
                 logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
                 continue
 
-            # Compute P&L and R multiple
+            # Compute P&L and R multiple. Bearish mirrors bullish throughout:
+            # a price move that hurts a long (price falling) is what a short
+            # profits from, so price_change flips sign, and risk_per_r is the
+            # stop's distance from entry regardless of which side it sits on.
             exit_px = float(result["exit_price"])
-            risk_per_r = entry_price - stop_loss  # positive: distance from entry to stop
-            pnl_pct = (exit_px - entry_price) / entry_price
-            achieved_rr = (exit_px - entry_price) / risk_per_r if risk_per_r > 0 else 0.0
+            price_change = (entry_price - exit_px) if bearish else (exit_px - entry_price)
+            risk_per_r = abs(entry_price - stop_loss)
+            pnl_pct = price_change / entry_price
+            achieved_rr = price_change / risk_per_r if risk_per_r > 0 else 0.0
+
+            # Dollar P&L = achieved_rr * the dollar_risk locked in at signal time
+            # (paper_runner.py), not a re-derivation of position size here. This
+            # mirrors trade_selector.py's own convention of pricing every
+            # structure off the shared entry/stop/target R:R rather than
+            # per-structure option Greeks — an options structure's dollar P&L
+            # isn't linear in the underlying's move, but this system doesn't
+            # model real option pricing at exit anywhere else either, so
+            # achieved_rr * dollar_risk keeps this consistent with how EV was
+            # ranked, rather than being precise about something nothing else
+            # here is precise about either. Blank (not 0.0) for trades signaled
+            # before dollar_risk existed in the CSV — a missing input, not a
+            # $0 risk trade.
+            dollar_risk_raw = (trade.get("dollar_risk") or "").strip()
+            pnl_dollars_str = ""
+            if dollar_risk_raw:
+                try:
+                    pnl_dollars_str = f"{achieved_rr * float(dollar_risk_raw):.2f}"
+                except ValueError:
+                    pass
 
             # Update trade dict in-place
             trade["outcome"] = result["outcome"]
@@ -216,11 +254,13 @@ def update_paper_trades() -> int:
             trade["pnl_pct"] = f"{pnl_pct:.4f}"
             trade["achieved_rr"] = f"{achieved_rr:.3f}"
             trade["holding_days"] = str(result["holding_days"])
+            trade["pnl_dollars"] = pnl_dollars_str
 
             logger.info(
                 f"{ticker} {signal_date}: {result['outcome']} | exit={exit_px:.2f} | "
-                f"pnl={pnl_pct * 100:+.2f}% | {achieved_rr:+.2f}R | "
-                f"{result['holding_days']}d"
+                f"pnl={pnl_pct * 100:+.2f}% | {achieved_rr:+.2f}R"
+                + (f" | ${float(pnl_dollars_str):+.2f}" if pnl_dollars_str else "") +
+                f" | {result['holding_days']}d"
             )
 
             # Discord alert for this closed trade

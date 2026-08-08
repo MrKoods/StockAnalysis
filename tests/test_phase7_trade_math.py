@@ -283,6 +283,54 @@ class TestRiskReward:
     def test_rr_zero_when_stop_above_entry(self):
         assert compute_rr_ratio(90, 95, 120) == 0.0
 
+    # -----------------------------------------------------------------------
+    # Bearish direction — mirror image of every bullish case above:
+    # anchor uses min() not max(), stop sits above entry, target below.
+    # -----------------------------------------------------------------------
+
+    def test_entry_zone_bearish_uses_min_anchor(self):
+        # Bearish: anchor = min(current_close, breakdown_level) = min(100, 98) = 98
+        lower, upper = compute_entry_zone(100, 98, atr_14=2.0, direction="bearish")
+        assert lower == pytest.approx(97.5)
+        assert upper == pytest.approx(98.5)
+
+    def test_entry_zone_bearish_breakdown_below_close(self):
+        # min(102, 95) = 95 — a confirmed breakdown lower than current close
+        lower, upper = compute_entry_zone(102, 95, atr_14=2.0, direction="bearish")
+        assert lower == pytest.approx(94.5)
+        assert upper == pytest.approx(95.5)
+
+    def test_stop_loss_bearish_sits_above_entry(self):
+        # stop = entry_zone_upper + 2*ATR = 100.5 + 4 = 104.5
+        stop = compute_stop_loss(100.5, atr_14=2.0, direction="bearish")
+        assert stop == pytest.approx(104.5)
+
+    def test_target_bearish_below_entry(self):
+        # entry=100, stop=105 -> risk=5 -> target = 100 - 3*5 = 85
+        target = compute_target(entry=100, stop=105, min_rr=3.0, direction="bearish")
+        assert target == pytest.approx(85.0)
+
+    def test_target_bearish_none_when_stop_below_entry(self):
+        target = compute_target(entry=100, stop=95, min_rr=3.0, direction="bearish")
+        assert target is None
+
+    def test_rr_ratio_bearish_correct(self):
+        # entry=100, stop=105, target=85 -> RR = (100-85)/(105-100) = 3.0
+        rr = compute_rr_ratio(entry=100, stop=105, target=85, direction="bearish")
+        assert rr == pytest.approx(3.0)
+
+    def test_rr_ratio_bearish_zero_when_stop_below_entry(self):
+        assert compute_rr_ratio(100, 95, 85, direction="bearish") == 0.0
+
+    def test_bullish_default_unchanged_by_direction_param(self):
+        # direction="bullish" (or omitted) must reproduce the exact pre-existing
+        # bullish behavior — this is what every real caller that hasn't opted
+        # into bearish still relies on.
+        lower, upper = compute_entry_zone(100, 98, atr_14=2.0, direction="bullish")
+        assert (lower, upper) == compute_entry_zone(100, 98, atr_14=2.0)
+        stop = compute_stop_loss(99.5, atr_14=2.0, direction="bullish")
+        assert stop == compute_stop_loss(99.5, atr_14=2.0)
+
     def test_trailing_stop_bullish(self):
         # highest_close=120, ATR=5, mult=1.5 → stop=120-7.5=112.5
         stop = compute_trailing_stop("bullish", 120, 95, atr_14=5.0)
@@ -310,6 +358,11 @@ class TestRiskReward:
 # ---------------------------------------------------------------------------
 
 class TestPositionSizer:
+    def test_tier_70_89_returns_half_pct(self):
+        assert get_risk_pct(70) == pytest.approx(0.005)
+        assert get_risk_pct(77.8) == pytest.approx(0.005)
+        assert get_risk_pct(89) == pytest.approx(0.005)
+
     def test_tier_90_92_returns_1pct(self):
         assert get_risk_pct(90) == pytest.approx(0.010)
         assert get_risk_pct(91) == pytest.approx(0.010)
@@ -327,12 +380,12 @@ class TestPositionSizer:
         assert get_risk_pct(99) == pytest.approx(0.025)
         assert get_risk_pct(100) == pytest.approx(0.025)
 
-    def test_below_90_returns_zero(self):
-        assert get_risk_pct(89) == 0.0
+    def test_below_confidence_threshold_returns_zero(self):
+        assert get_risk_pct(69) == 0.0
         assert get_risk_pct(0) == 0.0
 
     def test_sizing_tiers_cover_all_valid_scores(self):
-        for score in range(90, 101):
+        for score in range(70, 101):
             assert get_risk_pct(score) > 0.0
 
     def test_yellow_cb_halves_size(self):

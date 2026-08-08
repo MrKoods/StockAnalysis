@@ -1,10 +1,20 @@
 """
 SHARED: ATR-based + volume-profile stop/target math, R:R ratio calculation.
-Entry zone formula (exact per scope):
+Entry zone formula (exact per scope, bullish case):
   Lower = max(current_close, breakout_level) - (0.25 × ATR_14)
   Upper = max(current_close, breakout_level) + (0.25 × ATR_14)
   Stop  = entry_zone_lower - (2.0 × ATR_14)   OR nearest high-vol support node (whichever is closer)
   Target = next low-volume area above entry; must satisfy ≥ 1:3 R:R
+
+Bearish is the mirror image throughout (breakdown level instead of breakout
+level, stop above entry instead of below, target below entry instead of
+above) — every function below takes an explicit direction param rather than
+having a separate bearish_* function, so a caller can't accidentally run one
+direction's price data through the other's formula. high_volume_support and
+low_volume_area_above (volume-profile refinements) stay bullish-only for now
+— no live caller passes them for either direction yet, so there's no bearish
+counterpart (a "resistance"/"high-volume area below" concept) to build until
+one actually needs it.
 """
 
 from typing import Optional
@@ -12,16 +22,20 @@ from typing import Optional
 
 def compute_entry_zone(
     current_close: float,
-    breakout_level: float,
+    level: float,
     atr_14: float,
     half_width_atr: float = 0.25,
+    direction: str = "bullish",
 ) -> tuple[float, float]:
     """
     Compute entry zone as (lower, upper).
 
-    Per scope formula:
-    Lower = max(current_close, breakout_level) - (half_width_atr × ATR_14)
-    Upper = max(current_close, breakout_level) + (half_width_atr × ATR_14)
+    Bullish: anchor = max(current_close, level) — level is the breakout
+    (rolling high) — a confirmed breakout can be higher than the current
+    close, and entry shouldn't anchor below it.
+    Bearish: anchor = min(current_close, level) — level is the breakdown
+    (rolling low) — the mirror case, a confirmed breakdown can be lower than
+    the current close.
     """
     if atr_14 <= 0:
         # A vendor data glitch (bad/negative ATR) must not silently produce an
@@ -29,31 +43,37 @@ def compute_entry_zone(
         # calculation assumes a positive ATR.
         raise ValueError(f"atr_14 must be > 0, got {atr_14}")
 
-    anchor = max(current_close, breakout_level)
+    anchor = min(current_close, level) if direction == "bearish" else max(current_close, level)
     lower = anchor - (half_width_atr * atr_14)
     upper = anchor + (half_width_atr * atr_14)
     return round(lower, 4), round(upper, 4)
 
 
 def compute_stop_loss(
-    entry_zone_lower: float,
+    entry_zone_bound: float,
     atr_14: float,
     high_volume_support: Optional[float] = None,
     stop_atr_multiplier: float = 2.0,
+    direction: str = "bullish",
 ) -> float:
     """
     Compute stop loss.
-    ATR stop = entry_zone_lower - (stop_atr_multiplier × ATR_14)
-    If a high-volume support node is known, use whichever is closer to entry
-    (tighter stop = less risk per trade, more capital-efficient).
-    Stop must always be below entry_zone_lower.
+    Bullish: entry_zone_bound is entry_zone_lower; ATR stop = entry_zone_lower
+    - (stop_atr_multiplier × ATR_14); stop always below entry_zone_lower.
+    Bearish: entry_zone_bound is entry_zone_upper; ATR stop = entry_zone_upper
+    + (stop_atr_multiplier × ATR_14); stop always above entry_zone_upper.
+    high_volume_support (bullish only): use it instead of the ATR stop if
+    it's tighter (closer to entry, i.e. less risk per trade).
     """
     if atr_14 <= 0:
         raise ValueError(f"atr_14 must be > 0, got {atr_14}")
 
-    atr_stop = entry_zone_lower - (stop_atr_multiplier * atr_14)
+    if direction == "bearish":
+        return round(entry_zone_bound + (stop_atr_multiplier * atr_14), 4)
 
-    if high_volume_support is not None and high_volume_support < entry_zone_lower:
+    atr_stop = entry_zone_bound - (stop_atr_multiplier * atr_14)
+
+    if high_volume_support is not None and high_volume_support < entry_zone_bound:
         # Use the HVN stop if it's tighter than the ATR stop (closer to entry)
         if high_volume_support > atr_stop:
             return round(high_volume_support, 4)
@@ -66,16 +86,24 @@ def compute_target(
     stop: float,
     low_volume_area_above: Optional[float] = None,
     min_rr: float = 3.0,
+    direction: str = "bullish",
 ) -> Optional[float]:
     """
-    Compute price target satisfying 1:3 R:R minimum.
+    Compute price target satisfying the minimum R:R.
 
-    Target priority:
-    1. First low-volume area above entry (volume profile target)
-    2. Fallback: entry + min_rr × (entry - stop)
-
-    Returns None if stop >= entry (invalid setup).
+    Bullish: target above entry. Priority: first low-volume area above entry
+    (volume profile target), else entry + min_rr × (entry - stop). None if
+    stop >= entry (invalid setup).
+    Bearish: target below entry (mirror image): entry - min_rr × (stop -
+    entry). None if stop <= entry (invalid setup). low_volume_area_above is
+    bullish-only (see module docstring) — ignored for bearish.
     """
+    if direction == "bearish":
+        if stop <= entry:
+            return None
+        risk_per_share = stop - entry
+        return round(entry - (min_rr * risk_per_share), 4)
+
     if stop >= entry:
         return None
 
@@ -89,11 +117,16 @@ def compute_target(
     return round(min_target, 4)
 
 
-def compute_rr_ratio(entry: float, stop: float, target: float) -> float:
+def compute_rr_ratio(entry: float, stop: float, target: float, direction: str = "bullish") -> float:
     """
-    R:R = (target - entry) / (entry - stop).
-    Returns 0.0 if stop >= entry (no valid risk).
+    Bullish: R:R = (target - entry) / (entry - stop). Returns 0.0 if stop >= entry.
+    Bearish: R:R = (entry - target) / (stop - entry). Returns 0.0 if stop <= entry.
     """
+    if direction == "bearish":
+        if stop <= entry:
+            return 0.0
+        return round((entry - target) / (stop - entry), 2)
+
     if stop >= entry:
         return 0.0
     return round((target - entry) / (entry - stop), 2)

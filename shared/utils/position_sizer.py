@@ -1,14 +1,25 @@
 """
 SHARED: Calculates trade size based on account equity, confidence tier,
 circuit breaker state, and structure capital requirement.
-Position sizing: confidence-scaled fixed fractional (1.0-2.5% risk per tier).
+Position sizing: confidence-scaled fixed fractional (0.5-2.5% risk per tier).
 Max capital per trade: 5% of account equity ($750 at $15k).
 """
 
 from typing import Optional
 
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 
+# 70-89 was a dead zone until this tier was added: CONFIDENCE_THRESHOLD moved
+# 90 -> 70 (backtest showed the 90-point bar was practically unreachable) but
+# these tiers still started at 90, so every signal that newly qualified at
+# 70-89 silently sized to $0. A single flat 0.5% tier for the whole 70-89
+# band, not a further stepped one, because win_probability_calibration.py's
+# calibration curve is flat at ~57.4% win rate across 70/75/80/85 — there's
+# no calibration signal to justify differentiating risk within that range,
+# only between it and the 90+ bands where win rate actually climbs (59.8% at
+# 90, 62.5% at 95).
 SIZING_TIERS = [
+    (CONFIDENCE_THRESHOLD, 89, 0.005),  # 0.5% risk
     (90, 92, 0.010),   # 1.0% risk
     (93, 95, 0.015),   # 1.5% risk
     (96, 98, 0.020),   # 2.0% risk
@@ -24,8 +35,8 @@ CB_RED = "red"
 def get_risk_pct(confidence_score: float) -> float:
     """
     Return risk % for the given confidence score tier.
-    90-92 → 1.0%; 93-95 → 1.5%; 96-98 → 2.0%; 99-100 → 2.5%.
-    Returns 0.0 if score below 90 (no trade should be surfaced).
+    70-89 → 0.5%; 90-92 → 1.0%; 93-95 → 1.5%; 96-98 → 2.0%; 99-100 → 2.5%.
+    Returns 0.0 if score below CONFIDENCE_THRESHOLD (no trade should be surfaced).
     """
     score = int(confidence_score)
     for lo, hi, pct in SIZING_TIERS:
