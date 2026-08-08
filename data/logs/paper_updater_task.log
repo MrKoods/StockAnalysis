@@ -82,3 +82,22 @@ Closed 0 trade(s) this run.
 2026-08-06 08:07:02,542 [__main__] WARNING — paper_trading\paper_trades.csv not found — nothing to update.
 No paper trades found.
 Closed 0 trade(s) this run.
+2026-08-07 08:07:02,024 [__main__] INFO — 3 open paper trade(s) to check
+$LLY: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+
+1 Failed download:
+['LLY']: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+2026-08-07 08:07:02,381 [__main__] WARNING — LLY: no price data since 2026-08-08 — skipping
+$PFE: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+
+1 Failed download:
+['PFE']: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+2026-08-07 08:07:02,757 [__main__] WARNING — PFE: no price data since 2026-08-08 — skipping
+$AMZN: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+
+1 Failed download:
+['AMZN']: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786161600, endDate = 1786115222")
+2026-08-07 08:07:03,082 [__main__] WARNING — AMZN: no price data since 2026-08-08 — skipping
+2026-08-07 08:07:03,084 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+Paper trades: 3 total, 3 open, 0 closed
+Closed 0 trade(s) this run.

@@ -35,3 +35,6 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-05T22:56:56.913464+00:00,v2.2.37,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-06T12:35:27.678977+00:00,v2.2.42,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
 2026-08-06T22:23:05.245540+00:00,v2.2.42,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-07T12:30:45.991522+00:00,v2.2.46,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-08-07T21:00:13.168365+00:00,v2.2.46,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-07T21:02:22.585067+00:00,v2.2.46,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff

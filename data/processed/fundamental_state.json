@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-07T05:34:37.005198+00:00",
+  "last_updated": "2026-08-07T12:30:05.892111+00:00",
   "update_cadence": "weekly",
   "update_day": "Monday",
   "tickers": {
@@ -86,36 +86,36 @@
     "AVGO": {
       "ticker": "AVGO",
       "valuation": {
-        "trailingPE": 63.515835,
-        "forwardPE": 19.58283,
-        "enterpriseToEbitda": 45.445,
-        "enterpriseToRevenue": 25.343,
+        "trailingPE": 69.97753,
+        "forwardPE": 21.576332,
+        "enterpriseToEbitda": 48.621,
+        "enterpriseToRevenue": 27.114,
         "recommendationMean": 1.3125,
-        "targetMeanPrice": 525.44,
+        "targetMeanPrice": 527.88446,
         "suspect_fields": []
       },
       "earnings": {
+        "earnings_surprises": [
+          -0.0024,
+          -0.0087,
+          0.0265,
+          0.005
+        ],
+        "consecutive_beats": 0,
         "eps_growth_trend": [
           0.5443,
           0.2812,
           0.3732,
           0.3629
-        ],
-        "earnings_surprises": [
-          0.0167,
-          0.0149,
-          0.0428,
-          0.0181
-        ],
-        "consecutive_beats": 4
+        ]
       },
       "revisions": {
-        "analyst_target_price": 525.44,
-        "current_price": 381.22,
-        "implied_upside_pct": 0.3783,
+        "analyst_target_price": 527.88446,
+        "current_price": 420.565,
+        "implied_upside_pct": 0.2552,
         "analyst_rating_breakdown": {
           "strongBuy": 17,
-          "buy": 35,
+          "buy": 34,
           "hold": 5,
           "sell": 0,
           "strongSell": 0
@@ -929,7 +929,7 @@
   "fetched_dates": {
     "NVDA": "2026-08-05",
     "AMD": "2026-08-05",
-    "AVGO": "2026-07-24",
+    "AVGO": "2026-08-07",
     "TSM": "2026-08-06",
     "MU": "2026-08-04",
     "ASML": "2026-08-05",
