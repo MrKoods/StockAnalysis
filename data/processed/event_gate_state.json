@@ -344,6 +344,26 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-08-07T21:02:22.135146+00:00"
+    },
+    {
+      "id": "90cb254a-1eaf-46ef-913b-3491b3425f38",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Prediction: Trump's New Tariffs Won't Stand Up in Court. Consider Buying These 2 International ETFs.",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-08-10T02:50:00+00:00",
+      "created_at_utc": "2026-08-10T12:31:29.035165+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-08-10T22:50:17.096690+00:00"
     }
   ]
 }

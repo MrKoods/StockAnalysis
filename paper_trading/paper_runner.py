@@ -130,6 +130,9 @@ _CSV_COLUMNS = [
     # recomputed later so a trade's sizing can't silently drift if config or
     # the structure ranking changes after the fact.
     "risk_pct", "dollar_risk", "position_type", "position_size", "capital_deployed",
+    # Why this row sizes to 0, or has no structure_recommended, when it
+    # otherwise looks like it should have one — blank when sizing was normal.
+    "sizing_note",
     "event_gate_blocked", "event_gate_trigger",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days", "pnl_dollars",
@@ -148,6 +151,34 @@ def _load_logged_keys() -> set[tuple[str, str]]:
     except Exception as exc:
         logger.warning(f"Could not read paper_trades.csv: {exc}")
     return seen
+
+
+def _load_open_positions() -> set[tuple[str, str]]:
+    """
+    Return set of (ticker, direction) pairs with an open (outcome blank) row
+    in paper_trades.csv — the same-ticker/same-direction duplicate-position
+    guard, scoped to paper trading's own ledger.
+
+    Deliberately NOT swing_model/portfolio_manager.py's can_open_new_position()
+    + data/processed/position_state.json: that state file belongs to a
+    separate, currently-dormant pipeline (run_swing_model.py's own live/Discord
+    position tracking, not the daily paper_runner.py path — see
+    PROJECT_OVERVIEW.md). CHANGELOG.md v2.2.37 already hit this exact question
+    for account-equity tracking and deliberately kept paper trading's state
+    out of position_state.json to avoid "silently mixed two unrelated
+    pipelines' state" — same reasoning applies here.
+    """
+    if not PAPER_TRADES_CSV.exists():
+        return set()
+    open_positions: set[tuple[str, str]] = set()
+    try:
+        with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if not (row.get("outcome") or "").strip():
+                    open_positions.add((row.get("ticker", ""), row.get("direction", "bullish")))
+    except Exception as exc:
+        logger.warning(f"Could not read paper_trades.csv for open-position check: {exc}")
+    return open_positions
 
 
 def _append_row(row: dict) -> None:
@@ -286,6 +317,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     model_version = get_model_version()
     today_str = date.today().isoformat()
     already_logged = _load_logged_keys()
+    open_positions = _load_open_positions()
 
     # app_ui DB — one scan_runs row per invocation; every ticker_result and
     # notification below is tagged with this run_id. run_id is None if the DB
@@ -707,6 +739,18 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     )
                 continue
 
+            # Duplicate-position guard — a ticker already carrying an open
+            # same-direction position doesn't get a second one logged on top of
+            # it. Checked here (not earlier, alongside already_logged) because
+            # it only applies to real qualifying signals — near-miss/no-signal
+            # rows above are informational only and never touch paper_trades.csv.
+            if (ticker, direction) in open_positions:
+                logger.info(
+                    f"{ticker}: qualifies ({final_score:.1f}) but already has an open "
+                    f"{direction} position — skipped (duplicate-position guard)"
+                )
+                continue
+
             qualified_category = (
                 app_db.CATEGORY_TRADE_RECOMMENDED if structure_recommended else app_db.CATEGORY_PASSED_NO_TRADE
             )
@@ -771,19 +815,33 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             capital_based_size = int(max_capital // per_unit_cost) if per_unit_cost and per_unit_cost > 0 else 0
             position_size = min(risk_based_size, capital_based_size)
             capital_deployed = round(position_size * per_unit_cost, 2)
+
+            # sizing_note: persisted to paper_trades.csv itself, not just logged —
+            # a signal that qualifies but sizes to 0, or that had zero eligible
+            # options structures at all, used to leave no trace of *why* in the
+            # ledger (only in the transient app.log line below and the app UI's
+            # separate SQLite history), which made a blank structure_recommended/
+            # 0-share row look identical to a real data gap and took real
+            # forensic effort to explain after the fact. Built once here and
+            # reused for both the CSV field and the log line so they can't drift.
+            sizing_note_parts = []
+            if not structure_recommended and exclusion_summary:
+                sizing_note_parts.append(f"no options structure eligible ({exclusion_summary})")
             if position_size == 0:
                 binding = "risk budget" if risk_based_size == 0 else "capital cap"
-                logger.info(
-                    f"{ticker}: NOTE — signal qualifies but sizes to 0 {position_type} at this "
-                    f"account size ({binding} was the binding constraint) — logged for tracking, "
-                    "not practically tradeable at this account size"
+                sizing_note_parts.append(
+                    f"signal qualifies but sizes to 0 {position_type} at this account size "
+                    f"({binding} was the binding constraint) — not practically tradeable at this account size"
                 )
             elif capital_based_size < risk_based_size:
-                logger.info(
-                    f"{ticker}: NOTE — capital cap (${max_capital:.2f}, {max_capital_pct:.0%} of "
-                    f"account) capped this position at {position_size} {position_type} instead of "
-                    f"the {risk_based_size} the ${dollar_risk:.2f} risk budget alone would allow"
+                sizing_note_parts.append(
+                    f"capital cap (${max_capital:.2f}, {max_capital_pct:.0%} of account) capped this "
+                    f"position at {position_size} {position_type} instead of the {risk_based_size} the "
+                    f"${dollar_risk:.2f} risk budget alone would allow"
                 )
+            sizing_note = " | ".join(sizing_note_parts)
+            if sizing_note:
+                logger.info(f"{ticker}: NOTE — {sizing_note}")
 
             row: dict = {
                 "signal_date": today_str,
@@ -817,6 +875,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "position_type": position_type,
                 "position_size": str(position_size),
                 "capital_deployed": f"{capital_deployed:.2f}",
+                "sizing_note": sizing_note,
                 "event_gate_blocked": bool(score.get("event_gate_blocked", False)),
                 "event_gate_trigger": score.get("event_gate_trigger", "") or "",
                 # Outcome fields filled by paper_updater.py

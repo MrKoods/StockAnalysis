@@ -60,6 +60,9 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.49 | 2026-08-10 | Bug Fix | Paper trading could silently log a second same-direction position on a ticker that already had one open (found via PFE/LLY both duplicated 3 days apart) — added a duplicate-position guard scoped to paper trading's own ledger |
+| v2.2.48 | 2026-08-10 | Bug Fix | A trade sitting exactly at the 1:3 minimum reward:risk was getting silently rejected by a floating-point rounding artifact, excluding all 42 trade structures; also added a sizing_note field so a signal that sizes to 0 or finds no eligible structure now says why, right in the ledger |
+| v2.2.47 | 2026-08-10 | Backtest Methodology | Sector rotation's -15/+5 point penalty had never been tested against real outcomes — wired it into the backtest and found the "hot sector" boost was backwards |
 | v2.2.46 | 2026-08-06 | Scoring Change | No trade has ever scored high enough to qualify (needed 90, best ever was 80) — lowered the bar to 70 after finding the backtest wasn't comparing fairly |
 | v2.2.45 | 2026-08-06 | Infrastructure | 4 retail stocks (Home Depot, Nike, Starbucks, Target) never once got financial data — a leftover daily limit was blocking them; raised it |
 | v2.2.44 | 2026-08-06 | Data Source | Found why Seeking Alpha kept failing: we were paying for the wrong listing on RapidAPI — switched to the one that's actually upgraded |
@@ -115,6 +118,73 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.49] — 2026-08-10 — [Bug Fix] Paper trading could silently log a second same-direction position on a ticker that already had one open
+
+**Status:** Live.
+
+**In short:** Found while reviewing open paper-trading positions: PFE and LLY each had two open bullish positions logged 3 days apart, doubling real exposure to those names without any deliberate decision to do so. Traced it: `swing_model/portfolio_manager.py` has a documented `can_open_new_position()` rule for exactly this ("no second same-direction position on a ticker that already has one open"), but `paper_trading/paper_runner.py` never called it — it only reused `run_swing_model.py`'s scoring/data-fetch helpers, not its position-tracking ones.
+
+**Problem:** `can_open_new_position()` checks `data/processed/position_state.json`'s `positions` list, which only ever gets populated by `swing_model/portfolio_manager.py::add_position()` — itself only called from `handle_entry_confirmation()`, the flow that fires when a human replies "entered" to a live Discord alert. Paper trading has no human in that loop, so simply calling `can_open_new_position()` from `paper_runner.py` wouldn't have worked: the list it checks would stay permanently empty. Considered wiring paper trading into `position_state.json` directly (auto-adding/closing positions the way a confirmed live trade would) — rejected, because `CHANGELOG.md` v2.2.37 already hit this exact question for account-equity tracking and explicitly kept paper trading's state out of `position_state.json` to avoid "silently mixed two unrelated pipelines' state": that file belongs to `run_swing_model.py`'s own live/Discord position tracking, a separate, currently-dormant pipeline (`paper_runner.py` is the one that actually runs daily — see `PROJECT_OVERVIEW.md`).
+
+**Fix:** New `_load_open_positions()` in `paper_runner.py` — reads `paper_trades.csv` itself (any row with a blank `outcome` is still open) and returns the set of `(ticker, direction)` pairs currently open. Checked once per scan, immediately before a qualifying signal would otherwise be logged; a ticker already carrying an open same-direction position is skipped with a log line instead of logged as a second position. Self-contained to paper trading's own ledger — no dependency on `portfolio_manager.py` or `position_state.json`, and no changes needed to `paper_updater.py` (once a position's `outcome` gets filled in on close, the next scan's `_load_open_positions()` naturally stops counting it as open).
+
+**Not fixed here:** the two existing duplicate rows (PFE, LLY) already in `paper_trades.csv` are unchanged — this only prevents new duplicates going forward.
+
+**Backtest result:** Not applicable — paper-trading-only change, no scoring/backtest path touched. 931 tests pass, 3 skipped (pre-existing), unchanged from baseline.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.48] — 2026-08-10 — [Bug Fix] A trade sitting exactly at the 1:3 minimum reward:risk was getting silently rejected by a floating-point rounding artifact; also added a sizing_note field so the ledger explains itself
+
+**Status:** Live.
+
+**In short:** LLY qualified as a real signal (76.6/100) but showed up with no recommended trade structure and 0 shares deployed, with no explanation anywhere in `paper_trades.csv`. Traced it: every one of the 42 trade structures was being rejected for "R:R below minimum," even though the trade's actual reward:risk was exactly 3:1 — the system's own configured minimum. The real ratio, computed from full-precision numbers, was `2.999999999999998`, off from an exact 3.0 by one bit of floating-point representation error — comparing that directly against the threshold with strict `<` silently threw out a trade that was, for every practical purpose, right at the line. Fixed the comparison, and separately made sure the next time a signal produces something non-actionable (0 shares, or no eligible structure), `paper_trades.csv` itself says why instead of requiring a multi-step investigation to reconstruct it after the fact.
+
+**Problem:**
+1. `swing_model/trade_selector.py`'s `rank_trade_structures()` computes one shared R:R value from the candidate's entry/stop/target and checks it against `config/swing_config.yaml`'s `min_rr_ratio` (3.0) for every structure — a single failure here excludes all 42 at once.
+2. `shared/utils/risk_reward.py::compute_target()` builds its target as exactly `entry + min_rr × risk`, so a trade using the formulaic fallback (no real volume-profile level available) lands exactly on the minimum by construction — a very common case, not a rare edge.
+3. Entry/stop/target each pass through their own `round(x, 4)` upstream (`compute_entry_zone`, `compute_stop_loss`, `compute_target`), and IEEE-754 float arithmetic on already-rounded inputs can land a few ULPs under an exact target — confirmed directly: `rr - 3.0 == -2.220446049250313e-15` for LLY's real 2026-08-10 signal. Queried the app UI's `ticker_results` table directly and found this had already silently fired on at least one real prior scan (`result_id 868`: `structures_eligible_after_filters: 0`, `exclusion_summary` citing "rr below min threshold" for all 42) — this wasn't a one-off, it's intermittent depending on which way the float noise rounds for a given scan's exact numbers.
+4. Separately: nothing in `paper_trades.csv` recorded *why* a row had a blank `structure_recommended` or 0 `position_size` — that context existed only as a transient `app.log` line and in the app UI's separate SQLite history, not in the CSV a human actually reviews trade-by-trade.
+
+**Fix:**
+1. `trade_selector.py`: round the shared R:R to 2 decimal places (matching `compute_rr_ratio()`'s own existing convention elsewhere in the codebase) before the threshold comparison — absorbs the ~1e-15 float noise without loosening the real 3.0 bar in any way that matters economically.
+2. `paper_runner.py`: new `sizing_note` CSV column, populated whenever a qualifying signal produces 0 shares/contracts, gets capital-capped below what the risk budget alone would allow, or finds zero eligible trade structures at all — same reasoning that was already being logged transiently, now persisted in the ledger itself. `paper_trades.csv` migrated to the new schema (existing 6 rows backfilled with an empty `sizing_note`, nothing else changed).
+
+**Verification:** Re-ran the real live pipeline for LLY after the fix — `diagonal_call` ($616 capital, well under the $750 cap) is now correctly found and ranked. 931 tests pass, 3 skipped (pre-existing), no change from baseline.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.47] — 2026-08-10 — [Backtest Methodology] Sector rotation's -15/+5 point penalty had never been tested against real outcomes — wired it into the backtest and found the "hot sector" boost was backwards
+
+**Status:** Backtest-only fix. Live/paper trading behavior is unchanged — `swing_model/run_swing_model.py` has always computed sector rotation from real, live SMH/SPY price data; only the backtest's replay was faking it.
+
+**In short:** Today's post-market scan showed every semiconductor stock taking the model's full -15 point "sector outflow" penalty — exactly the gap v2.2.46 called out: the backtest had always faked this number to zero, so nobody could ever check whether -15 (or the matching +5 "sector inflow" boost) was actually the right number. Wired real historical SMH-vs-SPY data into the backtest for the first time, ran the calibration check, and found the outflow penalty holds up — but the inflow boost doesn't. Sector-neutral trades won 63.7% of the time; "hot sector" (inflow) trades only won 53.9% — worse, not better. Turned the inflow boost off (+5 → 0); left the outflow penalty at -15, since that direction is real (44.8% win rate) even though the sample behind it is thin.
+
+**Problem:**
+1. `modifier_calibration_diagnostic.py` (added in v2.2.42) already documented that `sector_rotation_modifier` was one of the modifiers `backtesting/simulation.py` hardcodes to 0.0 during every replay — "no amount of outcome analysis on backtest replay can say anything about their calibration," in its own words.
+2. `config/swing_config.yaml`'s -15/+5 magnitudes were, per that same diagnostic's docstring, "hand-set round numbers with no [backtest] lineage" — a guess dressed up as a rule.
+3. This wasn't theoretical: today's scan vetoed all 6 semiconductor tickers with the flat -15, some of which (NVDA, TSM) had real stock-specific strength buried under a never-validated sector-wide penalty.
+
+**Fix:** Directly mirrored the fix v2.2.7 made for `macro_overlay`, which had the identical hardcoded-to-zero problem. Fetched real SPY daily history back to 2013 (`data/historical_market/SPY.csv`, gitignored research data, same pattern as `data/historical_macro/`), added a point-in-time `compute_rotation_state()` call to `backtesting/simulation.py`'s per-bar replay loop (reusing the SMH data and `rs_zscore` already computed there, so the existing leader-dampening logic — softening the penalty for genuine relative-strength leaders — applies in backtest exactly as it does live), and moved `sector_rotation_modifier` from the diagnostic's "never exercised" list to its "exercised" list. Ran the diagnostic against 544 real pooled outcomes:
+
+| Sector state | Trades | Win rate | Avg R:R |
+|---|---|---|---|
+| Outflow (negative) | 29 | 44.8% | 1.71 |
+| Neutral (zero) | 157 | 63.7% | 1.47 |
+| Inflow (positive) | 358 | 53.9% | 1.63 |
+
+Neutral sector conditions outperformed both outflow *and* inflow — the outflow penalty's direction is supported (though n=29 is thin), but the inflow boost's direction is backwards on a much larger sample (n=358). `modifiers.sector_rotation.inflow_boost` changed from +5 to 0; `outflow_penalty` left at -15.
+
+**Backtest result:** PASS, unchanged within noise. Before: 63.3% WR / 2.01 avg R:R / Sharpe 3.39 / 8.2% DD / 120 trades (2026-08-02 report). After: 62.8% WR / 2.01 avg R:R / Sharpe 2.96 / 8.3% DD / 121 trades. 931 tests pass, 3 skipped (pre-existing).
+
+**Approved by:** [pending]
 
 ---
 

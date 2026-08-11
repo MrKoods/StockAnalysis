@@ -169,7 +169,15 @@ modifiers:
     high_vol_score_cap: 70             # all scores capped at 70 in high-vol regime
   sector_rotation:
     outflow_penalty: -15
-    inflow_boost: 5
+    # inflow_boost was +5 until modifier_calibration_diagnostic.py was run
+    # against real backtest replay for the first time (sector_rotation was
+    # wired into backtesting/simulation.py from a hardcoded 0.0 — previously
+    # unvalidated by any data source). 544 pooled outcomes: sector-neutral
+    # trades won 63.7% (n=157) vs. sector-inflow trades at 53.9% (n=358) —
+    # inflow did NOT outperform neutral, so rewarding confidence for it isn't
+    # supported. outflow_penalty stays at -15: outflow trades won 44.8%
+    # (n=29, wide CI given the small sample, but not contradicted).
+    inflow_boost: 0
   earnings:
     within_5_days_penalty: -20
     within_6_to_18_days_penalty: -5

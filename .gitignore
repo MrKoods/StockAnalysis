@@ -7,6 +7,8 @@ data/historical/
 data/historical_banks/
 data/historical_macro/
 data/historical_healthcare/
+data/historical_market/
+data/historical_consumer_discretionary/
 
 # Python
 __pycache__/

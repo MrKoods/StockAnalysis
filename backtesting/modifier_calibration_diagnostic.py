@@ -3,16 +3,18 @@ Measures whether the 6 scoring modifiers' magnitudes (config/swing_config.yaml
 modifiers block) are actually backed by real outcome evidence. Only
 seasonality.monthly_modifiers carries a comment claiming Phase-12 backtest
 calibration; regime, sector_rotation, earnings, cross_ticker, and
-macro_overlay's bounds are hand-set round numbers with no such lineage.
+macro_overlay's bounds are hand-set round numbers with no such lineage
+(sector_rotation was wired into real replay data after this docstring was
+first written — see below — and should get one once this diagnostic has
+been run against it).
 
-Three of the six (sector_rotation_modifier, earnings_modifier,
-cross_ticker_modifier) are hardcoded to 0.0 in backtesting/simulation.py's
-replay (no historical sector-benchmark-aligned rotation signal, earnings
-calendar, or cross-ticker joint data covering the full backtest window) —
-this diagnostic can say nothing about those three; it reports that
-explicitly rather than silently omitting them. The other three (regime,
-seasonality, macro) DO vary during replay, so this measures each one's real
-bucket-level win rate/avg R against its own configured point swing.
+Two of the six (earnings_modifier, cross_ticker_modifier) are hardcoded to
+0.0 in backtesting/simulation.py's replay (no historical earnings calendar
+or cross-ticker joint data covering the full backtest window) — this
+diagnostic can say nothing about those two; it reports that explicitly
+rather than silently omitting them. The other four (regime, seasonality,
+macro, sector_rotation) DO vary during replay, so this measures each one's
+real bucket-level win rate/avg R against its own configured point swing.
 
 Usage: python -m backtesting.modifier_calibration_diagnostic
 """
@@ -27,13 +29,16 @@ from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# The 3 modifiers backtesting/simulation.py always hardcodes to 0.0 — no
+# The 2 modifiers backtesting/simulation.py always hardcodes to 0.0 — no
 # historical data path exists yet to exercise them, so no amount of outcome
 # analysis on backtest replay can say anything about their calibration.
-_NEVER_EXERCISED_IN_BACKTEST = ("sector_rotation_modifier", "earnings_modifier", "cross_ticker_modifier")
+_NEVER_EXERCISED_IN_BACKTEST = ("earnings_modifier", "cross_ticker_modifier")
 
-# The 3 that do vary during replay, per simulation.py's own outcome fields.
-_EXERCISED_MODIFIERS = ("regime_modifier", "seasonality_modifier", "macro_modifier")
+# The 4 that do vary during replay, per simulation.py's own outcome fields.
+# sector_rotation_modifier joined this list once backtesting/simulation.py
+# was wired to real SMH-vs-SPY replay data (previously hardcoded to 0.0,
+# same gap macro_modifier had before v2.2.7 — see CHANGELOG.md).
+_EXERCISED_MODIFIERS = ("regime_modifier", "seasonality_modifier", "macro_modifier", "sector_rotation_modifier")
 
 
 def collect_pooled_outcomes(config_path: str = "config/swing_config.yaml") -> list[dict]:

@@ -208,6 +208,7 @@ _SECTOR_DATASETS = {
     "semiconductors": ("data/historical", "SMH"),
     "regional_banks": ("data/historical_banks", "KRE"),
     "healthcare": ("data/historical_healthcare", "XLV"),
+    "consumer_discretionary": ("data/historical_consumer_discretionary", "XLY"),
 }
 
 

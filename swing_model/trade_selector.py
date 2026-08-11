@@ -269,7 +269,20 @@ def rank_trade_structures(
     # Filter 3 input: R:R of the shared entry/stop/target setup. Identical for every
     # structure (none of them change the underlying's own price levels), so it's
     # computed once here rather than per-structure.
-    rr = (target - entry) / (entry - stop) if (entry - stop) > 0 else 0.0
+    #
+    # Rounded to 2dp (matching compute_rr_ratio's own convention in
+    # risk_reward.py, not duplicated inline before this fix) before the
+    # threshold check below: entry/stop/target arrive here already passed
+    # through several chained round(x, 4) calls upstream (compute_entry_zone/
+    # compute_stop_loss/compute_target), and compute_target builds its target
+    # as exactly entry + min_rr * risk — so a trade sitting precisely at the
+    # configured minimum produces an rr that SHOULD equal min_rr exactly, but
+    # IEEE-754 float arithmetic on already-rounded inputs can land a few ULPs
+    # under it (observed: 2.999999999999998 for a target built as exactly
+    # 3x risk) — comparing that unrounded value against an exact 3.0 threshold
+    # silently excluded every one of the 42 structures for a trade that was
+    # genuinely at the minimum, not actually below it.
+    rr = round((target - entry) / (entry - stop), 2) if (entry - stop) > 0 else 0.0
     min_rr = float((cfg or {}).get("risk_reward", {}).get("min_rr_ratio", 3.0))
 
     ranked_structures = []

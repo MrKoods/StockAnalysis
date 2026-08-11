@@ -189,6 +189,27 @@ def _load_macro_series(macro_dir: str = "data/historical_macro") -> tuple:
     return tnx, dxy
 
 
+def _load_spy_series(spy_path: str = "data/historical_market/SPY.csv") -> "pd.Series | None":
+    """
+    Load cached SPY close-price history for backtest-time sector_rotation
+    computation. Returns None if the CSV isn't present — the sector_rotation
+    block below degrades to a neutral modifier, same pattern as
+    _load_macro_series. SPY is the fixed cross-sector benchmark shared by all
+    3 backtested sectors, so it lives outside any one sector's own
+    data/historical*/ directory. Research data, not part of the live
+    watchlist — mirrors data/historical_macro/ (see v2.2.7).
+    """
+    path = Path(spy_path)
+    if not path.exists():
+        return None
+    try:
+        df = pd.read_csv(path, parse_dates=["Date"], index_col="Date")
+        df.index = pd.to_datetime(df.index, utc=True)
+        return pd.to_numeric(df["Close"], errors="coerce").dropna()
+    except Exception:
+        return None
+
+
 def _fundamental_as_of(history: list[tuple[datetime, dict]], ticker: str, bar_date, neutral: dict) -> dict:
     """Most recent archived fundamental snapshot at or before bar_date; neutral if none yet exists."""
     if not history:
@@ -281,6 +302,7 @@ def _simulate_test_signals(
     from shared.utils.seasonality import get_seasonality_modifier
     from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
     from shared.utils.macro_overlay import compute_macro_state
+    from shared.utils.sector_rotation import compute_rotation_state, dampen_rotation_penalty_for_leader
     from backtesting.historical_news_loader import load_historical_news
 
     try:
@@ -329,6 +351,11 @@ def _simulate_test_signals(
     # China tension defaults to 0 (no historical news-keyword archive covers the
     # full backtest window) — neutral-when-unavailable, same as News/Fundamental.
     tnx_series, dxy_series = _load_macro_series()
+
+    # Load cached SPY series once for point-in-time sector_rotation computation
+    # (v2.2.X — previously hardcoded to sector_rotation_modifier=0.0 always,
+    # see modifier_calibration_diagnostic.py's former _NEVER_EXERCISED_IN_BACKTEST).
+    spy_close_series = _load_spy_series()
 
     smh_df = test_data.get(benchmark_ticker)
     rr_cfg = cfg.get("risk_reward", {})
@@ -463,6 +490,28 @@ def _simulate_test_signals(
                     macro_mod = 0.0
                     macro_state_label = "unavailable"
 
+            # Sector rotation: real sector-benchmark-vs-SPY relative-flow state,
+            # computed point-in-time as of bar_date so later history can't leak
+            # backward. Leader dampening (dampen_rotation_penalty_for_leader)
+            # softens the penalty for tickers with strong relative strength vs.
+            # their own history, matching the live pipeline (run_swing_model.py).
+            rotation_mod = 0.0
+            rotation_state_label = "unavailable"
+            if smh_df is not None and spy_close_series is not None:
+                try:
+                    spy_slice = spy_close_series[spy_close_series.index <= bar_date]
+                    rotation_result = compute_rotation_state(
+                        smh_close=smh_slice["Close"], spy_close=spy_slice
+                    )
+                    rotation_mod = dampen_rotation_penalty_for_leader(
+                        rotation_result.get("confidence_modifier", 0.0),
+                        float(indicators.get("rs_zscore", 0.0)),
+                    )
+                    rotation_state_label = rotation_result.get("rotation_state", "neutral")
+                except Exception:
+                    rotation_mod = 0.0
+                    rotation_state_label = "unavailable"
+
             # Price-momentum sentiment proxy: when price is trending up,
             # retail sentiment tends to be bullish. This is a documented
             # phenomenon at short horizons and better than a flat neutral
@@ -496,7 +545,7 @@ def _simulate_test_signals(
                     sentiment=sentiment,
                     news=news,
                     regime_modifier=regime_mod,
-                    sector_rotation_modifier=0.0,
+                    sector_rotation_modifier=rotation_mod,
                     earnings_modifier=0.0,
                     cross_ticker_modifier=0.0,
                     seasonality_modifier=seas_mod,
@@ -548,16 +597,19 @@ def _simulate_test_signals(
             )
             outcome["ticker"] = ticker
             outcome["macro_state"] = macro_state_label
+            outcome["rotation_state"] = rotation_state_label
             # Numeric modifier values actually used for this bar's score, not
-            # just the categorical regime/macro_state labels — needed to
-            # measure whether each modifier's real-world outcome correlation
-            # matches the magnitude config/swing_config.yaml's modifiers block
-            # assigns it (see backtesting/modifier_calibration_diagnostic.py).
-            # sector_rotation/earnings/cross_ticker aren't included since
-            # they're hardcoded to 0.0 above and carry no information here.
+            # just the categorical regime/macro_state/rotation_state labels —
+            # needed to measure whether each modifier's real-world outcome
+            # correlation matches the magnitude config/swing_config.yaml's
+            # modifiers block assigns it (see
+            # backtesting/modifier_calibration_diagnostic.py). earnings/
+            # cross_ticker aren't included since they're still hardcoded to
+            # 0.0 above and carry no information here.
             outcome["regime_modifier"] = regime_mod
             outcome["seasonality_modifier"] = seas_mod
             outcome["macro_modifier"] = macro_mod
+            outcome["sector_rotation_modifier"] = rotation_mod
             # Category sub-totals — needed by feedback_loop._fit_logistic_weights'
             # regression (technical/sentiment/news weight calibration) to have
             # anything to fit against; previously only the blended confidence

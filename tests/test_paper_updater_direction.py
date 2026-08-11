@@ -15,7 +15,7 @@ from paper_trading.paper_updater import _resolve_outcome
 def _bars(rows):
     """rows: list of (date_str, open, high, low, close)."""
     df = pd.DataFrame(
-        [{"Open": o, "High": h, "Low": l, "Close": c} for _, o, h, l, c in rows],
+        [{"Open": o, "High": h, "Low": lo, "Close": c} for _, o, h, lo, c in rows],
         index=pd.to_datetime([d for d, *_ in rows]),
     )
     return df

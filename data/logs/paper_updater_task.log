@@ -101,3 +101,16 @@ $AMZN: possibly delisted; no price data found  (1d 2026-08-08 -> 2026-08-07) (Ya
 2026-08-07 08:07:03,084 [__main__] INFO — Paper updater complete — 0 trade(s) closed
 Paper trades: 3 total, 3 open, 0 closed
 Closed 0 trade(s) this run.
+2026-08-10 08:07:01,679 [__main__] INFO — 5 open paper trade(s) to check
+2026-08-10 08:07:02,030 [__main__] INFO — LLY 2026-08-07: still open after 1 trading days
+2026-08-10 08:07:02,191 [__main__] INFO — PFE 2026-08-07: still open after 1 trading days
+2026-08-10 08:07:02,191 [__main__] INFO — PFE 2026-08-10: no bars after signal yet — still open
+2026-08-10 08:07:02,290 [__main__] INFO — AMZN 2026-08-07: still open after 1 trading days
+$MRK: possibly delisted; no price data found  (1d 2026-08-11 -> 2026-08-10) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786420800, endDate = 1786374422")
+
+1 Failed download:
+['MRK']: possibly delisted; no price data found  (1d 2026-08-11 -> 2026-08-10) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786420800, endDate = 1786374422")
+2026-08-10 08:07:02,544 [__main__] WARNING — MRK: no price data since 2026-08-11 — skipping
+2026-08-10 08:07:02,545 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+Paper trades: 5 total, 5 open, 0 closed
+Closed 0 trade(s) this run.
