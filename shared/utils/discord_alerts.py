@@ -412,6 +412,26 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     event_gate_blocked = bool(trade.get("event_gate_blocked"))
     title_prefix = "⚠️ [ACTIVE EVENT] " if event_gate_blocked else ""
 
+    # Structure/position fields: previously computed and persisted to
+    # paper_trades.csv but never surfaced here, so a Discord alert could only
+    # ever say a signal fired and what it scored — not what trade it actually
+    # became, or whether it became a real trade at all (a 0-size row looked
+    # identical here to a fully-deployed one). structure_recommended/
+    # position_type/position_size/capital_deployed/sizing_note are all
+    # already on the row dict paper_runner.py passes in — see its
+    # sizing_note comment for why that field exists at all.
+    structure = str(trade.get("structure_recommended", "") or "")
+    position_type = str(trade.get("position_type", "") or "")
+    position_size = trade.get("position_size", "0")
+    capital_deployed = float(trade.get("capital_deployed", 0.0) or 0.0)
+    sizing_note = str(trade.get("sizing_note", "") or "")
+    unit = "options contract" if position_type == "options" else "share"
+    try:
+        size_int = int(float(position_size))
+    except (TypeError, ValueError):
+        size_int = 0
+    position_value = f"{size_int} {unit}{'s' if size_int != 1 else ''}" if position_type else "—"
+
     embed = {
         "title": f"{title_prefix}📋 PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
         "color": _COLORS["orange"] if event_gate_blocked else _COLORS["blue"],
@@ -421,6 +441,9 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             {"name": "Entry Zone", "value": f"${entry_lower:.2f} – ${entry_upper:.2f}", "inline": True},
             {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
             {"name": "Target", "value": f"${target:.2f}  (1:{rr:.1f}R)", "inline": True},
+            {"name": "Trade Structure", "value": structure.replace("_", " ").title() if structure else "—", "inline": True},
+            {"name": "Position", "value": position_value, "inline": True},
+            {"name": "Capital Deployed", "value": f"${capital_deployed:.2f}", "inline": True},
             {"name": "Regime", "value": regime.replace("_", " ").title() if regime else "—", "inline": True},
             {"name": "VIX", "value": str(vix_val), "inline": True},
             {
@@ -438,6 +461,13 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
         ],
         "footer": {"text": f"StockAnalysis {model_version} | Paper Trading"},
     }
+
+    if sizing_note:
+        embed["fields"].append({
+            "name": "⚠️ Sizing Note" if size_int == 0 else "Sizing Note",
+            "value": sizing_note[:1000],
+            "inline": False,
+        })
 
     if event_gate_blocked:
         embed["fields"].append({
