@@ -60,6 +60,8 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.51 | 2026-08-11 | Bug Fix / Feature | Plain stock positions were priced at full share price instead of real dollar risk, diluting their modeled edge ~20x and wrongly excluding high-priced stocks from consideration — fixed the pricing and taught the system to prefer capped-loss options over shares only when an affordable one exists |
+| v2.2.50 | 2026-08-11 | Bug Fix | Every bearish signal has been silently excluded from all 42 trade structures since paper trading started — the reward:risk check only handled the bullish stop-below-entry case |
 | v2.2.49 | 2026-08-10 | Bug Fix | Paper trading could silently log a second same-direction position on a ticker that already had one open (found via PFE/LLY both duplicated 3 days apart) — added a duplicate-position guard scoped to paper trading's own ledger |
 | v2.2.48 | 2026-08-10 | Bug Fix | A trade sitting exactly at the 1:3 minimum reward:risk was getting silently rejected by a floating-point rounding artifact, excluding all 42 trade structures; also added a sizing_note field so a signal that sizes to 0 or finds no eligible structure now says why, right in the ledger |
 | v2.2.47 | 2026-08-10 | Backtest Methodology | Sector rotation's -15/+5 point penalty had never been tested against real outcomes — wired it into the backtest and found the "hot sector" boost was backwards |
@@ -118,6 +120,47 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.51] — 2026-08-11 — [Bug Fix / Feature] Plain stock positions were mispriced in the trade-structure ranking; added an explicit, budget-aware preference for capped-loss options over shares
+
+**Status:** Live.
+
+**In short:** JNJ qualified as a signal (71.0/100) but its only viable options structure cost more than its risk budget allowed, and the system had no way to fall back to a plain stock position — the signal just vanished, logged with 0 shares and no trade. Digging into why turned up that plain stock positions (`long_stock`, `short_stock`) are already 3 of the 42 trade structures the system evaluates every scan — they just weren't priced correctly. They were using the full share price as their "capital at risk" instead of the real dollar amount actually lost if the stop is hit, which diluted their modeled edge by roughly 20x compared to every options structure, and wrongly excluded expensive stocks (LLY at ~$1,232/share) from consideration entirely — purely because the share price itself topped the $750 cap, regardless of how tight the real risk was. Fixed the pricing, and separately taught the system to prefer capped-loss options over plain shares whenever a genuinely affordable one exists, consistent with the account's no-negative-months mandate — falling back to shares only when nothing capped-loss actually fits that trade's budget.
+
+**Problem:**
+1. `swing_model/trade_selector.py`'s `_estimate_capital_required()` returned `entry` (the full share price) as `capital_required` for `long_stock`/`short_stock`/`long_stock_trailing_stop`, instead of the real dollar risk (entry-to-stop distance) it already computes one line earlier and simply didn't use for this branch.
+2. That capital figure is both the ranking's EV-per-dollar denominator and the basis for the $750 (5% of $15k) eligibility cap — so it silently diluted these 3 structures' modeled edge by roughly (share price ÷ stop distance) versus every options structure (which correctly divides by premium paid, not notional), and separately excluded them outright whenever share price alone exceeded $750, even when the real dollar risk was a small fraction of that (confirmed directly: LLY's real risk was ~$96/share against a $1,232 share price).
+3. Even correctly priced, the ranking had no way to prefer a structure that fit a given signal's own confidence-tier risk budget (0.5%–2.5% of account equity depending on score) over one that merely cleared the blanket $750 account-wide cap. A structure could pass that blanket cap and still cost several times what a specific trade was actually allowed to risk, with no fallback — this was JNJ's exact failure: its best-EV option (`long_strangle`) cost $248.56 against a $75 budget at its 71.0 score, well under the $750 cap but nowhere near affordable for that trade.
+
+**Fix:**
+1. `_estimate_capital_required()`: `long_stock`/`short_stock`/`long_stock_trailing_stop` now price at `abs(entry - stop)` — the real dollar risk — matching every options structure's own convention.
+2. `rank_trade_structures()` now assigns `recommended` via an explicit priority chain instead of always taking the top-ranked-by-EV structure: (a) a capped-loss options structure that fits this signal's own confidence-tier risk budget and has positive expected value; failing that, (b) a plain-stock structure that fits the same budget and has positive EV — this is what lets a trade like JNJ's become a real, sized position instead of silently vanishing; failing that, (c) the best capped-loss option regardless of budget, preserving the existing "sizes to 0, here's why" diagnostic behavior from v2.2.48 when nothing affordable exists at all; failing that, (d) the overall top-ranked structure. The diagnostic sort order (by `ev_per_dollar_per_day`) is unchanged — this only changes which single structure gets flagged `recommended=True`.
+3. `paper_trading/paper_runner.py` and `swing_model/run_swing_model.py` both used to read `ranked_structures[0]` directly, ignoring the `recommended` flag entirely — updated both to look up the `recommended=True` entry instead, so a preference for a lower-ranked-by-EV structure actually takes effect instead of being silently overridden by list position. `paper_runner.py`'s position-sizing logic now branches on a new explicit `position_type` field (`"shares"`/`"options"`, added to each ranked structure) rather than a truthiness heuristic on `structure_recommended`/`capital_required` that could mislabel a winning stock structure as an option and conflate its cost with its risk.
+
+**Verification:** Re-ran the real logic against JNJ's actual 2026-08-11 signal (entry $274.90, stop $261.51, target $315.08, confidence 71.0) — previously sized to 0 shares/contracts and vanished from the ledger; now correctly falls through to `long_stock`, sizing to 2 shares ($549.80 deployed). Also confirmed LLY still correctly reports "not affordable at this confidence tier" when no structure fits its budget (rather than the old wrong reason — share price alone), and wins with `long_stock` once a higher confidence tier gives it enough budget. 941 tests pass (10 new, shared with v2.2.50), 3 skipped (pre-existing), ruff clean.
+
+**Approved by:** [pending]
+
+---
+
+## [v2.2.50] — 2026-08-11 — [Bug Fix] Every bearish signal has been silently excluded from all 42 trade structures since paper trading started
+
+**Status:** Live.
+
+**In short:** Found while investigating why a qualifying signal could size to zero — `trade_selector.py`'s own reward:risk check assumed every trade's stop sits below its entry, which is only true for bullish trades. For a bearish trade the stop sits *above* entry by this system's own documented convention, so the formula always computed a reward:risk of exactly `0.0` — always below the minimum — and every one of the 42 trade structures was excluded before any other filter even ran. Confirmed directly: zero bearish rows exist anywhere in `paper_trading/paper_trades.csv`, ever.
+
+**Problem:**
+1. `swing_model/trade_selector.py`'s `rank_trade_structures()` computed its shared reward:risk value as `(target - entry) / (entry - stop)`, guarded by `if (entry - stop) > 0 else 0.0` — for bearish, `entry - stop` is negative, so this always fell to the `0.0` branch, which always fails the minimum-reward:risk filter and excludes every structure, unconditionally, for every bearish signal.
+2. Two downstream functions in `shared/utils/options_math.py` had the identical class of bug, independently: `resolve_structure_economics()`'s validity guard required `stop < entry` unconditionally, even though the payoff math inside it already worked in `abs()`-based magnitudes and didn't actually depend on that assumption anywhere; `compute_ev_surface()` (used by the 4 ratio/back-spread structures) computed unsigned `up_move`/`down_move`, which for bearish would flip a favorable move into an apparent loss and a stop-hit into an apparent gain.
+3. All three bugs happened to mask each other in terms of visible symptoms (a bearish signal always showed "0 structures eligible" regardless of which one actually fired first), which is likely why this went unnoticed — nothing in the test suite exercised any of these three functions with a bearish candidate before this fix.
+
+**Fix:** Replaced `trade_selector.py`'s inline reward:risk formula with the existing, already direction-aware `compute_rr_ratio()` from `shared/utils/risk_reward.py` (reused, not re-derived — it already branches correctly for both directions and is the same convention `paper_runner.py` and `run_swing_model.py` already use upstream of this function). Loosened `resolve_structure_economics()`'s guard to reject only the genuinely degenerate `stop == entry` case — no `direction` parameter was actually needed, since its internal `fav`/`unfav` values were already `abs()`-based and each structure's option-type choice is driven by its own name, not by candidate direction. Fixed `compute_ev_surface()` and `trade_selector.py`'s own `_compute_structure_ev()` to use `abs()` for their up-move/down-move magnitudes, matching `resolve_structure_economics`' existing convention. Added bearish-direction test coverage to `tests/test_structure_economics.py` and `tests/test_phase7_trade_math.py` (both previously bullish-only).
+
+**Backtest result:** Not applicable — `trade_selector.py` isn't in `backtesting/simulation.py`'s call path (confirmed no caller anywhere under `backtesting/`), same as v2.2.48's precedent. 941 tests pass (10 new, shared with v2.2.51), 3 skipped (pre-existing), ruff clean.
+
+**Approved by:** [pending]
 
 ---
 

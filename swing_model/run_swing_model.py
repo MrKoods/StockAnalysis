@@ -406,7 +406,13 @@ def main(scan_type: str = "post_close") -> None:
                         )
                         ranked = trade_result.get("ranked_structures", [])
                         if ranked:
-                            best = ranked[0]
+                            # recommended=True, not ranked[0]: see paper_runner.py's
+                            # matching comment — rank_trade_structures can prefer a
+                            # lower-ranked options structure over a higher-ranked
+                            # gap-risk-exposed stock structure, and reading ranked[0]
+                            # directly here would silently disagree with what
+                            # paper_runner.py actually traded on the same signal.
+                            best = next((s for s in ranked if s.get("recommended")), ranked[0])
                             structure_recommended = best.get("name", "")
                             ev_per_dollar = best.get("ev_per_dollar_risked", 0.0)
                             rr_ratio = best.get("rr_ratio", rr_ratio)

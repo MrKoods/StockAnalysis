@@ -610,6 +610,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             exclusion_summary = None
             ev_outlier_z = None
             capital_required = None
+            position_type = None
             if final_score >= STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD:
                 close_px = float(indicators.get("close", 0.0))
                 atr = float(indicators.get("atr_14", close_px * 0.02))
@@ -670,9 +671,19 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     structures_eligible = trade_result.get("structures_eligible_after_filters")
                     exclusion_summary = trade_result.get("exclusion_summary") or None
                     if ranked:
-                        best = ranked[0]
+                        # recommended=True, not ranked[0]: rank_trade_structures sorts
+                        # ranked_structures by raw EV-per-day (diagnostic order,
+                        # unchanged), but the actual pick can be a lower-ranked
+                        # options structure preferred over a higher-ranked gap-risk-
+                        # exposed stock structure (long_stock/short_stock/
+                        # long_stock_trailing_stop) — see rank_trade_structures'
+                        # recommended-selection step. Reading ranked[0] directly
+                        # here would silently ignore that preference and always act
+                        # on the top EV-per-day structure regardless of gap risk.
+                        best = next((s for s in ranked if s.get("recommended")), ranked[0])
                         structure_recommended = best.get("name", "")
                         capital_required = best.get("capital_required")
+                        position_type = best.get("position_type")
                         # ev_per_dollar_per_day, not the un-normalized ev_per_dollar_risked —
                         # trade_selector.py now ranks (and picks ranked[0]) on the
                         # per-day metric, so persisting the un-normalized figure here
@@ -801,11 +812,27 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             max_capital = account_equity * max_capital_pct
             risk_pct = get_risk_pct(final_score)
             dollar_risk = round(risk_pct * account_equity, 2)
-            if structure_recommended and capital_required:
-                position_type = "options"
+            # Branches on trade_selector.py's own position_type field rather
+            # than a truthiness heuristic on structure_recommended/
+            # capital_required — that heuristic used to mislabel long_stock/
+            # short_stock as "options" (cost == risk == capital_required)
+            # whenever one won the ranking, when a stock position genuinely
+            # needs two separate numbers: capital_required is now real dollar
+            # risk (stop distance, post the _estimate_capital_required fix)
+            # for risk-based sizing, but entry_mid (full share price) is still
+            # needed separately for the capital/concentration cap — conflating
+            # them again here would silently reintroduce that bug.
+            if position_type == "options" and capital_required:
                 risk_per_unit = float(capital_required)
                 per_unit_cost = risk_per_unit
+            elif position_type == "shares" and capital_required:
+                risk_per_unit = float(capital_required)
+                per_unit_cost = entry_mid
             else:
+                # No structure survived ranking at all (rare post-fix for
+                # bullish; the only path for bearish until the bearish R:R
+                # bug is fixed — see CHANGELOG). Defensive fallback, not the
+                # normal path: size shares directly off the shared entry/stop.
                 position_type = "shares"
                 # abs(): bearish stops sit above entry, not below — the
                 # magnitude of the risk is what matters for sizing either way.

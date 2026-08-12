@@ -86,6 +86,53 @@ class TestAllCoveredStructuresProduceSaneOutput:
             assert ratio < 50.0, f"{name}: avg_win/capital ratio {ratio:.1f} looks like a scale bug"
 
 
+class TestBearishDirection:
+    """resolve_structure_economics' entry guard used to require stop < entry
+    unconditionally, returning None for every bearish candidate (where stop
+    sits above entry per risk_reward.py's own convention) regardless of
+    whether the structure itself is bearish-eligible. fav/unfav were already
+    abs()-based internally, so this was purely a guard bug, not a payoff-math
+    one — these tests cover the fix at the resolve_structure_economics level;
+    trade_selector.py's own R:R computation (a separate, independent instance
+    of the same bug) is covered in tests/test_phase7_trade_math.py."""
+
+    _B_ENTRY = 150.0
+    _B_STOP = 155.0   # above entry — bearish convention
+    _B_TARGET = 135.0  # below entry
+
+    def test_bearish_candidate_returns_economics_not_none(self):
+        for name in ("long_put", "bear_put_spread", "bear_call_spread", "deep_itm_put", "leaps_put"):
+            econ = resolve_structure_economics(name, self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+            assert econ is not None, f"{name} incorrectly returned None for a valid bearish setup"
+
+    def test_bearish_economics_are_finite_and_sane(self):
+        for name in STRUCTURE_MULTIPLIERS:
+            if name in PASSTHROUGH_STRUCTURES:
+                continue
+            econ = resolve_structure_economics(name, self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+            assert econ is not None, f"{name} returned None unexpectedly for bearish"
+            for key in ("avg_win", "avg_loss", "capital_required"):
+                assert math.isfinite(econ[key]), f"{name}.{key} is not finite: {econ[key]}"
+            assert econ["avg_win"] >= 0, f"{name}: bearish avg_win is negative ({econ['avg_win']}) — sign bug"
+
+    def test_bearish_long_put_win_prob_matches_bullish_long_call_by_symmetry(self):
+        # A mirror-image setup (same distances, opposite direction) should
+        # produce comparable-magnitude economics for the mirrored structure —
+        # confirms the fav/unfav magnitudes, not just non-None-ness, are
+        # correct for bearish, not just accidentally passing the guard.
+        bullish_call = resolve_structure_economics("long_call", _ENTRY, _STOP, _TARGET, _IV, _DTE)
+        bearish_put = resolve_structure_economics("long_put", self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+        assert bullish_call is not None and bearish_put is not None
+        assert bearish_put["avg_win"] > 0
+        assert bearish_put["avg_loss"] > 0
+
+    def test_stop_equal_entry_still_returns_none(self):
+        # The one genuinely degenerate case (zero risk distance) should still
+        # be rejected regardless of direction.
+        assert resolve_structure_economics("long_call", _ENTRY, _ENTRY, _TARGET, _IV, _DTE) is None
+        assert resolve_structure_economics("long_put", self._B_ENTRY, self._B_ENTRY, self._B_TARGET, _IV, _DTE) is None
+
+
 class TestProtectivePutFamily:
     """The structures whose capital estimate was the actual root cause of
     protective_put dominating every live ranking evaluation observed

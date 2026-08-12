@@ -228,8 +228,15 @@ def compute_ev_surface(
     }
     """
     loss_prob = 1.0 - win_probability
-    up_move = target - entry
-    down_move = entry - stop
+    # abs(): bearish target/stop sit on the opposite side of entry from
+    # bullish (target below entry, stop above), so unsigned differences here
+    # would flip day_ev_target negative and day_ev_stop positive for bearish
+    # candidates — treating a favorable move as a loss and a stop-hit as a
+    # gain. up_move/down_move are magnitudes of the favorable/unfavorable
+    # move either way, matching resolve_structure_economics' fav/unfav
+    # convention above.
+    up_move = abs(target - entry)
+    down_move = abs(entry - stop)
 
     # Approximate theta decay per structure — 3 legs typical for ratio spreads
     legs = structure.get("legs", 3)
@@ -424,7 +431,15 @@ def resolve_structure_economics(
     """
     if structure_name in PASSTHROUGH_STRUCTURES:
         return None
-    if entry <= 0 or stop <= 0 or target <= 0 or stop >= entry:
+    # stop == entry is the only truly degenerate case (zero risk distance).
+    # Not direction-specific: bullish has stop < entry, bearish has stop >
+    # entry (see risk_reward.py's compute_stop_loss/compute_target), and
+    # every branch below already works in fav/unfav magnitudes (abs()'d just
+    # below) rather than a signed, direction-assumed ordering — a strike
+    # offset like _otm_k(entry, "put", 0.06) is driven by the structure's own
+    # option-type choice (baked into structure_name), not by which way the
+    # candidate's stop/target happen to point.
+    if entry <= 0 or stop <= 0 or target <= 0 or stop == entry:
         return None
 
     fav = abs(target - entry)

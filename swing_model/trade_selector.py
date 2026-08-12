@@ -47,6 +47,8 @@ from shared.utils.options_math import (
     resolve_structure_economics,
     _DEFAULT_DTE_IF_UNKNOWN,
 )
+from shared.utils.position_sizer import get_risk_pct
+from shared.utils.risk_reward import compute_rr_ratio
 from swing_model.win_probability_calibration import calibrate_win_probability
 
 ALL_42_STRUCTURES = list(STRUCTURE_MULTIPLIERS.keys())
@@ -86,6 +88,20 @@ _UNDEFINED_RISK_STRUCTURES = {
     "synthetic_long", "synthetic_short", "risk_reversal", "short_stock",
     "call_ratio_spread", "put_ratio_spread",
 }
+# Distinct concept from _UNDEFINED_RISK_STRUCTURES above: that set is about
+# theoretically unbounded loss (gated by account size in _apply_filters,
+# Filter 1 — excluded entirely below $50k). These 3 have a bounded max loss
+# (long_stock/long_stock_trailing_stop can't lose more than the full position;
+# short_stock is in the set above too, separately, for its unbounded upside
+# risk) but are still exposed to real overnight gap risk that a bought
+# option isn't — a stop-loss is an instruction, not a guarantee, and can fill
+# far worse than planned on a gap. Given this account's no-negative-months
+# mandate, that distinction should drive *preference* (see
+# rank_trade_structures' recommended-selection step below), not eligibility —
+# a stock structure can still be evaluated and ranked, it just shouldn't win
+# over a feasible, EV-positive options structure whose max loss is
+# contractually capped at the premium paid, no gap exposure possible.
+_GAP_RISK_STRUCTURES = {"long_stock", "long_stock_trailing_stop", "short_stock"}
 _COMPLEX_SURFACE_STRUCTURES = {s for s, d in STRUCTURE_MULTIPLIERS.items() if d.get("ev_method") == "surface"}
 
 # Structures with a real, single-expiration, options-only (or options-leg-of-a-
@@ -270,19 +286,18 @@ def rank_trade_structures(
     # structure (none of them change the underlying's own price levels), so it's
     # computed once here rather than per-structure.
     #
-    # Rounded to 2dp (matching compute_rr_ratio's own convention in
-    # risk_reward.py, not duplicated inline before this fix) before the
-    # threshold check below: entry/stop/target arrive here already passed
-    # through several chained round(x, 4) calls upstream (compute_entry_zone/
-    # compute_stop_loss/compute_target), and compute_target builds its target
-    # as exactly entry + min_rr * risk — so a trade sitting precisely at the
-    # configured minimum produces an rr that SHOULD equal min_rr exactly, but
-    # IEEE-754 float arithmetic on already-rounded inputs can land a few ULPs
-    # under it (observed: 2.999999999999998 for a target built as exactly
-    # 3x risk) — comparing that unrounded value against an exact 3.0 threshold
-    # silently excluded every one of the 42 structures for a trade that was
-    # genuinely at the minimum, not actually below it.
-    rr = round((target - entry) / (entry - stop), 2) if (entry - stop) > 0 else 0.0
+    # Uses risk_reward.py's own compute_rr_ratio (already 2dp-rounded to avoid
+    # the float-noise-at-exact-minimum issue described in CHANGELOG v2.2.48)
+    # rather than a bullish-only inline formula — the previous inline version
+    # here (`(target-entry)/(entry-stop) if (entry-stop) > 0 else 0.0`) never
+    # branched for bearish, where stop sits *above* entry per this module's own
+    # convention (see risk_reward.py's compute_stop_loss/compute_target
+    # docstrings) — so `entry - stop` was always negative for bearish and this
+    # unconditionally evaluated to 0.0, which is always < min_rr. That silently
+    # excluded all 42 structures for every bearish signal, before any other
+    # filter ever ran (confirmed empirically: zero bearish rows anywhere in
+    # paper_trading/paper_trades.csv).
+    rr = compute_rr_ratio(entry, stop, target, direction=direction)
     min_rr = float((cfg or {}).get("risk_reward", {}).get("min_rr_ratio", 3.0))
 
     ranked_structures = []
@@ -378,15 +393,63 @@ def rank_trade_structures(
             "legs": structure.get("legs", 1),
             "greeks": greeks_detail,
             "filter_notes": [],
+            # "shares" for the 3 plain-stock structures (_GAP_RISK_STRUCTURES),
+            "position_type": "shares" if name in _GAP_RISK_STRUCTURES else "options",
         })
 
     # Sort by EV per dollar risked *per day held* — see ev_per_dollar_per_day's
     # inline comment above for why the un-normalized ratio alone isn't a fair
-    # comparison across structures with different time exposure.
+    # comparison across structures with different time exposure. This order is
+    # kept as pure diagnostic/EV ranking (Discord alerts, human review of "what
+    # wins on raw economics") — the actual pick is decided separately below.
     ranked_structures.sort(key=lambda x: x["ev_per_dollar_per_day"], reverse=True)
     for i, s in enumerate(ranked_structures):
         s["rank"] = i + 1
-        s["recommended"] = (i == 0)
+        s["recommended"] = False
+
+    # recommended: a priority chain, not just "best EV that isn't gap-risk."
+    # Filter 2 (the max_capital check above, 5% of account = $750 at $15k) is
+    # a blanket concentration cap — it doesn't know this specific signal's
+    # confidence-tier risk budget (get_risk_pct: 0.5% for a 70-89 score, up to
+    # 2.5% at 99-100 — as little as $75 on a $15k account). A structure can
+    # clear the blanket cap and still cost far more than this trade is
+    # actually allowed to risk (this is exactly what happened live: a 71.0-
+    # score signal's long_strangle cost $248, well under the $750 cap, but
+    # over 3x the $75 the 70-89 tier allows — sized to 0 shares/contracts
+    # and the signal was lost entirely, even though long_stock's $13 risk
+    # would have fit easily). So "recommended" checks tier-budget fit first,
+    # then the gap-risk preference, in priority order:
+    #   1. non-gap-risk (capped-risk option), positive EV, fits this tier's
+    #      actual dollar-risk budget — the ideal case.
+    #   2. gap-risk (shares), positive EV, fits the tier budget — used only
+    #      when no capped-risk option does; this is what lets a signal like
+    #      the one above still become a real, sized position instead of a
+    #      silent zero.
+    #   3. non-gap-risk, positive EV, regardless of budget — preserves the
+    #      existing diagnostic behavior (structure_recommended/ev_per_dollar
+    #      still get logged with a clear "sizes to 0, budget was the binding
+    #      constraint" note downstream) when nothing affordable exists at all.
+    #   4. the overall top-ranked structure — final fallback.
+    # dollar_risk is 0.0 below the real trading threshold (get_risk_pct
+    # returns 0.0 under CONFIDENCE_THRESHOLD) — steps 1-2 then never match,
+    # which is correct: sub-threshold signals are diagnostic-only and were
+    # never going to be sized into a real position regardless.
+    dollar_risk = get_risk_pct(confidence) * account_equity
+
+    def _capped_risk_and_positive_ev(s: dict) -> bool:
+        return s["name"] not in _GAP_RISK_STRUCTURES and s["ev"] > 0
+
+    def _fits_tier_budget(s: dict) -> bool:
+        return dollar_risk > 0 and s["capital_required"] <= dollar_risk
+
+    recommended_structure = (
+        next((s for s in ranked_structures if _capped_risk_and_positive_ev(s) and _fits_tier_budget(s)), None)
+        or next((s for s in ranked_structures if s["name"] in _GAP_RISK_STRUCTURES and s["ev"] > 0 and _fits_tier_budget(s)), None)
+        or next((s for s in ranked_structures if _capped_risk_and_positive_ev(s)), None)
+        or (ranked_structures[0] if ranked_structures else None)
+    )
+    if recommended_structure is not None:
+        recommended_structure["recommended"] = True
 
     return {
         "ticker": ticker,
@@ -502,11 +565,19 @@ def _compute_structure_ev(
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
     target = float(candidate.get("target", 0.0))
 
-    if entry <= 0 or stop <= 0 or target <= 0 or stop >= entry:
+    # stop == entry is the only degenerate case — see resolve_structure_
+    # economics' matching guard for why this isn't direction-specific
+    # (bearish has stop > entry, not < entry, per risk_reward.py).
+    if entry <= 0 or stop <= 0 or target <= 0 or stop == entry:
         return None
 
-    up_move = target - entry
-    down_move = entry - stop
+    # abs(): magnitudes of the favorable/unfavorable move either direction —
+    # only used by the pure-stock fallback branch below (long_stock/
+    # short_stock/long_stock_trailing_stop, the only structures where
+    # resolve_structure_economics returns None) — same reasoning as
+    # compute_ev_surface's identical fix in options_math.py.
+    up_move = abs(target - entry)
+    down_move = abs(entry - stop)
     default_days = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1)
 
     if structure.get("ev_method") == "surface":
@@ -555,10 +626,26 @@ def _estimate_capital_required(
     Estimate capital required for a structure (simplified, order-of-magnitude).
     Used for capital filter check; exact sizing computed at execution time.
     """
-    risk_per_share = max(0.01, entry - stop)
+    # abs(): bearish stops sit above entry (entry - stop is negative there), not
+    # below — the magnitude of the risk is what matters, for every structure
+    # this feeds, not just the 3 stock ones below. Before this fix, a bearish
+    # candidate floored to the $0.01 minimum here (since entry-stop was always
+    # negative), which would have badly under-priced capital_required for
+    # put_back_spread once the bearish R:R-filter bug (trade_selector.py's
+    # rr computation) was fixed and bearish signals started reaching this far.
+    risk_per_share = max(0.01, abs(entry - stop))
 
-    if structure_name in {"long_stock", "long_stock_trailing_stop", "short_stock"}:
-        return entry  # Full share price
+    if structure_name in _GAP_RISK_STRUCTURES:
+        # Real dollar risk (stop distance), not full share price. Full price
+        # was being used as both the EV-ranking denominator and the $-cap
+        # filter's capital figure — diluting these 3 structures' ev_per_dollar
+        # by roughly (share_price / stop_distance) versus every options
+        # structure (which correctly uses premium-at-risk, not notional, as
+        # capital_required), and wrongly excluding high-priced/tight-stop
+        # names from the $-cap filter based on share price rather than actual
+        # risk (e.g. a $1200 stock with a $90 stop was excluded outright for
+        # costing more than the $750 cap, even though the real risk didn't).
+        return risk_per_share  # Real dollar risk (stop distance), not full share price
     if structure_name == "protective_put":
         return entry * 0.3  # Share + put premium estimate
     if "spread" in structure_name or "butterfly" in structure_name or "condor" in structure_name:

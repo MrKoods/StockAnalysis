@@ -219,6 +219,20 @@ class TestEVCalculation:
             for scenario in ("target", "flat", "stop"):
                 assert scenario in result[day_key]
 
+    def test_ev_surface_bearish_target_hit_is_a_gain_not_a_loss(self):
+        # up_move/down_move used to be signed (target-entry, entry-stop), which
+        # for bearish (stop above entry, target below) flips day_ev_target
+        # negative and day_ev_stop positive — treating a favorable move as a
+        # loss and a stop-hit as a gain. abs()'d now, matching resolve_
+        # structure_economics' fav/unfav convention.
+        structure = STRUCTURE_MULTIPLIERS["put_back_spread"]
+        result = compute_ev_surface(
+            structure=structure, entry=500, stop=520, target=440,
+            win_probability=0.9, iv=0.35
+        )
+        assert result["day_15"]["target"] > 0
+        assert result["day_15"]["stop"] < 0
+
     def test_slippage_reduces_ev(self):
         ev_raw = 100.0
         ev_adj = adjust_ev_for_slippage(ev_raw, "long_call", bid_ask_spread=0.50, num_legs=1)
@@ -465,11 +479,16 @@ class TestTradeSelector:
         assert result["structures_eligible_after_filters"] <= 42
 
     def test_ranked_structures_sorted_by_ev(self):
+        # Sorted by ev_per_dollar_per_day (the function's documented sort key),
+        # not ev_per_dollar_risked — structures with different effective_days
+        # (e.g. diagonal_call's dte+30 vs. most structures' shared dte) don't
+        # necessarily co-sort on the two metrics, so asserting the un-normalized
+        # ratio here would assert a property the function never actually promises.
         result = rank_trade_structures(
             self._candidate(), account_equity=15000,
             options_approval_level=2, iv_percentile=30.0
         )
-        evs = [s["ev_per_dollar_risked"] for s in result["ranked_structures"]]
+        evs = [s["ev_per_dollar_per_day"] for s in result["ranked_structures"]]
         assert evs == sorted(evs, reverse=True)
 
     def test_bearish_structures_excluded_for_bullish_direction(self):
@@ -524,16 +543,117 @@ class TestTradeSelector:
         assert result["win_prob_used"] < 0.92
         assert 0.55 <= result["win_prob_used"] <= 0.62
 
-    def test_top_ranked_is_recommended(self):
+    def test_exactly_one_structure_is_recommended(self):
+        # "recommended" is no longer always rank 1 — it can diverge from raw
+        # EV order for two reasons: a gap-risk-exposed stock structure (see
+        # test_gap_risk_structure_does_not_win_over_positive_ev_option) or a
+        # structure that clears the blanket $-cap but not this signal's own
+        # confidence-tier risk budget (see test_structure_over_tier_budget_
+        # loses_to_affordable_alternative). Exactly one flagged either way.
         result = rank_trade_structures(
             self._candidate(), account_equity=15000,
             options_approval_level=2, iv_percentile=30.0
         )
-        if result["ranked_structures"]:
-            assert result["ranked_structures"][0]["recommended"] is True
-            # Others should not be recommended
-            for s in result["ranked_structures"][1:]:
-                assert s["recommended"] is False
+        ranked = result["ranked_structures"]
+        if ranked:
+            recommended = [s for s in ranked if s["recommended"]]
+            assert len(recommended) == 1
+
+    def test_stock_structure_capital_is_risk_distance_not_share_price(self):
+        # _estimate_capital_required used to return the full share price for
+        # long_stock/short_stock/long_stock_trailing_stop, diluting their
+        # ev_per_dollar by ~(share_price/stop_distance) versus every options
+        # structure (which correctly uses premium-at-risk). Real dollar risk
+        # (stop distance) is what capital_required should reflect instead.
+        candidate = self._candidate()  # entry_mid=500, stop_loss=485
+        result = rank_trade_structures(
+            candidate, account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        assert by_name["long_stock"]["capital_required"] == 15.0  # 500 - 485
+        assert by_name["long_stock"]["capital_required"] != 500.0
+
+    def test_high_priced_stock_not_excluded_by_capital_cap(self):
+        # A stock priced above the $750 capital cap (5% of $15k) used to get
+        # long_stock excluded outright purely on share price, even when the
+        # real dollar risk (stop distance) was well within the cap.
+        candidate = {
+            "ticker": "LLY", "direction": "bullish", "confidence": 90,
+            "entry_mid": 1232.00, "stop_loss": 1135.73, "target": 1520.81,
+            "atr_14": 20.0, "force_defined_risk": False,
+        }
+        result = rank_trade_structures(
+            candidate, account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0
+        )
+        eligible_names = {s["name"] for s in result["ranked_structures"]}
+        assert "long_stock" in eligible_names  # no longer excluded by capital_filter_50k_required/capital cap
+
+    def test_gap_risk_structure_does_not_win_over_affordable_positive_ev_option(self):
+        # Constructed so long_stock/long_stock_trailing_stop rank #1 by raw
+        # ev_per_dollar_per_day (tiny stop distance keeps their capital small
+        # and unaffected by IV, unlike options premiums), AND a positive-EV
+        # options structure exists that also fits this tier's risk budget
+        # (confidence=100 -> 2.5% of $15k = $375) — recommended should still
+        # prefer the capped-risk option, per the account's no-negative-months
+        # mandate, even though it ranks below the stock structure on raw EV.
+        from swing_model.trade_selector import _GAP_RISK_STRUCTURES
+        candidate = {
+            "ticker": "TEST", "direction": "bullish", "confidence": 100,
+            "entry_mid": 500.0, "stop_loss": 498.0, "target": 506.0,
+            "atr_14": 1.0, "force_defined_risk": False,
+        }
+        result = rank_trade_structures(
+            candidate, account_equity=15000,
+            options_approval_level=2, iv_percentile=80.0
+        )
+        ranked = result["ranked_structures"]
+        assert ranked[0]["name"] in _GAP_RISK_STRUCTURES
+        assert ranked[0]["recommended"] is False
+        recommended = next(s for s in ranked if s["recommended"])
+        assert recommended["name"] not in _GAP_RISK_STRUCTURES
+        assert recommended["ev"] > 0
+        assert recommended["capital_required"] <= 375.0  # fits the 2.5% tier budget
+
+    def test_structure_over_tier_budget_loses_to_affordable_alternative(self):
+        # The bug this whole fix chain traces back to: a signal (score 71.0,
+        # the 70-89 tier's 0.5% risk = $75 on $15k) whose best-EV options
+        # structure (long_strangle, ~$249 capital) clears the blanket 5%/$750
+        # cap but not this tier's much smaller budget. Real numbers from a
+        # logged signal (JNJ, 2026-08-11) — used to size to 0 and vanish
+        # entirely; should now fall through to the affordable long_stock.
+        candidate = {
+            "ticker": "JNJ", "direction": "bullish", "confidence": 71.0,
+            "entry_mid": 274.90, "stop_loss": 261.51, "target": 315.08,
+            "atr_14": 5.95, "force_defined_risk": False,
+        }
+        result = rank_trade_structures(
+            candidate, account_equity=15000,
+            options_approval_level=2, iv_percentile=50.0
+        )
+        recommended = next(s for s in result["ranked_structures"] if s["recommended"])
+        assert recommended["name"] == "long_stock"
+        assert recommended["position_type"] == "shares"
+        assert recommended["capital_required"] <= 75.0  # fits the 70-89 tier budget
+
+    def test_bearish_candidate_produces_eligible_structures(self):
+        # Regression test: rank_trade_structures' own R:R computation (Filter
+        # 3) used to assume the bullish sign convention (stop < entry) and
+        # unconditionally evaluate to rr=0.0 for bearish (stop > entry),
+        # excluding all 42 structures for every bearish signal.
+        candidate = {
+            "ticker": "TEST", "direction": "bearish", "confidence": 92,
+            "entry_mid": 500.0, "stop_loss": 515.0, "target": 455.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+        result = rank_trade_structures(
+            candidate, account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0
+        )
+        assert result["structures_eligible_after_filters"] > 0
+        for s in result["ranked_structures"]:
+            assert s["capital_required"] > 0
 
 
 class TestGreeksFilter:
