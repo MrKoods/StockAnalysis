@@ -40,3 +40,5 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-07T21:02:22.585067+00:00,v2.2.46,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-10T12:31:29.533498+00:00,v2.2.46,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
 2026-08-10T22:50:17.694970+00:00,v2.2.46,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-11T12:30:49.476826+00:00,v2.2.49,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-08-11T20:33:25.248545+00:00,v2.2.49,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff

@@ -114,3 +114,18 @@ $MRK: possibly delisted; no price data found  (1d 2026-08-11 -> 2026-08-10) (Yah
 2026-08-10 08:07:02,545 [__main__] INFO — Paper updater complete — 0 trade(s) closed
 Paper trades: 5 total, 5 open, 0 closed
 Closed 0 trade(s) this run.
+2026-08-11 08:07:01,704 [__main__] INFO — 7 open paper trade(s) to check
+2026-08-11 08:07:02,071 [__main__] INFO — LLY 2026-08-07: still open after 2 trading days
+2026-08-11 08:07:02,071 [__main__] INFO — LLY 2026-08-10: still open after 1 trading days
+2026-08-11 08:07:02,211 [__main__] INFO — PFE 2026-08-07: still open after 2 trading days
+2026-08-11 08:07:02,212 [__main__] INFO — PFE 2026-08-10: still open after 1 trading days
+2026-08-11 08:07:02,308 [__main__] INFO — AMZN 2026-08-07: still open after 2 trading days
+2026-08-11 08:07:02,540 [__main__] INFO — MRK 2026-08-10: still open after 1 trading days
+$JNJ: possibly delisted; no price data found  (1d 2026-08-12 -> 2026-08-11) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786507200, endDate = 1786460822")
+
+1 Failed download:
+['JNJ']: possibly delisted; no price data found  (1d 2026-08-12 -> 2026-08-11) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786507200, endDate = 1786460822")
+2026-08-11 08:07:02,815 [__main__] WARNING — JNJ: no price data since 2026-08-12 — skipping
+2026-08-11 08:07:02,816 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+Paper trades: 7 total, 7 open, 0 closed
+Closed 0 trade(s) this run.
