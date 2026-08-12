@@ -1,7 +1,31 @@
 {
   "NVDA": {
-    "fetched_at": "2026-08-11T20:30:21.185954+00:00",
+    "fetched_at": "2026-08-12T16:02:12.370724+00:00",
     "items": [
+      {
+        "article_id": "4631624",
+        "timestamp_utc": "2026-08-12T11:45:02-04:00",
+        "title": "SA analyst upgrades/downgrades: NVDA, MU, LCID, MSFT",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4631523",
+        "timestamp_utc": "2026-08-12T10:31:15-04:00",
+        "title": "Open model advancement favorable for Microsoft, ServiceNow: Wells Fargo",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4631447",
+        "timestamp_utc": "2026-08-12T08:34:30-04:00",
+        "title": "Burry slams Nvidia\u2019s $500B AI financing as a 2008-style 'Wall Street stunt'",
+        "comment_count": 79
+      },
+      {
+        "article_id": "4631289",
+        "timestamp_utc": "2026-08-12T05:14:42-04:00",
+        "title": "Foxconn Q2 profit surges 35%, maintains strong growth outlook on AI demand",
+        "comment_count": 0
+      },
       {
         "article_id": "4630927",
         "timestamp_utc": "2026-08-11T14:00:40-04:00",
@@ -12,13 +36,13 @@
         "article_id": "4630874",
         "timestamp_utc": "2026-08-11T12:19:12-04:00",
         "title": "Major alternative asset managers trade higher after Nvidia's $500B AI financing deal",
-        "comment_count": 10
+        "comment_count": 22
       },
       {
         "article_id": "4630805",
         "timestamp_utc": "2026-08-11T12:01:37-04:00",
         "title": "Nvidia's half-a-tril deal tackles hyperscalers' funding bottleneck: analysts",
-        "comment_count": 24
+        "comment_count": 43
       },
       {
         "article_id": "4630826",
@@ -29,44 +53,26 @@
       {
         "article_id": "4630702",
         "timestamp_utc": "2026-08-11T10:01:24-04:00",
-        "title": "Nvidia launches open model Nemotron 3.5 Lightning; working on bigger Nemotron 4: report",
-        "comment_count": 11
+        "title": "Nvidia launches open model Nemotron 3.5 Lightning; working on bigger Nemotron 4",
+        "comment_count": 14
       },
       {
         "article_id": "4630706",
         "timestamp_utc": "2026-08-11T09:17:50-04:00",
         "title": "Nvidia clears multi-week range; BofA sees path towards $260\u2013$263",
         "comment_count": 0
-      },
-      {
-        "article_id": "4630629",
-        "timestamp_utc": "2026-08-11T08:25:36-04:00",
-        "title": "Monolithic Power initiated with a Buy rating at GF Securities",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4630563",
-        "timestamp_utc": "2026-08-11T07:06:35-04:00",
-        "title": "Markets say Nvidia matters more than inflation - Nomura",
-        "comment_count": 5
-      },
-      {
-        "article_id": "4630459",
-        "timestamp_utc": "2026-08-11T04:10:11-04:00",
-        "title": "Nvidia\u2019s Huang calls chips an \u2018investable asset class\u2019 after $500B AI financing push",
-        "comment_count": 22
-      },
-      {
-        "article_id": "4630083",
-        "timestamp_utc": "2026-08-10T12:55:35-04:00",
-        "title": "Israeli AI startup Decart nears $6B sale; SpaceX, Amazon circling - report",
-        "comment_count": 22
       }
     ]
   },
   "AMD": {
-    "fetched_at": "2026-08-11T20:30:32.379205+00:00",
+    "fetched_at": "2026-08-12T16:02:16.260842+00:00",
     "items": [
+      {
+        "article_id": "4631418",
+        "timestamp_utc": "2026-08-12T07:37:48-04:00",
+        "title": "AMD, Lumentum, others added to GF Securities preferred list, as AI rebound to continue",
+        "comment_count": 0
+      },
       {
         "article_id": "4630944",
         "timestamp_utc": "2026-08-11T14:13:29-04:00",
@@ -120,17 +126,11 @@
         "timestamp_utc": "2026-08-04T21:20:53-04:00",
         "title": "AMD expects Q3 2026 revenue of about $13B as it targets data center segment revenue to more than double in 2027",
         "comment_count": 9
-      },
-      {
-        "article_id": "4625430",
-        "timestamp_utc": "2026-08-04T17:13:51-04:00",
-        "title": "AMD in charts: Data center revenue more than doubles Y/Y, Gaming revenue breaks Y/Y streak",
-        "comment_count": 8
       }
     ]
   },
   "AVGO": {
-    "fetched_at": "2026-08-11T20:30:40.373771+00:00",
+    "fetched_at": "2026-08-12T16:02:21.596004+00:00",
     "items": [
       {
         "article_id": "4630096",
@@ -142,7 +142,7 @@
         "article_id": "4625096",
         "timestamp_utc": "2026-08-04T14:22:25-04:00",
         "title": "US banning Chinese data center devices may have 'unintended consequences,' BNP says",
-        "comment_count": 55
+        "comment_count": 59
       },
       {
         "article_id": "4622419",
@@ -195,7 +195,7 @@
     ]
   },
   "TSM": {
-    "fetched_at": "2026-08-11T20:30:52.789484+00:00",
+    "fetched_at": "2026-08-12T16:02:33.942631+00:00",
     "items": [
       {
         "article_id": "4630606",
@@ -225,7 +225,7 @@
         "article_id": "4629566",
         "timestamp_utc": "2026-08-08T11:03:14-04:00",
         "title": "Insider trades: Microsoft, Meta, Pfizer among notable names",
-        "comment_count": 33
+        "comment_count": 34
       },
       {
         "article_id": "4624943",
@@ -260,8 +260,20 @@
     ]
   },
   "MU": {
-    "fetched_at": "2026-08-11T20:30:57.220076+00:00",
+    "fetched_at": "2026-08-12T16:02:39.103832+00:00",
     "items": [
+      {
+        "article_id": "4631624",
+        "timestamp_utc": "2026-08-12T11:45:02-04:00",
+        "title": "SA analyst upgrades/downgrades: NVDA, MU, LCID, MSFT",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4631518",
+        "timestamp_utc": "2026-08-12T10:25:49-04:00",
+        "title": "Samsung held top market share spot for NAND during Q2; SK Hynix ranked second: Counterpoint",
+        "comment_count": 0
+      },
       {
         "article_id": "4628057",
         "timestamp_utc": "2026-08-06T13:27:21-04:00",
@@ -309,23 +321,11 @@
         "timestamp_utc": "2026-08-02T12:01:00-04:00",
         "title": "Goldman Sachs sees AI trade stabilizing as strong earnings keep bull market intact",
         "comment_count": 68
-      },
-      {
-        "article_id": "4622906",
-        "timestamp_utc": "2026-07-31T17:41:17-04:00",
-        "title": "Micron Technology slips 6% after sharp rebound fades",
-        "comment_count": 54
-      },
-      {
-        "article_id": "4622433",
-        "timestamp_utc": "2026-07-31T06:01:15-04:00",
-        "title": "Michael Burry adds to Nvidia puts, Micron shorts",
-        "comment_count": 166
       }
     ]
   },
   "ASML": {
-    "fetched_at": "2026-08-11T20:31:05.118792+00:00",
+    "fetched_at": "2026-08-12T16:02:57.236232+00:00",
     "items": [
       {
         "article_id": "4619368",
@@ -390,7 +390,7 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-08-11T20:31:12.748705+00:00",
+    "fetched_at": "2026-08-12T16:03:02.184217+00:00",
     "items": [
       {
         "article_id": "4622388",
@@ -455,7 +455,7 @@
     ]
   },
   "KEY": {
-    "fetched_at": "2026-08-11T20:31:16.460815+00:00",
+    "fetched_at": "2026-08-12T16:03:06.834982+00:00",
     "items": [
       {
         "article_id": "4618752",
@@ -520,7 +520,7 @@
     ]
   },
   "HBAN": {
-    "fetched_at": "2026-08-11T20:31:22.487531+00:00",
+    "fetched_at": "2026-08-12T16:03:10.994415+00:00",
     "items": [
       {
         "article_id": "4618967",
@@ -585,7 +585,7 @@
     ]
   },
   "RF": {
-    "fetched_at": "2026-08-11T20:31:29.361272+00:00",
+    "fetched_at": "2026-08-12T16:03:16.682636+00:00",
     "items": [
       {
         "article_id": "4615008",
@@ -650,7 +650,7 @@
     ]
   },
   "FITB": {
-    "fetched_at": "2026-08-11T20:31:33.666052+00:00",
+    "fetched_at": "2026-08-12T16:05:23.081571+00:00",
     "items": [
       {
         "article_id": "4615095",
@@ -715,8 +715,14 @@
     ]
   },
   "LLY": {
-    "fetched_at": "2026-08-11T20:31:37.049830+00:00",
+    "fetched_at": "2026-08-12T12:32:26.324257+00:00",
     "items": [
+      {
+        "article_id": "4631300",
+        "timestamp_utc": "2026-08-12T05:41:38-04:00",
+        "title": "Lilly files six lawsuits to crack down on black market retatrutide weight-loss shots",
+        "comment_count": 1
+      },
       {
         "article_id": "4630481",
         "timestamp_utc": "2026-08-11T04:23:40-04:00",
@@ -757,7 +763,7 @@
         "article_id": "4626570",
         "timestamp_utc": "2026-08-05T14:48:44-04:00",
         "title": "Lilly outperforms in bid to unseat Novo\u2019s lead in oral GLP-1 market",
-        "comment_count": 6
+        "comment_count": 7
       },
       {
         "article_id": "4625936",
@@ -770,18 +776,18 @@
         "timestamp_utc": "2026-08-05T07:30:02-04:00",
         "title": "Eli Lilly jumps after Q2 beat driven by obesity drugs",
         "comment_count": 7
-      },
-      {
-        "article_id": "4625833",
-        "timestamp_utc": "2026-08-05T06:59:38-04:00",
-        "title": "Eli Lilly in Charts: Mounjaro and Zepbound continue to fuel blockbuster growth in Q2",
-        "comment_count": 1
       }
     ]
   },
   "PFE": {
-    "fetched_at": "2026-08-11T20:32:26.962859+00:00",
+    "fetched_at": "2026-08-12T16:05:29.524651+00:00",
     "items": [
+      {
+        "article_id": "4631498",
+        "timestamp_utc": "2026-08-12T09:13:40-04:00",
+        "title": "U.K. regulator reaffirms safety of childhood vaccination",
+        "comment_count": 3
+      },
       {
         "article_id": "4630098",
         "timestamp_utc": "2026-08-10T17:20:11-04:00",
@@ -792,7 +798,7 @@
         "article_id": "4630140",
         "timestamp_utc": "2026-08-10T14:59:13-04:00",
         "title": "Trump executive order makes major changes to childhood vaccines schedule",
-        "comment_count": 190
+        "comment_count": 211
       },
       {
         "article_id": "4629325",
@@ -804,7 +810,7 @@
         "article_id": "4629566",
         "timestamp_utc": "2026-08-08T11:03:14-04:00",
         "title": "Insider trades: Microsoft, Meta, Pfizer among notable names",
-        "comment_count": 33
+        "comment_count": 34
       },
       {
         "article_id": "4628903",
@@ -816,7 +822,7 @@
         "article_id": "4628541",
         "timestamp_utc": "2026-08-06T17:34:57-04:00",
         "title": "Trump weighs executive order on vaccines and autism - report",
-        "comment_count": 142
+        "comment_count": 151
       },
       {
         "article_id": "4627816",
@@ -835,23 +841,23 @@
         "timestamp_utc": "2026-08-04T16:24:34-04:00",
         "title": "Pfizer outlines $60.5B-$62.5B 2026 revenue guidance while targeting $9.7B net cost savings through 2029",
         "comment_count": 3
-      },
-      {
-        "article_id": "4624471",
-        "timestamp_utc": "2026-08-04T07:37:00-04:00",
-        "title": "Pfizer tops Q2 expectations, boosts revenue guidance",
-        "comment_count": 24
       }
     ]
   },
   "MRK": {
-    "fetched_at": "2026-08-11T20:32:34.190806+00:00",
+    "fetched_at": "2026-08-12T16:05:39.643776+00:00",
     "items": [
+      {
+        "article_id": "4631498",
+        "timestamp_utc": "2026-08-12T09:13:40-04:00",
+        "title": "U.K. regulator reaffirms safety of childhood vaccination",
+        "comment_count": 3
+      },
       {
         "article_id": "4630140",
         "timestamp_utc": "2026-08-10T14:59:13-04:00",
         "title": "Trump executive order makes major changes to childhood vaccines schedule",
-        "comment_count": 190
+        "comment_count": 211
       },
       {
         "article_id": "4629325",
@@ -863,7 +869,7 @@
         "article_id": "4628541",
         "timestamp_utc": "2026-08-06T17:34:57-04:00",
         "title": "Trump weighs executive order on vaccines and autism - report",
-        "comment_count": 142
+        "comment_count": 151
       },
       {
         "article_id": "4627816",
@@ -900,17 +906,11 @@
         "timestamp_utc": "2026-08-04T06:50:45-04:00",
         "title": "Merck in charts: Keytruda remains the growth engine in Q2 as Gardasil rebounds",
         "comment_count": 0
-      },
-      {
-        "article_id": "4624426",
-        "timestamp_utc": "2026-08-04T06:32:52-04:00",
-        "title": "Merck Non-GAAP EPS of -$0.13 beats by $0.13, revenue of $16.61B beats by $240M",
-        "comment_count": 0
       }
     ]
   },
   "ABBV": {
-    "fetched_at": "2026-08-11T20:32:40.496845+00:00",
+    "fetched_at": "2026-08-12T16:05:45.717507+00:00",
     "items": [
       {
         "article_id": "4627816",
@@ -975,8 +975,14 @@
     ]
   },
   "UNH": {
-    "fetched_at": "2026-08-11T20:32:44.860999+00:00",
+    "fetched_at": "2026-08-12T16:05:49.539921+00:00",
     "items": [
+      {
+        "article_id": "4631378",
+        "timestamp_utc": "2026-08-12T07:04:45-04:00",
+        "title": "UnitedHealth declares $2.32 dividend",
+        "comment_count": 3
+      },
       {
         "article_id": "4619952",
         "timestamp_utc": "2026-07-28T19:00:54-04:00",
@@ -1030,18 +1036,18 @@
         "timestamp_utc": "2026-07-16T05:59:42-04:00",
         "title": "UnitedHealth beats top-line and bottom-line estimates; updates FY2026 outlook",
         "comment_count": 21
-      },
-      {
-        "article_id": "4614067",
-        "timestamp_utc": "2026-07-15T10:12:01-04:00",
-        "title": "UnitedHealth eyes another strong quarter as analysts see improving medical cost trends",
-        "comment_count": 1
       }
     ]
   },
   "JNJ": {
-    "fetched_at": "2026-08-11T12:32:24.133214+00:00",
+    "fetched_at": "2026-08-12T16:05:58.537811+00:00",
     "items": [
+      {
+        "article_id": "4631552",
+        "timestamp_utc": "2026-08-12T11:17:19-04:00",
+        "title": "Legend Biotech downgraded at Oppenheimer on CEO exit, competition",
+        "comment_count": 0
+      },
       {
         "article_id": "4629652",
         "timestamp_utc": "2026-08-08T15:28:35-04:00",
@@ -1052,7 +1058,7 @@
         "article_id": "4627816",
         "timestamp_utc": "2026-08-06T10:22:53-04:00",
         "title": "'Most Favored Nation' drug pricing would save Medicare more than $200B: AARP",
-        "comment_count": 21
+        "comment_count": 23
       },
       {
         "article_id": "4623413",
@@ -1095,12 +1101,6 @@
         "timestamp_utc": "2026-07-25T11:03:27-04:00",
         "title": "Insider trades: Johnson & Johnson, TSMC among notable names",
         "comment_count": 10
-      },
-      {
-        "article_id": "4618209",
-        "timestamp_utc": "2026-07-24T10:54:29-04:00",
-        "title": "J&J, Gilead among recipients of EU drug recommendations this week",
-        "comment_count": 0
       }
     ]
   },
@@ -1170,8 +1170,20 @@
     ]
   },
   "AMZN": {
-    "fetched_at": "2026-08-11T20:32:50.643920+00:00",
+    "fetched_at": "2026-08-12T16:06:03.515357+00:00",
     "items": [
+      {
+        "article_id": "4631541",
+        "timestamp_utc": "2026-08-12T11:17:34-04:00",
+        "title": "OpenAI's cybersecurity Daybreak models make appearance on AWS",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4631251",
+        "timestamp_utc": "2026-08-12T03:48:53-04:00",
+        "title": "Mamdani backs NYC bill to crack down on Amazon's subcontracting model",
+        "comment_count": 169
+      },
       {
         "article_id": "4630927",
         "timestamp_utc": "2026-08-11T14:00:40-04:00",
@@ -1219,29 +1231,23 @@
         "timestamp_utc": "2026-08-05T14:02:32-04:00",
         "title": "SA analyst upgrades/downgrades: AAPL, PLTR, SNDK, AMZN",
         "comment_count": 6
-      },
-      {
-        "article_id": "4624711",
-        "timestamp_utc": "2026-08-04T10:19:44-04:00",
-        "title": "Jeff Bezos files to sell more Amazon shares amid record share price high",
-        "comment_count": 21
-      },
-      {
-        "article_id": "4624278",
-        "timestamp_utc": "2026-08-04T01:20:21-04:00",
-        "title": "OpenAI, Anthropic stakes distort Big Tech earnings picture",
-        "comment_count": 10
       }
     ]
   },
   "TSLA": {
-    "fetched_at": "2026-08-11T20:33:04.368895+00:00",
+    "fetched_at": "2026-08-12T16:06:08.470891+00:00",
     "items": [
+      {
+        "article_id": "4631205",
+        "timestamp_utc": "2026-08-12T02:05:32-04:00",
+        "title": "Tesla\u2019s Model Y takes second place in China auto sales behind Geely\u2019s Xingyuan",
+        "comment_count": 10
+      },
       {
         "article_id": "4630669",
         "timestamp_utc": "2026-08-11T08:38:24-04:00",
         "title": "SpaceX takeover could ease Musk\u2019s path to massive Tesla pay award: WSJ",
-        "comment_count": 50
+        "comment_count": 67
       },
       {
         "article_id": "4630088",
@@ -1259,7 +1265,7 @@
         "article_id": "4627879",
         "timestamp_utc": "2026-08-06T10:48:58-04:00",
         "title": "Tesla is building a monster Terafab chip complex - these stocks could also benefit",
-        "comment_count": 223
+        "comment_count": 225
       },
       {
         "article_id": "4627225",
@@ -1277,7 +1283,7 @@
         "article_id": "4623260",
         "timestamp_utc": "2026-08-03T07:08:43-04:00",
         "title": "Why Tesla selling its China business could be a negative for shareholders",
-        "comment_count": 54
+        "comment_count": 55
       },
       {
         "article_id": "4623048",
@@ -1290,18 +1296,18 @@
         "timestamp_utc": "2026-08-02T12:01:00-04:00",
         "title": "Goldman Sachs sees AI trade stabilizing as strong earnings keep bull market intact",
         "comment_count": 68
-      },
-      {
-        "article_id": "4622998",
-        "timestamp_utc": "2026-07-31T17:20:34-04:00",
-        "title": "SA Asks: Tesla hit a new 52-week low this week. Is it a buy?",
-        "comment_count": 46
       }
     ]
   },
   "HD": {
-    "fetched_at": "2026-08-11T20:33:09.903434+00:00",
+    "fetched_at": "2026-08-12T16:06:12.337228+00:00",
     "items": [
+      {
+        "article_id": "4631493",
+        "timestamp_utc": "2026-08-12T09:15:40-04:00",
+        "title": "Home Depot CEO to take temporary medical leave of absence",
+        "comment_count": 2
+      },
       {
         "article_id": "4623993",
         "timestamp_utc": "2026-08-03T15:57:44-04:00",
@@ -1355,17 +1361,11 @@
         "timestamp_utc": "2026-05-19T11:07:33-04:00",
         "title": "What analysts are saying about Home Depot after its earnings report",
         "comment_count": 9
-      },
-      {
-        "article_id": "4594755",
-        "timestamp_utc": "2026-05-19T06:47:20-04:00",
-        "title": "Home Depot tops expectations for the core spring selling quarter",
-        "comment_count": 7
       }
     ]
   },
   "NKE": {
-    "fetched_at": "2026-08-11T20:33:14.453526+00:00",
+    "fetched_at": "2026-08-12T16:06:16.497958+00:00",
     "items": [
       {
         "article_id": "4627958",
@@ -1430,7 +1430,7 @@
     ]
   },
   "SBUX": {
-    "fetched_at": "2026-08-11T20:33:19.852839+00:00",
+    "fetched_at": "2026-08-12T16:06:20.843853+00:00",
     "items": [
       {
         "article_id": "4624904",
@@ -1495,7 +1495,7 @@
     ]
   },
   "TGT": {
-    "fetched_at": "2026-08-11T20:33:23.516503+00:00",
+    "fetched_at": "2026-08-12T16:06:29.800934+00:00",
     "items": [
       {
         "article_id": "4630915",

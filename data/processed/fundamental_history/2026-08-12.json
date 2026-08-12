@@ -1,7 +1,5 @@
 {
-  "last_updated": "2026-08-12T12:30:17.531371+00:00",
-  "update_cadence": "weekly",
-  "update_day": "Monday",
+  "date": "2026-08-12",
   "tickers": {
     "NVDA": {
       "ticker": "NVDA",
@@ -926,30 +924,5 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier."
       }
     }
-  },
-  "fetched_dates": {
-    "NVDA": "2026-08-12",
-    "AMD": "2026-08-12",
-    "AVGO": "2026-08-07",
-    "TSM": "2026-08-06",
-    "MU": "2026-08-11",
-    "ASML": "2026-08-12",
-    "ZION": "2026-08-06",
-    "KEY": "2026-08-12",
-    "HBAN": "2026-08-11",
-    "RF": "2026-08-06",
-    "FITB": "2026-08-12",
-    "LLY": "2026-08-04",
-    "PFE": "2026-08-12",
-    "MRK": "2026-08-11",
-    "ABBV": "2026-08-12",
-    "UNH": "2026-08-11",
-    "JNJ": "2026-08-10",
-    "AMZN": "2026-08-06",
-    "TSLA": "2026-08-06",
-    "HD": "2026-08-07",
-    "NKE": "2026-08-07",
-    "SBUX": "2026-08-07",
-    "TGT": "2026-08-07"
   }
 }
