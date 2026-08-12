@@ -134,38 +134,31 @@ def evaluate_paper_trading_pass(
     }
 
 
-def load_paper_trade_gate_inputs(csv_path: Optional[Path] = None) -> dict:
-    """
-    Read paper_trading/paper_trades.csv (written by paper_trading/paper_updater.py
-    — the system that's actually been running) and shape it as
-    evaluate_paper_trading_pass()'s three positional inputs. This is
-    deliberately NOT data/logs/trade_outcomes.csv (swing_model/feedback_loop.py's
-    file, fed by swing_model/portfolio_manager.py) — that path belongs to the
-    live/manual-Discord-confirmation flow, which has never been used since no
-    model version has gone live; paper trading has its own separate, already-
-    populated schema and is where real data has actually been accumulating.
+def _is_funded(row: dict) -> bool:
+    """True if this row actually deployed capital (position_size > 0) rather
+    than qualifying but sizing to 0 (e.g. its best structure cost more than
+    the confidence tier's risk budget allowed — see trade_selector.py's
+    recommended-selection priority chain). A qualifying-but-unaffordable call
+    is real signal-accuracy data (see compute_signal_accuracy) but shouldn't
+    count the same as a real, capital-deployed trade when deciding whether
+    this strategy is fit to trade real money."""
+    try:
+        return float(row.get("position_size", 0) or 0) > 0
+    except (TypeError, ValueError):
+        return False
 
-    Returns {trade_outcomes, fill_log, trading_days_elapsed}:
-      trade_outcomes: closed rows only (outcome/achieved_rr are already named
-        exactly what evaluate_paper_trading_pass expects — no field mapping
-        needed, unlike the calibration side's technical_score->technical, see
-        feedback_loop.load_calibration_outcomes_from_paper_trades).
-      fill_log: always [] — paper trades fill at exact simulated entry/stop/
-        target prices; there's no real slippage to compare against until real
-        capital is used, so slippage_pass trivially stays True rather than
-        fabricating a comparison.
-      trading_days_elapsed: trading days between the earliest logged
-        signal_date (open or closed) and today — this floor is about how long
-        the system has been running, not how many trades happen to have closed.
-    """
+
+def _load_paper_trades_rows(csv_path: Optional[Path] = None) -> tuple[list[dict], int]:
+    """Shared CSV read + trading_days_elapsed calc for both the funded-only
+    go-live gate (load_paper_trade_gate_inputs) and the unfiltered signal-
+    accuracy view (compute_signal_accuracy) — keeps the two from silently
+    disagreeing on file-reading or duration logic."""
     path = csv_path or _PAPER_TRADES_CSV
     if not path.exists():
-        return {"trade_outcomes": [], "fill_log": [], "trading_days_elapsed": 0}
+        return [], 0
 
     with open(path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-
-    trade_outcomes = [r for r in rows if r.get("outcome")]
 
     signal_dates = []
     for r in rows:
@@ -179,10 +172,84 @@ def load_paper_trade_gate_inputs(csv_path: Optional[Path] = None) -> dict:
         earliest = min(signal_dates)
         trading_days_elapsed = len(pd.bdate_range(start=earliest, end=datetime.now()))
 
+    return rows, trading_days_elapsed
+
+
+def load_paper_trade_gate_inputs(csv_path: Optional[Path] = None) -> dict:
+    """
+    Read paper_trading/paper_trades.csv (written by paper_trading/paper_updater.py
+    — the system that's actually been running) and shape it as
+    evaluate_paper_trading_pass()'s three positional inputs. This is
+    deliberately NOT data/logs/trade_outcomes.csv (swing_model/feedback_loop.py's
+    file, fed by swing_model/portfolio_manager.py) — that path belongs to the
+    live/manual-Discord-confirmation flow, which has never been used since no
+    model version has gone live; paper trading has its own separate, already-
+    populated schema and is where real data has actually been accumulating.
+
+    Returns {trade_outcomes, fill_log, trading_days_elapsed}:
+      trade_outcomes: closed AND funded rows only (outcome/achieved_rr are
+        already named exactly what evaluate_paper_trading_pass expects — no
+        field mapping needed, unlike the calibration side's technical_score->
+        technical, see feedback_loop.load_calibration_outcomes_from_paper_trades).
+        Funded-only as of the same change that added compute_signal_accuracy:
+        a signal that qualified but sized to 0 (couldn't afford any structure
+        at this account size) previously counted toward this go-live gate's
+        win_rate/expectancy the same as a real, capital-deployed trade —
+        blending "is the model's call accurate" with "is this strategy
+        profitable to actually run at $15k" into one number. Use
+        compute_signal_accuracy() for the former; this stays scoped to the
+        latter, which is what the go-live decision is actually about.
+      fill_log: always [] — paper trades fill at exact simulated entry/stop/
+        target prices; there's no real slippage to compare against until real
+        capital is used, so slippage_pass trivially stays True rather than
+        fabricating a comparison.
+      trading_days_elapsed: trading days between the earliest logged
+        signal_date (open or closed) and today — this floor is about how long
+        the system has been running, not how many trades happen to have closed.
+        Computed from every row regardless of funding, same as before.
+    """
+    rows, trading_days_elapsed = _load_paper_trades_rows(csv_path)
+    trade_outcomes = [r for r in rows if r.get("outcome") and _is_funded(r)]
+
     return {
         "trade_outcomes": trade_outcomes,
         "fill_log": [],
         "trading_days_elapsed": trading_days_elapsed,
+    }
+
+
+def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
+    """
+    Model-accuracy view: every closed signal, funded or not — answers "is the
+    model's call correct" independent of whether the account could actually
+    afford to act on it. Deliberately separate from load_paper_trade_gate_inputs
+    (which now filters to funded trades only, for the go-live decision) — a
+    signal that correctly predicted direction but sized to 0 because its
+    structure cost more than the confidence tier's risk budget allowed is
+    real evidence about the model, even though no capital was ever at risk.
+
+    Returns {total_closed, funded_count, unfunded_count, win_rate_all,
+    win_rate_funded, win_rate_unfunded} — reporting all three win rates side
+    by side (not just the blended one) surfaces whether affordability itself
+    correlates with signal quality, not just what the numbers are.
+    """
+    rows, _ = _load_paper_trades_rows(csv_path)
+    closed = [r for r in rows if r.get("outcome")]
+    funded = [r for r in closed if _is_funded(r)]
+    unfunded = [r for r in closed if not _is_funded(r)]
+
+    def _win_rate(outcomes: list[dict]) -> float:
+        if not outcomes:
+            return 0.0
+        return round(sum(1 for o in outcomes if o.get("outcome") == "win") / len(outcomes), 4)
+
+    return {
+        "total_closed": len(closed),
+        "funded_count": len(funded),
+        "unfunded_count": len(unfunded),
+        "win_rate_all": _win_rate(closed),
+        "win_rate_funded": _win_rate(funded),
+        "win_rate_unfunded": _win_rate(unfunded),
     }
 
 

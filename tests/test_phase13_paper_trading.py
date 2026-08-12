@@ -12,6 +12,7 @@ from paper_trading.paper_trade_metrics import (
     evaluate_paper_trading_pass,
     compute_forward_ev_accuracy,
     load_paper_trade_gate_inputs,
+    compute_signal_accuracy,
 )
 from paper_trading.paper_updater import _CSV_COLUMNS
 
@@ -253,7 +254,7 @@ class TestLoadPaperTradeGateInputs:
 
     def test_only_closed_trades_included_in_outcomes(self, tmp_path):
         rows = [
-            {"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"},
+            {"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5", "position_size": "5"},
             {"signal_date": "2026-07-02", "ticker": "AMD", "outcome": ""},  # still open
         ]
         path = self._write_trades(tmp_path, rows)
@@ -262,10 +263,24 @@ class TestLoadPaperTradeGateInputs:
         assert result["trade_outcomes"][0]["ticker"] == "NVDA"
 
     def test_fill_log_always_empty(self, tmp_path):
-        rows = [{"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"}]
+        rows = [{"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5", "position_size": "5"}]
         path = self._write_trades(tmp_path, rows)
         result = load_paper_trade_gate_inputs(path)
         assert result["fill_log"] == []
+
+    def test_unfunded_closed_trade_excluded_from_outcomes(self, tmp_path):
+        # A signal that qualified but sized to 0 (structure cost more than
+        # the confidence tier's risk budget) shouldn't count toward the
+        # go-live gate the same as a real, capital-deployed trade — see
+        # compute_signal_accuracy for where this data belongs instead.
+        rows = [
+            {"signal_date": "2026-07-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5", "position_size": "5"},
+            {"signal_date": "2026-07-02", "ticker": "LLY", "outcome": "win", "achieved_rr": "2.5", "position_size": "0"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = load_paper_trade_gate_inputs(path)
+        assert len(result["trade_outcomes"]) == 1
+        assert result["trade_outcomes"][0]["ticker"] == "NVDA"
 
     def test_trading_days_elapsed_counts_from_earliest_signal_date(self, tmp_path):
         # Includes an open trade's signal_date too — duration is about how long
@@ -280,10 +295,66 @@ class TestLoadPaperTradeGateInputs:
 
     def test_result_feeds_directly_into_evaluate_paper_trading_pass(self, tmp_path):
         rows = [
-            {"signal_date": "2026-01-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5"},
-            {"signal_date": "2026-01-02", "ticker": "AMD", "outcome": "loss", "achieved_rr": "-1.0"},
+            {"signal_date": "2026-01-01", "ticker": "NVDA", "outcome": "win", "achieved_rr": "2.5", "position_size": "5"},
+            {"signal_date": "2026-01-02", "ticker": "AMD", "outcome": "loss", "achieved_rr": "-1.0", "position_size": "3"},
         ]
         path = self._write_trades(tmp_path, rows)
         inputs = load_paper_trade_gate_inputs(path)
         result = evaluate_paper_trading_pass(**inputs)
         assert result["data_status"] == "insufficient_trades"  # n=2, below the 15-trade floor
+
+
+# ---------------------------------------------------------------------------
+# compute_signal_accuracy
+# ---------------------------------------------------------------------------
+
+class TestComputeSignalAccuracy:
+    def _write_trades(self, tmp_path, rows):
+        path = tmp_path / "paper_trades.csv"
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+        return path
+
+    def test_missing_file_returns_zeros(self, tmp_path):
+        result = compute_signal_accuracy(tmp_path / "does_not_exist.csv")
+        assert result == {
+            "total_closed": 0, "funded_count": 0, "unfunded_count": 0,
+            "win_rate_all": 0.0, "win_rate_funded": 0.0, "win_rate_unfunded": 0.0,
+        }
+
+    def test_unfunded_wins_count_toward_accuracy_but_not_funded_rate(self, tmp_path):
+        # JNJ-shaped case: qualified, correct direction (win), but sized to 0
+        # (couldn't afford any structure at this account size). Should count
+        # toward win_rate_all and win_rate_unfunded, not win_rate_funded.
+        rows = [
+            {"signal_date": "2026-08-11", "ticker": "JNJ", "outcome": "win", "position_size": "0"},
+            {"signal_date": "2026-08-07", "ticker": "AMZN", "outcome": "loss", "position_size": "2"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = compute_signal_accuracy(path)
+        assert result["total_closed"] == 2
+        assert result["funded_count"] == 1
+        assert result["unfunded_count"] == 1
+        assert result["win_rate_all"] == pytest.approx(0.5)
+        assert result["win_rate_funded"] == pytest.approx(0.0)
+        assert result["win_rate_unfunded"] == pytest.approx(1.0)
+
+    def test_open_trades_excluded_from_all_counts(self, tmp_path):
+        rows = [
+            {"signal_date": "2026-08-11", "ticker": "MRK", "outcome": "", "position_size": "5"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = compute_signal_accuracy(path)
+        assert result["total_closed"] == 0
+
+    def test_all_funded_leaves_unfunded_rate_at_zero(self, tmp_path):
+        rows = [
+            {"signal_date": "2026-08-07", "ticker": "AMZN", "outcome": "win", "position_size": "2"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = compute_signal_accuracy(path)
+        assert result["unfunded_count"] == 0
+        assert result["win_rate_unfunded"] == 0.0
+        assert result["win_rate_funded"] == pytest.approx(1.0)

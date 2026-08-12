@@ -14,7 +14,11 @@ from typing import Optional
 
 
 from shared.utils.logger import get_logger
-from paper_trading.paper_trade_metrics import evaluate_paper_trading_pass, load_paper_trade_gate_inputs
+from paper_trading.paper_trade_metrics import (
+    evaluate_paper_trading_pass,
+    load_paper_trade_gate_inputs,
+    compute_signal_accuracy,
+)
 
 logger = get_logger(__name__)
 
@@ -48,11 +52,13 @@ def generate_weekly_summary(
     Returns summary dict (including go_live_gate — see _compute_go_live_gate_summary)
     and logs to performance_log.csv.
     """
-    # Independent of trade_outcomes_path/rows below — the go-live gate reads
-    # paper_trading/paper_trades.csv (the system that's actually running), not
-    # data/logs/trade_outcomes.csv (the live/manual-confirmation path's file,
-    # unused since no version has gone live) — see load_paper_trade_gate_inputs.
+    # Independent of trade_outcomes_path/rows below — both the go-live gate
+    # and the signal-accuracy view read paper_trading/paper_trades.csv (the
+    # system that's actually running), not data/logs/trade_outcomes.csv (the
+    # live/manual-confirmation path's file, unused since no version has gone
+    # live) — see load_paper_trade_gate_inputs/compute_signal_accuracy.
     go_live_gate = _compute_go_live_gate_summary(paper_trades_path)
+    signal_accuracy = _compute_signal_accuracy_summary(paper_trades_path)
 
     path = Path(trade_outcomes_path)
     if not path.exists():
@@ -66,6 +72,7 @@ def generate_weekly_summary(
             "total_trades": 0,
             "review_triggered": False,
             "go_live_gate": go_live_gate,
+            "signal_accuracy": signal_accuracy,
         }
 
     try:
@@ -73,7 +80,7 @@ def generate_weekly_summary(
             rows = list(csv.DictReader(f))
     except OSError as exc:
         logger.warning(f"Cannot read trade outcomes: {exc}")
-        return {"status": "error", "message": str(exc), "go_live_gate": go_live_gate}
+        return {"status": "error", "message": str(exc), "go_live_gate": go_live_gate, "signal_accuracy": signal_accuracy}
 
     if not rows:
         return {
@@ -82,6 +89,7 @@ def generate_weekly_summary(
             "avg_rr_20": 0.0, "peak_to_trough_pct": 0.0,
             "total_trades": 0, "review_triggered": False,
             "go_live_gate": go_live_gate,
+            "signal_accuracy": signal_accuracy,
         }
 
     # Rolling win rates
@@ -121,6 +129,7 @@ def generate_weekly_summary(
         "ev_accuracy_by_structure": ev_by_structure,
         "review_triggered": review_triggered,
         "go_live_gate": go_live_gate,
+        "signal_accuracy": signal_accuracy,
     }
 
     log_performance_entry(summary)
@@ -181,6 +190,19 @@ def _compute_go_live_gate_summary(paper_trades_path: Optional[Path] = None) -> d
     except Exception as exc:
         logger.warning(f"Could not compute go-live gate: {exc}")
         return {"overall_pass": False, "data_status": "error", "failures": [str(exc)]}
+
+
+def _compute_signal_accuracy_summary(paper_trades_path: Optional[Path] = None) -> dict:
+    """
+    Best-effort wrapper around compute_signal_accuracy() for the weekly
+    summary — same reasoning as _compute_go_live_gate_summary: a read
+    failure here shouldn't take down the rest of the performance report.
+    """
+    try:
+        return compute_signal_accuracy(paper_trades_path)
+    except Exception as exc:
+        logger.warning(f"Could not compute signal accuracy: {exc}")
+        return {"status": "error", "message": str(exc)}
 
 
 def _rolling_win_rate(rows: list[dict], n: int) -> float:
