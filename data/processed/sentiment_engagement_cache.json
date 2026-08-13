@@ -1,24 +1,36 @@
 {
   "NVDA": {
-    "fetched_at": "2026-08-12T16:02:12.370724+00:00",
+    "fetched_at": "2026-08-12T20:44:30.082462+00:00",
     "items": [
+      {
+        "article_id": "4631703",
+        "timestamp_utc": "2026-08-12T12:52:49-04:00",
+        "title": "Lockheed Martin tests 5G drone detection, containerized rocket launcher",
+        "comment_count": 4
+      },
+      {
+        "article_id": "4631694",
+        "timestamp_utc": "2026-08-12T12:42:21-04:00",
+        "title": "Nvidia likely to see continued GB300 ramp ahead of Vera Rubin release: Susquehanna",
+        "comment_count": 5
+      },
       {
         "article_id": "4631624",
         "timestamp_utc": "2026-08-12T11:45:02-04:00",
         "title": "SA analyst upgrades/downgrades: NVDA, MU, LCID, MSFT",
-        "comment_count": 0
+        "comment_count": 1
       },
       {
         "article_id": "4631523",
         "timestamp_utc": "2026-08-12T10:31:15-04:00",
         "title": "Open model advancement favorable for Microsoft, ServiceNow: Wells Fargo",
-        "comment_count": 0
+        "comment_count": 1
       },
       {
         "article_id": "4631447",
         "timestamp_utc": "2026-08-12T08:34:30-04:00",
         "title": "Burry slams Nvidia\u2019s $500B AI financing as a 2008-style 'Wall Street stunt'",
-        "comment_count": 79
+        "comment_count": 103
       },
       {
         "article_id": "4631289",
@@ -27,22 +39,10 @@
         "comment_count": 0
       },
       {
-        "article_id": "4630927",
-        "timestamp_utc": "2026-08-11T14:00:40-04:00",
-        "title": "Enterprises focused on ROI, but AI spending remains strong: UBS",
-        "comment_count": 2
-      },
-      {
-        "article_id": "4630874",
-        "timestamp_utc": "2026-08-11T12:19:12-04:00",
-        "title": "Major alternative asset managers trade higher after Nvidia's $500B AI financing deal",
-        "comment_count": 22
-      },
-      {
         "article_id": "4630805",
         "timestamp_utc": "2026-08-11T12:01:37-04:00",
         "title": "Nvidia's half-a-tril deal tackles hyperscalers' funding bottleneck: analysts",
-        "comment_count": 43
+        "comment_count": 44
       },
       {
         "article_id": "4630826",
@@ -65,7 +65,7 @@
     ]
   },
   "AMD": {
-    "fetched_at": "2026-08-12T16:02:16.260842+00:00",
+    "fetched_at": "2026-08-12T20:45:26.262223+00:00",
     "items": [
       {
         "article_id": "4631418",
@@ -77,7 +77,7 @@
         "article_id": "4630944",
         "timestamp_utc": "2026-08-11T14:13:29-04:00",
         "title": "SA analyst upgrades/downgrades: INTC, AMD, ANET, GILD",
-        "comment_count": 2
+        "comment_count": 3
       },
       {
         "article_id": "4630597",
@@ -130,19 +130,19 @@
     ]
   },
   "AVGO": {
-    "fetched_at": "2026-08-12T16:02:21.596004+00:00",
+    "fetched_at": "2026-08-12T20:45:39.330788+00:00",
     "items": [
       {
         "article_id": "4630096",
         "timestamp_utc": "2026-08-10T16:01:04-04:00",
         "title": "Broadcom slips after seven-session advance",
-        "comment_count": 1
+        "comment_count": 2
       },
       {
         "article_id": "4625096",
         "timestamp_utc": "2026-08-04T14:22:25-04:00",
         "title": "US banning Chinese data center devices may have 'unintended consequences,' BNP says",
-        "comment_count": 59
+        "comment_count": 62
       },
       {
         "article_id": "4622419",
@@ -195,7 +195,7 @@
     ]
   },
   "TSM": {
-    "fetched_at": "2026-08-12T16:02:33.942631+00:00",
+    "fetched_at": "2026-08-12T20:46:28.803105+00:00",
     "items": [
       {
         "article_id": "4630606",
@@ -260,19 +260,19 @@
     ]
   },
   "MU": {
-    "fetched_at": "2026-08-12T16:02:39.103832+00:00",
+    "fetched_at": "2026-08-12T20:46:32.397900+00:00",
     "items": [
       {
         "article_id": "4631624",
         "timestamp_utc": "2026-08-12T11:45:02-04:00",
         "title": "SA analyst upgrades/downgrades: NVDA, MU, LCID, MSFT",
-        "comment_count": 0
+        "comment_count": 1
       },
       {
         "article_id": "4631518",
         "timestamp_utc": "2026-08-12T10:25:49-04:00",
         "title": "Samsung held top market share spot for NAND during Q2; SK Hynix ranked second: Counterpoint",
-        "comment_count": 0
+        "comment_count": 5
       },
       {
         "article_id": "4628057",
@@ -325,7 +325,7 @@
     ]
   },
   "ASML": {
-    "fetched_at": "2026-08-12T16:02:57.236232+00:00",
+    "fetched_at": "2026-08-12T20:46:36.039818+00:00",
     "items": [
       {
         "article_id": "4619368",
@@ -390,7 +390,7 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-08-12T16:03:02.184217+00:00",
+    "fetched_at": "2026-08-12T20:46:52.530356+00:00",
     "items": [
       {
         "article_id": "4622388",
@@ -455,7 +455,7 @@
     ]
   },
   "KEY": {
-    "fetched_at": "2026-08-12T16:03:06.834982+00:00",
+    "fetched_at": "2026-08-12T20:47:01.705225+00:00",
     "items": [
       {
         "article_id": "4618752",
@@ -520,7 +520,7 @@
     ]
   },
   "HBAN": {
-    "fetched_at": "2026-08-12T16:03:10.994415+00:00",
+    "fetched_at": "2026-08-12T20:47:05.724733+00:00",
     "items": [
       {
         "article_id": "4618967",
@@ -585,7 +585,7 @@
     ]
   },
   "RF": {
-    "fetched_at": "2026-08-12T16:03:16.682636+00:00",
+    "fetched_at": "2026-08-12T20:47:09.461758+00:00",
     "items": [
       {
         "article_id": "4615008",
@@ -650,7 +650,7 @@
     ]
   },
   "FITB": {
-    "fetched_at": "2026-08-12T16:05:23.081571+00:00",
+    "fetched_at": "2026-08-12T20:47:25.373431+00:00",
     "items": [
       {
         "article_id": "4615095",
@@ -780,13 +780,13 @@
     ]
   },
   "PFE": {
-    "fetched_at": "2026-08-12T16:05:29.524651+00:00",
+    "fetched_at": "2026-08-12T20:47:30.210336+00:00",
     "items": [
       {
         "article_id": "4631498",
         "timestamp_utc": "2026-08-12T09:13:40-04:00",
         "title": "U.K. regulator reaffirms safety of childhood vaccination",
-        "comment_count": 3
+        "comment_count": 6
       },
       {
         "article_id": "4630098",
@@ -798,7 +798,7 @@
         "article_id": "4630140",
         "timestamp_utc": "2026-08-10T14:59:13-04:00",
         "title": "Trump executive order makes major changes to childhood vaccines schedule",
-        "comment_count": 211
+        "comment_count": 217
       },
       {
         "article_id": "4629325",
@@ -822,7 +822,7 @@
         "article_id": "4628541",
         "timestamp_utc": "2026-08-06T17:34:57-04:00",
         "title": "Trump weighs executive order on vaccines and autism - report",
-        "comment_count": 151
+        "comment_count": 155
       },
       {
         "article_id": "4627816",
@@ -845,19 +845,19 @@
     ]
   },
   "MRK": {
-    "fetched_at": "2026-08-12T16:05:39.643776+00:00",
+    "fetched_at": "2026-08-12T20:47:38.865610+00:00",
     "items": [
       {
         "article_id": "4631498",
         "timestamp_utc": "2026-08-12T09:13:40-04:00",
         "title": "U.K. regulator reaffirms safety of childhood vaccination",
-        "comment_count": 3
+        "comment_count": 6
       },
       {
         "article_id": "4630140",
         "timestamp_utc": "2026-08-10T14:59:13-04:00",
         "title": "Trump executive order makes major changes to childhood vaccines schedule",
-        "comment_count": 211
+        "comment_count": 217
       },
       {
         "article_id": "4629325",
@@ -869,7 +869,7 @@
         "article_id": "4628541",
         "timestamp_utc": "2026-08-06T17:34:57-04:00",
         "title": "Trump weighs executive order on vaccines and autism - report",
-        "comment_count": 151
+        "comment_count": 155
       },
       {
         "article_id": "4627816",
@@ -910,7 +910,7 @@
     ]
   },
   "ABBV": {
-    "fetched_at": "2026-08-12T16:05:45.717507+00:00",
+    "fetched_at": "2026-08-12T20:47:43.208832+00:00",
     "items": [
       {
         "article_id": "4627816",
@@ -975,7 +975,7 @@
     ]
   },
   "UNH": {
-    "fetched_at": "2026-08-12T16:05:49.539921+00:00",
+    "fetched_at": "2026-08-12T20:47:47.237261+00:00",
     "items": [
       {
         "article_id": "4631378",
@@ -1040,14 +1040,8 @@
     ]
   },
   "JNJ": {
-    "fetched_at": "2026-08-12T16:05:58.537811+00:00",
+    "fetched_at": "2026-08-12T20:47:51.330401+00:00",
     "items": [
-      {
-        "article_id": "4631552",
-        "timestamp_utc": "2026-08-12T11:17:19-04:00",
-        "title": "Legend Biotech downgraded at Oppenheimer on CEO exit, competition",
-        "comment_count": 0
-      },
       {
         "article_id": "4629652",
         "timestamp_utc": "2026-08-08T15:28:35-04:00",
@@ -1100,7 +1094,13 @@
         "article_id": "4618423",
         "timestamp_utc": "2026-07-25T11:03:27-04:00",
         "title": "Insider trades: Johnson & Johnson, TSMC among notable names",
-        "comment_count": 10
+        "comment_count": 11
+      },
+      {
+        "article_id": "4618209",
+        "timestamp_utc": "2026-07-24T10:54:29-04:00",
+        "title": "J&J, Gilead among recipients of EU drug recommendations this week",
+        "comment_count": 0
       }
     ]
   },
@@ -1170,7 +1170,7 @@
     ]
   },
   "AMZN": {
-    "fetched_at": "2026-08-12T16:06:03.515357+00:00",
+    "fetched_at": "2026-08-12T20:47:56.090550+00:00",
     "items": [
       {
         "article_id": "4631541",
@@ -1182,13 +1182,7 @@
         "article_id": "4631251",
         "timestamp_utc": "2026-08-12T03:48:53-04:00",
         "title": "Mamdani backs NYC bill to crack down on Amazon's subcontracting model",
-        "comment_count": 169
-      },
-      {
-        "article_id": "4630927",
-        "timestamp_utc": "2026-08-11T14:00:40-04:00",
-        "title": "Enterprises focused on ROI, but AI spending remains strong: UBS",
-        "comment_count": 2
+        "comment_count": 203
       },
       {
         "article_id": "4630713",
@@ -1231,23 +1225,29 @@
         "timestamp_utc": "2026-08-05T14:02:32-04:00",
         "title": "SA analyst upgrades/downgrades: AAPL, PLTR, SNDK, AMZN",
         "comment_count": 6
+      },
+      {
+        "article_id": "4624711",
+        "timestamp_utc": "2026-08-04T10:19:44-04:00",
+        "title": "Jeff Bezos files to sell more Amazon shares amid record share price high",
+        "comment_count": 21
       }
     ]
   },
   "TSLA": {
-    "fetched_at": "2026-08-12T16:06:08.470891+00:00",
+    "fetched_at": "2026-08-12T20:48:00.550753+00:00",
     "items": [
       {
         "article_id": "4631205",
         "timestamp_utc": "2026-08-12T02:05:32-04:00",
         "title": "Tesla\u2019s Model Y takes second place in China auto sales behind Geely\u2019s Xingyuan",
-        "comment_count": 10
+        "comment_count": 14
       },
       {
         "article_id": "4630669",
         "timestamp_utc": "2026-08-11T08:38:24-04:00",
         "title": "SpaceX takeover could ease Musk\u2019s path to massive Tesla pay award: WSJ",
-        "comment_count": 67
+        "comment_count": 70
       },
       {
         "article_id": "4630088",
@@ -1300,13 +1300,13 @@
     ]
   },
   "HD": {
-    "fetched_at": "2026-08-12T16:06:12.337228+00:00",
+    "fetched_at": "2026-08-12T20:48:04.541682+00:00",
     "items": [
       {
         "article_id": "4631493",
         "timestamp_utc": "2026-08-12T09:15:40-04:00",
         "title": "Home Depot CEO to take temporary medical leave of absence",
-        "comment_count": 2
+        "comment_count": 4
       },
       {
         "article_id": "4623993",
@@ -1365,7 +1365,7 @@
     ]
   },
   "NKE": {
-    "fetched_at": "2026-08-12T16:06:16.497958+00:00",
+    "fetched_at": "2026-08-12T20:48:08.820454+00:00",
     "items": [
       {
         "article_id": "4627958",
@@ -1430,7 +1430,7 @@
     ]
   },
   "SBUX": {
-    "fetched_at": "2026-08-12T16:06:20.843853+00:00",
+    "fetched_at": "2026-08-12T20:48:16.301675+00:00",
     "items": [
       {
         "article_id": "4624904",
@@ -1495,7 +1495,7 @@
     ]
   },
   "TGT": {
-    "fetched_at": "2026-08-12T16:06:29.800934+00:00",
+    "fetched_at": "2026-08-12T20:48:22.235431+00:00",
     "items": [
       {
         "article_id": "4630915",

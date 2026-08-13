@@ -1,11 +1,11 @@
 {
   "macro_state": "neutral",
-  "tnx_trend": "neutral",
+  "tnx_trend": "rising",
   "dxy_trend": "neutral",
   "china_tension_level": "normal",
-  "tnx_20d_pct": 0.027502749813356812,
-  "dxy_20d_pct": -0.006228850255558147,
-  "adverse_signal_count": 0,
+  "tnx_20d_pct": 0.03014303226042002,
+  "dxy_20d_pct": -0.005024848292716107,
+  "adverse_signal_count": 1,
   "confidence_modifier": 0.0,
-  "computed_at_utc": "2026-08-12T16:02:09.355012+00:00"
+  "computed_at_utc": "2026-08-12T20:44:25.308118+00:00"
 }
