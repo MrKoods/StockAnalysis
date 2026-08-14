@@ -57,6 +57,66 @@ def _exclude_outliers(values: list[float]) -> list[float]:
     filtered = [v for v in values if 0.6745 * abs(v - median) / mad <= _OUTLIER_MODIFIED_Z_THRESHOLD]
     return filtered if filtered else values
 
+
+def _leave_one_out_average(values_by_ticker: dict, exclude_ticker: str) -> Optional[float]:
+    """
+    Peer average for one ticker, excluding that ticker's own value.
+
+    With a 6-name watchlist, each ticker's own number is worth ~17% of a
+    naive full-pool average — comparing a stock's valuation/growth against a
+    "peer average" that includes itself biases the comparison toward parity
+    (an outlier ticker drags its own benchmark toward itself). Excluding self
+    is standard peer-comparison practice; this is the shared helper both
+    score_valuation_vs_peers and compute_fundamental_score's growth-vs-peers
+    check use.
+    """
+    others = [v for t, v in values_by_ticker.items() if t != exclude_ticker]
+    filtered = _exclude_outliers(others)
+    return sum(filtered) / len(filtered) if filtered else None
+
+
+# Monotonic premium-vs-peers scale, shared by P/E-vs-sector and EV/EBITDA-vs-
+# sector scoring. premium = (ticker_metric - peer_avg) / peer_avg.
+#
+# Previously each metric had its own bucket ladder, and both had the same
+# bug: the "else" fallback for a 10%-50%(ish) premium evaluated to the same
+# score as the near-parity (0-10%) bucket, so a stock trading 45% above its
+# peers scored identically to one trading 5% above — collapsing exactly the
+# range most large-cap semiconductor names actually sit in. Replaced with one
+# explicit monotonic ladder used by both metrics.
+_PREMIUM_NEAR_PARITY_MAX = 0.15
+_PREMIUM_MODERATE_MAX = 0.40
+_PREMIUM_HIGH_MAX = 0.75
+
+
+def _score_premium(premium: float) -> int:
+    """-2..+2 score for how far a ticker's valuation multiple sits above (or
+    below) its peer average. Negative premium (trading below peers) always
+    scores the max +2 regardless of magnitude — a bigger discount isn't a
+    stronger signal here, just a cheaper one."""
+    if premium < 0:
+        return 2
+    if premium <= _PREMIUM_NEAR_PARITY_MAX:
+        return 1
+    if premium <= _PREMIUM_MODERATE_MAX:
+        return 0
+    if premium <= _PREMIUM_HIGH_MAX:
+        return -1
+    return -2
+
+
+def _avg_eps_growth(fundamental_data: Optional[dict]) -> Optional[float]:
+    """Average of the available quarterly YoY EPS growth rates for one
+    ticker — the same figure score_earnings_momentum computes for its own
+    eps_growth_score, factored out here so it can also be used to build the
+    peer pool for growth-vs-peers comparison."""
+    if not fundamental_data:
+        return None
+    earnings = fundamental_data.get("earnings") or {}
+    valid_growth = [g for g in (earnings.get("eps_growth_trend") or []) if g is not None]
+    return sum(valid_growth) / len(valid_growth) if valid_growth else None
+
+
 _CONFIG_PATH = Path("config/swing_config.yaml")
 
 
@@ -81,11 +141,45 @@ class FundamentalScorer:
     # Public scoring methods
     # ------------------------------------------------------------------
 
-    def score_earnings_momentum(self, fundamental_data: dict) -> dict:
+    # Revenue declining while EPS growth screens positive/strong is the
+    # classic "low quality" earnings-growth pattern — margin expansion or
+    # buybacks rather than actual demand growth. Caps eps_growth_score back
+    # down rather than zeroing it: the EPS growth is still real, just less
+    # trustworthy as a standalone bullish signal.
+    _REVENUE_QUALITY_DECLINE_THRESHOLD = -0.02
+    _REVENUE_QUALITY_CAPPED_SCORE = 1
+
+    # Peer-relative nudge applied on top of the absolute eps_growth_score —
+    # absolute growth thresholds don't know whether the whole sector is in an
+    # upcycle (where 10% growth is actually weak relative to peers) or a
+    # downcycle (where -5% is relatively strong). +-1, capped within -3..+3,
+    # so this refines rather than overrides the absolute read.
+    _RELATIVE_GROWTH_OUTPERFORM_THRESHOLD = 0.10
+    _RELATIVE_GROWTH_UNDERPERFORM_THRESHOLD = -0.10
+
+    # Target-price revision threshold: a change smaller than this between two
+    # snapshots is noise, not a real analyst re-rating.
+    _TARGET_PRICE_REVISION_THRESHOLD = 0.02
+
+    def score_earnings_momentum(
+        self,
+        fundamental_data: dict,
+        peer_avg_growth: Optional[float] = None,
+        live_price: Optional[float] = None,
+    ) -> dict:
         """
         Score earnings momentum for one ticker.
 
         Input: output of FundamentalClient.get_all_fundamentals() for one ticker.
+
+        peer_avg_growth: leave-one-out average avg_growth across the rest of
+          the watchlist (see compute_fundamental_score), used to nudge
+          eps_growth_score relative to peers rather than fixed absolute
+          thresholds alone. None skips the nudge (e.g. single-ticker calls).
+        live_price: today's actual close, used to recompute implied upside
+          when the cached revisions snapshot's current_price may be stale
+          (fundamentals refresh weekly-ish; price shouldn't be). Falls back
+          to the cached current_price when not supplied.
 
         Returns dict with:
           eps_growth_score       (int, -3 to +3)
@@ -107,8 +201,15 @@ class FundamentalScorer:
 
         if valid_growth:
             avg_growth = sum(valid_growth) / len(valid_growth)
-            # Accelerating: average > 10% AND most-recent > second-most-recent
-            if len(valid_growth) >= 2:
+            # Accelerating requires 2 CONSECUTIVE quarters of improving YoY
+            # growth when available, not just the latest vs. the one before —
+            # a single easy year-ago comp (common for cyclicals like MU,
+            # living through memory-pricing boom/bust cycles) could flip a
+            # 2-point comparison to "accelerating" without any real momentum.
+            # Degrades gracefully to fewer points when less history exists.
+            if len(valid_growth) >= 3:
+                accelerating = avg_growth > 0.10 and valid_growth[0] > valid_growth[1] > valid_growth[2]
+            elif len(valid_growth) == 2:
                 accelerating = avg_growth > 0.10 and valid_growth[0] > valid_growth[1]
             else:
                 accelerating = avg_growth > 0.10
@@ -137,37 +238,87 @@ class FundamentalScorer:
                 "quarters_used": len(valid_growth),
                 "accelerating": accelerating if len(valid_growth) >= 2 else None,
             }
+
+            # -- Revenue-quality check ------------------------------------
+            revenue_yoy = earnings.get("revenue_yoy_growth")
+            if revenue_yoy is not None:
+                breakdown["eps_growth"]["revenue_yoy_growth"] = revenue_yoy
+                if eps_growth_score >= 2 and revenue_yoy < self._REVENUE_QUALITY_DECLINE_THRESHOLD:
+                    eps_growth_score = self._REVENUE_QUALITY_CAPPED_SCORE
+                    breakdown["eps_growth"]["revenue_quality_flag"] = (
+                        f"EPS growth screens positive but revenue is down "
+                        f"{revenue_yoy:.1%} YoY — likely margin/buyback-driven, capped"
+                    )
+            gross_margin_latest = earnings.get("gross_margin_latest")
+            if gross_margin_latest is not None:
+                breakdown["eps_growth"]["gross_margin_latest"] = gross_margin_latest
+                breakdown["eps_growth"]["gross_margin_prior"] = earnings.get("gross_margin_prior")
+
+            # -- Peer-relative nudge ----------------------------------------
+            if peer_avg_growth is not None:
+                relative_growth = avg_growth - peer_avg_growth
+                if relative_growth >= self._RELATIVE_GROWTH_OUTPERFORM_THRESHOLD:
+                    eps_growth_score = min(3, eps_growth_score + 1)
+                elif relative_growth <= self._RELATIVE_GROWTH_UNDERPERFORM_THRESHOLD:
+                    eps_growth_score = max(-3, eps_growth_score - 1)
+                breakdown["eps_growth"]["peer_avg_growth"] = round(peer_avg_growth, 4)
+                breakdown["eps_growth"]["relative_to_peers"] = round(relative_growth, 4)
         else:
             eps_growth_score = 0
             breakdown["eps_growth"] = {"unavailable": True}
 
         # -- Estimate revisions score (max 2 pts) -------------------------
-        # Free-tier limitation: we cannot determine direction vs. 30 days ago.
-        # Score as neutral (0) when historical revision data is unavailable.
-        # When the revisions endpoint returns data, implied_upside_pct proxies direction:
-        #   large positive upside (>20%) → analyst targets are likely rising → 2 pts
-        #   moderate (5-20%) → neutral → 0 pts
-        #   negative (target below current price) → likely being downgraded → -2 pts
-        implied_upside = revisions.get("implied_upside_pct")
+        # Prefer a real revision signal: compare today's analyst target price
+        # against the PRIOR snapshot's target price (indicator_pipeline.py
+        # carries the prior value forward before each refresh overwrites it).
+        # This isolates "analysts changed their number" from "the stock price
+        # moved" — the old implied-upside-only proxy conflated the two, since
+        # upside shrinks just because a stock rallied toward its target, with
+        # no analyst having revised anything.
+        target = revisions.get("analyst_target_price")
+        prior_target = revisions.get("prior_analyst_target_price")
         data_limitations = revisions.get("data_limitations")
 
-        if implied_upside is not None:
-            if implied_upside > 0.20:
+        if target is not None and prior_target:
+            target_change_pct = (target - prior_target) / abs(prior_target)
+            if target_change_pct > self._TARGET_PRICE_REVISION_THRESHOLD:
                 estimate_revisions_score = 2
-            elif implied_upside >= -0.05:
+            elif target_change_pct >= -self._TARGET_PRICE_REVISION_THRESHOLD:
                 estimate_revisions_score = 0
             else:
                 estimate_revisions_score = -2
             breakdown["estimate_revisions"] = {
-                "implied_upside_pct": implied_upside,
-                "note": "proxy via implied upside (free-tier limitation)",
+                "target_change_pct": round(target_change_pct, 4),
+                "prior_target": prior_target,
+                "current_target": target,
+                "note": "revision direction via target-price delta vs. prior snapshot",
             }
         else:
-            estimate_revisions_score = 0
-            breakdown["estimate_revisions"] = {
-                "unavailable": True,
-                "data_limitations": data_limitations,
-            }
+            # Cold start (no prior snapshot yet) — fall back to the
+            # implied-upside proxy, recomputed against today's live price
+            # when supplied rather than trusting the cached snapshot's
+            # current_price, which can be up to a rotation-cycle (~7-9 days)
+            # stale for a metric that's purely a price-vs-target gap.
+            price = live_price if live_price is not None else revisions.get("current_price")
+            implied_upside = (target - price) / price if (target is not None and price) else None
+
+            if implied_upside is not None:
+                if implied_upside > 0.20:
+                    estimate_revisions_score = 2
+                elif implied_upside >= -0.05:
+                    estimate_revisions_score = 0
+                else:
+                    estimate_revisions_score = -2
+                breakdown["estimate_revisions"] = {
+                    "implied_upside_pct": round(implied_upside, 4),
+                    "note": "proxy via implied upside — no prior snapshot yet for a true revision delta",
+                }
+            else:
+                estimate_revisions_score = 0
+                breakdown["estimate_revisions"] = {
+                    "unavailable": True,
+                    "data_limitations": data_limitations,
+                }
 
         # -- Earnings surprise score (max 2 pts) --------------------------
         consecutive_beats = earnings.get("consecutive_beats")
@@ -253,9 +404,14 @@ class FundamentalScorer:
                                    ev_ebitda_vs_peers_score, valuation_score}}
         """
         # --- Compute sector averages (exclude None/suspect) ---
-        pe_values = []
-        fpe_values = []
-        ev_values = []
+        # Two purposes: the *_by_ticker dicts feed each ticker's own
+        # leave-one-out peer average below (excluding that ticker from its
+        # own benchmark — see _leave_one_out_average); sector_averages (the
+        # full-pool version, self included) is reported as top-level display
+        # data only and is never used to score any individual ticker.
+        pe_by_ticker: dict = {}
+        fpe_by_ticker: dict = {}
+        ev_by_ticker: dict = {}
 
         for ticker, fd in all_fundamentals.items():
             if fd is None:
@@ -265,19 +421,19 @@ class FundamentalScorer:
 
             pe = val.get("trailingPE")
             if pe is not None and "trailingPE" not in suspect:
-                pe_values.append(pe)
+                pe_by_ticker[ticker] = pe
 
             fpe = val.get("forwardPE")
             if fpe is not None and "forwardPE" not in suspect:
-                fpe_values.append(fpe)
+                fpe_by_ticker[ticker] = fpe
 
             ev = val.get("enterpriseToEbitda")
             if ev is not None and "enterpriseToEbitda" not in suspect:
-                ev_values.append(ev)
+                ev_by_ticker[ticker] = ev
 
-        pe_values_filtered = _exclude_outliers(pe_values)
-        fpe_values_filtered = _exclude_outliers(fpe_values)
-        ev_values_filtered = _exclude_outliers(ev_values)
+        pe_values_filtered = _exclude_outliers(list(pe_by_ticker.values()))
+        fpe_values_filtered = _exclude_outliers(list(fpe_by_ticker.values()))
+        ev_values_filtered = _exclude_outliers(list(ev_by_ticker.values()))
 
         sector_pe = sum(pe_values_filtered) / len(pe_values_filtered) if pe_values_filtered else None
         sector_fpe = sum(fpe_values_filtered) / len(fpe_values_filtered) if fpe_values_filtered else None
@@ -307,28 +463,16 @@ class FundamentalScorer:
             suspect = val.get("suspect_fields") or []
             breakdown = {}
 
-            # -- P/E vs. sector average (max 2 pts) ----------------------
+            # -- P/E vs. peers, excluding self (max 2 pts) ----------------
+            peer_pe = _leave_one_out_average(pe_by_ticker, ticker)
             pe = val.get("trailingPE")
-            if pe is not None and "trailingPE" not in suspect and sector_pe is not None:
-                premium = (pe - sector_pe) / sector_pe if sector_pe != 0 else None
-                if premium is not None:
-                    if pe < sector_pe:
-                        pe_vs_sector_score = 2
-                    elif premium <= 0.10:
-                        pe_vs_sector_score = 1
-                    elif premium >= 1.00:
-                        pe_vs_sector_score = -2
-                    elif premium >= 0.50:
-                        pe_vs_sector_score = -1
-                    else:
-                        pe_vs_sector_score = 1
-                    breakdown["pe_vs_sector"] = {
-                        "ticker_pe": pe, "sector_pe": sector_pe,
-                        "premium": round(premium, 4),
-                    }
-                else:
-                    pe_vs_sector_score = 0
-                    breakdown["pe_vs_sector"] = {"unavailable": True}
+            if pe is not None and "trailingPE" not in suspect and peer_pe:
+                premium = (pe - peer_pe) / peer_pe
+                pe_vs_sector_score = _score_premium(premium)
+                breakdown["pe_vs_sector"] = {
+                    "ticker_pe": pe, "sector_pe": round(peer_pe, 2),
+                    "premium": round(premium, 4),
+                }
             else:
                 pe_vs_sector_score = 0
                 breakdown["pe_vs_sector"] = {
@@ -356,26 +500,16 @@ class FundamentalScorer:
                 forward_vs_trailing_pe_score = 0
                 breakdown["forward_vs_trailing"] = {"unavailable": True}
 
-            # -- EV/EBITDA vs. sector average (max 2 pts) ----------------
+            # -- EV/EBITDA vs. peers, excluding self (max 2 pts) ----------
+            peer_ev = _leave_one_out_average(ev_by_ticker, ticker)
             ev = val.get("enterpriseToEbitda")
-            if ev is not None and "enterpriseToEbitda" not in suspect and sector_ev is not None:
-                ev_premium = (ev - sector_ev) / sector_ev if sector_ev != 0 else None
-                if ev_premium is not None:
-                    if ev < sector_ev:
-                        ev_ebitda_vs_peers_score = 2
-                    elif ev_premium <= 0.10:
-                        ev_ebitda_vs_peers_score = 1
-                    elif ev_premium >= 0.50:
-                        ev_ebitda_vs_peers_score = -1
-                    else:
-                        ev_ebitda_vs_peers_score = 1
-                    breakdown["ev_ebitda_vs_peers"] = {
-                        "ticker_ev": ev, "sector_ev": sector_ev,
-                        "premium": round(ev_premium, 4),
-                    }
-                else:
-                    ev_ebitda_vs_peers_score = 0
-                    breakdown["ev_ebitda_vs_peers"] = {"unavailable": True}
+            if ev is not None and "enterpriseToEbitda" not in suspect and peer_ev:
+                ev_premium = (ev - peer_ev) / peer_ev
+                ev_ebitda_vs_peers_score = _score_premium(ev_premium)
+                breakdown["ev_ebitda_vs_peers"] = {
+                    "ticker_ev": ev, "sector_ev": round(peer_ev, 2),
+                    "premium": round(ev_premium, 4),
+                }
             else:
                 ev_ebitda_vs_peers_score = 0
                 breakdown["ev_ebitda_vs_peers"] = {
@@ -411,12 +545,18 @@ class FundamentalScorer:
             "ticker_scores": ticker_scores,
         }
 
-    def compute_fundamental_score(self, ticker: str, all_fundamentals: dict) -> dict:
+    def compute_fundamental_score(
+        self, ticker: str, all_fundamentals: dict, live_price: Optional[float] = None
+    ) -> dict:
         """
         Compute the full fundamental score for a single ticker.
 
         Combines earnings_momentum_score + valuation_score.
         Clamps to -15..+15. Sets fundamental_score = 0 when data_quality = 'unavailable'.
+
+        live_price: today's actual close for this ticker (see score_all_tickers/
+        score_earnings_momentum) — used to keep the implied-upside fallback
+        current even when the cached fundamentals snapshot is a few days old.
 
         Returns dict:
           fundamental_score       (int, -15 to +15)
@@ -432,8 +572,16 @@ class FundamentalScorer:
         if fd is None:
             return self._unavailable_score(ticker)
 
-        # Earnings momentum
-        em_result = self.score_earnings_momentum(fd)
+        # Earnings momentum — peer_avg_growth is a leave-one-out average
+        # across the rest of the watchlist's avg_growth, so eps_growth_score
+        # can be nudged relative to peers, not just fixed absolute thresholds.
+        growth_by_ticker = {
+            t: g for t, fd_t in all_fundamentals.items()
+            if (g := _avg_eps_growth(fd_t)) is not None
+        }
+        peer_avg_growth = _leave_one_out_average(growth_by_ticker, ticker)
+
+        em_result = self.score_earnings_momentum(fd, peer_avg_growth=peer_avg_growth, live_price=live_price)
         em_score = em_result["earnings_momentum_score"]
 
         # Valuation vs. peers (requires full sector dict)
@@ -483,12 +631,21 @@ class FundamentalScorer:
             "data_quality": data_quality,
         }
 
-    def score_all_tickers(self, watchlist: list, fundamental_state: dict) -> dict:
+    def score_all_tickers(
+        self, watchlist: list, fundamental_state: dict, current_prices: Optional[dict] = None
+    ) -> dict:
         """
         Score all tickers in the watchlist.
 
         fundamental_state: dict loaded from fundamental_state.json, shape:
           {"tickers": {"NVDA": <fundamental_data or None>, ...}}
+
+        current_prices: optional {ticker: today's close} from the same scan's
+        OHLCV fetch (indicator_pipeline.run_pipeline already has this before
+        it calls in). Passed through to compute_fundamental_score/
+        score_earnings_momentum so the implied-upside fallback isn't computed
+        against a stale cached price. None (the default) falls back to
+        whatever current_price was cached in the fundamentals snapshot.
 
         fundamental_state.json accumulates every ticker ever fetched across
         every call (forward-building-history, same pattern as Positioning) —
@@ -510,10 +667,13 @@ class FundamentalScorer:
         all_fundamentals = {t: v for t, v in all_fundamentals_cached.items() if t in watchlist}
         fetched_dates = fundamental_state.get("fetched_dates", {})
 
+        current_prices = current_prices or {}
         results = {}
         for ticker in watchlist:
             try:
-                results[ticker] = self.compute_fundamental_score(ticker, all_fundamentals)
+                results[ticker] = self.compute_fundamental_score(
+                    ticker, all_fundamentals, live_price=current_prices.get(ticker)
+                )
             except Exception as exc:
                 logger.error(f"{ticker}: fundamental scoring failed — {exc}")
                 results[ticker] = self._unavailable_score(ticker)

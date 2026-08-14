@@ -24,6 +24,9 @@ def _isolate_state_file(tmp_path, monkeypatch):
     # No ticker has a known earnings date unless a test says otherwise —
     # keeps rotation/bootstrap behavior deterministic and free of network calls.
     monkeypatch.setattr(ip, "_get_upcoming_earnings_date", lambda ticker: None)
+    # Same for the "did it actually report since last fetch" check — no
+    # ticker has reported unless a test says otherwise.
+    monkeypatch.setattr(ip, "_get_last_reported_earnings_date", lambda ticker: None)
 
 
 def _fake_fundamentals(ticker, fetch_eps_growth_trend=True):
@@ -136,6 +139,84 @@ class TestRotationAndEarningsPriority:
 
         assert result["fetched_dates"][ticker] == "2026-07-22"
 
+    def test_report_since_last_fetch_forces_refresh_even_when_calendar_already_rolled_forward(self):
+        """
+        The real bug this guards against: once a company reports, yfinance's
+        "next earnings date" calendar flips forward to the FOLLOWING quarter
+        almost immediately (confirmed live for AMD — calendar showed Nov 3
+        the same week it reported Aug 4), so the near-next-earnings check
+        alone can't catch a report that already happened. This must catch it
+        via the ticker's actual last-reported date instead.
+        """
+        ticker = "NVDA"
+        from datetime import date
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday, not today
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data([ticker])  # bootstrap
+                # Wednesday: not rotation day, not stale, and "next earnings" is
+                # 3 months out (already rolled forward) — but it actually
+                # reported 2 days ago, after the bootstrap fetch.
+                with patch.object(ip, "_get_upcoming_earnings_date", return_value=date(2026, 10, 20)):
+                    with patch.object(ip, "_get_last_reported_earnings_date", return_value=date(2026, 7, 22)):
+                        with _frozen_now(datetime(2026, 7, 24, 9, 0)):
+                            result = ip.fetch_fundamental_data([ticker])
+
+        assert result["fetched_dates"][ticker] == "2026-07-24"
+
+    def test_rotation_only_touch_does_not_mask_a_missed_report(self):
+        """
+        The exact real-world bug (AMD, 2026-08): bootstrap pulls growth data,
+        then a later PLAIN ROTATION refresh (fetch_growth=False) touches
+        fetched_dates without re-pulling growth. If the missed-report check
+        compared against fetched_dates (the general "was this ticker touched
+        at all" date) instead of growth_fetched_dates (the "was growth data
+        actually pulled" date), a report landing between the two would be
+        permanently masked — fetched_dates would already be newer than the
+        report, so the check would never fire, right up until ~3 months later
+        when the NEXT earnings date's pre-earnings window opens.
+        """
+        ticker = "NVDA"
+        from datetime import date
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+                with _frozen_now(datetime(2026, 7, 6, 9, 0)):  # Monday: bootstrap, growth pulled
+                    ip.fetch_fundamental_data([ticker])
+                # Following Monday: rotation-only refresh (>=7d stale) — touches
+                # fetched_dates but does NOT re-pull growth (fetch_growth=False).
+                with _frozen_now(datetime(2026, 7, 13, 9, 0)):
+                    ip.fetch_fundamental_data([ticker])
+
+        # A report landed the day after bootstrap — after growth_fetched_dates
+        # (2026-07-06) but before the rotation-only touch (2026-07-13).
+        with patch.object(ip, "_rotation_weekday", return_value=0):
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+                with patch.object(ip, "_get_upcoming_earnings_date", return_value=date(2026, 10, 15)):
+                    with patch.object(ip, "_get_last_reported_earnings_date", return_value=date(2026, 7, 7)):
+                        # Tuesday: not rotation day, not stale — only the
+                        # missed-report check can force this refresh.
+                        with _frozen_now(datetime(2026, 7, 14, 9, 0)):
+                            result = ip.fetch_fundamental_data([ticker])
+
+        assert result["fetched_dates"][ticker] == "2026-07-14"
+        assert result["growth_fetched_dates"][ticker] == "2026-07-14"
+
+    def test_report_before_last_fetch_does_not_force_refresh(self):
+        """A last-reported date that's OLDER than (or equal to) the last fetch
+        must not force a refresh — only a report that happened SINCE."""
+        ticker = "NVDA"
+        from datetime import date
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday, not today
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data([ticker])  # bootstrap, last_fetch = 2026-07-20
+                with patch.object(ip, "_get_upcoming_earnings_date", return_value=date(2026, 10, 20)):
+                    with patch.object(ip, "_get_last_reported_earnings_date", return_value=date(2026, 7, 18)):
+                        with _frozen_now(datetime(2026, 7, 21, 9, 0)):
+                            result = ip.fetch_fundamental_data([ticker])
+
+        assert result["fetched_dates"][ticker] == "2026-07-20"  # unchanged, not refreshed
+
     def test_already_fetched_today_is_not_refetched(self):
         ticker = "NVDA"
         calls = []
@@ -201,6 +282,61 @@ class TestEpsGrowthTrendGating:
         assert result["tickers"]["NVDA"]["earnings"]["eps_growth_trend"] == [0.42]
         # The Finnhub-sourced field still reflects the newer refresh.
         assert result["tickers"]["NVDA"]["earnings"]["earnings_surprises"] == [0.1]
+
+    def test_old_revenue_and_margin_carried_forward_when_not_refetched(self):
+        """revenue_yoy_growth/gross_margin_* are gated by the same fetch_growth
+        flag as eps_growth_trend (same quarterly filing) — must carry forward
+        the same way on a plain rotation refresh."""
+        def fetch_with_revenue(ticker, fetch_eps_growth_trend=True):
+            earnings = {"earnings_surprises": [0.1], "consecutive_beats": 1}
+            if fetch_eps_growth_trend:
+                earnings["eps_growth_trend"] = [0.42]
+                earnings["revenue_yoy_growth"] = 0.12
+                earnings["gross_margin_latest"] = 0.55
+                earnings["gross_margin_prior"] = 0.53
+            return {"ticker": ticker, "valuation": {}, "earnings": earnings, "revisions": {}}
+
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=fetch_with_revenue):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data(["NVDA"])  # bootstrap
+                with _frozen_now(datetime(2026, 7, 27, 9, 0)):  # rotation-only refresh
+                    result = ip.fetch_fundamental_data(["NVDA"])
+
+        earnings = result["tickers"]["NVDA"]["earnings"]
+        assert earnings["revenue_yoy_growth"] == 0.12
+        assert earnings["gross_margin_latest"] == 0.55
+        assert earnings["gross_margin_prior"] == 0.53
+
+
+class TestPriorTargetPriceCarryForward:
+    def test_prior_target_price_stashed_before_overwrite(self):
+        def fetch_with_target(ticker, fetch_eps_growth_trend=True, _call={"n": 0}):
+            _call["n"] += 1
+            target = 250.0 if _call["n"] == 1 else 275.0
+            return {
+                "ticker": ticker, "valuation": {}, "earnings": {},
+                "revisions": {"analyst_target_price": target, "current_price": 200.0},
+            }
+
+        with patch.object(ip, "_rotation_weekday", return_value=0):  # Monday
+            with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=fetch_with_target):
+                with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                    ip.fetch_fundamental_data(["NVDA"])  # bootstrap: target=250.0
+                with _frozen_now(datetime(2026, 7, 27, 9, 0)):  # rotation refresh: target=275.0
+                    result = ip.fetch_fundamental_data(["NVDA"])
+
+        revisions = result["tickers"]["NVDA"]["revisions"]
+        assert revisions["analyst_target_price"] == 275.0
+        assert revisions["prior_analyst_target_price"] == 250.0
+        assert revisions["prior_target_as_of"] == "2026-07-20"
+
+    def test_no_prior_target_on_first_ever_fetch(self):
+        with patch.object(ip.FundamentalClient, "get_all_fundamentals", side_effect=_fake_fundamentals):
+            with _frozen_now(datetime(2026, 7, 20, 9, 0)):
+                result = ip.fetch_fundamental_data(["NVDA"])
+
+        assert "prior_analyst_target_price" not in result["tickers"]["NVDA"]["revisions"]
 
 
 class TestIncrementalSave:

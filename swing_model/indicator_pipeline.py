@@ -59,6 +59,16 @@ _FUNDAMENTAL_MAX_TICKERS_PER_DAY = 25
 _FUNDAMENTAL_ROTATION_WINDOW_DAYS = 7
 _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS = 3
 
+# Figures sourced from the same quarterly filing as eps_growth_trend — none of
+# these can change mid-quarter, so a plain rotation refresh (fetch_growth=False)
+# carries the last-known value forward instead of re-fetching it.
+_QUARTERLY_CARRY_FORWARD_KEYS = (
+    "eps_growth_trend",
+    "revenue_yoy_growth",
+    "gross_margin_latest",
+    "gross_margin_prior",
+)
+
 
 def run_pipeline(
     tickers: list[str],
@@ -136,11 +146,18 @@ def run_pipeline(
             write_validation_entry(ticker, "indicator_error", str(exc))
             results[ticker] = None
 
+    # Today's live closes, shared by both the fundamental (implied-upside
+    # recompute) and positioning layers below — computed once here rather
+    # than twice.
+    current_prices = {
+        t: results[t].get("close") for t in tickers if results.get(t) is not None
+    }
+
     # 4-6. Fundamental data fetch + scoring
     try:
         fundamental_state = fetch_fundamental_data(tickers, cfg)
         scorer = FundamentalScorer(cfg)
-        fundamental_scores = scorer.score_all_tickers(tickers, fundamental_state)
+        fundamental_scores = scorer.score_all_tickers(tickers, fundamental_state, current_prices=current_prices)
     except Exception as exc:
         logger.error(f"Fundamental layer failed — {exc}. Proceeding with neutral scores.")
         write_validation_entry("ALL", "fundamental_layer_error", str(exc))
@@ -160,9 +177,6 @@ def run_pipeline(
 
     # 7-8. Market Positioning data fetch + scoring (daily cadence — free yfinance data only)
     try:
-        current_prices = {
-            t: results[t].get("close") for t in tickers if results.get(t) is not None
-        }
         positioning_state = fetch_positioning_data(tickers, current_prices, cfg)
         previous_tickers = positioning_state.get("previous_tickers", {})
         positioning_scores = {
@@ -211,6 +225,36 @@ def _get_upcoming_earnings_date(ticker: str):
         return None
 
 
+def _get_last_reported_earnings_date(ticker: str):
+    """Free (yfinance) lookup of a ticker's most recently ACTUALLY reported
+    earnings date — deliberately separate from _get_upcoming_earnings_date's
+    forward-looking calendar value.
+
+    Confirmed live (2026-08-13): once a company reports, yfinance's calendar
+    flips to the NEXT quarter almost immediately — AMD's calendar already
+    showed Nov 3 the same week it reported on Aug 4. That means the
+    ±_FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS window around "next earnings" can
+    only ever really fire BEFORE a report, not after, even though it reads as
+    symmetric. Without this second check, a report landing on a ticker's
+    routine rotation day (fetch_growth=False) leaves eps_growth_trend stuck on
+    the prior quarter until ~3 days before the NEXT report, since a plain
+    rotation refresh doesn't request it (see get_all_fundamentals's
+    fetch_eps_growth_trend gating below).
+
+    Returns None if unavailable rather than raising, since this is a
+    scheduling hint, not a required input."""
+    try:
+        df = yf.Ticker(ticker).get_earnings_dates(limit=4)
+    except Exception:
+        return None
+    if df is None or df.empty or "Reported EPS" not in df.columns:
+        return None
+    reported = df["Reported EPS"].dropna()
+    if reported.empty:
+        return None
+    return reported.sort_index(ascending=False).index[0].date()
+
+
 def _days_since(date_str: Optional[str], today) -> Optional[int]:
     if not date_str:
         return None
@@ -236,6 +280,13 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
       - it's within _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS of its next known
         earnings date (free yfinance calendar lookup) — the one event that
         actually invalidates cached fundamentals, so it jumps the queue; or
+      - it actually reported earnings more recently than growth data was last
+        PULLED for it (see _get_last_reported_earnings_date and
+        growth_fetched_dates, tracked separately from fetched_dates since a
+        plain rotation touch can update fetched_dates without ever
+        re-pulling growth) — catches a report that landed after the "next
+        earnings" calendar had already flipped forward past it, which
+        happens almost immediately once a company reports; or
       - today is its stable assigned weekday (_rotation_weekday) and it's been
         >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS since its last fetch.
     Only bootstrap/earnings-priority tickers actually spend an Alpha Vantage
@@ -255,7 +306,9 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     Logs any fetch failures to validation_log.csv without crashing.
 
     Returns dict with structure:
-      {"last_updated": ..., "tickers": {ticker: data}, "fetched_dates": {ticker: "YYYY-MM-DD"}}
+      {"last_updated": ..., "tickers": {ticker: data},
+       "fetched_dates": {ticker: "YYYY-MM-DD"},
+       "growth_fetched_dates": {ticker: "YYYY-MM-DD"}}
     """
     if cfg is None:
         cfg = {}
@@ -265,6 +318,14 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     today_str = now_et.strftime("%Y-%m-%d")
     today_date = now_et.date()
     fetched_dates = state.setdefault("fetched_dates", {})
+    # Tracks when eps_growth_trend/revenue were actually last PULLED
+    # (fetch_growth=True), separate from fetched_dates (which also includes
+    # plain rotation touches that skip them). Comparing a missed-report check
+    # against fetched_dates alone would self-defeat: a rotation refresh that
+    # happens to land after a report still updates fetched_dates without
+    # actually re-pulling growth data, permanently masking the staleness this
+    # check exists to catch.
+    growth_fetched_dates = state.setdefault("growth_fetched_dates", {})
     state.setdefault("tickers", {})
 
     bootstrap, earnings_priority, rotation_due = [], [], []
@@ -279,6 +340,25 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
         earnings_date = _get_upcoming_earnings_date(t)
         if earnings_date is not None and abs((earnings_date - today_date).days) <= _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS:
+            earnings_priority.append(t)
+            continue
+
+        # Only checked when not already near the next scheduled date (saves a
+        # yfinance call in the common case) — catches a report that happened
+        # since growth data was last actually pulled, even though the
+        # forward-looking calendar has already rolled past it (see
+        # _get_last_reported_earnings_date). Compared against
+        # growth_fetched_dates, NOT last_fetch — a plain rotation refresh can
+        # touch fetched_dates without ever re-pulling growth data (see above).
+        # A ticker with no growth_fetched_dates entry at all (pre-existing
+        # cache from before this field existed) is treated as needing one
+        # baseline refresh, not assumed current.
+        last_reported = _get_last_reported_earnings_date(t)
+        last_growth_fetch = growth_fetched_dates.get(t)
+        last_growth_fetch_date = (
+            datetime.strptime(last_growth_fetch, "%Y-%m-%d").date() if last_growth_fetch else None
+        )
+        if last_reported is not None and (last_growth_fetch_date is None or last_reported > last_growth_fetch_date):
             earnings_priority.append(t)
             continue
 
@@ -316,17 +396,36 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
         # refresh reuses the last known value instead of spending an AV call to
         # get back the same answer (see get_all_fundamentals's docstring).
         fetch_growth = ticker in bootstrap_or_earnings
+        old_record = state["tickers"].get(ticker) or {}
         try:
             new_data = client.get_all_fundamentals(ticker, fetch_eps_growth_trend=fetch_growth)
             if not fetch_growth:
-                old_earnings = ((state["tickers"].get(ticker) or {}).get("earnings")) or {}
-                old_growth = old_earnings.get("eps_growth_trend")
-                if old_growth is not None:
-                    if new_data.get("earnings") is None:
-                        new_data["earnings"] = {}
-                    new_data["earnings"].setdefault("eps_growth_trend", old_growth)
+                old_earnings = old_record.get("earnings") or {}
+                if new_data.get("earnings") is None:
+                    new_data["earnings"] = {}
+                # Same "can't change mid-quarter" reasoning as eps_growth_trend
+                # applies to the revenue/margin figures — both come from the
+                # same quarterly filing and are gated by the same fetch_growth
+                # flag in get_all_fundamentals.
+                for key in _QUARTERLY_CARRY_FORWARD_KEYS:
+                    old_val = old_earnings.get(key)
+                    if old_val is not None:
+                        new_data["earnings"].setdefault(key, old_val)
+
+            # Stash the PRIOR analyst target price before it's overwritten below
+            # — fundamental_layer.py's estimate_revisions_score uses the two
+            # snapshots to measure whether analysts actually raised/lowered
+            # their number, instead of reading a single snapshot's price-vs-
+            # target gap (which moves with the stock price, not with revisions).
+            old_target = (old_record.get("revisions") or {}).get("analyst_target_price")
+            if old_target is not None and new_data.get("revisions") is not None:
+                new_data["revisions"]["prior_analyst_target_price"] = old_target
+                new_data["revisions"]["prior_target_as_of"] = fetched_dates.get(ticker)
+
             state["tickers"][ticker] = new_data
             state["fetched_dates"][ticker] = today_str
+            if fetch_growth:
+                state["growth_fetched_dates"][ticker] = today_str
             suffix = "" if fetch_growth else " (EPS growth trend carried forward, not AV-refreshed)"
             logger.info(f"  {ticker}: fundamental data fetched OK{suffix}")
         except Exception as exc:

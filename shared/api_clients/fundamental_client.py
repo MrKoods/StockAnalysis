@@ -250,6 +250,69 @@ class FundamentalClient:
 
         return {"eps_growth_trend": eps_growth_trend}
 
+    def get_revenue_and_margin_trend(self, ticker: str) -> Optional[dict]:
+        """
+        Fetch recent quarterly revenue and gross margin via yfinance's quarterly
+        income statement. Free tier only goes back 4-6 quarters (confirmed live
+        across NVDA/AMD/AVGO/TSM/MU/ASML) — not deep enough for a multi-point
+        trend like eps_growth_trend's 4-quarter YoY series, but enough for one
+        YoY revenue comparison and a QoQ gross-margin comparison, which is what
+        this returns.
+
+        The fundamental layer previously scored EPS growth with no visibility
+        into whether it was backed by actual revenue growth — earnings growth
+        driven by margin expansion/buybacks rather than more revenue is the
+        classic "low quality" earnings-growth pattern this exists to catch
+        (see fundamental_layer.score_earnings_momentum's revenue_quality_flag).
+
+        Computes:
+          revenue_yoy_growth   — (latest quarter - same quarter last year) /
+                                  abs(last year), or None if <5 quarters available
+          gross_margin_latest  — most recent quarter's gross profit / revenue
+          gross_margin_prior   — prior quarter's gross profit / revenue
+
+        Same gating as get_eps_growth_trend (see get_all_fundamentals) — only
+        called for a cold-start ticker or one near/after its own earnings date,
+        since these figures can't change between quarterly reports.
+        """
+        try:
+            fin = yf.Ticker(ticker).quarterly_income_stmt
+        except Exception as exc:
+            logger.warning(f"{ticker}: quarterly_income_stmt fetch failed — {exc}")
+            write_validation_entry(ticker, "fundamental_revenue_margin_error", str(exc))
+            return None
+
+        if fin is None or fin.empty or "Total Revenue" not in fin.index:
+            return None
+
+        revenue = fin.loc["Total Revenue"].dropna().sort_index(ascending=False)
+        if revenue.empty:
+            return None
+
+        result: dict = {
+            "revenue_yoy_growth": None,
+            "gross_margin_latest": None,
+            "gross_margin_prior": None,
+        }
+
+        if len(revenue) >= 5:
+            latest, year_ago = _safe_float(revenue.iloc[0]), _safe_float(revenue.iloc[4])
+            if latest is not None and year_ago:
+                result["revenue_yoy_growth"] = round((latest - year_ago) / abs(year_ago), 4)
+
+        if "Gross Profit" in fin.index:
+            gross_profit = fin.loc["Gross Profit"].reindex(revenue.index)
+            margin_labels = ("gross_margin_latest", "gross_margin_prior")
+            for i, label in enumerate(margin_labels):
+                if i >= len(revenue):
+                    break
+                rev_val = _safe_float(revenue.iloc[i])
+                gp_val = _safe_float(gross_profit.iloc[i]) if i < len(gross_profit) else None
+                if rev_val and gp_val is not None:
+                    result[label] = round(gp_val / rev_val, 4)
+
+        return result
+
     def get_estimate_revisions(self, ticker: str) -> dict:
         """
         Fetch analyst target price (yfinance) and rating breakdown (Finnhub
@@ -331,11 +394,12 @@ class FundamentalClient:
 
         Returns combined dict with keys: valuation, earnings, revisions. "earnings"
         merges get_earnings_surprises() (Finnhub) and, when requested,
-        get_eps_growth_trend() (Alpha Vantage) into the one dict shape
-        fundamental_layer.py expects: {eps_growth_trend, earnings_surprises,
-        consecutive_beats}. Any sub-call failure is caught and logged to
-        validation_log.csv. Never raises — always returns a dict (fields may be
-        None on failure).
+        get_eps_growth_trend() + get_revenue_and_margin_trend() (both yfinance)
+        into the one dict shape fundamental_layer.py expects: {eps_growth_trend,
+        earnings_surprises, consecutive_beats, revenue_yoy_growth,
+        gross_margin_latest, gross_margin_prior}. Any sub-call failure is caught
+        and logged to validation_log.csv. Never raises — always returns a dict
+        (fields may be None on failure).
         """
         result = {
             "ticker": ticker,
@@ -368,6 +432,18 @@ class FundamentalClient:
             except Exception as exc:
                 logger.error(f"{ticker}: get_eps_growth_trend failed — {exc}")
                 write_validation_entry(ticker, "fundamental_eps_growth_error", str(exc))
+
+            # Same gating as eps_growth_trend — a routine rotation refresh
+            # reuses the last known value (indicator_pipeline carries it
+            # forward) instead of re-fetching a figure that can't change
+            # between quarterly reports.
+            try:
+                revenue = self.get_revenue_and_margin_trend(ticker)
+                if revenue:
+                    earnings.update(revenue)
+            except Exception as exc:
+                logger.error(f"{ticker}: get_revenue_and_margin_trend failed — {exc}")
+                write_validation_entry(ticker, "fundamental_revenue_margin_error", str(exc))
 
         result["earnings"] = earnings or None
 

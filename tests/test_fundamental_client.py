@@ -196,6 +196,81 @@ class TestEpsGrowthTrendFromYfinance:
         assert not hasattr(fc_module, "_AV_BASE_URL")
 
 
+def _mock_quarterly_income_stmt(revenue_values, gross_profit_values=None, end="2026-06-30"):
+    """
+    Build a DataFrame shaped like yf.Ticker(t).quarterly_income_stmt — rows are
+    line items ("Total Revenue", "Gross Profit"), columns are quarter-end dates,
+    most-recent-first (matches real yfinance column ordering).
+    """
+    dates = pd.date_range(end=end, periods=len(revenue_values), freq="90D")[::-1]
+    data = {"Total Revenue": revenue_values}
+    if gross_profit_values is not None:
+        data["Gross Profit"] = gross_profit_values
+    return pd.DataFrame(data, index=dates).T
+
+
+class TestRevenueAndMarginTrend:
+    def test_computes_yoy_revenue_growth_and_margins(self):
+        client = FundamentalClient()
+        # 6 quarters, most-recent-first columns: index 0 vs index 4 = YoY.
+        revenue = [7500.0, 7000.0, 6800.0, 6500.0, 6000.0, 5800.0]
+        gross_profit = [4200.0, 3900.0, 3700.0, 3500.0, 3000.0, 2800.0]
+        mock_ticker = MagicMock()
+        mock_ticker.quarterly_income_stmt = _mock_quarterly_income_stmt(revenue, gross_profit)
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_revenue_and_margin_trend("AMD")
+
+        assert result is not None
+        assert result["revenue_yoy_growth"] == pytest.approx((7500.0 - 6000.0) / 6000.0, abs=1e-4)
+        assert result["gross_margin_latest"] == pytest.approx(4200.0 / 7500.0, abs=1e-4)
+        assert result["gross_margin_prior"] == pytest.approx(3900.0 / 7000.0, abs=1e-4)
+
+    def test_fewer_than_five_quarters_skips_yoy_growth_but_keeps_margins(self):
+        client = FundamentalClient()
+        revenue = [7500.0, 7000.0]
+        gross_profit = [4200.0, 3900.0]
+        mock_ticker = MagicMock()
+        mock_ticker.quarterly_income_stmt = _mock_quarterly_income_stmt(revenue, gross_profit)
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_revenue_and_margin_trend("AMD")
+
+        assert result["revenue_yoy_growth"] is None
+        assert result["gross_margin_latest"] == pytest.approx(4200.0 / 7500.0, abs=1e-4)
+
+    def test_missing_gross_profit_row_leaves_margins_none(self):
+        client = FundamentalClient()
+        revenue = [7500.0, 7000.0, 6800.0, 6500.0, 6000.0]
+        mock_ticker = MagicMock()
+        mock_ticker.quarterly_income_stmt = _mock_quarterly_income_stmt(revenue)
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_revenue_and_margin_trend("AMD")
+
+        assert result["gross_margin_latest"] is None
+        assert result["revenue_yoy_growth"] is not None
+
+    def test_missing_total_revenue_row_returns_none(self):
+        client = FundamentalClient()
+        mock_ticker = MagicMock()
+        mock_ticker.quarterly_income_stmt = pd.DataFrame({"Other Line": [1.0]}).T
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_revenue_and_margin_trend("AMD")
+        assert result is None
+
+    def test_empty_statement_returns_none(self):
+        client = FundamentalClient()
+        mock_ticker = MagicMock()
+        mock_ticker.quarterly_income_stmt = pd.DataFrame()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=mock_ticker):
+            result = client.get_revenue_and_margin_trend("AMD")
+        assert result is None
+
+    def test_yfinance_failure_returns_none(self):
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", side_effect=Exception("network error")):
+            result = client.get_revenue_and_margin_trend("AMD")
+        assert result is None
+
+
 class TestGetAllFundamentalsGating:
     def test_fetch_eps_growth_trend_true_calls_both_sources(self):
         client = FundamentalClient()
