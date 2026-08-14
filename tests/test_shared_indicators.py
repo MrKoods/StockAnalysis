@@ -54,6 +54,26 @@ def ohlcv_trending_up():
     return df
 
 
+@pytest.fixture
+def ohlcv_short_history():
+    """
+    Only 30 bars — enough for sma_20/atr_14/rsi_14 but short of sma_50 (needs
+    50) and MACD's ~35-bar warmup, so sma_50/macd fall back to substitute
+    values. Used to test the data_quality flag on a newly-added watchlist
+    ticker or short backtest window.
+    """
+    n = 30
+    close = np.linspace(100, 130, n)
+    df = pd.DataFrame({
+        "Open": close * 0.99,
+        "High": close * 1.01,
+        "Low": close * 0.98,
+        "Close": close,
+        "Volume": [1_000_000] * n,
+    }, index=pd.date_range("2025-01-01", periods=n, freq="B"))
+    return df
+
+
 # ---------------------------------------------------------------------------
 # Z-score tests
 # ---------------------------------------------------------------------------
@@ -285,6 +305,43 @@ class TestComputeTechnicalIndicators:
         result = compute_technical_indicators(ohlcv_trending_up, benchmark, cfg)
         for key in ["close", "rsi_14", "atr_14", "breakout_volume_zscore"]:
             assert isinstance(result[key], float), f"{key} should be float, got {type(result[key])}"
+
+    def test_full_history_reports_complete_data_quality(self, ohlcv_trending_up):
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        result = compute_technical_indicators(ohlcv_trending_up, benchmark, cfg)
+        assert result["data_quality"] == "complete"
+        assert all(v == "complete" for v in result["sub_signal_data_quality"].values())
+
+    def test_short_history_reports_partial_data_quality(self, ohlcv_short_history):
+        """
+        The gap being fixed: previously this layer reported no data-quality
+        signal at all — a ticker whose sma_50/macd silently fell back to a
+        substitute value (e.g. sma_50 standing in as the close price, which
+        makes price_above_sma_50 always read False) looked exactly as
+        trustworthy as one with a full, real indicator set.
+        """
+        benchmark = ohlcv_short_history["Close"] * 0.95
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        result = compute_technical_indicators(ohlcv_short_history, benchmark, cfg)
+        assert result["data_quality"] == "partial"
+        assert result["sub_signal_data_quality"]["sma_50"] == "partial"
+        assert result["sub_signal_data_quality"]["macd"] == "partial"
+        # sma_20/atr_14 have enough history (20/14 bars) even in a 30-bar window
+        assert result["sub_signal_data_quality"]["sma_20"] == "complete"
+        assert result["sub_signal_data_quality"]["atr"] == "complete"
 
     def test_raises_on_nan_close_in_latest_bar(self, ohlcv_trending_up):
         """

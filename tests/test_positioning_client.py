@@ -15,6 +15,8 @@ from shared.api_clients.positioning_client import (
     _pick_expiration,
     _build_chain_list,
     compute_iv_percentile,
+    compute_put_call_ratio_percentile,
+    compute_iv_skew_percentile,
 )
 
 
@@ -151,3 +153,39 @@ class TestComputeIvPercentile:
         history = [0.2] * 10 + [None, None]
         result = compute_iv_percentile(0.2, history)
         assert result["data_quality"] == "sufficient_history"
+
+
+class TestComputePutCallRatioPercentile:
+    def test_current_ratio_none_reports_unavailable(self):
+        result = compute_put_call_ratio_percentile(None, [0.8, 1.0, 1.2])
+        assert result["data_quality"] == "unavailable"
+        assert result["put_call_ratio_percentile"] == 50.0
+
+    def test_insufficient_history_reports_neutral(self):
+        result = compute_put_call_ratio_percentile(1.0, [0.9, 1.1])
+        assert result["data_quality"] == "insufficient_history"
+        assert result["put_call_ratio_percentile"] == 50.0
+
+    def test_lowest_ratio_scores_zero_percentile(self):
+        history = [round(0.8 + 0.05 * i, 2) for i in range(20)]  # 0.80 .. 1.75
+        result = compute_put_call_ratio_percentile(0.80, history)
+        assert result["data_quality"] == "sufficient_history"
+        assert result["put_call_ratio_percentile"] <= 10.0
+
+
+class TestComputeIvSkewPercentile:
+    def test_current_skew_none_reports_unavailable(self):
+        result = compute_iv_skew_percentile(None, [0.02, 0.03, 0.04])
+        assert result["data_quality"] == "unavailable"
+        assert result["iv_skew_percentile"] == 50.0
+
+    def test_insufficient_history_reports_neutral(self):
+        result = compute_iv_skew_percentile(0.03, [0.02, 0.04])
+        assert result["data_quality"] == "insufficient_history"
+        assert result["iv_skew_percentile"] == 50.0
+
+    def test_highest_skew_scores_max_percentile(self):
+        history = [round(0.01 + 0.005 * i, 3) for i in range(20)]
+        result = compute_iv_skew_percentile(history[-1], history)
+        assert result["data_quality"] == "sufficient_history"
+        assert result["iv_skew_percentile"] == 100.0

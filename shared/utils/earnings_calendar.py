@@ -64,6 +64,17 @@ def get_earnings_modifier(
     elif 6 <= days <= 18:
         modifier = float(e_cfg.get("within_6_to_18_days_penalty", -5))
         force_defined_risk = False
+    elif post_settling:
+        # "Tentative restore," not an immediate full reset: the day after a
+        # report still carries IV-crush/gap risk and estimates are still
+        # being revised — post_settling used to be computed and returned
+        # here but never actually changed the modifier, silently falling
+        # through to the same 0.0 as 19+ days out (a full overnight cliff
+        # from -20 to 0, despite the module docstring promising a gradual
+        # "tentative restore"). Same caution magnitude as the 6-18-day
+        # pre-earnings tier, not the near-earnings max.
+        modifier = float(e_cfg.get("post_earnings_settling_penalty", -5))
+        force_defined_risk = False
     else:
         modifier = float(e_cfg.get("beyond_18_days", 0))
         force_defined_risk = False

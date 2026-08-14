@@ -29,12 +29,28 @@ MACRO_ADVERSE = "adverse"
 
 _MACRO_STATE_FILE = Path("data/processed/macro_state.json")
 
+# This module's TNX/DXY/China rationale is semiconductor-specific, not
+# universal: "hawkish rates hurt growth/tech" doesn't hold for regional
+# banks, where rising rates typically widen net interest margin and are
+# often a net positive, not adverse. "Strong USD hurts TSM/ASML" is
+# explicitly about foreign-ADR currency exposure — meaningless for
+# domestically-focused names like HD/TGT or a regional bank. Previously
+# this logic was applied identically to every active sector (semiconductors,
+# regional_banks, healthcare, consumer_discretionary) since compute_macro_state
+# was called once per scan with no sector context at all. Restricting it to
+# the one sector it was actually designed and reasoned about avoids
+# introducing a wrong-direction bias for sectors with different (and not yet
+# modeled) rate/FX sensitivity — neutral is the honest answer until sector-
+# specific macro logic is built and validated for them.
+_SECTORS_WITH_VALIDATED_MACRO_LOGIC = {"semiconductors"}
+
 
 def compute_macro_state(
     tnx_close: pd.Series,
     dxy_close: pd.Series,
     china_keyword_count_5d: int,
     cfg: Optional[dict] = None,
+    sector: Optional[str] = None,
 ) -> dict:
     """
     Compute current macro overlay state from three free proxy signals.
@@ -49,6 +65,15 @@ def compute_macro_state(
     Aggregation: score adverse signals — 2+ adverse → adverse; 0 adverse → favorable;
     1 adverse → neutral (unless it's China tension alone = neutral)
 
+    sector: which sector this call is scoring for. When supplied and NOT in
+    _SECTORS_WITH_VALIDATED_MACRO_LOGIC, the trend readings (tnx_trend/
+    dxy_trend/china_tension_level) are still computed and returned for
+    observability, but they don't drive macro_state/confidence_modifier —
+    both are forced to neutral/0.0, since this module's specific adverse/
+    favorable rationale isn't validated for that sector. None (the default)
+    preserves the original sector-agnostic behavior — every existing caller
+    that doesn't pass a sector gets the same result as before.
+
     Returns dict:
     {
         macro_state, tnx_trend, dxy_trend, china_tension_level,
@@ -56,6 +81,7 @@ def compute_macro_state(
         adverse_signal_count: int,
         confidence_modifier: float,  # -10 to +3
         computed_at_utc: str,
+        sector_scoped: bool,  # True when this sector's logic was neutralized
     }
     """
     if cfg is None:
@@ -105,21 +131,31 @@ def compute_macro_state(
     china_tension_level = "high" if china_high else "normal"
     china_adverse = china_high
 
-    adverse_count = sum([tnx_adverse, dxy_adverse, china_adverse])
-    favorable_count = sum([
-        tnx_trend == "falling",
-        dxy_trend == "falling",
-        not china_adverse,
-    ])
+    sector_scoped = sector is not None and sector not in _SECTORS_WITH_VALIDATED_MACRO_LOGIC
 
-    if adverse_count >= 2:
-        macro_state = MACRO_ADVERSE
-    elif adverse_count == 0 and favorable_count >= 2:
-        macro_state = MACRO_FAVORABLE
-    else:
+    if sector_scoped:
+        # Trend readings above are still real and returned for observability,
+        # but this sector's macro state/modifier stay neutral — see
+        # _SECTORS_WITH_VALIDATED_MACRO_LOGIC's module-level comment.
+        adverse_count = 0
         macro_state = MACRO_NEUTRAL
+        modifier = 0.0
+    else:
+        adverse_count = sum([tnx_adverse, dxy_adverse, china_adverse])
+        favorable_count = sum([
+            tnx_trend == "falling",
+            dxy_trend == "falling",
+            not china_adverse,
+        ])
 
-    modifier = get_macro_modifier(macro_state, cfg)
+        if adverse_count >= 2:
+            macro_state = MACRO_ADVERSE
+        elif adverse_count == 0 and favorable_count >= 2:
+            macro_state = MACRO_FAVORABLE
+        else:
+            macro_state = MACRO_NEUTRAL
+
+        modifier = get_macro_modifier(macro_state, cfg)
 
     return {
         "macro_state": macro_state,
@@ -131,6 +167,7 @@ def compute_macro_state(
         "adverse_signal_count": adverse_count,
         "confidence_modifier": modifier,
         "computed_at_utc": datetime.now(timezone.utc).isoformat(),
+        "sector_scoped": sector_scoped,
     }
 
 

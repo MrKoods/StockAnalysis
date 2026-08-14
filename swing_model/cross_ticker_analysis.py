@@ -13,7 +13,47 @@ CORRELATION_SECTOR_WIDE = "sector_wide"
 CORRELATION_NEUTRAL = "neutral"
 CORRELATION_INDIVIDUAL_DIVERGENCE = "individual_divergence"
 
-_CORRELATED_PAIRS = [("NVDA", "AMD")]  # Per spec: max 1 from this pair
+# Fallback divergence bar for a ticker whose own volatility can't be
+# estimated (insufficient OHLCV history) — the original fixed value, kept as
+# a floor/fallback rather than removed outright.
+_DEFAULT_DIVERGENCE_THRESHOLD = 0.03
+# A move needs to be at least this many multiples of a ticker's own typical
+# 5-day swing to count as genuine individual divergence, not routine noise.
+_DIVERGENCE_VOLATILITY_MULTIPLIER = 1.5
+_DIVERGENCE_MIN_VOL_HISTORY_DAYS = 21
+
+
+def _estimate_five_day_volatility(df: Optional[pd.DataFrame]) -> Optional[float]:
+    """
+    Estimate a ticker's typical 5-day return magnitude from its own trailing
+    daily volatility (std of daily % changes over the last 20 days), scaled
+    by sqrt(5) — the standard random-walk approximation for how single-day
+    variance compounds over a 5-day window.
+
+    A fixed 3% divergence bar treats a volatile semiconductor name (which can
+    routinely move 3%+ in 5 days) the same as a much calmer one — over-firing
+    "individual divergence" on the volatile name's routine noise while under-
+    detecting genuine divergence on the calmer one. Returns None (caller
+    falls back to _DEFAULT_DIVERGENCE_THRESHOLD) when there isn't enough
+    history to estimate volatility from.
+    """
+    if df is None or len(df) < _DIVERGENCE_MIN_VOL_HISTORY_DAYS:
+        return None
+    daily_returns = df["Close"].pct_change().dropna().iloc[-20:]
+    if len(daily_returns) < 20:
+        return None
+    daily_std = float(daily_returns.std())
+    if daily_std != daily_std:  # NaN guard (e.g. a constant price series)
+        return None
+    return daily_std * (5.0 ** 0.5)
+
+# NOTE: the "max 1 position from a correlated pair/group" rule is enforced
+# by swing_model/portfolio_manager.py's can_open_new_position(), driven by
+# config/swing_config.yaml's portfolio.sectors.<name>.correlated_groups —
+# a real, sector-scoped, actively-used implementation. A duplicate
+# _CORRELATED_PAIRS = [("NVDA", "AMD")] constant used to live here,
+# unreferenced anywhere in this file or the rest of the codebase — leftover
+# from before portfolio_manager.py's more complete version existed.
 
 
 def analyze_cross_ticker(
@@ -63,7 +103,21 @@ def analyze_cross_ticker(
         else:
             signal_directions[ticker] = None
 
-    correlation_state = compute_sector_correlation_state(ticker_returns, signal_directions)
+    # Per-ticker divergence bar, scaled to each ticker's own typical 5-day
+    # move — see _estimate_five_day_volatility. Falls back to the fixed
+    # _DEFAULT_DIVERGENCE_THRESHOLD for a ticker whose own volatility can't
+    # be estimated yet (insufficient OHLCV history).
+    divergence_thresholds: dict[str, float] = {}
+    for ticker in tickers:
+        vol = _estimate_five_day_volatility(ohlcv_data.get(ticker))
+        divergence_thresholds[ticker] = (
+            max(vol * _DIVERGENCE_VOLATILITY_MULTIPLIER, _DEFAULT_DIVERGENCE_THRESHOLD * 0.5)
+            if vol is not None else _DEFAULT_DIVERGENCE_THRESHOLD
+        )
+
+    correlation_state = compute_sector_correlation_state(
+        ticker_returns, signal_directions, divergence_thresholds=divergence_thresholds
+    )
 
     results: dict[str, dict] = {}
     for ticker in tickers:
@@ -72,7 +126,7 @@ def analyze_cross_ticker(
         peer_avg = sum(peer_returns) / len(peer_returns) if peer_returns else 0.0
 
         divergence_direction = None
-        if abs(ticker_ret - peer_avg) > 0.03:
+        if abs(ticker_ret - peer_avg) > divergence_thresholds[ticker]:
             divergence_direction = "outperforming" if ticker_ret > peer_avg else "underperforming"
 
         # Sector-wide → reduce confidence (sector tailwind, not stock-specific).
@@ -113,13 +167,23 @@ def compute_sector_correlation_state(
     ticker_returns: dict[str, float],
     signal_directions: dict[str, Optional[str]],
     divergence_threshold: float = 0.03,
+    divergence_thresholds: Optional[dict[str, float]] = None,
 ) -> str:
     """
     Determine if current multi-ticker signals represent a sector-wide move.
 
     sector_wide: 3+ tickers signaling bullish or bearish simultaneously.
-    individual_divergence: 1 ticker moving distinctly from peers (>3% divergence from avg).
+    individual_divergence: 1 ticker moving distinctly from peers (more than
+    its own divergence bar away from the peer average).
     neutral: mixed or no clear pattern.
+
+    divergence_thresholds: optional per-ticker bar (see analyze_cross_ticker's
+    _estimate_five_day_volatility) — a volatile name and a calm one shouldn't
+    share one fixed percentage. Falls back to the flat divergence_threshold
+    (default 0.03, the original fixed value) for any ticker not present in
+    the dict, or when divergence_thresholds itself isn't supplied at all —
+    callers with only returns/directions (no OHLCV history to estimate
+    volatility from) keep the original behavior unchanged.
     """
     if not signal_directions:
         return CORRELATION_NEUTRAL
@@ -135,7 +199,8 @@ def compute_sector_correlation_state(
         returns = list(ticker_returns.values())
         avg_ret = sum(returns) / len(returns)
         for ticker, ret in ticker_returns.items():
-            if abs(ret - avg_ret) > divergence_threshold:
+            threshold = (divergence_thresholds or {}).get(ticker, divergence_threshold)
+            if abs(ret - avg_ret) > threshold:
                 return CORRELATION_INDIVIDUAL_DIVERGENCE
 
     return CORRELATION_NEUTRAL

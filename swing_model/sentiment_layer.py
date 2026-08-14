@@ -79,7 +79,17 @@ def compute_sentiment_score(
     total_tagged = bullish_count + bearish_count
     bullish_ratio_stocktwits = (bullish_count / total_tagged) if total_tagged > 0 else 0.5
 
-    if bullish_ratio_stocktwits > 0.55:
+    # Same minimum-sample bar _score_ratio() already applies before trusting
+    # this ratio for the point score (see _RATIO_MIN_BASELINE_MESSAGES) — but
+    # dominant_sentiment feeds determine_direction() in scoring.py, deciding
+    # the trade's actual bullish/bearish DIRECTION, which is more consequential
+    # than a point score. Previously ungated: a single tagged message (e.g. 1
+    # bullish, 0 bearish → ratio 1.0) could flip the whole trade's direction
+    # with no sample-size protection at all, right next to code that
+    # explicitly guards against exactly that failure mode for the score.
+    if total_tagged < _RATIO_MIN_BASELINE_MESSAGES:
+        dominant_sentiment = "neutral"
+    elif bullish_ratio_stocktwits > 0.55:
         dominant_sentiment = "bullish"
     elif bullish_ratio_stocktwits < 0.45:
         dominant_sentiment = "bearish"
@@ -98,7 +108,6 @@ def compute_sentiment_score(
 
         # Metadata
         "sentiment_trajectory": round(trajectory, 4),
-        "sentiment_lead_lag": "neutral",  # Requires backtested baseline — populated in Phase 12
         "divergence_flag": divergence_flag,
         "dominant_sentiment": dominant_sentiment,
         "bullish_ratio_stocktwits": round(bullish_ratio_stocktwits, 3),
@@ -191,9 +200,21 @@ def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[fl
         score = 2.5 + combined * 2.5
         return max(0.0, min(VELOCITY_MAX, score)), "complete"
 
-    # Fallback: derive velocity from the daily bullish-ratio trajectory
+    # Fallback: derive velocity from the daily bullish-ratio trajectory.
+    # velocity is a delta-of-two-half-window trajectory slopes over a bounded
+    # [0,1] ratio — with the old x25 multiplier, a swing no bigger than the
+    # SIG=0.05 "significant" threshold detect_price_sentiment_divergence uses
+    # elsewhere in this file for the same underlying trajectory metric
+    # (velocity=0.1) already hit the score's hard ceiling/floor exactly,
+    # meaning most real, non-extreme trajectory shifts saturated this
+    # sub-signal instead of grading gradually across the 0-5 range. Halved to
+    # x12.5: a "significant" 0.05 swing now lands at a modest 3.125 (a real
+    # lift, not maxed out), and reaching the ceiling requires a swing twice as
+    # large as before (~0.2) — a genuinely large move, not a routine one.
+    # Judgment call pending real calibration data, same as this file's other
+    # heuristic constants; not derived from a backtest.
     velocity = compute_sentiment_velocity(daily_ratios)
-    score = 2.5 + velocity * 25.0
+    score = 2.5 + velocity * 12.5
     return max(0.0, min(VELOCITY_MAX, score)), "partial"
 
 

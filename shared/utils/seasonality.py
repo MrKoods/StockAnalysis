@@ -11,12 +11,33 @@ from datetime import datetime, timezone
 from typing import Optional
 
 
+# This profile is a semiconductor-specific demand calendar (PC/server build
+# cycles, NVDA/AMD product-cycle ordering — see _MONTH_RATIONALE below), not
+# a universal market seasonality curve. Previously applied identically to
+# every active sector (regional_banks, healthcare, consumer_discretionary
+# too) since get_seasonality_modifier was called once per scan with no
+# sector context. Consumer discretionary in particular has its own,
+# different, well-known seasonality (holiday retail) this profile doesn't
+# capture — applying the semiconductor curve there is actively misleading,
+# not just imprecise. Restricted to the one sector it was built for; neutral
+# for the others until sector-appropriate seasonality is built and validated.
+_SECTORS_WITH_VALIDATED_SEASONALITY = {"semiconductors"}
+
+
 def get_seasonality_modifier(
     date: Optional[datetime] = None,
     cfg: Optional[dict] = None,
+    sector: Optional[str] = None,
 ) -> dict:
     """
     Return semiconductor seasonality confidence modifier for given date.
+
+    sector: which sector this call is scoring for. When supplied and NOT in
+    _SECTORS_WITH_VALIDATED_SEASONALITY, month/quarter/rationale are still
+    returned for observability but confidence_modifier is forced to 0.0 and
+    seasonality_state to 'neutral' — this profile's specific rationale isn't
+    validated for that sector. None (the default) preserves the original
+    sector-agnostic behavior.
 
     Returns dict:
     {
@@ -24,6 +45,7 @@ def get_seasonality_modifier(
         seasonality_state: str,  # 'strong', 'neutral', 'weak'
         confidence_modifier: float,  # -5 to +5
         rationale: str,
+        sector_scoped: bool,  # True when this sector's modifier was neutralized
     }
     """
     if date is None:
@@ -51,9 +73,13 @@ def get_seasonality_modifier(
         raw = monthly[str(month)]
     else:
         raw = quarterly.get(quarter_key, 0.0)
-    modifier = max(-5.0, min(5.0, float(raw)))
 
-    if modifier >= 2.0:
+    sector_scoped = sector is not None and sector not in _SECTORS_WITH_VALIDATED_SEASONALITY
+    modifier = 0.0 if sector_scoped else max(-5.0, min(5.0, float(raw)))
+
+    if sector_scoped:
+        state = "neutral"
+    elif modifier >= 2.0:
         state = "strong"
     elif modifier <= -2.0:
         state = "weak"
@@ -66,6 +92,7 @@ def get_seasonality_modifier(
         "seasonality_state": state,
         "confidence_modifier": modifier,
         "rationale": _MONTH_RATIONALE.get(month, f"Q{quarter} semiconductor pattern"),
+        "sector_scoped": sector_scoped,
     }
 
 

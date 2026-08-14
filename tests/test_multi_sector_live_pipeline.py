@@ -123,11 +123,15 @@ def test_two_sectors_flow_through_the_real_pipeline_and_tag_correctly(tmp_path, 
     })
     monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
     monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    # Avoids a real Yahoo News fetch — semiconductors is an active sector in
+    # this test's cfg, so _compute_china_tension_count would otherwise run
+    # for real (see run_swing_model.py's main()/paper_runner.py's equivalent).
+    monkeypatch.setattr(pr, "_compute_china_tension_count", lambda cfg: 0)
     monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
     monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
-    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
     monkeypatch.setattr(
         pr, "get_earnings_modifier",
         lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},

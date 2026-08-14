@@ -74,7 +74,7 @@ class TestIvHistoryAccumulation:
 
         options = state["tickers"]["NVDA"]["options"]
         assert options["iv_percentile"] == 100.0
-        assert options["data_quality"] == "sufficient_history"
+        assert options["iv_percentile_data_quality"] == "sufficient_history"
 
     def test_insufficient_history_reports_neutral_percentile(self):
         with patch.object(ip, "fetch_all_positioning", side_effect=_fake_positioning(0.30)):
@@ -82,7 +82,7 @@ class TestIvHistoryAccumulation:
                 state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
         options = state["tickers"]["NVDA"]["options"]
         assert options["iv_percentile"] == 50.0
-        assert options["data_quality"] == "insufficient_history"
+        assert options["iv_percentile_data_quality"] == "insufficient_history"
 
     def test_history_capped_at_max_days(self):
         state = None

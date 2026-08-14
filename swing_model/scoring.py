@@ -137,16 +137,28 @@ def _fundamental_staleness_weight(data_as_of: Optional[str], today: Optional[dat
 _FULLY_AVAILABLE_DATA_QUALITY = {"complete"}
 
 
-def compute_data_sufficiency(positioning: dict, sentiment: dict, fundamental: dict) -> dict:
+def compute_data_sufficiency(
+    positioning: dict, sentiment: dict, fundamental: dict, technical: Optional[dict] = None
+) -> dict:
     """
     Returns {"degraded_sub_signal_count", "total_sub_signals_checked",
     "data_confidence"}. data_confidence is "high" (0 degraded), "medium"
     (1-2 degraded), or "low" (3+ degraded) — a coarse, honestly-labeled
     heuristic, not a precision statistical bound.
+
+    technical: optional (defaults to {}) — Technical previously reported no
+    data-quality signal at all despite being the largest single scoring
+    category (40 of 100 points), so a ticker whose sma_50/atr/macd silently
+    fell back to substitute values (insufficient history) looked exactly as
+    trustworthy here as one with a full, real indicator set. Optional so
+    existing callers that don't pass it still get a result, just without
+    Technical's contribution counted.
     """
+    technical = technical or {}
     sub_signal_quality: dict = {}
     sub_signal_quality.update(sentiment.get("sub_signal_data_quality", {}) or {})
     sub_signal_quality.update(positioning.get("sub_signal_data_quality", {}) or {})
+    sub_signal_quality.update(technical.get("sub_signal_data_quality", {}) or {})
 
     degraded = sum(1 for v in sub_signal_quality.values() if v not in _FULLY_AVAILABLE_DATA_QUALITY)
     total = len(sub_signal_quality)
@@ -366,7 +378,7 @@ def compute_confidence_score(
     # below so the caller can flag the active event alongside the signal.
     meets_threshold = final_score >= CONFIDENCE_THRESHOLD
 
-    data_sufficiency = compute_data_sufficiency(positioning, sentiment, fundamental)
+    data_sufficiency = compute_data_sufficiency(positioning, sentiment, fundamental, technical)
 
     if win_probability_calibration:
         calibrated_win_probability = calibrate_win_probability(final_score, win_probability_calibration)
@@ -397,6 +409,12 @@ def compute_confidence_score(
         "velocity_score": float(sentiment.get("velocity_score", 0.0)),
         "engagement_score": float(sentiment.get("engagement_score", 0.0)),
         "sentiment_total": round(sentiment_total, 2),
+        # Advisory only — not a scoring input. Was computed by sentiment_layer.py
+        # every scan but never read by anything downstream (confirmed via
+        # repo-wide search); passed through here so it's at least reachable
+        # by any caller holding the full score dict instead of being silently
+        # discarded.
+        "divergence_flag": sentiment.get("divergence_flag", "neutral"),
 
         # News sub-scores
         "credibility_score": float(news.get("credibility_weighted_score", 0.0)),

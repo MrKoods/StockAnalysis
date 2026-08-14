@@ -212,3 +212,81 @@ class TestCrossTickerAnalysis:
         # NVDA should have individual divergence state and non-negative modifier
         nvda_result = result["NVDA"]
         assert nvda_result["correlation_state"] == CORRELATION_INDIVIDUAL_DIVERGENCE
+
+
+class TestVolatilityRelativeDivergenceThreshold:
+    """
+    The divergence bar used to be a fixed 3% for every ticker — over-firing
+    on a volatile name's routine noise and under-detecting real divergence on
+    a calm one. Now scaled to each ticker's own trailing daily volatility
+    (see cross_ticker_analysis._estimate_five_day_volatility).
+    """
+
+    def _oscillating_closes(self, daily_move_pct, n=21, start=100.0):
+        """n bars alternating +daily_move_pct / -daily_move_pct — a
+        deterministic way to hit a target daily-return std without random data."""
+        closes = [start]
+        for i in range(n - 1):
+            factor = (1 + daily_move_pct) if i % 2 == 0 else 1 / (1 + daily_move_pct)
+            closes.append(closes[-1] * factor)
+        return closes
+
+    def _with_4pct_tail(self, closes):
+        """Appends a 5-bar tail landing on a +4% 5-day return from closes[-1]."""
+        base = closes[-1]
+        return closes + [base * 1.00, base * 1.01, base * 1.02, base * 1.03, base * 1.04]
+
+    def test_routine_move_for_a_volatile_ticker_is_not_flagged(self):
+        # ~2.66% daily std -> ~8.9% divergence bar; a 4% move is routine for it.
+        high_vol_closes = self._with_4pct_tail(self._oscillating_closes(0.03))
+        flat_peer_closes = [100.0] * 26
+        indicator_scores = {
+            "NVDA": {"trend_intact": False, "breakout_confirmed": False},
+            "AMD": {"trend_intact": False, "breakout_confirmed": False},
+        }
+        ohlcv_data = {
+            "NVDA": _make_ohlcv(high_vol_closes),
+            "AMD": _make_ohlcv(flat_peer_closes),
+        }
+        result = analyze_cross_ticker(indicator_scores, ohlcv_data)
+        # A fixed 3% bar would have flagged this 4% move as NVDA-specific
+        # divergence (divergence_boost=+5 or underperforming=-10); the
+        # volatility-relative bar (~8.9% for this ticker) correctly reads it
+        # as noise, leaving NVDA's own outcome neutral. (The aggregate
+        # correlation_state can still read individual_divergence if the flat
+        # peer trips its own, much tighter bar — that's a separate, correct
+        # signal about the peer, not about NVDA.)
+        assert result["NVDA"]["divergence_direction"] is None
+        assert result["NVDA"]["confidence_modifier"] == 0.0
+
+    def test_same_size_move_still_flagged_for_a_calm_ticker(self):
+        # ~0.45% daily std -> divergence bar hits the 1.5% floor; the same 4%
+        # move is genuinely unusual for a ticker this calm.
+        low_vol_closes = self._with_4pct_tail(self._oscillating_closes(0.002))
+        flat_peer_closes = [100.0] * 26
+        indicator_scores = {
+            "NVDA": {"trend_intact": False, "breakout_confirmed": False},
+            "AMD": {"trend_intact": False, "breakout_confirmed": False},
+        }
+        ohlcv_data = {
+            "NVDA": _make_ohlcv(low_vol_closes),
+            "AMD": _make_ohlcv(flat_peer_closes),
+        }
+        result = analyze_cross_ticker(indicator_scores, ohlcv_data)
+        assert result["NVDA"]["divergence_direction"] == "outperforming"
+        assert result["NVDA"]["correlation_state"] == CORRELATION_INDIVIDUAL_DIVERGENCE
+
+    def test_insufficient_history_falls_back_to_default_threshold(self):
+        # Fewer than 21 bars -> volatility can't be estimated -> falls back
+        # to the original fixed 0.03 bar, same as before this change.
+        short_history = [100, 101, 102, 104, 106, 115]  # 6 bars, a clear +15% move
+        indicator_scores = {
+            "NVDA": {"trend_intact": True, "breakout_confirmed": True},
+            "AMD": {"trend_intact": False, "breakout_confirmed": False},
+        }
+        ohlcv_data = {
+            "NVDA": _make_ohlcv(short_history),
+            "AMD": _make_ohlcv([100] * 6),
+        }
+        result = analyze_cross_ticker(indicator_scores, ohlcv_data)
+        assert result["NVDA"]["correlation_state"] == CORRELATION_INDIVIDUAL_DIVERGENCE

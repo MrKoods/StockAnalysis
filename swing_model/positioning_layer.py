@@ -111,8 +111,27 @@ def compute_positioning_score(
     }
 
 
+_PERCENTILE_MIN_DQ = "sufficient_history"
+
+
 def _score_options(options: Optional[dict]) -> tuple[float, str]:
-    """Score put/call ratio + IV skew. Neutral midpoint = 3.0 (of 0-6)."""
+    """
+    Score put/call ratio + IV skew. Neutral midpoint = 3.0 (of 0-6).
+
+    Prefers each metric's own trailing-history percentile (see
+    indicator_pipeline.fetch_positioning_data / positioning_client.
+    compute_put_call_ratio_percentile / compute_iv_skew_percentile) over a
+    fixed absolute constant — different tickers run structurally different
+    baseline put/call ratios depending on their investor base, and real
+    equities carry a structural put-skew most of the time (crash-hedging
+    demand is a market-wide feature, not stock-specific bearishness), so
+    "ratio=1.0"/"skew=0.0" was never really a universal neutral baseline.
+    A LOW percentile (today's reading is unusually low vs. this ticker's own
+    history) is bullish for both metrics — a call-heavy ratio or a call-rich
+    skew relative to normal. Falls back to the old absolute-constant formula
+    per-metric while that metric's own history is still accumulating (cold
+    start), same graceful-degradation shape used elsewhere in this layer.
+    """
     if not options:
         return 0.0, "unavailable"
 
@@ -124,17 +143,32 @@ def _score_options(options: Optional[dict]) -> tuple[float, str]:
 
     components = []
     if ratio is not None:
-        # ratio=1.0 (balanced) -> 3.0; ratio=0.4 (call-heavy, bullish) -> 6.0; ratio=1.6+ (put-heavy) -> 0.0
-        ratio_component = 3.0 - (ratio - 1.0) * 5.0
-        components.append(max(0.0, min(6.0, ratio_component)))
+        if options.get("put_call_ratio_percentile_data_quality") == _PERCENTILE_MIN_DQ:
+            components.append(_score_from_percentile(options["put_call_ratio_percentile"]))
+        else:
+            # ratio=1.0 (balanced) -> 3.0; ratio=0.4 (call-heavy, bullish) -> 6.0; ratio=1.6+ (put-heavy) -> 0.0
+            ratio_component = 3.0 - (ratio - 1.0) * 5.0
+            components.append(max(0.0, min(6.0, ratio_component)))
     if skew is not None:
-        # skew=0 (balanced) -> 3.0; skew=-0.06 (calls richer, bullish) -> 6.0; skew=+0.06 (puts richer) -> 0.0
-        skew_component = 3.0 - skew * 50.0
-        components.append(max(0.0, min(6.0, skew_component)))
+        if options.get("iv_skew_percentile_data_quality") == _PERCENTILE_MIN_DQ:
+            components.append(_score_from_percentile(options["iv_skew_percentile"]))
+        else:
+            # skew=0 (balanced) -> 3.0; skew=-0.06 (calls richer, bullish) -> 6.0; skew=+0.06 (puts richer) -> 0.0
+            skew_component = 3.0 - skew * 50.0
+            components.append(max(0.0, min(6.0, skew_component)))
 
     score = sum(components) / len(components)
     dq = "complete" if len(components) == 2 else "partial"
     return score, dq
+
+
+def _score_from_percentile(percentile: float) -> float:
+    """
+    percentile=0 (today's reading is the lowest/most call-favoring ever seen
+    for this ticker) -> 6.0 (max bullish); percentile=100 (highest/most
+    put-favoring ever) -> 0.0; percentile=50 -> 3.0 (neutral midpoint).
+    """
+    return max(0.0, min(6.0, 6.0 * (1.0 - percentile / 100.0)))
 
 
 def _score_institutional(current: Optional[dict], previous: Optional[dict]) -> tuple[float, str]:

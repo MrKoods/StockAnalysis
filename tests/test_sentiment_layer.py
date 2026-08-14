@@ -26,7 +26,9 @@ from shared.utils.source_credibility import (
 )
 from shared.utils.ner_extractor import extract_ticker_sentiments, is_ticker_relevant
 from shared.utils.narrative_tracker import identify_dominant_theme, theme_alignment_modifier
-from swing_model.sentiment_layer import compute_sentiment_score, SENTIMENT_MAX, _build_daily_bullish_ratios
+from swing_model.sentiment_layer import (
+    compute_sentiment_score, SENTIMENT_MAX, _build_daily_bullish_ratios, _score_velocity,
+)
 from swing_model.news_layer import compute_news_score, count_independent_cluster
 
 
@@ -296,6 +298,27 @@ class TestSentimentLayer:
         result_flat = compute_sentiment_score([], flat, "NVDA", {})
         assert result_rising["engagement_score"] > result_flat["engagement_score"]
 
+    def test_single_message_does_not_flip_dominant_sentiment(self):
+        """
+        The bug being fixed: dominant_sentiment (feeds determine_direction()
+        in scoring.py, deciding the trade's actual direction) was computed
+        from the raw, ungated ratio — a single tagged message (1 bullish, 0
+        bearish -> ratio 1.0) could confidently label the trade "bullish"
+        with zero sample-size protection, unlike the point score right next
+        to it (_score_ratio), which explicitly refuses to trust anything
+        below _RATIO_MIN_BASELINE_MESSAGES.
+        """
+        messages = self._make_messages(1, 0)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        assert result["bullish_ratio_stocktwits"] == 1.0  # the raw ratio is still extreme...
+        assert result["dominant_sentiment"] == "neutral"  # ...but not trusted for direction
+
+    def test_enough_tagged_messages_does_drive_dominant_sentiment(self):
+        # Above the baseline floor — the ratio should drive the label again.
+        messages = self._make_messages(5, 0)
+        result = compute_sentiment_score(messages, [], "NVDA", {})
+        assert result["dominant_sentiment"] == "bullish"
+
     def test_all_required_keys_present(self):
         result = compute_sentiment_score([], [], "NVDA", {})
         required = [
@@ -307,6 +330,35 @@ class TestSentimentLayer:
         ]
         for key in required:
             assert key in result, f"Missing key: {key}"
+
+
+class TestSentimentVelocityFallback:
+    """
+    _score_velocity's fallback path (used when StockTwits' native
+    sentiment_change/volume_change fields aren't present) derives velocity
+    from the daily bullish-ratio trajectory. Regression coverage for the
+    multiplier recalibration: a moderate trajectory swing used to already
+    hit the score's ceiling/floor almost exactly, making this sub-signal
+    close to binary for realistic inputs.
+    """
+
+    def test_moderate_trajectory_swing_no_longer_saturates(self):
+        messages = [{"message_id": "1"}]  # no native fields -> fallback path
+        daily_ratios = [0.5, 0.5, 0.5, 0.53, 0.59]  # velocity ~= 0.06
+        score, dq = _score_velocity(messages, daily_ratios)
+        assert dq == "partial"
+        assert 3.0 < score < 4.0  # a real lift above neutral, not maxed out
+
+    def test_large_trajectory_swing_still_approaches_ceiling(self):
+        messages = [{"message_id": "1"}]
+        daily_ratios = [0.2, 0.2, 0.2, 0.7, 1.0]  # a genuinely large swing
+        score, dq = _score_velocity(messages, daily_ratios)
+        assert score >= 4.5
+
+    def test_no_messages_is_unavailable(self):
+        score, dq = _score_velocity([], [0.5, 0.6, 0.7])
+        assert score == 0.0
+        assert dq == "unavailable"
 
 
 class TestBuildDailyBullishRatios:
@@ -360,6 +412,40 @@ class TestNewsLayer:
                 "ticker_sentiment": [],
             })
         return articles
+
+    def _article_at_age(self, hours_ago, domain="reuters.com"):
+        now = datetime.now(timezone.utc)
+        return {
+            "article_id": domain,
+            "timestamp_utc": (now - timedelta(hours=hours_ago)).isoformat(),
+            "title": "NVIDIA gains on strong quarterly results",
+            "url": f"https://{domain}/news",
+            "source": domain,
+            "source_domain": domain,
+            "overall_sentiment_score": 0.5,
+            "overall_sentiment_label": "bullish",
+            "ticker_sentiment": [],
+        }
+
+    def test_decay_score_reflects_freshest_article_not_average(self):
+        """
+        The bug being fixed: decay_score used to average freshness across
+        every relevant article — but freshness is already baked in as a
+        per-article weight inside credibility_weighted_score, so a stale
+        second article was silently dragging decay_score down too, double-
+        counting the same underlying signal. A very fresh article (~1h old)
+        paired with a near-fully-decayed one (~100h old) should score close
+        to the freshest article's own decay, not a diluted average of both.
+        """
+        fresh = self._article_at_age(1, domain="reuters.com")
+        stale = self._article_at_age(100, domain="cnbc.com")
+        result = compute_news_score([fresh, stale], [], "NVDA")
+
+        # Freshest article alone (~1h old, halflife=24h): decay ~= 0.959 -> ~1.92
+        assert result["decay_score"] > 1.5
+        # The old average-based behavior would have landed close to ~0.97 —
+        # confirm the fix moved meaningfully away from that.
+        assert result["decay_score"] > 1.3
 
     def test_bullish_articles_give_nonzero_score(self):
         arts = self._make_articles(["bullish", "bullish"], ["reuters.com", "cnbc.com"])

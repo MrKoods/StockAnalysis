@@ -255,11 +255,21 @@ def compute_news_score(
     clustering_score = float(min(3, cluster_count))
 
     # ---------------------------------------------------------------------------
-    # 4. Decay score (0-2): average freshness of relevant articles
+    # 4. Decay score (0-2): freshness of the MOST RECENT relevant article.
+    #
+    # Previously averaged _decay across every relevant article — but freshness
+    # already acts as a per-article weight inside credibility_weighted_score
+    # (w = cred * decay), so a batch of fresh, credible articles was rewarded
+    # twice by the same underlying signal: once through a less-diluted
+    # directional score, and again through this separate additive average of
+    # the identical decay values. Using the single freshest article instead
+    # answers a genuinely different question — "is something happening right
+    # now" — rather than re-deriving the same per-article average baked into
+    # credibility_weighted_score's own weighting.
     # ---------------------------------------------------------------------------
     if relevant:
-        avg_decay = sum(art["_decay"] for art in relevant) / len(relevant)
-        decay_score = round(avg_decay * 2.0, 2)
+        most_recent_decay = max(art["_decay"] for art in relevant)
+        decay_score = round(most_recent_decay * 2.0, 2)
     else:
         decay_score = 0.0
 

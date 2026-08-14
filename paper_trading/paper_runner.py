@@ -65,6 +65,7 @@ from swing_model.run_swing_model import (
     _fetch_market_context,
     _compute_regime_safe,
     _compute_macro_safe,
+    _compute_china_tension_count,
     _compute_rotation_safe,
     _compute_cross_ticker_safe,
     _fetch_stocktwits_safe,
@@ -349,7 +350,12 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     mkt = _fetch_market_context(cfg)
     vix_val = float(mkt["vix"]) if mkt["vix"] is not None else 15.0
 
-    # Regime/rotation modifiers computed PER SECTOR; macro + seasonality stay global.
+    # Regime/rotation/macro/seasonality modifiers computed PER SECTOR — macro's
+    # TNX/DXY/China rationale and seasonality's demand calendar are only
+    # validated for semiconductors (see macro_overlay._SECTORS_WITH_VALIDATED_
+    # MACRO_LOGIC / seasonality's equivalent), so any other sector resolves
+    # neutral instead of applying semiconductor-specific logic backwards
+    # (e.g. "hawkish rates are adverse" scoring regional banks wrong).
     regime_by_sector: dict[str, str] = {}
     regime_mod_by_sector: dict[str, float] = {}
     rotation_mod_by_sector: dict[str, float] = {}
@@ -366,16 +372,28 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # META) — fetched once per scan, reused for every ticker in that sector.
     sector_context_filings = _compute_sector_context_filings(active_sectors)
 
-    macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
-    macro_mod = macro_state_result.get("confidence_modifier", 0.0)
+    china_keyword_count = _compute_china_tension_count(cfg) if "semiconductors" in active_sectors else 0
+
+    macro_state_by_sector: dict[str, dict] = {}
+    macro_mod_by_sector: dict[str, float] = {}
+    for sector_name in active_sectors:
+        result = _compute_macro_safe(
+            mkt["tnx_series"], mkt["dxy_series"], china_keyword_count, cfg, sector=sector_name
+        )
+        macro_state_by_sector[sector_name] = result
+        macro_mod_by_sector[sector_name] = result.get("confidence_modifier", 0.0)
     # Persist for observability (app UI, debugging) — computed fresh every run
     # regardless, this doesn't feed back into scoring itself. Best-effort: a
     # write failure here shouldn't abort the scan.
     try:
-        save_macro_state(macro_state_result)
+        save_macro_state({"by_sector": macro_state_by_sector})
     except Exception as exc:
         logger.warning(f"Failed to persist macro state — {exc}")
-    seasonality_mod = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
+
+    seasonality_mod_by_sector: dict[str, float] = {
+        sector_name: get_seasonality_modifier(cfg=cfg, sector=sector_name).get("confidence_modifier", 0.0)
+        for sector_name in active_sectors
+    }
 
     # Only non-None once a real feedback-loop calibration has passed holdout —
     # see load_live_weights_if_calibrated's docstring. Always None today (zero
@@ -414,7 +432,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 logger.info(f"{ticker}: already logged today — skipped")
                 continue
 
-            # This ticker's sector — drives which regime/rotation modifier applies.
+            # This ticker's sector — drives which regime/rotation/macro/
+            # seasonality modifier applies.
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
             regime_mod = regime_mod_by_sector.get(sector, 0.0)
@@ -422,6 +441,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 rotation_mod_by_sector.get(sector, 0.0),
                 float(indicators.get("rs_zscore", 0.0)),
             )
+            macro_mod = macro_mod_by_sector.get(sector, 0.0)
+            seasonality_mod = seasonality_mod_by_sector.get(sector, 0.0)
 
             # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)

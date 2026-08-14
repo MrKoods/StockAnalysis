@@ -218,6 +218,29 @@ class TestEarningsCalendar:
         result = get_earnings_modifier("NVDA", earnings, today=self._today())
         assert result["post_earnings_settling"]
 
+    def test_post_earnings_settling_applies_a_partial_penalty(self):
+        """
+        The bug being fixed: post_earnings_settling was computed and returned
+        but never actually changed confidence_modifier — the day after a
+        report jumped straight from -20 to 0.0, identical to 19+ days out,
+        contradicting the module's own "tentative restore" docstring. Days
+        -3 through -1 should now carry a real, smaller-than-near-earnings
+        penalty instead of a full overnight reset to neutral.
+        """
+        for days_ago in (1, 2, 3):
+            earnings = datetime(2024, 5, 15 - days_ago, tzinfo=timezone.utc)
+            result = get_earnings_modifier("NVDA", earnings, today=self._today())
+            assert result["post_earnings_settling"]
+            assert result["confidence_modifier"] == -5.0
+            assert not result["force_defined_risk"]
+
+    def test_4_days_after_earnings_is_fully_restored(self):
+        # Outside the 3-day settling window — back to the normal 0.0 floor.
+        earnings = datetime(2024, 5, 11, tzinfo=timezone.utc)  # 4 days ago
+        result = get_earnings_modifier("NVDA", earnings, today=self._today())
+        assert not result["post_earnings_settling"]
+        assert result["confidence_modifier"] == 0.0
+
     def test_beyond_18_days_no_penalty(self):
         earnings = datetime(2024, 6, 10, tzinfo=timezone.utc)  # 26 days out
         result = get_earnings_modifier("NVDA", earnings, today=self._today())
@@ -264,6 +287,32 @@ class TestSeasonality:
         result = get_seasonality_modifier()
         for key in ("month", "quarter", "seasonality_state", "confidence_modifier", "rationale"):
             assert key in result
+
+    def test_non_semiconductor_sector_is_neutralized(self):
+        """
+        This monthly profile is semiconductor-specific (PC/server build cycles,
+        NVDA/AMD product-cycle ordering) — applying it to a bank or healthcare
+        ticker is actively misleading, not just imprecise. December (real
+        modifier +5.0) should resolve to a neutral 0.0 for a different sector.
+        """
+        dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
+        semis_result = get_seasonality_modifier(date=dec, sector="semiconductors")
+        banks_result = get_seasonality_modifier(date=dec, sector="regional_banks")
+
+        assert semis_result["confidence_modifier"] == 5.0
+        assert semis_result["sector_scoped"] is False
+
+        assert banks_result["confidence_modifier"] == 0.0
+        assert banks_result["seasonality_state"] == "neutral"
+        assert banks_result["sector_scoped"] is True
+        # month/quarter still reported for observability
+        assert banks_result["month"] == 12
+
+    def test_no_sector_arg_preserves_original_behavior(self):
+        dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
+        result = get_seasonality_modifier(date=dec)
+        assert result["confidence_modifier"] == 5.0
+        assert result["sector_scoped"] is False
 
     def test_config_override(self):
         # Key must match swing_config.yaml's actual schema (modifiers.seasonality.
@@ -362,6 +411,38 @@ class TestMacroOverlay:
         result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0)
         # Both TNX and DXY fall back to neutral → overall favorable or neutral
         assert result["macro_state"] in (MACRO_NEUTRAL, MACRO_FAVORABLE)
+
+    def test_non_semiconductor_sector_is_neutralized_even_with_adverse_signals(self):
+        """
+        TNX-hawkish-is-adverse and DXY-strength-is-adverse are semiconductor-
+        specific rationale (growth-stock discount rate sensitivity; TSM/ASML
+        foreign-ADR currency exposure) — applying them to a regional bank,
+        where rising rates typically widen net interest margin, would be
+        backwards, not just imprecise. A clearly-adverse reading for
+        semiconductors must resolve neutral for a different sector.
+        """
+        tnx = pd.Series([4.0] * 6 + [4.0 * 1.05] * 20)  # rising → adverse for semis
+        dxy = pd.Series([100.0] * 6 + [100.0 * 1.03] * 20)  # rising → adverse for semis
+
+        semis_result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0, sector="semiconductors")
+        assert semis_result["macro_state"] == MACRO_ADVERSE
+        assert semis_result["confidence_modifier"] == -10.0
+        assert semis_result["sector_scoped"] is False
+
+        banks_result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0, sector="regional_banks")
+        assert banks_result["macro_state"] == MACRO_NEUTRAL
+        assert banks_result["confidence_modifier"] == 0.0
+        assert banks_result["sector_scoped"] is True
+        # Trend readings are still real/observable even though neutralized
+        assert banks_result["tnx_trend"] == "rising"
+        assert banks_result["dxy_trend"] == "rising"
+
+    def test_no_sector_arg_preserves_original_behavior(self):
+        tnx = pd.Series([4.0] * 6 + [4.0 * 1.05] * 20)
+        dxy = pd.Series([100.0] * 6 + [100.0 * 1.03] * 20)
+        result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0)
+        assert result["macro_state"] == MACRO_ADVERSE
+        assert result["sector_scoped"] is False
 
 
 class TestMacroStatePersistence:

@@ -36,6 +36,65 @@ class TestOptionsScore:
         assert result["_options_raw"] is None
 
 
+class TestOptionsScorePercentileBaseline:
+    """
+    Put/call ratio and IV skew now prefer a per-ticker historical percentile
+    over the old fixed absolute constants (ratio=1.0/skew=0.0 as "neutral")
+    once enough history has accumulated — see indicator_pipeline.py's
+    put_call_ratio_history/iv_skew_history. Real equities carry a structural
+    put-skew most of the time and different tickers run structurally
+    different baseline ratios, so an absolute constant was never a real
+    per-ticker baseline.
+    """
+
+    def test_low_percentile_ratio_scores_bullish(self):
+        # Today's ratio is the LOWEST (most call-heavy) this ticker has ever
+        # shown -> max bullish, regardless of the raw absolute ratio value.
+        data = {"options": {
+            "put_call_ratio": 1.8,  # would read bearish under the old absolute formula
+            "put_call_ratio_percentile": 0.0,
+            "put_call_ratio_percentile_data_quality": "sufficient_history",
+            "iv_skew": None,
+        }}
+        result = compute_positioning_score("NVDA", data)
+        assert result["options_score"] == 6.0
+
+    def test_high_percentile_ratio_scores_bearish(self):
+        data = {"options": {
+            "put_call_ratio": 0.4,  # would read bullish under the old absolute formula
+            "put_call_ratio_percentile": 100.0,
+            "put_call_ratio_percentile_data_quality": "sufficient_history",
+            "iv_skew": None,
+        }}
+        result = compute_positioning_score("NVDA", data)
+        assert result["options_score"] == 0.0
+
+    def test_median_percentile_skew_scores_neutral(self):
+        data = {"options": {
+            "put_call_ratio": None,
+            "iv_skew": 0.06,  # would read maximally bearish under the old absolute formula
+            "iv_skew_percentile": 50.0,
+            "iv_skew_percentile_data_quality": "sufficient_history",
+        }}
+        result = compute_positioning_score("NVDA", data)
+        assert result["options_score"] == 3.0
+
+    def test_insufficient_history_falls_back_to_absolute_formula(self):
+        # percentile=100.0 would score 0.0 (max bearish) if it were used, but
+        # data_quality="insufficient_history" (cold start) means it must be
+        # ignored — the absolute formula for ratio=0.4 (6.0, max bullish) is
+        # what should actually come out, proving the fallback branch fired
+        # rather than the percentile branch silently being used anyway.
+        data = {"options": {
+            "put_call_ratio": 0.4,
+            "put_call_ratio_percentile": 100.0,
+            "put_call_ratio_percentile_data_quality": "insufficient_history",
+            "iv_skew": None,
+        }}
+        result = compute_positioning_score("NVDA", data)
+        assert result["options_score"] == 6.0
+
+
 class TestInstitutionalScore:
     def test_accumulation_scores_above_midpoint(self):
         current = {"institutional": {"held_percent_institutions": 0.62}}

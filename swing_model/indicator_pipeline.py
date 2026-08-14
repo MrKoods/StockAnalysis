@@ -25,7 +25,10 @@ from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.fundamental_client import FundamentalClient
 from swing_model.fundamental_layer import FundamentalScorer
-from shared.api_clients.positioning_client import fetch_all_positioning, compute_iv_percentile
+from shared.api_clients.positioning_client import (
+    fetch_all_positioning, compute_iv_percentile,
+    compute_put_call_ratio_percentile, compute_iv_skew_percentile,
+)
 from swing_model.positioning_layer import compute_positioning_score
 
 logger = get_logger(__name__)
@@ -34,7 +37,7 @@ _ET = ZoneInfo("America/New_York")
 _FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
 _FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
-_MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history's growth, oldest dropped first
+_MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history/put_call_ratio_history/iv_skew_history's growth, oldest dropped first
 
 # Fundamental refresh is staggered rather than bursting the whole watchlist on one
 # day. eps_growth_trend (the one figure that used to require Alpha Vantage) now
@@ -440,6 +443,35 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     return state
 
 
+def _append_and_score_history(
+    history_by_ticker: dict, ticker: str, current_value, percentile_fn, dq_field_name: str
+) -> dict:
+    """
+    Append today's reading to `history_by_ticker[ticker]` (creating it if
+    needed, capped at _MAX_IV_HISTORY_DAYS), then score today's value against
+    the PRIOR history only (excluding the just-appended reading — comparing
+    today's value against itself would trivially always land near the 50th
+    percentile). Shared by atm_iv/put_call_ratio/iv_skew, which all follow
+    the same "accumulates going forward" rolling-history shape.
+
+    All three of compute_iv_percentile/compute_put_call_ratio_percentile/
+    compute_iv_skew_percentile return their data-quality flag under the same
+    generic "data_quality" key — fine standalone, but the caller merges all
+    three results into one shared options dict, where each subsequent
+    .update() would otherwise silently overwrite the previous metric's
+    data_quality under that identical key. Renamed to dq_field_name here so
+    all three survive the merge.
+    """
+    ticker_history = history_by_ticker.setdefault(ticker, [])
+    if current_value is not None:
+        ticker_history.append(current_value)
+        del ticker_history[:-_MAX_IV_HISTORY_DAYS]
+    result = percentile_fn(current_value, ticker_history[:-1])
+    if "data_quality" in result:
+        result[dq_field_name] = result.pop("data_quality")
+    return result
+
+
 def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Optional[dict] = None) -> dict:
     """
     Fetch or load Market Positioning data for the given tickers (daily cadence,
@@ -474,25 +506,38 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
 
     logger.info(f"Fetching positioning data for: {to_fetch}")
     iv_history = state.setdefault("iv_history", {})
+    put_call_ratio_history = state.setdefault("put_call_ratio_history", {})
+    iv_skew_history = state.setdefault("iv_skew_history", {})
     min_dte = int(cfg.get("greeks_filter", {}).get("min_dte", 5))
     for ticker in to_fetch:
         if ticker in state["tickers"]:
             state["previous_tickers"][ticker] = state["tickers"][ticker]
         try:
             fresh = fetch_all_positioning(ticker, current_price=current_prices.get(ticker), min_dte=min_dte)
-            # IV percentile needs a rolling history of daily atm_iv readings, not
+            # Percentile scoring needs a rolling history of daily readings, not
             # just today's — build/extend it here (once per ticker per day, same
             # cadence as the rest of Positioning) and attach the computed
-            # percentile to today's options data so it's available wherever
+            # percentiles to today's options data so they're available wherever
             # _positioning_full is read (scoring, trade_selector.py's structure
-            # selection), without every caller re-deriving it from raw history.
-            atm_iv = (fresh.get("options") or {}).get("atm_iv")
-            ticker_history = iv_history.setdefault(ticker, [])
-            if atm_iv is not None:
-                ticker_history.append(atm_iv)
-                del ticker_history[:-_MAX_IV_HISTORY_DAYS]
+            # selection), without every caller re-deriving them from raw history.
+            # Same pattern for all three metrics: atm_iv (feeds trade-structure
+            # selection), put_call_ratio and iv_skew (feed positioning_layer's
+            # options_score — previously scored against fixed absolute constants
+            # with no per-ticker baseline; see positioning_layer._score_options).
+            options = fresh.get("options") or {}
             if fresh.get("options") is not None:
-                fresh["options"].update(compute_iv_percentile(atm_iv, ticker_history[:-1]))
+                fresh["options"].update(_append_and_score_history(
+                    iv_history, ticker, options.get("atm_iv"), compute_iv_percentile,
+                    "iv_percentile_data_quality",
+                ))
+                fresh["options"].update(_append_and_score_history(
+                    put_call_ratio_history, ticker, options.get("put_call_ratio"),
+                    compute_put_call_ratio_percentile, "put_call_ratio_percentile_data_quality",
+                ))
+                fresh["options"].update(_append_and_score_history(
+                    iv_skew_history, ticker, options.get("iv_skew"), compute_iv_skew_percentile,
+                    "iv_skew_percentile_data_quality",
+                ))
             state["tickers"][ticker] = fresh
             state["fetched_dates"][ticker] = today_str
             logger.info(f"  {ticker}: positioning data fetched OK")

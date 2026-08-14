@@ -264,10 +264,22 @@ def compute_technical_indicators(
         # of silently scoring on a fabricated price. Caller already treats
         # this the same as any other indicator-computation failure.
         raise ValueError("Latest bar has a NaN close — cannot compute indicators")
-    c_sma20 = float(sma_20_series.iloc[latest]) if not pd.isna(sma_20_series.iloc[latest]) else c_close
-    c_sma50 = float(sma_50_series.iloc[latest]) if not pd.isna(sma_50_series.iloc[latest]) else c_close
+    # Real (non-fallback) availability of each windowed indicator — tracked
+    # so data_quality below can tell scoring.py when a technical score was
+    # computed on substitute values (e.g. an insufficient-history ticker's
+    # sma_50 silently standing in as its own "close," which reads as a
+    # broken trend rather than an unknown one) instead of real data. Unlike
+    # Positioning/Sentiment/Fundamentals, this layer previously reported no
+    # data-quality signal at all despite being the single largest scoring
+    # category (40 of 100 points).
+    sma_20_available = not pd.isna(sma_20_series.iloc[latest])
+    sma_50_available = not pd.isna(sma_50_series.iloc[latest])
+    atr_available = not pd.isna(atr_series.iloc[latest])
+
+    c_sma20 = float(sma_20_series.iloc[latest]) if sma_20_available else c_close
+    c_sma50 = float(sma_50_series.iloc[latest]) if sma_50_available else c_close
     c_rsi = float(rsi_series.iloc[latest])
-    c_atr = float(atr_series.iloc[latest]) if not pd.isna(atr_series.iloc[latest]) else 0.0
+    c_atr = float(atr_series.iloc[latest]) if atr_available else 0.0
     # MACD needs ~35 bars of history (26-period slow EMA + signal); with less
     # (new watchlist addition, short backtest window) macd_line/signal are NaN.
     # Unguarded, NaN > NaN evaluates False in Python, so macd_bullish silently
@@ -342,4 +354,21 @@ def compute_technical_indicators(
         "macd_data_available": macd_data_available,
 
         "volume_profile_score": c_volume_profile_score,
+
+        # "complete" only when every windowed indicator had enough real
+        # history to compute for real; "partial" when one or more fell back
+        # to a substitute value (sma_20/sma_50 standing in as the close
+        # price, atr as 0.0, or macd as unavailable) — most relevant for a
+        # newly-added watchlist ticker or a short backtest window, where a
+        # substitute sma_50 reads as "trend broken" rather than "unknown."
+        "data_quality": (
+            "complete" if all([sma_20_available, sma_50_available, atr_available, macd_data_available])
+            else "partial"
+        ),
+        "sub_signal_data_quality": {
+            "sma_20": "complete" if sma_20_available else "partial",
+            "sma_50": "complete" if sma_50_available else "partial",
+            "atr": "complete" if atr_available else "partial",
+            "macd": "complete" if macd_data_available else "partial",
+        },
     }

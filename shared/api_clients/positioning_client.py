@@ -36,6 +36,8 @@ __all__ = [
     "fetch_insider_transactions",
     "fetch_all_positioning",
     "compute_iv_percentile",
+    "compute_put_call_ratio_percentile",
+    "compute_iv_skew_percentile",
 ]
 
 _MIN_IV_HISTORY_SAMPLES = 10
@@ -231,6 +233,30 @@ def _build_chain_list(calls, puts, current_price: Optional[float], expiration: s
     return contracts
 
 
+def _compute_percentile_rank(
+    current_value: Optional[float], history: list, min_samples: int = _MIN_IV_HISTORY_SAMPLES
+) -> tuple[float, str]:
+    """
+    Shared percentile-rank helper behind compute_iv_percentile() and the
+    put/call-ratio and IV-skew equivalents below — all three follow the same
+    "accumulates going forward, not backtestable yet" shape: neutral 50.0
+    with data_quality flagged until min_samples prior readings exist, so
+    callers can tell "genuinely mid-range" apart from "not enough history yet."
+
+    Returns (percentile, data_quality) — data_quality is "sufficient_history"
+    | "insufficient_history" | "unavailable".
+    """
+    if current_value is None:
+        return 50.0, "unavailable"
+
+    clean_history = [v for v in (history or []) if v is not None]
+    if len(clean_history) < min_samples:
+        return 50.0, "insufficient_history"
+
+    rank = sum(1 for v in clean_history if v <= current_value)
+    return round(100.0 * rank / len(clean_history), 2), "sufficient_history"
+
+
 def compute_iv_percentile(current_iv: Optional[float], iv_history: list) -> dict:
     """
     Percentile rank of `current_iv` within `iv_history` (prior daily `atm_iv`
@@ -248,16 +274,40 @@ def compute_iv_percentile(current_iv: Optional[float], iv_history: list) -> dict
     Returns {"iv_percentile": float, "data_quality": "sufficient_history" |
     "insufficient_history" | "unavailable"}.
     """
-    if current_iv is None:
-        return {"iv_percentile": 50.0, "data_quality": "unavailable"}
+    percentile, dq = _compute_percentile_rank(current_iv, iv_history)
+    return {"iv_percentile": percentile, "data_quality": dq}
 
-    history = [v for v in (iv_history or []) if v is not None]
-    if len(history) < _MIN_IV_HISTORY_SAMPLES:
-        return {"iv_percentile": 50.0, "data_quality": "insufficient_history"}
 
-    rank = sum(1 for v in history if v <= current_iv)
-    percentile = round(100.0 * rank / len(history), 2)
-    return {"iv_percentile": percentile, "data_quality": "sufficient_history"}
+def compute_put_call_ratio_percentile(current_ratio: Optional[float], ratio_history: list) -> dict:
+    """
+    Percentile rank of today's put/call ratio within this ticker's own
+    trailing history — same shape as compute_iv_percentile(), for the same
+    reason: positioning_layer.py used to score put/call ratio against a fixed
+    absolute constant (1.0 = "neutral"), but different tickers run
+    structurally different baseline ratios depending on their investor base,
+    so an absolute constant isn't a real per-ticker baseline. Below the
+    sample floor, falls back to that absolute-constant scoring instead (see
+    positioning_layer._score_options).
+
+    Returns {"put_call_ratio_percentile": float, "data_quality": ...}.
+    """
+    percentile, dq = _compute_percentile_rank(current_ratio, ratio_history)
+    return {"put_call_ratio_percentile": percentile, "data_quality": dq}
+
+
+def compute_iv_skew_percentile(current_skew: Optional[float], skew_history: list) -> dict:
+    """
+    Percentile rank of today's IV skew within this ticker's own trailing
+    history. Real equities carry a structural put-skew most of the time
+    (crash-hedging demand is a market-wide feature, not stock-specific
+    bearishness) — scoring skew=0.0 as "neutral" treats an unusual reading
+    as the baseline. Below the sample floor, falls back to the absolute-
+    constant scoring instead (see positioning_layer._score_options).
+
+    Returns {"iv_skew_percentile": float, "data_quality": ...}.
+    """
+    percentile, dq = _compute_percentile_rank(current_skew, skew_history)
+    return {"iv_skew_percentile": percentile, "data_quality": dq}
 
 
 def fetch_institutional_ownership(ticker: str) -> dict:

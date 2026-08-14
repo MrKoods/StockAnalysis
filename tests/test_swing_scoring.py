@@ -340,6 +340,26 @@ class TestDataSufficiency:
         # 5 positioning + 3 sentiment + 1 fundamental = 9
         assert result["total_sub_signals_checked"] == 9
 
+    def test_technical_data_quality_is_counted_when_supplied(self):
+        """
+        Technical previously reported no data-quality signal at all despite
+        being the largest single scoring category (40 of 100 points) — a
+        ticker with substitute (fallback) sma_50/macd values looked exactly
+        as trustworthy as one with a full, real indicator set. technical is
+        optional (default None) so existing callers that don't pass it are
+        unaffected — see test_total_sub_signals_checked_counts_all_eight above.
+        """
+        technical = {"sub_signal_data_quality": {
+            "sma_20": "complete", "sma_50": "partial", "atr": "complete", "macd": "complete",
+        }}
+        result = compute_data_sufficiency(
+            self._all_complete_positioning(), self._all_complete_sentiment(),
+            {"data_quality": "complete"}, technical,
+        )
+        # 5 positioning + 3 sentiment + 1 fundamental + 4 technical = 13
+        assert result["total_sub_signals_checked"] == 13
+        assert result["degraded_sub_signal_count"] == 1  # sma_50 alone
+
     def test_wired_into_compute_confidence_score_output(self):
         result = compute_confidence_score(
             technical=_max_technical(), positioning={"sub_signal_data_quality": {"options": "unavailable"}},

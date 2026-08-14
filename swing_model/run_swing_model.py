@@ -117,9 +117,15 @@ def main(scan_type: str = "post_close") -> None:
     # modifiers) — one batch fetch covering every active sector's benchmark.
     mkt = _fetch_market_context(cfg)
 
-    # Step 6: Compute regime/rotation modifiers PER SECTOR (each sector can be
-    # in a different regime at the same time) — macro overlay and seasonality
-    # stay global, since TNX/DXY and the calendar aren't sector-specific.
+    # Step 6: Compute regime/rotation/macro/seasonality modifiers PER SECTOR —
+    # each sector can be in a different regime at the same time, and (see
+    # macro_overlay._SECTORS_WITH_VALIDATED_MACRO_LOGIC / seasonality's
+    # equivalent) the TNX/DXY/China rationale and the semiconductor demand
+    # calendar are only validated for semiconductors, not universal — applying
+    # them identically to every sector used to mean, e.g., "hawkish rates are
+    # adverse" scoring regional bank tickers backwards (rate rises typically
+    # widen bank margins) and "TSM/ASML currency exposure" logic applying to
+    # Home Depot.
     regime_by_sector: dict[str, str] = {}
     regime_modifier_by_sector: dict[str, float] = {}
     rotation_modifier_by_sector: dict[str, float] = {}
@@ -136,16 +142,34 @@ def main(scan_type: str = "post_close") -> None:
     # META) — fetched once per scan, reused for every ticker in that sector.
     sector_context_filings = _compute_sector_context_filings(active_sectors)
 
-    macro_state_result = _compute_macro_safe(mkt["tnx_series"], mkt["dxy_series"], cfg)
-    macro_modifier_val = macro_state_result.get("confidence_modifier", 0.0)
+    # China-tension keyword count — free (Yahoo, no API budget), scoped to the
+    # semiconductor watchlist since that's the only sector this signal is
+    # validated for. Previously hardcoded to 0 unconditionally (dead signal —
+    # see CHANGELOG), which silently required BOTH TNX and DXY to be adverse
+    # simultaneously to ever reach MACRO_ADVERSE, a materially higher bar than
+    # the module's own 2-of-3 design.
+    china_keyword_count = _compute_china_tension_count(cfg) if "semiconductors" in active_sectors else 0
+
+    macro_state_by_sector: dict[str, dict] = {}
+    macro_modifier_by_sector: dict[str, float] = {}
+    for sector_name in active_sectors:
+        bench_result = _compute_macro_safe(
+            mkt["tnx_series"], mkt["dxy_series"], china_keyword_count, cfg, sector=sector_name
+        )
+        macro_state_by_sector[sector_name] = bench_result
+        macro_modifier_by_sector[sector_name] = bench_result.get("confidence_modifier", 0.0)
     # Persist for observability (app UI, debugging) — computed fresh every run
     # regardless, this doesn't feed back into scoring itself. Best-effort: a
     # write failure here shouldn't abort the scan.
     try:
-        save_macro_state(macro_state_result)
+        save_macro_state({"by_sector": macro_state_by_sector})
     except Exception as exc:
         logger.warning(f"Failed to persist macro state — {exc}")
-    seasonality_modifier_val = get_seasonality_modifier(cfg=cfg).get("confidence_modifier", 0.0)
+
+    seasonality_modifier_by_sector: dict[str, float] = {
+        sector_name: get_seasonality_modifier(cfg=cfg, sector=sector_name).get("confidence_modifier", 0.0)
+        for sector_name in active_sectors
+    }
 
     # Only non-None once a real feedback-loop calibration has passed holdout —
     # see load_live_weights_if_calibrated's docstring. With zero calibrations
@@ -184,8 +208,9 @@ def main(scan_type: str = "post_close") -> None:
                 continue
             tickers_processed += 1
 
-            # This ticker's sector — drives which regime/rotation modifier applies
-            # and which sector's event-gate trigger list is checked below.
+            # This ticker's sector — drives which regime/rotation/macro/
+            # seasonality modifier applies and which sector's event-gate
+            # trigger list is checked below.
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
             regime_modifier_val = regime_modifier_by_sector.get(sector, 0.0)
@@ -193,6 +218,8 @@ def main(scan_type: str = "post_close") -> None:
                 rotation_modifier_by_sector.get(sector, 0.0),
                 float(indicators.get("rs_zscore", 0.0)),
             )
+            macro_modifier_val = macro_modifier_by_sector.get(sector, 0.0)
+            seasonality_modifier_val = seasonality_modifier_by_sector.get(sector, 0.0)
 
             # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy
             stocktwits_messages = _fetch_stocktwits_safe(ticker)
@@ -821,12 +848,16 @@ def _compute_regime_safe(
 def _compute_macro_safe(
     tnx_series,
     dxy_series,
+    china_keyword_count_5d: int,
     cfg: dict,
+    sector: Optional[str] = None,
 ) -> dict:
     """
-    Compute macro overlay; falls back to neutral (confidence_modifier=0.0) on error.
-    china_keyword_count_5d is passed as 0 — China keyword counting requires news data
-    that isn't yet parsed at this stage of the pipeline.
+    Compute one sector's macro overlay state; falls back to neutral
+    (confidence_modifier=0.0) on error. See macro_overlay.compute_macro_state's
+    `sector` param — this module's TNX/DXY/China rationale is only validated
+    for the semiconductors sector, so any other sector resolves neutral
+    regardless of the real TNX/DXY/China readings.
     """
     try:
         if tnx_series is None or dxy_series is None:
@@ -834,12 +865,56 @@ def _compute_macro_safe(
         return compute_macro_state(
             tnx_close=tnx_series,
             dxy_close=dxy_series,
-            china_keyword_count_5d=0,
+            china_keyword_count_5d=china_keyword_count_5d,
             cfg=cfg,
+            sector=sector,
         )
     except Exception as exc:
         logger.warning(f"Macro overlay failed — {exc}. Using neutral modifier.")
         return {"confidence_modifier": 0.0, "macro_state": "neutral"}
+
+
+def _compute_china_tension_count(cfg: dict) -> int:
+    """
+    Count semiconductor-relevant China-tension keyword mentions in recent
+    Yahoo Finance headlines for the semiconductor watchlist — free (no API
+    budget cost), scoped to that sector's own tickers since that's the only
+    sector macro_overlay's China-tension signal is validated for.
+
+    Previously this was hardcoded to 0 everywhere (see CHANGELOG) — the
+    config-declared china_keywords list and china_keyword_lookback_days
+    setting existed but were never actually consumed. Best-effort: any fetch
+    failure for a given ticker is skipped, not fatal to the count.
+    """
+    m_cfg = cfg.get("modifiers", {}).get("macro_overlay", {})
+    keywords = [k.lower() for k in m_cfg.get("china_keywords", [])]
+    if not keywords:
+        return 0
+    lookback_days = int(m_cfg.get("china_keyword_lookback_days", 5))
+    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+
+    semi_tickers = get_sector_tickers(cfg, "semiconductors")
+    seen_titles: set = set()
+    count = 0
+    for ticker in semi_tickers:
+        for art in _fetch_yahoo_news_safe(ticker):
+            title = (art.get("title") or "").strip()
+            if not title or title in seen_titles:
+                continue
+            ts_str = art.get("timestamp_utc")
+            if ts_str:
+                try:
+                    ts = datetime.fromisoformat(ts_str)
+                    if ts.tzinfo is None:
+                        ts = ts.replace(tzinfo=timezone.utc)
+                    if ts < cutoff:
+                        continue
+                except (ValueError, TypeError):
+                    pass  # unparseable timestamp — don't drop the article over it
+            if any(kw in title.lower() for kw in keywords):
+                seen_titles.add(title)
+                count += 1
+    return count
 
 
 def _compute_rotation_safe(benchmark_df, spy_df) -> dict:
