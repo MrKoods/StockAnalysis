@@ -60,6 +60,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.52 | 2026-08-13 | Bug Fix / Scoring Change / Data Source | AMD's Aug 4 earnings beat never reached the model — a full audit of the fundamentals layer found and fixed 7 real gaps, including a dead scoring bucket, a stock being benchmarked partly against itself, and no revenue data being tracked at all (EPS-only) |
 | v2.2.51 | 2026-08-11 | Bug Fix / Feature | Plain stock positions were priced at full share price instead of real dollar risk, diluting their modeled edge ~20x and wrongly excluding high-priced stocks from consideration — fixed the pricing and taught the system to prefer capped-loss options over shares only when an affordable one exists |
 | v2.2.50 | 2026-08-11 | Bug Fix | Every bearish signal has been silently excluded from all 42 trade structures since paper trading started — the reward:risk check only handled the bullish stop-below-entry case |
 | v2.2.49 | 2026-08-10 | Bug Fix | Paper trading could silently log a second same-direction position on a ticker that already had one open (found via PFE/LLY both duplicated 3 days apart) — added a duplicate-position guard scoped to paper trading's own ledger |
@@ -120,6 +121,40 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.52] — 2026-08-13 — [Bug Fix / Scoring Change / Data Source] Fundamental layer audit: a real earnings report went stale for a full quarter, valuation scoring had a dead bucket and compared each stock partly against itself, and revenue was never tracked at all (EPS-only)
+
+**Status:** Live.
+
+**In short:** Asked whether the model was catching a wave of semiconductor earnings news, which led to checking AMD specifically — its Aug 4, 2026 report (EPS $1.66 vs. $1.61 estimate, a beat) had never made it into the model. `eps_growth_trend` still reflected May's quarter, and would have stayed stuck there until ~3 days before AMD's *next* report in November. Traced the root cause and then broadened into a full "senior dev / trading expert" audit of the whole fundamentals layer, which turned up six more real gaps: a dead bucket in valuation scoring, a stock's peer-average benchmark that included the stock itself, no revenue or margin data tracked at all (EPS-only), an "estimate revisions" score that was actually just a valuation-gap proxy, an EPS-acceleration check vulnerable to a cyclical company's easy year-ago comp, and a price feeding that valuation-gap calc that could be over a week stale. Fixed all seven.
+
+**Problem:**
+1. `eps_growth_trend`'s refresh was gated on proximity to a ticker's *next* scheduled earnings date (`indicator_pipeline.py`'s `_get_upcoming_earnings_date`) — but yfinance's own calendar flips to the *following* quarter almost immediately once a company actually reports. Confirmed live: AMD's calendar already showed Nov 3 as "next earnings" the same week it reported Aug 4. The ±3-day lookahead window could therefore only ever really fire *before* a report, not after, despite reading as symmetric — so a report landing on an otherwise-ordinary rotation refresh day left the figure a full quarter stale until the *next* report's own pre-earnings window opened, ~3 months later.
+2. `score_valuation_vs_peers()`'s P/E and EV/EBITDA scoring had a dead middle bucket: a stock trading 10-50% above its peer average and one trading 0-10% above scored identically (+1) — the `else` branch that should have been a distinct, lower score fell through to the same value as the near-parity bucket. No test pinned the middle bucket's value, so this went unverified since it was written.
+3. Each ticker's own P/E and EV/EBITDA were included in the "peer average" it was then scored against. With a 6-name semiconductor watchlist, a ticker's own value was ~17% of its own benchmark — an expensive outlier dragged its own comparison average toward itself, understating its real premium.
+4. The layer only ever tracked EPS and valuation multiples — no revenue growth or gross-margin data at all, so EPS growth driven by margin expansion or buybacks looked identical to genuine demand-driven growth.
+5. `estimate_revisions_score` was, in practice, a valuation-gap proxy (`implied_upside_pct` — current price vs. analyst target), not a real revisions signal: a stock rallying toward its own price target shrinks its "upside" and scores as if analysts had turned bearish, even though no analyst estimate actually moved.
+6. The EPS-growth "accelerating" flag compared only the two most recent quarters — vulnerable to a single easy year-ago comp flipping it on for a cyclical name (MU, living through memory-pricing boom/bust cycles) with no real momentum behind it.
+7. `implied_upside_pct`'s `current_price` came from the same weekly-ish fundamentals refresh as the analyst target price — up to ~7-9 days stale for a metric that's purely a price-vs-target gap, meaningful for names that can move 5-10% in a week.
+
+**Fix:**
+1. `indicator_pipeline.py`: added `_get_last_reported_earnings_date()` (yfinance's actual reported-earnings history, not the forward-looking calendar) and a new `growth_fetched_dates` state key, tracked separately from the existing `fetched_dates`. A ticker whose real last-reported date is newer than its `growth_fetched_dates` entry now jumps the refresh queue regardless of what the forward calendar says. Caught mid-implementation that comparing against `fetched_dates` alone would have self-defeated the fix: a plain rotation touch updates `fetched_dates` without ever re-pulling growth data, which would have permanently masked a report landing on an off-cycle rotation day — covered by `test_rotation_only_touch_does_not_mask_a_missed_report`, the exact AMD-shaped scenario.
+2. `fundamental_layer.py`: replaced both bucket ladders with one shared, explicitly monotonic `_score_premium()` (discount → +2, 0-15% premium → +1, 15-40% → 0, 40-75% → -1, 75%+ → -2), used by both P/E-vs-peers and EV/EBITDA-vs-peers.
+3. Added `_leave_one_out_average()` — every ticker's peer benchmark (valuation, and now growth too) excludes that ticker's own value.
+4. `fundamental_client.py`: new `get_revenue_and_margin_trend()` pulls one YoY revenue comparison and a QoQ gross-margin comparison from yfinance's quarterly income statement (confirmed live across the full watchlist — free tier only goes back 4-6 quarters, not deep enough for a multi-point trend like EPS's, but enough for this). Gated by the same `fetch_eps_growth_trend` flag and carried forward on rotation refreshes the same way EPS growth already was. `score_earnings_momentum()` now caps `eps_growth_score` back down when EPS growth screens positive but revenue is actually down YoY (the classic low-quality-earnings pattern), and surfaces the gross-margin trend in the breakdown either way.
+5. `estimate_revisions_score` now compares today's analyst target price against the *prior* snapshot — `indicator_pipeline.py` stashes the old target price before each refresh overwrites it — isolating a real analyst re-rating from the stock simply moving. Falls back to the old implied-upside proxy only when no prior snapshot exists yet (cold start).
+6. "Accelerating" now requires 2 *consecutive* improving quarters when 3+ quarters of history are available, not just the latest vs. the one before.
+7. `score_earnings_momentum()` / `compute_fundamental_score()` / `score_all_tickers()` now accept a `live_price` override, wired from `indicator_pipeline.run_pipeline()`'s own same-scan OHLCV close instead of the cached fundamentals snapshot's price.
+
+Also added, as a smaller side effect of fix 4's peer-relative-growth machinery: `eps_growth_score` now gets a small ±1 nudge based on a ticker's growth relative to the sector's own leave-one-out average, alongside the existing fixed absolute thresholds — the same peer-relative treatment valuation already had but growth didn't.
+
+**Backtest result:** Not yet re-run. `FundamentalScorer` is in `backtesting/simulation.py`'s call path (`_load_fundamental_history` scores every archived weekly snapshot), so these scoring changes do affect backtest results — recommend running a fresh backtest before comparing against any pre-v2.2.52 number. Verified instead via unit tests: 37 new/updated tests across `test_fundamental_client.py`, `test_fundamental_layer.py`, and `test_indicator_pipeline_fundamental_refresh.py` (989 total passing, up from 952, 3 skipped — unchanged, pre-existing). Also confirmed directly against the live cache (read-only, no fetch performed) that AMD's real Aug 4 report is now correctly flagged for a growth-data refresh on the model's next scan.
+
+**Note:** `growth_fetched_dates` doesn't exist yet in the current cache, so the very next scan will treat every watchlist ticker as due for a growth-data refresh, not just AMD — a one-time catch-up burst, comfortably inside the existing 25/day fetch budget for the ~23-ticker watchlist.
+
+**Approved by:** [pending]
 
 ---
 
