@@ -209,7 +209,10 @@ def load_paper_trade_gate_inputs(csv_path: Optional[Path] = None) -> dict:
         Computed from every row regardless of funding, same as before.
     """
     rows, trading_days_elapsed = _load_paper_trades_rows(csv_path)
-    trade_outcomes = [r for r in rows if r.get("outcome") and _is_funded(r)]
+    trade_outcomes = [
+        r for r in rows
+        if r.get("outcome") and r.get("outcome") != "expired" and _is_funded(r)
+    ]
 
     return {
         "trade_outcomes": trade_outcomes,
@@ -234,7 +237,10 @@ def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
     correlates with signal quality, not just what the numbers are.
     """
     rows, _ = _load_paper_trades_rows(csv_path)
-    closed = [r for r in rows if r.get("outcome")]
+    # "expired" rows (entry zone never reached — see paper_updater.py's fill
+    # confirmation) never had a directional call resolve either way, so they
+    # don't belong in a model-accuracy view any more than an open trade does.
+    closed = [r for r in rows if r.get("outcome") and r.get("outcome") != "expired"]
     funded = [r for r in closed if _is_funded(r)]
     unfunded = [r for r in closed if not _is_funded(r)]
 

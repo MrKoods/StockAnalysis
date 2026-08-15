@@ -572,9 +572,14 @@ def _simulate_test_signals(
                 )
                 stop = compute_stop_loss(
                     entry_lower, atr,
+                    high_volume_support=indicators.get("high_volume_support"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
                 )
-                target = compute_target(entry, stop, min_rr=rr_cfg.get("min_rr_ratio", 3.0))
+                target = compute_target(
+                    entry, stop,
+                    low_volume_area_above=indicators.get("low_volume_area_above"),
+                    min_rr=rr_cfg.get("min_rr_ratio", 3.0),
+                )
             except Exception:
                 continue
 

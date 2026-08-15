@@ -5,10 +5,17 @@ puts all indicator values on a comparable scale (std devs from own mean)
 before they are combined in scoring.py.
 """
 
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 
-from shared.utils.volume_profile import compute_volume_profile, score_volume_profile_position
+from shared.utils.volume_profile import (
+    compute_volume_profile,
+    find_nearest_low_volume_area,
+    find_nearest_support_node,
+    score_volume_profile_position,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -309,6 +316,8 @@ def compute_technical_indicators(
     # to 0-8 to match volume_profile's current 8-point sub-signal max.
     # ---------------------------------------------------------------------------
     vp_cfg = cfg.get("volume_profile", {})
+    c_high_volume_support: Optional[float] = None
+    c_low_volume_area_above: Optional[float] = None
     try:
         vp_df = compute_volume_profile(
             ohlcv,
@@ -316,6 +325,13 @@ def compute_technical_indicators(
             price_bucket_pct=vp_cfg.get("price_bucket_pct", 0.005),
         )
         c_volume_profile_score = score_volume_profile_position(c_close, vp_df) * (8.0 / 12.0)
+        # Same nodes that just scored the technical sub-signal, surfaced as
+        # actual price levels — risk_reward.py's compute_stop_loss/compute_target
+        # use these to anchor bullish stops/targets to real support/resistance
+        # instead of always falling back to a mechanical ATR-multiple/min-R:R
+        # number (see those functions' docstrings; bullish-only for now).
+        c_high_volume_support = find_nearest_support_node(c_close, vp_df, direction="below")
+        c_low_volume_area_above = find_nearest_low_volume_area(c_close, vp_df, direction="above")
     except Exception:
         c_volume_profile_score = 4.0  # neutral fallback — matches scoring.py's prior default
     c_volume_profile_score = round(max(0.0, min(8.0, c_volume_profile_score)), 2)
@@ -354,6 +370,8 @@ def compute_technical_indicators(
         "macd_data_available": macd_data_available,
 
         "volume_profile_score": c_volume_profile_score,
+        "high_volume_support": c_high_volume_support,
+        "low_volume_area_above": c_low_volume_area_above,
 
         # "complete" only when every windowed indicator had enough real
         # history to compute for real; "partial" when one or more fell back

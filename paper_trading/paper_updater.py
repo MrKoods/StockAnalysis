@@ -2,7 +2,16 @@
 Paper trade outcome updater. Run each morning (or anytime) to check open paper
 trades against recent price action and fill in outcomes.
 
-Checks each open trade's High/Low each bar for:
+A signal's entry_zone_lower/upper is a breakout/breakdown trigger price (see
+shared/utils/risk_reward.py's compute_entry_zone), not a price the stock is
+already at — it's frequently anchored to a rolling high/low that sits away
+from the close at signal time. A trade shouldn't start accruing stop/target
+risk until price actually trades into that zone, so each open trade first
+goes through a fill check (_find_fill): still pending, filled (starts the
+stop/target walk from the fill bar), or expired (zone never reached within
+FILL_WINDOW_DAYS — no capital was ever really at risk).
+
+Once filled, checks each bar's High/Low for:
   - Stop hit  → outcome = "loss"   (stop price assumed filled)
   - Target hit → outcome = "win"   (target price assumed filled)
   - 15 trading days elapsed → outcome = "time_stop" (closed at that day's close)
@@ -30,7 +39,7 @@ import pandas as pd
 import yfinance as yf
 
 from shared.utils.logger import get_logger
-from shared.utils.discord_alerts import send_paper_outcome_alert, send_calibration_alert
+from shared.utils.discord_alerts import send_paper_outcome_alert, send_paper_expired_alert, send_calibration_alert
 from shared.utils.atomic_io import atomic_write_text
 from swing_model.feedback_loop import (
     load_calibration_outcomes_from_paper_trades,
@@ -53,6 +62,12 @@ logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 MAX_HOLDING_DAYS = 15  # trading days before automatic time stop
+
+# Trading days a breakout/breakdown entry order is allowed to sit unfilled
+# before the signal is treated as stale and expired. Deliberately shorter
+# than MAX_HOLDING_DAYS — that clock is for a position that's actually on,
+# this one is for an order that hasn't triggered yet.
+FILL_WINDOW_DAYS = 5
 
 
 def _load_trades() -> list[dict]:
@@ -146,6 +161,44 @@ def _resolve_outcome(
     return None  # Still open
 
 
+def _find_fill(
+    df: pd.DataFrame,
+    entry_zone_lower: float,
+    entry_zone_upper: float,
+    direction: str = "bullish",
+    window_days: int = FILL_WINDOW_DAYS,
+) -> Optional[dict]:
+    """
+    Walk bars chronologically looking for the first bar where price actually
+    trades into the entry zone. Bullish zones sit at/above the close at
+    signal time (breakout trigger), so they fill when price rises into them
+    (High >= entry_zone_lower); bearish zones sit at/below it (breakdown
+    trigger), filling when price falls into them (Low <= entry_zone_upper) —
+    same mirroring convention _resolve_outcome uses for stop/target.
+
+    Returns:
+      {"fill_date": Timestamp, "bars_from_fill": df from that bar onward} on fill
+      {"expired": True, "last_date": Timestamp} if window_days pass with no fill
+      None if still inside the window and not filled yet (caller should wait)
+    """
+    bearish = direction == "bearish"
+    trading_days = 0
+
+    for bar_date, bar in df.iterrows():
+        trading_days += 1
+        high = float(bar["High"])
+        low = float(bar["Low"])
+
+        filled = (low <= entry_zone_upper) if bearish else (high >= entry_zone_lower)
+        if filled:
+            return {"fill_date": bar_date, "bars_from_fill": df[df.index >= bar_date]}
+
+        if trading_days >= window_days:
+            return {"expired": True, "last_date": bar_date}
+
+    return None  # Still within the fill window, not triggered yet
+
+
 def update_paper_trades() -> int:
     """
     Load open paper trades, check outcomes, update CSV, send Discord alerts.
@@ -212,7 +265,54 @@ def update_paper_trades() -> int:
                 logger.info(f"{ticker} {signal_date}: no bars after signal yet — still open")
                 continue
 
-            result = _resolve_outcome(df_after, entry_price, stop_loss, target, direction=direction)
+            # Confirm the breakout/breakdown entry order actually filled before
+            # tracking stop/target against it. Older rows logged before these
+            # columns existed have no zone to check — fall back to the prior
+            # behavior (assume filled from the first bar after signal).
+            ez_lower_raw = (trade.get("entry_zone_lower") or "").strip()
+            ez_upper_raw = (trade.get("entry_zone_upper") or "").strip()
+            bars_for_outcome = df_after
+            if ez_lower_raw and ez_upper_raw:
+                try:
+                    ez_lower = float(ez_lower_raw)
+                    ez_upper = float(ez_upper_raw)
+                except ValueError:
+                    ez_lower = ez_upper = 0.0
+
+                if ez_lower > 0 and ez_upper > 0:
+                    fill = _find_fill(df_after, ez_lower, ez_upper, direction=direction)
+
+                    if fill is None:
+                        logger.info(
+                            f"{ticker} {signal_date}: entry zone (${ez_lower:.2f}-${ez_upper:.2f}) "
+                            f"not reached yet — order still pending"
+                        )
+                        continue
+
+                    if fill.get("expired"):
+                        trade["outcome"] = "expired"
+                        trade["exit_date"] = fill["last_date"].strftime("%Y-%m-%d")
+                        trade["exit_price"] = ""
+                        trade["pnl_pct"] = ""
+                        trade["achieved_rr"] = ""
+                        trade["holding_days"] = str(FILL_WINDOW_DAYS)
+                        trade["pnl_dollars"] = ""
+
+                        logger.info(
+                            f"{ticker} {signal_date}: entry zone (${ez_lower:.2f}-${ez_upper:.2f}) "
+                            f"never reached within {FILL_WINDOW_DAYS} trading days — expired, no capital ever at risk"
+                        )
+                        try:
+                            send_paper_expired_alert(trade)
+                        except Exception as exc:
+                            logger.warning(f"{ticker}: paper expired alert failed — {exc}")
+
+                        closed_count += 1
+                        continue
+
+                    bars_for_outcome = fill["bars_from_fill"]
+
+            result = _resolve_outcome(bars_for_outcome, entry_price, stop_loss, target, direction=direction)
             if result is None:
                 logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
                 continue
@@ -341,25 +441,32 @@ def print_summary() -> None:
         print(f"Paper trades: {len(trades)} total, {open_ct} open, 0 closed")
         return
 
-    wins = [t for t in closed if t.get("outcome") == "win"]
-    losses = [t for t in closed if t.get("outcome") == "loss"]
-    time_stops = [t for t in closed if t.get("outcome") == "time_stop"]
+    # Expired (entry zone never reached) trades never had capital at risk —
+    # exclude them from win-rate/R:R math the same way an open trade is,
+    # just report the count separately.
+    expired = [t for t in closed if t.get("outcome") == "expired"]
+    scored = [t for t in closed if t.get("outcome") != "expired"]
+
+    wins = [t for t in scored if t.get("outcome") == "win"]
+    losses = [t for t in scored if t.get("outcome") == "loss"]
+    time_stops = [t for t in scored if t.get("outcome") == "time_stop"]
     ts_pos = [t for t in time_stops if float(t.get("pnl_pct", 0)) > 0]
 
     effective_wins = len(wins) + len(ts_pos)
-    win_rate = effective_wins / len(closed) if closed else 0.0
+    win_rate = effective_wins / len(scored) if scored else 0.0
 
     rr_values = [float(t.get("achieved_rr", 0)) for t in wins]
     avg_rr = sum(rr_values) / len(rr_values) if rr_values else 0.0
 
     print(f"\n{'=' * 50}")
-    print(f"PAPER TRADING SUMMARY  ({len(closed)} closed, {open_ct} open)")
+    print(f"PAPER TRADING SUMMARY  ({len(scored)} closed, {open_ct} open, {len(expired)} expired)")
     print(f"{'=' * 50}")
     print(f"  Win rate (wins + profitable time stops): {win_rate:.1%}")
     print(f"  Target hits:        {len(wins)}")
     print(f"  Stops:              {len(losses)}")
     print(f"  Time stops:         {len(time_stops)}  (+{len(ts_pos)} profitable)")
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
+    print(f"  Expired (never filled): {len(expired)}")
     print(f"  Open trades:        {open_ct}")
     print(f"{'=' * 50}\n")
 

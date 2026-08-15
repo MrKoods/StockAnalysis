@@ -145,7 +145,10 @@ def load_calibration_outcomes_from_paper_trades(csv_path: Optional[Path] = None)
 
     outcomes = []
     for r in rows:
-        if not r.get("outcome"):
+        # "expired" rows never filled — no entry, no exit, no capital at risk,
+        # so they carry no directional-accuracy signal (unlike a win/loss,
+        # which is real; see paper_updater.py's fill-confirmation step).
+        if not r.get("outcome") or r.get("outcome") == "expired":
             continue
         outcomes.append({
             "timestamp_utc": r.get("exit_date", ""),

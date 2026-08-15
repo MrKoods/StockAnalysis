@@ -393,13 +393,22 @@ def main(scan_type: str = "post_close") -> None:
                     direction=direction,
                 )
                 entry_mid = (entry_lower + entry_upper) / 2.0
+                # high_volume_support/low_volume_area_above come from the same
+                # volume-profile nodes technical_common.py already computes for
+                # the volume_profile technical sub-signal — anchoring the
+                # bullish stop/target to real support/resistance instead of
+                # always falling back to the mechanical ATR-multiple/min-R:R
+                # number (bearish ignores both; see risk_reward.py docstrings).
                 stop_loss = compute_stop_loss(
                     entry_upper if direction == "bearish" else entry_lower, atr,
+                    high_volume_support=indicators.get("high_volume_support"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
                     direction=direction,
                 )
                 target = compute_target(
-                    entry_mid, stop_loss, min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+                    entry_mid, stop_loss,
+                    low_volume_area_above=indicators.get("low_volume_area_above"),
+                    min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
                 )
 
                 valid_setup = (

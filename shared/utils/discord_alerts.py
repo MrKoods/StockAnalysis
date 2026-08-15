@@ -12,6 +12,7 @@ from typing import Optional
 import requests
 
 from shared.utils.logger import get_logger
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 
 logger = get_logger(__name__)
 
@@ -486,7 +487,7 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
 def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     """
     Lower-priority awareness ping for a ticker that scored close to but below
-    the 90-point threshold — NOT a trade signal, no entry/stop/target (those
+    CONFIDENCE_THRESHOLD — NOT a trade signal, no entry/stop/target (those
     are never computed for sub-threshold tickers). Deliberately low-key
     styling (grey, no "SIGNAL"/"TRADE" language) so it can't be mistaken for
     an actual recommendation or dilute the weight of a real one.
@@ -503,7 +504,7 @@ def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool
     total_modifier = float(candidate.get("total_modifier", 0.0))
 
     embed = {
-        "title": f"👀 Near miss — {ticker} — {confidence:.0f}/100 (needs 90)",
+        "title": f"👀 Near miss — {ticker} — {confidence:.0f}/100 (needs {CONFIDENCE_THRESHOLD:.0f})",
         "color": _COLORS["grey"],
         "description": "Not a trade signal — awareness only, below threshold",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -567,6 +568,36 @@ def send_paper_outcome_alert(trade: dict) -> bool:
             {"name": "Signal Confidence", "value": f"{confidence:.0f}/100", "inline": True},
         ],
         "footer": {"text": "Paper trade closed — outcome logged for model calibration"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
+def send_paper_expired_alert(trade: dict) -> bool:
+    """
+    PAPER SIGNAL EXPIRED embed — sends when a breakout/breakdown entry order's
+    zone is never reached within paper_updater.FILL_WINDOW_DAYS. Deliberately
+    separate from send_paper_outcome_alert: no P&L or R:R ever accrued here
+    (no capital was at risk), so labeling it a "STOPPED OUT" close would be
+    reporting a loss that never actually happened.
+    """
+    ticker = trade.get("ticker", "?")
+    signal_date = trade.get("signal_date", "—")
+    exit_date = trade.get("exit_date", "—")
+    entry_zone_lower = trade.get("entry_zone_lower", "")
+    entry_zone_upper = trade.get("entry_zone_upper", "")
+    confidence = float(trade.get("confidence", 0.0))
+
+    embed = {
+        "title": f"⌛ PAPER SIGNAL EXPIRED — {ticker}",
+        "color": _COLORS["grey"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Signal Date", "value": signal_date, "inline": True},
+            {"name": "Expired Date", "value": exit_date, "inline": True},
+            {"name": "Entry Zone", "value": f"${entry_zone_lower}-${entry_zone_upper}", "inline": True},
+            {"name": "Signal Confidence", "value": f"{confidence:.0f}/100", "inline": True},
+        ],
+        "footer": {"text": "Entry zone never reached — order never filled, no capital at risk"},
     }
     return _post_to_webhook({"embeds": [embed]})
 
