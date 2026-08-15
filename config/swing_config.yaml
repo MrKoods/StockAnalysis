@@ -201,26 +201,51 @@ modifiers:
   seasonality:
     strong_period_boost: 5            # e.g., Q4
     weak_period_penalty: -5           # e.g., post-Q1 (Jan-Feb)
-    # Monthly modifiers — calibrated during Phase 12 backtesting
+    # Monthly modifiers. Signs flipped 2026-08-15 (see CHANGELOG): the original
+    # "Phase 12 backtesting" calibration comment (kept for history — see below)
+    # turned out to be a hypothesis, not a real calibration lineage. Measured
+    # against real sector-pure semiconductor outcomes (backtesting/
+    # modifier_calibration_diagnostic.py, after fixing the sector-scoping bug
+    # that had been diluting this same read with irrelevant non-semiconductor
+    # bars): the original sign was backwards — "seasonally strong" months won
+    # 38.9% (n=72), "seasonally weak" months won 70.7% (n=82). Plausible
+    # mechanism, not asserted as fact: a breakout during a widely-anticipated
+    # strong month is a crowded, lower-conviction trade, while one during an
+    # out-of-favor month is a stronger signal precisely because it's against
+    # the grain. Magnitudes are the pre-existing ones with sign flipped, not
+    # independently re-derived per month — a real per-month calibration is a
+    # separate, larger follow-up.
     monthly_modifiers:
-      1: -5    # January — post-Q1 normalization
-      2: -5    # February
+      1: 5     # January
+      2: 5     # February
       3: 0
-      4: 2
+      4: -2
       5: 0
       6: 0
       7: 0
       8: 0
-      9: -2   # September — historically mixed
-      10: 3   # October — Q4 buildup
-      11: 5   # November — Q4 strength
-      12: 5   # December — year-end
+      9: 2     # September
+      10: -3   # October
+      11: -5   # November
+      12: -5   # December
   macro_overlay:
     adverse_penalty: -10
     adverse_max_confidence: 92        # only 92+ surfaced in adverse macro
     favorable_boost: 3
-    # Thresholds for macro signals (Clarification 2 free proxies)
-    tnx_rise_threshold_pct: 3.0       # 3% TNX rise over 20 days = hawkish proxy
+    # Thresholds for macro signals (Clarification 2 free proxies). Key names and
+    # units (fractional, not whole-percent) must match what macro_overlay.py's
+    # compute_macro_state() actually reads (tnx_adverse_threshold_pct etc.) —
+    # this block previously had only `tnx_rise_threshold_pct: 3.0`, which the
+    # code never reads (wrong key name) and wouldn't have worked even renamed
+    # (wrong scale: _period_pct_change returns 0.03 for a 3% move, not 3.0).
+    # Values below match the hardcoded fallback defaults exactly, so this is a
+    # wiring fix, not a threshold change — dxy/china thresholds weren't in
+    # config at all before this.
+    tnx_adverse_threshold_pct: 0.03    # 3% TNX rise over the lookback = hawkish proxy
+    tnx_favorable_threshold_pct: -0.03
+    dxy_adverse_threshold_pct: 0.02    # 2% DXY rise over the lookback = adverse (TSM/ASML FX)
+    dxy_favorable_threshold_pct: -0.02
+    china_keyword_adverse_threshold: 5
     tnx_lookback_days: 20
     dxy_lookback_days: 20
     china_keyword_lookback_days: 5

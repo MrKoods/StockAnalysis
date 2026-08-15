@@ -264,18 +264,24 @@ class TestEarningsCalendar:
 # ---------------------------------------------------------------------------
 
 class TestSeasonality:
-    def test_december_is_strongest(self):
+    def test_december_is_weakest(self):
+        # Sign flipped 2026-08-15: real sector-pure semiconductor outcomes
+        # (backtesting/modifier_calibration_diagnostic.py, after fixing the
+        # backtest's own sector-scoping bug) showed the original "Q4 is
+        # strong" calendar was backwards — "seasonally strong" months won
+        # 38.9% (n=72) vs. "seasonally weak" months at 70.7% (n=82). See
+        # config/swing_config.yaml's monthly_modifiers comment.
         dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
         result = get_seasonality_modifier(date=dec)
-        assert result["confidence_modifier"] == 5.0
-        assert result["seasonality_state"] == "strong"
+        assert result["confidence_modifier"] == -5.0
+        assert result["seasonality_state"] == "weak"
         assert result["month"] == 12
 
-    def test_may_is_weak(self):
-        may = datetime(2024, 5, 1, tzinfo=timezone.utc)
-        result = get_seasonality_modifier(date=may)
-        assert result["confidence_modifier"] < 0
-        assert result["seasonality_state"] == "weak"
+    def test_january_is_strong(self):
+        jan = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        result = get_seasonality_modifier(date=jan)
+        assert result["confidence_modifier"] > 0
+        assert result["seasonality_state"] == "strong"
 
     def test_result_clamped_to_spec_bounds(self):
         for month in range(1, 13):
@@ -293,13 +299,15 @@ class TestSeasonality:
         This monthly profile is semiconductor-specific (PC/server build cycles,
         NVDA/AMD product-cycle ordering) — applying it to a bank or healthcare
         ticker is actively misleading, not just imprecise. December (real
-        modifier +5.0) should resolve to a neutral 0.0 for a different sector.
+        modifier -5.0, sign-flipped 2026-08-15 — see class docstring on
+        test_december_is_weakest) should resolve to a neutral 0.0 for a
+        different sector.
         """
         dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
         semis_result = get_seasonality_modifier(date=dec, sector="semiconductors")
         banks_result = get_seasonality_modifier(date=dec, sector="regional_banks")
 
-        assert semis_result["confidence_modifier"] == 5.0
+        assert semis_result["confidence_modifier"] == -5.0
         assert semis_result["sector_scoped"] is False
 
         assert banks_result["confidence_modifier"] == 0.0
@@ -311,7 +319,7 @@ class TestSeasonality:
     def test_no_sector_arg_preserves_original_behavior(self):
         dec = datetime(2024, 12, 1, tzinfo=timezone.utc)
         result = get_seasonality_modifier(date=dec)
-        assert result["confidence_modifier"] == 5.0
+        assert result["confidence_modifier"] == -5.0
         assert result["sector_scoped"] is False
 
     def test_config_override(self):
@@ -323,12 +331,12 @@ class TestSeasonality:
         result = get_seasonality_modifier(date=dec, cfg=cfg)
         assert result["confidence_modifier"] == -1.0
 
-    def test_q4_is_strong(self):
+    def test_q4_is_weak(self):
         for month in [10, 11, 12]:
             dt = datetime(2024, month, 1, tzinfo=timezone.utc)
             result = get_seasonality_modifier(date=dt)
             assert result["quarter"] == 4
-            assert result["confidence_modifier"] >= 3.0
+            assert result["confidence_modifier"] <= -3.0
 
     def test_config_override_int_keys(self):
         # yaml.safe_load() parses swing_config.yaml's unquoted numeric keys

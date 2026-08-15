@@ -43,10 +43,29 @@ _PASS_CRITERIA = {
 # Below this many closed trades, a CI-lower-bound failure is a sample-size
 # artifact, not a real "the edge isn't there" signal — at n=0 the CI lower
 # bound is trivially 0.0, indistinguishable from a genuine failure without
-# this distinction. Mirrors feedback_loop.run_calibration()'s own minimum
-# (holdout_count=5 + 10), so both go-live-adjacent gates agree on what
-# "enough data to have an opinion" means.
-_MIN_TRADES_FOR_MEANINGFUL_READ = 15
+# this distinction.
+#
+# Raised from 15 to 30 (2026-08-15): 15 was chosen to match
+# feedback_loop.run_calibration()'s own minimum (holdout_count=5 + 10) on the
+# theory that both gates should agree on "enough data to have an opinion" —
+# but that number was never checked against what evaluate_paper_trading_pass()
+# below actually requires (bootstrapped 95% CI lower bound on per-trade
+# R-expectancy >= min_expectancy_r, default 0.3R). Simulated a model
+# performing exactly to the current backtest's own spec (62.3% win rate,
+# 2.13 avg R:R) through bootstrap_expectancy_ci at increasing n (300 trials
+# each): at n=15, mean CI-lower is only ~0.10R and a genuinely-good model
+# reads as "insufficient/failing" ~71% of the time — the gate it's supposed
+# to unlock can't be passed by the system it's calibrated against. Pass rate
+# only crosses 50% around n=30 (mean CI-lower ~0.34R) and keeps climbing
+# through n=50 (~80%). 30 is a middle ground, not a fully reliable read —
+# picked over a higher, more statistically comfortable value (40-50) to keep
+# the real-world wait reasonable (~26 days at the observed ~1.17 funded
+# signals/day, vs. ~34-43 days) while still being meaningfully more honest
+# than 15. feedback_loop.py's own trigger is deliberately left at 15 — unlike
+# this gate, an early/imprecise calibration attempt there just wastes one
+# cheap run_calibration() call that returns "insufficient_data" (see that
+# function's own docstring), not a decision anyone acts on.
+_MIN_TRADES_FOR_MEANINGFUL_READ = 30
 
 
 def evaluate_paper_trading_pass(

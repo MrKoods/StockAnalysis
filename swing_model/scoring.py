@@ -278,25 +278,52 @@ def compute_confidence_score(
 
     # ---------------------------------------------------------------------------
     # Step 4b: Apply calibrated live_weights, if provided.
-    #   live_weights (from feedback_loop.py's holdout-validated calibration) redistributes
-    #   the combined technical+sentiment+news pool (points unchanged, TECHNICAL_MAX +
-    #   SENTIMENT_MAX + NEWS_MAX) according to calibrated fractions instead of the fixed
-    #   40/15/15 split. Positioning and fundamental are untouched — feedback_loop.py only
-    #   tracks these three sub-signals. When live_weights is None (the default, and what
-    #   every current caller passes), this is a no-op — previously this parameter was
-    #   accepted and documented but never actually read anywhere in this function.
+    #   live_weights (from feedback_loop.py's holdout-validated calibration) reweights
+    #   Technical/Sentiment/News by calibrated importance instead of the fixed 40/15/15
+    #   point-budget split. Positioning and fundamental are untouched — feedback_loop.py
+    #   only tracks these three sub-signals.
+    #
+    #   Bug fixed 2026-08-15: this used to redistribute pool = technical_total +
+    #   sentiment_total + news_total by weight fraction (pool * w_i/w_sum). Since
+    #   sum_i(w_i/w_sum) == 1 by construction, that redistribution always summed back
+    #   to the exact same `pool` no matter what the weights were — a mathematical
+    #   no-op on base_score. Calibration had been live at this call site for over a
+    #   week (see CHANGELOG v2.2.42) without ever influencing a single scoring
+    #   decision; it only relabeled the three fields' internal split.
+    #
+    #   Fixed by weighting each sub-score's own PERCENTAGE of its max (0-1), not its
+    #   raw point value — using the raw value would let Technical's larger 40-point
+    #   budget go on mechanically dominating regardless of the calibrated weight,
+    #   defeating the point of calibration. A ticker's combined quality is the
+    #   weighted average of the three percentages, rescaled to the fixed 0-70 pool;
+    #   each field then reports its own share of that combined total, so
+    #   technical_total + sentiment_total + news_total still equals what base_score
+    #   uses below (every downstream consumer — layer_scores DB rows, Discord
+    #   alerts, audit_log — reads these three fields expecting that invariant).
+    #   Deliberately NOT re-clamped to each field's own original max here: doing so
+    #   would silently break that sum invariant whenever a clamp actually engaged
+    #   (e.g. calibration weighting sentiment heavily while it's already maxed would
+    #   get clipped back to 15, quietly discarding points instead of redistributing
+    #   them — worse than the pre-existing, already-known "a field can read above
+    #   its nominal max" cosmetic quirk this shares with the original code). The
+    #   combined three-field sum is still bounded by the fixed 70-point pool
+    #   either way, and base_score's own [0,100] clamp below is the real backstop.
+    #   When live_weights is None (the default), this whole block is skipped and
+    #   behavior is unchanged from before this fix.
     # ---------------------------------------------------------------------------
     if live_weights:
-        pool = technical_total + sentiment_total + news_total
-        w_sum = sum(float(v) for v in (
-            live_weights.get("technical", 0.0),
-            live_weights.get("sentiment", 0.0),
-            live_weights.get("news", 0.0),
-        ))
-        if w_sum > 0 and pool > 0:
-            technical_total = pool * (float(live_weights.get("technical", 0.0)) / w_sum)
-            sentiment_total = pool * (float(live_weights.get("sentiment", 0.0)) / w_sum)
-            news_total = pool * (float(live_weights.get("news", 0.0)) / w_sum)
+        w_tech = float(live_weights.get("technical", 0.0))
+        w_sent = float(live_weights.get("sentiment", 0.0))
+        w_news = float(live_weights.get("news", 0.0))
+        w_sum = w_tech + w_sent + w_news
+        if w_sum > 0:
+            pool = float(TECHNICAL_MAX + SENTIMENT_MAX + NEWS_MAX)
+            tech_pct = technical_total / TECHNICAL_MAX if TECHNICAL_MAX else 0.0
+            sent_pct = sentiment_total / SENTIMENT_MAX if SENTIMENT_MAX else 0.0
+            news_pct = news_total / NEWS_MAX if NEWS_MAX else 0.0
+            technical_total = pool * (tech_pct * w_tech / w_sum)
+            sentiment_total = pool * (sent_pct * w_sent / w_sum)
+            news_total = pool * (news_pct * w_news / w_sum)
 
     # ---------------------------------------------------------------------------
     # Step 5: Fundamental contribution

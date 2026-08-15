@@ -96,41 +96,53 @@ def get_seasonality_modifier(
     }
 
 
-# Default semiconductor seasonality profile (calibrated via Phase 12 backtesting).
-# Values are confidence score point adjustments. Range clamped to [-5, +5] per spec.
+# Default semiconductor seasonality profile — only used when no cfg (or no
+# cfg.modifiers.seasonality.monthly_modifiers key) is supplied; every real
+# scan always has that key, so config/swing_config.yaml's table is what's
+# actually live. Kept in sync with it by hand (see that file's comment for
+# the 2026-08-15 sign-flip rationale and the real measured numbers) so a
+# programmatic caller without cfg doesn't fall back to the old, backwards
+# direction. Values are confidence score point adjustments, clamped [-5, +5].
 _DEFAULT_MONTHLY: dict[str, float] = {
-    "1":  2.0,   # Jan: new budgets, inventory restocking
-    "2":  0.0,   # Feb: neutral
-    "3":  1.0,   # Mar: Q1-end demand
-    "4": -2.0,   # Apr: post-Q1 soft demand
-    "5": -3.0,   # May: historically weak
-    "6": -1.0,   # Jun: mid-year recovery beginning
-    "7":  1.0,   # Jul: Q3 setup, new product cycle begins
-    "8":  2.0,   # Aug: pre-Q3 earnings order build
-    "9":  0.0,   # Sep: mixed (back-to-school done, data center unclear)
-    "10": 3.0,   # Oct: Q4 strength begins
-    "11": 4.0,   # Nov: peak Q4 seasonality
-    "12": 5.0,   # Dec: strongest — year-end builds, Q1 pre-buy
+    "1":  5.0,
+    "2":  5.0,
+    "3":  0.0,
+    "4": -2.0,
+    "5":  0.0,
+    "6":  0.0,
+    "7":  0.0,
+    "8":  0.0,
+    "9":  2.0,
+    "10": -3.0,
+    "11": -5.0,
+    "12": -5.0,
 }
 
 _DEFAULT_QUARTERLY: dict[str, float] = {
     "Q1":  1.0,
     "Q2": -2.0,
     "Q3":  1.0,
-    "Q4":  4.0,
+    "Q4": -4.0,
 }
 
+# Rationale text intentionally doesn't repeat the old month-specific demand
+# narratives ("Q4 strength begins", "post-Q1 soft patch", etc.) — those
+# stories were written to match the ORIGINAL (wrong-signed) table and aren't
+# separately verified against real data; carrying them forward re-signed
+# would just be a different set of unverified stories. This states what's
+# actually known: the sign is empirically derived, not the specific
+# mechanism, per config/swing_config.yaml's 2026-08-15 comment.
 _MONTH_RATIONALE: dict[int, str] = {
-    1:  "New fiscal budgets released; semiconductor restocking demand",
-    2:  "Neutral — post-CES inventory settle",
-    3:  "Q1 end-of-quarter demand pull",
-    4:  "Post-Q1 soft patch — historically weakest for semis",
-    5:  "May weakness; guidance-season uncertainty",
-    6:  "Mid-year recovery begins; early data center orders",
-    7:  "Q3 setup; new product cycle order flow begins",
-    8:  "Pre-earnings build; NVDA/AMD cycle ordering",
-    9:  "Mixed; back-to-school cycle winding down",
-    10: "Q4 strength begins; holiday supply chain procurement",
-    11: "Peak Q4 semiconductor demand",
-    12: "Year-end builds + Q1 pre-buy front-loading",
+    1:  "Historically favorable entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    2:  "Historically favorable entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    3:  "No significant seasonal tilt measured",
+    4:  "Historically weaker entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    5:  "No significant seasonal tilt measured",
+    6:  "No significant seasonal tilt measured",
+    7:  "No significant seasonal tilt measured",
+    8:  "No significant seasonal tilt measured",
+    9:  "Historically favorable entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    10: "Historically weaker entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    11: "Historically weaker entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
+    12: "Historically weaker entry month for semiconductor breakouts (empirically re-derived 2026-08-15 — see CHANGELOG)",
 }

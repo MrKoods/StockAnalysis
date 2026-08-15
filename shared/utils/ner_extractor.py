@@ -8,6 +8,7 @@ Uses spaCy en_core_web_sm when available; falls back to keyword matching.
 Install NLP model: python -m spacy download en_core_web_sm
 """
 
+import re
 from typing import Optional
 
 try:
@@ -75,7 +76,7 @@ _BULLISH_KEYWORDS = [
     "gains", "surges", "beats", "outperforms", "rises", "record", "strong", "growth",
     "partnership", "contract", "upgrade", "bullish", "demand", "wins", "breakthrough",
     "rally", "soars", "profit", "expansion", "positive", "boost", "accelerates", "leads",
-    "dominates", "awarded", "deal", "orders", "revenue", "growth", "high",
+    "dominates", "awarded", "deal", "orders", "revenue", "high",
 ]
 
 _BEARISH_KEYWORDS = [
@@ -84,6 +85,20 @@ _BEARISH_KEYWORDS = [
     "warning", "caution", "disappoints", "reduces", "lower", "slump", "slowdown",
     "layoffs", "investigation", "penalty", "recall", "delay", "shortfall", "below",
 ]
+
+
+def _find_alias(alias_lower: str, headline_lower: str) -> Optional[int]:
+    """
+    Return the character offset of alias_lower's first whole-word match in
+    headline_lower, or None. Word-boundary (`\\b`) rather than plain substring
+    matching — short all-caps ticker aliases ("MU", "RF", "HD") otherwise
+    false-match inside unrelated words (e.g. "MU" inside "stimulus", confirmed
+    live: is_ticker_relevant("Fed stimulus must continue", "MU") returned True).
+    `\\b` also matches at the edges of a multi-word phrase, so this works the
+    same for "Fifth Third Bancorp" as it does for "MU".
+    """
+    m = re.search(r"\b" + re.escape(alias_lower) + r"\b", headline_lower)
+    return m.start() if m else None
 
 
 def extract_ticker_sentiments(
@@ -109,7 +124,7 @@ def extract_ticker_sentiments(
     for ticker in watchlist:
         aliases = _TICKER_TO_COMPANY.get(ticker, [ticker])
         for alias in aliases:
-            if alias.lower() in headline_lower:
+            if _find_alias(alias.lower(), headline_lower) is not None:
                 mentioned[ticker] = True
                 break
 
@@ -130,21 +145,57 @@ def extract_ticker_sentiments(
         else:
             result[ticker] = "neutral"
     else:
-        # Multiple companies — attempt per-company context via sentence splitting
+        # Multiple companies — attribute each directional keyword to whichever
+        # mentioned ticker's alias sits nearest to it in the headline, rather
+        # than a fixed word/character window. Two bugs in the old window
+        # approach: (1) it split the headline into single whitespace tokens and
+        # tested `alias.lower() in word` — a longer string can never be a
+        # substring of one shorter token, so multi-word aliases ("Advanced
+        # Micro Devices", "Taiwan Semiconductor", "Eli Lilly", "Home Depot",
+        # "Fifth Third Bancorp", ...) could never match, silently resolving
+        # "neutral" in every multi-company headline — including the one in
+        # this module's own docstring example. (2) even for single-word
+        # aliases, a window wide enough to reach a keyword also let every
+        # OTHER mentioned ticker's window claim that same keyword in a short
+        # headline (e.g. "gains" meant for one company bleeding into a
+        # different company's count). Nearest-mention attribution fixes both:
+        # each keyword occurrence counts for exactly one ticker.
+        entity_positions: dict[str, int] = {}
         for ticker in mentioned:
             aliases = _TICKER_TO_COMPANY.get(ticker, [ticker])
-            local_bull = 0
-            local_bear = 0
-            words = headline_lower.split()
-            for i, word in enumerate(words):
-                if any(alias.lower() in word for alias in aliases):
-                    # Check a 10-word window around the mention
-                    context = " ".join(words[max(0, i-5):i+6])
-                    local_bull += sum(1 for kw in _BULLISH_KEYWORDS if kw in context)
-                    local_bear += sum(1 for kw in _BEARISH_KEYWORDS if kw in context)
-            if local_bull > local_bear:
+            best_pos = None
+            for alias in aliases:
+                pos = _find_alias(alias.lower(), headline_lower)
+                if pos is not None and (best_pos is None or pos < best_pos):
+                    best_pos = pos
+            if best_pos is not None:
+                entity_positions[ticker] = best_pos
+
+        local_bull = {t: 0 for t in mentioned}
+        local_bear = {t: 0 for t in mentioned}
+
+        def _nearest_ticker(kw_pos: int) -> Optional[str]:
+            if not entity_positions:
+                return None
+            return min(entity_positions, key=lambda t: abs(entity_positions[t] - kw_pos))
+
+        for kw in _BULLISH_KEYWORDS:
+            idx = headline_lower.find(kw)
+            if idx != -1:
+                nearest = _nearest_ticker(idx)
+                if nearest:
+                    local_bull[nearest] += 1
+        for kw in _BEARISH_KEYWORDS:
+            idx = headline_lower.find(kw)
+            if idx != -1:
+                nearest = _nearest_ticker(idx)
+                if nearest:
+                    local_bear[nearest] += 1
+
+        for ticker in mentioned:
+            if local_bull[ticker] > local_bear[ticker]:
                 result[ticker] = "bullish"
-            elif local_bear > local_bull:
+            elif local_bear[ticker] > local_bull[ticker]:
                 result[ticker] = "bearish"
             else:
                 result[ticker] = "neutral"
@@ -159,4 +210,4 @@ def is_ticker_relevant(headline: str, ticker: str) -> bool:
     """
     headline_lower = headline.lower()
     aliases = _TICKER_TO_COMPANY.get(ticker, [ticker])
-    return any(alias.lower() in headline_lower for alias in aliases)
+    return any(_find_alias(alias.lower(), headline_lower) is not None for alias in aliases)

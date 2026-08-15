@@ -4,6 +4,7 @@ narrative theme tracking; news clustering; timezone-adjusted windows.
 Output used by scoring.py for the News component (max 15 points).
 """
 
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -78,6 +79,44 @@ def free_sources_flag_critical_event(
     return False
 
 
+def _normalize_title(title: str) -> str:
+    """Lowercase, strip punctuation, collapse whitespace — so the same wire
+    story syndicated with minor punctuation/casing differences across feeds
+    still hashes to the same dedup key."""
+    t = title.lower().strip()
+    t = re.sub(r"[^\w\s]", "", t)
+    t = re.sub(r"\s+", " ", t)
+    return t
+
+
+def _dedupe_articles(articles: list[dict]) -> list[dict]:
+    """
+    Collapse the same underlying story pulled from multiple feeds (AV, Yahoo,
+    Finnhub, Seeking Alpha, SEC EDGAR) down to one record. Confirmed live:
+    count_independent_cluster's own dedup keys on source_domain, but
+    news_client.py hardcodes "finance.yahoo.com" for every Yahoo item
+    regardless of the real publisher — so one Reuters wire story pulled via
+    AV, Yahoo, and Finnhub simultaneously registered as 3 "independent"
+    sources, inflating both relevant_article_count and clustering_score for a
+    single piece of information. No dedup existed before this at all: this
+    function runs once, upstream of every other article-count-based signal.
+    Keeps the copy with the highest source credibility per duplicate group
+    (first-seen breaks ties) so downstream scoring credits the most credible
+    version of the story.
+    """
+    best_by_key: dict[str, tuple[float, dict]] = {}
+    for art in articles:
+        title = art.get("title", "") or art.get("headline", "")
+        key = _normalize_title(title)
+        if not key:
+            continue
+        cred = score_news_outlet(art.get("source_domain", "") or art.get("publisher", ""))
+        existing = best_by_key.get(key)
+        if existing is None or cred > existing[0]:
+            best_by_key[key] = (cred, art)
+    return [art for _, art in best_by_key.values()]
+
+
 def compute_news_score(
     alpha_vantage_articles: list[dict],
     yahoo_articles: list[dict],
@@ -144,7 +183,7 @@ def compute_news_score(
     from shared.utils.sector_config import get_all_tickers
     watchlist = get_all_tickers(cfg)
 
-    all_articles = (
+    all_articles = _dedupe_articles(
         list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
         + list(seeking_alpha_articles or []) + list(sec_edgar_filings or [])
     )

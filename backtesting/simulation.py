@@ -310,6 +310,22 @@ def _simulate_test_signals(
     except Exception:
         cfg = {}
 
+    # get_seasonality_modifier/compute_macro_state both restrict their real
+    # adverse/favorable logic to the semiconductor sector they were built and
+    # validated for (see each module's _SECTORS_WITH_VALIDATED_* set) — every
+    # other live/paper call site already passes a sector for exactly this
+    # reason. This function's calls below previously passed none at all, so
+    # the backtest applied the semiconductor-specific seasonality calendar
+    # and TNX/DXY rate rationale to regional-bank/healthcare/consumer-
+    # discretionary bars too whenever this ran against those datasets —
+    # contaminating any pooled-sector calibration read of whether either
+    # modifier's real logic (not its neutral-elsewhere fallback) is correct.
+    _BENCHMARK_TO_SECTOR = {
+        "SMH": "semiconductors", "KRE": "regional_banks",
+        "XLV": "healthcare", "XLY": "consumer_discretionary",
+    }
+    sector = _BENCHMARK_TO_SECTOR.get(benchmark_ticker)
+
     _neutral_fundamental = {"fundamental_score": 0.0, "data_quality": "unavailable"}
 
     # Fallback news when no historical cache exists for a bar's date
@@ -452,7 +468,7 @@ def _simulate_test_signals(
             # Seasonality from the signal bar date
             try:
                 seas_mod = get_seasonality_modifier(
-                    date=bar_date.to_pydatetime(), cfg=cfg
+                    date=bar_date.to_pydatetime(), cfg=cfg, sector=sector
                 ).get("confidence_modifier", 0.0)
             except Exception:
                 seas_mod = 0.0
@@ -483,7 +499,9 @@ def _simulate_test_signals(
                 try:
                     tnx_slice = tnx_series[tnx_series.index <= bar_date] if tnx_series is not None else None
                     dxy_slice = dxy_series[dxy_series.index <= bar_date] if dxy_series is not None else None
-                    macro_result = compute_macro_state(tnx_slice, dxy_slice, china_keyword_count_5d=0, cfg=cfg)
+                    macro_result = compute_macro_state(
+                        tnx_slice, dxy_slice, china_keyword_count_5d=0, cfg=cfg, sector=sector
+                    )
                     macro_mod = macro_result.get("confidence_modifier", 0.0)
                     macro_state_label = macro_result.get("macro_state", "neutral")
                 except Exception:
