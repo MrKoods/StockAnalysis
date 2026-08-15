@@ -237,11 +237,26 @@ def run_multi_sector_backtest(
     separate, larger change) — this covers the same headline 70/30 single-slice
     metric every other backtest result in this project is compared against.
 
-    Returns the same result dict shape as run_backtest(), plus a "per_sector"
-    breakdown of qualifying trade count per sector.
+    "passed" (2026-08-15, see CHANGELOG v2.2.56): requires every individual
+    sector to also clear the Sharpe/expectancy/drawdown bars on its own data,
+    not just the pooled aggregate. Found via backtesting/architecture_diagnostic.py:
+    a strong sector can single-handedly carry a "passed" pooled read while 3 of
+    4 sectors fail those same bars on their own (semiconductors Sharpe 4.16 vs.
+    regional_banks/healthcare/consumer_discretionary all under 0.7) — the pooled
+    number alone would have said "go" while real capital in 3 of the 4 sectors
+    would have been trading on an edge that isn't actually there. This doesn't
+    change any sector's weighting or scoring — it only changes what "passed"
+    is honest about. A sector with zero qualifying trades correctly fails here
+    too: bootstrap_expectancy_ci's own convention returns ci_lower=0.0 for an
+    empty sample, which can't clear min_expectancy_r.
+
+    Returns the same result dict shape as run_backtest(), plus "per_sector" (the
+    qualifying trade count per sector, unchanged) and "per_sector_metrics" (each
+    sector's own win_rate/sharpe/expectancy_r_ci_lower/max_drawdown_pct/passed).
     """
     all_outcomes: list[dict] = []
     per_sector_counts: dict[str, int] = {}
+    per_sector_outcomes: dict[str, list[dict]] = {}
     earliest_date = None
     train_cutoff_label = ""
 
@@ -253,6 +268,7 @@ def run_multi_sector_backtest(
             historical_data, config_path, train_split, benchmark_ticker=benchmark
         )
         per_sector_counts[sector] = len(outcomes)
+        per_sector_outcomes[sector] = outcomes
         all_outcomes.extend(outcomes)
         if dates and (earliest_date is None or dates[0] < earliest_date):
             earliest_date = dates[0]
@@ -261,6 +277,34 @@ def run_multi_sector_backtest(
 
     if not all_outcomes:
         return {"passed": False, "error": "no_dates", "win_rate": 0.0, "per_sector": per_sector_counts}
+
+    per_sector_metrics: dict[str, dict] = {}
+    for sector, outcomes in per_sector_outcomes.items():
+        sector_qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= 90]
+        sector_expectancy = bootstrap_expectancy_ci(compute_r_multiples(sector_qualifying))
+        if sector_qualifying:
+            sector_chrono = sorted(sector_qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
+            sector_equity = _build_equity_curve(sector_chrono, starting_equity=15000.0)
+            sector_sharpe = compute_sharpe(
+                sector_equity.pct_change().dropna(), periods_per_year=_trades_per_year(sector_chrono)
+            )
+            sector_max_dd = compute_max_drawdown(sector_equity)
+        else:
+            sector_sharpe = 0.0
+            sector_max_dd = 0.0
+        sector_passed = (
+            sector_expectancy["ci_lower"] >= min_expectancy_r
+            and sector_sharpe >= 1.0
+            and sector_max_dd <= 0.15
+        )
+        per_sector_metrics[sector] = {
+            "n_qualifying": len(sector_qualifying),
+            "win_rate": round(compute_win_rate(sector_qualifying), 4),
+            "expectancy_r_ci_lower": round(sector_expectancy["ci_lower"], 3),
+            "sharpe_ratio": round(sector_sharpe, 2),
+            "max_drawdown_pct": round(sector_max_dd, 4),
+            "passed": sector_passed,
+        }
 
     qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
 
@@ -288,15 +332,17 @@ def run_multi_sector_backtest(
 
     max_consec_losses = compute_consecutive_losses(qualifying)
 
-    passed = (
+    pooled_passed = (
         len(qualifying) >= min_qualifying_trades
         and expectancy_ci["ci_lower"] >= min_expectancy_r
         and sharpe >= 1.0
         and max_dd <= 0.15
     )
+    passed = pooled_passed and all(m["passed"] for m in per_sector_metrics.values())
 
     result = {
         "passed": passed,
+        "pooled_passed": pooled_passed,
         "win_rate": round(win_rate, 4),
         "avg_rr": round(avg_rr, 2),
         "expectancy_r_mean": round(expectancy_ci["mean_r"], 3),
@@ -316,6 +362,7 @@ def run_multi_sector_backtest(
         "max_consecutive_losses": max_consec_losses,
         "per_regime": regime_metrics,
         "per_sector": per_sector_counts,
+        "per_sector_metrics": per_sector_metrics,
         "train_period": str(earliest_date) if earliest_date else "",
         "test_period": train_cutoff_label,
     }
