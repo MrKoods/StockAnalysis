@@ -60,6 +60,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.56 | 2026-08-15 | Backtest Methodology | Tested two open design questions against real historical data instead of waiting on live trades: gating on Technical doesn't help and was dropped; the shared category weighting badly fails 3 of 4 sectors on their own data (only semiconductors clears the go-live bars) even though the multi-sector backtest's pooled "passed" check couldn't see that — fixed the check to require every sector to pass individually |
 | v2.2.55 | 2026-08-15 | Bug Fix / Scoring Change | Seasonality's monthly calendar was scoring backwards — confirmed on clean sector-pure data after fixing the backtest's own sector-scoping gap (WR +4.6pp, Sharpe 3.01→4.16 on the same historical set); also fixed a weight-calibration step that had been mathematically incapable of changing any score since it shipped, a go-live gate floor that couldn't be passed even by a model performing to spec, dead macro config, and ticker misattribution in news scoring |
 | v2.2.54 | 2026-08-14 | Bug Fix | Paper trading was booking stop-loss "losses" on breakout orders that never actually filled (AVGO/ABBV never traded into their entry zone); also found and fixed a support/resistance target/stop calculation that was computed every scan and silently thrown away, and a news-theme field that always logged blank due to a mismatched key name |
 | v2.2.53 | 2026-08-13 | Bug Fix / Scoring Change | Extended the fundamentals audit to every other scoring layer — the biggest find: macro/seasonality rules built for semiconductors (rate hikes are bad, strong dollar hurts TSM/ASML) were being applied identically to regional bank stocks, where rising rates usually help; found and fixed 11 more real gaps across Technical, Positioning, Sentiment, News, and cross-ticker scoring |
@@ -124,6 +125,36 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.56] — 2026-08-15 — [Backtest Methodology] Real data now answers two open design questions instead of guessing: gating on Technical doesn't help (dropped); the shared category weighting fails 3 of 4 sectors on their own data, invisible in the pooled "passed" check until now
+
+**Status:** Live.
+
+**In short:** Following v2.2.55's whole-model audit, two design questions were still open: should Technical be a hard gate instead of one additive term among five, and does the shared 40/20/15/15/10 category weighting actually work the same across all 4 sectors? Both are testable against the historical data already on disk — no need to wait weeks for paper trading to accumulate enough real trades. Built `backtesting/architecture_diagnostic.py` to answer both directly. Result: the Technical-gating idea doesn't hold up — sweeping the floor from 0% to 70% of Technical's max shows no benefit until 70%, where it makes every metric worse while shrinking the sample; dropped. The sector question is real and worse than expected: semiconductors clears the go-live bars comfortably (Sharpe 4.16), but regional banks, healthcare, and consumer discretionary each fail Sharpe and expectancy on their own data (0.22-0.69 Sharpe, all three), with consumer discretionary alone accounting for nearly two-thirds of the entire pooled qualifying-trade count. `run_multi_sector_backtest()`'s existing pooled-only "passed" check had no way to see this — fixed it to require every sector to pass individually, not just the aggregate.
+
+**Problem:**
+1. No tooling existed to test either open design question against real data — both were sitting as "worth discussing later," which for a system this thoroughly audited otherwise meant guessing instead of measuring.
+2. `backtest_engine.py::run_multi_sector_backtest()` pools every sector's outcomes into one set of metrics before computing win rate/Sharpe/expectancy/drawdown — `per_sector` only ever tracked qualifying trade *count*, not each sector's own win rate/Sharpe/expectancy. A sector with a strong edge can mathematically carry a "passed" pooled read while other sectors underneath are failing outright, and there was no way to see that from the returned result.
+
+**Fix:**
+1. New `backtesting/architecture_diagnostic.py`: `per_sector_breakdown()` replays each sector's own out-of-sample outcomes separately (reusing `_get_test_outcomes()` per `_SECTOR_DATASETS` entry, same data `run_multi_sector_backtest()` already loads) and reports win rate/avg R:R/Sharpe/expectancy CI-lower/max drawdown per sector instead of one pooled number. `technical_gate_sweep()` re-filters the pooled qualifying set at increasing Technical floors (0/40/50/60/70% of `TECHNICAL_MAX`) and reports the same metrics at each floor, to see whether a floor actually improves results rather than just shrinking the sample.
+2. `run_multi_sector_backtest()` now computes each sector's own `expectancy_r_ci_lower`/`sharpe_ratio`/`max_drawdown_pct`/`passed` (same three criteria as the pooled check: expectancy CI-lower ≥ `min_expectancy_r`, Sharpe ≥ 1.0, max drawdown ≤ 15%) and returns them under a new `per_sector_metrics` key. The top-level `passed` now requires the pooled criteria AND every sector's own `passed` to be true; the old pooled-only result is preserved separately as `pooled_passed` for comparison. A sector with zero qualifying trades correctly fails (not passes) — `bootstrap_expectancy_ci`'s existing convention returns `ci_lower=0.0` for an empty sample. No scoring/weighting logic changed — this only changes what "passed" is honest about.
+
+**Backtest result:** This entry *is* the backtest result — `architecture_diagnostic.py`'s two questions were the point, not a side effect of a code change. Full replay against all 4 sectors' real historical data:
+
+| Sector | Win Rate | Avg R:R | Sharpe | Expectancy CI-lower | Max DD | Qualifying |
+|---|---|---|---|---|---|---|
+| Semiconductors | 66.9% | 2.17 | 4.16 | 0.86 | 5.9% | 127 |
+| Regional banks | 54.4% | 1.66 | 0.64 | 0.191 | 12.6% | 90 |
+| Healthcare | 54.4% | 1.70 | 0.69 | 0.206 | 9.2% | 68 |
+| Consumer discretionary | 46.3% | 1.61 | 0.22 | 0.145 | 23.9% | 506 |
+| Pooled (old-style single number) | 51.2% | 1.74 | 1.43 | 0.353 | 23.9% | 791 |
+
+Pooled Sharpe/expectancy individually clear their bars, but pooled max drawdown (23.9%, identical to consumer discretionary's own — the largest sector by sample size dominates the pooled equity curve) already failed the 15% cap even before this fix, so `passed` was `False` either way on this run; the value of the fix is that it's now an honest, diagnosable `False` (three named sectors failing on their own data) instead of one opaque pooled number that happened to fail for a reason nobody could see without this breakdown — and it protects against a future run where pooled drawdown improves enough to pass while sector-level failures remain masked. Technical-gate sweep: win rate/Sharpe/expectancy are flat from 0% to 50% of Technical's max (791 qualifying trades, unchanged), barely move at 60% (788 trades), and all three get *worse* at 70% (49.7% WR, Sharpe 1.04, expectancy 0.292 — now failing — on 707 trades). No existing tests pinned the old single-boolean `passed` shape narrowly enough to break; full suite 1030 passing (unchanged — no new tests added, this is a research script plus a metrics-reporting change, not new production logic requiring its own unit tests beyond what already exercises `run_multi_sector_backtest()`), 3 skipped (unchanged, pre-existing), ruff clean.
+
+**Approved by:** [pending]
 
 ---
 
