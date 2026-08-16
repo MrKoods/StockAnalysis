@@ -142,3 +142,58 @@ $LLY: possibly delisted; no price data found  (1d 2026-08-13 -> 2026-08-12) (Yah
 2026-08-12 08:07:03,695 [__main__] INFO — Paper updater complete — 0 trade(s) closed
 Paper trades: 5 total, 5 open, 0 closed
 Closed 0 trade(s) this run.
+2026-08-13 08:07:02,622 [__main__] INFO — 5 open paper trade(s) to check
+2026-08-13 08:07:03,008 [__main__] INFO — PFE 2026-08-07: still open after 4 trading days
+2026-08-13 08:07:03,008 [__main__] INFO — PFE 2026-08-10: still open after 3 trading days
+2026-08-13 08:07:03,104 [__main__] INFO — AMZN 2026-08-07: loss | exit=265.63 | pnl=-7.51% | -1.00R | $-75.00 | 4d
+2026-08-13 08:07:03,897 [__main__] INFO — MRK 2026-08-10: still open after 3 trading days
+2026-08-13 08:07:04,035 [__main__] INFO — LLY 2026-08-12: still open after 1 trading days
+2026-08-13 08:07:04,037 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (1 closed, 4 open)
+==================================================
+  Win rate (wins + profitable time stops): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Open trades:        4
+==================================================
+
+Closed 1 trade(s) this run.
+2026-08-14 08:07:03,611 [__main__] INFO — 8 open paper trade(s) to check
+2026-08-14 08:07:03,961 [__main__] INFO — PFE 2026-08-07: still open after 5 trading days
+2026-08-14 08:07:03,961 [__main__] INFO — PFE 2026-08-10: still open after 4 trading days
+2026-08-14 08:07:04,203 [__main__] INFO — MRK 2026-08-10: still open after 4 trading days
+2026-08-14 08:07:04,374 [__main__] INFO — LLY 2026-08-12: still open after 2 trading days
+2026-08-14 08:07:04,479 [__main__] INFO — NVDA 2026-08-13: still open after 1 trading days
+$AVGO: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+
+1 Failed download:
+['AVGO']: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+2026-08-14 08:07:04,731 [__main__] WARNING — AVGO: no price data since 2026-08-15 — skipping
+$MU: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+
+1 Failed download:
+['MU']: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+2026-08-14 08:07:04,950 [__main__] WARNING — MU: no price data since 2026-08-15 — skipping
+$ABBV: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+
+1 Failed download:
+['ABBV']: possibly delisted; no price data found  (1d 2026-08-15 -> 2026-08-14) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1786766400, endDate = 1786720024")
+2026-08-14 08:07:05,261 [__main__] WARNING — ABBV: no price data since 2026-08-15 — skipping
+2026-08-14 08:07:05,266 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (1 closed, 8 open)
+==================================================
+  Win rate (wins + profitable time stops): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Open trades:        8
+==================================================
+
+Closed 0 trade(s) this run.

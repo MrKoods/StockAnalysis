@@ -42,3 +42,7 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-10T22:50:17.694970+00:00,v2.2.46,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-11T12:30:49.476826+00:00,v2.2.49,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
 2026-08-11T20:33:25.248545+00:00,v2.2.49,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-14T16:04:35.896980+00:00,v2.2.53,mid_session,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='TradingView',True,fraud
+2026-08-14T16:05:02.916221+00:00,v2.2.53,mid_session,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='labor strike' source='seekingalpha.com',True,labor strike
+2026-08-14T20:34:27.154823+00:00,v2.2.53,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-08-14T20:34:27.643092+00:00,v2.2.53,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='labor strike',False,labor strike
