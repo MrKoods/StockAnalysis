@@ -44,6 +44,15 @@ _LIVE_WEIGHTS_FILE = Path("data/processed/calibrated_weights.json")
 _PAPER_TRADES_FILE = Path("paper_trading/paper_trades.csv")
 
 _WEIGHT_KEYS = ("technical", "sentiment", "news")
+_DEFAULT_WEIGHTS = {"technical": 0.60, "sentiment": 0.25, "news": 0.15}
+
+# Per-sector calibration (see fit_sector_calibrated_weights) — separate file
+# and separate machinery from the global live-paper-trading calibration
+# above: different data source (historical backtest replay, not real closed
+# paper trades — there isn't enough real per-sector trade history yet) and a
+# different trust model (a sample-size gate plus shrinkage, since a sector's
+# sample can be far smaller than the pooled global one).
+_SECTOR_LIVE_WEIGHTS_FILE = Path("data/processed/calibrated_weights_by_sector.json")
 
 _OUTCOMES_COLUMNS = [
     "timestamp_utc", "ticker", "entry_date", "exit_date",
@@ -348,9 +357,7 @@ def _load_live_weights() -> dict:
     """Weight fractions only (technical/sentiment/news) — strips last_calibrated/
     n_trades metadata if present, since callers here only do weight arithmetic."""
     raw = _load_live_weights_raw()
-    return {k: raw[k] for k in _WEIGHT_KEYS if k in raw} or {
-        "technical": 0.60, "sentiment": 0.25, "news": 0.15
-    }
+    return {k: raw[k] for k in _WEIGHT_KEYS if k in raw} or dict(_DEFAULT_WEIGHTS)
 
 
 def _load_live_weights_raw() -> dict:
@@ -359,7 +366,7 @@ def _load_live_weights_raw() -> dict:
             return json.loads(_LIVE_WEIGHTS_FILE.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             pass
-    return {"technical": 0.60, "sentiment": 0.25, "news": 0.15}
+    return dict(_DEFAULT_WEIGHTS)
 
 
 def _save_live_weights(weights: dict, n_trades: Optional[int] = None) -> None:
@@ -376,22 +383,54 @@ def _save_live_weights(weights: dict, n_trades: Optional[int] = None) -> None:
     atomic_write_json(_LIVE_WEIGHTS_FILE, payload)
 
 
-def load_live_weights_if_calibrated() -> Optional[dict]:
+def load_live_weights_if_calibrated(sector: Optional[str] = None) -> Optional[dict]:
     """
     Returns the calibrated weight fractions {"technical", "sentiment", "news"}
-    only if calibrated_weights.json was actually written by a passing
-    run_calibration() call (i.e. has a last_calibrated timestamp) — otherwise
+    only if a real calibration has actually run and passed — otherwise
     returns None. Callers (run_swing_model.py, paper_runner.py) pass this
     straight into compute_confidence_score(live_weights=...); with zero real
-    calibrations run yet, this returns None and live scoring is unaffected —
-    it only starts having any effect once a real calibration passes holdout,
-    at which point it's exactly the kind of weight change this project's own
-    rule requires a version bump for (see run_calibration's needs_version_increment).
+    global calibrations run yet, this returns None and live scoring is
+    unaffected — it only starts having any effect once a real calibration
+    passes holdout, at which point it's exactly the kind of weight change
+    this project's own rule requires a version bump for (see
+    run_calibration's needs_version_increment).
+
+    sector: when given and that sector has its own entry in
+    calibrated_weights_by_sector.json (see fit_sector_calibrated_weights),
+    returns that sector's weights instead of the global ones — semiconductors
+    and consumer_discretionary currently have enough historical data to
+    support an independent fit; regional_banks/healthcare don't yet and have
+    no entry, so they fall through to the same global-weights behavior as
+    every caller that doesn't pass a sector at all. None (the default)
+    preserves the original sector-agnostic behavior unchanged.
     """
+    if sector is not None:
+        sector_weights = _load_sector_weights_raw().get(sector)
+        if sector_weights and sector_weights.get("last_calibrated"):
+            return {k: sector_weights[k] for k in _WEIGHT_KEYS if k in sector_weights}
+
     raw = _load_live_weights_raw()
     if not raw.get("last_calibrated"):
         return None
     return {k: raw[k] for k in _WEIGHT_KEYS if k in raw}
+
+
+def _load_sector_weights_raw() -> dict:
+    if _SECTOR_LIVE_WEIGHTS_FILE.exists():
+        try:
+            return json.loads(_SECTOR_LIVE_WEIGHTS_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+def save_sector_weights(sector_weights: dict[str, dict]) -> None:
+    """Persist per-sector calibrated weights (see fit_sector_calibrated_weights)
+    to their own file — deliberately not merged into calibrated_weights.json,
+    which belongs to the separate global/live-paper-trading calibration cycle
+    above and has its own format (flat weights + one last_calibrated/n_trades
+    pair, not a per-sector nesting)."""
+    atomic_write_json(_SECTOR_LIVE_WEIGHTS_FILE, sector_weights)
 
 
 _MIN_SAMPLES_FOR_REGRESSION = 20
@@ -423,6 +462,17 @@ def _fit_logistic_weights(outcomes: list[dict]) -> Optional[dict]:
     keeps a large-scale sub-signal (technical: 0-40) from mechanically
     dominating a small-scale one (news: 0-15) purely from units, not
     predictive power.
+
+    A zero-variance feature is dropped from the fit rather than aborting the
+    whole thing — found via backtesting/sector_weight_calibration.py:
+    historical backtest replay predates Alpha Vantage's article cache (Q4
+    2025 onward) for nearly its entire 13.5-year range, so news_total sits on
+    its neutral fallback for almost every historical row and has nothing to
+    fit against; requiring all 3 features to vary made every historical
+    calibration attempt degenerate instead of usefully fitting the 2 that
+    do. The returned dict only contains keys for features that could
+    actually be fit — callers must treat an omitted key as "no information,
+    keep whatever value this weight already had," not as a fitted 0.
     """
     rows = []
     for o in outcomes:
@@ -440,15 +490,19 @@ def _fit_logistic_weights(outcomes: list[dict]) -> Optional[dict]:
     if len(rows) < _MIN_SAMPLES_FOR_REGRESSION:
         return None
 
-    X = np.array([[r[0], r[1], r[2]] for r in rows])
+    feature_names = ["technical", "sentiment", "news"]
+    X_full = np.array([[r[0], r[1], r[2]] for r in rows])
     y = np.array([r[3] for r in rows])
     if len(set(y.tolist())) < 2:
         return None  # all wins or all losses — nothing to separate
 
+    keep = [i for i in range(3) if X_full[:, i].std() > 0]
+    if not keep:
+        return None  # no feature has any variance at all — fully degenerate
+
+    X = X_full[:, keep]
     X_mean = X.mean(axis=0)
     X_std = X.std(axis=0)
-    if np.any(X_std == 0):
-        return None  # a sub-signal with zero variance can't be fit meaningfully
     X_norm = (X - X_mean) / X_std
 
     def neg_log_likelihood(beta: np.ndarray) -> float:
@@ -457,7 +511,7 @@ def _fit_logistic_weights(outcomes: list[dict]) -> Optional[dict]:
         ll = np.sum(y * np.log(p + eps) + (1 - y) * np.log(1 - p + eps))
         return float(-ll + _LOGISTIC_L2_PENALTY * np.sum(beta ** 2))
 
-    result = minimize(neg_log_likelihood, x0=np.zeros(3), method="L-BFGS-B")
+    result = minimize(neg_log_likelihood, x0=np.zeros(len(keep)), method="L-BFGS-B")
     if not result.success:
         return None
 
@@ -467,7 +521,154 @@ def _fit_logistic_weights(outcomes: list[dict]) -> Optional[dict]:
         return None  # no sub-signal showed any separating power
 
     fractions = coefs / total
-    return {"technical": float(fractions[0]), "sentiment": float(fractions[1]), "news": float(fractions[2])}
+    return {feature_names[i]: float(fractions[j]) for j, i in enumerate(keep)}
+
+
+# Below this many qualifying outcomes, a sector doesn't get its own
+# independent fit at all — not just a heavily-shrunk one. Chosen from the
+# actual per-sector sample sizes in the current historical set (see
+# CHANGELOG v2.2.57): semiconductors (127) and consumer_discretionary (506)
+# clear it; regional_banks (90) and healthcare (68) don't. Both of the
+# excluded sectors are individually above _MIN_SAMPLES_FOR_REGRESSION (20) —
+# a fit would technically run — but trusting a 3-parameter regression that
+# thin risks replacing "wrong shared weights" with "confidently wrong
+# sector-specific weights," which is worse, not better. Excluded sectors
+# simply get no entry in the output; load_live_weights_if_calibrated()
+# already treats a missing sector as "use the shared default."
+_MIN_SAMPLES_FOR_SECTOR_CALIBRATION = 100
+
+# Sectors at or above this many qualifying outcomes get (close to) full trust
+# in their fitted weights; below it, the fit is linearly blended toward the
+# shared default in proportion to how far short of this it is — a fit on 127
+# trades is still less reliable than one on 506, even though both clear the
+# floor above to be attempted at all.
+_SECTOR_SHRINKAGE_FULL_TRUST_N = 300
+
+
+def fit_sector_calibrated_weights(outcomes_by_sector: dict[str, list[dict]]) -> dict[str, dict]:
+    """
+    Fit independent technical/sentiment/news weights per sector, instead of
+    one global set applied everywhere regardless of what kind of stock it is
+    scoring (see CHANGELOG v2.2.56's architecture_diagnostic.py finding: the
+    same weighting that gives semiconductors a 4.16 Sharpe gives regional
+    banks 0.64, healthcare 0.69, and consumer discretionary 0.22 — all
+    failing the go-live bar on their own data).
+
+    outcomes_by_sector: {sector: outcomes}, already restricted to the
+    training split (see backtesting/sector_weight_calibration.py, which
+    holds out the most recent ~20% of each sector's outcomes chronologically
+    for validation before this function ever sees the rest — the same
+    train/holdout discipline run_calibration() already uses for the global
+    live-paper-trading calibration).
+
+    Two safeguards against overfitting a thin sector sample, applied in
+    order:
+    1. A hard floor (_MIN_SAMPLES_FOR_SECTOR_CALIBRATION) — sectors below it
+       aren't fit at all, not even with a heavy shrink; they're simply
+       absent from the result.
+    2. Shrinkage toward the shared default (_DEFAULT_WEIGHTS), proportional
+       to sample size up to _SECTOR_SHRINKAGE_FULL_TRUST_N — a fit just
+       above the floor is mostly the default with a small nudge from the
+       fit; a fit with hundreds of trades is trusted almost fully.
+
+    The same 30-80%/5-40%/5-30% per-weight bounds _recompute_weights applies
+    are enforced here too, after shrinkage.
+
+    Returns {sector: {technical, sentiment, news, n_trades, shrinkage_factor,
+    last_calibrated}} — only for sectors that cleared the floor AND produced
+    a non-degenerate fit (see _fit_logistic_weights). Sectors not present in
+    the result should be treated as "not enough data to calibrate
+    independently yet," not as a fit that ran and found nothing.
+    """
+    results: dict[str, dict] = {}
+    for sector, outcomes in outcomes_by_sector.items():
+        n = len(outcomes)
+        if n < _MIN_SAMPLES_FOR_SECTOR_CALIBRATION:
+            continue
+
+        fitted = _fit_logistic_weights(outcomes)
+        if fitted is None:
+            continue
+
+        shrinkage = min(1.0, n / _SECTOR_SHRINKAGE_FULL_TRUST_N)
+        # .get(k, _DEFAULT_WEIGHTS[k]) rather than fitted[k]: a key can be
+        # missing when _fit_logistic_weights had to drop a zero-variance
+        # feature (see that function's docstring) — treated as "no
+        # information to calibrate this weight from," which this formula
+        # already resolves to the default regardless of shrinkage, since
+        # both terms become _DEFAULT_WEIGHTS[k].
+        blended = {
+            k: shrinkage * fitted.get(k, _DEFAULT_WEIGHTS[k]) + (1 - shrinkage) * _DEFAULT_WEIGHTS[k]
+            for k in _WEIGHT_KEYS
+        }
+
+        results[sector] = {
+            **_clamp_and_normalize_weights(blended),
+            "n_trades": n,
+            "shrinkage_factor": round(shrinkage, 3),
+            "last_calibrated": datetime.now(timezone.utc).isoformat(),
+        }
+    return results
+
+
+_WEIGHT_BOUNDS = {"technical": (0.30, 0.80), "sentiment": (0.05, 0.40), "news": (0.05, 0.30)}
+
+
+def _clamp_and_normalize_weights(raw: dict) -> dict:
+    """
+    Clamp each weight to _WEIGHT_BOUNDS AND normalize to sum to 1.0 — a
+    single clamp-then-rescale pass can violate the very bound it just
+    enforced (e.g. sentiment and news both floor-clamped to their minimums
+    forces technical above its own ceiling once the three are rescaled back
+    to sum to 1.0). Found via a test with a strongly technical-dominant
+    synthetic signal (fit_sector_calibrated_weights, CHANGELOG v2.2.57), but
+    the same bug was already latent in _recompute_weights' original
+    single-pass version — just never triggered by real data yet, since
+    real fits so far haven't landed a raw value far enough past a bound to
+    expose it.
+
+    Water-filling: clamp everything, then redistribute the (1 - sum) gap
+    only across weights not already sitting on a bound, proportional to
+    their current share of that free group; repeat, permanently freezing any
+    weight the redistribution itself pushes onto a bound, until nothing more
+    needs freezing. This is the standard correct algorithm for projecting
+    onto a box-constrained simplex — unlike naive rescaling, it's guaranteed
+    to land in-bounds whenever a feasible point exists, which it does here
+    (_WEIGHT_BOUNDS' minimums sum to 0.40, maximums sum to 1.50, straddling
+    the required 1.0).
+    """
+    values = {k: max(_WEIGHT_BOUNDS[k][0], min(_WEIGHT_BOUNDS[k][1], v)) for k, v in raw.items()}
+    frozen: set = set()
+
+    for _ in range(len(values)):
+        total = sum(values.values())
+        if abs(total - 1.0) < 1e-9:
+            break
+
+        free_keys = [k for k in values if k not in frozen]
+        if not free_keys:
+            break
+        free_total = sum(values[k] for k in free_keys)
+        frozen_total = total - free_total
+        if free_total <= 0:
+            break
+
+        # Rescale only the free weights so the whole set sums to 1.0.
+        scale = (1.0 - frozen_total) / free_total
+        for k in free_keys:
+            values[k] *= scale
+
+        newly_frozen = [
+            k for k in free_keys
+            if values[k] < _WEIGHT_BOUNDS[k][0] - 1e-9 or values[k] > _WEIGHT_BOUNDS[k][1] + 1e-9
+        ]
+        if not newly_frozen:
+            break
+        for k in newly_frozen:
+            values[k] = max(_WEIGHT_BOUNDS[k][0], min(_WEIGHT_BOUNDS[k][1], values[k]))
+            frozen.add(k)
+
+    return {k: round(v, 4) for k, v in values.items()}
 
 
 def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
@@ -493,10 +694,14 @@ def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
 
     fitted = _fit_logistic_weights(outcomes)
     if fitted is not None:
-        new_weights = {
-            "technical": max(0.30, min(0.80, fitted["technical"])),
-            "sentiment": max(0.05, min(0.40, fitted["sentiment"])),
-            "news": max(0.05, min(0.30, fitted["news"])),
+        # .get(k, current_weights[k]) rather than fitted[k]: a key can be
+        # missing when a zero-variance feature got dropped from the fit
+        # (see _fit_logistic_weights' docstring) — keep that weight
+        # unchanged rather than treating the omission as a fitted 0.
+        raw_weights = {
+            "technical": fitted.get("technical", current_weights.get("technical", 0.60)),
+            "sentiment": fitted.get("sentiment", current_weights.get("sentiment", 0.25)),
+            "news": fitted.get("news", current_weights.get("news", 0.15)),
         }
     else:
         def avg(outcomes, field):
@@ -515,18 +720,13 @@ def _recompute_weights(outcomes: list[dict], current_weights: dict) -> dict:
         adj_sent = 0.02 if sent_win > sent_loss else -0.02
         adj_news = 0.02 if news_win > news_loss else -0.02
 
-        new_weights = {
-            "technical": max(0.30, min(0.80, current_weights.get("technical", 0.60) + adj_tech)),
-            "sentiment": max(0.05, min(0.40, current_weights.get("sentiment", 0.25) + adj_sent)),
-            "news": max(0.05, min(0.30, current_weights.get("news", 0.15) + adj_news)),
+        raw_weights = {
+            "technical": current_weights.get("technical", 0.60) + adj_tech,
+            "sentiment": current_weights.get("sentiment", 0.25) + adj_sent,
+            "news": current_weights.get("news", 0.15) + adj_news,
         }
 
-    # Normalize to sum to 1.0
-    total = sum(new_weights.values())
-    if total > 0:
-        new_weights = {k: round(v / total, 4) for k, v in new_weights.items()}
-
-    return new_weights
+    return _clamp_and_normalize_weights(raw_weights)
 
 
 def _score_outcomes(outcomes: list[dict], weights: dict) -> float:

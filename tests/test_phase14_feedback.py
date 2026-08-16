@@ -184,7 +184,16 @@ class TestFitLogisticWeights:
         ]
         assert _fit_logistic_weights(outcomes) is None
 
-    def test_none_when_a_feature_has_zero_variance(self):
+    def test_drops_a_zero_variance_feature_instead_of_aborting(self):
+        # Changed 2026-08-15 (see CHANGELOG v2.2.57): a zero-variance feature
+        # used to make the whole fit return None. Found via
+        # backtesting/sector_weight_calibration.py — historical backtest
+        # replay predates Alpha Vantage's article cache for nearly its whole
+        # 13.5-year range, so news_total is constant across almost every
+        # historical row, which made every per-sector calibration attempt
+        # degenerate under the old all-or-nothing behavior. Now the
+        # zero-variance feature is just dropped from the fit; the informative
+        # ones still get fit normally.
         from swing_model.feedback_loop import _fit_logistic_weights
         import random
         rng = random.Random(1)
@@ -197,6 +206,19 @@ class TestFitLogisticWeights:
                 "sentiment_total": 8.0,  # identical every row -> zero variance
                 "news_total": rng.gauss(7.0, 2.0),
             })
+        result = _fit_logistic_weights(outcomes)
+        assert result is not None
+        assert "sentiment" not in result
+        assert set(result.keys()) == {"technical", "news"}
+        assert abs(sum(result.values()) - 1.0) < 1e-9
+
+    def test_none_when_every_feature_has_zero_variance(self):
+        from swing_model.feedback_loop import _fit_logistic_weights
+        outcomes = [
+            {"outcome": "win" if i % 2 == 0 else "loss",
+             "technical_total": 30.0, "sentiment_total": 8.0, "news_total": 7.0}
+            for i in range(30)
+        ]
         assert _fit_logistic_weights(outcomes) is None
 
     def test_identifies_the_actually_separating_sub_signal(self):
@@ -426,6 +448,98 @@ class TestLoadLiveWeightsIfCalibrated:
         else:
             # Whatever the outcome, unweighted defaults must still be inert.
             assert load_live_weights_if_calibrated() is None
+
+
+class TestFitSectorCalibratedWeights:
+    def test_sector_below_sample_floor_gets_no_entry(self):
+        from swing_model.feedback_loop import fit_sector_calibrated_weights, _MIN_SAMPLES_FOR_SECTOR_CALIBRATION
+        assert _MIN_SAMPLES_FOR_SECTOR_CALIBRATION > 10  # sanity: test data below stays below
+        outcomes = [_outcome(result="win", tech=45.0)] * 5 + [_outcome(result="loss", tech=10.0)] * 5
+        result = fit_sector_calibrated_weights({"regional_banks": outcomes})
+        assert "regional_banks" not in result
+
+    def test_sector_at_or_above_floor_with_real_signal_gets_fit(self):
+        from swing_model.feedback_loop import fit_sector_calibrated_weights, _MIN_SAMPLES_FOR_SECTOR_CALIBRATION
+        n_half = _MIN_SAMPLES_FOR_SECTOR_CALIBRATION // 2 + 5
+        outcomes = _synthetic_outcomes_technical_separates(n=n_half * 2)
+        result = fit_sector_calibrated_weights({"consumer_discretionary": outcomes})
+        assert "consumer_discretionary" in result
+        weights = result["consumer_discretionary"]
+        assert set(weights.keys()) >= {"technical", "sentiment", "news", "n_trades", "shrinkage_factor", "last_calibrated"}
+        assert abs(weights["technical"] + weights["sentiment"] + weights["news"] - 1.0) < 1e-6
+        assert weights["n_trades"] == n_half * 2
+
+    def test_low_sample_sector_near_floor_is_shrunk_toward_default(self):
+        # Just above the floor: shrinkage_factor should be well below 1.0,
+        # pulling the result toward _DEFAULT_WEIGHTS rather than fully
+        # trusting a thin fit.
+        from swing_model.feedback_loop import (
+            fit_sector_calibrated_weights, _MIN_SAMPLES_FOR_SECTOR_CALIBRATION, _SECTOR_SHRINKAGE_FULL_TRUST_N,
+        )
+        outcomes = _synthetic_outcomes_technical_separates(n=_MIN_SAMPLES_FOR_SECTOR_CALIBRATION)
+        result = fit_sector_calibrated_weights({"healthcare": outcomes})
+        if "healthcare" in result:  # fit may still be degenerate at exactly the floor
+            assert result["healthcare"]["shrinkage_factor"] < _MIN_SAMPLES_FOR_SECTOR_CALIBRATION / _SECTOR_SHRINKAGE_FULL_TRUST_N + 0.01
+
+    def test_multiple_sectors_fit_independently(self):
+        from swing_model.feedback_loop import fit_sector_calibrated_weights, _MIN_SAMPLES_FOR_SECTOR_CALIBRATION
+        n = _MIN_SAMPLES_FOR_SECTOR_CALIBRATION + 20
+        result = fit_sector_calibrated_weights({
+            "semiconductors": _synthetic_outcomes_technical_separates(n=n, seed=1),
+            "regional_banks": [_outcome(result="win")] * 5,  # below floor
+        })
+        assert "semiconductors" in result
+        assert "regional_banks" not in result
+
+    def test_weights_stay_within_recompute_weights_bounds(self):
+        from swing_model.feedback_loop import fit_sector_calibrated_weights, _MIN_SAMPLES_FOR_SECTOR_CALIBRATION
+        n = _MIN_SAMPLES_FOR_SECTOR_CALIBRATION + 100
+        result = fit_sector_calibrated_weights({"semiconductors": _synthetic_outcomes_technical_separates(n=n)})
+        if "semiconductors" in result:
+            w = result["semiconductors"]
+            assert 0.30 <= w["technical"] <= 0.80
+            assert 0.05 <= w["sentiment"] <= 0.40
+            assert 0.05 <= w["news"] <= 0.30
+
+
+class TestLoadLiveWeightsIfCalibratedPerSector:
+    def test_sector_with_no_entry_falls_back_to_global(self, tmp_path, monkeypatch):
+        import swing_model.feedback_loop as fl
+        from swing_model.feedback_loop import load_live_weights_if_calibrated, _save_live_weights, save_sector_weights
+        monkeypatch.setattr(fl, "_LIVE_WEIGHTS_FILE", tmp_path / "global.json")
+        monkeypatch.setattr(fl, "_SECTOR_LIVE_WEIGHTS_FILE", tmp_path / "by_sector.json")
+        _save_live_weights({"technical": 0.55, "sentiment": 0.30, "news": 0.15}, n_trades=40)
+        save_sector_weights({"consumer_discretionary": {
+            "technical": 0.35, "sentiment": 0.47, "news": 0.18, "n_trades": 405,
+            "shrinkage_factor": 1.0, "last_calibrated": "2026-08-15T00:00:00+00:00",
+        }})
+        # regional_banks has no entry -> falls back to the global weights
+        assert load_live_weights_if_calibrated(sector="regional_banks") == {
+            "technical": 0.55, "sentiment": 0.30, "news": 0.15,
+        }
+
+    def test_sector_with_entry_returns_its_own_weights(self, tmp_path, monkeypatch):
+        import swing_model.feedback_loop as fl
+        from swing_model.feedback_loop import load_live_weights_if_calibrated, save_sector_weights
+        monkeypatch.setattr(fl, "_LIVE_WEIGHTS_FILE", tmp_path / "global.json")
+        monkeypatch.setattr(fl, "_SECTOR_LIVE_WEIGHTS_FILE", tmp_path / "by_sector.json")
+        save_sector_weights({"consumer_discretionary": {
+            "technical": 0.35, "sentiment": 0.47, "news": 0.18, "n_trades": 405,
+            "shrinkage_factor": 1.0, "last_calibrated": "2026-08-15T00:00:00+00:00",
+        }})
+        result = load_live_weights_if_calibrated(sector="consumer_discretionary")
+        assert result == {"technical": 0.35, "sentiment": 0.47, "news": 0.18}
+
+    def test_sector_none_preserves_original_global_only_behavior(self, tmp_path, monkeypatch):
+        import swing_model.feedback_loop as fl
+        from swing_model.feedback_loop import load_live_weights_if_calibrated, save_sector_weights
+        monkeypatch.setattr(fl, "_LIVE_WEIGHTS_FILE", tmp_path / "global.json")
+        monkeypatch.setattr(fl, "_SECTOR_LIVE_WEIGHTS_FILE", tmp_path / "by_sector.json")
+        save_sector_weights({"consumer_discretionary": {
+            "technical": 0.35, "sentiment": 0.47, "news": 0.18, "n_trades": 405,
+            "shrinkage_factor": 1.0, "last_calibrated": "2026-08-15T00:00:00+00:00",
+        }})
+        assert load_live_weights_if_calibrated() is None  # no global calibration saved
 
 
 # ---------------------------------------------------------------------------

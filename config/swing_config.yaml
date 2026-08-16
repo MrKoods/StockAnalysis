@@ -525,6 +525,14 @@ feedback_loop:
   recalibrate_monthly: true
   weight_change_version_threshold: 0.05  # Changes >5pp require version increment + mini-backtest
   out_of_sample_holdout: 5              # Most recent 5 trades withheld from calibration
+  # Per-sector calibrated weights (data/processed/calibrated_weights_by_sector.json,
+  # see backtesting/sector_weight_calibration.py) — kill switch, not the primary
+  # safety mechanism. A sector only gets its own weights after passing real
+  # holdout validation (see that script), same as the global calibration above;
+  # this flag exists to let live/paper scoring be reverted to the shared
+  # default instantly (e.g. if a sector's weights look off after some real
+  # trades come in) without deleting the calibrated file itself.
+  sector_calibration_enabled: true
 
 # Signal decay thresholds (daily re-scoring of open positions)
 signal_decay:

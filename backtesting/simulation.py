@@ -619,6 +619,7 @@ def _simulate_test_signals(
                 regime=regime,
             )
             outcome["ticker"] = ticker
+            outcome["sector"] = sector
             outcome["macro_state"] = macro_state_label
             outcome["rotation_state"] = rotation_state_label
             # Numeric modifier values actually used for this bar's score, not

@@ -171,12 +171,20 @@ def main(scan_type: str = "post_close") -> None:
         for sector_name in active_sectors
     }
 
-    # Only non-None once a real feedback-loop calibration has passed holdout —
-    # see load_live_weights_if_calibrated's docstring. With zero calibrations
-    # run so far this is always None today, so compute_confidence_score's
-    # live_weights branch stays a no-op; computed once here rather than per
-    # ticker since it's the same value for the whole scan.
-    live_weights_calibrated = load_live_weights_if_calibrated()
+    # Global weights: non-None only once a real feedback-loop calibration has
+    # passed holdout — see load_live_weights_if_calibrated's docstring. With
+    # zero global calibrations run so far this is always None today.
+    # Per-sector weights: sectors with enough historical data and a fit that
+    # passed real holdout validation get their own weights instead of the
+    # global default (see backtesting/sector_weight_calibration.py and
+    # config's feedback_loop.sector_calibration_enabled kill switch) —
+    # computed once per active sector, not per ticker, since it's the same
+    # lookup for every ticker in that sector.
+    sector_calibration_enabled = bool(cfg.get("feedback_loop", {}).get("sector_calibration_enabled", True))
+    live_weights_by_sector = {
+        sector_name: load_live_weights_if_calibrated(sector=sector_name if sector_calibration_enabled else None)
+        for sector_name in active_sectors
+    }
 
     # Step 7: Cross-ticker analysis, run once per sector so "3+ tickers moving
     # together" and peer-average divergence are computed within each sector's
@@ -302,7 +310,7 @@ def main(scan_type: str = "post_close") -> None:
                 seasonality_modifier=seasonality_modifier_val,
                 macro_modifier=macro_modifier_val,
                 cfg=cfg,
-                live_weights=live_weights_calibrated,
+                live_weights=live_weights_by_sector.get(sector),
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
