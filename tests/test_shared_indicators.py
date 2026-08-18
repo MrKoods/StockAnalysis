@@ -361,3 +361,53 @@ class TestComputeTechnicalIndicators:
         }
         with pytest.raises(ValueError, match="NaN close"):
             compute_technical_indicators(df, benchmark, cfg)
+
+    def test_rolling_high_20_excludes_todays_own_bar(self, ohlcv_trending_up):
+        """
+        rolling_high_20 is consumed downstream (paper_runner.py/
+        run_swing_model.py/backtesting/simulation.py) as risk_reward.py's
+        compute_entry_zone "breakout level" — meant to be the PRIOR
+        resistance a breakout crossed, matching is_breakout()'s own
+        shift(1) (see this module's docstring for why: unshifted, on a
+        genuine breakout day, today's own high/low IS the new 20-bar
+        extreme, so the entry zone gets anchored at today's intraday high
+        instead of at the real prior level). ohlcv_trending_up rises every
+        single bar, so every bar's own High is a new all-time high — an
+        unshifted rolling_high_20 would equal today's own High here; the
+        correct, shifted value must equal the PRIOR bar's High instead.
+        """
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        result = compute_technical_indicators(ohlcv_trending_up, benchmark, cfg)
+        todays_high = float(ohlcv_trending_up["High"].iloc[-1])
+        prior_bar_high = float(ohlcv_trending_up["High"].iloc[-2])
+        assert result["rolling_high_20"] == pytest.approx(prior_bar_high)
+        assert result["rolling_high_20"] < todays_high
+
+    def test_rolling_low_20_excludes_todays_own_bar(self):
+        """Mirror of the rolling_high_20 test above, for a falling series."""
+        n = 100
+        close = np.linspace(200, 100, n)  # strictly falling -> every bar is a new low
+        df = pd.DataFrame({
+            "Open": close * 1.01, "High": close * 1.02, "Low": close * 0.98,
+            "Close": close, "Volume": [1_000_000] * n,
+        }, index=pd.date_range("2025-01-01", periods=n, freq="B"))
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        benchmark = df["Close"] * 1.05
+        result = compute_technical_indicators(df, benchmark, cfg)
+        todays_low = float(df["Low"].iloc[-1])
+        prior_bar_low = float(df["Low"].iloc[-2])
+        assert result["rolling_low_20"] == pytest.approx(prior_bar_low)
+        assert result["rolling_low_20"] > todays_low

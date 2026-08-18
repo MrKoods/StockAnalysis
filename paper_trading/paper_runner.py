@@ -48,6 +48,7 @@ from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_signal_alert, send_near_miss_alert
 from shared.utils.robust_stats import robust_z_score, DEFAULT_OUTLIER_THRESHOLD
 from shared.utils.scan_lock import acquire_scan_lock
+from shared.utils.atomic_io import exclusive_lock
 from swing_model.trade_selector import rank_trade_structures
 from shared.utils.regime_detection import REGIME_HIGH_VOL
 from shared.utils.event_gate import (
@@ -85,6 +86,13 @@ from swing_model.run_swing_model import (
 logger = get_logger(__name__)
 
 PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
+# Shared with paper_updater.py's _save_trades — both processes touch this
+# same CSV (this module appends new signals; paper_updater.py rewrites the
+# whole file to fill in outcomes) and must serialize around it, or an update
+# run's multi-minute yfinance walk can silently lose a signal appended here
+# mid-run when it does its final rewrite. See paper_updater._save_trades'
+# docstring for the full mechanism.
+PAPER_TRADES_LOCK_FILE = Path("paper_trading/paper_trades.csv.lock")
 CONFIG_PATH = Path("config/swing_config.yaml")
 # CONFIDENCE_THRESHOLD imported from swing_model.scoring above — used to be its
 # own separate literal here (both at 90), which is exactly the kind of drift
@@ -130,7 +138,7 @@ _CSV_COLUMNS = [
     # tiers. capital_deployed/dollar_risk are frozen here rather than
     # recomputed later so a trade's sizing can't silently drift if config or
     # the structure ranking changes after the fact.
-    "risk_pct", "dollar_risk", "position_type", "position_size", "capital_deployed",
+    "risk_pct", "dollar_risk", "actual_dollar_risk", "position_type", "position_size", "capital_deployed",
     # Why this row sizes to 0, or has no structure_recommended, when it
     # otherwise looks like it should have one — blank when sizing was normal.
     "sizing_note",
@@ -183,14 +191,24 @@ def _load_open_positions() -> set[tuple[str, str]]:
 
 
 def _append_row(row: dict) -> None:
-    """Append one signal row to paper_trades.csv, creating header on first write."""
+    """
+    Append one signal row to paper_trades.csv, creating header on first write.
+
+    Lock-protected (same lock file as paper_updater.py's _save_trades) —
+    without it, an append landing in the middle of paper_updater.py's
+    multi-minute update run could be silently wiped out by that run's final
+    full-file rewrite. The critical section here is brief either way, so
+    this only ever waits for another brief append or for paper_updater.py's
+    own (also brief, see its docstring) locked merge-and-write step.
+    """
     PAPER_TRADES_CSV.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not PAPER_TRADES_CSV.exists()
-    with open(PAPER_TRADES_CSV, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
-        if write_header:
-            writer.writeheader()
-        writer.writerow(row)
+    with exclusive_lock(PAPER_TRADES_LOCK_FILE, timeout=15.0):
+        write_header = not PAPER_TRADES_CSV.exists()
+        with open(PAPER_TRADES_CSV, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+            if write_header:
+                writer.writeheader()
+            writer.writerow(row)
 
 
 # ---------------------------------------------------------------------------
@@ -365,7 +383,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
         regime_by_sector[sector_name] = regime
         regime_mod_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
         rotation_mod_by_sector[sector_name] = _compute_rotation_safe(
-            bench_df, mkt["spy_df"]
+            bench_df, mkt["spy_df"], cfg=cfg
         ).get("confidence_modifier", 0.0)
 
     # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
@@ -587,12 +605,19 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # included since they're shared across the whole watchlist each
             # scan and are the natural explanation for a uniform day-over-day
             # move in every ticker's score at once.
+            # technical_max/sentiment_max/news_max default to the nominal
+            # 40/15/15 caps but shift when calibrated live_weights are active
+            # (see scoring.py's compute_confidence_score) — showing the
+            # nominal cap here even when a category's real ceiling has moved
+            # would make a deliberate reweighted score (e.g. sentiment=21.3
+            # under a 0.4 sentiment weight, real cap 28) look like a scoring
+            # bug instead of the calibrated redistribution it actually is.
             logger.info(
                 f"{ticker}: SCORE {final_score:.1f}/100 "
-                f"(technical={score.get('technical_total', 0.0):.1f}/40, "
+                f"(technical={score.get('technical_total', 0.0):.1f}/{score.get('technical_max', 40.0):.0f}, "
                 f"positioning={score.get('positioning_total', 0.0):.1f}/20, "
-                f"sentiment={score.get('sentiment_total', 0.0):.1f}/15, "
-                f"news={score.get('news_total', 0.0):.1f}/15, "
+                f"sentiment={score.get('sentiment_total', 0.0):.1f}/{score.get('sentiment_max', 15.0):.0f}, "
+                f"news={score.get('news_total', 0.0):.1f}/{score.get('news_max', 15.0):.0f}, "
                 f"fundamental={score.get('fundamental_score', 0.0):.1f}/10 "
                 f"as_of={score.get('fundamental_data_as_of') or 'never'}) "
                 f"modifiers(regime={score.get('regime_modifier', 0.0):+.1f}, "
@@ -773,9 +798,12 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                         "direction": direction,
                         "regime": regime,
                         "technical_score": score.get("technical_total", 0.0),
+                        "technical_max": score.get("technical_max", 40.0),
                         "positioning_score": score.get("positioning_total", 0.0),
                         "sentiment_score": score.get("sentiment_total", 0.0),
+                        "sentiment_max": score.get("sentiment_max", 15.0),
                         "news_score": score.get("news_total", 0.0),
+                        "news_max": score.get("news_max", 15.0),
                         "fundamental_score": score.get("fundamental_score", 0.0),
                         "total_modifier": score.get("total_modifier", 0.0),
                     }
@@ -881,6 +909,16 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             capital_based_size = int(max_capital // per_unit_cost) if per_unit_cost and per_unit_cost > 0 else 0
             position_size = min(risk_based_size, capital_based_size)
             capital_deployed = round(position_size * per_unit_cost, 2)
+            # Actual dollar risk of the position actually sized — distinct from
+            # dollar_risk (the pre-cap tier budget) whenever capital_based_size
+            # binds tighter than risk_based_size (position_size * risk_per_unit
+            # is then strictly less than dollar_risk). paper_updater.py uses
+            # this, not dollar_risk, to compute pnl_dollars at exit — otherwise
+            # a capital-capped trade's realized P&L is booked against a risk
+            # budget larger than the position that was actually opened (e.g.
+            # AMZN 2026-08-07: capital cap capped it to 2 shares/$43.14 real
+            # risk, but pnl_dollars was booked against the full $75 budget).
+            actual_dollar_risk = round(position_size * risk_per_unit, 2)
 
             # sizing_note: persisted to paper_trades.csv itself, not just logged —
             # a signal that qualifies but sizes to 0, or that had zero eligible
@@ -938,6 +976,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "ev_per_dollar": ev_per_dollar,
                 "risk_pct": f"{risk_pct:.4f}",
                 "dollar_risk": f"{dollar_risk:.2f}",
+                "actual_dollar_risk": f"{actual_dollar_risk:.2f}",
                 "position_type": position_type,
                 "position_size": str(position_size),
                 "capital_deployed": f"{capital_deployed:.2f}",
@@ -967,9 +1006,12 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "target": float(target_px) if target_px else 0.0,
                 "rr_ratio": rr_ratio,
                 "technical_score": score.get("technical_total", 0.0),
+                "technical_max": score.get("technical_max", 40.0),
                 "positioning_score": score.get("positioning_total", 0.0),
                 "sentiment_score": score.get("sentiment_total", 0.0),
+                "sentiment_max": score.get("sentiment_max", 15.0),
                 "news_score": score.get("news_total", 0.0),
+                "news_max": score.get("news_max", 15.0),
                 "fundamental_score": score.get("fundamental_score", 0.0),
             }
             paper_alert_sent = False

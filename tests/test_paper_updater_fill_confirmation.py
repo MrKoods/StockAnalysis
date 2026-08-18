@@ -63,6 +63,42 @@ class TestFindFillBullish:
         assert "fill_date" in result
 
 
+class TestFindFillPriceIsConfirmedNotAssumed:
+    """
+    _find_fill used to only report WHETHER/WHEN a fill happened — every
+    downstream P&L figure then used the entry-zone MIDPOINT (fixed at signal
+    time, up to 0.25xATR away from either boundary) regardless of which
+    price this function actually confirmed the stock traded at. fill_price
+    closes that gap: the boundary that was validated, or the bar's Open if
+    it gapped past that boundary (same "worse of trigger-vs-open" mirroring
+    _resolve_outcome already uses for a stop hit).
+    """
+
+    def test_bullish_fill_price_is_the_trigger_not_the_midpoint(self):
+        # Zone 201-203 (midpoint 202); high barely clears the lower trigger.
+        df = _bars([("2026-08-17", 200.50, 201.10, 199.80, 200.90)])
+        result = _find_fill(df, entry_zone_lower=201.0, entry_zone_upper=203.0)
+        assert result["fill_price"] == 201.0
+
+    def test_bullish_gap_up_fills_at_the_worse_open_not_the_trigger(self):
+        # Zone 201-203; the bar opens already above the lower trigger.
+        df = _bars([("2026-08-17", 204.0, 206.0, 203.5, 205.0)])
+        result = _find_fill(df, entry_zone_lower=201.0, entry_zone_upper=203.0)
+        assert result["fill_price"] == 204.0
+
+    def test_bearish_fill_price_is_the_trigger_not_the_midpoint(self):
+        # Zone 90-95.5 (breakdown trigger at the upper bound, 95.5); low
+        # barely dips into it.
+        df = _bars([("2026-08-17", 96.5, 97.0, 95.0, 95.5)])
+        result = _find_fill(df, entry_zone_lower=90.0, entry_zone_upper=95.5, direction="bearish")
+        assert result["fill_price"] == 95.5
+
+    def test_bearish_gap_down_fills_at_the_worse_open_not_the_trigger(self):
+        df = _bars([("2026-08-17", 88.0, 88.5, 86.0, 87.0)])
+        result = _find_fill(df, entry_zone_lower=90.0, entry_zone_upper=95.5, direction="bearish")
+        assert result["fill_price"] == 88.0
+
+
 class TestFindFillBearish:
     def test_fills_when_low_reaches_zone_upper(self):
         # Breakdown zone below current price; low dips into it.

@@ -70,7 +70,11 @@ def rescore_open_positions(
     decay_cfg = cfg.get("signal_decay", {})
     early_exit_drop = float(decay_cfg.get("early_exit_confidence_drop", 10.0))
     time_stop_day = int(decay_cfg.get("time_stop_day", 10))
-    min_progress_pct = float(decay_cfg.get("time_stop_min_progress_pct", 0.30))
+    # config/swing_config.yaml's real key is "time_stop_no_progress_pct" —
+    # this used to read a name that doesn't exist in config, so a configured
+    # value was silently never applied (harmless only by coincidence, since
+    # the hardcoded default below matches config's default).
+    min_progress_pct = float(decay_cfg.get("time_stop_no_progress_pct", 0.30))
     trailing_multiplier = float(decay_cfg.get("trailing_stop_atr_multiplier", 1.5))
 
     regime = market_modifiers.get("regime")

@@ -663,8 +663,19 @@ def resolve_structure_economics(
         put_k = entry if is_synthetic else _otm_k(entry, "put", 0.06)
         call_premium, put_premium = bs(entry, call_k, T, "call"), bs(entry, put_k, T, "put")
         if structure_name == "synthetic_short":
+            # fav/unfav are direction-agnostic magnitudes (fav = |target-entry|,
+            # unfav = |entry-stop| — see their definitions above); trade_
+            # selector.py's own _BEARISH_STRUCTURES set confirms synthetic_short
+            # is only ever paired with a bearish candidate, so fav IS the
+            # favorable (downward) move here, same convention as every other
+            # structure. This branch previously had it backwards — win sized
+            # off the ADVERSE magnitude, loss off the favorable one — which
+            # silently zeroed out or inverted this structure's modeled EV
+            # (numerically verified: a bearish setup with the same fav/unfav
+            # magnitudes as its bullish mirror produced opposite avg_win/
+            # avg_loss between synthetic_short and synthetic_long).
             net_cost = put_premium - call_premium
-            avg_win, avg_loss = (unfav - net_cost) * 100, (fav + net_cost) * 100
+            avg_win, avg_loss = (fav - net_cost) * 100, (unfav + net_cost) * 100
         else:
             net_cost = call_premium - put_premium
             avg_win, avg_loss = (fav - net_cost) * 100, (unfav + net_cost) * 100

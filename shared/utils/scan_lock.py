@@ -62,6 +62,37 @@ def _pid_is_alive(pid: int) -> bool:
         return True
 
 
+def _try_claim(path: Path) -> bool:
+    """
+    Attempt to atomically claim the lock file — O_CREAT|O_EXCL fails as one
+    atomic operation if the file already exists, on both POSIX and Windows.
+
+    Previously this was path.exists() (a separate check) followed by a plain
+    path.write_text() — two processes racing between those two calls could
+    both observe "no live lock" and both proceed to write and both yield
+    True, defeating the mutex this file exists to provide. Folding the
+    "does it already exist" check and the "claim it" write into one atomic
+    syscall closes that window.
+    """
+    try:
+        fd = os.open(str(path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except (FileExistsError, PermissionError):
+        # PermissionError alongside FileExistsError: on Windows, two threads/
+        # processes racing O_CREAT|O_EXCL on the same path can have the loser
+        # surface WinError 5 (Access Denied) instead of the expected "file
+        # exists" errno depending on exact timing (confirmed via a real
+        # concurrent-thread test) — both mean the same thing here: someone
+        # else has (or just got) the lock.
+        return False
+    try:
+        os.write(fd, json.dumps({
+            "pid": os.getpid(), "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        }).encode("utf-8"))
+    finally:
+        os.close(fd)
+    return True
+
+
 @contextlib.contextmanager
 def acquire_scan_lock(scan_type: str, lock_dir: Optional[Path] = None):
     """
@@ -74,8 +105,13 @@ def acquire_scan_lock(scan_type: str, lock_dir: Optional[Path] = None):
     path = _lock_path(scan_type, lock_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    acquired = False
-    if path.exists():
+    acquired = _try_claim(path)
+
+    if not acquired:
+        # Someone already holds it (or held it a moment ago) — check whether
+        # it's actually stale before giving up. The reclaim attempt itself
+        # goes through the same atomic _try_claim, so two processes racing
+        # to reclaim the same stale lock can't both "win" it.
         try:
             existing = json.loads(path.read_text(encoding="utf-8"))
             existing_pid = int(existing.get("pid", -1))
@@ -87,16 +123,17 @@ def acquire_scan_lock(scan_type: str, lock_dir: Optional[Path] = None):
             existing_pid, age_seconds = -1, _MAX_LOCK_AGE_SECONDS + 1
 
         stale = age_seconds > _MAX_LOCK_AGE_SECONDS or not _pid_is_alive(existing_pid)
-        if not stale:
-            yield False
-            return
-        # Stale lock (process gone, or absurdly old) — safe to reclaim.
+        if stale:
+            try:
+                path.unlink(missing_ok=True)
+            except Exception:
+                pass
+            acquired = _try_claim(path)
 
-    path.write_text(
-        json.dumps({"pid": os.getpid(), "started_at_utc": datetime.now(timezone.utc).isoformat()}),
-        encoding="utf-8",
-    )
-    acquired = True
+    if not acquired:
+        yield False
+        return
+
     try:
         yield True
     finally:

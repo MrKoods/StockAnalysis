@@ -4,6 +4,8 @@ Credibility scores stored per outlet and updated on each data pull.
 A Reuters article on NVDA carries more weight than an obscure financial blog.
 """
 
+import re
+
 # Default outlet credibility scores (0.0-1.0, calibrated manually)
 _DEFAULT_OUTLET_SCORES: dict[str, float] = {
     # A company's own SEC filing — not reported through a third party, so it
@@ -52,9 +54,26 @@ def score_news_outlet(source_domain: str) -> float:
     # decide whether a critical-news trigger gets downgraded for a low-credibility
     # source, so a junk source being mis-scored as premium could let a block through
     # that should have been downgraded.
+    #
+    # That reasoning missed a second collision risk in this SAME direction:
+    # a short domain-style key can itself be a substring of an unrelated
+    # domain — "ft.com" (Financial Times) is a literal substring of
+    # "microsoft.com" (...micro-ft.com-m... lines up at "microsoft.com"[7:13]),
+    # so any Microsoft-sourced article used to inherit FT's 0.88 score.
+    # Fixed by requiring a domain-style key (one containing ".") to match the
+    # host as a whole label — either an exact match or a proper subdomain
+    # (host.endswith("." + key)) — rather than an unanchored substring. A
+    # plain outlet NAME key (no ".", e.g. "Reuters") still uses substring
+    # matching, but word-boundary-bound so it can't match inside an unrelated
+    # longer word either.
     clean = source_domain.lower().strip().rstrip("/")
+    host = clean.split("/")[0]
     for key, val in _DEFAULT_OUTLET_SCORES.items():
-        if key.lower() in clean:
+        key_l = key.lower()
+        if "." in key_l:
+            if host == key_l or host.endswith("." + key_l):
+                return val
+        elif re.search(r"\b" + re.escape(key_l) + r"\b", clean):
             return val
     return 0.50
 

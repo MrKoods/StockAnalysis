@@ -311,6 +311,20 @@ def compute_confidence_score(
     #   When live_weights is None (the default), this whole block is skipped and
     #   behavior is unchanged from before this fix.
     # ---------------------------------------------------------------------------
+    # technical_max/sentiment_max/news_max: the cap each of these three fields
+    # is actually operating under right now, for callers that display a score
+    # as "X/max" (paper_runner.py's scan log, discord_alerts.py's embeds).
+    # Nominal (40/15/15) unless live_weights is active, in which case a
+    # category's real ceiling shifts with its calibrated weight fraction of
+    # the shared 70-point pool — e.g. consumer_discretionary's sentiment=0.4
+    # weight raises sentiment's real cap to 28, not 15. Without this, a
+    # reweighted score above its nominal max (by design — see the "Deliberately
+    # NOT re-clamped" note above) reads as a scoring bug in any "X/15"-style
+    # display instead of the deliberate redistribution it actually is.
+    technical_max = float(TECHNICAL_MAX)
+    sentiment_max = float(SENTIMENT_MAX)
+    news_max = float(NEWS_MAX)
+
     if live_weights:
         w_tech = float(live_weights.get("technical", 0.0))
         w_sent = float(live_weights.get("sentiment", 0.0))
@@ -324,6 +338,9 @@ def compute_confidence_score(
             technical_total = pool * (tech_pct * w_tech / w_sum)
             sentiment_total = pool * (sent_pct * w_sent / w_sum)
             news_total = pool * (news_pct * w_news / w_sum)
+            technical_max = pool * (w_tech / w_sum)
+            sentiment_max = pool * (w_sent / w_sum)
+            news_max = pool * (w_news / w_sum)
 
     # ---------------------------------------------------------------------------
     # Step 5: Fundamental contribution
@@ -422,6 +439,7 @@ def compute_confidence_score(
         "rsi_score": tech_sub["rsi_score"],
         "volume_profile_score": tech_sub["volume_profile_score"],
         "technical_total": round(technical_total, 2),
+        "technical_max": round(technical_max, 2),
 
         # Positioning sub-scores
         "options_score": float(positioning.get("options_score", 0.0)),
@@ -436,6 +454,7 @@ def compute_confidence_score(
         "velocity_score": float(sentiment.get("velocity_score", 0.0)),
         "engagement_score": float(sentiment.get("engagement_score", 0.0)),
         "sentiment_total": round(sentiment_total, 2),
+        "sentiment_max": round(sentiment_max, 2),
         # Advisory only — not a scoring input. Was computed by sentiment_layer.py
         # every scan but never read by anything downstream (confirmed via
         # repo-wide search); passed through here so it's at least reachable
@@ -449,6 +468,7 @@ def compute_confidence_score(
         "clustering_score": float(news.get("clustering_score", 0.0)),
         "decay_score": float(news.get("decay_score", 0.0)),
         "news_total": round(news_total, 2),
+        "news_max": round(news_max, 2),
 
         # Fundamental sub-scores
         "fundamental_score": round(fundamental_contribution, 2),

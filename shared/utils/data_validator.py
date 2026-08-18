@@ -95,6 +95,32 @@ def validate_ohlcv(
     return len(reasons) == 0, reasons
 
 
+def _future_timestamp_reason(ts, now_utc: datetime, prefix: str) -> Optional[str]:
+    """
+    Parse a post/article timestamp (str or datetime) and return a failure
+    reason string if it's malformed or newer than now_utc; None if valid or
+    absent. Shared by validate_sentiment_data/validate_news_data — both
+    need "reject any item whose timestamp is malformed or in the future,"
+    differing only in their failure-reason prefix.
+    """
+    if not ts:
+        return None
+    try:
+        if isinstance(ts, str):
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        elif isinstance(ts, datetime):
+            dt = ts
+        else:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        if dt > now_utc:
+            return f"{prefix}_future_timestamp"
+    except (ValueError, TypeError):
+        return f"{prefix}_invalid_timestamp_format"
+    return None
+
+
 def validate_sentiment_data(
     ticker: str,
     posts: list[dict],
@@ -125,22 +151,10 @@ def validate_sentiment_data(
 
         # Timestamp not in the future
         ts = post.get("timestamp_utc") or post.get("timestamp")
-        if ts:
-            try:
-                if isinstance(ts, str):
-                    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                elif isinstance(ts, datetime):
-                    dt = ts
-                else:
-                    dt = None
-                if dt and dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                if dt and dt > now_utc:
-                    reasons.append("sentiment_future_timestamp")
-                    break
-            except (ValueError, TypeError):
-                reasons.append("sentiment_invalid_timestamp_format")
-                break
+        reason = _future_timestamp_reason(ts, now_utc, "sentiment")
+        if reason:
+            reasons.append(reason)
+            break
 
     if reasons:
         write_validation_entry(ticker, "sentiment", "; ".join(reasons))
@@ -177,22 +191,10 @@ def validate_news_data(
 
         # Timestamp not in the future
         ts = article.get("timestamp_utc") or article.get("publish_date")
-        if ts:
-            try:
-                if isinstance(ts, str):
-                    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                elif isinstance(ts, datetime):
-                    dt = ts
-                else:
-                    dt = None
-                if dt and dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                if dt and dt > now_utc:
-                    reasons.append("news_future_timestamp")
-                    break
-            except (ValueError, TypeError):
-                reasons.append("news_invalid_timestamp_format")
-                break
+        reason = _future_timestamp_reason(ts, now_utc, "news")
+        if reason:
+            reasons.append(reason)
+            break
 
     if reasons:
         write_validation_entry(ticker, "news", "; ".join(reasons))

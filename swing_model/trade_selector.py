@@ -319,7 +319,25 @@ def rank_trade_structures(
         # feeds both Filter 5's real bid/ask spread and Filter 4's Greeks check.
         legs = _resolve_structure_legs(name, option_chain, entry) if option_chain else None
         if legs is not None and name not in bid_ask_spreads:
-            bid_ask_spreads[name] = sum(c["ask"] - c["bid"] for c in legs) / len(legs)
+            # Divide by structure["legs"] (the FULL leg count, e.g. 2 for
+            # covered_call's stock+call), not len(legs) (only the option
+            # leg(s) _GREEKS_RESOLVABLE_LEGS tracks — stock legs are
+            # deliberately omitted there since stock has no comparable bid/ask
+            # spread cost). For the 5 mixed stock+option structures
+            # (covered_call, protective_put, married_put, collar,
+            # covered_strangle), structure["legs"] > len(legs) — dividing by
+            # len(legs) instead produced a per-real-leg average that, once
+            # _compute_structure_ev's adjust_ev_for_slippage call multiplies
+            # it back by structure["legs"], double(ish)-counted the stock
+            # leg's spread as if it were a second option leg, systematically
+            # overstating slippage (and understating EV) for exactly these 5
+            # structures whenever a real option_chain was supplied. Dividing
+            # by structure["legs"] here instead means that later
+            # multiplication reconstructs the real option legs' summed
+            # spread, with the stock leg correctly contributing 0 — for pure-
+            # options structures (structure["legs"] == len(legs)), this is a
+            # no-op vs. the old divisor.
+            bid_ask_spreads[name] = sum(c["ask"] - c["bid"] for c in legs) / structure.get("legs", len(legs))
 
         ev_result = _compute_structure_ev(name, structure, candidate, resolved_iv,
                                           win_prob, bid_ask_spreads.get(name, 0.0), dte)

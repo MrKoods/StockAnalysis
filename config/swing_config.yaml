@@ -485,40 +485,6 @@ positioning:
   # Data quality handling
   unavailable_score: 0                  # Sub-signal forfeits its points if data unavailable
 
-# Confidence scoring (5-category system — maximums must sum to 100)
-confidence_scoring:
-  # Maximum contributions per category (must sum to 100)
-  technical_max: 40          # Updated from 50
-  positioning_max: 20        # New
-  sentiment_max: 15          # Updated from 20
-  news_max: 15               # Unchanged
-  fundamental_max: 10        # Updated from 15 (contribution scale)
-
-  # Technical sub-signal maximums (must sum to 40)
-  breakout_max: 8            # Updated from 10
-  trend_max: 8               # Updated from 10
-  relative_strength_max: 8   # Updated from 10
-  rsi_max: 8                 # Updated from 10
-  volume_profile_max: 8      # Updated from 10
-
-  # Positioning sub-signal maximums (must sum to 20)
-  options_positioning_max: 6
-  institutional_ownership_max: 5
-  short_interest_max: 4
-  insider_transactions_max: 3
-  analyst_rating_trend_max: 2
-
-  # Sentiment sub-signal maximums (must sum to 15)
-  stocktwits_ratio_max: 7          # Updated from sentiment_trajectory_max: 8
-  stocktwits_velocity_max: 5       # Updated from sentiment_velocity_max: 4
-  seeking_alpha_engagement_max: 3  # Replaces cross_platform_consistency_max / spike_classification_max
-
-  # News sub-signal maximums (must sum to 15 — unchanged)
-  news_credibility_max: 6
-  theme_alignment_max: 4
-  news_clustering_max: 3
-  news_decay_max: 2
-
 # Feedback loop recalibration
 feedback_loop:
   recalibrate_every_n_trades: 20

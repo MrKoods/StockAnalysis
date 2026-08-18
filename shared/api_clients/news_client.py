@@ -8,22 +8,22 @@ All timestamps normalized to UTC. Implements exponential backoff.
 """
 
 import os
-import time
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-import requests
 import yfinance as yf
 
 from shared.utils.logger import get_logger
-from shared.utils.atomic_io import atomic_write_json
+from shared.utils.atomic_io import atomic_write_json, exclusive_lock
+from shared.api_clients._http_backoff import http_get_with_backoff
 
 logger = get_logger(__name__)
 
 _AV_BASE_URL = "https://www.alphavantage.co/query"
 _AV_COUNTER_FILE = Path("data/processed/av_call_count.json")
+_AV_COUNTER_LOCK_FILE = Path("data/processed/av_call_count.json.lock")
 _FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 
 
@@ -61,7 +61,11 @@ def fetch_news_alpha_vantage(
     if time_from:
         params["time_from"] = time_from
 
-    data = _backoff_get(_AV_BASE_URL, params)
+    data = http_get_with_backoff(
+        _AV_BASE_URL, params=params,
+        redact=lambda text: _redact_secrets(text, params),
+        label="fetch_news_alpha_vantage",
+    )
     increment_av_call_count()
 
     if data is None:
@@ -186,7 +190,11 @@ def fetch_news_finnhub(ticker: str, lookback_days: int = 7) -> list[dict]:
         "token": api_key,
     }
 
-    data = _backoff_get(f"{_FINNHUB_BASE_URL}/company-news", params)
+    data = http_get_with_backoff(
+        f"{_FINNHUB_BASE_URL}/company-news", params=params,
+        redact=lambda text: _redact_secrets(text, params),
+        label="fetch_news_finnhub",
+    )
     if not isinstance(data, list):
         logger.warning(f"Finnhub news: unexpected response for {ticker}: {data}")
         return []
@@ -230,11 +238,23 @@ def get_av_call_count() -> dict:
 
 
 def increment_av_call_count() -> int:
-    """Increment and persist Alpha Vantage call counter. Returns new count."""
-    data = get_av_call_count()
-    data["count"] += 1
-    atomic_write_json(_AV_COUNTER_FILE, data)
-    return data["count"]
+    """
+    Increment and persist Alpha Vantage call counter. Returns new count.
+
+    Locked around the whole read-modify-write cycle — pre_market/mid_session/
+    post_close scans can run concurrently (scan_lock.py only mutexes two
+    instances of the SAME scan_type against each other, by design), and all
+    three hit this counter. Without the lock, two overlapping scans could
+    both read count=N and both write back N+1, silently losing a real API
+    call from the count and letting the true daily usage exceed this
+    counter's view of it — undermining the very rate-limit enforcement this
+    file exists for.
+    """
+    with exclusive_lock(_AV_COUNTER_LOCK_FILE):
+        data = get_av_call_count()
+        data["count"] += 1
+        atomic_write_json(_AV_COUNTER_FILE, data)
+        return data["count"]
 
 
 def check_av_budget(daily_limit: int = 20) -> bool:
@@ -258,17 +278,3 @@ def _redact_secrets(text: str, params: dict) -> str:
     return text
 
 
-def _backoff_get(url: str, params: dict, retries: int = 3) -> Optional[dict]:
-    """GET with exponential backoff (30s → 60s → 120s). Returns parsed JSON or None."""
-    delays = [30, 60, 120]
-    for attempt in range(retries):
-        try:
-            resp = requests.get(url, params=params, timeout=15)
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as exc:
-            if attempt < len(delays):
-                logger.warning(f"Request failed (attempt {attempt+1}): {_redact_secrets(str(exc), params)}. Retry in {delays[attempt]}s.")
-                time.sleep(delays[attempt])
-    logger.error(f"All retries exhausted for {_redact_secrets(url, params)}")
-    return None

@@ -20,7 +20,7 @@ def get_insider_signal(
 
     Returns dict:
     {
-        signal: str,                   # 'buying', 'selling_cluster', 'neutral'
+        signal: str,                   # 'buying', 'selling_cluster', 'selling', 'neutral'
         confidence_modifier: float,    # -8 to +8
         transactions: list[dict],
         rationale: str,
@@ -122,8 +122,16 @@ def count_distinct_traders(transactions: list[dict], window_days: int = 10) -> t
 
 def classify_transactions(transactions: list[dict], window_days: int = 10) -> str:
     """
-    Classify a list of insider transactions as 'buying', 'selling_cluster', or 'neutral'.
-    Cluster: 2+ distinct insiders transacting in same direction within window_days.
+    Classify a list of insider transactions as 'buying', 'selling_cluster',
+    'selling', or 'neutral'. Cluster: 2+ distinct insiders transacting in
+    same direction within window_days.
+
+    A single seller used to fall through every branch to 'neutral' — this
+    module's own docstring promises "single large sell -> -3 (asymmetric —
+    insiders sell for many reasons)", but no code path produced that signal,
+    so a lone insider sale (far more common than a same-window cluster of 2+
+    sellers — routine 10b5-1 sales, tax-related sales, etc.) was invisible,
+    scored identically to having zero insider data at all.
     """
     if not transactions:
         return "neutral"
@@ -136,6 +144,8 @@ def classify_transactions(transactions: list[dict], window_days: int = 10) -> st
         return "selling_cluster"
     if len(buy_insiders) == 1:
         return "buying"  # Single buyer still flagged as buying signal
+    if len(sell_insiders) == 1:
+        return "selling"  # Single seller — modest bearish signal, see _signal_to_modifier
     return "neutral"
 
 
@@ -147,6 +157,8 @@ def _signal_to_modifier(signal: str, transactions: list[dict], window_days: int 
         return 8.0 if len(buy_insiders) >= 2 else 4.0
     if signal == "selling_cluster":
         return -8.0
+    if signal == "selling":
+        return -3.0
     return 0.0
 
 
@@ -156,4 +168,6 @@ def _build_rationale(signal: str, transactions: list[dict]) -> str:
         return f"{n} insider purchase(s) in lookback window — bullish signal."
     if signal == "selling_cluster":
         return f"{n} insider sale(s) in lookback window — bearish cluster signal."
+    if signal == "selling":
+        return f"{n} insider sale(s) in lookback window — single seller, modest bearish signal."
     return "No significant insider activity pattern."

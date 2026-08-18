@@ -302,6 +302,22 @@ class TestRunCalibration:
         assert "holdout_win_rate_old" in result
 
     def test_result_contains_required_keys(self, tmp_path, monkeypatch):
+        # Every other test in this class monkeypatches _TRADE_OUTCOMES_FILE/
+        # _LIVE_WEIGHTS_FILE (see module docstring: "All file I/O is redirected
+        # to tmp_path via monkeypatch"). This one didn't, so run_calibration()
+        # fell through to its real defaults — reading the actual
+        # data/logs/trade_outcomes.csv and, on a passing calibration, writing
+        # the actual data/processed/calibrated_weights.json straight into
+        # live scoring. Confirmed live: running this suite silently overwrote
+        # the production weight file with an uncalibrated-governance-bypassing
+        # last_calibrated timestamp.
+        import swing_model.feedback_loop as fl
+        p = tmp_path / "outcomes.csv"
+        outcomes = [_outcome(result="win")] * 16 + [_outcome(result="loss")] * 4
+        _write_outcomes(p, outcomes)
+        monkeypatch.setattr(fl, "_TRADE_OUTCOMES_FILE", p)
+        monkeypatch.setattr(fl, "_LIVE_WEIGHTS_FILE", tmp_path / "weights.json")
+        monkeypatch.setattr(fl, "_SIGNAL_WIN_RATES_FILE", tmp_path / "rates.json")
         result = run_calibration()
         for key in ("status", "weights_updated"):
             assert key in result

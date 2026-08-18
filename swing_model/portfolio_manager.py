@@ -32,6 +32,11 @@ _EMPTY_STATE = {
 MAX_OPEN_POSITIONS = 2
 MAX_TOTAL_RISK_PCT = 0.03  # 3% total portfolio risk across all open positions
 MAX_TOTAL_OPEN_POSITIONS = 2
+# Net directional exposure ceiling — see get_portfolio_delta()'s docstring.
+# Distinct from MAX_TOTAL_RISK_PCT: that cap is direction-agnostic (sums
+# absolute risk regardless of long/short), this one catches one-sided
+# concentration specifically.
+MAX_NET_DIRECTIONAL_DELTA = 0.015
 
 # Fallback defaults — used when cfg lacks a portfolio.sectors block (or cfg is
 # None), so behavior is unchanged for callers that haven't migrated their
@@ -95,12 +100,29 @@ def add_position(state: dict, position: dict) -> dict:
     return state
 
 
-def close_position(state: dict, ticker: str, exit_price: float, reason: str) -> dict:
+def _approx_calendar_days_for_trading_days(n: int) -> int:
+    """Same approximation style already used elsewhere in this file for
+    count_day_trades' 5-trading-day window (~7 calendar days, a ~1.4x ratio) —
+    covers weekends without a full trading-calendar dependency."""
+    import math
+    return max(1, math.ceil(n * 1.4))
+
+
+def close_position(state: dict, ticker: str, exit_price: float, reason: str, cfg: Optional[dict] = None) -> dict:
     """
     Close a position and update realized P&L, consecutive loss count, and equity.
     Logs outcome to data/logs/trade_outcomes.csv.
+
+    Also tracks the consecutive-loss-streak PAUSE window (Project_Scope.md's
+    Category 7 ladder: 3 losses -> pause new entries N trading days, enforced
+    by can_open_new_position): set once when the streak first reaches 3,
+    cleared on any win. 4+ losses is a separate full-pause requiring manual
+    review (also enforced by can_open_new_position) rather than a timed window.
+
     Returns updated state.
     """
+    if cfg is None:
+        cfg = {}
     positions = state.get("positions", [])
     closed_pos = None
     remaining = []
@@ -133,7 +155,18 @@ def close_position(state: dict, ticker: str, exit_price: float, reason: str) -> 
     if new_equity > float(state.get("peak_equity", equity)):
         state["peak_equity"] = round(new_equity, 2)
 
-    state["consecutive_losses"] = 0 if pnl_dollars >= 0 else state.get("consecutive_losses", 0) + 1
+    is_loss = pnl_dollars < 0
+    prev_streak = int(state.get("consecutive_losses", 0))
+    state["consecutive_losses"] = prev_streak + 1 if is_loss else 0
+
+    if not is_loss:
+        state.pop("consecutive_loss_pause_until_utc", None)
+    elif state["consecutive_losses"] == 3 and prev_streak < 3:
+        pause_days = int(
+            cfg.get("circuit_breakers", {}).get("consecutive_loss", {}).get("at_3", {}).get("pause_days", 3)
+        )
+        pause_until = datetime.now(timezone.utc) + timedelta(days=_approx_calendar_days_for_trading_days(pause_days))
+        state["consecutive_loss_pause_until_utc"] = pause_until.isoformat()
 
     # PDT: record day trade if opened and closed on same day
     opened_at = closed_pos.get("opened_at_utc", "")
@@ -204,6 +237,36 @@ def update_circuit_breaker(state: dict, cfg: Optional[dict] = None) -> dict:
     return state
 
 
+def update_black_swan_state(state: dict, black_swan_result: dict) -> dict:
+    """
+    Track Black Swan trigger transitions for alert deduplication — advisory
+    only, never blocks new positions (same treatment as the Event Severity
+    Gate: this flags a condition for the trader to review, it doesn't veto).
+
+    black_swan_result: output of shared.utils.black_swan_detector.check_black_swan().
+
+    Returns updated state with black_swan_mode reflecting THIS scan's
+    condition and "_black_swan_newly_triggered" set when it just flipped
+    False -> True this call (the caller uses that to fire the Discord alert
+    once per episode instead of on every scan while conditions stay extreme).
+    """
+    triggered = bool(black_swan_result.get("black_swan_triggered"))
+    was_active = bool(state.get("black_swan_mode", False))
+
+    state["black_swan_mode"] = triggered
+    if triggered:
+        state["black_swan_normal_days"] = 0
+    else:
+        state["black_swan_normal_days"] = state.get("black_swan_normal_days", 0) + 1
+
+    if triggered and not was_active:
+        state["_black_swan_newly_triggered"] = True
+    else:
+        state.pop("_black_swan_newly_triggered", None)
+
+    return state
+
+
 def can_open_new_position(
     state: dict,
     new_position: dict,
@@ -224,10 +287,32 @@ def can_open_new_position(
     """
     cfg = cfg or {}
     portfolio_cfg = cfg.get("portfolio", {})
+    cb_cfg = cfg.get("circuit_breakers", {})
 
     cb_state = state.get("circuit_breaker_state", "normal")
     if cb_state in ("orange", "red"):
         return False, f"circuit_breaker_{cb_state}_no_new_positions"
+
+    # Consecutive-loss escalation ladder (Project_Scope.md Category 7):
+    # 4+ losses -> full pause, requires manual review (can only clear via a
+    # win, which can't happen while paused — deliberate, matches "system
+    # review required" for what the spec calls a statistically rare event).
+    # 3 losses -> timed pause (see close_position's consecutive_loss_pause_until_utc).
+    # 2 losses is a SIZING reduction, not a pause — see position_sizer.
+    consecutive_losses = int(state.get("consecutive_losses", 0))
+    if consecutive_losses >= 4:
+        cl4_cfg = cb_cfg.get("consecutive_loss", {}).get("at_4", {})
+        if cl4_cfg.get("full_pause", True):
+            return False, "consecutive_losses_4_full_pause_review_required"
+
+    pause_until_str = state.get("consecutive_loss_pause_until_utc")
+    if pause_until_str:
+        try:
+            pause_until = datetime.fromisoformat(pause_until_str)
+            if datetime.now(timezone.utc) < pause_until:
+                return False, f"consecutive_loss_pause_active_until_{pause_until_str}"
+        except ValueError:
+            pass
 
     from shared.utils.sector_config import get_ticker_sector_map, get_sector_tickers
     new_ticker = new_position.get("ticker", "")
@@ -256,6 +341,18 @@ def can_open_new_position(
     if existing_risk + new_risk > max_risk_pct:
         return False, f"total_risk_exceeds_{round(max_risk_pct*100)}pct_{round((existing_risk + new_risk)*100, 1)}pct"
 
+    # Net directional exposure cap — get_portfolio_delta() was computing this
+    # number every call but nothing ever checked it against the 1.5% ceiling
+    # its own docstring documents. existing_risk is direction-agnostic (a
+    # long and a short both count toward it the same way); this catches the
+    # separate case of one-sided directional concentration even when total
+    # risk is well within budget (e.g. 3 same-direction positions at 0.5% each).
+    max_net_delta = float(portfolio_cfg.get("max_net_directional_delta", MAX_NET_DIRECTIONAL_DELTA))
+    new_dir_sign = 1.0 if new_dir == "bullish" else -1.0
+    projected_delta = get_portfolio_delta(state, {}) + new_risk * new_dir_sign
+    if abs(projected_delta) > max_net_delta:
+        return False, f"net_directional_delta_exceeds_{round(max_net_delta*100, 2)}pct_{round(abs(projected_delta)*100, 2)}pct"
+
     # Same-ticker rule — no second same-direction position on a ticker that
     # already has one open. {new_ticker, open_ticker} collapses to a 1-element
     # set when they're equal, which never matches any correlated group below
@@ -276,11 +373,15 @@ def can_open_new_position(
                 if pair.issubset(corr_group):
                     return False, f"correlated_group_{open_ticker}_{new_ticker}_same_direction"
 
-    # Yellow CB: only allow confidence >= 95
+    # Yellow CB: only allow high-confidence signals through — config's
+    # min_confidence_override was previously declared but never actually
+    # read here (a bare 95 literal), so retuning it in config silently had
+    # no effect.
     if cb_state == "yellow":
+        min_confidence = float(cb_cfg.get("yellow", {}).get("min_confidence_override", 95))
         confidence = float(new_position.get("confidence", 90.0))
-        if confidence < 95:
-            return False, "yellow_cb_requires_confidence_95_plus"
+        if confidence < min_confidence:
+            return False, f"yellow_cb_requires_confidence_{round(min_confidence)}_plus"
 
     return True, "ok"
 
@@ -310,10 +411,22 @@ def handle_entry_confirmation(
     return state
 
 
-def get_portfolio_delta(state: dict, current_prices: dict[str, float]) -> float:
+def get_portfolio_delta(state: dict, current_prices: Optional[dict[str, float]] = None) -> float:
     """
-    Calculate net portfolio delta across all open positions.
-    Net directional exposure must not exceed 1.5% of account per 1% broad market move.
+    Calculate net portfolio delta across all open positions, as a fraction of
+    account risk budget (each position's risk_pct signed by direction) —
+    enforced by can_open_new_position() against MAX_NET_DIRECTIONAL_DELTA
+    (1.5%, per this project's own cap).
+
+    current_prices: accepted for interface stability with callers that
+    already pass today's closes (see run_swing_model.py), but not used by
+    this risk-normalized formula — a position's risk_pct already IS the
+    dollar-risk fraction of the account, which is what the 1.5% cap is
+    measured against, so weighting by market value on top would double-count
+    the same risk on a different basis. Kept as a parameter rather than
+    removed so a future price-weighted refinement doesn't need a signature
+    change at every call site.
+
     Returns net delta (positive = net long, negative = net short).
     """
     open_positions = [p for p in state.get("positions", []) if p.get("open", True)]

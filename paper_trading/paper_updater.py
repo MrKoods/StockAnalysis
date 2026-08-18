@@ -40,7 +40,7 @@ import yfinance as yf
 
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_paper_outcome_alert, send_paper_expired_alert, send_calibration_alert
-from shared.utils.atomic_io import atomic_write_text
+from shared.utils.atomic_io import atomic_write_text, exclusive_lock
 from swing_model.feedback_loop import (
     load_calibration_outcomes_from_paper_trades,
     run_calibration,
@@ -56,7 +56,7 @@ from swing_model.indicator_pipeline import load_config
 # whole CSV and drop those columns from every row, not just the closed one.
 # One shared list closes that gap structurally instead of relying on the two
 # modules being hand-kept in sync.
-from paper_trading.paper_runner import _CSV_COLUMNS
+from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE
 
 logger = get_logger(__name__)
 
@@ -78,14 +78,41 @@ def _load_trades() -> list[dict]:
         return list(csv.DictReader(f))
 
 
+def _row_key(row: dict) -> tuple:
+    """Same (signal_date, ticker) key paper_runner.py's own dedup already
+    uses — good enough uniqueness for merge purposes since paper_runner.py
+    itself refuses to log a second signal for the same key same-day."""
+    return (row.get("signal_date", ""), row.get("ticker", ""))
+
+
 def _save_trades(trades: list[dict]) -> None:
-    # Full-file rewrite on every update — write atomically so a crash or an
-    # overlapping run mid-write can't truncate the whole trade history.
-    buf = io.StringIO(newline="")
-    writer = csv.DictWriter(buf, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
-    writer.writeheader()
-    writer.writerows(trades)
-    atomic_write_text(PAPER_TRADES_CSV, buf.getvalue(), newline="")
+    """
+    Full-file rewrite on every update, atomic and lock-protected.
+
+    update_paper_trades()'s per-ticker yfinance walk between _load_trades()
+    and this call can take minutes (real network I/O, one call per open
+    ticker) — during that window paper_runner.py can append a brand-new
+    signal directly to this same CSV. A naive rewrite from the stale
+    in-memory `trades` snapshot would silently erase that row with no error.
+    Fixed by re-reading the live file under the lock right before writing
+    and merging in any row whose key isn't already in `trades` — the two
+    writers never touch the same rows (paper_runner.py only ever appends new
+    ones; this function only ever updates existing ones' outcome fields), so
+    a key-based merge is safe. The lock itself is held only for this brief
+    read-merge-write, not for the multi-minute fetch loop before it —
+    paper_runner.py's own appends (equally brief) shouldn't have to wait
+    minutes for a scan-time Discord alert to go out.
+    """
+    with exclusive_lock(PAPER_TRADES_LOCK_FILE, timeout=15.0):
+        known_keys = {_row_key(t) for t in trades}
+        live_trades = _load_trades()
+        merged = list(trades) + [t for t in live_trades if _row_key(t) not in known_keys]
+
+        buf = io.StringIO(newline="")
+        writer = csv.DictWriter(buf, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(merged)
+        atomic_write_text(PAPER_TRADES_CSV, buf.getvalue(), newline="")
 
 
 def _download_ohlcv(ticker: str, start: str) -> Optional[pd.DataFrame]:
@@ -177,9 +204,19 @@ def _find_fill(
     same mirroring convention _resolve_outcome uses for stop/target.
 
     Returns:
-      {"fill_date": Timestamp, "bars_from_fill": df from that bar onward} on fill
+      {"fill_date": Timestamp, "fill_price": float, "bars_from_fill": df from
+        that bar onward} on fill
       {"expired": True, "last_date": Timestamp} if window_days pass with no fill
       None if still inside the window and not filled yet (caller should wait)
+
+    fill_price is the boundary that was actually confirmed reached (the
+    trigger price), UNLESS the bar's Open already gapped past it — same
+    "worse of trigger-vs-open" convention _resolve_outcome already uses for
+    a stop hit. Previously the caller used the entry-zone MIDPOINT (a value
+    fixed at signal time, a full 0.25xATR away from either boundary by
+    default) for every downstream P&L figure regardless of which price this
+    function actually confirmed the stock traded at — this closes that gap
+    between what was validated and what was priced.
     """
     bearish = direction == "bearish"
     trading_days = 0
@@ -188,10 +225,16 @@ def _find_fill(
         trading_days += 1
         high = float(bar["High"])
         low = float(bar["Low"])
+        open_px = float(bar["Open"])
 
         filled = (low <= entry_zone_upper) if bearish else (high >= entry_zone_lower)
         if filled:
-            return {"fill_date": bar_date, "bars_from_fill": df[df.index >= bar_date]}
+            fill_price = min(entry_zone_upper, open_px) if bearish else max(entry_zone_lower, open_px)
+            return {
+                "fill_date": bar_date,
+                "fill_price": fill_price,
+                "bars_from_fill": df[df.index >= bar_date],
+            }
 
         if trading_days >= window_days:
             return {"expired": True, "last_date": bar_date}
@@ -272,6 +315,14 @@ def update_paper_trades() -> int:
             ez_lower_raw = (trade.get("entry_zone_lower") or "").strip()
             ez_upper_raw = (trade.get("entry_zone_upper") or "").strip()
             bars_for_outcome = df_after
+            # Defaults to the zone-midpoint entry_price stored at signal time;
+            # replaced below with the price _find_fill actually confirmed the
+            # stock traded at, when that check ran. Previously every P&L
+            # figure used the midpoint regardless — a fixed value up to
+            # 0.25xATR away from the boundary _find_fill validated, so the
+            # fill-confirmation check and the P&L basis were silently
+            # checking two different price levels.
+            pnl_entry_price = entry_price
             if ez_lower_raw and ez_upper_raw:
                 try:
                     ez_lower = float(ez_lower_raw)
@@ -311,6 +362,7 @@ def update_paper_trades() -> int:
                         continue
 
                     bars_for_outcome = fill["bars_from_fill"]
+                    pnl_entry_price = float(fill["fill_price"])
 
             result = _resolve_outcome(bars_for_outcome, entry_price, stop_loss, target, direction=direction)
             if result is None:
@@ -322,24 +374,33 @@ def update_paper_trades() -> int:
             # profits from, so price_change flips sign, and risk_per_r is the
             # stop's distance from entry regardless of which side it sits on.
             exit_px = float(result["exit_price"])
-            price_change = (entry_price - exit_px) if bearish else (exit_px - entry_price)
-            risk_per_r = abs(entry_price - stop_loss)
-            pnl_pct = price_change / entry_price
+            price_change = (pnl_entry_price - exit_px) if bearish else (exit_px - pnl_entry_price)
+            risk_per_r = abs(pnl_entry_price - stop_loss)
+            pnl_pct = price_change / pnl_entry_price
             achieved_rr = price_change / risk_per_r if risk_per_r > 0 else 0.0
 
-            # Dollar P&L = achieved_rr * the dollar_risk locked in at signal time
-            # (paper_runner.py), not a re-derivation of position size here. This
-            # mirrors trade_selector.py's own convention of pricing every
-            # structure off the shared entry/stop/target R:R rather than
-            # per-structure option Greeks — an options structure's dollar P&L
-            # isn't linear in the underlying's move, but this system doesn't
-            # model real option pricing at exit anywhere else either, so
-            # achieved_rr * dollar_risk keeps this consistent with how EV was
-            # ranked, rather than being precise about something nothing else
-            # here is precise about either. Blank (not 0.0) for trades signaled
-            # before dollar_risk existed in the CSV — a missing input, not a
-            # $0 risk trade.
-            dollar_risk_raw = (trade.get("dollar_risk") or "").strip()
+            # Dollar P&L = achieved_rr * the position's actual dollar risk, not
+            # a re-derivation of price * shares here. This mirrors
+            # trade_selector.py's own convention of pricing every structure off
+            # the shared entry/stop/target R:R rather than per-structure option
+            # Greeks — an options structure's dollar P&L isn't linear in the
+            # underlying's move, but this system doesn't model real option
+            # pricing at exit anywhere else either, so achieved_rr * risk keeps
+            # this consistent with how EV was ranked, rather than being precise
+            # about something nothing else here is precise about either.
+            #
+            # actual_dollar_risk (position_size * risk_per_unit), not
+            # dollar_risk (the pre-cap tier budget) — whenever the 5% capital
+            # cap binds tighter than the risk budget, the position actually
+            # opened carries less real risk than the budget alone would imply
+            # (e.g. AMZN 2026-08-07: $75 budget implied 3 shares, capital cap
+            # capped it to 2, real risk $43.14), and booking P&L against the
+            # unrealized budget overstates both wins and losses on every
+            # capital-capped trade. Falls back to dollar_risk for rows logged
+            # before actual_dollar_risk existed in the CSV. Blank (not 0.0)
+            # when neither is present — a missing input, not a $0 risk trade.
+            actual_risk_raw = (trade.get("actual_dollar_risk") or "").strip()
+            dollar_risk_raw = actual_risk_raw or (trade.get("dollar_risk") or "").strip()
             pnl_dollars_str = ""
             if dollar_risk_raw:
                 try:

@@ -18,6 +18,7 @@ Usage: python -m backtesting.sector_weight_calibration
 """
 
 from backtesting.architecture_diagnostic import collect_per_sector_outcomes
+from swing_model import model_versioning
 from swing_model.feedback_loop import (
     fit_sector_calibrated_weights,
     save_sector_weights,
@@ -84,6 +85,27 @@ def run() -> dict:
         print(f"\nNot fit-eligible (< {_MIN_SAMPLES_FOR_SECTOR_CALIBRATION} training trades): {', '.join(skipped)} "
               "— will keep using the shared default weights until more data exists.")
 
+    # Version-bump gate — the SAME enforcement point run_calibration() (the
+    # global/live-paper-trading calibration) already uses before saving a
+    # weight change, applied here too. Previously this script wrote straight
+    # to the file live scoring reads (feedback_loop.load_live_weights_if_
+    # calibrated -> compute_confidence_score) with no check at all: exactly
+    # the "no scoring change goes live without a version bump — no
+    # exceptions" rule CHANGELOG.md documents, silently not applied to this
+    # newer per-sector path.
+    version_blocked = {}
+    for sector in list(saved.keys()):
+        if model_versioning.check_backtest_required(saved[sector], _DEFAULT_WEIGHTS):
+            version_blocked[sector] = saved.pop(sector)
+
+    if version_blocked:
+        print(
+            f"\nWeight change > 5pp requires a version bump + re-backtest logged in "
+            f"CHANGELOG.md before going live (see model_versioning.py) — NOT auto-saved "
+            f"for: {', '.join(version_blocked.keys())}. Re-run after bumping the version, "
+            f"or these sectors keep using the shared default weights."
+        )
+
     if saved:
         save_sector_weights(saved)
         print(f"\nSaved calibrated weights for: {', '.join(saved.keys())} "
@@ -91,7 +113,10 @@ def run() -> dict:
     else:
         print("\nNo sector's fitted weights beat the shared default on holdout — nothing saved.")
 
-    return {"fitted": fitted, "saved": saved, "train_counts": {s: len(o) for s, o in train_by_sector.items()}}
+    return {
+        "fitted": fitted, "saved": saved, "version_blocked": version_blocked,
+        "train_counts": {s: len(o) for s, o in train_by_sector.items()},
+    }
 
 
 if __name__ == "__main__":

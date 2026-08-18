@@ -51,6 +51,14 @@ def identify_dominant_theme(
     """
     Identify the dominant narrative theme for a ticker from recent texts.
 
+    texts MUST be in chronological order, oldest first — the momentum calc
+    below compares the first half of the list to the second half, so an
+    unsorted or reverse-sorted input silently produces a meaningless
+    momentum read (a genuinely newest-and-rising theme could register as
+    "declining" purely from list order). Callers combining multiple sources
+    (news_layer.py concatenates 5 of them) must sort by real timestamp
+    before calling this, not just concatenate.
+
     Returns dict:
     {
         dominant_theme: str,

@@ -25,7 +25,7 @@
 | Market Positioning sub-signals (options, institutional, short interest, insider, analyst trend) | Market Positioning Layer |
 | Sentiment sub-signals (StockTwits + Seeking Alpha engagement) | Sentiment Layer — StockTwits Reintegration |
 | Fundamental sub-signals (earnings momentum, valuation vs. peers) | Fundamental Layer |
-| Event Severity Gate (critical news veto, not a score) | Event Severity Gate |
+| Event Severity Gate (critical news advisory flag, not a score) | Event Severity Gate |
 | All 42 trade structures | Trade Selector — EV Framework |
 | Discord alert format | Output & Alerts |
 | Performance thresholds and backtesting rules | Performance Thresholds |
@@ -164,7 +164,7 @@ StockAnalysis/
 │       ├── options_math.py            # SHARED: Black-Scholes pricing, Greeks, EV calculation, bid/ask spread adjustment, capital efficiency scoring
 │       ├── position_sizer.py          # SHARED: calculates trade size based on account equity, confidence tier, circuit breaker state, structure capital requirement
 │       ├── data_validator.py          # SHARED: pre-flight validation of all incoming data; excludes corrupt tickers; logs failures to validation_log.csv
-│       ├── black_swan_detector.py     # SHARED: intraday monitor for SMH > 7% drop or VIX > 40% spike; fires Red Alert; suspends new signals until regime normalizes
+│       ├── black_swan_detector.py     # SHARED: monitor for SMH > 7% drop or VIX > 40% session spike; fires an advisory Red Alert (does not suspend new signals)
 │       ├── event_gate.py          # SHARED: Event Severity Gate — classifies news severity (normal/critical) + scope (ticker/sector) from config keyword+source rules; manages block state in event_gate_state.json (BUILT, v2.1.0)
 │       ├── seasonality.py             # SHARED: calendar-based confidence modifier — semiconductor seasonal patterns by month/quarter; amplifies or reduces confidence based on historical seasonal win rates
 │       ├── macro_overlay.py           # SHARED: monitors Fed rate direction, USD strength, China trade policy signals; applies macro confidence modifier above individual ticker scoring
@@ -523,27 +523,27 @@ Multiple independent bullish (or bearish) news items about the same ticker withi
 
 ### Event Severity Gate
 
-**The weakness it addresses:** the five-category additive scoring model has a structural blind spot. News maxes out at 15 of 100 points, so a severe breaking event — a surprise chip export restriction announced via a presidential statement, a CEO resignation, a fraud allegation — can be mathematically outvoted by four slower-moving layers that haven't caught up yet. Technical runs on daily bars, Positioning is daily-to-quarterly, Fundamental is weekly; for the first hours after a shock, all three describe a world that no longer exists. The existing gates (high-vol regime cap, Black Swan detector, earnings-day block) are either slow (regime detection lags) or price-triggered (Black Swan needs SMH/VIX to already have moved) — none of them gates on the headline itself, before price has reacted.
+**The weakness it addresses:** the five-category additive scoring model has a structural blind spot. News maxes out at 15 of 100 points, so a severe breaking event — a surprise chip export restriction announced via a presidential statement, a CEO resignation, a fraud allegation — can be mathematically outvoted by four slower-moving layers that haven't caught up yet. Technical runs on daily bars, Positioning is daily-to-quarterly, Fundamental is weekly; for the first hours after a shock, all three describe a world that no longer exists. The existing gates (high-vol regime cap, Black Swan detector, earnings-day block) are either slow (regime detection lags) or price-triggered (Black Swan needs SMH/VIX to already have moved) — none of them reacts to the headline itself, before price has reacted.
 
-**Veto, not a score — "points rank opportunities; gates enforce vetoes."** The Event Severity Gate is a binary mechanism in the news pipeline, not a sixth scoring category. News keeps its normal 15-point additive scoring for every item regardless of severity classification. The gate's only power is to suppress surfacing entirely — a 96-confidence candidate is blocked exactly like a 90. It never adds points, and critically, it never subtracts them either when thesis-aligned (see asymmetry below) — it is a pure veto layered on top of the existing five-category score, implemented in `swing_model/scoring.py` and `swing_model/news_layer.py`.
+**Advisory, not a veto — deliberate product decision.** The Event Severity Gate is a binary classification mechanism in the news pipeline, not a sixth scoring category — but it does not suppress surfacing. News keeps its normal 15-point additive scoring for every item regardless of severity classification, and a candidate still surfaces on its own score merits exactly as if the event hadn't fired. The gate's only effect is to attach a visible warning (Discord alert + a note on the scan's output + the audit log) so the trader can review before acting — it never adds points, and never subtracts them either (see asymmetry below): implemented in `swing_model/scoring.py` and `swing_model/news_layer.py`. (An earlier draft of this document specified a hard block here; that was superseded by this advisory-only design, which this document now reflects.)
 
 **Classification.** Every news item processed in `swing_model/news_layer.py` (`classify_severity()`) gets a severity field — `"normal"` or `"critical"` — and, when critical, a scope (`"ticker"` or `"sector"`). Classification is case-insensitive substring matching against post-NER headline text against three configurable lists in `config/swing_config.yaml['event_severity_gate']`:
 - **`sector_wide_triggers`** (export restriction, tariff, Taiwan Strait, entity list, etc.) — any match is critical and scopes to the entire watchlist, since these are macro/policy headlines that may never name a specific ticker.
 - **`ticker_triggers`** (CEO resigns, fraud, SEC/DOJ investigation, guidance withdrawn, halted, etc.) — a match requires NER attribution to a specific ticker (reusing the same NER pass `news_layer.py` already runs for the 15-point News score) to scope the block correctly.
 - **`principal_sources`** (President, White House, Federal Reserve, Commerce Department, USTR) — a trigger match attributed to one of these actors is always critical regardless of source credibility.
-- **`min_source_credibility`** (default 0.5) — a trigger match from a source below this credibility threshold, and not from a principal source, is downgraded back to `"normal"` and logged as a WARNING rather than gated. This keeps a single low-quality blog post from freezing the watchlist.
+- **`min_source_credibility`** (default 0.5) — a trigger match from a source below this credibility threshold, and not from a principal source, is downgraded back to `"normal"` and logged as a WARNING rather than flagged. This keeps a single low-quality blog post from raising false alarms across the watchlist.
 
-**Critical + thesis-opposed → hard block.** If a critical item's NER-attributed sentiment opposes the direction the system would otherwise surface (bearish news against a bullish thesis, or vice versa), that ticker is blocked from surfacing ANY new signal regardless of confidence score. A sector-wide trigger blocks the entire watchlist outright, since these are inherently sector-hostile events independent of any single ticker's technical setup. Block state persists in `data/processed/event_gate_state.json` — id, tickers, scope, trigger headline/keyword, source, event timestamp, expiry condition — and is checked by `scoring.py` before any candidate is surfaced. The confidence score is still computed and audit-logged in full with the trigger reference; only surfacing is suppressed (`shared/utils/event_gate.py`, `swing_model/scoring.py`).
+**Critical + thesis-opposed → advisory flag.** If a critical item's NER-attributed sentiment opposes the direction the system would otherwise surface (bearish news against a bullish thesis, or vice versa), that ticker's scan output carries a visible warning — trigger, headline, and source — but the signal still surfaces at its own confidence score. A sector-wide trigger flags the entire watchlist, since these are inherently sector-hostile events independent of any single ticker's technical setup. Flag state persists in `data/processed/event_gate_state.json` — id, tickers, scope, trigger headline/keyword, source, event timestamp, expiry condition — and is checked by `scoring.py` before every candidate is scored, purely to attach the note. The confidence score is computed and audit-logged in full either way, with the trigger reference attached (`shared/utils/event_gate.py`, `swing_model/scoring.py`).
 
-**Critical + thesis-aligned → do NOT boost.** The gate is asymmetric by design — veto only, never a boost. If a critical item's sentiment agrees with the direction the system would already surface, it is logged (audit trail + Discord-visible narrative context) but News scoring and the final confidence score are completely unaffected. Chasing shock headlines that already confirm your thesis is how you buy the top of a gap; the gate exists to prevent losses, not to chase momentum.
+**Critical + thesis-aligned → do NOT boost.** The gate is asymmetric by design — advisory only, never a boost, in either direction. If a critical item's sentiment agrees with the direction the system would already surface, it is logged (audit trail + Discord-visible narrative context) but News scoring and the final confidence score are completely unaffected. Chasing shock headlines that already confirm your thesis is how you buy the top of a gap; the gate exists to inform the trader's own decision, not to chase momentum or make the decision for them.
 
-**Cooling-off window.** A block persists until the next full post-close scan completes *after* the event timestamp — the system must see one full daily-bar update reflecting the event before trusting the other four layers again. A block created mid-scan never self-expires in that same run; it survives until a subsequent scan invocation whose completion timestamp is later than the event. This is enforced by `expire_blocks()` in `shared/utils/event_gate.py` and driven from `swing_model/run_swing_model.py` after each scan completes.
+**Cooling-off window.** A flag persists until the next full post-close scan completes *after* the event timestamp — the system must see one full daily-bar update reflecting the event before the warning clears. A flag created mid-scan never self-expires in that same run; it survives until a subsequent scan invocation whose completion timestamp is later than the event. This is enforced by `expire_blocks()` in `shared/utils/event_gate.py` and driven from `swing_model/run_swing_model.py` after each scan completes.
 
 **Open positions bypass the cooling-off window entirely.** A critical event on a ticker with an open position fires an immediate 🚨 Discord alert via `notification_router.py` the moment it's detected — it does not wait for the daily re-score, the same treatment as a signal-decay early-exit flag.
 
-**The honest tradeoff.** A false block costs one missed trade — tolerable, since the system is selective by design and surfaces few candidates anyway. A false pass (failing to classify a real shock as critical) costs a position riding through a gap-down with none of the usual protections engaged in time. And the trigger list can never be complete for a genuinely novel shock — this gate reduces the specific, recurring failure mode of "known bad headline outvoted by slow layers," not the general risk of surprise. It complements, and does not replace, the Black Swan detector and high-vol regime cap.
+**The honest tradeoff.** Because this is advisory rather than a hard block, the cost of a false positive is low (a flag the trader reviews and dismisses), and the cost of a false negative (failing to classify a real shock as critical) is that the trader doesn't get the warning at all — the underlying position risk is the same either way, since surfacing was never gated on this signal. The trigger list can never be complete for a genuinely novel shock — this gate surfaces the specific, recurring pattern of "known bad headline the trader should see before acting," not a guarantee against the general risk of surprise. It complements, and does not replace, the Black Swan detector and high-vol regime cap — both of which are also advisory (see Risk Mitigation Framework).
 
-**New file:** `shared/utils/event_gate.py` — severity classification, thesis-opposed comparison, and block-state persistence (load/save/add/expire) for `data/processed/event_gate_state.json`.
+**New file:** `shared/utils/event_gate.py` — severity classification, thesis-opposed comparison, and flag-state persistence (load/save/add/expire) for `data/processed/event_gate_state.json`.
 
 ### Trade Selector — Expected Value (EV) Framework
 
@@ -858,13 +858,13 @@ Each signal includes a hard expiry timestamp. If not filled by market close on t
 
 ### Category 4 — Concentration Risk Mitigations
 
-**Solution: Black Swan detector (`shared/utils/black_swan_detector.py`)**
-Monitors intraday for two triggers: SMH drops > 7% in a single session, or VIX spikes > 40% intraday. When either trigger fires:
-1. Immediate 🚨 Discord Red Alert with all open positions listed
+**Solution: Black Swan detector (`shared/utils/black_swan_detector.py`)** — advisory only, same treatment as the Event Severity Gate (see that section for the rationale): it flags the condition and lets the trader decide, it does not suspend signal generation.
+Monitors the latest daily bar for two triggers: SMH drops > 7% in a single session, or VIX spikes > 40% session-over-session. When either trigger fires:
+1. Immediate 🚨 Discord alert with all open positions listed
 2. Theoretical current P&L for each open position calculated and displayed
-3. Recommended immediate action per position (close immediately, hold with reduced stop, or roll to defined-risk structure)
-4. All new signal generation suspended
-5. System remains in Black Swan mode until regime returns to normal for 3 consecutive trading days
+3. Recommended action per position (close, hold with reduced stop, or roll to defined-risk structure) — advisory, not enforced
+4. A note is attached to this scan's candidate output; new signals still surface on their own score merits
+5. The alert re-fires only on a new trigger episode (state flipping from normal back to triggered), not on every scan while conditions remain extreme
 
 **Solution: Geopolitical risk flag per ticker**
 TSM and ASML carry elevated geopolitical risk (Taiwan Strait, EU semiconductor policy). When either fires as a candidate, the Discord alert includes a geopolitical risk warning and applies a fixed confidence penalty (configurable in `swing_config.yaml`, default -5 points). This does not prevent the trade but makes the risk explicit in every recommendation.
@@ -942,7 +942,7 @@ A field `options_approval_level` (values: 1, 2, 3) is set once in `swing_config.
 | File | Purpose |
 |---|---|
 | `shared/utils/data_validator.py` | Pre-flight validation of all incoming data before indicator calculation; logs failures; excludes corrupt tickers from current scan |
-| `shared/utils/black_swan_detector.py` | Intraday monitor for SMH > 7% drop or VIX > 40% spike; fires Red Alert with open position guidance; suspends new signals |
+| `shared/utils/black_swan_detector.py` | Monitor for SMH > 7% drop or VIX > 40% session spike; fires an advisory Red Alert with open position guidance — does not suspend new signals |
 | `data/logs/audit_log.csv` | Structured forensic log of every scan decision, score, and management action |
 | `data/logs/override_log.csv` | Manual log of every override with reason; reviewed weekly |
 | `data/logs/validation_log.csv` | Log of every data validation failure with ticker, timestamp, and failure type |

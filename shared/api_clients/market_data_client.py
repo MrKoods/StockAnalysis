@@ -5,7 +5,6 @@ Enforces Alpha Vantage call budget (global_config.yaml).
 Implements exponential backoff (30s → 60s → 120s → fallback).
 """
 
-import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -13,10 +12,9 @@ import yfinance as yf
 import pandas as pd
 
 from shared.utils.logger import get_logger
+from shared.api_clients._http_backoff import retry_with_backoff
 
 logger = get_logger(__name__)
-
-_BACKOFF_DELAYS = [30, 60, 120]
 
 
 def _trim_incomplete_last_bar(df: pd.DataFrame) -> pd.DataFrame:
@@ -65,7 +63,7 @@ def fetch_ohlcv(
         df = _trim_incomplete_last_bar(df)
         return df
 
-    return _fetch_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
+    return retry_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
 
 
 def fetch_ohlcv_batch(
@@ -97,7 +95,7 @@ def fetch_ohlcv_batch(
         result[tickers[0]] = fetch_ohlcv(tickers[0], period=period, interval=interval)
         return result
 
-    raw = _fetch_with_backoff(_fetch, retries=3, label="fetch_ohlcv_batch")
+    raw = retry_with_backoff(_fetch, retries=3, label="fetch_ohlcv_batch")
     if raw is None:
         return {t: None for t in tickers}
 
@@ -184,7 +182,7 @@ def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
             "days_to_earnings": days_to_earnings,
         }
 
-    return _fetch_with_backoff(_fetch, retries=3, label=f"fetch_earnings_calendar({ticker})")
+    return retry_with_backoff(_fetch, retries=3, label=f"fetch_earnings_calendar({ticker})")
 
 
 def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
@@ -204,7 +202,38 @@ def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
             close = close.iloc[:, 0]
         return float(close.iloc[-1])
 
-    return _fetch_with_backoff(_fetch, retries=retries, label="fetch_vix")
+    return retry_with_backoff(_fetch, retries=retries, label="fetch_vix")
+
+
+def fetch_vix_pct_change(period: str = "1mo", retries: int = 3) -> Optional[float]:
+    """
+    Fetch VIX's most recent session-over-session % change via yfinance (^VIX).
+
+    fetch_vix() only ever returned the latest level, discarding the prior
+    close needed to compute a change — used by black_swan_detector.check_black_swan
+    for its vix_current_pct_change input (a true tick-level intraday spike isn't
+    available from this daily-bar source; this is the closest free proxy, in
+    keeping with how the rest of this pipeline already treats "current" data as
+    the latest available daily bar, refreshed 2-3x/day, not live streaming).
+    Returns None on failure or if fewer than 2 bars are available.
+    """
+    def _fetch():
+        df = yf.download("^VIX", period=period, interval="1d", progress=False, auto_adjust=True)
+        if df.empty:
+            raise ValueError("Empty VIX response")
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        close = df["Close"]
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        if len(close) < 2:
+            return None
+        prior, latest = float(close.iloc[-2]), float(close.iloc[-1])
+        if prior == 0:
+            return None
+        return (latest - prior) / prior
+
+    return retry_with_backoff(_fetch, retries=retries, label="fetch_vix_pct_change")
 
 
 def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
@@ -224,7 +253,7 @@ def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
             df.index = df.index.tz_convert("UTC")
         return df[["Open", "High", "Low", "Close", "Volume"]].copy()
 
-    return _fetch_with_backoff(_fetch, retries=3, label="fetch_treasury_yield")
+    return retry_with_backoff(_fetch, retries=3, label="fetch_treasury_yield")
 
 
 def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
@@ -244,7 +273,7 @@ def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
             df.index = df.index.tz_convert("UTC")
         return df[["Open", "High", "Low", "Close", "Volume"]].copy()
 
-    return _fetch_with_backoff(_fetch, retries=3, label="fetch_dxy")
+    return retry_with_backoff(_fetch, retries=3, label="fetch_dxy")
 
 
 def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:
@@ -278,23 +307,4 @@ def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:
                 continue
         return records
 
-    return _fetch_with_backoff(_fetch, retries=3, label=f"fetch_insider_transactions({ticker})")
-
-
-def _fetch_with_backoff(fn, retries: int = 3, label: str = ""):
-    """
-    Execute fn() with exponential backoff.
-    Schedule: 30s → 60s → 120s → return None.
-    """
-    last_exc = None
-    for attempt in range(retries):
-        try:
-            return fn()
-        except Exception as exc:
-            last_exc = exc
-            if attempt < len(_BACKOFF_DELAYS):
-                delay = _BACKOFF_DELAYS[attempt]
-                logger.warning(f"[{label}] Attempt {attempt + 1} failed: {exc}. Retrying in {delay}s.")
-                time.sleep(delay)
-    logger.error(f"[{label}] All {retries} retries exhausted. Last error: {last_exc}")
-    return None
+    return retry_with_backoff(_fetch, retries=3, label=f"fetch_insider_transactions({ticker})")

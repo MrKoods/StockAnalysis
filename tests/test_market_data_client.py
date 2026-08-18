@@ -12,11 +12,13 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from shared.api_clients.market_data_client import (
     _trim_incomplete_last_bar,
     fetch_ohlcv,
     fetch_ohlcv_batch,
+    fetch_vix_pct_change,
 )
 
 
@@ -78,3 +80,30 @@ class TestFetchOhlcvTrimsIncompleteBar:
         for t in tickers:
             assert result[t] is not None
             assert not pd.isna(result[t]["Close"].iloc[-1])
+
+
+class TestFetchVixPctChange:
+    """
+    fetch_vix() only ever returned the latest level and discarded the prior
+    close needed to compute a % change — the input black_swan_detector.
+    check_black_swan() actually needs for its vix spike check. This covers
+    the new fetch_vix_pct_change() that fixes that gap.
+    """
+
+    def _vix_df(self, closes):
+        return pd.DataFrame({"Close": closes}, index=pd.date_range("2026-01-01", periods=len(closes), freq="B"))
+
+    def test_computes_pct_change_from_last_two_closes(self):
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=self._vix_df([20.0, 28.0])):
+            result = fetch_vix_pct_change()
+        assert result == pytest.approx((28.0 - 20.0) / 20.0)
+
+    def test_none_on_empty_response(self):
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=pd.DataFrame()):
+            result = fetch_vix_pct_change(retries=1)
+        assert result is None
+
+    def test_none_when_fewer_than_two_bars(self):
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=self._vix_df([20.0])):
+            result = fetch_vix_pct_change()
+        assert result is None

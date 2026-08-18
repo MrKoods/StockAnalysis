@@ -547,33 +547,33 @@ def _sensitivity_outcome(confidence, outcome, pnl_pct, day_offset, achieved_rr=N
 
 
 class TestSensitivityAnalysisDeflatedSharpe:
-    def test_reports_sharpe_per_threshold(self):
+    def test_reports_sharpe_per_threshold(self, tmp_path):
         # 30 outcomes spread across confidence levels so every default
         # threshold (85/87/90/92/95) has at least a few qualifying trades.
         outcomes = [
             _sensitivity_outcome(85 + (i % 11), "win" if i % 3 else "loss", 0.03 if i % 3 else -0.01, i)
             for i in range(30)
         ]
-        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        df = run_sensitivity_analysis(outcomes, test_months=6.0, report_path=tmp_path / "sensitivity.csv")
         assert "sharpe_ratio" in df.columns
         assert len(df) == 5
 
-    def test_adds_deflated_sharpe_columns_when_any_threshold_has_trades(self):
+    def test_adds_deflated_sharpe_columns_when_any_threshold_has_trades(self, tmp_path):
         outcomes = [
             _sensitivity_outcome(85 + (i % 11), "win" if i % 3 else "loss", 0.03 if i % 3 else -0.01, i)
             for i in range(30)
         ]
-        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        df = run_sensitivity_analysis(outcomes, test_months=6.0, report_path=tmp_path / "sensitivity.csv")
         assert "psr_best_threshold_vs_sweep" in df.columns
         assert "deflated_sharpe_best_threshold" in df.columns
         assert (df["psr_best_threshold_vs_sweep"] >= 0.0).all()
         assert (df["psr_best_threshold_vs_sweep"] <= 1.0).all()
 
-    def test_no_deflated_sharpe_columns_when_nothing_qualifies(self):
+    def test_no_deflated_sharpe_columns_when_nothing_qualifies(self, tmp_path):
         # All outcomes below every threshold — every row is the zero-trades
         # branch, sharpe_ratio stays 0.0 everywhere, so there's nothing to
         # deflate and the extra columns should be skipped entirely.
         outcomes = [_sensitivity_outcome(50.0, "loss", -0.01, i) for i in range(10)]
-        df = run_sensitivity_analysis(outcomes, test_months=6.0)
+        df = run_sensitivity_analysis(outcomes, test_months=6.0, report_path=tmp_path / "sensitivity.csv")
         assert (df["qualifying_trades"] == 0).all()
         assert "psr_best_threshold_vs_sweep" not in df.columns

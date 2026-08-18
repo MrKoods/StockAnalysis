@@ -14,11 +14,14 @@ against a known-correct reference.
 
 import math
 
+import pytest
+
 from shared.utils.options_math import (
     resolve_structure_economics,
     PASSTHROUGH_STRUCTURES,
     black_scholes_price,
     STRUCTURE_MULTIPLIERS,
+    compute_ev_simple,
 )
 
 _ENTRY = 150.0
@@ -131,6 +134,53 @@ class TestBearishDirection:
         # be rejected regardless of direction.
         assert resolve_structure_economics("long_call", _ENTRY, _ENTRY, _TARGET, _IV, _DTE) is None
         assert resolve_structure_economics("long_put", self._B_ENTRY, self._B_ENTRY, self._B_TARGET, _IV, _DTE) is None
+
+
+class TestSyntheticShortWinLossAssignment:
+    """
+    synthetic_short (bearish-only per trade_selector._BEARISH_STRUCTURES) had
+    avg_win/avg_loss assigned backwards relative to every other structure's
+    convention (including its own sibling branch handling synthetic_long/
+    risk_reversal, both bullish-only) — win was sized off the ADVERSE (unfav)
+    magnitude and loss off the FAVORABLE (fav) one. Numerically verified pre-fix:
+    a bearish setup and its exact bullish mirror (same fav/unfav magnitudes)
+    produced OPPOSITE avg_win/avg_loss between synthetic_short and
+    synthetic_long, and a genuinely +EV bearish setup (70% win prob) computed
+    as roughly breakeven/negative EV instead of strongly positive.
+    """
+
+    # Mirrors this file's top-level bullish fixture exactly: 15pt favorable
+    # move, 5pt adverse move, just in the opposite direction.
+    _B_ENTRY = 150.0
+    _B_STOP = 155.0
+    _B_TARGET = 135.0
+
+    def test_avg_win_exceeds_avg_loss_on_a_mirrored_favorable_setup(self):
+        # fav (15) > unfav (5) for both — a structure with correctly assigned
+        # win/loss should show avg_win clearly larger than avg_loss on this
+        # lopsided-in-its-own-favor setup, for BOTH directions.
+        short = resolve_structure_economics("synthetic_short", self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+        long_ = resolve_structure_economics("synthetic_long", _ENTRY, _STOP, _TARGET, _IV, _DTE)
+        assert short["avg_win"] > short["avg_loss"]
+        assert long_["avg_win"] > long_["avg_loss"]
+
+    def test_mirrored_bearish_and_bullish_setups_produce_comparable_economics(self):
+        # Same fav/unfav magnitudes, opposite direction — avg_win/avg_loss
+        # should land in the same ballpark (small differences from put/call
+        # premium skew are expected; a large asymmetry means the win/loss
+        # assignment itself is backwards for one of the two).
+        short = resolve_structure_economics("synthetic_short", self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+        long_ = resolve_structure_economics("synthetic_long", _ENTRY, _STOP, _TARGET, _IV, _DTE)
+        assert short["avg_win"] == pytest.approx(long_["avg_win"], rel=0.10)
+        assert short["avg_loss"] == pytest.approx(long_["avg_loss"], rel=0.10)
+
+    def test_favorable_setup_yields_strongly_positive_ev_not_breakeven(self):
+        short = resolve_structure_economics("synthetic_short", self._B_ENTRY, self._B_STOP, self._B_TARGET, _IV, _DTE)
+        ev = compute_ev_simple(win_probability=0.70, average_win=short["avg_win"], average_loss=short["avg_loss"])
+        # Pre-fix this computed to roughly -$19 (near-breakeven/negative) on
+        # equivalent parameters; a 70%-win-probability setup this lopsided in
+        # its own favor should be clearly, robustly positive.
+        assert ev > 500.0
 
 
 class TestProtectivePutFamily:

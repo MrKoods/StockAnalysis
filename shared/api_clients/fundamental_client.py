@@ -37,18 +37,17 @@ Data sources:
 """
 
 import os
-import time
 from typing import Optional
 
 import requests
 import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
+from shared.api_clients._http_backoff import retry_with_backoff
 
 logger = get_logger(__name__)
 
 _FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
-_BACKOFF_DELAYS = [30, 60, 120]
 _MAX_TOTAL_BACKOFF_SECONDS = 90  # caps worst-case stall per Finnhub call (see _with_backoff)
 
 
@@ -482,26 +481,16 @@ class FundamentalClient:
         no overall timeout — an outage on refresh day could stall whatever else
         shares that process. Capping bounds it to _MAX_TOTAL_BACKOFF_SECONDS/call.
         """
-        last_exc = None
-        elapsed = 0.0
-        for attempt, delay in enumerate(_BACKOFF_DELAYS, start=1):
-            try:
-                return fn()
-            except Exception as exc:
-                last_exc = exc
-                if elapsed + delay > _MAX_TOTAL_BACKOFF_SECONDS:
-                    logger.warning(
-                        f"{ticker}: {label} attempt {attempt} failed — {self._redact(str(exc))} — "
-                        f"backoff cap ({_MAX_TOTAL_BACKOFF_SECONDS}s) reached, giving up early"
-                    )
-                    break
-                logger.warning(f"{ticker}: {label} attempt {attempt} failed — {self._redact(str(exc))} — retrying in {delay}s")
-                time.sleep(delay)
-                elapsed += delay
+        def _write_validation_entry(exc: BaseException) -> None:
+            write_validation_entry(ticker, f"fundamental_{label}_error", self._redact(str(exc)))
 
-        logger.error(f"{ticker}: {label} failed after all retries — {self._redact(str(last_exc))}")
-        write_validation_entry(ticker, f"fundamental_{label}_error", self._redact(str(last_exc)))
-        return None
+        return retry_with_backoff(
+            fn,
+            max_total_seconds=_MAX_TOTAL_BACKOFF_SECONDS,
+            label=f"{ticker}: {label}",
+            redact=self._redact,
+            on_exhausted=_write_validation_entry,
+        )
 
 
 def _safe_float(val) -> Optional[float]:

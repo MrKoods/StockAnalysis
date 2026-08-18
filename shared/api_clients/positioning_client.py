@@ -14,7 +14,6 @@ data/processed/positioning_state.json), same pattern as fundamental_client.py's
 weekly cache comparison.
 """
 
-import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -23,10 +22,9 @@ import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.market_data_client import fetch_insider_transactions  # re-exported
+from shared.api_clients._http_backoff import retry_with_backoff
 
 logger = get_logger(__name__)
-
-_BACKOFF_DELAYS = [30, 60, 120]
 
 __all__ = [
     "fetch_option_chain_metrics",
@@ -116,7 +114,7 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
         chain = t.option_chain(expiration)
         return expiration, chain.calls, chain.puts
 
-    fetched = _fetch_with_backoff(_fetch, label=f"fetch_option_chain_metrics({ticker})")
+    fetched = retry_with_backoff(_fetch, label=f"fetch_option_chain_metrics({ticker})")
     if fetched is None:
         write_validation_entry(ticker, "positioning_options_error", "option chain unavailable")
         return result
@@ -337,7 +335,7 @@ def fetch_institutional_ownership(ticker: str) -> dict:
                 })
         return held_pct, top_holders
 
-    fetched = _fetch_with_backoff(_fetch, label=f"fetch_institutional_ownership({ticker})")
+    fetched = retry_with_backoff(_fetch, label=f"fetch_institutional_ownership({ticker})")
     if fetched is None:
         write_validation_entry(ticker, "positioning_institutional_error", "institutional holders unavailable")
         return result
@@ -370,7 +368,7 @@ def fetch_short_interest(ticker: str) -> dict:
     def _fetch():
         return yf.Ticker(ticker).info
 
-    info = _fetch_with_backoff(_fetch, label=f"fetch_short_interest({ticker})")
+    info = retry_with_backoff(_fetch, label=f"fetch_short_interest({ticker})")
     if info is None:
         write_validation_entry(ticker, "positioning_short_interest_error", "info unavailable")
         return result
@@ -418,7 +416,7 @@ def fetch_analyst_rating_trend(ticker: str, lookback_days: int = 30) -> dict:
         df = getattr(t, "upgrades_downgrades", None)
         return df
 
-    df = _fetch_with_backoff(_fetch, label=f"fetch_analyst_rating_trend({ticker})")
+    df = retry_with_backoff(_fetch, label=f"fetch_analyst_rating_trend({ticker})")
     if df is None or df.empty:
         result["suspect_fields"].append("upgrades_downgrades")
         return result
@@ -507,19 +505,3 @@ def fetch_all_positioning(ticker: str, current_price: Optional[float] = None, mi
         write_validation_entry(ticker, "positioning_insider_error", str(exc))
 
     return result
-
-
-def _fetch_with_backoff(fn, retries: int = 3, label: str = ""):
-    """Execute fn() with exponential backoff. Schedule: 30s -> 60s -> 120s -> None."""
-    last_exc = None
-    for attempt in range(retries):
-        try:
-            return fn()
-        except Exception as exc:
-            last_exc = exc
-            if attempt < len(_BACKOFF_DELAYS):
-                delay = _BACKOFF_DELAYS[attempt]
-                logger.warning(f"[{label}] Attempt {attempt + 1} failed: {exc}. Retrying in {delay}s.")
-                time.sleep(delay)
-    logger.error(f"[{label}] All {retries} retries exhausted. Last error: {last_exc}")
-    return None

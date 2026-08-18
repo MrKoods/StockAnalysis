@@ -219,7 +219,11 @@ class TestBlackSwanDetector:
         alert = build_black_swan_alert("smh_drop", positions, -0.08, 0.20)
         assert "NVDA" in alert
         assert "BLACK SWAN" in alert
-        assert "SUSPEND" in alert
+        # Advisory only (product decision, see module docstring) — the alert
+        # must not claim signals are suspended/blocked, since they aren't.
+        assert "Advisory" in alert
+        assert "SUSPEND" not in alert
+        assert "BLOCKED" not in alert
 
     def test_alert_no_positions(self):
         alert = build_black_swan_alert("vix_spike", [], -0.03, 0.45)
@@ -231,7 +235,10 @@ class TestBlackSwanDetector:
         assert should_resume_after_black_swan(5) is True
 
     def test_custom_threshold_via_cfg(self):
-        cfg = {"black_swan": {"smh_drop_threshold": -0.10}}
+        # config/swing_config.yaml's real key is "smh_drop_threshold_pct" —
+        # the un-suffixed name below must NOT override the default (that was
+        # the bug: this key was silently never read).
+        cfg = {"black_swan": {"smh_drop_threshold_pct": -0.10}}
         # -8% should NOT trigger with -10% threshold
         result = check_black_swan(-0.08, 0.10, cfg=cfg)
         assert result["black_swan_triggered"] is False

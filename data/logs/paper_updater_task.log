@@ -197,3 +197,27 @@ PAPER TRADING SUMMARY  (1 closed, 8 open)
 ==================================================
 
 Closed 0 trade(s) this run.
+2026-08-17 08:07:01,455 [__main__] INFO — 8 open paper trade(s) to check
+2026-08-17 08:07:01,801 [__main__] INFO — PFE 2026-08-07: still open after 6 trading days
+2026-08-17 08:07:01,802 [__main__] INFO — PFE 2026-08-10: still open after 5 trading days
+2026-08-17 08:07:01,963 [__main__] INFO — MRK 2026-08-10: still open after 5 trading days
+2026-08-17 08:07:02,123 [__main__] INFO — LLY 2026-08-12: still open after 3 trading days
+2026-08-17 08:07:02,220 [__main__] INFO — NVDA 2026-08-13: still open after 2 trading days
+2026-08-17 08:07:02,336 [__main__] INFO — AVGO 2026-08-14: entry zone ($428.82-$436.64) not reached yet — order still pending
+2026-08-17 08:07:02,465 [__main__] INFO — MU 2026-08-14: still open after 1 trading days
+2026-08-17 08:07:02,571 [__main__] INFO — ABBV 2026-08-14: entry zone ($265.87-$269.07) not reached yet — order still pending
+2026-08-17 08:07:02,580 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (1 closed, 8 open, 0 expired)
+==================================================
+  Win rate (wins + profitable time stops): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 0
+  Open trades:        8
+==================================================
+
+Closed 0 trade(s) this run.

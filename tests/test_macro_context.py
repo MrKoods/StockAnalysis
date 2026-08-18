@@ -170,6 +170,35 @@ class TestSectorRotation:
         assert get_rotation_modifier(ROTATION_INFLOW, {}) == 5.0
         assert get_rotation_modifier(ROTATION_NEUTRAL, {}) == 0.0
 
+    def test_cfg_recalibration_actually_reaches_confidence_modifier(self):
+        """
+        compute_rotation_state() used to always use the hardcoded +5 inflow
+        boost regardless of what config said — get_rotation_modifier() (the
+        config-aware path) existed but was never actually called from
+        compute_rotation_state() or any production caller. Per CHANGELOG
+        v2.2.47, real backtest calibration (544 pooled outcomes) found +5
+        was backwards (inflow trades won 53.9% vs. 63.7% for neutral) and
+        config/swing_config.yaml's inflow_boost was deliberately set to 0 —
+        but without cfg threaded through, that recalibration never reached
+        live scoring. Passing cfg here must now actually change the result,
+        not just get silently ignored.
+        """
+        smh = _make_series([100.0 + i * 0.15 for i in range(65)])
+        spy = _make_series([100.0] * 65)
+        cfg = {"modifiers": {"sector_rotation": {"outflow_penalty": -15, "inflow_boost": 0}}}
+        result = compute_rotation_state(smh, spy, cfg=cfg)
+        assert result["rotation_state"] == ROTATION_INFLOW
+        assert result["confidence_modifier"] == 0.0  # not the stale hardcoded 5.0
+
+    def test_no_cfg_preserves_hardcoded_default_for_backward_compatibility(self):
+        """cfg=None (the default) must still return the old hardcoded +5 —
+        callers that don't pass cfg (e.g. standalone unit tests of the raw
+        rotation-state classification) shouldn't change behavior."""
+        smh = _make_series([100.0 + i * 0.15 for i in range(65)])
+        spy = _make_series([100.0] * 65)
+        result = compute_rotation_state(smh, spy)
+        assert result["confidence_modifier"] == 5.0
+
     def test_dampen_rotation_penalty_leaves_neutral_and_positive_untouched(self):
         assert dampen_rotation_penalty_for_leader(0.0, 5.0) == 0.0
         assert dampen_rotation_penalty_for_leader(5.0, 5.0) == 5.0

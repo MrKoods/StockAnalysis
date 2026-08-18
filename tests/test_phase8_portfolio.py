@@ -149,7 +149,12 @@ class TestCanOpenNewPosition:
     def test_blocked_by_correlated_pair_same_direction(self):
         state = _empty_state()
         state["positions"] = [{**_position("NVDA"), "open": True, "direction": "bullish"}]
-        ok, reason = can_open_new_position(state, _position("AMD", direction="bullish"))
+        # Net-directional-delta cap disabled here (2 same-direction 1%-risk
+        # positions would otherwise trip it first) — isolates this test's own
+        # target, the correlated-group check; the delta cap has its own
+        # dedicated tests.
+        cfg = {"portfolio": {"max_net_directional_delta": 1.0}}
+        ok, reason = can_open_new_position(state, _position("AMD", direction="bullish"), cfg=cfg)
         assert ok is False
         assert "correlated_group" in reason
 
@@ -190,6 +195,12 @@ def _two_sector_cfg():
         "portfolio": {
             "max_simultaneous_risk_pct": 0.03,
             "max_total_open_positions": 4,
+            # Disabled for this multi-sector test class — it's an account-wide,
+            # sector-agnostic cap (own dedicated tests below), and several of
+            # these fixtures deliberately stack same-direction positions
+            # across sectors to isolate the per-sector/global-ceiling/
+            # correlated-group checks, which would otherwise also trip it.
+            "max_net_directional_delta": 1.0,
             "sectors": {
                 "semiconductors": {
                     "max_open_positions": 2,

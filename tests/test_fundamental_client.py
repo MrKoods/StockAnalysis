@@ -296,3 +296,64 @@ class TestGetAllFundamentalsGating:
         mock_growth.assert_not_called()
         assert "eps_growth_trend" not in result["earnings"]
         assert result["earnings"]["earnings_surprises"] == [0.1]  # Finnhub side still refreshes
+
+
+class TestWithBackoff:
+    """
+    Direct coverage for FundamentalClient._with_backoff, previously only
+    ever exercised through patch.object(client, "_with_backoff", ...) at
+    every call site in this file — its own internals (retry-with-backoff
+    now delegated to shared/api_clients/_http_backoff.py, secret redaction,
+    the elapsed-time cap, and the validation_log.csv write on final
+    failure) were never directly tested.
+    """
+
+    def test_successful_call_returns_result_directly(self):
+        client = FundamentalClient()
+        result = client._with_backoff(lambda: "ok", "NVDA", "test_label")
+        assert result == "ok"
+
+    def test_finnhub_key_redacted_from_validation_log_entry(self, monkeypatch):
+        monkeypatch.setenv("FINNHUB_API_KEY", "fake-finnhub-key")
+        client = FundamentalClient()
+        monkeypatch.setattr("shared.api_clients._http_backoff.time.sleep", lambda s: None)
+
+        def _always_fails():
+            raise ConnectionError("Failed for https://finnhub.io/x?token=fake-finnhub-key")
+
+        with patch("shared.api_clients.fundamental_client.write_validation_entry") as mock_write:
+            result = client._with_backoff(_always_fails, "NVDA", "test_label")
+
+        assert result is None
+        mock_write.assert_called_once()
+        args = mock_write.call_args[0]
+        assert args[0] == "NVDA"
+        assert args[1] == "fundamental_test_label_error"
+        assert "fake-finnhub-key" not in args[2]
+        assert "***REDACTED***" in args[2]
+
+    def test_elapsed_cap_gives_up_early_and_still_writes_validation_entry(self, monkeypatch):
+        # Default schedule (30, 60, 120) under the real 90s cap happens to
+        # land exactly on the cap boundary (30+60=90, not > 90) — natural
+        # 3-attempt exhaustion and the cap coincide, so that wouldn't
+        # actually prove the cap fires *early*. Lowering the cap to 40s
+        # here forces it to trigger after the first 30s sleep, before a
+        # 3rd attempt would ever happen (2 calls to fn(), not 3).
+        monkeypatch.setenv("FINNHUB_API_KEY", "fake-finnhub-key")
+        monkeypatch.setattr("shared.api_clients.fundamental_client._MAX_TOTAL_BACKOFF_SECONDS", 40)
+        client = FundamentalClient()
+        sleeps = []
+        monkeypatch.setattr("shared.api_clients._http_backoff.time.sleep", lambda s: sleeps.append(s))
+        calls = {"n": 0}
+
+        def _always_fails():
+            calls["n"] += 1
+            raise ConnectionError("down")
+
+        with patch("shared.api_clients.fundamental_client.write_validation_entry") as mock_write:
+            result = client._with_backoff(_always_fails, "NVDA", "test_label")
+
+        assert result is None
+        assert calls["n"] == 2  # first attempt, one retry after the 30s sleep, then capped out
+        assert sleeps == [30]   # the 60s retry never happens — 30+60 would exceed the 40s cap
+        mock_write.assert_called_once()

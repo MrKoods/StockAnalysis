@@ -7,8 +7,11 @@ All timestamps must be UTC before entering this module.
 import math
 from datetime import datetime, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import pandas as pd
+
+_ET = ZoneInfo("America/New_York")
 
 
 def news_decay_weight(
@@ -41,26 +44,31 @@ def classify_timezone_window(timestamp_utc: datetime) -> str:
     Returns: 'asian_pre_market' | 'european' | 'us_session' | 'us_after_hours'
 
     Windows in Eastern Time:
-      Asian pre-market: 20:00-04:00 ET (01:00-09:00 UTC next day)
-      European:         04:00-09:30 ET (09:00-14:30 UTC)
-      US session:       09:30-16:00 ET (14:30-21:00 UTC)
-      After hours:      16:00-20:00 ET (21:00-01:00 UTC)
+      Asian pre-market: 20:00-04:00 ET
+      European:         04:00-09:30 ET
+      US session:       09:30-16:00 ET
+      After hours:      16:00-20:00 ET
+
+    Classification converts to REAL Eastern time via zoneinfo (DST-aware)
+    rather than a hardcoded UTC offset — the previous version assumed a
+    fixed UTC-5 (EST) year-round, which is off by an hour for roughly 8
+    months a year during EDT (UTC-4, in effect mid-March to early
+    November): true 9:30am ET market open (13:30 UTC in EDT) used to
+    classify as "european" instead of "us_session" for most of the year.
     """
     if timestamp_utc.tzinfo is None:
         timestamp_utc = timestamp_utc.replace(tzinfo=timezone.utc)
 
-    # Use UTC hour for classification (approximate — ignores DST)
-    h = timestamp_utc.hour
-    m = timestamp_utc.minute
-    hm = h * 60 + m  # minutes since midnight UTC
+    et = timestamp_utc.astimezone(_ET)
+    hm = et.hour * 60 + et.minute  # minutes since midnight ET
 
-    if 870 <= hm < 1260:    # 14:30-21:00 UTC
+    if 570 <= hm < 960:      # 09:30-16:00 ET
         return "us_session"
-    if 540 <= hm < 870:     # 09:00-14:30 UTC
+    if 240 <= hm < 570:      # 04:00-09:30 ET
         return "european"
-    if 1260 <= hm or hm < 60:  # 21:00+ or 00:00-01:00 UTC
+    if 960 <= hm < 1200:     # 16:00-20:00 ET
         return "us_after_hours"
-    return "asian_pre_market"   # 01:00-09:00 UTC
+    return "asian_pre_market"  # 20:00-24:00 ET or 00:00-04:00 ET (wraps midnight)
 
 
 def classify_lead_lag(
@@ -152,6 +160,29 @@ def compute_sentiment_velocity(
     return t2 - t1
 
 
+def _assign_trading_day(ts: datetime, price_index: pd.DatetimeIndex) -> Optional[pd.Timestamp]:
+    """
+    Map a signal's timestamp to the trading-day bar its reaction actually
+    belongs to — same-calendar-day if published before/during market close
+    (european/us_session windows), the NEXT trading day if published after
+    close or overnight (us_after_hours/asian_pre_market), mirroring how a
+    real trader can't act on after-hours news until the next session opens.
+    Also forward-fills to the next available bar in price_index for a
+    signal date that isn't itself a trading day (weekend/holiday) instead of
+    matching nothing. Returns None only if price_index has no bar on or
+    after the signal's assigned date at all (nothing to attribute it to yet).
+    """
+    window = classify_timezone_window(ts)
+    sig_date = pd.Timestamp(ts.date())
+    if window in ("us_after_hours", "asian_pre_market"):
+        sig_date = sig_date + pd.Timedelta(days=1)
+
+    candidates = price_index[price_index.normalize() >= sig_date.normalize()]
+    if len(candidates) == 0:
+        return None
+    return candidates[0]
+
+
 def align_signals_to_price_bars(
     signals: list[dict],
     price_index: pd.DatetimeIndex,
@@ -162,10 +193,17 @@ def align_signals_to_price_bars(
     Returns DataFrame indexed by price_index with aggregated signal fields.
 
     Expected fields per signal: timestamp_utc (str or datetime), sentiment (bullish/bearish/None)
+
+    Uses _assign_trading_day (session-aware, via classify_timezone_window)
+    rather than a same-UTC-calendar-date exact match — the previous version
+    matched only an exact date_index.date() == signal.date() comparison,
+    which (a) attributed after-hours news (a very common corporate-release
+    window, including after-close earnings) to the day that already closed
+    instead of the next session, and (b) silently dropped any signal dated
+    on a non-trading day (weekend/holiday) instead of forward-filling it to
+    the next open bar.
     """
-    rows = {}
-    for idx in price_index:
-        rows[idx] = {"bullish_count": 0, "bearish_count": 0, "neutral_count": 0, "total": 0}
+    rows = {idx: {"bullish_count": 0, "bearish_count": 0, "neutral_count": 0, "total": 0} for idx in price_index}
 
     for sig in signals:
         ts = sig.get("timestamp_utc")
@@ -179,19 +217,18 @@ def align_signals_to_price_bars(
         if ts.tzinfo is None:
             ts = ts.replace(tzinfo=timezone.utc)
 
-        # Snap to the nearest price bar date
-        sig_date = ts.date()
-        for bar_ts in price_index:
-            if bar_ts.date() == sig_date:
-                sentiment = sig.get("sentiment")
-                rows[bar_ts]["total"] += 1
-                if sentiment == "bullish":
-                    rows[bar_ts]["bullish_count"] += 1
-                elif sentiment == "bearish":
-                    rows[bar_ts]["bearish_count"] += 1
-                else:
-                    rows[bar_ts]["neutral_count"] += 1
-                break
+        bar_ts = _assign_trading_day(ts, price_index)
+        if bar_ts is None:
+            continue  # no trading day on/after this signal exists yet
+
+        sentiment = sig.get("sentiment")
+        rows[bar_ts]["total"] += 1
+        if sentiment == "bullish":
+            rows[bar_ts]["bullish_count"] += 1
+        elif sentiment == "bearish":
+            rows[bar_ts]["bearish_count"] += 1
+        else:
+            rows[bar_ts]["neutral_count"] += 1
 
     df = pd.DataFrame.from_dict(rows, orient="index")
     df.index = pd.DatetimeIndex(df.index)

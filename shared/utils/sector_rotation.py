@@ -17,6 +17,7 @@ def compute_rotation_state(
     smh_close: pd.Series,
     spy_close: pd.Series,
     windows: Optional[list[int]] = None,
+    cfg: Optional[dict] = None,
 ) -> dict:
     """
     Compute sector rotation state for semiconductors vs. broad market.
@@ -27,6 +28,19 @@ def compute_rotation_state(
 
     Aggregation: if 2+ of 3 windows show outflow → outflow state;
     if 2+ show inflow → inflow state; otherwise neutral.
+
+    cfg: when supplied, confidence_modifier is computed via
+    get_rotation_modifier(state, cfg) — the config-driven path — instead of
+    the hardcoded _rotation_modifier() default. Matters in practice: this
+    project's own backtest calibration (CHANGELOG v2.2.47, 544 pooled
+    outcomes) found the old +5 inflow_boost was backwards — inflow trades
+    won 53.9% (n=358) vs. 63.7% for neutral — and config/swing_config.yaml's
+    modifiers.sector_rotation.inflow_boost was deliberately changed to 0.
+    Without cfg threaded through here, that recalibration never reaches live
+    scoring or backtest replay — every caller kept silently applying the
+    old, empirically-refuted +5.0 regardless of what config said. None (the
+    default) preserves the old hardcoded behavior for any caller that
+    doesn't pass cfg.
 
     Returns dict:
     {
@@ -60,7 +74,7 @@ def compute_rotation_state(
         "smh_vs_spy_5d": relative.get(5, 0.0),
         "smh_vs_spy_20d": relative.get(20, 0.0),
         "smh_vs_spy_60d": relative.get(60, 0.0),
-        "confidence_modifier": _rotation_modifier(state),
+        "confidence_modifier": get_rotation_modifier(state, cfg) if cfg is not None else _rotation_modifier(state),
     }
 
 

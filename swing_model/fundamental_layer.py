@@ -239,7 +239,27 @@ class FundamentalScorer:
                 "accelerating": accelerating if len(valid_growth) >= 2 else None,
             }
 
+            # -- Peer-relative nudge ----------------------------------------
+            if peer_avg_growth is not None:
+                relative_growth = avg_growth - peer_avg_growth
+                if relative_growth >= self._RELATIVE_GROWTH_OUTPERFORM_THRESHOLD:
+                    eps_growth_score = min(3, eps_growth_score + 1)
+                elif relative_growth <= self._RELATIVE_GROWTH_UNDERPERFORM_THRESHOLD:
+                    eps_growth_score = max(-3, eps_growth_score - 1)
+                breakdown["eps_growth"]["peer_avg_growth"] = round(peer_avg_growth, 4)
+                breakdown["eps_growth"]["relative_to_peers"] = round(relative_growth, 4)
+
             # -- Revenue-quality check ------------------------------------
+            # Runs AFTER the peer-relative nudge, not before: this is meant to
+            # be the final word on whether a "screens positive" EPS growth
+            # score can be trusted, not a check the peer nudge can partially
+            # undo. Checking pre-nudge let a borderline score (e.g. 1, below
+            # the >=2 trigger) get peer-boosted to 2 with bad revenue quality
+            # behind it, and the check would never fire on it at all — and let
+            # a score correctly capped to 1 for bad revenue quality get
+            # nudged back up to 2 by the very next block, quietly eroding
+            # 2 of the cap's intended 3-point-worth of "don't trust this"
+            # penalty. Checking last catches both.
             revenue_yoy = earnings.get("revenue_yoy_growth")
             if revenue_yoy is not None:
                 breakdown["eps_growth"]["revenue_yoy_growth"] = revenue_yoy
@@ -253,16 +273,6 @@ class FundamentalScorer:
             if gross_margin_latest is not None:
                 breakdown["eps_growth"]["gross_margin_latest"] = gross_margin_latest
                 breakdown["eps_growth"]["gross_margin_prior"] = earnings.get("gross_margin_prior")
-
-            # -- Peer-relative nudge ----------------------------------------
-            if peer_avg_growth is not None:
-                relative_growth = avg_growth - peer_avg_growth
-                if relative_growth >= self._RELATIVE_GROWTH_OUTPERFORM_THRESHOLD:
-                    eps_growth_score = min(3, eps_growth_score + 1)
-                elif relative_growth <= self._RELATIVE_GROWTH_UNDERPERFORM_THRESHOLD:
-                    eps_growth_score = max(-3, eps_growth_score - 1)
-                breakdown["eps_growth"]["peer_avg_growth"] = round(peer_avg_growth, 4)
-                breakdown["eps_growth"]["relative_to_peers"] = round(relative_growth, 4)
         else:
             eps_growth_score = 0
             breakdown["eps_growth"] = {"unavailable": True}

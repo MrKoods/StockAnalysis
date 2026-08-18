@@ -44,20 +44,17 @@ import hashlib
 import html
 import os
 import re
-import time
 from datetime import datetime, timezone
 from typing import Optional
 from xml.etree import ElementTree as ET
 
-import requests
-
 from shared.utils.logger import get_logger
+from shared.api_clients._http_backoff import http_get_with_backoff
 
 logger = get_logger(__name__)
 
 _TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
 _BROWSE_EDGAR_URL = "https://www.sec.gov/cgi-bin/browse-edgar"
-_BACKOFF_DELAYS = [30, 60, 120]
 _ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
 # Items where earnings/operational commentary (and so capex commentary)
@@ -91,19 +88,12 @@ def _user_agent() -> str:
     )
 
 
-def _get_with_backoff(url: str, params: Optional[dict] = None, retries: int = 3) -> Optional[requests.Response]:
+def _get_with_backoff(url: str, params: Optional[dict] = None, retries: int = 3):
     """GET with exponential backoff (30s -> 60s -> 120s). Returns the raw Response or None."""
-    for attempt in range(retries):
-        try:
-            resp = requests.get(url, params=params, timeout=15, headers={"User-Agent": _user_agent()})
-            resp.raise_for_status()
-            return resp
-        except Exception as exc:
-            if attempt < len(_BACKOFF_DELAYS):
-                logger.warning(f"[sec_edgar] Request failed (attempt {attempt + 1}): {exc}. Retry in {_BACKOFF_DELAYS[attempt]}s.")
-                time.sleep(_BACKOFF_DELAYS[attempt])
-    logger.error(f"[sec_edgar] All retries exhausted for {url}")
-    return None
+    return http_get_with_backoff(
+        url, params=params, headers={"User-Agent": _user_agent()},
+        retries=retries, parse_json=False, label="sec_edgar",
+    )
 
 
 def _load_ticker_cik_map() -> dict:

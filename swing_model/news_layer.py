@@ -17,6 +17,15 @@ from shared.utils.event_gate import (
     SEVERITY_CRITICAL, SCOPE_TICKER, SCOPE_SECTOR,
 )
 
+# Minimum NER-tagged (bullish/bearish) relevant articles required before
+# trusting a directional call for theme_alignment_score — see its use below.
+# Lower than sentiment_layer.py's StockTwits-volume threshold (5): news
+# volume per ticker per scan is routinely much lower (single digits of
+# relevant, NER-tagged articles is common), so a 5-article floor would
+# neutralize this sub-signal on most scans rather than just the genuinely
+# thin ones.
+_DIRECTION_MIN_TAGGED_ARTICLES = 3
+
 
 def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[str] = None) -> dict:
     """
@@ -271,14 +280,33 @@ def compute_news_score(
     # ---------------------------------------------------------------------------
     # 2. Theme alignment score (0-4)
     # ---------------------------------------------------------------------------
-    texts = [art.get("title", "") for art in relevant]
+    # identify_dominant_theme's momentum calc assumes texts[0] is the OLDEST
+    # article (it compares the first half to the second half) — `relevant`
+    # is built by concatenating Alpha Vantage + Yahoo + Finnhub + Seeking
+    # Alpha + SEC EDGAR articles one source at a time, never sorted by time,
+    # so index order reflected source order, not real chronology. A
+    # genuinely newest-and-rising theme could register as "declining" purely
+    # because of which source happened to come first in the concatenation.
+    texts = [art.get("title", "") for art in sorted(relevant, key=lambda a: a["_ts"])]
     theme_result = identify_dominant_theme(texts, ticker, lookback_days=5)
     dominant_theme = theme_result["dominant_theme"]
 
-    # Determine dominant direction from NER
+    # Determine dominant direction from NER. Requires a minimum number of
+    # tagged articles before trusting the call — same failure mode
+    # sentiment_layer.py's _RATIO_MIN_BASELINE_MESSAGES gate already guards
+    # against (see that file's comment): without a floor, a single tagged
+    # article (or zero — the >= tie-break defaults to "bullish" even at 0-0)
+    # could swing theme_alignment_score by its full +/-4 points on no real
+    # sample at all. theme_alignment_modifier() already returns 0.0 for any
+    # trade_direction other than "bullish"/"bearish", so "neutral" here
+    # neutralizes the alignment score cleanly with no other change needed.
     bull_count = sum(1 for r in ner_results if r["sentiment"] == "bullish")
     bear_count = sum(1 for r in ner_results if r["sentiment"] == "bearish")
-    trade_direction = "bullish" if bull_count >= bear_count else "bearish"
+    tagged_count = bull_count + bear_count
+    if tagged_count < _DIRECTION_MIN_TAGGED_ARTICLES:
+        trade_direction = "neutral"
+    else:
+        trade_direction = "bullish" if bull_count >= bear_count else "bearish"
 
     alignment_val = theme_alignment_modifier(dominant_theme, trade_direction, ticker)
     # alignment_val in [-1, +1]; scale to [0, 4]. Zero when no theme / no articles.

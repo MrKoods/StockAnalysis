@@ -4,11 +4,18 @@ _parse_yahoo_news_item. The live fetch_news_yahoo() call itself isn't tested
 here (no yfinance mocking convention exists elsewhere in this suite — see
 test_positioning_client.py), consistent with the rest of this project's test
 style: test the parsing logic against hand-built dicts instead of the live fetch.
+
+Also covers fetch_news_alpha_vantage's secret-redaction wiring, now routed
+through the shared shared/api_clients/_http_backoff.py module (previously
+this client's own hand-written _backoff_get) — a regression test that didn't
+exist before this consolidation, so nothing would have caught it if the
+redact closure had been dropped or miswired during the migration.
 """
 
 from datetime import datetime, timezone
+from unittest.mock import patch
 
-from shared.api_clients.news_client import _parse_yahoo_news_item
+from shared.api_clients.news_client import _parse_yahoo_news_item, fetch_news_alpha_vantage
 
 
 class TestParseYahooNewsItem:
@@ -73,3 +80,26 @@ class TestParseYahooNewsItem:
         assert result["title"] == "Headline"
         # Just confirm it parsed to *some* valid ISO timestamp, not a crash
         datetime.fromisoformat(result["timestamp_utc"])
+
+
+class TestFetchNewsAlphaVantageRedaction:
+    def test_api_key_never_appears_in_logs_on_failure(self, monkeypatch, caplog):
+        monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "SUPERSECRETKEY123")
+
+        def _fake_get(url, params=None, headers=None, timeout=None):
+            # requests' real HTTPError/ConnectionError string representation
+            # embeds the full request URL including query params — simulate
+            # that shape rather than a bare message with no key in it at all.
+            full_url = f"{url}?apikey={params.get('apikey', '')}&tickers=NVDA"
+            raise ConnectionError(f"Failed to establish connection to {full_url}")
+
+        with patch("shared.api_clients.news_client.check_av_budget", return_value=True), \
+             patch("shared.api_clients.news_client.increment_av_call_count", return_value=1), \
+             patch("shared.api_clients._http_backoff.requests.get", side_effect=_fake_get), \
+             patch("shared.api_clients._http_backoff.time.sleep"), \
+             caplog.at_level("WARNING"):
+            result = fetch_news_alpha_vantage("NVDA")
+
+        assert result == []
+        assert "SUPERSECRETKEY123" not in caplog.text
+        assert "***REDACTED***" in caplog.text

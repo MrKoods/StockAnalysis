@@ -36,6 +36,66 @@ _CB_COLORS = {
 }
 
 
+def _extract_score_breakdown(d: dict) -> dict:
+    """
+    Pull the five category scores + their (possibly calibration-reweighted)
+    maxes from a score/candidate dict, tolerating both naming conventions
+    this project uses for the same data: scoring.py's own
+    compute_confidence_score() output uses "_total" suffixes
+    (technical_total, sentiment_total, ...) — send_trade_alert's candidate
+    dict is {**score, ...} straight from there. paper_runner.py's payloads
+    (used by send_paper_signal_alert/send_near_miss_alert) instead remap to
+    "_score" suffixes (technical_score, sentiment_score, ...) before handing
+    off. Checking both, rather than each caller hardcoding one, means a
+    caller passed the "other" dict shape gets the real score instead of a
+    silently wrong 0.0 default — each of the three send_*_alert functions
+    used to read only its own caller's convention.
+    """
+    def _get(total_key: str, score_key: str) -> float:
+        if total_key in d:
+            return float(d.get(total_key, 0.0))
+        return float(d.get(score_key, 0.0))
+
+    return {
+        "technical_score": _get("technical_total", "technical_score"),
+        "technical_max": float(d.get("technical_max", 40.0)),
+        "positioning_score": _get("positioning_total", "positioning_score"),
+        "sentiment_score": _get("sentiment_total", "sentiment_score"),
+        "sentiment_max": float(d.get("sentiment_max", 15.0)),
+        "news_score": _get("news_total", "news_score"),
+        "news_max": float(d.get("news_max", 15.0)),
+        "fundamental_score": float(d.get("fundamental_score", 0.0)),
+    }
+
+
+def _format_score_breakdown(d: dict, style: str = "bold") -> str:
+    """
+    Render the standard 5-category score breakdown used by
+    send_trade_alert/send_paper_signal_alert/send_near_miss_alert — all
+    three built the identical string by hand before this existed.
+
+    style="bold": Discord bold markdown, one "|"-joined line (paper-signal /
+    near-miss embeds). style="plain": no bold, one category per line
+    (send_trade_alert's original "Signal Breakdown" field style).
+    """
+    s = _extract_score_breakdown(d)
+    if style == "plain":
+        return (
+            f"Technical: {s['technical_score']:.1f}/{s['technical_max']:.0f}\n"
+            f"Positioning: {s['positioning_score']:.1f}/20\n"
+            f"Sentiment: {s['sentiment_score']:.1f}/{s['sentiment_max']:.0f}\n"
+            f"News: {s['news_score']:.1f}/{s['news_max']:.0f}\n"
+            f"Fundamental: {s['fundamental_score']:.1f}/10"
+        )
+    return (
+        f"Tech: **{s['technical_score']:.1f}**/{s['technical_max']:.0f}  |  "
+        f"Pos: **{s['positioning_score']:.1f}**/20  |  "
+        f"Sent: **{s['sentiment_score']:.1f}**/{s['sentiment_max']:.0f}  |  "
+        f"News: **{s['news_score']:.1f}**/{s['news_max']:.0f}  |  "
+        f"Fund: **{s['fundamental_score']:.1f}**/10"
+    )
+
+
 def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     """
     Format and send a full trade recommendation alert to Discord.
@@ -54,11 +114,6 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     structure = candidate.get("structure_recommended", "long_stock")
     ev = candidate.get("ev_per_dollar", 0.0)
     dollar_risk = candidate.get("dollar_risk", 0.0)
-    technical_score = candidate.get("technical_total", 0.0)
-    positioning_score = candidate.get("positioning_total", 0.0)
-    sentiment_score = candidate.get("sentiment_total", 0.0)
-    news_score = candidate.get("news_total", 0.0)
-    fundamental_score = candidate.get("fundamental_score", 0.0)
     regime = candidate.get("regime", "")
     dominant_theme = candidate.get("dominant_theme", "")
 
@@ -80,13 +135,7 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
             {"name": "Entry Zone", "value": f"${entry_lower:.2f} – ${entry_upper:.2f}", "inline": True},
             {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
             {"name": "Target", "value": f"${target:.2f}  (R:R 1:{rr:.1f})", "inline": True},
-            {"name": "Signal Breakdown",
-             "value": (
-                 f"Technical: {technical_score:.1f}/40\nPositioning: {positioning_score:.1f}/20\n"
-                 f"Sentiment: {sentiment_score:.1f}/15\nNews: {news_score:.1f}/15\n"
-                 f"Fundamental: {fundamental_score:.1f}/10"
-             ),
-             "inline": True},
+            {"name": "Signal Breakdown", "value": _format_score_breakdown(candidate, style="plain"), "inline": True},
             {"name": "EV / $$ Risked", "value": f"${ev:.4f}", "inline": True},
             {"name": "Dollar Risk", "value": f"${dollar_risk:.2f}", "inline": True},
         ],
@@ -257,7 +306,10 @@ def send_circuit_breaker_alert(level: str, account_equity: float, peak_equity: f
 
 
 def send_black_swan_alert(message: str) -> bool:
-    """🚨 Black Swan alert — highest priority. Escalates to email + SMS via notification_router."""
+    """🚨 Black Swan alert — highest priority. Discord is the only delivery
+    channel (see notification_router.py's own docstring — email/SMS were
+    removed project-wide in v2.2.1); this used to claim an email/SMS escalation
+    that was never actually implemented."""
     embed = {
         "title": "🚨 BLACK SWAN EVENT DETECTED",
         "color": _COLORS["red"],
@@ -403,11 +455,6 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     target = float(trade.get("target", 0.0))
     rr = float(trade.get("rr_ratio", 0.0))
     regime = str(trade.get("regime", ""))
-    technical_score = float(trade.get("technical_score", 0.0))
-    positioning_score = float(trade.get("positioning_score", 0.0))
-    sentiment_score = float(trade.get("sentiment_score", 0.0))
-    news_score = float(trade.get("news_score", 0.0))
-    fundamental_score = float(trade.get("fundamental_score", 0.0))
     news_count = trade.get("news_article_count", "0")
     vix_val = trade.get("vix_at_signal", "—")
     event_gate_blocked = bool(trade.get("event_gate_blocked"))
@@ -449,14 +496,7 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             {"name": "VIX", "value": str(vix_val), "inline": True},
             {
                 "name": "Score Breakdown",
-                "value": (
-                    f"Tech: **{technical_score:.1f}**/40  |  "
-                    f"Pos: **{positioning_score:.1f}**/20  |  "
-                    f"Sent: **{sentiment_score:.1f}**/15  |  "
-                    f"News: **{news_score:.1f}**/15  |  "
-                    f"Fund: **{fundamental_score:.1f}**/10\n"
-                    f"News articles: {news_count}"
-                ),
+                "value": f"{_format_score_breakdown(trade, style='bold')}\nNews articles: {news_count}",
                 "inline": False,
             },
         ],
@@ -496,11 +536,6 @@ def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool
     confidence = float(candidate.get("confidence", 0.0))
     direction = str(candidate.get("direction", "bullish"))
     regime = str(candidate.get("regime", ""))
-    technical_score = float(candidate.get("technical_score", 0.0))
-    positioning_score = float(candidate.get("positioning_score", 0.0))
-    sentiment_score = float(candidate.get("sentiment_score", 0.0))
-    news_score = float(candidate.get("news_score", 0.0))
-    fundamental_score = float(candidate.get("fundamental_score", 0.0))
     total_modifier = float(candidate.get("total_modifier", 0.0))
 
     embed = {
@@ -514,13 +549,7 @@ def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool
             {"name": "Modifiers (total)", "value": f"{total_modifier:+.1f}", "inline": True},
             {
                 "name": "Score Breakdown",
-                "value": (
-                    f"Tech: **{technical_score:.1f}**/40  |  "
-                    f"Pos: **{positioning_score:.1f}**/20  |  "
-                    f"Sent: **{sentiment_score:.1f}**/15  |  "
-                    f"News: **{news_score:.1f}**/15  |  "
-                    f"Fund: **{fundamental_score:.1f}**/10"
-                ),
+                "value": _format_score_breakdown(candidate, style="bold"),
                 "inline": False,
             },
         ],

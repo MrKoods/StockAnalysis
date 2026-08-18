@@ -24,6 +24,7 @@ import requests
 
 from shared.utils.atomic_io import atomic_write_json
 from shared.utils.logger import get_logger
+from shared.api_clients._http_backoff import http_get_with_backoff, DEFAULT_BACKOFF_DELAYS
 
 logger = get_logger(__name__)
 
@@ -34,7 +35,6 @@ _STOCKTWITS_HOST = "stocktwits.p.rapidapi.com"
 # despite the near-identical product name. tipsters' subscription was still on its
 # original Basic/500 plan, which is what was causing every scan to 429 all day.
 _SEEKING_ALPHA_HOST = "seeking-alpha.p.rapidapi.com"
-_BACKOFF_DELAYS = [30, 60, 120]
 
 # The live scan loop (run_swing_model.py, paper_runner.py) calls fetch_stocktwits
 # and fetch_seeking_alpha_engagement once per ticker in a tight loop with no
@@ -242,45 +242,53 @@ def _save_cached_engagement(ticker: str, items: list[dict]) -> None:
 def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = None, retries: int = 3) -> Optional[dict]:
     """
     GET a RapidAPI endpoint with the required auth headers and exponential
-    backoff (30s -> 60s -> 120s). 4xx client errors (except 429) are not
-    retried. Returns parsed JSON or None.
+    backoff (30s -> 60s -> 120s, via shared/api_clients/_http_backoff.py).
+    4xx client errors (except 429) are not retried. Returns parsed JSON or None.
 
     If this host has already exhausted its retries once this process (circuit
     open — see _CIRCUIT_BREAKER_THRESHOLD), skips the backoff and makes a
     single fast probe instead: the host has proven dead for the rest of this
     scan often enough that paying 210s/ticker to confirm it again isn't worth
     it, but a single cheap attempt still lets it recover mid-run if it comes
-    back.
+    back. Rate limiting (_wait_for_rate_limit) and the circuit breaker itself
+    are RapidAPI-specific policy that stays local — only the generic
+    retry/GET mechanics are shared with the other API clients.
     """
     # StockTwits' backend fronts this RapidAPI endpoint with Cloudflare bot
     # protection that blocks the default python-requests User-Agent (403 +
     # "Just a moment..." challenge page) — a browser/curl-like UA passes.
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": host, "User-Agent": "curl/8.4.0"}
     circuit_open = _circuit_open(host)
-    delays = [] if circuit_open else _BACKOFF_DELAYS
+    delays = () if circuit_open else DEFAULT_BACKOFF_DELAYS
     attempts = 1 if circuit_open else retries
     _wait_for_rate_limit(host)
-    for attempt in range(attempts):
-        try:
-            resp = requests.get(url, headers=headers, params=params, timeout=15)
-            resp.raise_for_status()
-            _consecutive_failures[host] = 0
-            return resp.json()
-        except requests.exceptions.HTTPError as exc:
+
+    # A definitive rejection (4xx that isn't 429) must NOT trip the circuit
+    # breaker the same way a genuine exhaustion does — it's not evidence the
+    # host is down, just that this particular request was rejected. Tracked
+    # via closure so the code after the call can tell the two apart from a
+    # bare None return, which doesn't carry that distinction on its own.
+    rejected = False
+
+    def _should_retry(exc: BaseException) -> bool:
+        nonlocal rejected
+        if isinstance(exc, requests.exceptions.HTTPError):
             status = exc.response.status_code if exc.response is not None else 0
             if 400 <= status < 500 and status != 429:
                 logger.warning(f"RapidAPI request rejected with HTTP {status} (no retry): {exc}")
-                return None
-            if attempt < len(delays):
-                logger.warning(f"RapidAPI request failed (attempt {attempt + 1}): {exc}. Retry in {delays[attempt]}s.")
-                time.sleep(delays[attempt])
-        except Exception as exc:
-            if attempt < len(delays):
-                logger.warning(f"RapidAPI request failed (attempt {attempt + 1}): {exc}. Retry in {delays[attempt]}s.")
-                time.sleep(delays[attempt])
-    _consecutive_failures[host] = _consecutive_failures.get(host, 0) + 1
-    if circuit_open:
-        logger.warning(f"RapidAPI circuit open for {host} — skipped backoff, single probe failed for {url}")
-    else:
-        logger.error(f"All retries exhausted for {url}")
-    return None
+                rejected = True
+                return False
+        return True
+
+    label = f"RapidAPI {host}" + (" (circuit open, single probe)" if circuit_open else "")
+    result = http_get_with_backoff(
+        url, params=params, headers=headers, retries=attempts, delays=delays,
+        label=label, should_retry=_should_retry,
+    )
+
+    if result is not None:
+        _consecutive_failures[host] = 0
+    elif not rejected:
+        _consecutive_failures[host] = _consecutive_failures.get(host, 0) + 1
+
+    return result

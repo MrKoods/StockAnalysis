@@ -80,7 +80,8 @@ def is_breakout(close: pd.Series, high: pd.Series, period: int = 20) -> pd.Serie
     """
     Returns boolean Series: True where close exceeds the prior `period`-bar high.
     Uses the rolling high of the prior period (shift by 1 to avoid look-ahead bias).
-    Volume confirmation expected by caller (see volume_zscore).
+    Volume confirmation expected by caller (see zscore_current, used for
+    breakout_volume_zscore in compute_technical_indicators).
     """
     prior_high = rolling_high(high, period=period).shift(1)
     return close > prior_high
@@ -174,19 +175,6 @@ def macd(
 
 
 # ---------------------------------------------------------------------------
-# Volume z-score
-# ---------------------------------------------------------------------------
-
-def volume_zscore(volume: pd.Series, period: int = 20) -> pd.Series:
-    """
-    Z-score of volume relative to its own rolling mean/std over `period` bars.
-    Key for breakout confirmation — a breakout with volume z-score > 2 is
-    more significant than one barely above average.
-    """
-    return zscore(volume, window=period)
-
-
-# ---------------------------------------------------------------------------
 # Composite technical score (input to scoring.py)
 # ---------------------------------------------------------------------------
 
@@ -244,18 +232,26 @@ def compute_technical_indicators(
     rsi_series = rsi(close, rsi_period)
     atr_series = atr(high, low, close, atr_period)
     macd_line_s, macd_signal_s, macd_hist_s = macd(close, macd_fast, macd_slow, macd_sig)
-    rolling_high_20 = rolling_high(high, ma_short)
-    rolling_low_20 = rolling_low(low, ma_short)
+    # shift(1): exposed as "the breakout level" to risk_reward.py's
+    # compute_entry_zone (via run_swing_model.py/paper_runner.py/
+    # backtesting/simulation.py, which read this field by name) — that
+    # function's docstring describes it as the PRIOR resistance/support a
+    # breakout/breakdown crossed, matching is_breakout()'s own shift(1) just
+    # above. Without the shift, on the exact days this matters most (a
+    # genuine breakout), today's own high/low IS the new 20-bar extreme, so
+    # the unshifted value ~= today's own high/low rather than the real prior
+    # level — compute_entry_zone's max(close, level) then anchors the entry
+    # zone at today's intraday high instead of at close or the real breakout
+    # level, pulling entry_zone_lower/upper (and the ATR-multiple stop
+    # derived from entry_zone_lower) up on every breakout trade. Zero effect
+    # on non-breakout days, when the shifted and unshifted values agree.
+    rolling_high_20 = rolling_high(high, ma_short).shift(1)
+    rolling_low_20 = rolling_low(low, ma_short).shift(1)
     volume_sma = sma(volume.astype(float), vol_period)
 
     # RS vs. benchmark (align on common index)
     bench_aligned = benchmark_close.reindex(close.index, method="ffill")
     rs_series = relative_strength(close, bench_aligned, rs_lookback)
-
-    # Z-scores
-    vol_z_series = volume_zscore(volume.astype(float), vol_period)
-    rs_z_series = zscore(rs_series.dropna().reindex(close.index), window=60)
-    rsi_z_series = zscore(rsi_series, window=60)
 
     # Scalar (latest bar)
     latest = -1
@@ -300,9 +296,18 @@ def compute_technical_indicators(
     c_rolling_low = float(rolling_low_20.iloc[latest]) if not pd.isna(rolling_low_20.iloc[latest]) else c_close
     c_vol_sma = float(volume_sma.iloc[latest]) if not pd.isna(volume_sma.iloc[latest]) else 0.0
     c_rs = float(rs_series.iloc[latest]) if not pd.isna(rs_series.iloc[latest]) else 0.0
-    c_vol_z = float(vol_z_series.iloc[latest])
-    c_rs_z = float(rs_z_series.iloc[latest]) if not pd.isna(rs_z_series.iloc[latest]) else 0.0
-    c_rsi_z = float(rsi_z_series.iloc[latest])
+    # zscore_current, not the rolling zscore() used elsewhere in this file:
+    # zscore()'s window includes the value being tested in its own mean/std,
+    # which mechanically dampens exactly the extreme readings these three
+    # sub-signals exist to flag (a genuine volume/RS/RSI spike inflates the
+    # very std it's divided by, shrinking its own z-score toward 0 relative
+    # to an honest out-of-sample read). zscore_current() scores today's value
+    # against the PRIOR window only, matching is_breakout()'s own
+    # look-ahead-free convention just above.
+    c_vol_z = zscore_current(volume.astype(float), window=vol_period)
+    c_rs_z = zscore_current(rs_series.dropna().reindex(close.index), window=60)
+    c_rs_z = 0.0 if pd.isna(c_rs_z) else c_rs_z
+    c_rsi_z = zscore_current(rsi_series, window=60)
     c_breakout = bool(breakout_bool_series.iloc[latest]) if not pd.isna(breakout_bool_series.iloc[latest]) else False
 
     # ---------------------------------------------------------------------------

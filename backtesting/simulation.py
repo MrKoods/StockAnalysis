@@ -519,7 +519,7 @@ def _simulate_test_signals(
                 try:
                     spy_slice = spy_close_series[spy_close_series.index <= bar_date]
                     rotation_result = compute_rotation_state(
-                        smh_close=smh_slice["Close"], spy_close=spy_slice
+                        smh_close=smh_slice["Close"], spy_close=spy_slice, cfg=cfg
                     )
                     rotation_mod = dampen_rotation_penalty_for_leader(
                         rotation_result.get("confidence_modifier", 0.0),

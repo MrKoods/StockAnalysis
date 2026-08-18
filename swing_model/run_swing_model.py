@@ -16,12 +16,14 @@ from shared.utils.logger import get_logger, write_audit_entry
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.portfolio_manager import (
     load_position_state, save_position_state,
-    update_circuit_breaker, can_open_new_position,
+    update_circuit_breaker, can_open_new_position, update_black_swan_state,
 )
 from shared.api_clients.market_data_client import (
-    fetch_ohlcv_batch, fetch_vix, fetch_treasury_yield, fetch_dxy,
+    fetch_ohlcv_batch, fetch_vix, fetch_vix_pct_change, fetch_treasury_yield, fetch_dxy,
     fetch_earnings_calendar,
 )
+from shared.utils.black_swan_detector import check_black_swan, build_black_swan_alert
+from swing_model.position_rescoring import rescore_open_positions
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
 from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings, fetch_hyperscaler_capex_snippets
@@ -37,7 +39,7 @@ from swing_model.news_layer import compute_news_score, free_sources_flag_critica
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.trade_selector import rank_trade_structures
-from shared.utils.position_sizer import get_risk_pct
+from shared.utils.position_sizer import get_risk_pct, apply_circuit_breaker_sizing, apply_consecutive_loss_sizing
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
@@ -117,6 +119,31 @@ def main(scan_type: str = "post_close") -> None:
     # modifiers) — one batch fetch covering every active sector's benchmark.
     mkt = _fetch_market_context(cfg)
 
+    # Black Swan check — advisory only (see black_swan_detector.py's module
+    # docstring): flags an extreme SMH-drop/VIX-spike condition with a Discord
+    # alert and a note on this scan's output, same treatment as the Event
+    # Severity Gate. It does not suspend or veto any signal. Scoped to the
+    # semiconductor benchmark (SMH) specifically, matching the detector's
+    # original design — skipped if that sector isn't active this run.
+    black_swan_result = None
+    if "semiconductors" in active_sectors:
+        smh_df = mkt["sector_benchmark_dfs"].get("semiconductors")
+        smh_pct_change = _compute_last_bar_pct_change(smh_df)
+        if smh_pct_change is not None and mkt.get("vix_pct_change") is not None:
+            black_swan_result = check_black_swan(
+                smh_current_pct_change=smh_pct_change,
+                vix_current_pct_change=mkt["vix_pct_change"],
+                cfg=cfg,
+            )
+            state = update_black_swan_state(state, black_swan_result)
+            if state.pop("_black_swan_newly_triggered", False):
+                open_positions_for_alert = [p for p in state.get("positions", []) if p.get("open", True)]
+                alert_msg = build_black_swan_alert(
+                    black_swan_result["trigger_type"], open_positions_for_alert,
+                    black_swan_result["smh_pct_change"], black_swan_result["vix_pct_change"],
+                )
+                _try_send_black_swan_alert(alert_msg)
+
     # Step 6: Compute regime/rotation/macro/seasonality modifiers PER SECTOR —
     # each sector can be in a different regime at the same time, and (see
     # macro_overlay._SECTORS_WITH_VALIDATED_MACRO_LOGIC / seasonality's
@@ -135,7 +162,7 @@ def main(scan_type: str = "post_close") -> None:
         regime_by_sector[sector_name] = regime
         regime_modifier_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
         rotation_modifier_by_sector[sector_name] = _compute_rotation_safe(
-            bench_df, mkt["spy_df"]
+            bench_df, mkt["spy_df"], cfg=cfg
         ).get("confidence_modifier", 0.0)
 
     # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
@@ -383,6 +410,12 @@ def main(scan_type: str = "post_close") -> None:
             notes = ""
             if score.get("event_gate_blocked"):
                 notes = f"⚠️ ACTIVE EVENT ALERT — trigger: {score.get('event_gate_trigger')} — review before trading"
+            if black_swan_result and black_swan_result.get("black_swan_triggered"):
+                bs_note = (
+                    f"🚨 BLACK SWAN CONDITIONS ACTIVE ({black_swan_result.get('trigger_type')}) "
+                    f"— advisory, review before trading"
+                )
+                notes = f"{notes} | {bs_note}" if notes else bs_note
 
             if final_score >= CONFIDENCE_THRESHOLD:
                 close_px = indicators.get("close", 0.0)
@@ -425,7 +458,17 @@ def main(scan_type: str = "post_close") -> None:
                 )
                 if valid_setup:
                     rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target, direction=direction)
-                    risk_pct = get_risk_pct(final_score)
+                    # Circuit-breaker/consecutive-loss size reduction — this
+                    # used to only ever apply get_risk_pct's raw confidence
+                    # tier, silently skipping the drawdown-aware and
+                    # streak-aware size cuts position_sizer.py already
+                    # implements (e.g. Yellow CB was supposed to halve size,
+                    # but nothing here ever applied that multiplier).
+                    base_risk_pct = get_risk_pct(final_score)
+                    risk_pct, _ = apply_circuit_breaker_sizing(base_risk_pct, cb_state, cfg)
+                    risk_pct, _ = apply_consecutive_loss_sizing(
+                        risk_pct, int(state.get("consecutive_losses", 0)), cfg
+                    )
                     force_defined_risk = (
                         earnings_result.get("force_defined_risk", False)
                         or regime == REGIME_HIGH_VOL
@@ -558,6 +601,19 @@ def main(scan_type: str = "post_close") -> None:
         _try_send_event_gate_expired_alert(expired_block, model_version)
         _write_event_gate_audit(expired_block, model_version, scan_type, triggered=False)
 
+    # Signal decay — daily re-score of open positions (early exit / time stop /
+    # trailing stop). Grouped by sector since rescore_open_positions() takes
+    # one flat market_modifiers dict but different sectors can be in different
+    # regimes at the same time (see Step 6's per-sector modifier comment
+    # above). A no-op today while nothing populates state["positions"] live
+    # (see handle_entry_confirmation's docstring), but wired correctly for
+    # when it is.
+    state["positions"] = _rescore_and_alert_open_positions(
+        state, indicators_by_ticker, ticker_sector_map,
+        regime_by_sector, regime_modifier_by_sector,
+        seasonality_modifier_by_sector, macro_modifier_by_sector, cfg,
+    )
+
     # Step 12: Save updated state
     state["last_scan_timestamp_utc"] = datetime.now(timezone.utc).isoformat()
     save_position_state(state)
@@ -685,6 +741,91 @@ def _try_send_event_gate_expired_alert(block: dict, model_version: str) -> bool:
         return False
 
 
+def _rescore_and_alert_open_positions(
+    state: dict,
+    indicators_by_ticker: dict,
+    ticker_sector_map: dict,
+    regime_by_sector: dict,
+    regime_modifier_by_sector: dict,
+    seasonality_modifier_by_sector: dict,
+    macro_modifier_by_sector: dict,
+    cfg: dict,
+) -> list:
+    """
+    Re-score every open position with this scan's fresh indicator data
+    (swing_model.position_rescoring.rescore_open_positions) and alert on early
+    exit / time stop / profit target. Positions are grouped by sector so
+    each group gets its OWN sector's regime/seasonality/macro modifiers,
+    since rescore_open_positions takes one flat market_modifiers dict per
+    call but different sectors can be in different regimes simultaneously.
+
+    Alerts only fire when management_action actually CHANGES from the
+    position's last recorded action (tracked via "_last_management_action"
+    on the position dict) — otherwise the same lingering condition would
+    re-alert on every scan (up to 3x/day) instead of once per new event.
+
+    Returns the full updated positions list (open positions replaced with
+    their rescored dict; closed positions passed through unchanged).
+    """
+    positions = state.get("positions", [])
+    open_positions = [p for p in positions if p.get("open", True)]
+    if not open_positions:
+        return positions
+
+    by_sector: dict[str, list] = {}
+    for pos in open_positions:
+        sector = ticker_sector_map.get(pos.get("ticker", "")) or "_unknown"
+        by_sector.setdefault(sector, []).append(pos)
+
+    rescored_by_ticker: dict = {}
+    for sector, sector_positions in by_sector.items():
+        market_modifiers = {
+            "regime": regime_by_sector.get(sector),
+            "regime_modifier": regime_modifier_by_sector.get(sector, 0.0),
+            "seasonality_modifier": seasonality_modifier_by_sector.get(sector, 0.0),
+            "macro_modifier": macro_modifier_by_sector.get(sector, 0.0),
+        }
+        results = rescore_open_positions(
+            sector_positions, indicators_by_ticker, cfg=cfg, market_modifiers=market_modifiers,
+        )
+        for result in results:
+            rescored_by_ticker[result.get("ticker", "")] = result
+
+    alert_types = {"early_exit", "time_stop", "profit_target"}
+    updated = []
+    for pos in positions:
+        if not pos.get("open", True):
+            updated.append(pos)
+            continue
+        result = rescored_by_ticker.get(pos.get("ticker", ""), pos)
+        action = result.get("management_action", "hold")
+        if action in alert_types and action != pos.get("_last_management_action"):
+            _try_send_signal_decay_alert(result, action)
+        result["_last_management_action"] = action
+        updated.append(result)
+
+    return updated
+
+
+def _try_send_signal_decay_alert(position: dict, action: str) -> None:
+    try:
+        from shared.utils.discord_alerts import send_signal_decay_alert, send_position_management_alert
+        if action == "early_exit":
+            send_signal_decay_alert(
+                position, position.get("current_confidence", 0.0), position.get("confidence_drop", 0.0),
+            )
+        else:
+            details = {
+                "current_price": position.get("close", ""),
+                "days_held": position.get("days_held", ""),
+                "pnl_pct_of_target": position.get("pnl_pct_of_target", ""),
+                "trailing_stop": position.get("trailing_stop_current", ""),
+            }
+            send_position_management_alert(position, action, details)
+    except Exception as exc:
+        logger.error(f"Signal decay alert send failed: {exc}")
+
+
 def _handle_open_position_critical_event(position: dict, event: dict, model_version: str) -> dict:
     """
     Fire an immediate critical alert for an open position hit by a critical news
@@ -736,6 +877,14 @@ def _try_send_cb_alert(cb_change: dict, equity: float, peak: float) -> None:
         send_circuit_breaker_alert(cb_change["to"], equity, peak)
     except Exception as exc:
         logger.error(f"CB alert send failed: {exc}")
+
+
+def _try_send_black_swan_alert(message: str) -> None:
+    try:
+        from shared.utils.discord_alerts import send_black_swan_alert
+        send_black_swan_alert(message)
+    except Exception as exc:
+        logger.error(f"Black Swan alert send failed: {exc}")
 
 
 def _try_send_missed_scan_alert(model_version: str) -> None:
@@ -806,6 +955,12 @@ def _fetch_market_context(cfg: dict) -> dict:
     except Exception as exc:
         logger.warning(f"VIX fetch failed — {exc}")
 
+    vix_pct_change = None
+    try:
+        vix_pct_change = fetch_vix_pct_change()
+    except Exception as exc:
+        logger.warning(f"VIX % change fetch failed — {exc}")
+
     tnx_series: Optional[pd.Series] = None
     try:
         tnx_df = fetch_treasury_yield(period="3mo")
@@ -826,12 +981,34 @@ def _fetch_market_context(cfg: dict) -> dict:
 
     return {
         "vix": vix,
+        "vix_pct_change": vix_pct_change,
         "sector_benchmark_dfs": sector_benchmark_dfs,
         "spy_df": spy_df,
         "tnx_series": tnx_series,
         "dxy_series": dxy_series,
         "ticker_ohlcv": ticker_ohlcv,
     }
+
+
+def _compute_last_bar_pct_change(df) -> Optional[float]:
+    """
+    Most recent daily bar's close-over-close % change for a benchmark OHLCV
+    DataFrame, used as the Black Swan check's SMH-move input. Same "latest
+    available daily bar, not live streaming" caveat as fetch_vix_pct_change.
+    Returns None if df is missing/too short rather than raising.
+    """
+    try:
+        import pandas as pd
+        if df is None or (isinstance(df, pd.DataFrame) and len(df) < 2):
+            return None
+        closes = df["Close"]
+        prior, latest = float(closes.iloc[-2]), float(closes.iloc[-1])
+        if prior == 0:
+            return None
+        return (latest - prior) / prior
+    except Exception as exc:
+        logger.warning(f"SMH % change computation failed — {exc}")
+        return None
 
 
 def _compute_regime_safe(
@@ -934,12 +1111,18 @@ def _compute_china_tension_count(cfg: dict) -> int:
     return count
 
 
-def _compute_rotation_safe(benchmark_df, spy_df) -> dict:
+def _compute_rotation_safe(benchmark_df, spy_df, cfg: Optional[dict] = None) -> dict:
     """
     Compute one sector's rotation state (benchmark vs. SPY flow); falls back
     to neutral on error. Called once per active sector — `benchmark_df` is
     that sector's own benchmark, not always SMH despite the underlying
     compute_rotation_state() param names.
+
+    cfg: threaded through to compute_rotation_state() so the config-driven
+    inflow_boost/outflow_penalty recalibration (see that function's
+    docstring) actually reaches live scoring — without it, this silently
+    fell back to a hardcoded +5 inflow boost the project's own backtest
+    calibration found was backwards (CHANGELOG v2.2.47).
     """
     try:
         import pandas as pd
@@ -947,7 +1130,7 @@ def _compute_rotation_safe(benchmark_df, spy_df) -> dict:
             return {"confidence_modifier": 0.0, "rotation_state": "neutral"}
         benchmark_close = benchmark_df["Close"] if isinstance(benchmark_df, pd.DataFrame) else benchmark_df
         spy_close = spy_df["Close"] if isinstance(spy_df, pd.DataFrame) else spy_df
-        return compute_rotation_state(smh_close=benchmark_close, spy_close=spy_close)
+        return compute_rotation_state(smh_close=benchmark_close, spy_close=spy_close, cfg=cfg)
     except Exception as exc:
         logger.warning(f"Sector rotation failed — {exc}. Using neutral modifier.")
         return {"confidence_modifier": 0.0, "rotation_state": "neutral"}

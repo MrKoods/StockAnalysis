@@ -51,6 +51,7 @@ def compute_position_size(
     circuit_breaker_state: str,
     capital_required: float,
     max_capital_pct: float = 0.05,
+    consecutive_losses: int = 0,
     cfg: Optional[dict] = None,
 ) -> dict:
     """
@@ -66,9 +67,17 @@ def compute_position_size(
         cfg = {}
 
     base_risk_pct = get_risk_pct(confidence_score)
-    adjusted_risk_pct, size_multiplier = apply_circuit_breaker_sizing(
+    adjusted_risk_pct, cb_multiplier = apply_circuit_breaker_sizing(
         base_risk_pct, circuit_breaker_state, cfg
     )
+    # Two independent risk observations (portfolio-level drawdown vs. a
+    # recent losing streak) — layered multiplicatively rather than picking
+    # the more conservative of the two, since both being true at once is a
+    # genuinely worse risk state than either alone.
+    adjusted_risk_pct, cl_multiplier = apply_consecutive_loss_sizing(
+        adjusted_risk_pct, consecutive_losses, cfg
+    )
+    size_multiplier = round(cb_multiplier * cl_multiplier, 4)
 
     dollar_risk = adjusted_risk_pct * account_equity
     max_capital = max_capital_pct * account_equity
@@ -116,6 +125,33 @@ def apply_circuit_breaker_sizing(
         mult = float(cb_cfg.get("yellow", {}).get("position_size_multiplier", 0.5))
     elif circuit_breaker_state in (CB_ORANGE, CB_RED):
         mult = 0.0
+    else:
+        mult = 1.0
+
+    return round(base_risk_pct * mult, 4), mult
+
+
+def apply_consecutive_loss_sizing(
+    base_risk_pct: float,
+    consecutive_losses: int,
+    cfg: Optional[dict] = None,
+) -> tuple[float, float]:
+    """
+    Apply the consecutive-loss-streak size reduction (Project_Scope.md's
+    Category 7 escalation ladder — 2 losses: half size until next winner;
+    3/4 losses are a new-entry PAUSE instead, enforced by
+    portfolio_manager.can_open_new_position, not a sizing reduction, so
+    they're not handled here).
+    0-1 losses: x1.0 (no change)
+    2+ losses:  x0.5 (half size), config circuit_breakers.consecutive_loss.at_2
+    Returns (adjusted_risk_pct, size_multiplier).
+    """
+    if cfg is None:
+        cfg = {}
+    cl_cfg = cfg.get("circuit_breakers", {}).get("consecutive_loss", {})
+
+    if consecutive_losses >= 2:
+        mult = float(cl_cfg.get("at_2", {}).get("size_multiplier", 0.5))
     else:
         mult = 1.0
 

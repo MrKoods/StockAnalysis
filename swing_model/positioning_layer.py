@@ -216,6 +216,13 @@ def _score_insider(transactions: Optional[list]) -> tuple[float, str]:
     signal = classify_transactions(transactions, window_days=10)
     if signal == "selling_cluster":
         return 0.0, "complete"
+    if signal == "selling":
+        # Single seller — previously fell through to "neutral" (classify_
+        # transactions had no branch for it at all), scoring a lone insider
+        # sale identically to having zero insider data. Mirrors "buying"'s
+        # single-buyer partial credit (2.25, i.e. 1.5 + MAX/4) on the bearish
+        # side: 1.5 - MAX/4 = 0.75.
+        return INSIDER_MAX / 4.0, "complete"
     if signal == "buying":
         # Reuse the same windowed buy_insiders count classify_transactions used to
         # decide "buying" in the first place — this used to re-derive its own

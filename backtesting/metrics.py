@@ -336,10 +336,20 @@ def run_sensitivity_analysis(
     outcomes: list[dict],
     test_months: float = 1.0,
     thresholds: Optional[list[int]] = None,
+    report_path: Optional[Path] = None,
 ) -> pd.DataFrame:
     """
     Run backtest across 5 confidence thresholds (Clarification 3).
     For each threshold: qualifying trades, win rate, avg R:R, signal frequency, max consecutive losses.
+
+    report_path: where to save the CSV — defaults to the real
+    backtesting/reports/sensitivity_analysis.csv for real callers. Tests
+    exercising this function with synthetic outcomes must pass a tmp_path
+    override here — without one, a test run silently overwrote the real
+    report with synthetic data (confirmed live: the checked-in report file
+    matched test_no_deflated_sharpe_columns_when_nothing_qualifies' all-
+    below-threshold synthetic outcomes exactly, dated to a test run, not a
+    real backtest).
 
     `outcomes` should be the full unfiltered out-of-sample signal set (see
     backtest_engine._get_test_outcomes) — this function does the threshold
@@ -408,9 +418,9 @@ def run_sensitivity_analysis(
         df["psr_best_threshold_vs_sweep"] = dsr["psr"]
         df["deflated_sharpe_best_threshold"] = dsr["deflated_sharpe"]
 
-    report_dir = Path("backtesting/reports")
-    report_dir.mkdir(parents=True, exist_ok=True)
-    df.to_csv(report_dir / "sensitivity_analysis.csv", index=False)
+    out_path = report_path if report_path is not None else Path("backtesting/reports/sensitivity_analysis.csv")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out_path, index=False)
 
     return df
 

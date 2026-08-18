@@ -355,6 +355,36 @@ class TestRevenueQualityDampener:
         result = FundamentalScorer().score_earnings_momentum(fd)
         assert "revenue_quality_flag" not in result["component_breakdown"]["eps_growth"]
 
+    def test_peer_outperformance_cannot_erode_the_revenue_quality_cap(self):
+        """
+        Revenue-quality check must run AFTER the peer-relative nudge, not
+        before it — otherwise a ticker correctly capped to 1 for declining
+        revenue behind its EPS growth could get nudged back up to 2 just for
+        also outgrowing peers on that same distrusted growth number, quietly
+        eroding 2 of the cap's intended 3-point-worth of "don't trust this"
+        penalty. This ticker clearly outgrows a -50% peer average, which
+        alone would nudge eps_growth_score up by 1 (see
+        TestPeerRelativeGrowth.test_outgrowing_peers_nudges_score_up) — but
+        the revenue-quality cap must still be the final word.
+        """
+        fd = self._fd([0.15, 0.14, 0.13, 0.12], revenue_yoy_growth=-0.05)
+        result = FundamentalScorer().score_earnings_momentum(fd, peer_avg_growth=-0.50)
+        assert result["eps_growth_score"] == 1
+        assert "revenue_quality_flag" in result["component_breakdown"]["eps_growth"]
+
+    def test_peer_boost_into_screening_positive_still_gets_capped(self):
+        """
+        A borderline growth rate that only reaches the >=2 "screens positive"
+        threshold because of the peer-relative nudge must still be subject to
+        the revenue-quality check — the old pre-nudge ordering could never
+        see this case at all, since eps_growth_score was below 2 at the point
+        the check ran.
+        """
+        fd = self._fd([-0.01, -0.02, -0.02, -0.03], revenue_yoy_growth=-0.05)  # avg -2% -> raw score 1
+        result = FundamentalScorer().score_earnings_momentum(fd, peer_avg_growth=-0.50)  # nudge pushes 1 -> 2
+        assert result["eps_growth_score"] == 1
+        assert "revenue_quality_flag" in result["component_breakdown"]["eps_growth"]
+
 
 class TestAccelerationBaseEffect:
     """

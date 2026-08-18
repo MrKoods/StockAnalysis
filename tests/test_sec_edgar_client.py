@@ -119,8 +119,15 @@ def _reset_cik_cache():
 
 @pytest.fixture(autouse=True)
 def _no_real_backoff_sleep(monkeypatch):
-    """A forced-failure test exercises the real retry loop — don't actually wait 30s/60s/120s for it."""
-    monkeypatch.setattr(sec_edgar_client.time, "sleep", lambda _seconds: None)
+    """
+    A forced-failure test exercises the real retry loop — don't actually wait
+    30s/60s/120s for it. The retry loop itself now lives in the shared
+    shared/api_clients/_http_backoff.py module (previously sec_edgar_client's
+    own hand-written _get_with_backoff), so that's where time.sleep is
+    patched now.
+    """
+    import shared.api_clients._http_backoff as http_backoff
+    monkeypatch.setattr(http_backoff.time, "sleep", lambda _seconds: None)
 
 
 def _mock_json_response(data):
@@ -159,7 +166,7 @@ class TestExtractItemDescriptions:
 
 class TestFetchRecent8kFilings:
     def test_returns_parsed_articles_with_item_descriptions(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.side_effect = [
                 _mock_json_response(_TICKER_MAP_JSON),
                 _mock_xml_response(_ATOM_FEED),
@@ -175,7 +182,7 @@ class TestFetchRecent8kFilings:
         assert articles[1]["title"] == "NVDA 8-K: Item 8.01: Other Events; Item 9.01: Financial Statements and Exhibits"
 
     def test_title_always_contains_ticker_for_relevance_filter(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.side_effect = [
                 _mock_json_response(_TICKER_MAP_JSON),
                 _mock_xml_response(_ATOM_FEED),
@@ -185,7 +192,7 @@ class TestFetchRecent8kFilings:
             assert "NVDA" in art["title"]
 
     def test_no_entries_returns_empty_list(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.side_effect = [
                 _mock_json_response(_TICKER_MAP_JSON),
                 _mock_xml_response(_EMPTY_ATOM_FEED),
@@ -194,7 +201,7 @@ class TestFetchRecent8kFilings:
         assert articles == []
 
     def test_unknown_ticker_skips_fetch_and_returns_empty(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.return_value = _mock_json_response(_TICKER_MAP_JSON)
             articles = fetch_recent_8k_filings("NOTATICKER")
         assert articles == []
@@ -203,12 +210,12 @@ class TestFetchRecent8kFilings:
         assert mock_get.call_count == 1
 
     def test_ticker_map_fetch_failure_returns_empty_list(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get", side_effect=Exception("network down")):
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=Exception("network down")):
             articles = fetch_recent_8k_filings("NVDA")
         assert articles == []
 
     def test_ticker_cik_map_cached_across_calls(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.side_effect = [
                 _mock_json_response(_TICKER_MAP_JSON),
                 _mock_xml_response(_EMPTY_ATOM_FEED),
@@ -249,7 +256,7 @@ class TestExtractCapexSnippets:
 
 class TestListFilingExhibits:
     def test_returns_ex99_urls_only(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.return_value = _mock_json_response(_INDEX_JSON)
             urls = _list_filing_exhibits(
                 "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000012/0001018724-26-000012-index.htm"
@@ -263,7 +270,7 @@ class TestListFilingExhibits:
         assert _list_filing_exhibits(None) == []
 
     def test_fetch_failure_returns_empty(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get", side_effect=Exception("down")):
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=Exception("down")):
             assert _list_filing_exhibits("https://www.sec.gov/x/y-index.htm") == []
 
 
@@ -285,7 +292,7 @@ class TestFetchHyperscalerCapexSnippets:
                 return exhibit_resp
             raise AssertionError(f"Unexpected URL requested: {url}")
 
-        with patch("shared.api_clients.sec_edgar_client.requests.get", side_effect=_side_effect):
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=_side_effect):
             articles = fetch_hyperscaler_capex_snippets("AMZN")
 
         assert len(articles) >= 1
@@ -313,7 +320,7 @@ class TestFetchHyperscalerCapexSnippets:
                 return _mock_xml_response(atom_only_5_02)
             raise AssertionError(f"Unexpected URL requested (exhibit fetch should never happen): {url}")
 
-        with patch("shared.api_clients.sec_edgar_client.requests.get", side_effect=_side_effect):
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=_side_effect):
             articles = fetch_hyperscaler_capex_snippets("AMZN")
         assert articles == []
 
@@ -332,12 +339,12 @@ class TestFetchHyperscalerCapexSnippets:
                 return resp
             raise AssertionError(f"Unexpected URL requested: {url}")
 
-        with patch("shared.api_clients.sec_edgar_client.requests.get", side_effect=_side_effect):
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=_side_effect):
             articles = fetch_hyperscaler_capex_snippets("AMZN")
         assert articles == []
 
     def test_unknown_ticker_returns_empty(self):
-        with patch("shared.api_clients.sec_edgar_client.requests.get") as mock_get:
+        with patch("shared.api_clients._http_backoff.requests.get") as mock_get:
             mock_get.return_value = _mock_json_response(_TICKER_MAP_JSON)
             articles = fetch_hyperscaler_capex_snippets("NOTATICKER")
         assert articles == []

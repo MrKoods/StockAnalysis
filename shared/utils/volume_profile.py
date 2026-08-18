@@ -141,14 +141,30 @@ def score_volume_profile_position(
     volume_profile: pd.DataFrame,
 ) -> float:
     """
-    Score 0-12: how well the current price is positioned relative to volume nodes.
+    Score 0-12: how far current price sits above the nearest high-volume
+    node (HVN) below it — a proxy for how much real trading history backs
+    this price level (tighter above support = more defensible).
 
-    Scoring logic:
-    - Price just above a high-volume node (≤2% above) → strong support → 10-12
-    - Price well above a high-volume node (2-8% above) → moderate support → 6-10
-    - Price within a high-volume node → resistance zone → 3-6
-    - Price in a low-volume area → momentum possible but no support → 4-8
-    - Price below all HVNs → no support → 0-3
+    Scoring logic (only two real branches — see note below):
+    - No HVN found below current_price → 2.0 (no support to lean on)
+    - HVN found below current_price, tiered by % above it:
+        <=2%  above → 12.0 (sitting right on major support)
+        <=5%  above → 9.0
+        <=10% above → 7.0
+        <=20% above → 5.0
+        >20%  above → 3.0 (extended far above the nearest support)
+    - No volume profile data at all → 6.0 (neutral)
+
+    Note: an earlier version of this docstring described 5 scoring cases,
+    including "price within a high-volume node → resistance zone" and
+    "price in a low-volume area → momentum possible" as separate branches
+    with their own point ranges. Neither was ever actually implemented —
+    this function has only ever computed the two branches above (nearest-
+    support-distance tiering, or the no-support fallback). Corrected to
+    describe what the code actually does rather than an unbuilt design;
+    implementing the missing branches would be a real scoring behavior
+    change requiring backtest validation like every other scoring formula
+    in this project, not a docstring fix.
     """
     if volume_profile.empty:
         return 6.0  # neutral when no profile available

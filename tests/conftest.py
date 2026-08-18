@@ -5,6 +5,7 @@ Repo-wide pytest fixtures.
 import logging.handlers
 
 import pytest
+import requests
 
 import shared.utils.logger as logger_module
 import shared.utils.scan_lock as scan_lock_module
@@ -78,3 +79,39 @@ def _isolate_scan_lock(tmp_path, monkeypatch):
     behind that blocks a real future scan.
     """
     monkeypatch.setattr(scan_lock_module, "_LOCK_DIR", tmp_path / "scan_locks")
+
+
+@pytest.fixture(autouse=True)
+def _block_real_discord_sends(monkeypatch):
+    """
+    Same class of problem as the fixtures above, different subsystem: a test
+    exercising any code path that reaches shared/utils/discord_alerts.py's
+    send_*_alert functions without explicitly mocking requests.post (or
+    _post_to_webhook) posts a REAL message to whichever Discord channel
+    DISCORD_WEBHOOK_URL in .env points at. Observed in practice: a signal-
+    decay test using synthetic fixture data (NVDA, confidence 85->40, entry
+    $100/stop $95) genuinely posted to the real trading-alerts channel,
+    because an earlier import in the same test session had already loaded
+    .env (paper_updater.py calls load_dotenv() at module scope) and the test
+    itself forgot to mock the alert sender.
+
+    requests.post is used nowhere else in this codebase (confirmed by grep —
+    every other API client here uses requests.get), so blocking it globally
+    for tests is precisely scoped to this one risk, not a broad network ban.
+
+    Raises loudly rather than silently no-op'ing, so a test that forgets to
+    mock its alert path fails immediately and obviously — pointing straight
+    at the missing mock — instead of either a real send slipping through or
+    a false "it worked" from an unintended stub. A test that specifically
+    wants to verify real send behavior (see test_discord_alerts.py) already
+    monkeypatches requests.post itself inside the test body, which runs
+    after this fixture's setup and so correctly overrides it.
+    """
+    def _blocked_post(url, *args, **kwargs):
+        raise RuntimeError(
+            f"Blocked a real HTTP POST to {url!r} during a test. This test path "
+            "reaches a real Discord send — mock requests.post (or the specific "
+            "discord_alerts.send_*/_post_to_webhook function involved) explicitly."
+        )
+
+    monkeypatch.setattr(requests, "post", _blocked_post)

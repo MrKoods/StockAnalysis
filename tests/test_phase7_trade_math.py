@@ -31,6 +31,7 @@ from shared.utils.position_sizer import (
 )
 from swing_model.trade_selector import (
     rank_trade_structures,
+    _resolve_structure_legs,
 )
 
 
@@ -759,3 +760,85 @@ class TestGreeksFilter:
             assert by_name["long_call"]["greeks"] is not None
         if "long_straddle" in by_name:
             assert by_name["long_straddle"]["greeks"] is None
+
+
+class TestMixedStructureSlippageDivisor:
+    """
+    Mixed stock+option structures (covered_call, protective_put, married_put,
+    collar, covered_strangle) have a stock leg deliberately excluded from
+    _GREEKS_RESOLVABLE_LEGS (stock has no comparable bid/ask spread cost) —
+    so structure['legs'] (STRUCTURE_MULTIPLIERS' full leg count, including the
+    stock leg) is always > len(legs) (the real option-only legs
+    _resolve_structure_legs returns) for these 5. rank_trade_structures'
+    auto-populated bid_ask_spreads average must divide by structure['legs'],
+    not len(legs) — adjust_ev_for_slippage later multiplies that average back
+    by structure['legs'], so dividing by the smaller len(legs) inflated the
+    reconstructed total spread cost as if the stock leg carried the same
+    spread as a real option leg.
+    """
+
+    def _candidate(self):
+        return {
+            "ticker": "NVDA", "direction": "bullish", "confidence": 92,
+            "entry_mid": 500.0, "stop_loss": 485.0, "target": 545.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+
+    def test_covered_call_leg_count_mismatch_exists(self):
+        # Documents the exact mismatch the fix accounts for — if this ever
+        # stops being true (e.g. _GREEKS_RESOLVABLE_LEGS starts including the
+        # stock leg), the divisor fix's rationale no longer applies.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        legs = _resolve_structure_legs("covered_call", chain, 500.0)
+        assert len(legs) == 1  # only the short call leg is resolvable
+        assert STRUCTURE_MULTIPLIERS["covered_call"]["legs"] == 2  # stock + call
+
+    def test_auto_populated_spread_matches_correctly_divided_explicit_value(self):
+        # 2,000,000 account clears covered_call's ~$50k full-stock capital
+        # requirement (5% cap) — unrelated to the slippage math under test,
+        # just needed so covered_call survives filtering into ranked_structures.
+        chain = _fake_chain(current_price=500.0, step=10.0)  # every contract: bid=1.0, ask=1.2
+        result_from_chain = rank_trade_structures(
+            self._candidate(), account_equity=2_000_000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        by_name_chain = {s["name"]: s for s in result_from_chain["ranked_structures"]}
+        assert "covered_call" in by_name_chain
+
+        # Same call, no chain at all (isolates the slippage math from any
+        # Greeks/chain side effect), with bid_ask_spreads explicitly set to
+        # the correctly-divided value (0.2 real spread / 2 structure legs =
+        # 0.1) — if the fix is wired correctly, auto-populating from the
+        # chain must land on this same figure.
+        result_explicit = rank_trade_structures(
+            self._candidate(), account_equity=2_000_000,
+            options_approval_level=2, iv_percentile=30.0,
+            bid_ask_spreads={"covered_call": 0.1},
+        )
+        by_name_explicit = {s["name"]: s for s in result_explicit["ranked_structures"]}
+        assert by_name_explicit["covered_call"]["ev"] == pytest.approx(
+            by_name_chain["covered_call"]["ev"], abs=1e-4
+        )
+
+    def test_auto_populated_spread_does_not_match_old_undivided_bug_value(self):
+        # Guards against a regression back to the old bug: the old code's
+        # effective per-leg average (0.2, i.e. len(legs)=1 divisor) is NOT
+        # what the fixed auto-population should produce (0.1, structure['legs']=2
+        # divisor) — these two must give different EV once slippage is applied.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result_from_chain = rank_trade_structures(
+            self._candidate(), account_equity=2_000_000,
+            options_approval_level=2, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        result_old_buggy_value = rank_trade_structures(
+            self._candidate(), account_equity=2_000_000,
+            options_approval_level=2, iv_percentile=30.0,
+            bid_ask_spreads={"covered_call": 0.2},  # the pre-fix len(legs)=1 divisor result
+        )
+        by_name_chain = {s["name"]: s for s in result_from_chain["ranked_structures"]}
+        by_name_old = {s["name"]: s for s in result_old_buggy_value["ranked_structures"]}
+        assert by_name_chain["covered_call"]["ev"] != pytest.approx(
+            by_name_old["covered_call"]["ev"], abs=1e-4
+        )

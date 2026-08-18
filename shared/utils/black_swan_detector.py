@@ -1,7 +1,11 @@
 """
 SHARED: Intraday monitor for SMH > 7% drop or VIX > 40% spike.
-When triggered: fires Red Alert to Discord, suspends new signals,
-remains in Black Swan mode until regime normalizes for 3 consecutive trading days.
+When triggered: fires a Red Alert to Discord with open-position guidance.
+
+Advisory only — same treatment as the Event Severity Gate: it flags the
+condition and lets the trader decide, it does not veto or suspend new
+signals. run_swing_model.py surfaces candidates on their own score merits
+regardless of this state; only the alert and an advisory note are affected.
 """
 
 from datetime import datetime, timezone
@@ -29,8 +33,14 @@ def check_black_swan(
     """
     if cfg is not None:
         bs_cfg = cfg.get("black_swan", {})
-        smh_drop_threshold = float(bs_cfg.get("smh_drop_threshold", smh_drop_threshold))
-        vix_spike_threshold = float(bs_cfg.get("vix_spike_threshold", vix_spike_threshold))
+        # config/swing_config.yaml's actual keys are *_pct-suffixed
+        # (smh_drop_threshold_pct/vix_spike_threshold_pct) — these used to read
+        # the un-suffixed names, which don't exist in config, so the configured
+        # values were silently never applied (harmless only by coincidence,
+        # since the hardcoded defaults above happen to equal the configured
+        # ones today).
+        smh_drop_threshold = float(bs_cfg.get("smh_drop_threshold_pct", smh_drop_threshold))
+        vix_spike_threshold = float(bs_cfg.get("vix_spike_threshold_pct", vix_spike_threshold))
 
     trigger_type = None
     triggered = False
@@ -44,10 +54,11 @@ def check_black_swan(
 
     if triggered:
         action = (
-            f"SUSPEND all new signals immediately. "
+            f"ADVISORY — extreme market conditions detected. "
             f"Trigger: {trigger_type} (SMH {smh_current_pct_change:+.1%} / "
             f"VIX {vix_current_pct_change:+.1%}). "
-            f"Review all open positions — close directional exposure."
+            f"Review all open positions and any new candidates before acting — "
+            f"signals are not automatically suspended."
         )
     else:
         action = "No action required — market within normal parameters."
@@ -79,7 +90,8 @@ def build_black_swan_alert(
         f"🚨 **BLACK SWAN ALERT** — {now_str}\n"
         f"**Trigger:** {trigger_type.replace('_', ' ').upper()}\n"
         f"SMH: {smh_pct_change:+.1%}  |  VIX: {vix_pct_change:+.1%}\n\n"
-        f"**Action: SUSPEND all new signals. All new trades BLOCKED.**\n"
+        f"**Advisory — review before acting.** New signals still surface on their "
+        f"own score merits; this is not an automatic block.\n"
     )
 
     if not open_positions:
@@ -104,9 +116,9 @@ def build_black_swan_alert(
         body = "\n".join(pos_lines) + "\n"
 
     footer = (
-        "\n**Resume Condition:** 3 consecutive trading days of normal regime "
-        "(VIX < 25, SMH above 20-day SMA).\n"
-        "Reply RESUME when conditions are met to re-enable signal generation."
+        "\n**Normal conditions:** 3 consecutive trading days of normal regime "
+        "(VIX < 25, SMH above 20-day SMA) — this alert re-fires only on the next "
+        "new trigger, not every scan while conditions remain extreme."
     )
 
     return header + body + footer

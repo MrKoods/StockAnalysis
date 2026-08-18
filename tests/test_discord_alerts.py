@@ -5,11 +5,25 @@ extended in v2.2.51's Discord-alert follow-up to surface trade structure,
 position size/type, capital deployed, and sizing_note — fields that were
 already computed and persisted to paper_trades.csv but never reached the
 actual Discord notification, so a 0-size row looked identical there to a
-fully-deployed one. The rest of this module has no existing test coverage
-(pre-existing gap, out of scope here); this is scoped to these two functions.
+fully-deployed one.
+
+Also covers send_trade_alert/send_near_miss_alert's "Score Breakdown" field —
+previously untested (a pre-existing gap), which is exactly how send_trade_alert
+sat broken for a while: a partial refactor had removed its local
+technical_score/positioning_score/... variable extraction in favor of the
+shared _format_score_breakdown()/_extract_score_breakdown() helpers, but the
+embed body was never updated to actually call them — every real call would
+have raised NameError. Nothing here caught it until these tests were added.
 """
 
-from shared.utils.discord_alerts import send_calibration_alert, send_paper_signal_alert
+from shared.utils.discord_alerts import (
+    send_calibration_alert,
+    send_paper_signal_alert,
+    send_trade_alert,
+    send_near_miss_alert,
+    _extract_score_breakdown,
+    _format_score_breakdown,
+)
 
 
 def _fake_webhook(monkeypatch):
@@ -157,3 +171,104 @@ class TestSendPaperSignalAlert:
         embed = posted["json"]["embeds"][0]
         assert _field(embed, "Position") == "—"
         assert _field(embed, "Trade Structure") == "—"
+
+
+class TestSendTradeAlert:
+    """Regression coverage for the NameError described in this module's
+    docstring — send_trade_alert's candidate dict uses scoring.py's own
+    "_total"-suffixed keys (it's built as {**score, ...} in run_swing_model.py),
+    unlike send_paper_signal_alert/send_near_miss_alert's "_score"-suffixed
+    payloads."""
+
+    def test_posts_successfully_with_scoring_total_suffixed_keys(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        result = send_trade_alert({
+            "ticker": "NVDA", "direction": "bullish", "confidence": 75.0,
+            "entry_zone_lower": 100.0, "entry_zone_upper": 102.0,
+            "stop_loss": 95.0, "target": 115.0, "rr_ratio": 3.0,
+            "technical_total": 30.0, "positioning_total": 12.0,
+            "sentiment_total": 10.0, "news_total": 8.0, "fundamental_score": 5.0,
+        })
+        assert result is True
+        embed = posted["json"]["embeds"][0]
+        breakdown = _field(embed, "Signal Breakdown")
+        assert "Technical: 30.0/40" in breakdown
+        assert "Positioning: 12.0/20" in breakdown
+        assert "Sentiment: 10.0/15" in breakdown
+        assert "News: 8.0/15" in breakdown
+        assert "Fundamental: 5.0/10" in breakdown
+
+    def test_reweighted_category_max_reflected_not_stale_nominal(self, monkeypatch):
+        """technical_max/sentiment_max/news_max (set by scoring.py when
+        calibrated live_weights are active) must show up in the breakdown
+        instead of the hardcoded nominal 40/15/15."""
+        posted = _fake_webhook(monkeypatch)
+        send_trade_alert({
+            "ticker": "AMZN", "direction": "bullish", "confidence": 80.0,
+            "entry_zone_lower": 100.0, "entry_zone_upper": 102.0,
+            "stop_loss": 95.0, "target": 115.0, "rr_ratio": 3.0,
+            "technical_total": 20.0, "technical_max": 28.0,
+            "sentiment_total": 21.3, "sentiment_max": 28.0,
+            "positioning_total": 12.0, "news_total": 8.0, "news_max": 14.0,
+            "fundamental_score": 5.0,
+        })
+        embed = posted["json"]["embeds"][0]
+        breakdown = _field(embed, "Signal Breakdown")
+        assert "Technical: 20.0/28" in breakdown
+        assert "Sentiment: 21.3/28" in breakdown
+        assert "News: 8.0/14" in breakdown
+
+
+class TestSendNearMissAlert:
+    def test_posts_successfully_with_score_suffixed_keys(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        result = send_near_miss_alert({
+            "ticker": "MU", "confidence": 66.5, "direction": "bullish", "regime": "trending_up",
+            "technical_score": 31.3, "positioning_score": 9.7,
+            "sentiment_score": 8.3, "news_score": 3.6, "fundamental_score": 8.7,
+            "total_modifier": 5.0,
+        })
+        assert result is True
+        embed = posted["json"]["embeds"][0]
+        breakdown = _field(embed, "Score Breakdown")
+        assert "Tech: **31.3**/40" in breakdown
+        assert "Pos: **9.7**/20" in breakdown
+        assert "Sent: **8.3**/15" in breakdown
+        assert "News: **3.6**/15" in breakdown
+        assert "Fund: **8.7**/10" in breakdown
+
+
+class TestScoreBreakdownKeyNormalization:
+    """_extract_score_breakdown must read either key convention this project
+    uses for the same data — a caller passing the "wrong" shape previously
+    silently rendered 0.0 instead of the real score."""
+
+    def test_reads_total_suffixed_keys(self):
+        s = _extract_score_breakdown({"technical_total": 30.0, "positioning_total": 12.0})
+        assert s["technical_score"] == 30.0
+        assert s["positioning_score"] == 12.0
+
+    def test_reads_score_suffixed_keys(self):
+        s = _extract_score_breakdown({"technical_score": 30.0, "positioning_score": 12.0})
+        assert s["technical_score"] == 30.0
+        assert s["positioning_score"] == 12.0
+
+    def test_total_suffix_takes_priority_when_both_present(self):
+        s = _extract_score_breakdown({"technical_total": 30.0, "technical_score": 99.0})
+        assert s["technical_score"] == 30.0
+
+    def test_missing_both_defaults_to_zero_not_an_error(self):
+        s = _extract_score_breakdown({})
+        assert s["technical_score"] == 0.0
+        assert s["technical_max"] == 40.0
+
+    def test_plain_style_matches_send_trade_alert_format(self):
+        text = _format_score_breakdown(
+            {"technical_total": 30.0, "positioning_total": 12.0, "sentiment_total": 10.0,
+             "news_total": 8.0, "fundamental_score": 5.0},
+            style="plain",
+        )
+        assert text == (
+            "Technical: 30.0/40\nPositioning: 12.0/20\n"
+            "Sentiment: 10.0/15\nNews: 8.0/15\nFundamental: 5.0/10"
+        )
