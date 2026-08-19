@@ -274,9 +274,17 @@ def update_paper_trades() -> int:
         if not dates:
             continue
 
-        # Download from day after earliest signal (entry is next session)
+        # Download from day after earliest signal (entry is next session).
+        # A same-day signal pushes fetch_from into the future — no bar can
+        # possibly exist yet, so skip the doomed yfinance call rather than
+        # let it print an ugly "possibly delisted" trace for a ticker that's
+        # simply too new to check.
         earliest = min(dates)
-        fetch_from = (earliest + timedelta(days=1)).strftime("%Y-%m-%d")
+        fetch_from_dt = earliest + timedelta(days=1)
+        if fetch_from_dt.date() > datetime.now().date():
+            logger.info(f"{ticker}: signal is from today — no bars possible yet, skipping")
+            continue
+        fetch_from = fetch_from_dt.strftime("%Y-%m-%d")
         df = _download_ohlcv(ticker, fetch_from)
         if df is None or df.empty:
             logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
