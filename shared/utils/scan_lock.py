@@ -26,6 +26,7 @@ Usage:
 import contextlib
 import json
 import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -64,33 +65,43 @@ def _pid_is_alive(pid: int) -> bool:
 
 def _try_claim(path: Path) -> bool:
     """
-    Attempt to atomically claim the lock file — O_CREAT|O_EXCL fails as one
-    atomic operation if the file already exists, on both POSIX and Windows.
+    Attempt to atomically claim the lock file.
 
-    Previously this was path.exists() (a separate check) followed by a plain
-    path.write_text() — two processes racing between those two calls could
-    both observe "no live lock" and both proceed to write and both yield
-    True, defeating the mutex this file exists to provide. Folding the
-    "does it already exist" check and the "claim it" write into one atomic
-    syscall closes that window.
+    Content is written to a uniquely-named temp file first, then published
+    under the real name via os.link(), which — like O_CREAT|O_EXCL — fails
+    atomically if the destination already exists. This matters because the
+    previous approach (os.open(O_CREAT|O_EXCL) followed by a separate
+    os.write()) left a window where the file existed but was still empty;
+    a concurrent reader landing in that window would see unparseable content,
+    treat the lock as corrupt-therefore-stale, and steal it out from under
+    the actual holder — confirmed via a real concurrent-thread test where up
+    to 9 threads ended up inside the critical section at once. Publishing
+    the file only once its content is fully on disk closes that window.
     """
+    fd, tmp_name = tempfile.mkstemp(dir=str(path.parent), prefix=f".{path.name}.")
     try:
-        fd = os.open(str(path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except (FileExistsError, PermissionError):
-        # PermissionError alongside FileExistsError: on Windows, two threads/
-        # processes racing O_CREAT|O_EXCL on the same path can have the loser
-        # surface WinError 5 (Access Denied) instead of the expected "file
-        # exists" errno depending on exact timing (confirmed via a real
-        # concurrent-thread test) — both mean the same thing here: someone
-        # else has (or just got) the lock.
-        return False
-    try:
-        os.write(fd, json.dumps({
-            "pid": os.getpid(), "started_at_utc": datetime.now(timezone.utc).isoformat(),
-        }).encode("utf-8"))
+        try:
+            os.write(fd, json.dumps({
+                "pid": os.getpid(), "started_at_utc": datetime.now(timezone.utc).isoformat(),
+            }).encode("utf-8"))
+        finally:
+            os.close(fd)
+        try:
+            os.link(tmp_name, str(path))
+        except (FileExistsError, PermissionError):
+            # PermissionError alongside FileExistsError: on Windows, two
+            # threads/processes racing to link the same destination can have
+            # the loser surface WinError 5 (Access Denied) instead of the
+            # expected "file exists" errno depending on exact timing — both
+            # mean the same thing here: someone else has (or just got) the
+            # lock.
+            return False
+        return True
     finally:
-        os.close(fd)
-    return True
+        try:
+            os.unlink(tmp_name)
+        except OSError:
+            pass
 
 
 @contextlib.contextmanager
