@@ -212,6 +212,24 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
             "inline": False,
         })
 
+    # Previously the only trace of Filter 4 (Greeks) not running at all this
+    # scan was a CSV field nothing here ever read — a human reviewing this
+    # recommendation had no way to see the one automated check on
+    # undefined-risk/short-premium structures' theta/vega didn't run
+    # (Signal Integrity Audit finding D.1). Only surfaced when it DIDN'T run
+    # cleanly — "applied" is the normal case and adds no new information.
+    greeks_filter_status = candidate.get("greeks_filter_status")
+    if greeks_filter_status and greeks_filter_status != "applied":
+        embed["fields"].append({
+            "name": "⚠️ Greeks Filter Did Not Run",
+            "value": (
+                "No live option chain was available this scan — theta/vega on "
+                "any undefined-risk/short-premium structure above was NOT "
+                "checked against config's bounds. Review before trading."
+            ),
+            "inline": False,
+        })
+
     if event_gate_blocked:
         embed["fields"].append({
             "name": "⚠️ Active Event — Review Before Trading",
@@ -641,6 +659,21 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             "inline": False,
         })
 
+    # See send_trade_alert's matching comment — previously the only trace of
+    # Filter 4 (Greeks) not running was a CSV field this alert never read
+    # (Signal Integrity Audit finding D.1).
+    greeks_filter_status = trade.get("greeks_filter_status")
+    if greeks_filter_status and greeks_filter_status != "applied":
+        embed["fields"].append({
+            "name": "⚠️ Greeks Filter Did Not Run",
+            "value": (
+                "No live option chain was available this scan — theta/vega on "
+                "any undefined-risk/short-premium structure above was NOT "
+                "checked against config's bounds."
+            ),
+            "inline": False,
+        })
+
     if event_gate_blocked:
         embed["fields"].append({
             "name": "⚠️ Active Event — Review Before Trading",
@@ -745,18 +778,21 @@ def send_paper_outcome_alert(trade: dict) -> bool:
     exit_price = float(trade.get("exit_price", 0.0))
     confidence = float(trade.get("confidence", 0.0))
 
-    is_win = (outcome == "win") or (outcome in ("time_stop", "earnings_exit") and pnl_pct > 0)
+    is_win = (outcome == "win") or (outcome in ("time_stop", "earnings_exit", "early_exit") and pnl_pct > 0)
 
     _outcome_labels = {
         "win": "TARGET HIT",
         "loss": "STOPPED OUT",
         "time_stop": f"TIME STOP  ({pnl_pct * 100:+.1f}%)",
         "earnings_exit": f"EARNINGS EXIT  ({pnl_pct * 100:+.1f}%)",
+        "early_exit": f"CONFIDENCE EARLY EXIT  ({pnl_pct * 100:+.1f}%)",
     }
     label = _outcome_labels.get(outcome, outcome.upper())
-    emoji = "✅" if is_win else ("⏱️" if outcome == "time_stop" else ("📅" if outcome == "earnings_exit" else "❌"))
+    emoji = "✅" if is_win else (
+        "⏱️" if outcome == "time_stop" else ("📅" if outcome == "earnings_exit" else ("📉" if outcome == "early_exit" else "❌"))
+    )
     color = _COLORS["green"] if is_win else (
-        _COLORS["yellow"] if outcome in ("time_stop", "earnings_exit") else _COLORS["red"]
+        _COLORS["yellow"] if outcome in ("time_stop", "earnings_exit", "early_exit") else _COLORS["red"]
     )
 
     embed = {
@@ -776,6 +812,8 @@ def send_paper_outcome_alert(trade: dict) -> bool:
         "footer": {"text": (
             "Flattened ahead of earnings — undefined-risk position, not held through the print"
             if outcome == "earnings_exit"
+            else "Confidence dropped past the early-exit threshold since entry — flattened early"
+            if outcome == "early_exit"
             else "Paper trade closed — outcome logged for model calibration"
         )},
     }

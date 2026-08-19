@@ -42,7 +42,7 @@ def _ohlcv(rows=5, bad_row=None):
 
 def _posts_valid(n=2):
     now = datetime.now(timezone.utc)
-    return [{"bullish_ratio": 0.6, "timestamp_utc": (now - timedelta(hours=i)).isoformat()} for i in range(n)]
+    return [{"sentiment": "bullish", "timestamp_utc": (now - timedelta(hours=i)).isoformat()} for i in range(n)]
 
 
 def _articles_valid(n=2):
@@ -116,20 +116,26 @@ class TestValidateSentiment:
         ok, reasons = validate_sentiment_data("NVDA", [])
         assert ok is True
 
-    def test_bullish_ratio_above_1_fails(self):
-        posts = [{"bullish_ratio": 1.5, "timestamp_utc": datetime.now(timezone.utc).isoformat()}]
+    def test_unexpected_sentiment_value_fails(self):
+        # Real StockTwits messages carry "sentiment" ('bullish'/'bearish'/None
+        # from entities.sentiment.basic — see sentiment_client.py), not a
+        # per-message "bullish_ratio" (that's an AGGREGATE sentiment_layer.py
+        # computes from a batch of these, never a raw field — the old version
+        # of this test/validator checked a field that could never actually be
+        # present on real data).
+        posts = [{"sentiment": "very_bullish", "timestamp_utc": datetime.now(timezone.utc).isoformat()}]
         ok, reasons = validate_sentiment_data("NVDA", posts)
         assert ok is False
-        assert any("bullish_ratio" in r for r in reasons)
+        assert any("sentiment_unexpected_value" in r for r in reasons)
 
-    def test_bullish_ratio_below_0_fails(self):
-        posts = [{"bullish_ratio": -0.1, "timestamp_utc": datetime.now(timezone.utc).isoformat()}]
+    def test_neutral_sentiment_none_passes(self):
+        posts = [{"sentiment": None, "timestamp_utc": datetime.now(timezone.utc).isoformat()}]
         ok, reasons = validate_sentiment_data("NVDA", posts)
-        assert ok is False
+        assert ok is True
 
     def test_future_timestamp_fails(self):
         future = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
-        posts = [{"bullish_ratio": 0.5, "timestamp_utc": future}]
+        posts = [{"sentiment": "bullish", "timestamp_utc": future}]
         ok, reasons = validate_sentiment_data("NVDA", posts)
         assert ok is False
         assert any("future_timestamp" in r for r in reasons)

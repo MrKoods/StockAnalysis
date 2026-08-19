@@ -39,6 +39,7 @@ def retry_with_backoff(
     redact: Optional[Callable[[str], str]] = None,
     should_retry: Optional[Callable[[BaseException], bool]] = None,
     on_exhausted: Optional[Callable[[BaseException], None]] = None,
+    on_attempt: Optional[Callable[[], None]] = None,
 ) -> Optional[Any]:
     """
     Call fn() with exponential backoff on any exception. Returns fn()'s
@@ -74,11 +75,22 @@ def retry_with_backoff(
       that needs to do more than log on final failure (e.g.
       fundamental_client.py writes a validation_log.csv entry per ticker).
       None (default) does nothing extra.
+    on_attempt: called once immediately before EACH real call to fn()
+      (including retries), not once per logical retry_with_backoff()
+      invocation — for a caller tracking a real per-request budget (e.g.
+      news_client.py's Alpha Vantage daily call counter). Previously
+      news_client.py incremented its counter once per logical fetch, but a
+      single logical fetch can make up to `retries` real HTTP requests
+      against AV's own server-side quota on transient failures — the local
+      counter silently undercounted real usage on any retry (Signal
+      Integrity Audit finding E.3). None (default) does nothing extra.
     """
     last_exc: Optional[BaseException] = None
     elapsed = 0.0
     for attempt in range(retries):
         try:
+            if on_attempt is not None:
+                on_attempt()
             return fn()
         except Exception as exc:
             last_exc = exc
@@ -129,6 +141,7 @@ def http_get_with_backoff(
     redact: Optional[Callable[[str], str]] = None,
     parse_json: bool = True,
     should_retry: Optional[Callable[[BaseException], bool]] = None,
+    on_attempt: Optional[Callable[[], None]] = None,
 ):
     """
     GET url with exponential backoff, built on retry_with_backoff — the
@@ -152,5 +165,5 @@ def http_get_with_backoff(
 
     return retry_with_backoff(
         _fetch, retries=retries, delays=delays, max_total_seconds=None,
-        label=label, redact=redact, should_retry=should_retry,
+        label=label, redact=redact, should_retry=should_retry, on_attempt=on_attempt,
     )

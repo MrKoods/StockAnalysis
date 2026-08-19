@@ -30,6 +30,7 @@ from shared.api_clients.positioning_client import (
     compute_put_call_ratio_percentile, compute_iv_skew_percentile,
 )
 from swing_model.positioning_layer import compute_positioning_score
+from shared.utils.data_validator import validate_ohlcv, validate_positioning_data
 
 logger = get_logger(__name__)
 
@@ -124,8 +125,22 @@ def run_pipeline(
             results[ticker] = None
             continue
 
-        # Basic OHLCV sanity check (full validation in Phase 9)
+        # Basic OHLCV sanity check (bar count, all-NaN) before the richer
+        # Phase 9 checks below, which assume a non-empty, mostly-populated frame.
         if not _basic_validate(ticker, df):
+            results[ticker] = None
+            continue
+
+        # Phase 9 validation (data_validator.py) — gap detection, extreme
+        # single-day-move/split detection, and Open-price-range checking on
+        # top of _basic_validate's cheaper checks. This function's own
+        # docstring already claimed this ran here; it never actually did
+        # (Signal Integrity Audit finding E.1) — a >50% single-day move (bad
+        # print, unadjusted split) or a multi-day data gap flowed straight
+        # into indicator computation with zero validation.
+        ohlcv_valid, ohlcv_failures = validate_ohlcv(ticker, df)
+        if not ohlcv_valid:
+            logger.warning(f"{ticker}: Phase 9 OHLCV validation failed ({ohlcv_failures}) — excluded.")
             results[ticker] = None
             continue
 
@@ -241,11 +256,37 @@ def _get_upcoming_earnings_date(ticker: str):
     """Free (yfinance) lookup of a ticker's next known earnings date, used only to
     prioritize refresh timing — never consumes Alpha Vantage budget. Returns None
     if unavailable rather than raising, since this is a scheduling hint, not a
-    required input."""
+    required input.
+
+    Normalizes yfinance's calendar shape the same way
+    market_data_client.fetch_earnings_calendar already has to (it can return
+    a bare date, or — on newer yfinance versions — a dict with raw/fmt keys).
+    Previously this returned whatever `cal.get("Earnings Date")[0]` was
+    unmodified; when that was a dict rather than a date, the caller's
+    `abs((earnings_date - today_date).days)` raised an uncaught TypeError
+    that propagated out of fetch_fundamental_data's per-ticker loop and
+    zeroed out fundamental scoring for the ENTIRE batch that run, not just
+    this one ticker's odd calendar shape (Signal Integrity Audit finding
+    E.2). Returns a plain date (not datetime) to match the `date_obj -
+    today_date` arithmetic callers already do.
+    """
     try:
         cal = yf.Ticker(ticker).calendar or {}
         dates = cal.get("Earnings Date") or []
-        return dates[0] if dates else None
+        if not dates:
+            return None
+        first = dates[0] if hasattr(dates, "__getitem__") else None
+        if first is None:
+            return None
+        if isinstance(first, dict):
+            raw = first.get("raw") or first.get("timestamp")
+            fmt = first.get("fmt") or first.get("date")
+            if raw:
+                return pd.Timestamp(raw, unit="s").date()
+            if fmt:
+                return pd.Timestamp(fmt).date()
+            return None
+        return pd.Timestamp(first).date()
     except Exception:
         return None
 
@@ -355,41 +396,51 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
 
     bootstrap, earnings_priority, rotation_due = [], [], []
     for t in tickers:
-        if fetched_dates.get(t) == today_str:
-            continue  # already refreshed today
+        # Wrapped per-ticker: previously an uncaught exception anywhere in
+        # this body (e.g. the earnings-date TypeError E.2 fixed above)
+        # propagated out of this whole function, which fetch_fundamental_data's
+        # own caller treats as "fetch failed" for the ENTIRE watchlist that
+        # run — one ticker's odd data shape shouldn't zero out every other
+        # ticker's fundamental scoring (Signal Integrity Audit finding E.2).
+        try:
+            if fetched_dates.get(t) == today_str:
+                continue  # already refreshed today
 
-        last_fetch = fetched_dates.get(t)
-        if last_fetch is None:
-            bootstrap.append(t)
+            last_fetch = fetched_dates.get(t)
+            if last_fetch is None:
+                bootstrap.append(t)
+                continue
+
+            earnings_date = _get_upcoming_earnings_date(t)
+            if earnings_date is not None and abs((earnings_date - today_date).days) <= _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS:
+                earnings_priority.append(t)
+                continue
+
+            # Only checked when not already near the next scheduled date (saves a
+            # yfinance call in the common case) — catches a report that happened
+            # since growth data was last actually pulled, even though the
+            # forward-looking calendar has already rolled past it (see
+            # _get_last_reported_earnings_date). Compared against
+            # growth_fetched_dates, NOT last_fetch — a plain rotation refresh can
+            # touch fetched_dates without ever re-pulling growth data (see above).
+            # A ticker with no growth_fetched_dates entry at all (pre-existing
+            # cache from before this field existed) is treated as needing one
+            # baseline refresh, not assumed current.
+            last_reported = _get_last_reported_earnings_date(t)
+            last_growth_fetch = growth_fetched_dates.get(t)
+            last_growth_fetch_date = (
+                datetime.strptime(last_growth_fetch, "%Y-%m-%d").date() if last_growth_fetch else None
+            )
+            if last_reported is not None and (last_growth_fetch_date is None or last_reported > last_growth_fetch_date):
+                earnings_priority.append(t)
+                continue
+
+            days_stale = _days_since(last_fetch, today_date)
+            if today_date.weekday() == _rotation_weekday(t) and (days_stale is None or days_stale >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS):
+                rotation_due.append(t)
+        except Exception as exc:
+            logger.warning(f"{t}: fundamental refresh categorization failed — {exc}")
             continue
-
-        earnings_date = _get_upcoming_earnings_date(t)
-        if earnings_date is not None and abs((earnings_date - today_date).days) <= _FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS:
-            earnings_priority.append(t)
-            continue
-
-        # Only checked when not already near the next scheduled date (saves a
-        # yfinance call in the common case) — catches a report that happened
-        # since growth data was last actually pulled, even though the
-        # forward-looking calendar has already rolled past it (see
-        # _get_last_reported_earnings_date). Compared against
-        # growth_fetched_dates, NOT last_fetch — a plain rotation refresh can
-        # touch fetched_dates without ever re-pulling growth data (see above).
-        # A ticker with no growth_fetched_dates entry at all (pre-existing
-        # cache from before this field existed) is treated as needing one
-        # baseline refresh, not assumed current.
-        last_reported = _get_last_reported_earnings_date(t)
-        last_growth_fetch = growth_fetched_dates.get(t)
-        last_growth_fetch_date = (
-            datetime.strptime(last_growth_fetch, "%Y-%m-%d").date() if last_growth_fetch else None
-        )
-        if last_reported is not None and (last_growth_fetch_date is None or last_reported > last_growth_fetch_date):
-            earnings_priority.append(t)
-            continue
-
-        days_stale = _days_since(last_fetch, today_date)
-        if today_date.weekday() == _rotation_weekday(t) and (days_stale is None or days_stale >= _FUNDAMENTAL_ROTATION_WINDOW_DAYS):
-            rotation_due.append(t)
 
     # The cap is per calendar day across ALL calls (every scan x every sector shares
     # this one state file), not per call — fetch_fundamental_data runs once per scan
@@ -536,6 +587,16 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
             state["previous_tickers"][ticker] = state["tickers"][ticker]
         try:
             fresh = fetch_all_positioning(ticker, current_price=current_prices.get(ticker), min_dte=min_dte)
+            # Log-only visibility, not a hard gate — positioning_layer.py
+            # already defaults each sub-signal to neutral on missing/None
+            # fields, so this doesn't change scoring behavior. The gap this
+            # closes is that an out-of-bounds field (e.g. a data error
+            # producing held_percent_institutions > 1.0) previously flowed
+            # into scoring with no logged trace at all (Signal Integrity
+            # Audit finding E.1).
+            _positioning_valid, _positioning_failures = validate_positioning_data(ticker, fresh)
+            if not _positioning_valid:
+                logger.warning(f"{ticker}: Phase 9 positioning validation flagged {_positioning_failures}")
             # Percentile scoring needs a rolling history of daily readings, not
             # just today's — build/extend it here (once per ticker per day, same
             # cadence as the rest of Positioning) and attach the computed
@@ -689,8 +750,10 @@ def _archive_fundamental_snapshot(state: dict) -> None:
 
 def _basic_validate(ticker: str, df: pd.DataFrame) -> bool:
     """
-    Lightweight pre-flight check before passing data to indicator functions.
-    Full validation (gap detection, move size, etc.) implemented in Phase 9 data_validator.py.
+    Cheapest pre-flight checks (bar count, all-NaN) before passing data to
+    the richer Phase 9 checks (shared.utils.data_validator.validate_ohlcv —
+    gap detection, single-day move size, OHLC/Open range), which the caller
+    (run_pipeline) runs immediately after this returns True.
     Returns False and logs if data is obviously corrupt.
     """
     if len(df) < 60:

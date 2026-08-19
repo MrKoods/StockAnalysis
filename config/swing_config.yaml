@@ -361,12 +361,36 @@ portfolio:
         - [TSM, ASML]
     regional_banks:
       max_open_positions: 2
+      # Genuinely correlated sub-pairs, not one all-5-tickers group (that
+      # bug made this sector's own max_open_positions: 2 unreachable for any
+      # same-direction pair, since any 2 of the 5 always collapsed to a
+      # subset of the single group — see Signal Integrity Audit finding
+      # C.4). KEY/HBAN/FITB are the three larger Midwest super-regionals
+      # (Ohio-overlapping footprints, comparable balance-sheet size);
+      # ZION/RF pair as the two named in the 2023 regional-bank-crisis
+      # contagion basket alongside other smaller/more volatile regionals.
+      # ZION is otherwise the sector's outlier (Western footprint, smaller,
+      # higher CRE concentration) so it's deliberately not grouped with the
+      # Midwest cluster.
       correlated_groups:
-        - [ZION, KEY, HBAN, RF, FITB]
+        - [KEY, FITB]
+        - [HBAN, FITB]
+        - [KEY, HBAN]
+        - [RF, FITB]
+        - [ZION, RF]
     healthcare:
       max_open_positions: 2
+      # Same fix as regional_banks above. UNH is deliberately ungrouped — as
+      # a managed-care insurer (reimbursement/medical-loss-ratio driven) its
+      # earnings drivers are structurally different from the 5 drugmakers,
+      # not just a smaller version of the same business. LLY/ABBV pair as
+      # high-growth specialty pharma (GLP-1, immunology); PFE/MRK/JNJ
+      # overlap as steadier, more diversified blue-chip big pharma.
       correlated_groups:
-        - [LLY, PFE, MRK, ABBV, UNH, JNJ]
+        - [LLY, ABBV]
+        - [PFE, MRK]
+        - [PFE, JNJ]
+        - [MRK, JNJ]
     consumer_discretionary:
       max_open_positions: 2
       correlated_groups:

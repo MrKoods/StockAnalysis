@@ -121,6 +121,9 @@ def _future_timestamp_reason(ts, now_utc: datetime, prefix: str) -> Optional[str
     return None
 
 
+_VALID_SENTIMENT_VALUES = {"bullish", "bearish", None}
+
+
 def validate_sentiment_data(
     ticker: str,
     posts: list[dict],
@@ -129,11 +132,21 @@ def validate_sentiment_data(
     Validate sentiment data for a ticker.
 
     Checks:
-    - Bullish ratio in [0.0, 1.0]
-    - Mention volume is positive integer
+    - `sentiment` is one of the values StockTwits' entities.sentiment.basic
+      tag actually produces ("bullish"/"bearish"/None — see
+      sentiment_client.fetch_stocktwits' docstring)
     - Timestamps within expected range (not in the future)
 
     Returns (is_valid: bool, failure_reasons: list[str]).
+
+    Was previously checking a `bullish_ratio` field that never exists on a
+    real per-message dict — that's an AGGREGATE sentiment_layer.py computes
+    from a batch of these messages, not a raw field any client ever
+    populates, so this check could never actually fire (Signal Integrity
+    Audit finding E.1 follow-up: fixed while wiring this module in for
+    real — a validator whose checks are silently inert against real data
+    shapes is worse than not having it, since it looks like coverage that
+    isn't there).
     """
     reasons = []
     if not posts:
@@ -142,12 +155,10 @@ def validate_sentiment_data(
     now_utc = datetime.now(timezone.utc)
 
     for post in posts:
-        # Bullish ratio bounds
-        bullish_ratio = post.get("bullish_ratio")
-        if bullish_ratio is not None:
-            if not (0.0 <= float(bullish_ratio) <= 1.0):
-                reasons.append(f"sentiment_bullish_ratio_out_of_bounds_{bullish_ratio}")
-                break
+        sentiment = post.get("sentiment")
+        if sentiment not in _VALID_SENTIMENT_VALUES:
+            reasons.append(f"sentiment_unexpected_value_{sentiment}")
+            break
 
         # Timestamp not in the future
         ts = post.get("timestamp_utc") or post.get("timestamp")
@@ -182,8 +193,12 @@ def validate_news_data(
     now_utc = datetime.now(timezone.utc)
 
     for article in articles:
-        # Sentiment score range (AV returns -1 to 1)
-        score = article.get("sentiment_score")
+        # Sentiment score range (AV returns -1 to 1). Real AV articles carry
+        # this under "overall_sentiment_score" (see news_client.py) — this
+        # used to check a plain "sentiment_score" key that's never actually
+        # populated, so the check could never fire (same field-name-drift
+        # bug fixed in validate_sentiment_data above).
+        score = article.get("overall_sentiment_score", article.get("sentiment_score"))
         if score is not None:
             if not (-1.0 <= float(score) <= 1.0):
                 reasons.append(f"news_sentiment_score_out_of_range_{score}")

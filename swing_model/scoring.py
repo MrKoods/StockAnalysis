@@ -371,9 +371,25 @@ def compute_confidence_score(
     #   fundamental_score is on FundamentalScorer's internal -15..+15 scale.
     #   Rescaled here to a -10..+10 contribution (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX).
     #   data_quality == 'unavailable' → score was already set to 0 by scorer.
+    #
+    #   fundamental_layer.py computes a direction-agnostic fact about the
+    #   company (strong/weak earnings & valuation) — it has no notion of
+    #   which way the trade is pointed. Good fundamentals should SUPPORT a
+    #   bullish thesis and OPPOSE a bearish one (and vice versa for weak
+    #   fundamentals), so the sign is flipped here, at the one place
+    #   direction is already known and this raw fact gets turned into a
+    #   trade-direction-relative contribution — same mirroring the other
+    #   directional inputs (regime/rotation/macro/seasonality) apply at
+    #   their own consumption points. Previously unmirrored: a bearish
+    #   candidate with genuinely deteriorating fundamentals (which should
+    #   confirm the short thesis) was instead being penalized by them, and a
+    #   bearish candidate with strong fundamentals was rewarded — backwards
+    #   in both cases (Signal Integrity Audit finding B.1).
     # ---------------------------------------------------------------------------
     fundamental_score_raw = float(fundamental.get("fundamental_score", 0.0))
     fundamental_score_raw = max(-float(FUNDAMENTAL_INTERNAL_MAX), min(float(FUNDAMENTAL_INTERNAL_MAX), fundamental_score_raw))
+    if direction == "bearish":
+        fundamental_score_raw = -fundamental_score_raw
     fundamental_contribution = fundamental_score_raw * (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX)
     fundamental_contribution = max(-float(FUNDAMENTAL_MAX), min(float(FUNDAMENTAL_MAX), fundamental_contribution))
     fundamental_data_quality = fundamental.get("data_quality", "unavailable")

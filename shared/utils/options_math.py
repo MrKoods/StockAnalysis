@@ -116,6 +116,18 @@ _DEFAULT_RISK_FREE_RATE = 0.04  # fixed approximation (~short-term Treasury) —
 # different (15% ITM) approximation.
 _MONEYNESS_MAGNITUDE = {"atm": 0.0, "otm": 0.06, "far_otm": 0.12, "itm": 0.06, "deep_itm": 0.15}
 
+# select_directional_leg_strike's "nearest available contract" fallback had
+# no floor — on a thin chain missing strikes anywhere near the intended
+# moneyness, it would still return the closest thing it has, silently
+# substituting (e.g.) a near-ATM contract for an intended far_otm wing. This
+# tolerance turns "nothing suitable" into an honest None instead of a quiet
+# substitution (Signal Integrity Audit finding D.1). It bounds distance from
+# the TARGET strike, not from spot — 5% of the underlying's price is
+# generous relative to normal strike spacing (a contract this close to the
+# intended target is a fine match) while still catching a chain with
+# genuinely nothing near the target at all.
+_MAX_STRIKE_DISTANCE_FROM_TARGET_PCT = 0.05
+
 
 def select_directional_leg_strike(
     chain: list,
@@ -160,7 +172,10 @@ def select_directional_leg_strike(
     candidates = [c for c in (chain or []) if c.get("option_type") == option_type]
     if not candidates:
         return None
-    return min(candidates, key=lambda c: abs(c["strike"] - target))
+    best = min(candidates, key=lambda c: abs(c["strike"] - target))
+    if current_price > 0 and abs(best["strike"] - target) / current_price > _MAX_STRIKE_DISTANCE_FROM_TARGET_PCT:
+        return None
+    return best
 
 
 def net_structure_greeks(

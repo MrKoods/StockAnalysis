@@ -184,11 +184,17 @@ def _load_logged_keys() -> set[tuple[str, str]]:
     return seen
 
 
-def _load_open_positions() -> set[tuple[str, str]]:
+def _load_open_positions() -> set[str]:
     """
-    Return set of (ticker, direction) pairs with an open (outcome blank) row
-    in paper_trades.csv — the same-ticker/same-direction duplicate-position
-    guard, scoped to paper trading's own ledger.
+    Return set of tickers with an open (outcome blank) row in
+    paper_trades.csv — the duplicate-position guard, scoped to paper
+    trading's own ledger. Blocks a second signal on a ticker regardless of
+    direction: since enable_bearish_signals shipped, nothing previously
+    stopped the same ticker carrying simultaneous open bullish AND bearish
+    positions (each sized independently off the same fixed account budget) —
+    two conflicting-direction signals on one name reads as noisy/uncertain
+    signal quality, not a deliberate hedge this model is designed to run
+    (Signal Integrity Audit finding C.5).
 
     Deliberately NOT swing_model/portfolio_manager.py's can_open_new_position()
     + data/processed/position_state.json: that state file belongs to a
@@ -201,12 +207,12 @@ def _load_open_positions() -> set[tuple[str, str]]:
     """
     if not PAPER_TRADES_CSV.exists():
         return set()
-    open_positions: set[tuple[str, str]] = set()
+    open_positions: set[str] = set()
     try:
         with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 if not (row.get("outcome") or "").strip():
-                    open_positions.add((row.get("ticker", ""), row.get("direction", "bullish")))
+                    open_positions.add(row.get("ticker", ""))
     except Exception as exc:
         logger.warning(f"Could not read paper_trades.csv for open-position check: {exc}")
     return open_positions
@@ -511,6 +517,16 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             dominant_sentiment = classify_dominant_sentiment(stocktwits_messages)["dominant_sentiment"]
             direction = determine_direction(indicators, {"dominant_sentiment": dominant_sentiment}, cfg)
 
+            # macro_mod/seasonality_mod above were computed once per sector
+            # (bullish-default) — flip sign for bearish now that direction is
+            # known, equivalent to (and cheaper than) recomputing per ticker
+            # with direction="bearish" (macro_overlay.py/seasonality.py's own
+            # direction handling is a pure sign flip of the same underlying
+            # state; see Signal Integrity Audit finding B.3).
+            if direction == "bearish":
+                macro_mod = -macro_mod
+                seasonality_mod = -seasonality_mod
+
             regime_mod = get_regime_modifiers(regime, cfg, direction=direction).get("regime_modifier", 0.0)
             rotation_mod = dampen_rotation_penalty_for_leader(
                 get_rotation_modifier(rotation_state_by_sector.get(sector, ROTATION_NEUTRAL), cfg, direction=direction),
@@ -714,6 +730,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             ev_per_dollar = ""
             structures_eligible = None
             exclusion_summary = None
+            greeks_filter_status = None
             ev_outlier_z = None
             capital_required = None
             position_type = None
@@ -796,6 +813,13 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     ranked = trade_result.get("ranked_structures", [])
                     structures_eligible = trade_result.get("structures_eligible_after_filters")
                     exclusion_summary = trade_result.get("exclusion_summary") or None
+                    # Surfaced in the Discord alert below so a human reviewing
+                    # a recommendation can see when Filter 4 (Greeks) didn't
+                    # run at all this scan (chain fetch failed) — previously
+                    # only visible in the CSV's structures_eligible/
+                    # exclusion_summary, which discord_alerts.py never reads
+                    # (Signal Integrity Audit finding D.1).
+                    greeks_filter_status = trade_result.get("greeks_filter_status")
                     if ranked:
                         # recommended=True, not ranked[0]: rank_trade_structures sorts
                         # ranked_structures by raw EV-per-day (diagnostic order,
@@ -935,15 +959,16 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     )
                 continue
 
-            # Duplicate-position guard — a ticker already carrying an open
-            # same-direction position doesn't get a second one logged on top of
-            # it. Checked here (not earlier, alongside already_logged) because
-            # it only applies to real qualifying signals — near-miss/no-signal
-            # rows above are informational only and never touch paper_trades.csv.
-            if (ticker, direction) in open_positions:
+            # Duplicate-position guard — a ticker already carrying ANY open
+            # position (same OR opposite direction) doesn't get a second one
+            # logged on top of it. Checked here (not earlier, alongside
+            # already_logged) because it only applies to real qualifying
+            # signals — near-miss/no-signal rows above are informational
+            # only and never touch paper_trades.csv.
+            if ticker in open_positions:
                 logger.info(
                     f"{ticker}: qualifies ({final_score:.1f}) but already has an open "
-                    f"{direction} position — skipped (duplicate-position guard)"
+                    f"position — skipped (duplicate-position guard)"
                 )
                 continue
 
@@ -1142,6 +1167,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "news_score": score.get("news_total", 0.0),
                 "news_max": score.get("news_max", 15.0),
                 "fundamental_score": score.get("fundamental_score", 0.0),
+                "greeks_filter_status": greeks_filter_status,
             }
             paper_alert_sent = False
             try:

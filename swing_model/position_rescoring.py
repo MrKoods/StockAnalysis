@@ -9,6 +9,7 @@ from typing import Optional
 
 from swing_model.scoring import compute_confidence_score
 from shared.utils.risk_reward import compute_trailing_stop
+from shared.utils.earnings_calendar import get_earnings_modifier
 
 # Used when the caller hasn't re-fetched sentiment/news for a ticker's rescore —
 # same "unavailable data" neutral convention compute_confidence_score already
@@ -24,20 +25,26 @@ def rescore_open_positions(
     sentiment_by_ticker: Optional[dict[str, dict]] = None,
     news_by_ticker: Optional[dict[str, dict]] = None,
     market_modifiers: Optional[dict] = None,
+    earnings_date_by_ticker: Optional[dict] = None,
 ) -> list[dict]:
     """
     Re-score all open positions with fresh indicator data.
 
     For each position:
     1. Pull current indicator values for that ticker
-    2. Recompute confidence score using scoring.py
+    2. Recompute confidence score using scoring.py, at the position's OWN
+       stored direction (not re-derived from today's indicators — a
+       weakening bearish thesis that no longer confirms downtrend_intact
+       must not silently get scored as if it were a fresh bullish candidate)
     3. Compare to entry confidence score
     4. Flag early exit if confidence drop > cfg['signal_decay']['early_exit_confidence_drop']
     5. Update trailing stop level
     6. Check time stop (Day 10 with < 30% of target profit)
 
     current_indicators: keyed by ticker, same shape as indicator_pipeline.run_pipeline()'s
-      per-ticker output (technical fields plus '_fundamental_full'/'_positioning_full').
+      per-ticker output (technical fields plus '_fundamental_full'/'_positioning_full'/
+      '_positioning_full_bearish'). The bearish-mirrored positioning score is selected
+      automatically per position based on its own stored direction.
     sentiment_by_ticker/news_by_ticker: fresh sentiment_layer/news_layer output per
       ticker, when the caller already re-fetched it for today's scan. A ticker missing
       from these falls back to a neutral mid-point — the rescore still reflects
@@ -47,6 +54,18 @@ def rescore_open_positions(
     market_modifiers: optional {'regime', 'regime_modifier', 'seasonality_modifier',
       'macro_modifier'} from today's live scan. Omitted modifiers default to neutral
       (0.0) / no regime cap, since this function has no market-context data of its own.
+      Values are applied as-is (already direction-signed by the caller, same convention
+      run_swing_model.py/paper_runner.py use) — not re-derived per position here.
+    earnings_date_by_ticker: optional {ticker: next earnings date}, when the caller
+      already has it (e.g. paper_updater.py's own per-ticker fetch for
+      _check_earnings_exit). A ticker missing from this dict scores a neutral (0.0)
+      earnings_modifier rather than this function making its own yfinance call — kept
+      a pure function of its inputs, same as before. cross_ticker_modifier is left at
+      0.0 regardless: a real per-ticker recompute needs the whole sector's fresh
+      OHLCV, a materially more expensive rescore than this function is meant to do —
+      an intentional, documented simplification, not silent parity with entry-time
+      scoring (same honesty standard the backtest already holds earnings_modifier=0.0
+      to when no historical archive exists for it).
 
     Returns list of updated position dicts with added fields:
     {
@@ -81,6 +100,7 @@ def rescore_open_positions(
     regime_modifier = float(market_modifiers.get("regime_modifier", 0.0))
     seasonality_modifier = float(market_modifiers.get("seasonality_modifier", 0.0))
     macro_modifier = float(market_modifiers.get("macro_modifier", 0.0))
+    earnings_date_by_ticker = earnings_date_by_ticker or {}
 
     results = []
     for pos in open_positions:
@@ -114,9 +134,27 @@ def rescore_open_positions(
             continue
 
         fundamental = indicators.get("_fundamental_full") or {}
-        positioning = indicators.get("_positioning_full") or {}
+        # Select the positioning mirror matching this position's OWN held
+        # direction, not always the bullish one — same fix as direction_override
+        # below (Signal Integrity Audit finding B.2).
+        positioning = indicators.get(
+            "_positioning_full_bearish" if direction == "bearish" else "_positioning_full"
+        ) or {}
         sentiment = sentiment_by_ticker.get(ticker, _NEUTRAL_SENTIMENT)
         news = news_by_ticker.get(ticker, _NEUTRAL_NEWS)
+
+        # Real earnings_modifier when the caller supplied today's earnings
+        # date for this ticker (see earnings_date_by_ticker's docstring
+        # above) — previously hardcoded 0.0 unconditionally, silently hiding
+        # a real, worsening penalty (up to -20) as a position ages toward an
+        # earnings print. cross_ticker_modifier stays 0.0 — documented
+        # simplification, see docstring.
+        earnings_date = earnings_date_by_ticker.get(ticker)
+        earnings_modifier = 0.0
+        if earnings_date is not None:
+            earnings_modifier = get_earnings_modifier(
+                ticker, earnings_date, cfg=cfg
+            ).get("confidence_modifier", 0.0)
 
         score = compute_confidence_score(
             technical=indicators,
@@ -125,13 +163,21 @@ def rescore_open_positions(
             news=news,
             regime_modifier=regime_modifier,
             sector_rotation_modifier=0.0,
-            earnings_modifier=0.0,
+            earnings_modifier=earnings_modifier,
             cross_ticker_modifier=0.0,
             seasonality_modifier=seasonality_modifier,
             macro_modifier=macro_modifier,
             cfg=cfg,
             regime=regime,
             fundamental=fundamental,
+            # Honor the position's OWN stored direction rather than letting
+            # compute_confidence_score re-derive it from today's indicators
+            # (Signal Integrity Audit finding B.2). A bearish position whose
+            # downtrend has weakened mid-hold but nothing bullish has
+            # confirmed either would otherwise silently get rescored as a
+            # long — exactly the "thesis weakening" case confidence_drop/
+            # early_exit_flag exist to catch.
+            direction_override=direction,
         )
         current_confidence = float(score.get("final_score", 0.0))
         confidence_drop = entry_confidence - current_confidence

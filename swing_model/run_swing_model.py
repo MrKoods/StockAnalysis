@@ -50,13 +50,46 @@ from shared.utils.event_gate import (
 from shared.utils.sector_config import (
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
+from shared.utils.scan_lock import acquire_scan_lock
 
 logger = get_logger(__name__)
+
+_RUN_SWING_MODEL_LOCK_DIR = Path("data/processed/scan_locks/run_swing_model")
 
 
 def main(scan_type: str = "post_close") -> None:
     """
-    Main entry point for a single scan run.
+    Guarded by a file lock (shared.utils.scan_lock), same as
+    paper_trading/paper_runner.py's run_paper_scan() — this entry point has
+    the identical three-scan-type structure and per-sector OHLCV-fetch shape
+    that caused the 2026-08-04 double-run incident the lock was built for
+    (see scan_lock.py's module docstring), but the fix was only ever applied
+    to paper_runner.py, leaving this one of two structurally identical entry
+    points unprotected (Signal Integrity Audit finding G.2) — not exploitable
+    while this isn't the scheduled path, but the same bug the moment it is.
+    No-ops (returns immediately) if another instance already holds the lock
+    for this scan_type.
+    """
+    # Distinct lock_dir from paper_runner.py's own acquire_scan_lock(scan_type)
+    # call — these are two independent pipelines (this one drives live
+    # Discord alerts + position_state.json, paper_runner.py drives
+    # paper_trades.csv) that legitimately CAN run concurrently; sharing one
+    # lock namespace would incorrectly serialize them against each other
+    # instead of just guarding against two copies of THIS entry point.
+    with acquire_scan_lock(scan_type, lock_dir=_RUN_SWING_MODEL_LOCK_DIR) as acquired:
+        if not acquired:
+            logger.warning(
+                f"{scan_type}: another instance appears to already be running this scan_type — "
+                "skipping this invocation rather than duplicating work and doubling up on the same "
+                "rate-limited APIs (see shared/utils/scan_lock.py)."
+            )
+            return
+        _main_locked(scan_type)
+
+
+def _main_locked(scan_type: str = "post_close") -> None:
+    """
+    The actual scan body — see main() for the lock guard around this.
 
     Steps:
     1.  Load config + model version from CHANGELOG.md
@@ -285,6 +318,15 @@ def main(scan_type: str = "post_close") -> None:
             dominant_sentiment = classify_dominant_sentiment(stocktwits_messages)["dominant_sentiment"]
             direction = determine_direction(indicators, {"dominant_sentiment": dominant_sentiment}, cfg)
 
+            # macro_modifier_val/seasonality_modifier_val above were computed
+            # once per sector (bullish-default) — flip sign for bearish now
+            # that direction is known, equivalent to (and cheaper than)
+            # recomputing per ticker with direction="bearish" (see Signal
+            # Integrity Audit finding B.3).
+            if direction == "bearish":
+                macro_modifier_val = -macro_modifier_val
+                seasonality_modifier_val = -seasonality_modifier_val
+
             regime_modifier_val = get_regime_modifiers(regime, cfg, direction=direction).get("regime_modifier", 0.0)
             rotation_modifier_val = dampen_rotation_penalty_for_leader(
                 get_rotation_modifier(rotation_state_by_sector.get(sector, ROTATION_NEUTRAL), cfg, direction=direction),
@@ -447,6 +489,7 @@ def main(scan_type: str = "post_close") -> None:
             capital_required = structure_legs = structure_effective_days = structure_greeks_summary = None
             structure_max_loss = structure_max_gain = structure_strikes = structure_expiration_date = None
             alternative_structures = None
+            greeks_filter_status = None
             risk_pct = 0.01
             dollar_risk = 0.0
             position_size = 0
@@ -528,6 +571,12 @@ def main(scan_type: str = "post_close") -> None:
                             cfg=cfg,
                         )
                         ranked = trade_result.get("ranked_structures", [])
+                        # Surfaced in the Discord alert below so a human
+                        # reviewing a recommendation can see when Filter 4
+                        # (Greeks) didn't run at all this scan (chain fetch
+                        # failed) — see paper_runner.py's matching comment
+                        # (Signal Integrity Audit finding D.1).
+                        greeks_filter_status = trade_result.get("greeks_filter_status")
                         if ranked:
                             # recommended=True, not ranked[0]: see paper_runner.py's
                             # matching comment — rank_trade_structures can prefer a
@@ -682,6 +731,7 @@ def main(scan_type: str = "post_close") -> None:
                         "structure_strikes": structure_strikes,
                         "structure_expiration_date": structure_expiration_date,
                         "alternative_structures": alternative_structures,
+                        "greeks_filter_status": greeks_filter_status,
                         "direction": direction, "risk_pct": risk_pct,
                         # dollar_risk was never populated here before v2.2.60 —
                         # the live Discord alert's "Dollar Risk" field always

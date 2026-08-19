@@ -164,6 +164,34 @@ class TestCanOpenNewPosition:
         ok, _ = can_open_new_position(state, _position("AMD", direction="bearish"))
         assert ok is True
 
+    def test_blocked_same_ticker_opposite_direction(self):
+        # Signal Integrity Audit finding C.5: the same-ticker duplicate rule
+        # used to only check same-direction — nothing stopped the same
+        # ticker carrying simultaneous long AND short exposure, each sized
+        # independently. Contrast with the DIFFERENT-ticker case just above
+        # (NVDA long + AMD short), which is correctly still allowed — this
+        # is specifically about one ticker held both ways at once.
+        state = _empty_state()
+        state["positions"] = [{**_position("NVDA"), "open": True, "direction": "bullish"}]
+        ok, reason = can_open_new_position(state, _position("NVDA", direction="bearish"))
+        assert ok is False
+        assert "duplicate_position" in reason
+        assert "opposite_direction" in reason
+
+    def test_blocked_same_ticker_same_direction_still_says_same(self):
+        # Regression guard: the reason string's same/opposite label must
+        # still correctly report "same" for the pre-existing same-direction
+        # case (not just always say "opposite" now that both are checked).
+        # Net-directional-delta cap disabled here (2 same-direction 1%-risk
+        # positions would otherwise trip it first) — same isolation as
+        # test_blocked_by_correlated_pair_same_direction above.
+        state = _empty_state()
+        state["positions"] = [{**_position("NVDA"), "open": True, "direction": "bullish"}]
+        cfg = {"portfolio": {"max_net_directional_delta": 1.0}}
+        ok, reason = can_open_new_position(state, _position("NVDA", direction="bullish"), cfg=cfg)
+        assert ok is False
+        assert "same_direction" in reason
+
     def test_blocked_by_yellow_cb_low_confidence(self):
         state = _empty_state()
         state["circuit_breaker_state"] = "yellow"

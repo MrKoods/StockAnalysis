@@ -353,14 +353,22 @@ def can_open_new_position(
     if abs(projected_delta) > max_net_delta:
         return False, f"net_directional_delta_exceeds_{round(max_net_delta*100, 2)}pct_{round(abs(projected_delta)*100, 2)}pct"
 
-    # Same-ticker rule — no second same-direction position on a ticker that
-    # already has one open. {new_ticker, open_ticker} collapses to a 1-element
-    # set when they're equal, which never matches any correlated group below
-    # (groups always have 2+ distinct tickers), so that check alone couldn't
-    # catch this case — sector slots could otherwise concentrate in one name.
+    # Same-ticker rule — no second position on a ticker that already has one
+    # open, regardless of direction. {new_ticker, open_ticker} collapses to a
+    # 1-element set when they're equal, which never matches any correlated
+    # group below (groups always have 2+ distinct tickers), so that check
+    # alone couldn't catch this case — sector slots could otherwise
+    # concentrate in one name. Opposite-direction is blocked too (not just
+    # same-direction): since bearish signals exist, nothing else stops the
+    # same ticker carrying simultaneous long and short exposure, each sized
+    # independently off the same account budget — two conflicting-direction
+    # signals on one name reads as noisy signal quality, not a deliberate
+    # hedge this model is designed to run (Signal Integrity Audit finding C.5).
     for open_pos in open_positions:
-        if new_ticker == open_pos.get("ticker", "") and new_dir == open_pos.get("direction", "bullish"):
-            return False, f"duplicate_position_{new_ticker}_same_direction"
+        if new_ticker == open_pos.get("ticker", ""):
+            open_dir = open_pos.get("direction", "bullish")
+            same_or_opposite = "same" if new_dir == open_dir else "opposite"
+            return False, f"duplicate_position_{new_ticker}_{same_or_opposite}_direction"
 
     # Correlated-group rule — no same-direction exposure to 2+ tickers from
     # the same group. correlated_groups is scoped to the NEW ticker's own

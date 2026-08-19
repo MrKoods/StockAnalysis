@@ -463,6 +463,61 @@ class TestSimulateTradeOutcome:
         )
         assert result["outcome"] == "time_stop"
 
+    # -- Day-10/30%-progress early time stop (Signal Integrity Audit A.5) --
+
+    def test_day10_early_time_stop_when_stalled(self):
+        # Flat price (no progress at all) for 15 bars, target far above entry
+        # and stop far below — neither hit, so this used to ride to day 15.
+        # With <30% of the target move captured by day 10, it should now
+        # exit at day 10 instead.
+        dates = pd.date_range("2026-01-01", periods=15, freq="B", tz="UTC")
+        flat = [100.0] * 15
+        df = pd.DataFrame({
+            "Open": flat, "High": [101.0] * 15, "Low": [99.0] * 15,
+            "Close": flat, "Volume": [1_000_000] * 15,
+        }, index=dates)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01", direction="bullish",
+            entry=100.0, stop=90.0, target=130.0,
+            future_ohlcv=df, holding_period=(1, 15),
+        )
+        assert result["outcome"] == "time_stop"
+        assert result["holding_days"] == 10
+
+    def test_no_early_time_stop_when_progress_sufficient(self):
+        # 40% of the way to target by day 10 (12 points of a 30-point move) —
+        # above the 30% floor, so the position should NOT exit early; it
+        # rides to day 15 like before this fix (target/stop still not hit).
+        dates = pd.date_range("2026-01-01", periods=15, freq="B", tz="UTC")
+        closes = [100.0 + min(i, 10) * 1.2 for i in range(15)]  # reaches 112 by day 10, holds
+        df = pd.DataFrame({
+            "Open": closes, "High": [c + 0.1 for c in closes], "Low": [c - 0.1 for c in closes],
+            "Close": closes, "Volume": [1_000_000] * 15,
+        }, index=dates)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01", direction="bullish",
+            entry=100.0, stop=90.0, target=130.0,
+            future_ohlcv=df, holding_period=(1, 15),
+        )
+        assert result["outcome"] == "time_stop"
+        assert result["holding_days"] == 15
+
+    def test_time_stop_day_zero_disables_early_check(self):
+        # time_stop_day=0 is the explicit opt-out — same flat/stalled setup
+        # as the first test above, but must now ride all the way to day 15.
+        dates = pd.date_range("2026-01-01", periods=15, freq="B", tz="UTC")
+        flat = [100.0] * 15
+        df = pd.DataFrame({
+            "Open": flat, "High": [101.0] * 15, "Low": [99.0] * 15,
+            "Close": flat, "Volume": [1_000_000] * 15,
+        }, index=dates)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01", direction="bullish",
+            entry=100.0, stop=90.0, target=130.0,
+            future_ohlcv=df, holding_period=(1, 15), time_stop_day=0,
+        )
+        assert result["holding_days"] == 15
+
 
 # ---------------------------------------------------------------------------
 # run_backtest (smoke test with synthetic data)

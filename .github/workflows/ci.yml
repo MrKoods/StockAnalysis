@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, not the default shallow clone — check_version_bump.py
+          # below diffs against a prior ref, which a depth-1 checkout can't do.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -28,3 +32,11 @@ jobs:
 
       - name: Test (pytest)
         run: pytest --cov --cov-report=term-missing
+
+      - name: Enforce version bump on scoring/threshold changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python scripts/check_version_bump.py --base "origin/${{ github.base_ref }}" --head "${{ github.event.pull_request.head.sha }}"
+          else
+            python scripts/check_version_bump.py --base "HEAD~1" --head "HEAD"
+          fi

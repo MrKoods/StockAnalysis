@@ -815,3 +815,46 @@ class TestDirectionOverride:
         )
         assert result["direction"] == "bullish"
         assert result["technical_total"] < 40.0
+
+
+# ---------------------------------------------------------------------------
+# Signal Integrity Audit finding B.1 — fundamental_contribution must mirror
+# for direction: strong fundamentals help a bullish candidate and hurt a
+# bearish one; weak/deteriorating fundamentals should do the opposite.
+# ---------------------------------------------------------------------------
+
+class TestFundamentalDirectionMirror:
+    def _score(self, fundamental_score_raw, direction):
+        return compute_confidence_score(
+            technical={},  # all sub-scores default to 0/neutral — irrelevant here
+            positioning=_zero_positioning(),
+            sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            fundamental={"fundamental_score": fundamental_score_raw, "data_quality": "complete"},
+            direction_override=direction,
+        )
+
+    def test_strong_fundamentals_help_bullish(self):
+        result = self._score(15.0, "bullish")
+        assert result["fundamental_score"] == pytest.approx(10.0)
+
+    def test_strong_fundamentals_hurt_bearish(self):
+        # A ticker with genuinely strong (rising) fundamentals should NOT
+        # confirm a bearish thesis — the contribution flips negative.
+        result = self._score(15.0, "bearish")
+        assert result["fundamental_score"] == pytest.approx(-10.0)
+
+    def test_weak_fundamentals_hurt_bullish(self):
+        result = self._score(-15.0, "bullish")
+        assert result["fundamental_score"] == pytest.approx(-10.0)
+
+    def test_weak_fundamentals_help_bearish(self):
+        # Deteriorating fundamentals should CONFIRM a bearish thesis, not
+        # drag down an otherwise well-confirmed short (the bug this fixes).
+        result = self._score(-15.0, "bearish")
+        assert result["fundamental_score"] == pytest.approx(10.0)
+
+    def test_neutral_fundamentals_unaffected_by_direction(self):
+        assert self._score(0.0, "bullish")["fundamental_score"] == pytest.approx(0.0)
+        assert self._score(0.0, "bearish")["fundamental_score"] == pytest.approx(0.0)

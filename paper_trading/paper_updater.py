@@ -59,8 +59,11 @@ from swing_model.feedback_loop import (
     run_calibration,
     should_recalibrate,
 )
-from swing_model.indicator_pipeline import load_config
+from swing_model.indicator_pipeline import load_config, run_pipeline
+from swing_model.position_rescoring import rescore_open_positions
 from shared.utils.earnings_calendar import fetch_next_earnings_date, get_earnings_modifier
+from shared.utils.fill_simulation import find_fill as _find_fill
+from shared.utils.sector_config import get_active_sectors, get_ticker_sector_map
 # Imported, not duplicated — this module previously kept its own copy of the
 # column list that had already drifted from paper_runner.py's real schema
 # (missing positioning_score, structure_recommended, ev_per_dollar,
@@ -157,6 +160,8 @@ def _resolve_outcome(
     stop_loss: float,
     target: float,
     direction: str = "bullish",
+    time_stop_day: int = 10,
+    min_progress_pct: float = 0.30,
 ) -> Optional[dict]:
     """
     Walk bars chronologically and return outcome dict when stop, target,
@@ -167,9 +172,18 @@ def _resolve_outcome(
     stop_loss), target is above entry (win when price rises to/through it,
     High >= target). Bearish is the mirror image — stop above entry (loss on
     High >= stop_loss), target below entry (win on Low <= target).
+
+    Also enforces config's signal_decay.time_stop_day/time_stop_no_progress_pct
+    (day-10, <30% of target captured) as an early time_stop, not just the
+    day-15 hold-to-close below — previously this rule existed only in config
+    and in position_rescoring.py's check_time_stop(), which nothing in this
+    automated loop ever called (Signal Integrity Audit finding C.2). Pure
+    price check against bars already being walked here, no extra fetch
+    needed. time_stop_day=0 disables it (day-15 only).
     """
     trading_days = 0
     bearish = direction == "bearish"
+    target_move = (target - entry_price) if not bearish else (entry_price - target)
 
     for bar_date, bar in df.iterrows():
         trading_days += 1
@@ -197,6 +211,16 @@ def _resolve_outcome(
                 "exit_price": target,
                 "holding_days": trading_days,
             }
+
+        if time_stop_day and trading_days >= time_stop_day and target_move > 0:
+            progress_move = (close - entry_price) if not bearish else (entry_price - close)
+            if (progress_move / target_move) < min_progress_pct:
+                return {
+                    "outcome": "time_stop",
+                    "exit_date": bar_date.strftime("%Y-%m-%d"),
+                    "exit_price": close,
+                    "holding_days": trading_days,
+                }
 
         if trading_days >= MAX_HOLDING_DAYS:
             return {
@@ -248,58 +272,119 @@ def _check_earnings_exit(
     }
 
 
-def _find_fill(
-    df: pd.DataFrame,
-    entry_zone_lower: float,
-    entry_zone_upper: float,
-    direction: str = "bullish",
-    window_days: int = FILL_WINDOW_DAYS,
+def _fetch_rescore_indicators(ticker: str, sector: Optional[str], cfg: dict, cache: dict) -> Optional[dict]:
+    """
+    Fetch fresh technical+positioning indicators for one still-open ticker,
+    for the confidence-decay early-exit check only (position_rescoring.py's
+    early_exit_confidence_drop) — memoized per ticker per run in `cache` so
+    a ticker with multiple open rows only costs one fetch.
+
+    Reuses indicator_pipeline.run_pipeline (the same OHLCV+fundamental+
+    positioning machinery every other caller uses) rather than a bespoke
+    fetch, so the indicators shape rescore_open_positions expects
+    ('_positioning_full'/'_positioning_full_bearish' etc.) is guaranteed
+    correct by construction. Best-effort: a failure here degrades to "skip
+    the early-exit check this run," never to blocking normal stop/target/
+    time-stop resolution, which has already run by the time this is called.
+    """
+    if ticker in cache:
+        return cache[ticker]
+    indicators = None
+    if sector is not None:
+        try:
+            sector_cfg = get_active_sectors(cfg).get(sector, {})
+            benchmark = sector_cfg.get("benchmark", "SMH")
+            result = run_pipeline([ticker], benchmark=benchmark, scan_type="post_close", cfg=cfg)
+            indicators = result.get(ticker)
+        except Exception as exc:
+            logger.warning(f"{ticker}: rescore indicator fetch failed — {exc}")
+            indicators = None
+    cache[ticker] = indicators
+    return indicators
+
+
+def _check_confidence_decay_exit(
+    trade: dict,
+    ticker: str,
+    direction: str,
+    bars: pd.DataFrame,
+    entry_price: float,
+    stop_loss: float,
+    target: float,
+    cfg: dict,
+    ticker_sector_map: dict,
+    indicators_cache: dict,
+    earnings_date,
+    early_exit_drop: float,
 ) -> Optional[dict]:
     """
-    Walk bars chronologically looking for the first bar where price actually
-    trades into the entry zone. Bullish zones sit at/above the close at
-    signal time (breakout trigger), so they fill when price rises into them
-    (High >= entry_zone_lower); bearish zones sit at/below it (breakdown
-    trigger), filling when price falls into them (Low <= entry_zone_upper) —
-    same mirroring convention _resolve_outcome uses for stop/target.
+    Flatten an open position early if its confidence has cratered post-entry
+    (config's signal_decay.early_exit_confidence_drop) — previously this
+    config value was only ever read by position_rescoring.py, which nothing
+    in this automated loop called, so it had zero effect on any position
+    actually being tracked (Signal Integrity Audit finding C.2). Only called
+    when _resolve_outcome/_check_earnings_exit already found the trade still
+    open through the latest bar, so this can't preempt a stop/target/
+    time-stop/earnings-exit that already fired.
 
-    Returns:
-      {"fill_date": Timestamp, "fill_price": float, "bars_from_fill": df from
-        that bar onward} on fill
-      {"expired": True, "last_date": Timestamp} if window_days pass with no fill
-      None if still inside the window and not filled yet (caller should wait)
-
-    fill_price is the boundary that was actually confirmed reached (the
-    trigger price), UNLESS the bar's Open already gapped past it — same
-    "worse of trigger-vs-open" convention _resolve_outcome already uses for
-    a stop hit. Previously the caller used the entry-zone MIDPOINT (a value
-    fixed at signal time, a full 0.25xATR away from either boundary by
-    default) for every downstream P&L figure regardless of which price this
-    function actually confirmed the stock traded at — this closes that gap
-    between what was validated and what was priced.
+    Reuses position_rescoring.rescore_open_positions on a single-position
+    list rather than duplicating its confidence-recompute logic — that
+    function already honors this position's own stored direction and picks
+    the matching positioning mirror (both fixed alongside this wiring; see
+    Signal Integrity Audit finding B.2), and already forfeits
+    earnings/cross_ticker/regime/seasonality/macro modifiers it has no fresh
+    market-context data for (documented in its own docstring), so
+    confidence_drop here reflects technical/positioning/fundamental drift
+    plus the real earnings_modifier this caller already fetched — not a
+    full re-run of entry-time scoring.
     """
-    bearish = direction == "bearish"
-    trading_days = 0
+    entry_confidence_raw = (trade.get("confidence") or "").strip()
+    if not entry_confidence_raw:
+        return None
 
-    for bar_date, bar in df.iterrows():
-        trading_days += 1
-        high = float(bar["High"])
-        low = float(bar["Low"])
-        open_px = float(bar["Open"])
+    sector = ticker_sector_map.get(ticker)
+    indicators = _fetch_rescore_indicators(ticker, sector, cfg, indicators_cache)
+    if indicators is None:
+        return None
 
-        filled = (low <= entry_zone_upper) if bearish else (high >= entry_zone_lower)
-        if filled:
-            fill_price = min(entry_zone_upper, open_px) if bearish else max(entry_zone_lower, open_px)
-            return {
-                "fill_date": bar_date,
-                "fill_price": fill_price,
-                "bars_from_fill": df[df.index >= bar_date],
-            }
+    try:
+        rescored = rescore_open_positions(
+            [{
+                "ticker": ticker,
+                "direction": direction,
+                "entry_price": entry_price,
+                "confidence": float(entry_confidence_raw),
+                "stop_loss": stop_loss,
+                "target": target,
+                "opened_at_utc": (trade.get("fill_date") or trade.get("signal_date") or ""),
+                "highest_close_since_entry": entry_price,
+                "lowest_close_since_entry": entry_price,
+                "open": True,
+            }],
+            {ticker: indicators},
+            cfg=cfg,
+            earnings_date_by_ticker={ticker: earnings_date} if earnings_date is not None else None,
+        )
+    except Exception as exc:
+        logger.warning(f"{ticker}: confidence-decay rescore failed — {exc}")
+        return None
 
-        if trading_days >= window_days:
-            return {"expired": True, "last_date": bar_date}
+    if not rescored or not rescored[0].get("early_exit_flag"):
+        return None
 
-    return None  # Still within the fill window, not triggered yet
+    last_bar_date = bars.index[-1]
+    last_close = float(bars.iloc[-1]["Close"])
+    logger.info(
+        f"{ticker} {trade.get('signal_date')}: confidence dropped "
+        f"{rescored[0].get('confidence_drop', 0.0):.1f} pts (> {early_exit_drop:.0f}) since entry "
+        f"— flattening early at ${last_close:.2f} instead of holding to stop/target/time-stop"
+    )
+    return {
+        "outcome": "early_exit",
+        "exit_date": last_bar_date.strftime("%Y-%m-%d"),
+        "exit_price": last_close,
+        "holding_days": len(bars),
+    }
 
 
 def update_paper_trades() -> int:
@@ -319,6 +404,13 @@ def update_paper_trades() -> int:
     except Exception as exc:
         logger.warning(f"Could not load config — earnings-exit penalties will use defaults: {exc}")
         cfg = {}
+
+    _decay_cfg = cfg.get("signal_decay", {})
+    _time_stop_day = int(_decay_cfg.get("time_stop_day", 10))
+    _min_progress_pct = float(_decay_cfg.get("time_stop_no_progress_pct", 0.30))
+    _early_exit_drop = float(_decay_cfg.get("early_exit_confidence_drop", 10.0))
+    _ticker_sector_map = get_ticker_sector_map(cfg)
+    _rescore_indicators_cache: dict = {}
 
     # Group open trades by ticker to minimise yfinance calls
     by_ticker: dict[str, list[dict]] = {}
@@ -466,9 +558,17 @@ def update_paper_trades() -> int:
                 except Exception as exc:
                     logger.warning(f"{ticker}: paper fill alert failed — {exc}")
 
-            result = _resolve_outcome(bars_for_outcome, entry_price, stop_loss, target, direction=direction)
+            result = _resolve_outcome(
+                bars_for_outcome, entry_price, stop_loss, target, direction=direction,
+                time_stop_day=_time_stop_day, min_progress_pct=_min_progress_pct,
+            )
             if result is None:
                 result = _check_earnings_exit(trade, bars_for_outcome, earnings_date, cfg=cfg)
+            if result is None:
+                result = _check_confidence_decay_exit(
+                    trade, ticker, direction, bars_for_outcome, entry_price, stop_loss, target,
+                    cfg, _ticker_sector_map, _rescore_indicators_cache, earnings_date, _early_exit_drop,
+                )
             if result is None:
                 logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
                 continue
@@ -628,8 +728,15 @@ def print_summary() -> None:
     # ever entering the wins/ts_pos numerators.
     earnings_exits = [t for t in scored if t.get("outcome") == "earnings_exit"]
     ee_pos = [t for t in earnings_exits if float(t.get("pnl_pct", 0)) > 0]
+    # Same "closed without hitting stop or target" shape as a time stop/
+    # earnings exit — same profitable-count rule, so it can't silently drag
+    # win_rate down just for landing in the scored denominator without ever
+    # entering a numerator (same bug this pattern already guards against for
+    # time_stop/earnings_exit above).
+    early_exits = [t for t in scored if t.get("outcome") == "early_exit"]
+    ex_pos = [t for t in early_exits if float(t.get("pnl_pct", 0)) > 0]
 
-    effective_wins = len(wins) + len(ts_pos) + len(ee_pos)
+    effective_wins = len(wins) + len(ts_pos) + len(ee_pos) + len(ex_pos)
     win_rate = effective_wins / len(scored) if scored else 0.0
 
     rr_values = [float(t.get("achieved_rr", 0)) for t in wins]
@@ -638,11 +745,12 @@ def print_summary() -> None:
     print(f"\n{'=' * 50}")
     print(f"PAPER TRADING SUMMARY  ({len(scored)} closed, {open_ct} open, {len(expired)} expired)")
     print(f"{'=' * 50}")
-    print(f"  Win rate (wins + profitable time stops/earnings exits): {win_rate:.1%}")
+    print(f"  Win rate (wins + profitable time stops/earnings/confidence exits): {win_rate:.1%}")
     print(f"  Target hits:        {len(wins)}")
     print(f"  Stops:              {len(losses)}")
     print(f"  Time stops:         {len(time_stops)}  (+{len(ts_pos)} profitable)")
     print(f"  Earnings exits:     {len(earnings_exits)}  (+{len(ee_pos)} profitable)")
+    print(f"  Confidence early exits: {len(early_exits)}  (+{len(ex_pos)} profitable)")
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
     print(f"  Expired (never filled): {len(expired)}")
     print(f"  Open trades:        {open_ct}")

@@ -87,6 +87,24 @@ _BEARISH_KEYWORDS = [
 ]
 
 
+def _keyword_positions(keyword: str, text: str) -> list[int]:
+    """
+    All word-boundary (`\\b`) match start offsets for `keyword` in `text`.
+
+    Previously the directional-sentiment keyword matching below used plain
+    substring checks (`kw in text` / `text.find(kw)`), the same bug class
+    `_find_alias` above was already hardened against for ticker aliases
+    (e.g. "MU" false-matching inside "stimulus") — never applied to keywords
+    like "high" matching inside "highlights", "lower" inside "slower", or
+    "leads" inside "misleads" (an opposite-connotation word). `.find()` also
+    only located the FIRST occurrence — if the same word legitimately
+    appeared near two different mentioned tickers, only one got credited;
+    this returns every match so each occurrence can be attributed on its own
+    (Signal Integrity Audit finding E.4).
+    """
+    return [m.start() for m in re.finditer(r"\b" + re.escape(keyword) + r"\b", text)]
+
+
 def _find_alias(alias_lower: str, headline_lower: str) -> Optional[int]:
     """
     Return the character offset of alias_lower's first whole-word match in
@@ -131,9 +149,10 @@ def extract_ticker_sentiments(
     if not mentioned:
         return result
 
-    # Count bullish/bearish signals in the full headline
-    bullish_hits = sum(1 for kw in _BULLISH_KEYWORDS if kw.lower() in headline_lower)
-    bearish_hits = sum(1 for kw in _BEARISH_KEYWORDS if kw.lower() in headline_lower)
+    # Count bullish/bearish signals in the full headline (word-boundary
+    # matches only — see _keyword_positions' docstring)
+    bullish_hits = sum(len(_keyword_positions(kw, headline_lower)) for kw in _BULLISH_KEYWORDS)
+    bearish_hits = sum(len(_keyword_positions(kw, headline_lower)) for kw in _BEARISH_KEYWORDS)
 
     if len(mentioned) == 1:
         # Single company — apply headline sentiment directly
@@ -180,14 +199,12 @@ def extract_ticker_sentiments(
             return min(entity_positions, key=lambda t: abs(entity_positions[t] - kw_pos))
 
         for kw in _BULLISH_KEYWORDS:
-            idx = headline_lower.find(kw)
-            if idx != -1:
+            for idx in _keyword_positions(kw, headline_lower):
                 nearest = _nearest_ticker(idx)
                 if nearest:
                     local_bull[nearest] += 1
         for kw in _BEARISH_KEYWORDS:
-            idx = headline_lower.find(kw)
-            if idx != -1:
+            for idx in _keyword_positions(kw, headline_lower):
                 nearest = _nearest_ticker(idx)
                 if nearest:
                     local_bear[nearest] += 1

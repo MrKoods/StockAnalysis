@@ -51,6 +51,7 @@ def compute_macro_state(
     china_keyword_count_5d: int,
     cfg: Optional[dict] = None,
     sector: Optional[str] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Compute current macro overlay state from three free proxy signals.
@@ -74,12 +75,21 @@ def compute_macro_state(
     preserves the original sector-agnostic behavior — every existing caller
     that doesn't pass a sector gets the same result as before.
 
+    direction: "bullish" (default) or "bearish". Adverse macro conditions
+    (hawkish rates, strong USD, China tension) penalize a bullish thesis but
+    should CONFIRM a bearish one — same reasoning as
+    regime_detection.get_regime_modifiers's directional sign flip. The
+    modifier's sign is flipped for bearish; macro_state/adverse_signal_count
+    themselves (categorical, not directional) are left unchanged so
+    diagnostics/logging still read "adverse macro conditions" regardless of
+    which direction that ends up favoring in confidence_modifier.
+
     Returns dict:
     {
         macro_state, tnx_trend, dxy_trend, china_tension_level,
         tnx_20d_pct, dxy_20d_pct,
         adverse_signal_count: int,
-        confidence_modifier: float,  # -10 to +3
+        confidence_modifier: float,  # -10 to +3 (bullish) / -3 to +10 (bearish)
         computed_at_utc: str,
         sector_scoped: bool,  # True when this sector's logic was neutralized
     }
@@ -155,7 +165,7 @@ def compute_macro_state(
         else:
             macro_state = MACRO_NEUTRAL
 
-        modifier = get_macro_modifier(macro_state, cfg)
+        modifier = get_macro_modifier(macro_state, cfg, direction=direction)
 
     return {
         "macro_state": macro_state,
@@ -195,16 +205,19 @@ def save_macro_state(state: dict) -> None:
     _MACRO_STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
 
-def get_macro_modifier(macro_state: str, cfg: Optional[dict] = None) -> float:
+def get_macro_modifier(macro_state: str, cfg: Optional[dict] = None, direction: str = "bullish") -> float:
     """
     Map macro_state to confidence modifier.
-    Bounds per spec: -10 to +3.
+    Bounds per spec: -10 to +3 (bullish); sign-flipped (-3 to +10) for bearish
+    — adverse macro conditions confirm a bearish thesis instead of opposing it.
     """
     if cfg is None:
         cfg = {}
     m_cfg = cfg.get("modifiers", {}).get("macro_overlay", {})
     if macro_state == MACRO_ADVERSE:
-        return float(m_cfg.get("adverse_penalty", -10))
-    if macro_state == MACRO_FAVORABLE:
-        return float(m_cfg.get("favorable_boost", 3))
-    return 0.0
+        raw = float(m_cfg.get("adverse_penalty", -10))
+    elif macro_state == MACRO_FAVORABLE:
+        raw = float(m_cfg.get("favorable_boost", 3))
+    else:
+        return 0.0
+    return -raw if direction == "bearish" else raw

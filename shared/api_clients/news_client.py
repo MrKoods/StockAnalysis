@@ -61,12 +61,19 @@ def fetch_news_alpha_vantage(
     if time_from:
         params["time_from"] = time_from
 
+    # on_attempt (not a single post-call increment) — a transient failure
+    # can make http_get_with_backoff retry up to 3 real HTTP requests
+    # against AV's own server, each a genuine hit against its server-side
+    # quota. Incrementing once per logical call here undercounted real
+    # usage on any retry, so the local budget tracker could report headroom
+    # that no longer existed against AV's real limit (Signal Integrity
+    # Audit finding E.3).
     data = http_get_with_backoff(
         _AV_BASE_URL, params=params,
         redact=lambda text: _redact_secrets(text, params),
         label="fetch_news_alpha_vantage",
+        on_attempt=increment_av_call_count,
     )
-    increment_av_call_count()
 
     if data is None:
         return []

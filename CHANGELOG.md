@@ -14,8 +14,11 @@ requirements to trade real money. The biggest recent milestone: on 2026-08-01, i
 performance test passed its own safety bar for the first time ever, after realizing an old
 setting no longer fit how the model has evolved. Several more real bugs were found and fixed
 right after that — mostly things hiding in parts of the model that the historical test can't
-check, because they depend on live, real-time data. None of this changes whether the model is
-allowed to trade real money — it still isn't, and won't be until it's approved.
+check, because they depend on live, real-time data. A full model audit on 2026-08-19 (v2.2.63)
+found and fixed 17 more real gaps, including one that had been making the historical test's own
+numbers look slightly better than real trading would achieve — the corrected win rate (61.2%,
+down from 63.1%) still clears the safety bar. None of this changes whether the model is allowed
+to trade real money — it still isn't, and won't be until it's approved.
 
 ## Plain-English glossary
 
@@ -60,6 +63,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.63 | 2026-08-19 | Bug Fix / Scoring Change / Backtest Methodology | A full model audit (5 parallel reviews covering data, scoring, risk, the historical test, and live/paper trading) found and fixed 17 real gaps — the biggest: the historical test had been assuming every signal filled instantly instead of checking whether price actually reached the entry price first, the same check real trading already uses, flattering its numbers. Win rate moved from 63.1% to a more honest 61.2% after the fix — still clears the safety bar |
 | v2.2.62 | 2026-08-19 | Bug Fix | Paper trading's earnings-proximity check only ever ran once, at signal time — an undefined-risk shares position signaled 6+ days before earnings could still be open when the report actually landed inside its up-to-15-day holding window, fully unprotected (live example: NVDA, signaled 12 days out from its 08-26 earnings). Now re-checked on every daily update and flattened early if it ages into the same 0-5-day pre-earnings window a new signal would already be forced into a capped-loss structure for. A second, same-shaped gap (news/event-gate checks are also signal-time-only) was found and flagged, not fixed — closing it needs a daily news re-scan per open ticker, a bigger change against limited free-tier API budgets that needs a design decision first |
 | v2.2.61 | 2026-08-19 | Feature / Bug Fix | Un-staled the 3 stress-test skips (a fixture schema mismatch, not a real blocker) and wired cross_ticker_modifier into the backtest for real (earnings_modifier stays 0.0 — no historical earnings-date archive exists, a genuine data gap, not deferred laziness); built real dollar max-loss/max-gain and actual strikes/expiration for 35 of 42 trade structures; extended Greeks coverage from 20 to 29 structures (condors/butterflies/wheel/synthetics — pure wiring, no new modeling); extracted real contract/share counts from paper_runner.py's dual-cap sizing into a shared, reusable function and wired it into run_swing_model.py for the first time (which never computed a real position size before — the live Discord alert's "Dollar Risk" field always showed $0.00); surfaced the top-2 runner-up structures alongside the winner everywhere structure data reaches the user |
 | v2.2.60 | 2026-08-19 | Feature / Bug Fix / Research | Widened the documented/configured holding period from 5-15 to 1-15 trading days (the "5" minimum was never actually enforced anywhere in code, so this is a documentation/config correction, not a behavior change); found and fixed the same bearish volume-profile stop/target gap already fixed live/paper-side in a third spot, the backtest engine itself; stopped discarding real per-structure trade economics (capital required, legs, effective days, Greeks) before they reached the Discord alert or paper-trading CSV; built and tested a genuinely different bearish entry style (capitulation/bounce-fade, not another continuation-mirror tweak) — result: worse than the continuation baseline and too rare to be usable (6 pooled trades vs. 339), a clean negative finding, left off by default |
@@ -131,6 +135,77 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.63] — 2026-08-19 — [Bug Fix / Scoring Change / Backtest Methodology] Full model audit — 17 real gaps found and fixed, including a historical-test fill assumption that flattered its own numbers
+
+**Status:** Live.
+
+**In short:** A structured audit combed through five parts of the model — where it gets its data, how
+it scores a stock, how it manages risk, how its historical performance test works, and how live/paper
+trading runs day to day — and found 17 real problems. The single biggest one: the historical
+performance test had been assuming every signal got filled instantly at the exact price it fired at,
+when in real trading a signal is a "wait for the price to actually get here" conditional order that can
+simply expire unfilled if price never pulls back into it. That quietly favored the kind of strong,
+no-pullback move that's most likely to win, making the test's numbers look a little better than real
+trading would actually achieve. After fixing it — along with the other 16 issues — the model's win rate
+moved from 63.1% to a more honest 61.2%. It still clears its own safety bar; the number just isn't
+overstated anymore.
+
+**Problem, fix, by area:**
+
+1. **Historical test filled every signal instantly instead of checking for a real fill.** Added the
+   same "did price actually trade into the entry zone within 5 days" check paper trading already uses
+   (`shared/utils/fill_simulation.py`, now shared by both) — a signal that never gets filled in real
+   trading no longer counts as a win (or a trade at all) in the test either.
+2. **A losing-streak statistic in the same test was counted out of calendar order** — the identical bug
+   shape already found and fixed once before in the test's equity curve (2026-07-19). Now sorted
+   chronologically like everything else path-dependent in that test.
+3. **Four scoring inputs weren't flipped around for a "bet the price will fall" trade** the way the
+   rest of the model already is: a company's financial health, broader economic conditions, seasonal
+   patterns, and news clustering could all end up working against a short trade instead of confirming
+   it. All four now mirror correctly, matching the pattern already used elsewhere in the model.
+4. **Two safety features meant to protect an open position day-to-day had no effect on the loop that
+   actually runs paper trades** — cutting a trade loose early if its outlook sours, and a stall-based
+   exit at the 10-day mark — despite being described as active in the settings. Both are now wired into
+   the real daily update loop.
+5. **The one automated check on an options trade with theoretically unlimited risk could be silently
+   skipped** whenever a live pricing feed hiccuped, letting that trade through completely unchecked
+   instead of being turned away. Now turned away instead.
+6. **A data-quality check meant to catch bad stock-price data, weird timestamps, and out-of-range
+   readings had never actually been connected to the real trading pipeline**, despite existing in the
+   codebase and being described as running. Wired in for real; two of its own checks were also
+   comparing against fields that don't exist in the data it's checking and have been corrected.
+7. **One kind of financial-data lookup could fail in a way that wiped out every stock's financial score
+   for an entire day's scan**, not just the one stock that had the problem. Now isolated per stock.
+8. **A shared counter for a metered outside data service was undercounting real usage on retries**,
+   risking that service running over its budget without warning. Now counts every real attempt.
+9. **Smaller issues, one line each:** two stocks could be held both directions at once (now blocked);
+   a portfolio-limits setting grouped every stock in two sectors into one bucket, making a "2 positions
+   allowed" limit behave like "1 allowed" (regrouped into the actually-correlated pairs); one settings
+   check only covered one of two places a scan could run from (now covers both).
+
+**Fix:** All 17 issues fixed directly in code/config — see the commit history for full line-level
+detail. A new automated check (`scripts/check_version_bump.py`, wired into CI) now enforces this
+project's own long-standing rule that a scoring-relevant change can't go live without a version bump
+and a fresh backtest — previously only true for one narrow internal path, not for a human editing
+config or scoring code directly.
+
+**Found, not fixed:** the same "checked once at signal time, never re-applied" pattern that motivated
+item 4 above also affects `run_swing_model.py`'s live-position tracking pipeline more broadly — its
+circuit-breaker/consecutive-loss safety logic is correctly wired to read state, but nothing yet writes
+to that state, because the Discord "reply ENTERED/SKIPPED" listener that would populate it doesn't
+exist in this codebase yet. That's a real piece of missing infrastructure (a persistent bot process),
+not a bug in the scoring/risk logic itself — flagged for a future build, not attempted here. Paper
+trading's own loop (the one actually running today) is unaffected — see CHANGELOG v2.2.37 for why that
+loop deliberately doesn't share this state to begin with.
+
+**Backtest:** Run date: 2026-08-19. Win rate: 61.2%. Avg R:R: 1:1.41. Sharpe ratio: 2.03. Max drawdown:
+7.7%. Qualifying trades: 152. Max consecutive losses: 9. **Passed — clears every criterion on the
+go-live bar**, same as the prior version, on genuinely corrected numbers this time.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

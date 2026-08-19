@@ -25,10 +25,18 @@ def simulate_trade_outcome(
     holding_period: tuple[int, int] = (1, 15),
     regime: str = "unknown",
     confidence: float = 90.0,
+    time_stop_day: int = 10,
+    min_progress_pct: float = 0.30,
 ) -> dict:
     """
     Simulate a single trade outcome against future OHLCV bars.
-    Checks target hit, stop hit, and time stop (Day 10 rule) day by day.
+    Checks target hit and stop hit day by day; also applies the same
+    day-10/30%-progress time stop paper trading's position_rescoring.py
+    enforces (config's signal_decay.time_stop_day/time_stop_no_progress_pct)
+    — previously only the day-15 (holding_period[1]) hold-to-close exit was
+    implemented here despite this docstring claiming a "Day 10 rule" that
+    didn't exist in the code (see Signal Integrity Audit finding A.5).
+    time_stop_day=0 disables the early check and falls back to day-15 only.
     Returns dict: {outcome, exit_date, exit_price, pnl_pct, holding_days, achieved_rr}
     """
     if future_ohlcv.empty or entry <= 0 or stop <= 0 or target <= 0:
@@ -37,6 +45,7 @@ def simulate_trade_outcome(
                 "signal_date": signal_date, "exit_date": signal_date}
 
     risk = entry - stop if direction == "bullish" else stop - entry
+    target_move = (target - entry) if direction == "bullish" else (entry - target)
     max_days = holding_period[1]
 
     for day_idx, (bar_date, bar) in enumerate(future_ohlcv.iterrows()):
@@ -99,6 +108,30 @@ def simulate_trade_outcome(
                     "pnl_pct": (stop - entry) / entry * -1,
                     "holding_days": day_idx + 1,
                     "achieved_rr": -(stop - entry) / risk if risk > 0 else 0.0,
+                    "regime": regime,
+                    "confidence": confidence,
+                    "entry_price": entry,
+                    "stop": stop,
+                }
+
+        # Day-10/30%-progress time stop — neither target nor stop hit yet
+        # this bar, but if we've reached time_stop_day with less than
+        # min_progress_pct of the target move captured, exit now rather
+        # than riding to day-15 (mirrors position_rescoring.check_time_stop).
+        if time_stop_day and (day_idx + 1) >= time_stop_day and target_move > 0:
+            close = float(bar.get("Close", 0))
+            progress_move = (close - entry) if direction == "bullish" else (entry - close)
+            progress_pct = progress_move / target_move
+            if progress_pct < min_progress_pct:
+                pnl_pct = (close - entry) / entry if direction == "bullish" else (entry - close) / entry
+                return {
+                    "outcome": "time_stop",
+                    "signal_date": signal_date,
+                    "exit_date": str(bar_date),
+                    "exit_price": close,
+                    "pnl_pct": pnl_pct,
+                    "holding_days": day_idx + 1,
+                    "achieved_rr": pnl_pct / (risk / entry) if risk > 0 and entry > 0 else 0.0,
                     "regime": regime,
                     "confidence": confidence,
                     "entry_price": entry,
@@ -359,6 +392,7 @@ def _simulate_test_signals(
     from shared.utils.seasonality import get_seasonality_modifier
     from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
     from shared.utils.macro_overlay import compute_macro_state
+    from shared.utils.fill_simulation import find_fill
     from shared.utils.sector_rotation import (
         compute_rotation_state, dampen_rotation_penalty_for_leader, get_rotation_modifier,
     )
@@ -369,6 +403,10 @@ def _simulate_test_signals(
         cfg = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
     except Exception:
         cfg = {}
+
+    _decay_cfg = cfg.get("signal_decay", {})
+    _time_stop_day = int(_decay_cfg.get("time_stop_day", 10))
+    _min_progress_pct = float(_decay_cfg.get("time_stop_no_progress_pct", 0.30))
 
     # get_seasonality_modifier/compute_macro_state both restrict their real
     # adverse/favorable logic to the semiconductor sector they were built and
@@ -621,7 +659,7 @@ def _simulate_test_signals(
             # Seasonality from the signal bar date
             try:
                 seas_mod = get_seasonality_modifier(
-                    date=bar_date.to_pydatetime(), cfg=cfg, sector=sector
+                    date=bar_date.to_pydatetime(), cfg=cfg, sector=sector, direction=direction
                 ).get("confidence_modifier", 0.0)
             except Exception:
                 seas_mod = 0.0
@@ -653,7 +691,8 @@ def _simulate_test_signals(
                     tnx_slice = tnx_series[tnx_series.index <= bar_date] if tnx_series is not None else None
                     dxy_slice = dxy_series[dxy_series.index <= bar_date] if dxy_series is not None else None
                     macro_result = compute_macro_state(
-                        tnx_slice, dxy_slice, china_keyword_count_5d=0, cfg=cfg, sector=sector
+                        tnx_slice, dxy_slice, china_keyword_count_5d=0, cfg=cfg, sector=sector,
+                        direction=direction,
                     )
                     macro_mod = macro_result.get("confidence_modifier", 0.0)
                     macro_state_label = macro_result.get("macro_state", "neutral")
@@ -843,15 +882,36 @@ def _simulate_test_signals(
             if future.empty:
                 continue
 
+            # Fill-zone gate: don't assume this signal filled instantly at
+            # the signal bar's own close — check whether price actually
+            # traded into entry_lower/entry_upper within the fill window,
+            # the same real-world confirmation paper trading's own
+            # _find_fill applies (see Signal Integrity Audit finding A.1).
+            # A breakout that gaps and runs without ever pulling back into
+            # the zone would previously get scored as a filled trade here
+            # but would sit unfilled and expire in live/paper trading — a
+            # systematic optimism bias toward exactly the cleanest-looking
+            # continuations. fill_price replaces entry for P&L/RR purposes
+            # only; stop/target stay anchored to the zone computed above,
+            # matching paper_updater.py's own convention.
+            fill = find_fill(future, entry_lower, entry_upper, direction=direction)
+            if fill is None or fill.get("expired"):
+                continue
+
+            fill_entry = float(fill["fill_price"])
+            outcome_bars = fill["bars_from_fill"]
+
             outcome = simulate_trade_outcome(
                 signal_date=str(bar_date),
                 direction=direction,
-                entry=entry,
+                entry=fill_entry,
                 stop=stop,
                 target=target,
-                future_ohlcv=future,
+                future_ohlcv=outcome_bars,
                 confidence=confidence,
                 regime=regime,
+                time_stop_day=_time_stop_day,
+                min_progress_pct=_min_progress_pct,
             )
             outcome["ticker"] = ticker
             outcome["sector"] = sector

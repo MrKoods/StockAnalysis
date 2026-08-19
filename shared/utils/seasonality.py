@@ -28,6 +28,7 @@ def get_seasonality_modifier(
     date: Optional[datetime] = None,
     cfg: Optional[dict] = None,
     sector: Optional[str] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Return semiconductor seasonality confidence modifier for given date.
@@ -39,11 +40,21 @@ def get_seasonality_modifier(
     validated for that sector. None (the default) preserves the original
     sector-agnostic behavior.
 
+    direction: "bullish" (default) or "bearish". The monthly/quarterly table
+    is calibrated against bullish breakout outcomes (see the 2026-08-15
+    sign-flip note on _DEFAULT_MONTHLY below and config's matching comment);
+    for a bearish candidate the same seasonal read should confirm/oppose the
+    short thesis in the opposite direction, so the modifier's sign is
+    flipped — same pattern as regime_detection.get_regime_modifiers and
+    macro_overlay.get_macro_modifier. seasonality_state (strong/weak/neutral)
+    is left describing the underlying calendar reading, not re-labeled per
+    direction.
+
     Returns dict:
     {
         month: int, quarter: int,
         seasonality_state: str,  # 'strong', 'neutral', 'weak'
-        confidence_modifier: float,  # -5 to +5
+        confidence_modifier: float,  # -5 to +5, sign-flipped for bearish
         rationale: str,
         sector_scoped: bool,  # True when this sector's modifier was neutralized
     }
@@ -75,16 +86,20 @@ def get_seasonality_modifier(
         raw = quarterly.get(quarter_key, 0.0)
 
     sector_scoped = sector is not None and sector not in _SECTORS_WITH_VALIDATED_SEASONALITY
-    modifier = 0.0 if sector_scoped else max(-5.0, min(5.0, float(raw)))
+    calendar_modifier = 0.0 if sector_scoped else max(-5.0, min(5.0, float(raw)))
 
     if sector_scoped:
         state = "neutral"
-    elif modifier >= 2.0:
+    elif calendar_modifier >= 2.0:
         state = "strong"
-    elif modifier <= -2.0:
+    elif calendar_modifier <= -2.0:
         state = "weak"
     else:
         state = "neutral"
+
+    # Sign-flipped for bearish AFTER state is derived — state describes the
+    # underlying calendar reading, not the direction-adjusted contribution.
+    modifier = -calendar_modifier if direction == "bearish" else calendar_modifier
 
     return {
         "month": month,

@@ -16,6 +16,10 @@ from shared.utils.event_gate import (
     classify_severity as _classify_event_severity,
     SEVERITY_CRITICAL, SCOPE_TICKER, SCOPE_SECTOR,
 )
+from shared.utils.data_validator import validate_news_data
+from shared.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 
@@ -203,6 +207,13 @@ def compute_news_score(
         + list(seeking_alpha_articles or []) + list(sec_edgar_filings or [])
     )
 
+    # Log-only visibility, not a hard gate — an out-of-range sentiment score
+    # or future-dated article previously flowed straight into scoring with
+    # no logged trace at all (Signal Integrity Audit finding E.1).
+    _news_valid, _news_failures = validate_news_data(ticker, all_articles)
+    if not _news_valid:
+        logger.warning(f"{ticker}: Phase 9 news validation flagged {_news_failures}")
+
     # ---------------------------------------------------------------------------
     # Filter to relevant articles only (NER confirms ticker mention)
     # ---------------------------------------------------------------------------
@@ -307,7 +318,9 @@ def compute_news_score(
     # ---------------------------------------------------------------------------
     # 3. Clustering score (0-3)
     # ---------------------------------------------------------------------------
-    cluster_count = count_independent_cluster(relevant, ticker, window_days=2, reference_date=now)
+    cluster_count = count_independent_cluster(
+        relevant, ticker, window_days=2, reference_date=now, direction=direction
+    )
     clustering_score = float(min(3, cluster_count))
 
     # ---------------------------------------------------------------------------
@@ -373,10 +386,19 @@ def count_independent_cluster(
     ticker: str,
     window_days: int = 2,
     reference_date: Optional[datetime] = None,
+    direction: str = "bullish",
 ) -> int:
     """
-    Count independent same-direction news articles in window_days (cap at 3).
-    Independence requires: different source_domain.
+    Count independent, direction-CONFIRMING news articles in window_days
+    (cap at 3). Independence requires: different source_domain.
+
+    direction: which count to return — bull_count for a bullish candidate,
+    bear_count for a bearish one. Previously returned max(bull_count,
+    bear_count) regardless of direction, so a bearish candidate could score
+    full clustering points off a cluster of bullish-leaning articles that
+    actually oppose its thesis (Signal Integrity Audit finding B.4) — the
+    same "confirming vs. opposing" mirroring
+    _score_credibility_weighted/theme_alignment_modifier already apply.
     """
     if not articles:
         return 0
@@ -410,7 +432,8 @@ def count_independent_cluster(
 
     bull_count = directions.count("bullish")
     bear_count = directions.count("bearish")
-    return min(3, max(bull_count, bear_count))
+    confirming_count = bear_count if direction == "bearish" else bull_count
+    return min(3, confirming_count)
 
 
 # ---------------------------------------------------------------------------

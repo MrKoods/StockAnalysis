@@ -150,6 +150,25 @@ class TestSelectDirectionalLegStrike:
     def test_empty_chain_returns_none(self):
         assert select_directional_leg_strike([], 100.0, "call", "atm") is None
 
+    def test_far_from_target_strike_returns_none_not_nearest_substitute(self):
+        # Signal Integrity Audit finding D.1: a thin chain with nothing near
+        # the intended moneyness used to silently substitute whatever was
+        # closest (e.g. a near-ATM contract standing in for an intended
+        # far_otm wing) — now treated as "no suitable contract" instead.
+        # A single far-away call, ~50% above spot: nowhere near an ATM target.
+        sparse_chain = [{
+            "strike": 150.0, "option_type": "call", "bid": 0.1, "ask": 0.2, "iv": 0.3,
+        }]
+        assert select_directional_leg_strike(sparse_chain, 100.0, "call", "atm") is None
+
+    def test_close_to_target_strike_still_returned(self):
+        # Contrast case: a contract genuinely close to the target (within
+        # the 5%-of-spot tolerance) must still be returned, not rejected.
+        chain = _fake_chain(current_price=100.0, step=5.0)
+        contract = select_directional_leg_strike(chain, 100.0, "call", "atm")
+        assert contract is not None
+        assert abs(contract["strike"] - 100.0) <= 5.0
+
 
 class TestNetStructureGreeks:
     def test_long_call_has_negative_net_theta(self):
@@ -820,6 +839,10 @@ class TestGreeksFilter:
     def test_missing_leg_type_leaves_greeks_unresolved_not_falsely_passed(self):
         # Calls-only chain — long_call resolves fine, but long_straddle (needs a
         # put leg too) can't resolve and must report greeks=None, not a fabricated pass.
+        # long_straddle is a DEFINED-risk (long-premium) structure, not in
+        # _UNDEFINED_RISK_STRUCTURES — it's meant to fail open here (see
+        # TestGreeksFailClosedForUndefinedRisk below for the structures that
+        # must NOT fail open).
         calls_only = [c for c in _fake_chain(current_price=500.0, step=10.0) if c["option_type"] == "call"]
         result = rank_trade_structures(
             self._candidate(), account_equity=100_000,
@@ -831,6 +854,81 @@ class TestGreeksFilter:
             assert by_name["long_call"]["greeks"] is not None
         if "long_straddle" in by_name:
             assert by_name["long_straddle"]["greeks"] is None
+
+
+class TestGreeksFailClosedForUndefinedRisk:
+    """
+    Signal Integrity Audit finding D.1: naked_short_call/naked_short_put/
+    short_straddle/short_strangle/synthetic_long/synthetic_short/risk_reversal
+    (undefined-risk, Greeks-resolvable structures) must be EXCLUDED entirely
+    when Filter 4 (Greeks) couldn't run — not silently ranked/recommendable
+    with an unchecked theta/vega. Defined-risk structures (spreads etc.) are
+    deliberately left to fail OPEN in the same situation (their capital is
+    already capped by Filters 1/2) — that's the contrast this class checks.
+    """
+
+    def _candidate(self):
+        return {
+            "ticker": "NVDA", "direction": "bullish", "confidence": 92,
+            "entry_mid": 500.0, "stop_loss": 485.0, "target": 545.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+
+    # $1M account + wide theta/vega bounds isolate every test in this class
+    # to the Greeks-availability question alone — short_straddle's own real
+    # economics (large margin, real theta) would otherwise independently
+    # exclude it via the pre-existing capital/theta filters regardless of
+    # whether this fix's logic ever runs, making the test prove nothing.
+    _ACCOUNT_EQUITY = 1_000_000
+    _WIDE_GREEKS_CFG = {"greeks_filter": {"max_daily_theta_pct_of_capital": 1.0, "max_vega_pct_of_capital": 1.0}}
+
+    def test_short_straddle_excluded_when_no_chain_at_all(self):
+        result = rank_trade_structures(
+            self._candidate(), account_equity=self._ACCOUNT_EQUITY,
+            options_approval_level=3, iv_percentile=30.0, cfg=self._WIDE_GREEKS_CFG,
+            # No option_chain/dte supplied — greeks_available is False.
+        )
+        by_name = {s["name"] for s in result["ranked_structures"]}
+        assert "short_straddle" not in by_name
+        assert "short_strangle" not in by_name
+
+    def test_short_straddle_excluded_when_legs_unresolvable(self):
+        # Calls-only chain: short_straddle needs a short put leg it can't find.
+        calls_only = [c for c in _fake_chain(current_price=500.0, step=10.0) if c["option_type"] == "call"]
+        result = rank_trade_structures(
+            self._candidate(), account_equity=self._ACCOUNT_EQUITY,
+            options_approval_level=3, iv_percentile=30.0,
+            option_chain=calls_only, dte=10, cfg=self._WIDE_GREEKS_CFG,
+        )
+        by_name = {s["name"] for s in result["ranked_structures"]}
+        assert "short_straddle" not in by_name
+        assert "naked_short_put" not in by_name  # same shape: needs a put leg too
+
+    def test_defined_risk_structure_still_ranked_when_no_chain(self):
+        # Contrast case: bull_call_spread (defined max loss) must still fail
+        # OPEN and be rankable when no chain was available — the fix is
+        # scoped to undefined-risk structures only, not a blanket exclusion.
+        result = rank_trade_structures(
+            self._candidate(), account_equity=self._ACCOUNT_EQUITY,
+            options_approval_level=2, iv_percentile=30.0, cfg=self._WIDE_GREEKS_CFG,
+        )
+        by_name = {s["name"] for s in result["ranked_structures"]}
+        assert "bull_call_spread" in by_name
+
+    def test_short_straddle_ranked_when_chain_and_dte_both_supplied(self):
+        # Positive control: with a real, resolvable chain, the same
+        # structure IS eligible and carries real Greeks. The fix only
+        # excludes it when the check genuinely couldn't run, not whenever
+        # it's merely disfavored on its own economics.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(), account_equity=self._ACCOUNT_EQUITY,
+            options_approval_level=3, iv_percentile=30.0,
+            option_chain=chain, dte=10, cfg=self._WIDE_GREEKS_CFG,
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        assert "short_straddle" in by_name
+        assert by_name["short_straddle"]["greeks"] is not None
 
 
 class TestExpandedGreeksCoverage:

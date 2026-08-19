@@ -25,6 +25,10 @@ from shared.utils.temporal_alignment import (
     compute_sentiment_velocity,
     detect_price_sentiment_divergence,
 )
+from shared.utils.data_validator import validate_sentiment_data
+from shared.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Sentiment offline cap: if both StockTwits and Seeking Alpha are unavailable, cap confidence at 70
 SENTIMENT_OFFLINE_CAP = 70
@@ -66,6 +70,13 @@ def compute_sentiment_score(
         cfg = {}
     stocktwits_messages = stocktwits_messages or []
     seeking_alpha_items = seeking_alpha_items or []
+
+    # Log-only visibility, not a hard gate — an unexpected sentiment value or
+    # future-dated message previously flowed straight into scoring with no
+    # logged trace at all (Signal Integrity Audit finding E.1).
+    _sentiment_valid, _sentiment_failures = validate_sentiment_data(ticker, stocktwits_messages)
+    if not _sentiment_valid:
+        logger.warning(f"{ticker}: Phase 9 sentiment validation flagged {_sentiment_failures}")
 
     stocktwits_offline = not stocktwits_messages
     sa_offline = not seeking_alpha_items

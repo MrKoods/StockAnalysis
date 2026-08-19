@@ -443,6 +443,25 @@ def rank_trade_structures(
                 "daily_theta_pct_of_capital": round(daily_theta_pct, 4),
                 "vega_pct_of_capital": round(vega_pct, 4),
             }
+        elif name in _UNDEFINED_RISK_STRUCTURES and name in _GREEKS_RESOLVABLE_LEGS:
+            # Fail CLOSED, not open, for undefined-risk/short-premium
+            # structures (naked_short_call/put, short_straddle/strangle,
+            # synthetic_long/short, risk_reversal) specifically — Greeks is
+            # the one automated check standing between these and a
+            # theoretically-unbounded-loss position getting ranked and
+            # recommended, so a chain-fetch hiccup (this project has
+            # documented feed flakiness before — Seeking Alpha/RapidAPI
+            # outages) must not silently let one through unchecked. Defined-
+            # risk structures (spreads/condors/etc.) are deliberately left
+            # to fail open here — their capital-at-risk is already capped by
+            # Filters 1/2, so an un-run Greeks check degrades a refinement,
+            # not the only safety net (Signal Integrity Audit finding D.1).
+            reason = (
+                "greeks_required_no_chain_data" if not greeks_available
+                else "greeks_required_legs_unresolvable"
+            )
+            excluded.append({"name": name, "reasons": [reason]})
+            continue
 
         ev_per_dollar = capital_efficiency_score(ev, est_capital, max_capital)
         # Per-day, not just per-dollar — ev_per_dollar_risked alone compares a

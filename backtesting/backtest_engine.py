@@ -104,7 +104,11 @@ def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 150
     portfolio_returns = portfolio_curve.pct_change().dropna()
     portfolio_sharpe = compute_sharpe(portfolio_returns, periods_per_year=_trades_per_year(qualifying_chrono))
 
-    max_consec_losses = compute_consecutive_losses(qualifying)
+    # Chronological order, not generation order (ticker-by-ticker) — a
+    # streak is a path-dependent statistic, same reasoning as the equity
+    # curve above (2026-07-19 fix). Using `qualifying` here instead of
+    # `qualifying_chrono` was the same bug surviving in one more metric.
+    max_consec_losses = compute_consecutive_losses(qualifying_chrono)
 
     return {
         "win_rate": win_rate,
