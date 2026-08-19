@@ -246,3 +246,33 @@ PAPER TRADING SUMMARY  (1 closed, 9 open, 0 expired)
 ==================================================
 
 Closed 0 trade(s) this run.
+2026-08-19 08:07:02,195 [__main__] INFO — 10 open paper trade(s) to check
+2026-08-19 08:07:02,531 [__main__] INFO — PFE 2026-08-07: still open after 8 trading days
+2026-08-19 08:07:02,531 [__main__] INFO — PFE 2026-08-10: still open after 7 trading days
+2026-08-19 08:07:02,760 [__main__] INFO — MRK 2026-08-10: still open after 7 trading days
+2026-08-19 08:07:02,907 [__main__] INFO — LLY 2026-08-12: still open after 5 trading days
+2026-08-19 08:07:03,013 [__main__] INFO — NVDA 2026-08-13: still open after 4 trading days
+2026-08-19 08:07:03,128 [__main__] INFO — AVGO 2026-08-14: entry zone ($428.82-$436.64) not reached yet — order still pending
+2026-08-19 08:07:03,245 [__main__] INFO — MU 2026-08-14: still open after 3 trading days
+2026-08-19 08:07:03,351 [__main__] INFO — ABBV 2026-08-14: still open after 3 trading days
+2026-08-19 08:07:03,477 [__main__] INFO — HBAN 2026-08-17: entry zone ($18.30-$18.46) not reached yet — order still pending
+$JNJ: possibly delisted; no price data found  (1d 2026-08-20 -> 2026-08-19) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1787198400, endDate = 1787152023")
+
+1 Failed download:
+['JNJ']: possibly delisted; no price data found  (1d 2026-08-20 -> 2026-08-19) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1787198400, endDate = 1787152023")
+2026-08-19 08:07:03,840 [__main__] WARNING — JNJ: no price data since 2026-08-20 — skipping
+2026-08-19 08:07:03,842 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (1 closed, 10 open, 0 expired)
+==================================================
+  Win rate (wins + profitable time stops): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 0
+  Open trades:        10
+==================================================
+
+Closed 0 trade(s) this run.

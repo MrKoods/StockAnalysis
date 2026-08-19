@@ -160,6 +160,11 @@ _CSV_COLUMNS = [
     # otherwise looks like it should have one — blank when sizing was normal.
     "sizing_note",
     "event_gate_blocked", "event_gate_trigger",
+    # Blank until paper_updater.py confirms price actually traded into the
+    # entry zone — the signal-time row here is a pending conditional order,
+    # not a filled position, until these get set (and the Discord "opened"
+    # alert fires exactly once, at that transition).
+    "fill_date", "fill_price",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days", "pnl_dollars",
 ]

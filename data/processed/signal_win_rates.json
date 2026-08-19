@@ -2,9 +2,9 @@
   "_comment": "Rolling win rate per signal combination. Updated by feedback_loop.py after every closed trade. NOT directly used by scoring engine until monthly calibration passes out-of-sample check.",
   "signal_combinations": {},
   "unknown": {
-    "wins": 53,
-    "losses": 212,
-    "total": 265,
+    "wins": 57,
+    "losses": 228,
+    "total": 285,
     "win_rate": 0.2
   }
 }

@@ -489,6 +489,26 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-08-18T20:35:20.957563+00:00"
+    },
+    {
+      "id": "b10f4b2c-28a4-447b-a4c4-c15dc2a18aac",
+      "tickers": [
+        "AMZN",
+        "TSLA",
+        "HD",
+        "NKE",
+        "SBUX",
+        "TGT"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Tesla's Swedish labor strike 'no longer has any effect' after company buys out striking workers",
+      "trigger_match": "labor strike",
+      "source": "seekingalpha.com",
+      "event_timestamp_utc": "2026-08-14T08:58:48-04:00",
+      "created_at_utc": "2026-08-19T12:38:51.286934+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": false,
+      "expired_at_utc": null
     }
   ]
 }

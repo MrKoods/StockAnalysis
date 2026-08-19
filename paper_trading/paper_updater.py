@@ -9,7 +9,10 @@ from the close at signal time. A trade shouldn't start accruing stop/target
 risk until price actually trades into that zone, so each open trade first
 goes through a fill check (_find_fill): still pending, filled (starts the
 stop/target walk from the fill bar), or expired (zone never reached within
-FILL_WINDOW_DAYS — no capital was ever really at risk).
+FILL_WINDOW_DAYS — no capital was ever really at risk). The first time a
+trade's fill is confirmed, fill_date/fill_price get stamped onto its row and
+a "PAPER TRADE OPENED" Discord alert fires — the counterpart to the "PAPER
+TRADE PENDING" alert paper_runner.py sends when the signal was first logged.
 
 Once filled, checks each bar's High/Low for:
   - Stop hit  → outcome = "loss"   (stop price assumed filled)
@@ -39,7 +42,12 @@ import pandas as pd
 import yfinance as yf
 
 from shared.utils.logger import get_logger
-from shared.utils.discord_alerts import send_paper_outcome_alert, send_paper_expired_alert, send_calibration_alert
+from shared.utils.discord_alerts import (
+    send_paper_outcome_alert,
+    send_paper_expired_alert,
+    send_paper_fill_alert,
+    send_calibration_alert,
+)
 from shared.utils.atomic_io import atomic_write_text, exclusive_lock
 from swing_model.feedback_loop import (
     load_calibration_outcomes_from_paper_trades,
@@ -371,6 +379,23 @@ def update_paper_trades() -> int:
 
                     bars_for_outcome = fill["bars_from_fill"]
                     pnl_entry_price = float(fill["fill_price"])
+
+            # First time this trade's fill is confirmed — whether via the
+            # zone check above or the legacy no-zone fallback — stamp it and
+            # fire the "now open" alert exactly once. trade["fill_date"]
+            # being blank is the only signal we have that this hasn't
+            # already fired (nothing else is persisted between runs), so an
+            # already-open trade whose fill happened before this column
+            # existed gets backfilled — and alerted on — the first time it's
+            # checked after this shipped, same as pnl_entry_price always was.
+            if not (trade.get("fill_date") or "").strip():
+                fill_dt = bars_for_outcome.index[0]
+                trade["fill_date"] = fill_dt.strftime("%Y-%m-%d")
+                trade["fill_price"] = f"{pnl_entry_price:.2f}"
+                try:
+                    send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"])
+                except Exception as exc:
+                    logger.warning(f"{ticker}: paper fill alert failed — {exc}")
 
             result = _resolve_outcome(bars_for_outcome, entry_price, stop_loss, target, direction=direction)
             if result is None:

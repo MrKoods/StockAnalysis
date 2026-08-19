@@ -501,7 +501,14 @@ def send_event_gate_expired_alert(block: dict, model_version: str = "v1.0.0") ->
 
 
 def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
-    """PAPER TRADE OPENED embed — clearly labeled as simulated, not live capital."""
+    """
+    PAPER TRADE PENDING embed — sent when a signal is logged, before price has
+    necessarily traded into its entry zone. entry_zone_lower/upper is a
+    breakout/breakdown trigger (see risk_reward.compute_entry_zone), often
+    anchored above/below the current close — this is a conditional order, not
+    a filled position. paper_updater.py's send_paper_fill_alert is the
+    "actually opened" counterpart, sent once price confirms the fill.
+    """
     ticker = trade.get("ticker", "?")
     confidence = float(trade.get("confidence", 0.0))
     entry_lower = float(trade.get("entry_zone_lower", 0.0))
@@ -552,12 +559,12 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     position_value = f"{size_int} {unit}{'s' if size_int != 1 else ''}" if position_type else "—"
 
     embed = {
-        "title": f"{title_prefix}📋 PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
+        "title": f"{title_prefix}⏳ PAPER TRADE PENDING — {ticker}  |  {confidence:.0f}/100",
         "color": _COLORS["orange"] if event_gate_blocked else _COLORS["blue"],
-        "description": "**PAPER TRADING ONLY** — no live capital",
+        "description": "**PAPER TRADING ONLY** — no live capital. Conditional order — opens once price trades into the entry zone below.",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "fields": [
-            {"name": "Entry Zone", "value": f"${entry_lower:.2f} – ${entry_upper:.2f}", "inline": True},
+            {"name": "Entry Zone (trigger)", "value": f"${entry_lower:.2f} – ${entry_upper:.2f}", "inline": True},
             {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
             {"name": "Target", "value": f"${target:.2f}  (1:{rr:.1f}R)", "inline": True},
             {"name": "Trade Structure", "value": structure.replace("_", " ").title() if structure else "—", "inline": True},
@@ -645,6 +652,49 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             "inline": False,
         })
 
+    return _post_to_webhook({"embeds": [embed]})
+
+
+def send_paper_fill_alert(trade: dict, fill_price: float, fill_date: str) -> bool:
+    """
+    PAPER TRADE OPENED embed — the send_paper_signal_alert "pending" order's
+    counterpart, sent once paper_updater.py's _find_fill confirms price
+    actually traded into the entry zone. Sent exactly once per trade, at the
+    pending → filled transition (caller only invokes this the first time
+    trade["fill_date"] gets set — see paper_updater.py).
+    """
+    ticker = trade.get("ticker", "?")
+    signal_date = trade.get("signal_date", "—")
+    stop = float(trade.get("stop_loss", 0.0))
+    target = float(trade.get("target", 0.0))
+    rr = float(trade.get("rr_ratio", 0.0))
+    confidence = float(trade.get("confidence", 0.0))
+    position_type = str(trade.get("position_type", "") or "")
+    position_size = trade.get("position_size", "0")
+    capital_deployed = float(trade.get("capital_deployed", 0.0) or 0.0)
+    unit = "options contract" if position_type == "options" else "share"
+    try:
+        size_int = int(float(position_size))
+    except (TypeError, ValueError):
+        size_int = 0
+    position_value = f"{size_int} {unit}{'s' if size_int != 1 else ''}" if position_type else "—"
+
+    embed = {
+        "title": f"✅ PAPER TRADE OPENED — {ticker}  |  {confidence:.0f}/100",
+        "color": _COLORS["green"],
+        "description": "**PAPER TRADING ONLY** — no live capital. Entry zone reached — stop/target tracking is now active.",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": [
+            {"name": "Signal Date", "value": signal_date, "inline": True},
+            {"name": "Fill Date", "value": fill_date, "inline": True},
+            {"name": "Fill Price", "value": f"${fill_price:.2f}", "inline": True},
+            {"name": "Stop Loss", "value": f"${stop:.2f}", "inline": True},
+            {"name": "Target", "value": f"${target:.2f}  (1:{rr:.1f}R)", "inline": True},
+            {"name": "Position", "value": position_value, "inline": True},
+            {"name": "Capital Deployed", "value": f"${capital_deployed:.2f}", "inline": True},
+        ],
+        "footer": {"text": "Order filled — position now open"},
+    }
     return _post_to_webhook({"embeds": [embed]})
 
 
