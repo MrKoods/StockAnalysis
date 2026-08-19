@@ -63,6 +63,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.64 | 2026-08-19 | Bug Fix | Same-day correction to v2.2.63: the new daily "cut a position loose early if its outlook has soured" check turned out to compare a real entry-time score against a rescore built from neutral stand-ins for two of its five inputs, producing a large, mechanical-looking drop on almost every open position regardless of what actually changed. Caught immediately by running it for real — it wrongly closed 7 paper positions, which were restored before anything was committed. The check is now switched off until it can compare like with like; nothing else from v2.2.63 is affected |
 | v2.2.63 | 2026-08-19 | Bug Fix / Scoring Change / Backtest Methodology | A full model audit (5 parallel reviews covering data, scoring, risk, the historical test, and live/paper trading) found and fixed 17 real gaps — the biggest: the historical test had been assuming every signal filled instantly instead of checking whether price actually reached the entry price first, the same check real trading already uses, flattering its numbers. Win rate moved from 63.1% to a more honest 61.2% after the fix — still clears the safety bar |
 | v2.2.62 | 2026-08-19 | Bug Fix | Paper trading's earnings-proximity check only ever ran once, at signal time — an undefined-risk shares position signaled 6+ days before earnings could still be open when the report actually landed inside its up-to-15-day holding window, fully unprotected (live example: NVDA, signaled 12 days out from its 08-26 earnings). Now re-checked on every daily update and flattened early if it ages into the same 0-5-day pre-earnings window a new signal would already be forced into a capped-loss structure for. A second, same-shaped gap (news/event-gate checks are also signal-time-only) was found and flagged, not fixed — closing it needs a daily news re-scan per open ticker, a bigger change against limited free-tier API budgets that needs a design decision first |
 | v2.2.61 | 2026-08-19 | Feature / Bug Fix | Un-staled the 3 stress-test skips (a fixture schema mismatch, not a real blocker) and wired cross_ticker_modifier into the backtest for real (earnings_modifier stays 0.0 — no historical earnings-date archive exists, a genuine data gap, not deferred laziness); built real dollar max-loss/max-gain and actual strikes/expiration for 35 of 42 trade structures; extended Greeks coverage from 20 to 29 structures (condors/butterflies/wheel/synthetics — pure wiring, no new modeling); extracted real contract/share counts from paper_runner.py's dual-cap sizing into a shared, reusable function and wired it into run_swing_model.py for the first time (which never computed a real position size before — the live Discord alert's "Dollar Risk" field always showed $0.00); surfaced the top-2 runner-up structures alongside the winner everywhere structure data reaches the user |
@@ -135,6 +136,55 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.64] — 2026-08-19 — [Bug Fix] Same-day correction: the new confidence-decay early-exit check compared real scores against artificially neutral ones and wrongly closed 7 paper positions
+
+**Status:** Live.
+
+**In short:** v2.2.63 (shipped hours earlier today) added a daily check meant to cut a paper-trading
+position loose early if the reasons it was opened had genuinely soured. Running it for the first time
+against real open positions showed the problem immediately: it flagged 7 of 8 open positions as having
+"lost confidence" within seconds of each other, which is not a plausible real-world result. The cause —
+the check compares today's re-scored confidence against the confidence recorded when the trade was
+opened, but the re-score had no fresh sentiment or news data to work with and substituted neutral
+placeholder values for both, plus market-wide adjustments (like today's regime and season) it never
+recomputed at all. Every open position lost a large, made-up chunk of "confidence" the moment it was
+checked, regardless of whether anything real had actually changed. The 7 wrongly-closed positions were
+restored before this was committed anywhere — no lasting record was created. The check itself is now
+switched off until it can compare it correctly.
+
+**Problem:** `position_rescoring.py::rescore_open_positions()`, wired into `paper_updater.py`'s daily
+loop for the first time in v2.2.63, recomputes a position's confidence score using fresh technical and
+market-positioning data — but paper_updater.py has never fetched fresh sentiment or news data for an
+already-open position (a real gap, not new to this fix), so the rescore falls back to neutral stand-ins
+for both (0 for sentiment, ~7.5 for news). A real entry-time sentiment score is commonly worth 10-20+ of
+its own points, so substituting a flat 0 alone manufactures a large apparent "drop" with nothing real
+behind it. On top of that, the caller doesn't pass today's regime/seasonality/macro-overlay readings
+into the rescore, so those default to 0 too, even though the position's real entry score included
+whatever they actually were that day (often another ±5-15 points). Run for real against 8 open
+positions, this combination flagged 7 of them — confidence "drops" of 17.7 to 28.9 points apiece — and
+the daily update loop dutifully closed them as `"early_exit"`, all within about 15 seconds of each
+other. That pattern (nearly every position, all at once, right after the check was first turned on) is
+itself the tell that something structural was wrong, not that market conditions had genuinely turned on
+every open name simultaneously.
+
+**Fix:** Removed the call to this check from `paper_updater.py`'s daily loop (the function itself is
+left in place, along with its supporting fetch helper, for a future fix — see the code comment at the
+disabled call site for exactly what a correct version needs: either real sentiment/news data fetched
+for open positions, or a comparison restricted to only the sub-scores that genuinely get recomputed
+fresh on both sides). The other daily check added in the same v2.2.63 change — a pure price-based
+"day 10, insufficient progress" time stop — has no such input mismatch (it never touched sentiment/news/
+regime/etc. at all) and is unaffected; it stays active. Also restored the 7 paper-trading positions this
+bug had wrongly closed back to their real open state before this correction was ever committed, so
+`paper_trades.csv` carries no trace of the bad run.
+
+**Backtest:** Not applicable — this change only affects the live/paper daily update loop, not the
+scoring formula or the historical test, and doesn't touch `config/swing_config.yaml` or
+`swing_model/scoring.py`.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

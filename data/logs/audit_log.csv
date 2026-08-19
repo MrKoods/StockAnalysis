@@ -55,3 +55,4 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-18T20:35:21.460161+00:00,v2.2.57,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='labor strike',False,labor strike
 2026-08-18T20:35:21.943533+00:00,v2.2.57,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
 2026-08-19T12:38:51.722087+00:00,v2.2.61,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='labor strike' source='seekingalpha.com',True,labor strike
+2026-08-19T20:36:49.737114+00:00,v2.2.63,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='labor strike',False,labor strike

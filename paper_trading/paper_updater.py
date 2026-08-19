@@ -17,12 +17,21 @@ TRADE PENDING" alert paper_runner.py sends when the signal was first logged.
 Once filled, checks each bar's High/Low for:
   - Stop hit  → outcome = "loss"   (stop price assumed filled)
   - Target hit → outcome = "win"   (target price assumed filled)
+  - Day time_stop_day (config's signal_decay.time_stop_day, default 10) reached
+    with < time_stop_no_progress_pct of the target move captured → outcome =
+    "time_stop" early, instead of always riding to the 15-day hold-to-close
   - 15 trading days elapsed → outcome = "time_stop" (closed at that day's close)
   - Still open AND earnings now 0-5 days out for an undefined-risk shares
     position → outcome = "earnings_exit" (flattened at the latest close; see
     _check_earnings_exit — signal-time-only earnings screening otherwise lets
     a trade age into an unhedged earnings print it was never re-checked
     against)
+
+NOT currently active: confidence-decay early exit (_check_confidence_decay_exit
+is defined below but not called — see the comment at its would-be call site for
+why: rescoring with neutral sentiment/news and zeroed market modifiers produces
+a large, mechanical confidence gap unrelated to real deterioration, not a usable
+signal yet).
 
 When a trade closes, sends a Discord embed and updates paper_trades.csv in-place.
 
@@ -63,7 +72,7 @@ from swing_model.indicator_pipeline import load_config, run_pipeline
 from swing_model.position_rescoring import rescore_open_positions
 from shared.utils.earnings_calendar import fetch_next_earnings_date, get_earnings_modifier
 from shared.utils.fill_simulation import find_fill as _find_fill
-from shared.utils.sector_config import get_active_sectors, get_ticker_sector_map
+from shared.utils.sector_config import get_active_sectors
 # Imported, not duplicated — this module previously kept its own copy of the
 # column list that had already drifted from paper_runner.py's real schema
 # (missing positioning_score, structure_recommended, ev_per_dollar,
@@ -408,9 +417,8 @@ def update_paper_trades() -> int:
     _decay_cfg = cfg.get("signal_decay", {})
     _time_stop_day = int(_decay_cfg.get("time_stop_day", 10))
     _min_progress_pct = float(_decay_cfg.get("time_stop_no_progress_pct", 0.30))
-    _early_exit_drop = float(_decay_cfg.get("early_exit_confidence_drop", 10.0))
-    _ticker_sector_map = get_ticker_sector_map(cfg)
-    _rescore_indicators_cache: dict = {}
+    # early_exit_confidence_drop is read by _check_confidence_decay_exit,
+    # which isn't called below — see the comment at that call site.
 
     # Group open trades by ticker to minimise yfinance calls
     by_ticker: dict[str, list[dict]] = {}
@@ -564,11 +572,21 @@ def update_paper_trades() -> int:
             )
             if result is None:
                 result = _check_earnings_exit(trade, bars_for_outcome, earnings_date, cfg=cfg)
-            if result is None:
-                result = _check_confidence_decay_exit(
-                    trade, ticker, direction, bars_for_outcome, entry_price, stop_loss, target,
-                    cfg, _ticker_sector_map, _rescore_indicators_cache, earnings_date, _early_exit_drop,
-                )
+            # _check_confidence_decay_exit is NOT called here — see its
+            # docstring. Wired in and tested this same day, then disabled
+            # after a live run showed it firing on 7 of 8 open positions in
+            # one pass: rescore_open_positions substitutes NEUTRAL sentiment
+            # (0) and news (~7.5) for real entry-time values (real sentiment
+            # alone is commonly 10-20+ points), and this caller doesn't pass
+            # market_modifiers, so real entry-time regime/seasonality/macro
+            # modifiers also drop to 0 on rescore — a large, systematic,
+            # MECHANICAL confidence gap on nearly every position regardless
+            # of real deterioration, not a signal. Left wired (function still
+            # defined below, tested by tests/test_position_rescoring_wiring.py)
+            # for a future fix that either fetches real sentiment/news/market
+            # context here or compares only the technical+positioning+
+            # fundamental sub-total on both sides — do not re-enable this
+            # call site without one of those first.
             if result is None:
                 logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
                 continue
