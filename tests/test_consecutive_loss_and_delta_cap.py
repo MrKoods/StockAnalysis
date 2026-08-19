@@ -49,6 +49,19 @@ def _close_as_loss(state, ticker="NVDA", cfg=None):
 
 
 class TestConsecutiveLossLadder:
+    @pytest.fixture(autouse=True)
+    def _isolate_trade_outcomes_file(self, tmp_path, monkeypatch):
+        """
+        close_position() -> _log_trade_outcome() -> feedback_loop.log_trade_outcome()
+        writes to real data/logs files by default — redirect both to tmp_path so
+        these tests never pollute the real trade_outcomes.csv / signal_win_rates.json.
+        Same fixture as test_phase8_portfolio.py's TestClosePosition; this class
+        is the other place in the suite that calls close_position() directly.
+        """
+        import swing_model.feedback_loop as fl
+        monkeypatch.setattr(fl, "_TRADE_OUTCOMES_FILE", tmp_path / "trade_outcomes.csv")
+        monkeypatch.setattr(fl, "_SIGNAL_WIN_RATES_FILE", tmp_path / "signal_win_rates.json")
+
     def test_two_losses_does_not_block_only_sizes_down(self):
         state = dict(_EMPTY_STATE)
         state["positions"] = []
