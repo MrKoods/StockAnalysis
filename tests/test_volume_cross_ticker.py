@@ -126,6 +126,41 @@ class TestVolumeProfile:
         score = score_volume_profile_position(100.0, vp)
         assert score == 6.0
 
+    def test_score_bearish_near_resistance_returns_high_score(self):
+        # Mirrors test_score_near_hvn_returns_high_score: force a high-volume
+        # node just above current price — a bearish thesis sitting right below
+        # resistance should score high, same shape as bullish sitting above support.
+        df = _make_ohlcv([100.0] * 60)
+        vp = compute_volume_profile(df)
+        vp["is_high_volume_node"] = False
+        levels = vp.index.tolist()
+        above = [lv for lv in levels if lv > 100.0]
+        if above:
+            vp.loc[min(above), "is_high_volume_node"] = True
+            score = score_volume_profile_position(100.0, vp, direction="bearish")
+            assert score >= 7.0  # Price just below resistance
+
+    def test_score_bearish_bounded_0_to_12(self):
+        df = _make_ohlcv([100 + i for i in range(60)])
+        vp = compute_volume_profile(df)
+        score = score_volume_profile_position(80.0, vp, direction="bearish")
+        assert 0.0 <= score <= 12.0
+
+    def test_returns_neutral_for_empty_profile_bearish(self):
+        vp = pd.DataFrame(columns=["volume_at_level", "volume_pct",
+                                    "is_high_volume_node", "is_low_volume_node"])
+        score = score_volume_profile_position(100.0, vp, direction="bearish")
+        assert score == 6.0
+
+    def test_returns_low_score_when_no_resistance_above_bearish(self):
+        # Mirrors the bullish "no support found" -> 2.0 branch: no HVN above
+        # current price -> bearish thesis has nothing overhead to lean on.
+        df = _make_ohlcv([100.0] * 60)
+        vp = compute_volume_profile(df)
+        vp["is_high_volume_node"] = False  # no HVN anywhere
+        score = score_volume_profile_position(100.0, vp, direction="bearish")
+        assert score == 2.0
+
 
 # ---------------------------------------------------------------------------
 # Cross-Ticker Analysis

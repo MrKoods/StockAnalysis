@@ -10,18 +10,22 @@ Filters (applied before ranking):
    on per-structure option pricing.
 4. Greeks: applied when a real option chain is supplied (`option_chain` param,
    from positioning_client.py's fetch_option_chain_metrics) AND the structure
-   has a resolvable options-only leg composition — see _GREEKS_RESOLVABLE_LEGS.
-   Real strikes are picked from the chain (options_math.py's
-   select_directional_leg_strike, a fixed strike-offset convention, not
-   iterative delta-solving) and net theta/vega computed (net_structure_greeks)
-   against config-driven bounds (swing_config.yaml's greeks_filter block).
-   Structures needing multiple expirations (calendars/diagonals), margin-based
-   synthetics, or 3+ leg wing structures (condors/butterflies/ratio spreads)
-   are deliberately left un-filtered — modeling their legs from one fetched
-   expiration and a fixed offset convention would misrepresent their actual
-   risk rather than measure it. `greeks_filter_status` in the result reports
-   which applied. No `option_chain` supplied at all → same as before this
-   filter existed, reported as 'not_implemented_no_options_chain_data'.
+   has a resolvable options-only leg composition — see _GREEKS_RESOLVABLE_LEGS
+   (29 of 42 structures, as of v2.2.60 — condors/butterflies, the wheel, and
+   the 2-leg synthetics/risk-reversal joined the original 20). Real strikes
+   are picked from the chain (options_math.py's select_directional_leg_strike,
+   a fixed strike-offset convention, not iterative delta-solving) and net
+   theta/vega computed (net_structure_greeks) against config-driven bounds
+   (swing_config.yaml's greeks_filter block). Calendars/diagonals (2 different
+   expirations — net_structure_greeks takes one shared T, genuinely can't
+   represent them), LEAPS (needs a separate long-dated chain fetch nothing in
+   this pipeline does yet), and the 4 ratio/back-spread structures (no strike
+   convention exists anywhere in their code path — they route through
+   compute_ev_surface, not resolve_structure_economics) remain un-filtered —
+   each blocked on a different genuine gap, not simply unwired. `greeks_filter_
+   status` in the result reports which applied. No `option_chain` supplied at
+   all → same as before this filter existed, reported as
+   'not_implemented_no_options_chain_data'.
 5. Liquidity: excluded when the slippage cost (half the bid/ask spread × legs ×
    100, per adjust_ev_for_slippage) consumes >=50% of the structure's raw EV —
    i.e., a wide bid/ask is eating most of the edge the R:R filter is meant to protect.
@@ -137,6 +141,43 @@ _GREEKS_RESOLVABLE_LEGS: dict = {
     "long_strangle": [("call", "long", "otm"), ("put", "long", "otm")],
     "short_straddle": [("call", "short", "atm"), ("put", "short", "atm")],
     "short_strangle": [("call", "short", "otm"), ("put", "short", "otm")],
+    # Added v2.2.60 — single-expiration, multi-leg structures with no
+    # multi-expiration/quantity-ratio/new-strike-convention blocker (unlike
+    # calendars/diagonals/ratio-back-spreads/LEAPS, still excluded above).
+    # Strike tuples mirror resolve_structure_economics' own branches exactly
+    # (options_math.py) so Greeks are computed against the same strikes the
+    # structure's EV/economics were.
+    "iron_condor": [
+        ("put", "long", "far_otm"), ("put", "short", "otm"),
+        ("call", "short", "otm"), ("call", "long", "far_otm"),
+    ],
+    "iron_butterfly": [
+        ("put", "long", "far_otm"), ("put", "short", "atm"),
+        ("call", "short", "atm"), ("call", "long", "far_otm"),
+    ],
+    "short_butterfly": [
+        ("put", "long", "far_otm"), ("put", "short", "atm"),
+        ("call", "short", "atm"), ("call", "long", "far_otm"),
+    ],
+    "condor_spread": [
+        ("put", "long", "far_otm"), ("put", "short", "otm"),
+        ("call", "short", "otm"), ("call", "long", "far_otm"),
+    ],
+    # long_butterfly_call's inner wing is a real leg (2x short at k_mid, per
+    # resolve_structure_economics' `premium = bs(k_low) + bs(k_high) - 2 *
+    # bs(k_mid)`) — listed twice since _GREEKS_RESOLVABLE_LEGS/
+    # net_structure_greeks have no per-leg quantity concept, only a flat leg
+    # list; two short legs at the same strike nets to the correct 2x weight.
+    "long_butterfly_call": [
+        ("call", "long", "itm"), ("call", "short", "atm"),
+        ("call", "short", "atm"), ("call", "long", "otm"),
+    ],
+    # Economically identical to cash_secured_put (single short put snapshot,
+    # see resolve_structure_economics' wheel branch) — same leg spec.
+    "wheel": [("put", "short", "otm")],
+    "risk_reversal": [("call", "long", "otm"), ("put", "short", "otm")],
+    "synthetic_long": [("call", "long", "atm"), ("put", "short", "atm")],
+    "synthetic_short": [("put", "long", "atm"), ("call", "short", "atm")],
 }
 
 
@@ -344,7 +385,21 @@ def rank_trade_structures(
         if ev_result is None:
             excluded.append({"name": name, "reasons": ["ev_computation_failed"]})
             continue
-        ev, ev_raw, ev_adjusted, est_capital, effective_days = ev_result
+        (ev, ev_raw, ev_adjusted, est_capital, effective_days,
+         max_loss_dollars, max_gain_dollars, theoretical_strikes) = ev_result
+
+        # Real chain strikes (legs, resolved above for Filter 4/5) win over
+        # resolve_structure_economics' theoretical Black-Scholes strikes when
+        # both exist — real, currently-quoted contracts are more useful to a
+        # trader than a fixed-offset estimate. legs carries no leg-role name
+        # (just option_type/side per contract), so key by those instead of
+        # resolve_structure_economics' own long_k/short_k/put_k/call_k names.
+        if legs:
+            strikes = {f"{leg['option_type']}_{leg['side']}": leg["strike"] for leg in legs}
+            strike_source = "real_chain"
+        else:
+            strikes = theoretical_strikes
+            strike_source = "theoretical" if strikes else None
 
         # Filter 5: Liquidity — a wide bid/ask can consume most of a structure's
         # edge on multi-leg fills. Exclude when slippage eats >=50% of the raw EV
@@ -413,6 +468,18 @@ def rank_trade_structures(
             "filter_notes": [],
             # "shares" for the 3 plain-stock structures (_GAP_RISK_STRUCTURES),
             "position_type": "shares" if name in _GAP_RISK_STRUCTURES else "options",
+            # None for structures whose risk/reward is genuinely unbounded
+            # (short stock, naked options, short straddle/strangle,
+            # synthetics) — never fabricated, see resolve_structure_economics'
+            # own per-branch comments in options_math.py.
+            "max_loss_dollars": round(max_loss_dollars, 2) if max_loss_dollars is not None else None,
+            "max_gain_dollars": round(max_gain_dollars, 2) if max_gain_dollars is not None else None,
+            # "real_chain" when a live option chain supplied actual quoted
+            # strikes (preferred), "theoretical" for the Black-Scholes-derived
+            # fixed-offset estimate, None for the 3 pure-stock/4 ratio-spread
+            # structures that have no strike concept or convention at all.
+            "strikes": {k: round(v, 2) for k, v in strikes.items()} if strikes else {},
+            "strike_source": strike_source,
         })
 
     # Sort by EV per dollar risked *per day held* — see ev_per_dollar_per_day's
@@ -558,7 +625,7 @@ def _compute_structure_ev(
     win_prob: float,
     bid_ask_spread: float = 0.0,
     dte: Optional[int] = None,
-) -> Optional[tuple[float, float, float, float, float]]:
+) -> Optional[tuple[float, float, float, float, float, Optional[float], Optional[float], dict]]:
     """
     Compute EV for a structure. Uses surface method for complex (ratio/back
     spread) structures; resolve_structure_economics() (real Black-Scholes-
@@ -566,18 +633,24 @@ def _compute_structure_ev(
     structures it covers; the original numeric-multiplier path only for the 3
     pure-stock structures neither of those two apply to.
     Returns (ev_per_dollar_risked, ev_raw, ev_adjusted, capital_required,
-    effective_days) or None if insufficient data. ev_raw/ev_adjusted
-    (pre/post slippage) let the liquidity filter (filter 5) measure how much
-    of the edge a wide bid/ask consumes. capital_required is returned (not
-    recomputed separately by the caller) so the ranking ratio and the $-cap
-    filter always agree on the same number — the two disagreeing was the root
-    cause of protective_put's capital estimate (a special-cased shortcut)
-    making it rank far above married_put/collar despite near-identical real
-    economics. effective_days is resolve_structure_economics' own per-structure
-    time exposure (see its docstring — leaps_call/leaps_put and calendar_*/
-    diagonal_* use more days than the shared dte) — falls back to the same
-    shared dte/default for the surface-method and pure-stock-multiplier paths,
-    which don't have a differentiated longer-dated leg to report.
+    effective_days, max_loss_dollars, max_gain_dollars, strikes) or None if
+    insufficient data. ev_raw/ev_adjusted (pre/post slippage) let the
+    liquidity filter (filter 5) measure how much of the edge a wide bid/ask
+    consumes. capital_required is returned (not recomputed separately by the
+    caller) so the ranking ratio and the $-cap filter always agree on the
+    same number — the two disagreeing was the root cause of protective_put's
+    capital estimate (a special-cased shortcut) making it rank far above
+    married_put/collar despite near-identical real economics. effective_days
+    is resolve_structure_economics' own per-structure time exposure (see its
+    docstring — leaps_call/leaps_put and calendar_*/diagonal_* use more days
+    than the shared dte) — falls back to the same shared dte/default for the
+    surface-method and pure-stock-multiplier paths, which don't have a
+    differentiated longer-dated leg to report. max_loss_dollars/
+    max_gain_dollars/strikes come straight from resolve_structure_economics()
+    (None/{} for the surface-method and pure-stock-multiplier paths, which
+    don't compute real strikes at all — the surface path has no strike
+    convention, per its own module docstring, and pure stock has no strike
+    concept).
     """
     entry = float(candidate.get("entry", candidate.get("entry_mid", 0.0)))
     stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
@@ -598,6 +671,10 @@ def _compute_structure_ev(
     down_move = abs(entry - stop)
     default_days = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1)
 
+    max_loss_dollars: Optional[float] = None
+    max_gain_dollars: Optional[float] = None
+    strikes: dict = {}
+
     if structure.get("ev_method") == "surface":
         surface = compute_ev_surface(
             structure=structure,
@@ -613,6 +690,9 @@ def _compute_structure_ev(
             ev = compute_ev_simple(win_prob, econ["avg_win"], econ["avg_loss"])
             capital = econ["capital_required"]
             effective_days = econ.get("effective_days", default_days)
+            max_loss_dollars = econ.get("max_loss_dollars")
+            max_gain_dollars = econ.get("max_gain_dollars")
+            strikes = econ.get("strikes", {})
         else:
             # Pure-stock structures only at this point — numeric multipliers,
             # already correct (see PASSTHROUGH_STRUCTURES in options_math.py).
@@ -630,7 +710,8 @@ def _compute_structure_ev(
     ev_adjusted = adjust_ev_for_slippage(ev, structure_name, bid_ask_spread, legs)
     if capital <= 0:
         return None
-    return ev_adjusted / capital, ev, ev_adjusted, capital, effective_days
+    return (ev_adjusted / capital, ev, ev_adjusted, capital, effective_days,
+            max_loss_dollars, max_gain_dollars, strikes)
 
 
 def _estimate_capital_required(

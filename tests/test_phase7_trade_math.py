@@ -337,6 +337,34 @@ class TestRiskReward:
     def test_rr_ratio_bearish_zero_when_stop_below_entry(self):
         assert compute_rr_ratio(100, 95, 85, direction="bearish") == 0.0
 
+    def test_hvn_resistance_stop_used_when_tighter_bearish(self):
+        # ATR stop = 100.5 + 4 = 104.5; resistance at 103 is tighter → use 103
+        stop = compute_stop_loss(
+            100.5, atr_14=2.0, direction="bearish", high_volume_resistance=103.0
+        )
+        assert stop == pytest.approx(103.0)
+
+    def test_atr_stop_used_when_resistance_beyond_bearish(self):
+        # Resistance at 110 is further than ATR stop at 104.5 → use ATR stop
+        stop = compute_stop_loss(
+            100.5, atr_14=2.0, direction="bearish", high_volume_resistance=110.0
+        )
+        assert stop == pytest.approx(104.5)
+
+    def test_target_uses_lva_below_when_beyond_min_bearish(self):
+        # entry=100, stop=105 -> risk=5 -> min_target=85; LVA at 80 < 85 -> use 80
+        target = compute_target(
+            entry=100, stop=105, min_rr=3.0, direction="bearish", low_volume_area_below=80.0
+        )
+        assert target == pytest.approx(80.0)
+
+    def test_target_ignores_lva_below_when_short_of_min_bearish(self):
+        # LVA at 90 is short of min_target 85 (i.e. not far enough down) -> use 85
+        target = compute_target(
+            entry=100, stop=105, min_rr=3.0, direction="bearish", low_volume_area_below=90.0
+        )
+        assert target == pytest.approx(85.0)
+
     def test_bullish_default_unchanged_by_direction_param(self):
         # direction="bullish" (or omitted) must reproduce the exact pre-existing
         # bullish behavior — this is what every real caller that hasn't opted
@@ -445,6 +473,49 @@ class TestPositionSizer:
         for key in ("risk_pct", "dollar_risk", "circuit_breaker_state",
                     "size_multiplier", "capital_required", "capital_approved", "max_capital"):
             assert key in result
+
+    def test_contracts_or_shares_is_a_real_int_not_placeholder(self):
+        # v2.2.60 — used to be a literal placeholder string.
+        result = compute_position_size(
+            confidence_score=90, account_equity=15000, circuit_breaker_state="normal",
+            capital_required=50.0, per_unit_cost=50.0,
+        )
+        assert isinstance(result["contracts_or_shares"], int)
+        # dollar_risk at 90 = 1% of 15000 = 150; risk_per_unit=50 -> 3 contracts;
+        # capital cap = 5% of 15000 = 750; per_unit_cost=50 -> 15 max -> risk-based binds.
+        assert result["contracts_or_shares"] == 3
+        assert result["capital_deployed"] == pytest.approx(150.0)
+        assert result["actual_dollar_risk"] == pytest.approx(150.0)
+
+    def test_capital_cap_binds_tighter_than_risk_cap_for_high_priced_shares(self):
+        # Regression test for the real incident this dual-cap fixes: a tight
+        # stop (small risk_per_unit) on a high-priced stock sizes to far more
+        # dollars deployed than the risk budget alone would suggest, unless a
+        # separate per-share-price cap also applies.
+        result = compute_position_size(
+            confidence_score=90, account_equity=15000, circuit_breaker_state="normal",
+            capital_required=1.16, per_unit_cost=500.0, position_type="shares",
+        )
+        # Risk-based: dollar_risk=150, risk_per_unit=1.16 -> 129 shares -> $64,500 deployed (absurd).
+        # Capital-based: max_capital=750, per_unit_cost=500 -> 1 share max.
+        # Dual-cap must take the min -> 1 share, not 129.
+        assert result["contracts_or_shares"] == 1
+        assert result["capital_deployed"] == pytest.approx(500.0)
+
+    def test_per_unit_cost_defaults_to_capital_required_when_omitted(self):
+        # Backward compatibility: a caller that hasn't been updated to pass
+        # per_unit_cost gets the exact same sizing as before this change
+        # (capital_required doubling as both risk-per-unit and per-unit-cost).
+        with_default = compute_position_size(90, 15000, "normal", 50.0)
+        explicit = compute_position_size(90, 15000, "normal", 50.0, per_unit_cost=50.0)
+        assert with_default["contracts_or_shares"] == explicit["contracts_or_shares"]
+        assert with_default["capital_deployed"] == explicit["capital_deployed"]
+
+    def test_position_type_passed_through(self):
+        result = compute_position_size(
+            90, 15000, "normal", 50.0, per_unit_cost=50.0, position_type="options",
+        )
+        assert result["position_type"] == "options"
 
 
 # ---------------------------------------------------------------------------
@@ -762,6 +833,81 @@ class TestGreeksFilter:
             assert by_name["long_straddle"]["greeks"] is None
 
 
+class TestExpandedGreeksCoverage:
+    """
+    v2.2.60 — 9 more structures added to _GREEKS_RESOLVABLE_LEGS (condors/
+    butterflies, wheel, synthetics/risk-reversal), all single-expiration so
+    no change to net_structure_greeks itself was needed.
+    """
+
+    def _candidate(self, direction="bullish"):
+        return {
+            "ticker": "NVDA", "direction": direction, "confidence": 92,
+            "entry_mid": 500.0, "stop_loss": 485.0 if direction == "bullish" else 515.0,
+            "target": 545.0 if direction == "bullish" else 455.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+
+    def test_newly_resolvable_structures_carry_greeks_detail(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(), account_equity=1_000_000,
+            options_approval_level=3, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        for name in (
+            "iron_condor", "iron_butterfly", "short_butterfly", "condor_spread",
+            "long_butterfly_call", "wheel", "risk_reversal", "synthetic_long",
+        ):
+            if name in by_name:
+                assert by_name[name]["greeks"] is not None, f"{name}: Greeks not resolved"
+                assert "net_greeks" in by_name[name]["greeks"]
+
+    def test_synthetic_short_resolves_for_bearish_candidate(self):
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        result = rank_trade_structures(
+            self._candidate(direction="bearish"), account_equity=1_000_000,
+            options_approval_level=3, iv_percentile=30.0,
+            option_chain=chain, dte=10,
+        )
+        by_name = {s["name"]: s for s in result["ranked_structures"]}
+        if "synthetic_short" in by_name:
+            assert by_name["synthetic_short"]["greeks"] is not None
+
+    def test_long_butterfly_call_double_leg_doubles_theta_weight(self):
+        # long_butterfly_call's inner wing is listed twice in
+        # _GREEKS_RESOLVABLE_LEGS (2x short at k_mid, matching
+        # resolve_structure_economics' `-2 * bs(k_mid)` term) — confirm the
+        # net theta reflects that 2x weight, not a single-contract theta.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        legs = _resolve_structure_legs("long_butterfly_call", chain, 500.0)
+        assert legs is not None and len(legs) == 4
+        mid_legs = [leg for leg in legs if leg["side"] == "short"]
+        assert len(mid_legs) == 2 and mid_legs[0]["strike"] == mid_legs[1]["strike"]
+
+        net = net_structure_greeks(legs, S=500.0, T=10 / 365.0)["net"]
+        single_mid_theta = compute_greeks(500.0, mid_legs[0]["strike"], 10 / 365.0, 0.04, mid_legs[0]["iv"], "call")["theta"]
+        wing_legs = [leg for leg in legs if leg["side"] == "long"]
+        wing_theta_sum = sum(
+            compute_greeks(500.0, leg["strike"], 10 / 365.0, 0.04, leg["iv"], "call")["theta"] for leg in wing_legs
+        )
+        # net theta = 2x short mid theta (positive, since short) + both long wing thetas (negative)
+        expected = -2 * single_mid_theta + wing_theta_sum
+        assert net["theta"] == pytest.approx(expected, abs=1e-3)
+
+    def test_itm_moneyness_selects_tighter_strike_than_deep_itm(self):
+        # "itm" (6%) must select a different, closer-to-money strike than the
+        # pre-existing "deep_itm" (15%) bucket — confirms the new moneyness
+        # tier is actually wired in, not silently falling back to 0%/atm.
+        chain = _fake_chain(current_price=500.0, step=10.0)
+        itm_contract = select_directional_leg_strike(chain, 500.0, "call", "itm")
+        deep_itm_contract = select_directional_leg_strike(chain, 500.0, "call", "deep_itm")
+        assert itm_contract is not None and deep_itm_contract is not None
+        assert itm_contract["strike"] > deep_itm_contract["strike"]  # itm call strike is below spot, less far below
+        assert itm_contract["strike"] < 500.0
+
+
 class TestMixedStructureSlippageDivisor:
     """
     Mixed stock+option structures (covered_call, protective_put, married_put,
@@ -810,11 +956,13 @@ class TestMixedStructureSlippageDivisor:
         # Greeks/chain side effect), with bid_ask_spreads explicitly set to
         # the correctly-divided value (0.2 real spread / 2 structure legs =
         # 0.1) — if the fix is wired correctly, auto-populating from the
-        # chain must land on this same figure.
+        # chain must land on this same figure. dte=10 explicit here too
+        # (matching the chain call above) so this only isolates the slippage
+        # math, not the module's _DEFAULT_DTE_IF_UNKNOWN fallback.
         result_explicit = rank_trade_structures(
             self._candidate(), account_equity=2_000_000,
             options_approval_level=2, iv_percentile=30.0,
-            bid_ask_spreads={"covered_call": 0.1},
+            bid_ask_spreads={"covered_call": 0.1}, dte=10,
         )
         by_name_explicit = {s["name"]: s for s in result_explicit["ranked_structures"]}
         assert by_name_explicit["covered_call"]["ev"] == pytest.approx(
@@ -835,7 +983,7 @@ class TestMixedStructureSlippageDivisor:
         result_old_buggy_value = rank_trade_structures(
             self._candidate(), account_equity=2_000_000,
             options_approval_level=2, iv_percentile=30.0,
-            bid_ask_spreads={"covered_call": 0.2},  # the pre-fix len(legs)=1 divisor result
+            bid_ask_spreads={"covered_call": 0.2}, dte=10,  # the pre-fix len(legs)=1 divisor result
         )
         by_name_chain = {s["name"]: s for s in result_from_chain["ranked_structures"]}
         by_name_old = {s["name"]: s for s in result_old_buggy_value["ranked_structures"]}

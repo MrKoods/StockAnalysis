@@ -14,7 +14,10 @@ from shared.indicators.technical_common import (
     sma,
     ema,
     rolling_high,
+    rolling_low,
     is_breakout,
+    is_breakdown,
+    bounce_fade_setup,
     relative_strength,
     rsi,
     atr,
@@ -48,6 +51,21 @@ def ohlcv_trending_up():
         "Open": close * 0.99,
         "High": close * 1.01,
         "Low": close * 0.98,
+        "Close": close,
+        "Volume": [1_000_000 + i * 10_000 for i in range(n)],
+    }, index=pd.date_range("2025-01-01", periods=n, freq="B"))
+    return df
+
+
+@pytest.fixture
+def ohlcv_trending_down():
+    """Synthetic OHLCV DataFrame with steadily falling prices — mirrors ohlcv_trending_up."""
+    n = 100
+    close = np.linspace(200, 100, n)
+    df = pd.DataFrame({
+        "Open": close * 1.01,
+        "High": close * 1.02,
+        "Low": close * 0.99,
         "Close": close,
         "Volume": [1_000_000 + i * 10_000 for i in range(n)],
     }, index=pd.date_range("2025-01-01", periods=n, freq="B"))
@@ -237,6 +255,92 @@ class TestBreakout:
         # Rolling max(3) at index 4: max(2, 5, 4) = 5
         assert result.iloc[-1] == 5.0
 
+    def test_breakdown_detected_on_new_low(self):
+        # 20 bars flat at 100, then drops to 99 — should detect breakdown (mirrors test_breakout_detected_on_new_high)
+        close = pd.Series([100.0] * 21 + [99.0])
+        low = pd.Series([100.0] * 21 + [99.0])
+        result = is_breakdown(close, low, period=20)
+        assert result.iloc[-1] is True or result.iloc[-1] == 1
+
+    def test_no_breakdown_at_same_level(self):
+        close = pd.Series([100.0] * 22)
+        low = pd.Series([100.0] * 22)
+        result = is_breakdown(close, low, period=20)
+        # At exactly the prior low (not below), no breakdown
+        assert not bool(result.iloc[-1])
+
+    def test_rolling_low_correct(self):
+        s = pd.Series([5.0, 3.0, 4.0, 1.0, 2.0])
+        result = rolling_low(s, period=3)
+        # Rolling min(3) at index 4: min(4, 1, 2) = 1
+        assert result.iloc[-1] == 1.0
+
+
+class TestBounceFadeSetup:
+    """
+    Capitulation/bounce-fade bearish entry — a breakdown followed by a relief
+    bounce, still inside an intact downtrend, whose exhaustion (RSI recovers
+    into a neutral band then rolls back over) is the actual short trigger.
+    Mechanically distinct from is_breakdown() (shorts the breakdown itself).
+    """
+
+    def _scenario(self):
+        # Bar 5: breakdown (sharp drop 96->90). Bars 6-10: relief bounce
+        # back up to 97. Bar 11: RSI recovered into the 45-65 band by bar 10
+        # then ticks down — the fade trigger.
+        close = pd.Series([100.0, 99.0, 98.0, 97.0, 96.0, 90.0, 91.0, 92.0, 94.0, 96.0, 97.0, 96.0, 95.0, 94.0, 93.0])
+        low = close.copy()
+        high = close.copy()
+        breakdown_mask = pd.Series([False] * 15)
+        breakdown_mask.iloc[5] = True
+        downtrend_intact = pd.Series([True] * 15)
+        rsi_series = pd.Series([30.0, 28.0, 25.0, 22.0, 18.0, 15.0, 25.0, 35.0, 45.0, 55.0, 60.0, 58.0, 50.0, 45.0, 40.0])
+        atr_series = pd.Series([2.0] * 15)
+        return close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series
+
+    def test_fade_signal_fires_on_bounce_exhaustion(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        result = bounce_fade_setup(high, low, close, breakdown_mask, downtrend_intact, rsi_series, atr_series)
+        # Index 11: RSI (58) in the 45-65 recovery band and just turned down
+        # from 60 (index 10), bounce is 3.0 ATR off the post-breakdown low
+        # (96-90)/2.0, downtrend still intact, breakdown was 6 bars back.
+        assert bool(result["fade_signal"].iloc[11]) is True
+
+    def test_no_fade_signal_while_bounce_still_rising(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        result = bounce_fade_setup(high, low, close, breakdown_mask, downtrend_intact, rsi_series, atr_series)
+        # Index 9: RSI (55) still rising (54->55), not yet turned down — no signal.
+        assert bool(result["fade_signal"].iloc[9]) is False
+
+    def test_no_fade_signal_without_prior_breakdown(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        no_breakdown = pd.Series([False] * 15)
+        result = bounce_fade_setup(high, low, close, no_breakdown, downtrend_intact, rsi_series, atr_series)
+        assert bool(result["fade_signal"].iloc[11]) is False
+
+    def test_no_fade_signal_when_downtrend_broken(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        no_downtrend = pd.Series([False] * 15)
+        result = bounce_fade_setup(high, low, close, breakdown_mask, no_downtrend, rsi_series, atr_series)
+        assert bool(result["fade_signal"].iloc[11]) is False
+
+    def test_no_fade_signal_when_bounce_too_small(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        result = bounce_fade_setup(
+            high, low, close, breakdown_mask, downtrend_intact, rsi_series, atr_series,
+            min_bounce_atr=10.0,  # far larger than the actual 3.0 ATR bounce
+        )
+        assert bool(result["fade_signal"].iloc[11]) is False
+
+    def test_post_breakdown_low_and_swing_high_reported(self):
+        close, low, high, breakdown_mask, downtrend_intact, rsi_series, atr_series = self._scenario()
+        result = bounce_fade_setup(high, low, close, breakdown_mask, downtrend_intact, rsi_series, atr_series)
+        # post_breakdown_low: min low over the last `lookback`=10 bars ending
+        # at index 11 (bars 2-11) — the breakdown low of 90 is the minimum.
+        assert result["post_breakdown_low"].iloc[11] == pytest.approx(90.0)
+        # swing_high_since_breakdown must be at or above the post-breakdown low.
+        assert result["swing_high_since_breakdown"].iloc[11] >= result["post_breakdown_low"].iloc[11]
+
 
 # ---------------------------------------------------------------------------
 # Relative Strength tests
@@ -276,6 +380,10 @@ class TestComputeTechnicalIndicators:
             "breakout_volume_zscore", "rs_zscore", "breakout_confirmed",
             "trend_intact", "sma_20_above_sma_50", "price_above_sma_50",
             "macd_bullish",
+            # Bearish mirror fields
+            "breakdown_confirmed", "downtrend_intact", "macd_bearish",
+            "volume_profile_score_bearish", "high_volume_resistance",
+            "low_volume_area_below",
         ]
         for field in required:
             assert field in result, f"Missing field: {field}"
@@ -292,6 +400,25 @@ class TestComputeTechnicalIndicators:
         result = compute_technical_indicators(ohlcv_trending_up, benchmark, cfg)
         # Strong uptrend: SMA20 should be above SMA50 by the end
         assert result["sma_20_above_sma_50"] is True
+        assert result["trend_intact"] is True
+        assert result["downtrend_intact"] is False
+
+    def test_downtrend_intact_for_strong_downtrend(self, ohlcv_trending_down):
+        benchmark = ohlcv_trending_down["Close"] * 1.05
+        cfg = {
+            "technical": {
+                "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+                "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+                "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+            }
+        }
+        result = compute_technical_indicators(ohlcv_trending_down, benchmark, cfg)
+        # Strong downtrend: SMA20 should be below SMA50 by the end (mirrors test_trend_intact_for_strong_uptrend)
+        assert result["sma_20_above_sma_50"] is False
+        assert result["downtrend_intact"] is True
+        assert result["trend_intact"] is False
+        assert result["macd_bearish"] is True
+        assert result["macd_bullish"] is False
 
     def test_returns_scalar_values(self, ohlcv_trending_up):
         benchmark = ohlcv_trending_up["Close"] * 0.95

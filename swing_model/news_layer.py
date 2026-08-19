@@ -17,14 +17,6 @@ from shared.utils.event_gate import (
     SEVERITY_CRITICAL, SCOPE_TICKER, SCOPE_SECTOR,
 )
 
-# Minimum NER-tagged (bullish/bearish) relevant articles required before
-# trusting a directional call for theme_alignment_score — see its use below.
-# Lower than sentiment_layer.py's StockTwits-volume threshold (5): news
-# volume per ticker per scan is routinely much lower (single digits of
-# relevant, NER-tagged articles is common), so a 5-article floor would
-# neutralize this sub-signal on most scans rather than just the genuinely
-# thin ones.
-_DIRECTION_MIN_TAGGED_ARTICLES = 3
 
 
 def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[str] = None) -> dict:
@@ -136,6 +128,7 @@ def compute_news_score(
     sector: Optional[str] = None,
     seeking_alpha_articles: Optional[list[dict]] = None,
     sec_edgar_filings: Optional[list[dict]] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Compute the full news score bundle for a ticker.
@@ -145,6 +138,19 @@ def compute_news_score(
     - theme_alignment_score:       0-4
     - clustering_score:            0-3
     - decay_score:                 0-2
+
+    direction: the candidate's real trade direction ("bullish"/"bearish"),
+    pre-determined by the caller (scoring.py::determine_direction(), hoisted
+    early in run_swing_model.py/paper_runner.py — see those files). Used for
+    theme_alignment_score (a theme that opposes the candidate's own direction
+    now scores low instead of high — see theme_alignment_modifier) and for
+    credibility_weighted_score (bearish-confirming articles score high for a
+    bearish candidate instead of bullish-confirming ones). Previously
+    theme_alignment_score re-derived its own local direction estimate from
+    this same scan's NER bull/bear tag counts — replaced by the real,
+    independently-determined direction now that the pipeline computes one
+    before this function runs, removing a circular "the news infers its own
+    direction from itself" estimate in favor of the model's actual thesis.
 
     `sector`: which sector `ticker` belongs to (config/swing_config.yaml's
     watchlist.sectors) — restricts Event Severity Gate sector-wide trigger
@@ -275,7 +281,7 @@ def compute_news_score(
     # ---------------------------------------------------------------------------
     # 1. Credibility-weighted score (0-6)
     # ---------------------------------------------------------------------------
-    credibility_weighted_score = _score_credibility_weighted(relevant, ticker)
+    credibility_weighted_score = _score_credibility_weighted(relevant, ticker, direction=direction)
 
     # ---------------------------------------------------------------------------
     # 2. Theme alignment score (0-4)
@@ -291,24 +297,7 @@ def compute_news_score(
     theme_result = identify_dominant_theme(texts, ticker, lookback_days=5)
     dominant_theme = theme_result["dominant_theme"]
 
-    # Determine dominant direction from NER. Requires a minimum number of
-    # tagged articles before trusting the call — same failure mode
-    # sentiment_layer.py's _RATIO_MIN_BASELINE_MESSAGES gate already guards
-    # against (see that file's comment): without a floor, a single tagged
-    # article (or zero — the >= tie-break defaults to "bullish" even at 0-0)
-    # could swing theme_alignment_score by its full +/-4 points on no real
-    # sample at all. theme_alignment_modifier() already returns 0.0 for any
-    # trade_direction other than "bullish"/"bearish", so "neutral" here
-    # neutralizes the alignment score cleanly with no other change needed.
-    bull_count = sum(1 for r in ner_results if r["sentiment"] == "bullish")
-    bear_count = sum(1 for r in ner_results if r["sentiment"] == "bearish")
-    tagged_count = bull_count + bear_count
-    if tagged_count < _DIRECTION_MIN_TAGGED_ARTICLES:
-        trade_direction = "neutral"
-    else:
-        trade_direction = "bullish" if bull_count >= bear_count else "bearish"
-
-    alignment_val = theme_alignment_modifier(dominant_theme, trade_direction, ticker)
+    alignment_val = theme_alignment_modifier(dominant_theme, direction, ticker)
     # alignment_val in [-1, +1]; scale to [0, 4]. Zero when no theme / no articles.
     if dominant_theme == "none" or not relevant:
         theme_alignment_score = 0.0
@@ -369,13 +358,14 @@ def compute_news_score(
 def score_news_credibility(
     articles: list[dict],
     ticker: str,
+    direction: str = "bullish",
 ) -> float:
     """
     Compute credibility-weighted news sentiment score for a ticker (0-6).
     NER extracts ticker-specific sentiment from each article.
     Weight = source_credibility × decay_weight.
     """
-    return _score_credibility_weighted(articles, ticker)
+    return _score_credibility_weighted(articles, ticker, direction=direction)
 
 
 def count_independent_cluster(
@@ -427,14 +417,20 @@ def count_independent_cluster(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _score_credibility_weighted(articles: list[dict], ticker: str) -> float:
+def _score_credibility_weighted(articles: list[dict], ticker: str, direction: str = "bullish") -> float:
     """
     Credibility × decay weighted sentiment → scaled to [0, 6].
     Neutral articles score at 0.5 weight (halfway contribution).
+
+    direction="bearish": flips which polarity is "confirming" — bearish
+    articles score 1.0 and bullish articles score 0.0, the mirror image of
+    the bullish default, matching narrative_tracker.theme_alignment_modifier's
+    existing symmetric pattern.
     """
     if not articles:
         return 0.0
 
+    confirming, opposing = ("bearish", "bullish") if direction == "bearish" else ("bullish", "bearish")
     weighted_sum = 0.0
     total_weight = 0.0
 
@@ -448,8 +444,15 @@ def _score_credibility_weighted(articles: list[dict], ticker: str) -> float:
         sentiment = art.get("_ner_sentiment") or art.get("overall_sentiment_label", "Neutral")
         normalized = str(sentiment).lower()
         if normalized in ("bullish", "positive", "somewhat-bullish"):
-            sentiment_val = 1.0
+            polarity = "bullish"
         elif normalized in ("bearish", "negative", "somewhat-bearish"):
+            polarity = "bearish"
+        else:
+            polarity = None
+
+        if polarity == confirming:
+            sentiment_val = 1.0
+        elif polarity == opposing:
             sentiment_val = 0.0
         else:
             sentiment_val = 0.5

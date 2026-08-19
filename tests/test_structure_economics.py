@@ -369,3 +369,84 @@ class TestHighAtrPriceRatioCharacterization:
                 econ = resolve_structure_economics(structure_name, entry, stop, target, iv, dte)
                 capitals.append(econ["capital_required"])
             assert capitals[0] == capitals[1], f"{structure_name}: capital_required unexpectedly moved with ATR"
+
+
+class TestMaxLossGainAndStrikes:
+    """
+    max_loss_dollars/max_gain_dollars/strikes — real dollar figures for the
+    structure's theoretical worst/best case (distinct from avg_win/avg_loss,
+    which reflect the technical target/stop, not necessarily the structure's
+    true defined-risk boundary). None means genuinely unbounded/undefined —
+    never fabricated for structures whose risk really is open-ended.
+    """
+
+    _DEFINED_LOSS_AND_GAIN = {
+        # Structures where both sides are genuinely bounded by construction.
+        "collar", "bull_call_spread", "bear_put_spread", "bull_put_spread",
+        "bear_call_spread", "iron_condor", "iron_butterfly", "short_butterfly",
+        "condor_spread", "long_butterfly_call",
+    }
+    _UNBOUNDED_LOSS = {
+        "naked_short_call", "naked_short_put", "short_straddle", "short_strangle",
+        "risk_reversal", "synthetic_long", "synthetic_short",
+    }
+    _UNBOUNDED_GAIN = {
+        "protective_put", "married_put", "long_call", "deep_itm_call", "leaps_call",
+        "long_straddle", "long_strangle", "risk_reversal", "synthetic_long", "synthetic_short",
+    }
+
+    def test_every_non_passthrough_structure_has_strikes(self):
+        for name in STRUCTURE_MULTIPLIERS:
+            if name in PASSTHROUGH_STRUCTURES:
+                continue
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert "strikes" in econ and econ["strikes"], f"{name}: missing/empty strikes"
+            for k, v in econ["strikes"].items():
+                assert isinstance(v, float) and math.isfinite(v), f"{name}.strikes[{k}] not a finite float"
+
+    def test_defined_risk_structures_have_both_bounds_populated(self):
+        for name in self._DEFINED_LOSS_AND_GAIN:
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_loss_dollars"] is not None, f"{name}: max_loss_dollars unexpectedly None"
+            assert econ["max_gain_dollars"] is not None, f"{name}: max_gain_dollars unexpectedly None"
+            assert econ["max_loss_dollars"] >= 0
+            assert econ["max_gain_dollars"] >= 0
+
+    def test_unbounded_loss_structures_report_none(self):
+        for name in self._UNBOUNDED_LOSS:
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_loss_dollars"] is None, f"{name}: max_loss_dollars should be None (unbounded)"
+
+    def test_unbounded_gain_structures_report_none(self):
+        for name in self._UNBOUNDED_GAIN:
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_gain_dollars"] is None, f"{name}: max_gain_dollars should be None (unbounded)"
+
+    def test_long_option_max_loss_equals_premium_paid(self):
+        # Exact, not approximate: a long option can never lose more than the
+        # premium (capital_required IS the premium for these structures).
+        for name in ("long_call", "long_put", "deep_itm_call", "deep_itm_put"):
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_loss_dollars"] == pytest.approx(econ["capital_required"])
+
+    def test_debit_spread_max_loss_equals_avg_loss(self):
+        # A debit spread's technical-stop loss and its theoretical max loss
+        # are the same thing (net debit) — no separate formula needed.
+        for name in ("bull_call_spread", "bear_put_spread"):
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_loss_dollars"] == pytest.approx(econ["avg_loss"])
+
+    def test_credit_spread_bounds_equal_avg_win_avg_loss(self):
+        for name in ("bull_put_spread", "bear_call_spread"):
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_gain_dollars"] == pytest.approx(econ["avg_win"])
+            assert econ["max_loss_dollars"] == pytest.approx(econ["avg_loss"])
+
+    def test_calendar_diagonal_max_gain_stays_none(self):
+        # Documented approximation limitation — a real max-gain figure needs
+        # the true 2-expiration P&L surface this simplified model doesn't
+        # compute; reporting a number would fabricate precision.
+        for name in ("calendar_call", "calendar_put", "diagonal_call", "diagonal_put"):
+            econ = resolve_structure_economics(name, _ENTRY, _STOP, _TARGET, _IV, _DTE)
+            assert econ["max_gain_dollars"] is None
+            assert econ["max_loss_dollars"] is not None

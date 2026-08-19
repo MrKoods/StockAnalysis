@@ -179,27 +179,49 @@ def run_pipeline(
             results[ticker]["_fundamental_full"] = fs
 
     # 7-8. Market Positioning data fetch + scoring (daily cadence — free yfinance data only)
+    #
+    # Scored for both directions here (cheap — same cached raw data, direction
+    # only changes which side of each sub-formula scores high, no extra I/O)
+    # since a ticker's real trade direction isn't known until the per-ticker
+    # scoring loop runs later (run_swing_model.py/paper_runner.py) — direction
+    # depends on that day's technical/sentiment reading, not on anything fetched
+    # here. _positioning_full stays the bullish score (unchanged field, for
+    # every existing caller); _positioning_full_bearish is the new bearish
+    # mirror, selected by direction once it's known.
     try:
         positioning_state = fetch_positioning_data(tickers, current_prices, cfg)
         previous_tickers = positioning_state.get("previous_tickers", {})
         positioning_scores = {
             t: compute_positioning_score(
-                t, positioning_state.get("tickers", {}).get(t), previous_tickers.get(t), cfg
+                t, positioning_state.get("tickers", {}).get(t), previous_tickers.get(t), cfg, direction="bullish"
+            )
+            for t in tickers
+        }
+        positioning_scores_bearish = {
+            t: compute_positioning_score(
+                t, positioning_state.get("tickers", {}).get(t), previous_tickers.get(t), cfg, direction="bearish"
             )
             for t in tickers
         }
     except Exception as exc:
         logger.error(f"Positioning layer failed — {exc}. Proceeding with neutral scores.")
         write_validation_entry("ALL", "positioning_layer_error", str(exc))
-        positioning_scores = {t: compute_positioning_score(t, None, None, cfg) for t in tickers}
+        positioning_scores = {t: compute_positioning_score(t, None, None, cfg, direction="bullish") for t in tickers}
+        positioning_scores_bearish = {
+            t: compute_positioning_score(t, None, None, cfg, direction="bearish") for t in tickers
+        }
 
     # Attach positioning scores to each ticker's indicator dict
     for ticker in tickers:
         if results.get(ticker) is not None:
-            ps = positioning_scores.get(ticker) or compute_positioning_score(ticker, None, None, cfg)
+            ps = positioning_scores.get(ticker) or compute_positioning_score(ticker, None, None, cfg, direction="bullish")
+            ps_bearish = positioning_scores_bearish.get(ticker) or compute_positioning_score(
+                ticker, None, None, cfg, direction="bearish"
+            )
             results[ticker]["positioning_score"] = ps.get("positioning_score_total", 0)
             results[ticker]["positioning_data_quality"] = ps.get("data_quality", "unavailable")
             results[ticker]["_positioning_full"] = ps
+            results[ticker]["_positioning_full_bearish"] = ps_bearish
 
     valid_count = sum(1 for v in results.values() if v is not None)
     logger.info(f"Pipeline complete: {valid_count}/{len(tickers)} tickers processed successfully.")

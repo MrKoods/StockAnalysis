@@ -1,0 +1,31 @@
+variant,sector,n_trades,win_rate,avg_rr,sharpe
+mirror_default_18_55,semiconductors,48,0.2708,0.73,-3.89
+mirror_default_18_55,regional_banks,104,0.3846,1.32,-1.43
+mirror_default_18_55,healthcare,130,0.2923,0.79,-3.2
+mirror_default_18_55,consumer_discretionary,305,0.3246,0.82,-2.76
+mirror_default_18_55,ALL (pooled),587,0.3237,0.91,-2.52
+avoid_deep_oversold_25_55,semiconductors,40,0.325,0.73,-3.59
+avoid_deep_oversold_25_55,regional_banks,66,0.4091,1.16,-1.8
+avoid_deep_oversold_25_55,healthcare,112,0.3214,0.73,-3.21
+avoid_deep_oversold_25_55,consumer_discretionary,267,0.3408,0.85,-2.66
+avoid_deep_oversold_25_55,ALL (pooled),485,0.3443,0.87,-2.5
+avoid_deep_oversold_30_55,semiconductors,30,0.4333,0.73,-3.32
+avoid_deep_oversold_30_55,regional_banks,47,0.4043,1.07,-2.3
+avoid_deep_oversold_30_55,healthcare,69,0.3768,0.72,-3.01
+avoid_deep_oversold_30_55,consumer_discretionary,193,0.342,0.86,-2.71
+avoid_deep_oversold_30_55,ALL (pooled),339,0.3658,0.85,-2.44
+avoid_deep_oversold_35_55,semiconductors,11,0.5455,1.21,-3.48
+avoid_deep_oversold_35_55,regional_banks,11,0.4545,1.53,-2.91
+avoid_deep_oversold_35_55,healthcare,17,0.2353,0.31,-7.93
+avoid_deep_oversold_35_55,consumer_discretionary,52,0.4615,1.02,-3.64
+avoid_deep_oversold_35_55,ALL (pooled),91,0.4286,1.04,-3.09
+narrow_symmetric_30_50,semiconductors,30,0.4333,0.73,-3.32
+narrow_symmetric_30_50,regional_banks,47,0.4043,1.07,-2.3
+narrow_symmetric_30_50,healthcare,69,0.3768,0.72,-3.01
+narrow_symmetric_30_50,consumer_discretionary,193,0.342,0.86,-2.71
+narrow_symmetric_30_50,ALL (pooled),339,0.3658,0.85,-2.44
+moderate_soft_only_40_55,semiconductors,1,0.0,0.0,0.0
+moderate_soft_only_40_55,regional_banks,1,1.0,1.05,0.0
+moderate_soft_only_40_55,healthcare,0,,,
+moderate_soft_only_40_55,consumer_discretionary,0,,,
+moderate_soft_only_40_55,ALL (pooled),2,0.5,1.05,-1.76

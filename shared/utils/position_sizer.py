@@ -53,15 +53,41 @@ def compute_position_size(
     max_capital_pct: float = 0.05,
     consecutive_losses: int = 0,
     cfg: Optional[dict] = None,
+    per_unit_cost: Optional[float] = None,
+    position_type: str = "shares",
 ) -> dict:
     """
     Compute final position sizing for a trade recommendation.
 
+    capital_required is used as risk_per_unit — "what one unit costs if the
+    stop is hit": a defined-risk options structure's own premium/max-loss for
+    an options position, or the entry-to-stop dollar distance for a bare
+    equity position (see trade_selector.py's _estimate_capital_required).
+
+    per_unit_cost (new — extracted from paper_trading/paper_runner.py's
+    previously-inline dual-cap sizing, v2.2.60) is the FULL dollar cost of one
+    unit — one option contract's premium (== capital_required, same number)
+    or one share's entry price (a different, usually much larger number than
+    the stop-distance risk_per_unit). Defaults to capital_required when not
+    supplied, reproducing the exact previous behavior for any caller that
+    hasn't been updated. Every real caller should supply the true per-unit
+    cost: risk-based sizing alone lets a tight-stop, low-volatility name size
+    to an arbitrarily large capital commitment for the same dollar risk as a
+    wide-stop name (the real incident this fixed: a $1.16 stop sized to
+    $1,676 deployed, 11% of a $15k account, off the same $75 risk budget that
+    gave a wider-stop name an $861 position) — per_unit_cost lets this
+    function also apply a hard capital/concentration cap (max_capital //
+    per_unit_cost) and take whichever of the two constraints binds tighter,
+    the way every real position-sizing framework does.
+
     Returns dict:
     {
         risk_pct, dollar_risk, circuit_breaker_state, size_multiplier,
-        capital_required, capital_approved, max_capital, contracts_or_shares
+        capital_required, capital_approved, max_capital, contracts_or_shares,
+        capital_deployed, actual_dollar_risk, position_type
     }
+    contracts_or_shares is a real computed int (dual-cap: risk-based AND
+    capital-based, take the min) — no longer a placeholder string.
     """
     if cfg is None:
         cfg = {}
@@ -92,6 +118,16 @@ def compute_position_size(
         adjusted_risk_pct = 0.0
         dollar_risk = 0.0
 
+    effective_per_unit_cost = per_unit_cost if per_unit_cost is not None else capital_required
+    risk_based_size = int(dollar_risk // capital_required) if capital_required > 0 else 0
+    capital_based_size = int(max_capital // effective_per_unit_cost) if effective_per_unit_cost > 0 else 0
+    contracts_or_shares = min(risk_based_size, capital_based_size)
+    capital_deployed = round(contracts_or_shares * effective_per_unit_cost, 2)
+    # Distinct from dollar_risk (the pre-cap tier budget) whenever
+    # capital_based_size binds tighter than risk_based_size — the position
+    # actually sized risks strictly less than the tier budget alone implied.
+    actual_dollar_risk = round(contracts_or_shares * capital_required, 2)
+
     return {
         "risk_pct": round(adjusted_risk_pct, 4),
         "dollar_risk": round(dollar_risk, 2),
@@ -100,7 +136,16 @@ def compute_position_size(
         "capital_required": round(capital_required, 2),
         "capital_approved": capital_approved,
         "max_capital": round(max_capital, 2),
-        "contracts_or_shares": "compute at execution time using dollar_risk / risk_per_unit",
+        "contracts_or_shares": contracts_or_shares,
+        "capital_deployed": capital_deployed,
+        "actual_dollar_risk": actual_dollar_risk,
+        "position_type": position_type,
+        # Which of the two caps actually bound — callers building a
+        # human-readable sizing note (e.g. "capital cap limited this to N
+        # shares instead of the M the risk budget alone would allow") need
+        # both raw sizes, not just the min() that won.
+        "risk_based_size": risk_based_size,
+        "capital_based_size": capital_based_size,
     }
 
 

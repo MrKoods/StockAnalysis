@@ -332,6 +332,55 @@ class TestSentimentLayer:
             assert key in result, f"Missing key: {key}"
 
 
+class TestBearishDirection:
+    """
+    direction="bearish" mirrors ratio_score/velocity_score around their
+    neutral midpoints — a strongly bearish-tilted StockTwits ratio/velocity
+    should score high for a bearish candidate the same way a strongly
+    bullish one scores high for a bullish candidate (default direction).
+    """
+
+    def _make_messages(self, n_bullish, n_bearish, hours_ago=2, sentiment_change=None, volume_change=None):
+        now = datetime.now(timezone.utc)
+        ts = (now - timedelta(hours=hours_ago)).isoformat()
+        messages = []
+        for i in range(n_bullish):
+            messages.append({
+                "message_id": str(i), "timestamp_utc": ts, "sentiment": "bullish",
+                "sentiment_change": sentiment_change, "volume_change": volume_change,
+            })
+        for i in range(n_bearish):
+            messages.append({
+                "message_id": str(n_bullish + i), "timestamp_utc": ts, "sentiment": "bearish",
+                "sentiment_change": sentiment_change, "volume_change": volume_change,
+            })
+        return messages
+
+    def test_bearish_tilt_scores_high_ratio_for_bearish_direction(self):
+        messages = self._make_messages(2, 20)
+        result = compute_sentiment_score(messages, [], "NVDA", {}, direction="bearish")
+        assert result["ratio_score"] > 3.5
+
+    def test_bullish_tilt_scores_low_ratio_for_bearish_direction(self):
+        messages = self._make_messages(20, 2)
+        result = compute_sentiment_score(messages, [], "NVDA", {}, direction="bearish")
+        assert result["ratio_score"] < 3.5
+
+    def test_dominant_sentiment_stays_real_regardless_of_direction(self):
+        # dominant_sentiment reports actual StockTwits lean, not a
+        # direction-relative read — only the point scores mirror.
+        messages = self._make_messages(20, 2)
+        result = compute_sentiment_score(messages, [], "NVDA", {}, direction="bearish")
+        assert result["dominant_sentiment"] == "bullish"
+
+    def test_negative_native_velocity_scores_high_for_bearish_direction(self):
+        falling = self._make_messages(2, 10, sentiment_change=-0.3, volume_change=-0.3)
+        rising = self._make_messages(2, 10, sentiment_change=0.3, volume_change=0.3)
+        result_falling = compute_sentiment_score(falling, [], "NVDA", {}, direction="bearish")
+        result_rising = compute_sentiment_score(rising, [], "NVDA", {}, direction="bearish")
+        assert result_falling["velocity_score"] > result_rising["velocity_score"]
+
+
 class TestSentimentVelocityFallback:
     """
     _score_velocity's fallback path (used when StockTwits' native
@@ -474,6 +523,15 @@ class TestNewsLayer:
         ]
         for key in required:
             assert key in result, f"Missing key: {key}"
+
+    def test_bearish_articles_score_higher_credibility_for_bearish_direction(self):
+        # direction="bearish" flips which polarity is "confirming" — bearish
+        # articles should score higher credibility_weighted_score for a
+        # bearish candidate than they do for a bullish one (default).
+        arts = self._make_articles(["bearish", "bearish"], ["reuters.com", "cnbc.com"])
+        result_bearish_dir = compute_news_score(arts, [], "NVDA", direction="bearish")
+        result_bullish_dir = compute_news_score(arts, [], "NVDA", direction="bullish")
+        assert result_bearish_dir["credibility_weighted_score"] > result_bullish_dir["credibility_weighted_score"]
 
     def test_independent_cluster_counts_unique_sources(self):
         now = datetime.now(timezone.utc)

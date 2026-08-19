@@ -69,9 +69,16 @@ def classify_regime(
     return REGIME_CHOPPY
 
 
-def get_regime_modifiers(regime: str, cfg: dict) -> dict:
+def get_regime_modifiers(regime: str, cfg: dict, direction: str = "bullish") -> dict:
     """
     Return confidence weight adjustments for the current regime.
+
+    direction: "bullish" (default) or "bearish". regime_modifier swaps sign
+    for TRENDING_UP/TRENDING_DOWN — a bearish/short candidate is penalized by
+    an uptrending market and rewarded by a downtrending one, the mirror of a
+    bullish candidate. CHOPPY and HIGH_VOL are direction-neutral (both
+    penalize either direction equally — chop and elevated volatility make any
+    directional thesis less reliable, not specifically the bullish one).
 
     Returns dict used by scoring.py:
     {
@@ -84,6 +91,7 @@ def get_regime_modifiers(regime: str, cfg: dict) -> dict:
     }
     """
     r = cfg.get("modifiers", {}).get("regime", {})
+    is_bearish = direction == "bearish"
     if regime == REGIME_TRENDING_UP:
         return {
             "breakout_weight_delta": r.get("trending_up_breakout_boost", 10),
@@ -91,7 +99,7 @@ def get_regime_modifiers(regime: str, cfg: dict) -> dict:
             "mean_reversion_weight_delta": r.get("trending_up_mean_reversion_penalty", -10),
             "rsi_weight_delta": 0,
             "score_cap": None,
-            "regime_modifier": 5.0,  # net modifier applied in scoring.py
+            "regime_modifier": -5.0 if is_bearish else 5.0,  # net modifier applied in scoring.py
         }
     if regime == REGIME_TRENDING_DOWN:
         return {
@@ -100,7 +108,7 @@ def get_regime_modifiers(regime: str, cfg: dict) -> dict:
             "mean_reversion_weight_delta": r.get("trending_up_mean_reversion_penalty", -10),
             "rsi_weight_delta": 0,
             "score_cap": None,
-            "regime_modifier": -5.0,
+            "regime_modifier": 5.0 if is_bearish else -5.0,
         }
     if regime == REGIME_CHOPPY:
         return {

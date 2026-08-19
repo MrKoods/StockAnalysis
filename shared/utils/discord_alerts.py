@@ -116,6 +116,18 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
     dollar_risk = candidate.get("dollar_risk", 0.0)
     regime = candidate.get("regime", "")
     dominant_theme = candidate.get("dominant_theme", "")
+    # See paper_runner.py/send_paper_signal_alert's matching comment — these
+    # were already computed by rank_trade_structures() for this exact pick
+    # and previously discarded before reaching this alert.
+    capital_required = candidate.get("capital_required")
+    structure_legs = candidate.get("structure_legs")
+    structure_effective_days = candidate.get("structure_effective_days")
+    structure_greeks_summary = candidate.get("structure_greeks_summary")
+    structure_max_loss = candidate.get("structure_max_loss")
+    structure_max_gain = candidate.get("structure_max_gain")
+    structure_strikes = candidate.get("structure_strikes")
+    structure_expiration_date = candidate.get("structure_expiration_date")
+    alternative_structures = candidate.get("alternative_structures")
 
     direction_emoji = "📈" if direction == "bullish" else "📉"
     event_gate_blocked = bool(candidate.get("event_gate_blocked"))
@@ -141,6 +153,49 @@ def send_trade_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
         ],
         "footer": {"text": f"StockAnalysis {model_version} | Reply ENTERED or SKIPPED to log trade"},
     }
+
+    econ_parts = []
+    if capital_required is not None:
+        try:
+            econ_parts.append(f"Capital Required: ${float(capital_required):.2f}")
+        except (TypeError, ValueError):
+            pass
+    if structure_legs:
+        econ_parts.append(f"Legs: {structure_legs}")
+    if structure_effective_days:
+        econ_parts.append(f"Effective Days: {structure_effective_days}")
+    if structure_expiration_date:
+        econ_parts.append(f"Expiration: {structure_expiration_date}")
+    if structure_max_loss:
+        econ_parts.append(f"Max Loss: ${structure_max_loss}")
+    if structure_max_gain:
+        econ_parts.append(f"Max Gain: ${structure_max_gain}")
+    elif structure_max_loss:
+        econ_parts.append("Max Gain: unlimited")
+    if econ_parts:
+        embed["fields"].append({
+            "name": "Structure Economics",
+            "value": "  |  ".join(econ_parts),
+            "inline": False,
+        })
+    if structure_strikes:
+        embed["fields"].append({
+            "name": "Strikes",
+            "value": structure_strikes,
+            "inline": False,
+        })
+    if structure_greeks_summary:
+        embed["fields"].append({
+            "name": "Net Greeks",
+            "value": structure_greeks_summary,
+            "inline": False,
+        })
+    if alternative_structures:
+        embed["fields"].append({
+            "name": "Alternatives",
+            "value": str(alternative_structures)[:1000],
+            "inline": False,
+        })
 
     if dominant_theme:
         embed["fields"].append({
@@ -473,6 +528,22 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
     position_size = trade.get("position_size", "0")
     capital_deployed = float(trade.get("capital_deployed", 0.0) or 0.0)
     sizing_note = str(trade.get("sizing_note", "") or "")
+    # capital_required/legs/effective_days/greeks: computed by
+    # rank_trade_structures() for the winning structure but previously
+    # dropped before reaching this alert — see paper_runner.py's row dict
+    # comment for where these are extracted.
+    capital_required_raw = trade.get("capital_required", "")
+    structure_legs = str(trade.get("structure_legs", "") or "")
+    structure_effective_days = str(trade.get("structure_effective_days", "") or "")
+    structure_greeks_summary = str(trade.get("structure_greeks_summary", "") or "")
+    # max_loss/max_gain/strikes/expiration_date/alternatives: same pattern,
+    # computed by rank_trade_structures()/resolve_structure_economics() and
+    # previously dropped before reaching this alert.
+    structure_max_loss = str(trade.get("structure_max_loss", "") or "")
+    structure_max_gain = str(trade.get("structure_max_gain", "") or "")
+    structure_strikes = str(trade.get("structure_strikes", "") or "")
+    structure_expiration_date = str(trade.get("structure_expiration_date", "") or "")
+    alternative_structures = str(trade.get("alternative_structures", "") or "")
     unit = "options contract" if position_type == "options" else "share"
     try:
         size_int = int(float(position_size))
@@ -502,6 +573,59 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
         ],
         "footer": {"text": f"StockAnalysis {model_version} | Paper Trading"},
     }
+
+    # Structure economics rank_trade_structures() already computed for this
+    # exact pick — capital_required is the structure's own theoretical risk
+    # (distinct from capital_deployed above, the post-sizing actual amount);
+    # legs/effective_days/Greeks previously never left trade_selector.py.
+    if structure:
+        try:
+            capital_required_val = float(capital_required_raw) if capital_required_raw else None
+        except (TypeError, ValueError):
+            capital_required_val = None
+        econ_parts = []
+        if capital_required_val is not None:
+            econ_parts.append(f"Capital Required: ${capital_required_val:.2f}")
+        if structure_legs:
+            econ_parts.append(f"Legs: {structure_legs}")
+        if structure_effective_days:
+            econ_parts.append(f"Effective Days: {structure_effective_days}")
+        if structure_expiration_date:
+            econ_parts.append(f"Expiration: {structure_expiration_date}")
+        if structure_max_loss:
+            econ_parts.append(f"Max Loss: ${structure_max_loss}")
+        if structure_max_gain:
+            econ_parts.append(f"Max Gain: ${structure_max_gain}")
+        elif structure_max_loss:
+            # Max loss populated but max gain absent means genuinely
+            # unbounded (never fabricated — see resolve_structure_economics'
+            # own per-branch comments in options_math.py), worth saying
+            # explicitly rather than just omitting the field silently.
+            econ_parts.append("Max Gain: unlimited")
+        if econ_parts:
+            embed["fields"].append({
+                "name": "Structure Economics",
+                "value": "  |  ".join(econ_parts),
+                "inline": False,
+            })
+        if structure_strikes:
+            embed["fields"].append({
+                "name": "Strikes",
+                "value": structure_strikes,
+                "inline": False,
+            })
+        if structure_greeks_summary:
+            embed["fields"].append({
+                "name": "Net Greeks",
+                "value": structure_greeks_summary,
+                "inline": False,
+            })
+        if alternative_structures:
+            embed["fields"].append({
+                "name": "Alternatives",
+                "value": alternative_structures[:1000],
+                "inline": False,
+            })
 
     if sizing_note:
         embed["fields"].append({
@@ -662,12 +786,47 @@ def format_trade_alert_text(candidate: dict, model_version: str = "v1.0.0") -> s
     target = candidate.get("target", 0.0)
     rr = candidate.get("rr_ratio", 0.0)
     structure = candidate.get("structure_recommended", "long_stock")
+    capital_required = candidate.get("capital_required")
+    structure_legs = candidate.get("structure_legs")
+    structure_effective_days = candidate.get("structure_effective_days")
+    structure_greeks_summary = candidate.get("structure_greeks_summary")
+    structure_max_loss = candidate.get("structure_max_loss")
+    structure_max_gain = candidate.get("structure_max_gain")
+    structure_strikes = candidate.get("structure_strikes")
+    structure_expiration_date = candidate.get("structure_expiration_date")
+    alternative_structures = candidate.get("alternative_structures")
 
     lines = [
         f"{'📈' if direction == 'bullish' else '📉'} {ticker} SWING SIGNAL — {confidence:.0f}/100",
         f"Direction: {direction.upper()} | Structure: {structure.replace('_', ' ').title()}",
         f"Entry Zone: ${entry_lower:.2f}–${entry_upper:.2f}",
         f"Stop: ${stop:.2f} | Target: ${target:.2f} (R:R 1:{rr:.1f})",
-        f"Model: {model_version}",
     ]
+    econ_parts = []
+    if capital_required is not None:
+        try:
+            econ_parts.append(f"Capital Required: ${float(capital_required):.2f}")
+        except (TypeError, ValueError):
+            pass
+    if structure_legs:
+        econ_parts.append(f"Legs: {structure_legs}")
+    if structure_effective_days:
+        econ_parts.append(f"Effective Days: {structure_effective_days}")
+    if structure_expiration_date:
+        econ_parts.append(f"Expiration: {structure_expiration_date}")
+    if structure_max_loss:
+        econ_parts.append(f"Max Loss: ${structure_max_loss}")
+    if structure_max_gain:
+        econ_parts.append(f"Max Gain: ${structure_max_gain}")
+    elif structure_max_loss:
+        econ_parts.append("Max Gain: unlimited")
+    if econ_parts:
+        lines.append(" | ".join(econ_parts))
+    if structure_strikes:
+        lines.append(f"Strikes: {structure_strikes}")
+    if structure_greeks_summary:
+        lines.append(f"Net Greeks: {structure_greeks_summary}")
+    if alternative_structures:
+        lines.append(f"Alternatives: {alternative_structures}")
+    lines.append(f"Model: {model_version}")
     return "\n".join(lines)

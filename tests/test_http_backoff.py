@@ -5,8 +5,6 @@ market_data_client.py, positioning_client.py, news_client.py,
 sec_edgar_client.py, sentiment_client.py, and fundamental_client.py.
 """
 
-import pytest
-
 from shared.api_clients._http_backoff import (
     DEFAULT_BACKOFF_DELAYS,
     retry_with_backoff,

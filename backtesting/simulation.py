@@ -22,7 +22,7 @@ def simulate_trade_outcome(
     stop: float,
     target: float,
     future_ohlcv: pd.DataFrame,
-    holding_period: tuple[int, int] = (5, 15),
+    holding_period: tuple[int, int] = (1, 15),
     regime: str = "unknown",
     confidence: float = 90.0,
 ) -> dict:
@@ -98,7 +98,7 @@ def simulate_trade_outcome(
                     "exit_price": stop,
                     "pnl_pct": (stop - entry) / entry * -1,
                     "holding_days": day_idx + 1,
-                    "achieved_rr": -1.0,
+                    "achieved_rr": -(stop - entry) / risk if risk > 0 else 0.0,
                     "regime": regime,
                     "confidence": confidence,
                     "entry_price": entry,
@@ -228,9 +228,18 @@ def _simulate_test_signals(
     signal_cutoff: "pd.Timestamp | None" = None,
     rsi_min: float = 45.0,
     rsi_max: float = 82.0,
+    rsi_min_bearish: float = 18.0,
+    rsi_max_bearish: float = 55.0,
     min_breakout_volume_zscore: "float | None" = None,
     require_confirmation_bar: bool = False,
     benchmark_ticker: str = "SMH",
+    min_rr_bearish: "float | None" = None,
+    stop_atr_multiplier_bearish: "float | None" = None,
+    bearish_entry_style: str = "continuation",
+    bounce_fade_lookback: int = 10,
+    bounce_fade_min_bounce_atr: float = 1.0,
+    bounce_fade_rsi_min: float = 45.0,
+    bounce_fade_rsi_max: float = 65.0,
 ) -> list[dict]:
     """
     Replay the real indicator + scoring pipeline against historical OHLCV bars.
@@ -285,24 +294,75 @@ def _simulate_test_signals(
       each bar's date (data/processed/fundamental_history/); neutral for bars before the
       first archived snapshot exists
 
-    Signal candidates: bars where close breaks the prior 20-day high AND pass
-    three quality gates (trend intact, sector alignment, healthy RSI range).
+    Signal candidates: bars where close breaks the prior 20-day high (bullish)
+    or falls below the prior 20-day low (bearish), AND pass three quality gates
+    mirrored per direction (trend/downtrend intact, sector alignment, healthy
+    RSI range — oversold band for bearish, rsi_min_bearish/rsi_max_bearish).
     These gates mirror conditions the live model implicitly requires through high
-    confidence scores — making them explicit here prevents low-quality breakouts
-    from diluting the qualifying pool.
+    confidence scores — making them explicit here prevents low-quality breakouts/
+    breakdowns from diluting the qualifying pool.
+
+    rsi_min_bearish/rsi_max_bearish: bearish counterpart to rsi_min/rsi_max —
+    starts as a direct mirror of the bullish band (100 - 82 = 18, 100 - 45 =
+    55) pending its own backtest re-validation the same way the bullish band's
+    boundaries were themselves re-tested rather than assumed (see rsi_min/
+    rsi_max's own history above). CHANGELOG v2.2.58's initial backtest found
+    this band alone doesn't explain the bearish path's underperformance
+    (raising the floor 18->35 improved win rate 32%->43% but Sharpe stayed
+    deeply negative throughout) — see min_rr_bearish below for the hypothesis
+    tested next.
+
+    min_rr_bearish/stop_atr_multiplier_bearish: bearish-specific overrides for
+    risk_reward.py's min_rr_ratio/stop_atr_multiplier (both None by default,
+    falling back to the same config values bullish uses — rr_cfg's
+    min_rr_ratio/stop_atr_multiplier, currently 3.0/2.0 for both directions
+    identically). Research hypothesis (CHANGELOG v2.2.58 follow-up): a
+    breakdown may not continue down far/fast enough within the 15-day holding
+    period to reach an ATR-sized 3R target the way a breakout continues up —
+    bearish trades' avg R:R sat at 0.7-1.3 against the 3R target with a large
+    time_stop share, consistent with the target being oversized for what the
+    downside move actually delivers in this holding window, not with the
+    entry filter being wrong. Overridable per-call for exactly this research,
+    same pattern as rsi_min/rsi_max.
+
+    bearish_entry_style: "continuation" (default, unchanged behavior) shorts
+    the breakdown bar itself, mirroring the bullish breakout entry exactly.
+    "capitulation_fade" is a research alternative (CHANGELOG v2.2.59's working
+    theory): the continuation mirror enters right after a breakdown, near
+    where a relief bounce/short-squeeze is likeliest — the opposite of the
+    bullish case, where entering a fresh breakout while RSI is still healthy
+    (not yet stretched) is the point. capitulation_fade instead waits for the
+    bounce that follows a breakdown and shorts its exhaustion — still inside
+    an intact downtrend — once RSI recovers into a neutral band and rolls
+    back over (see shared/indicators/technical_common.py's
+    bounce_fade_setup()). The bounce_fade_* params tune that detection and
+    only apply when bearish_entry_style == "capitulation_fade"; bullish
+    candidate generation is completely unaffected either way.
 
     Confidence is scaled to 0-100 relative to the maximum achievable raw score
     (with all layers active) so the >=90 qualifying threshold remains consistent.
     """
     import yaml
-    from shared.indicators.technical_common import compute_technical_indicators
+    from shared.indicators.technical_common import compute_technical_indicators, bounce_fade_setup
+    # Aliased: this function already has local variables named `atr`/`rsi_val`
+    # per-candidate below (the current bar's scalar ATR/RSI reading) — importing
+    # the technical_common series functions under their own names would make
+    # Python treat them as local throughout this whole function (assigned
+    # later in the loop) and raise UnboundLocalError the first time they're
+    # called, before ever reaching that later assignment.
+    from shared.indicators.technical_common import rsi as _rsi_series
+    from shared.indicators.technical_common import atr as _atr_series
+    from shared.indicators.technical_common import sma as _sma_series
     from swing_model.scoring import compute_confidence_score
     from swing_model.news_layer import compute_news_score
     from shared.utils.regime_detection import classify_regime, get_regime_modifiers
     from shared.utils.seasonality import get_seasonality_modifier
     from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
     from shared.utils.macro_overlay import compute_macro_state
-    from shared.utils.sector_rotation import compute_rotation_state, dampen_rotation_penalty_for_leader
+    from shared.utils.sector_rotation import (
+        compute_rotation_state, dampen_rotation_penalty_for_leader, get_rotation_modifier,
+    )
+    from swing_model.cross_ticker_analysis import analyze_cross_ticker
     from backtesting.historical_news_loader import load_historical_news
 
     try:
@@ -377,16 +437,34 @@ def _simulate_test_signals(
     rr_cfg = cfg.get("risk_reward", {})
     outcomes = []
 
-    # Pre-compute SMH sector uptrend mask (O(n) once).
+    # Pre-compute SMH sector uptrend/downtrend masks (O(n) once).
     # Require sector SMA20 > SMA50 AND SMH close > SMA50 before any individual
-    # stock breakout is considered. In mixed markets the sector carries lagging
-    # names upward briefly before reversing — dual confirmation eliminates
+    # stock breakout is considered (mirror: SMA20 < SMA50 AND close < SMA50 for
+    # a breakdown). In mixed markets the sector carries lagging names upward
+    # (or downward) briefly before reversing — dual confirmation eliminates
     # the highest-failure-rate subset from the qualifying pool.
     smh_sector_trend: pd.Series | None = None
+    smh_sector_downtrend: pd.Series | None = None
     if smh_df is not None and len(smh_df) >= 55:
         smh_sma20 = smh_df["Close"].rolling(20).mean()
         smh_sma50 = smh_df["Close"].rolling(50).mean()
         smh_sector_trend = (smh_sma20 > smh_sma50) & (smh_df["Close"] > smh_sma50)
+        smh_sector_downtrend = (smh_sma20 < smh_sma50) & (smh_df["Close"] < smh_sma50)
+
+    # Pre-compute trend_intact/breakout_confirmed for every sector ticker
+    # (O(n) once per ticker, vectorized) — feeds cross_ticker_modifier below.
+    # Cheap reuse of the same rolling-window primitives already used for the
+    # breakout/breakdown masks above, not a full compute_technical_indicators()
+    # call per candidate bar (which would be the expensive way to get this).
+    _sector_trend_intact: dict[str, pd.Series] = {}
+    _sector_breakout_confirmed: dict[str, pd.Series] = {}
+    for _t, _d in test_data.items():
+        if _t == benchmark_ticker or _d.empty or len(_d) < 55:
+            continue
+        _t_sma20 = _d["Close"].rolling(20).mean()
+        _t_sma50 = _d["Close"].rolling(50).mean()
+        _sector_trend_intact[_t] = (_t_sma20 > _t_sma50) & (_d["Close"] > _t_sma50)
+        _sector_breakout_confirmed[_t] = _d["Close"] > _d["High"].rolling(20).max().shift(1)
 
     for ticker, df in test_data.items():
         if ticker == benchmark_ticker or df.empty or len(df) < 65:
@@ -398,14 +476,52 @@ def _simulate_test_signals(
         else:
             bench_aligned = pd.Series(100.0, index=df.index)
 
-        # Pre-compute 20-day breakout mask on the full ticker DataFrame (O(n), no look-ahead)
+        # Pre-compute 20-day breakout/breakdown masks on the full ticker DataFrame (O(n), no look-ahead)
         prior_20d_high = df["High"].rolling(20).max().shift(1)
+        prior_20d_low = df["Low"].rolling(20).min().shift(1)
         breakout_mask = df["Close"] > prior_20d_high
+        breakdown_mask = df["Close"] < prior_20d_low
 
-        # Only iterate breakout bars that have enough history for indicator computation
-        signal_indices = [i for i in range(60, len(df) - 1) if breakout_mask.iloc[i]]
+        # capitulation_fade candidate generation: a completely different bar
+        # selection from the continuation mirror above (breakdown_mask itself
+        # is still needed either way — bounce_fade_setup uses it to find the
+        # breakdown a bounce is fading, and the "continuation" branch below
+        # uses it directly). See bearish_entry_style's docstring above.
+        fade_result = None
+        if bearish_entry_style == "capitulation_fade":
+            tech_cfg = cfg.get("technical", {})
+            rsi_full = _rsi_series(df["Close"], period=tech_cfg.get("rsi_period", 14))
+            atr_full = _atr_series(df["High"], df["Low"], df["Close"], period=tech_cfg.get("atr_period", 14))
+            sma20_full = _sma_series(df["Close"], tech_cfg.get("ma_short", 20))
+            sma50_full = _sma_series(df["Close"], tech_cfg.get("ma_long", 50))
+            downtrend_full = (sma20_full < sma50_full) & (df["Close"] < sma50_full)
+            fade_result = bounce_fade_setup(
+                df["High"], df["Low"], df["Close"], breakdown_mask, downtrend_full,
+                rsi_full, atr_full,
+                lookback=bounce_fade_lookback, min_bounce_atr=bounce_fade_min_bounce_atr,
+                rsi_recovery_min=bounce_fade_rsi_min, rsi_recovery_max=bounce_fade_rsi_max,
+            )
+            bearish_candidate_mask = fade_result["fade_signal"]
+        else:
+            bearish_candidate_mask = breakdown_mask
 
-        for i in signal_indices:
+        # Only iterate breakout/breakdown bars that have enough history for indicator
+        # computation. Bearish candidates are tagged alongside bullish ones and run
+        # through the same per-bar pipeline below with mirrored quality gates/
+        # entry-stop-target math — see determine_direction()'s docstring for why the
+        # live/paper kill switch (enable_bearish_signals) doesn't gate backtesting:
+        # generating a real bearish outcome archive here is what a future calibration
+        # pass needs to validate the bearish path at all.
+        signal_indices = (
+            [(i, "bullish") for i in range(60, len(df) - 1) if breakout_mask.iloc[i]]
+            + [(i, "bearish") for i in range(60, len(df) - 1) if bearish_candidate_mask.iloc[i]]
+        )
+        signal_indices.sort(key=lambda pair: pair[0])
+
+        for i, direction in signal_indices:
+            is_bearish = direction == "bearish"
+            is_fade_candidate = is_bearish and fade_result is not None
+            level_mask = prior_20d_low if is_bearish else prior_20d_high
             bar_date = df.index[i]
             if signal_cutoff is not None and bar_date <= signal_cutoff:
                 # Warmup-buffer bar (real pre-cutoff history included so early
@@ -415,13 +531,22 @@ def _simulate_test_signals(
                 continue
 
             entry_idx = i
-            if require_confirmation_bar:
-                # Next bar must still close above the breakout level — filters
-                # out one-day pops that immediately fade. Entry shifts to the
-                # confirmation bar itself, not the original breakout bar.
+            # require_confirmation_bar's "next bar still beyond the breakout/
+            # breakdown level" check is meaningless for a capitulation_fade
+            # candidate (there's no fresh breakdown level at this bar — the
+            # breakdown it's fading already happened up to bounce_fade_lookback
+            # bars ago) — skip it for fade candidates rather than applying a
+            # mismatched check.
+            if require_confirmation_bar and not (is_bearish and fade_result is not None):
+                # Next bar must still close beyond the breakout/breakdown level —
+                # filters out one-day pops/drops that immediately fade. Entry
+                # shifts to the confirmation bar itself, not the original bar.
                 if i + 1 >= len(df):
                     continue
-                if not (df["Close"].iloc[i + 1] > prior_20d_high.iloc[i]):
+                next_close = df["Close"].iloc[i + 1]
+                level = level_mask.iloc[i]
+                confirmed = (next_close < level) if is_bearish else (next_close > level)
+                if not confirmed:
                     continue
                 entry_idx = i + 1
                 bar_date = df.index[entry_idx]
@@ -436,31 +561,59 @@ def _simulate_test_signals(
             except Exception:
                 continue
 
-            # Quality pre-filters: conditions most predictive of breakout follow-through.
-            # 1. trend_intact: SMA20 > SMA50 AND price > SMA50 (stock uptrend structure).
-            # 2. Sector uptrend: SMH SMA20 > SMA50 AND SMH close > SMA50.
-            # 3. 20-day raw RS > 0: stock outperformed SMH over the past 20 days.
-            #    Captures intra-sector rotation (e.g., non-NVDA names lagging NVDA-inflated SMH)
-            #    that rs_zscore (a normalized z-score) can miss because z-score can be positive
-            #    even when absolute performance lags the benchmark.
-            # 4. RSI band (default 45-82): healthy momentum range.
+            # Quality pre-filters: conditions most predictive of breakout/breakdown
+            # follow-through, mirrored per direction.
+            # 1. trend_intact/downtrend_intact: SMA20/SMA50/price structure.
+            # 2. Sector alignment: SMH must be in the same trend as the candidate.
+            # 3. 20-day raw RS: stock outperformed (bullish) / underperformed
+            #    (bearish) SMH over the past 20 days. Captures intra-sector rotation
+            #    that rs_zscore (a normalized z-score) can miss because z-score can
+            #    disagree in sign with absolute performance vs. the benchmark.
+            # 4. RSI band (bullish 45-82 default, bearish rsi_min_bearish/
+            #    rsi_max_bearish default 18-55): healthy momentum range per direction.
             # 5. Optional volume confirmation / next-bar confirmation — see docstring.
-            if not indicators.get("trend_intact", False):
-                continue
-            if smh_sector_trend is not None:
-                smh_idx = smh_sector_trend.index.get_indexer([bar_date], method="ffill")
-                if smh_idx[0] >= 0 and not bool(smh_sector_trend.iloc[smh_idx[0]]):
+            if is_bearish:
+                if not indicators.get("downtrend_intact", False):
                     continue
-            if float(indicators.get("rs_zscore", -2.0)) < 0.0:
-                continue
-            if len(df_slice) >= 21 and len(bench_slice) >= 21:
-                stock_ret_20d = float(df_slice["Close"].iloc[-1] / df_slice["Close"].iloc[-21]) - 1.0
-                bench_ret_20d = float(bench_slice.iloc[-1] / bench_slice.iloc[-21]) - 1.0
-                if stock_ret_20d < bench_ret_20d:
+                if smh_sector_downtrend is not None:
+                    smh_idx = smh_sector_downtrend.index.get_indexer([bar_date], method="ffill")
+                    if smh_idx[0] >= 0 and not bool(smh_sector_downtrend.iloc[smh_idx[0]]):
+                        continue
+                if float(indicators.get("rs_zscore", 2.0)) > 0.0:
                     continue
-            rsi_val = float(indicators.get("rsi_14", 50.0))
-            if rsi_val < rsi_min or rsi_val > rsi_max:
-                continue
+                if len(df_slice) >= 21 and len(bench_slice) >= 21:
+                    stock_ret_20d = float(df_slice["Close"].iloc[-1] / df_slice["Close"].iloc[-21]) - 1.0
+                    bench_ret_20d = float(bench_slice.iloc[-1] / bench_slice.iloc[-21]) - 1.0
+                    if stock_ret_20d > bench_ret_20d:
+                        continue  # stock outperformed the benchmark -> not a bearish-confirming underperformer
+                # rsi_min_bearish/rsi_max_bearish is an oversold-entry band
+                # calibrated for the continuation style (short the breakdown
+                # while still falling). A fade candidate's RSI is, by
+                # construction, already recovered into bounce_fade_rsi_min/max
+                # (see bounce_fade_setup) — applying the oversold band here
+                # too would reject every fade candidate (its recovered RSI
+                # exceeds rsi_max_bearish), checking the wrong thing entirely.
+                if not is_fade_candidate:
+                    rsi_val = float(indicators.get("rsi_14", 50.0))
+                    if rsi_val < rsi_min_bearish or rsi_val > rsi_max_bearish:
+                        continue
+            else:
+                if not indicators.get("trend_intact", False):
+                    continue
+                if smh_sector_trend is not None:
+                    smh_idx = smh_sector_trend.index.get_indexer([bar_date], method="ffill")
+                    if smh_idx[0] >= 0 and not bool(smh_sector_trend.iloc[smh_idx[0]]):
+                        continue
+                if float(indicators.get("rs_zscore", -2.0)) < 0.0:
+                    continue
+                if len(df_slice) >= 21 and len(bench_slice) >= 21:
+                    stock_ret_20d = float(df_slice["Close"].iloc[-1] / df_slice["Close"].iloc[-21]) - 1.0
+                    bench_ret_20d = float(bench_slice.iloc[-1] / bench_slice.iloc[-21]) - 1.0
+                    if stock_ret_20d < bench_ret_20d:
+                        continue
+                rsi_val = float(indicators.get("rsi_14", 50.0))
+                if rsi_val < rsi_min or rsi_val > rsi_max:
+                    continue
             if min_breakout_volume_zscore is not None:
                 if float(indicators.get("breakout_volume_zscore", 0.0)) < min_breakout_volume_zscore:
                     continue
@@ -484,7 +637,7 @@ def _simulate_test_signals(
                     try:
                         vix_proxy = _compute_vix_proxy(smh_slice)
                         regime = classify_regime(vix=vix_proxy, smh_ohlcv=smh_slice)
-                        regime_mod = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
+                        regime_mod = get_regime_modifiers(regime, cfg, direction=direction).get("regime_modifier", 0.0)
                     except Exception:
                         pass
 
@@ -521,20 +674,51 @@ def _simulate_test_signals(
                     rotation_result = compute_rotation_state(
                         smh_close=smh_slice["Close"], spy_close=spy_slice, cfg=cfg
                     )
-                    rotation_mod = dampen_rotation_penalty_for_leader(
-                        rotation_result.get("confidence_modifier", 0.0),
-                        float(indicators.get("rs_zscore", 0.0)),
-                    )
                     rotation_state_label = rotation_result.get("rotation_state", "neutral")
+                    rotation_mod = dampen_rotation_penalty_for_leader(
+                        get_rotation_modifier(rotation_state_label, cfg, direction=direction),
+                        float(indicators.get("rs_zscore", 0.0)),
+                        direction=direction,
+                    )
                 except Exception:
                     rotation_mod = 0.0
                     rotation_state_label = "unavailable"
+
+            # Cross-ticker: real sector-peer trend/breakout state + 5-day
+            # returns as of bar_date (point-in-time, no lookahead — every
+            # peer's OHLCV is sliced to <= bar_date before analyze_cross_ticker
+            # ever sees it). Uses the sector-wide trend_intact/breakout_confirmed
+            # masks pre-computed once above (_sector_trend_intact/
+            # _sector_breakout_confirmed) rather than a full
+            # compute_technical_indicators() call per sibling per bar.
+            # earnings_modifier has no equivalent fix — see its own comment
+            # at the compute_confidence_score() call below for why.
+            cross_ticker_mod = 0.0
+            if len(_sector_trend_intact) > 1:
+                try:
+                    ticker_scores: dict[str, dict] = {}
+                    ohlcv_data: dict[str, pd.DataFrame] = {}
+                    for peer, peer_df in test_data.items():
+                        if peer == benchmark_ticker or peer not in _sector_trend_intact:
+                            continue
+                        peer_idx = peer_df.index.get_indexer([bar_date], method="ffill")
+                        if peer_idx[0] < 0:
+                            continue
+                        ohlcv_data[peer] = peer_df.iloc[:peer_idx[0] + 1]
+                        ticker_scores[peer] = {
+                            "trend_intact": bool(_sector_trend_intact[peer].iloc[peer_idx[0]]),
+                            "breakout_confirmed": bool(_sector_breakout_confirmed[peer].iloc[peer_idx[0]]),
+                        }
+                    cross_result = analyze_cross_ticker(ticker_scores, ohlcv_data, cfg=cfg)
+                    cross_ticker_mod = cross_result.get(ticker, {}).get("confidence_modifier", 0.0)
+                except Exception:
+                    cross_ticker_mod = 0.0
 
             # Price-momentum sentiment proxy: when price is trending up,
             # retail sentiment tends to be bullish. This is a documented
             # phenomenon at short horizons and better than a flat neutral
             # mid-point.
-            sentiment = _sentiment_from_price_momentum(df_slice)
+            sentiment = _sentiment_from_price_momentum(df_slice, direction=direction)
 
             # Historical news: use real AV articles when downloaded,
             # fall back to neutral mid-point when not yet available.
@@ -548,7 +732,7 @@ def _simulate_test_signals(
                 try:
                     from datetime import timezone as _tz
                     ref = bar_dt if bar_dt.tzinfo else bar_dt.replace(tzinfo=_tz.utc)
-                    news = compute_news_score(hist_articles, [], ticker, cfg, reference_date=ref)
+                    news = compute_news_score(hist_articles, [], ticker, cfg, reference_date=ref, direction=direction)
                 except Exception:
                     news = _neutral_news
             else:
@@ -564,13 +748,25 @@ def _simulate_test_signals(
                     news=news,
                     regime_modifier=regime_mod,
                     sector_rotation_modifier=rotation_mod,
+                    # earnings_modifier stays hardcoded 0.0 — unlike macro/
+                    # rotation/cross_ticker above, there is no historical
+                    # earnings-date archive anywhere in this repo, and
+                    # yfinance's live calendar only returns the *next
+                    # upcoming* earnings date, which can't be used point-in-
+                    # time for a bar in the past without leaking future
+                    # information. Wiring this in for real needs a genuine
+                    # historical earnings-date archive built first (the same
+                    # kind of prerequisite data/historical_macro/TNX.csv/
+                    # DXY.csv was for macro_overlay) — a known, honest gap,
+                    # not an oversight.
                     earnings_modifier=0.0,
-                    cross_ticker_modifier=0.0,
+                    cross_ticker_modifier=cross_ticker_mod,
                     seasonality_modifier=seas_mod,
                     macro_modifier=macro_mod,
                     cfg=cfg,
                     regime=regime,
                     fundamental=fundamental,
+                    direction_override=direction,
                 )
             except Exception:
                 continue
@@ -581,27 +777,66 @@ def _simulate_test_signals(
 
             entry = indicators.get("close", 0.0)
             atr = indicators.get("atr_14", entry * 0.02)
-            breakout_level = indicators.get("rolling_high_20", entry)
+            # A fade candidate has no fresh breakdown level at this bar (the
+            # breakdown it's fading already happened up to bounce_fade_lookback
+            # bars ago) — anchor the entry zone on the close itself rather than
+            # rolling_low_20, which would incorrectly reference a stale level.
+            level = entry if is_fade_candidate else indicators.get(
+                "rolling_low_20" if is_bearish else "rolling_high_20", entry
+            )
+            # The fade's own bounce swing-high/post-breakdown-low (already
+            # computed by bounce_fade_setup) are more precise resistance/target
+            # references than the generic volume-profile nodes indicators.get()
+            # would otherwise supply — reuses compute_stop_loss/compute_target's
+            # existing high_volume_resistance/low_volume_area_below params (see
+            # risk_reward.py; same mechanism B1's volume-profile wiring uses).
+            fade_resistance = fade_target = None
+            if is_fade_candidate:
+                fade_resistance = fade_result["swing_high_since_breakdown"].iloc[entry_idx]
+                fade_target = fade_result["post_breakdown_low"].iloc[entry_idx]
 
             try:
-                entry_lower, _ = compute_entry_zone(
-                    entry, breakout_level, atr,
+                effective_stop_atr_mult = (
+                    stop_atr_multiplier_bearish
+                    if (is_bearish and stop_atr_multiplier_bearish is not None)
+                    else rr_cfg.get("stop_atr_multiplier", 2.0)
+                )
+                effective_min_rr = (
+                    min_rr_bearish
+                    if (is_bearish and min_rr_bearish is not None)
+                    else rr_cfg.get("min_rr_ratio", 3.0)
+                )
+                entry_lower, entry_upper = compute_entry_zone(
+                    entry, level, atr,
                     rr_cfg.get("entry_zone_half_width_atr", 0.25),
+                    direction=direction,
                 )
                 stop = compute_stop_loss(
-                    entry_lower, atr,
+                    entry_upper if is_bearish else entry_lower, atr,
                     high_volume_support=indicators.get("high_volume_support"),
-                    stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                    high_volume_resistance=(
+                        fade_resistance if is_fade_candidate else indicators.get("high_volume_resistance")
+                    ),
+                    stop_atr_multiplier=effective_stop_atr_mult,
+                    direction=direction,
                 )
                 target = compute_target(
                     entry, stop,
                     low_volume_area_above=indicators.get("low_volume_area_above"),
-                    min_rr=rr_cfg.get("min_rr_ratio", 3.0),
+                    low_volume_area_below=(
+                        fade_target if is_fade_candidate else indicators.get("low_volume_area_below")
+                    ),
+                    min_rr=effective_min_rr,
+                    direction=direction,
                 )
             except Exception:
                 continue
 
-            if stop <= 0 or target is None or target <= entry or atr <= 0:
+            if stop <= 0 or target is None or atr <= 0:
+                continue
+            if is_bearish and target >= entry:
+                continue
+            if not is_bearish and target <= entry:
                 continue
 
             future = df.iloc[entry_idx + 1: entry_idx + 16]
@@ -610,7 +845,7 @@ def _simulate_test_signals(
 
             outcome = simulate_trade_outcome(
                 signal_date=str(bar_date),
-                direction="bullish",
+                direction=direction,
                 entry=entry,
                 stop=stop,
                 target=target,
@@ -620,6 +855,7 @@ def _simulate_test_signals(
             )
             outcome["ticker"] = ticker
             outcome["sector"] = sector
+            outcome["direction"] = direction
             outcome["macro_state"] = macro_state_label
             outcome["rotation_state"] = rotation_state_label
             # Numeric modifier values actually used for this bar's score, not
@@ -627,13 +863,15 @@ def _simulate_test_signals(
             # needed to measure whether each modifier's real-world outcome
             # correlation matches the magnitude config/swing_config.yaml's
             # modifiers block assigns it (see
-            # backtesting/modifier_calibration_diagnostic.py). earnings/
-            # cross_ticker aren't included since they're still hardcoded to
-            # 0.0 above and carry no information here.
+            # backtesting/modifier_calibration_diagnostic.py). earnings isn't
+            # included since it's still hardcoded to 0.0 above (see that call
+            # site's comment) and carries no information here. cross_ticker
+            # is now real (wired in above) and included.
             outcome["regime_modifier"] = regime_mod
             outcome["seasonality_modifier"] = seas_mod
             outcome["macro_modifier"] = macro_mod
             outcome["sector_rotation_modifier"] = rotation_mod
+            outcome["cross_ticker_modifier"] = cross_ticker_mod
             # Category sub-totals — needed by feedback_loop._fit_logistic_weights'
             # regression (technical/sentiment/news weight calibration) to have
             # anything to fit against; previously only the blended confidence
@@ -664,7 +902,7 @@ def _compute_vix_proxy(smh_df: pd.DataFrame) -> float:
     return max(10.0, min(60.0, realized_vol))
 
 
-def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
+def _sentiment_from_price_momentum(df_slice: pd.DataFrame, direction: str = "bullish") -> dict:
     """
     Derive a proxy sentiment dict from 5-day price momentum.
 
@@ -676,29 +914,55 @@ def _sentiment_from_price_momentum(df_slice: pd.DataFrame) -> dict:
     Maps to the same dict structure expected by compute_confidence_score():
     sentiment_score_total, ratio_score, velocity_score, engagement_score,
     dominant_sentiment, sentiment_offline.
+
+    direction: sentiment_score_total (and the sub-scores derived from it)
+    reflect how strongly momentum CONFIRMS this candidate's own direction —
+    symmetric 3-tier/neutral/3-tier ladder either way (previously 3 bullish
+    tiers / 2 neutral / 1 bearish tier, skewed toward reading momentum as
+    confirming a bullish candidate regardless of what was actually being
+    evaluated). dominant_sentiment stays direction-agnostic — it reports
+    real momentum direction (bullish/neutral/bearish), not candidate-relative.
     """
     close = df_slice["Close"].values
     mom_5d = (close[-1] - close[-6]) / close[-6] if len(close) >= 6 else 0.0
     mom_1d = (close[-1] - close[-2]) / close[-2] if len(close) >= 2 else 0.0
 
-    # Map 5-day momentum to total sentiment score (0-15 scale)
-    if mom_5d > 0.07:
-        total, dom = 13.0, "bullish"
-    elif mom_5d > 0.04:
-        total, dom = 11.5, "bullish"
-    elif mom_5d > 0.015:
-        total, dom = 9.5, "bullish"
-    elif mom_5d > -0.005:
-        total, dom = 8.0, "neutral"
-    elif mom_5d > -0.025:
-        total, dom = 6.5, "neutral"
+    if mom_5d > 0.015:
+        dom = "bullish"
+    elif mom_5d < -0.015:
+        dom = "bearish"
     else:
-        total, dom = 5.0, "bearish"
+        dom = "neutral"
 
-    # Add intraday momentum bonus (strong green day often spikes retail chatter)
-    if mom_1d > 0.03:
+    # Confirmation-relative momentum: positive = confirms this candidate's
+    # own direction, negative = opposes it. Flipping the sign for "bearish"
+    # is what makes the tier ladder below symmetric per-direction instead of
+    # always reading raw upward momentum as the confirming case.
+    sign = -1.0 if direction == "bearish" else 1.0
+    signed_mom_5d = sign * mom_5d
+    signed_mom_1d = sign * mom_1d
+
+    # Map confirmation-relative 5-day momentum to total sentiment score (0-15
+    # scale) — symmetric 3 confirming tiers / 1 neutral / 3 opposing tiers.
+    if signed_mom_5d > 0.07:
+        total = 14.0
+    elif signed_mom_5d > 0.04:
+        total = 12.0
+    elif signed_mom_5d > 0.015:
+        total = 10.0
+    elif signed_mom_5d > -0.015:
+        total = 7.5
+    elif signed_mom_5d > -0.04:
+        total = 5.0
+    elif signed_mom_5d > -0.07:
+        total = 3.0
+    else:
+        total = 1.0
+
+    # Add intraday momentum bonus (a strong confirming day often spikes retail chatter)
+    if signed_mom_1d > 0.03:
         total = min(15.0, total + 1.1)
-    elif mom_1d < -0.03:
+    elif signed_mom_1d < -0.03:
         total = max(0.0, total - 1.1)
 
     # Break total into sub-scores proportionally (ratio carries most weight)

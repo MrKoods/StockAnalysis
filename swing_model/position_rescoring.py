@@ -1,7 +1,7 @@
 """
 Re-scores open positions daily; flags early exit when confidence drops significantly
 post-entry. Tracks confidence time series for each open position throughout the
-5-15 day holding window. Fires early exit Discord alert if confidence drops > 10 points.
+1-15 day holding window. Fires early exit Discord alert if confidence drops > 10 points.
 """
 
 from datetime import datetime, timezone

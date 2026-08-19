@@ -118,6 +118,24 @@ class TestRegimeDetection:
         mods = get_regime_modifiers(REGIME_CHOPPY, {})
         assert mods["regime_modifier"] < 0
 
+    def test_bearish_direction_mirrors_trending_up_and_down(self):
+        # A short thesis is penalized by an uptrend and rewarded by a
+        # downtrend — the mirror of a bullish candidate's treatment.
+        up_bearish = get_regime_modifiers(REGIME_TRENDING_UP, {}, direction="bearish")
+        down_bearish = get_regime_modifiers(REGIME_TRENDING_DOWN, {}, direction="bearish")
+        assert up_bearish["regime_modifier"] < 0
+        assert down_bearish["regime_modifier"] > 0
+        up_bullish = get_regime_modifiers(REGIME_TRENDING_UP, {}, direction="bullish")
+        down_bullish = get_regime_modifiers(REGIME_TRENDING_DOWN, {}, direction="bullish")
+        assert up_bearish["regime_modifier"] == -up_bullish["regime_modifier"]
+        assert down_bearish["regime_modifier"] == -down_bullish["regime_modifier"]
+
+    def test_bearish_direction_leaves_choppy_and_high_vol_unchanged(self):
+        assert (get_regime_modifiers(REGIME_CHOPPY, {}, direction="bearish")["regime_modifier"]
+                == get_regime_modifiers(REGIME_CHOPPY, {}, direction="bullish")["regime_modifier"])
+        assert (get_regime_modifiers(REGIME_HIGH_VOL, {}, direction="bearish")["regime_modifier"]
+                == get_regime_modifiers(REGIME_HIGH_VOL, {}, direction="bullish")["regime_modifier"])
+
 
 # ---------------------------------------------------------------------------
 # Sector Rotation
@@ -213,6 +231,30 @@ class TestSectorRotation:
         assert dampen_rotation_penalty_for_leader(-15.0, 3.0) == -7.5
         # Beyond the anchor, dampening stays capped at 50% — never over-dampens
         assert dampen_rotation_penalty_for_leader(-15.0, 5.0) == -7.5
+
+    def test_get_rotation_modifier_mirrors_for_bearish(self):
+        # Outflow (money leaving the sector) confirms a bearish thesis instead
+        # of penalizing it; inflow penalizes a bearish thesis instead of
+        # boosting it — the mirror of the bullish-default mapping.
+        assert get_rotation_modifier(ROTATION_OUTFLOW, {}, direction="bearish") == 15.0
+        assert get_rotation_modifier(ROTATION_INFLOW, {}, direction="bearish") == -5.0
+        assert get_rotation_modifier(ROTATION_NEUTRAL, {}, direction="bearish") == 0.0
+
+    def test_dampen_rotation_penalty_for_bearish_downside_leader(self):
+        # Mirror of the bullish leader-dampening tests above: a strongly
+        # underperforming ticker (very negative rs_zscore, "leading the
+        # decline") dampens the penalty an adverse (inflow) modifier applies
+        # to a bearish thesis, using the mirrored threshold/cap.
+        assert dampen_rotation_penalty_for_leader(-15.0, 0.0, direction="bearish") == -15.0
+        assert dampen_rotation_penalty_for_leader(-15.0, -1.4, direction="bearish") == -15.0
+        assert dampen_rotation_penalty_for_leader(-15.0, -1.5, direction="bearish") == -15.0
+        assert dampen_rotation_penalty_for_leader(-15.0, -2.25, direction="bearish") == -11.25
+        assert dampen_rotation_penalty_for_leader(-15.0, -3.0, direction="bearish") == -7.5
+        assert dampen_rotation_penalty_for_leader(-15.0, -5.0, direction="bearish") == -7.5
+        # Positive rs_zscore (an outperformer, not a downside leader) gets no
+        # dampening on the bearish side — the mirror-image threshold, not the
+        # bullish one.
+        assert dampen_rotation_penalty_for_leader(-15.0, 3.0, direction="bearish") == -15.0
 
 
 # ---------------------------------------------------------------------------

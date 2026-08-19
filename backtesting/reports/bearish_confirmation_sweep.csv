@@ -1,0 +1,11 @@
+variant,sector,n_trades,win_rate,avg_rr,sharpe
+no_confirmation_bar (prior best),semiconductors,30,0.5667,1.35,-1.93
+no_confirmation_bar (prior best),regional_banks,47,0.4255,1.39,-2.12
+no_confirmation_bar (prior best),healthcare,69,0.3333,1.5,-2.03
+no_confirmation_bar (prior best),consumer_discretionary,193,0.3109,1.37,-1.92
+no_confirmation_bar (prior best),ALL (pooled),339,0.354,1.4,-1.73
+confirmation_bar_required,semiconductors,21,0.619,1.41,-1.52
+confirmation_bar_required,regional_banks,31,0.3226,1.38,-3.18
+confirmation_bar_required,healthcare,38,0.4474,1.5,-1.97
+confirmation_bar_required,consumer_discretionary,112,0.3393,1.46,-2.1
+confirmation_bar_required,ALL (pooled),202,0.3861,1.45,-1.77

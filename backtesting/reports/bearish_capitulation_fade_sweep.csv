@@ -1,0 +1,31 @@
+variant,sector,n_trades,win_rate,avg_rr,sharpe
+baseline_continuation_best_known,semiconductors,30,0.5667,1.35,-1.93
+baseline_continuation_best_known,regional_banks,47,0.4468,1.39,-2.02
+baseline_continuation_best_known,healthcare,69,0.3333,1.5,-2.03
+baseline_continuation_best_known,consumer_discretionary,193,0.3316,1.43,-1.77
+baseline_continuation_best_known,ALL (pooled),339,0.3687,1.43,-1.61
+capitulation_fade_default,semiconductors,1,1.0,2.83,0.0
+capitulation_fade_default,regional_banks,0,,,
+capitulation_fade_default,healthcare,2,0.0,0.0,-1323.75
+capitulation_fade_default,consumer_discretionary,3,0.3333,3.0,-5.09
+capitulation_fade_default,ALL (pooled),6,0.3333,2.92,-4.95
+capitulation_fade_tighter_bounce,semiconductors,1,1.0,2.83,0.0
+capitulation_fade_tighter_bounce,regional_banks,0,,,
+capitulation_fade_tighter_bounce,healthcare,2,0.0,0.0,-1323.75
+capitulation_fade_tighter_bounce,consumer_discretionary,3,0.3333,3.0,-5.09
+capitulation_fade_tighter_bounce,ALL (pooled),6,0.3333,2.92,-4.95
+capitulation_fade_wider_rsi,semiconductors,3,0.6667,1.55,-1.04
+capitulation_fade_wider_rsi,regional_banks,4,0.25,3.0,-1.85
+capitulation_fade_wider_rsi,healthcare,6,0.1667,2.37,-4.29
+capitulation_fade_wider_rsi,consumer_discretionary,9,0.3333,1.73,-4.4
+capitulation_fade_wider_rsi,ALL (pooled),22,0.3182,1.95,-3.28
+capitulation_fade_shorter_lookback,semiconductors,0,,,
+capitulation_fade_shorter_lookback,regional_banks,0,,,
+capitulation_fade_shorter_lookback,healthcare,1,0.0,0.0,0.0
+capitulation_fade_shorter_lookback,consumer_discretionary,2,0.5,3.0,-4.59
+capitulation_fade_shorter_lookback,ALL (pooled),3,0.3333,3.0,-5.11
+capitulation_fade_best_known_exit,semiconductors,1,1.0,2.83,0.0
+capitulation_fade_best_known_exit,regional_banks,0,,,
+capitulation_fade_best_known_exit,healthcare,2,0.0,0.0,-1323.75
+capitulation_fade_best_known_exit,consumer_discretionary,3,0.3333,1.5,-8.55
+capitulation_fade_best_known_exit,ALL (pooled),6,0.3333,2.17,-6.36

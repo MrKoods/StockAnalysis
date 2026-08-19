@@ -87,7 +87,7 @@ geopolitical_penalty: -5
 
 # Holding period
 holding_period:
-  min_days: 5
+  min_days: 1
   max_days: 15
 
 # Confidence thresholds
@@ -99,6 +99,39 @@ confidence:
     - 90
     - 92
     - 95
+
+# Bearish/breakdown signal detection — kill switch, same pattern as
+# feedback_loop.sector_calibration_enabled below. scoring.py::determine_direction()
+# only returns "bearish" for live/paper trading when this is explicitly true;
+# backtesting/calibration bypass this flag to validate the bearish path
+# regardless of the live default.
+#
+# Turned on 2026-08-19 (paper trading only — no real capital) by explicit user
+# decision, made with full knowledge that the backtest does NOT clear the
+# go-live gate in any sector (see CHANGELOG v2.2.58 and its follow-up
+# research entry): every bearish backtest bucket scored a negative Sharpe
+# across three independent rounds of tuning. The goal of turning this on
+# anyway is to start accumulating real bearish paper-trade outcomes — the one
+# lever backtesting against fixed historical data can't provide — not a claim
+# that the bearish path is fit to trade. Revert to false to go back to
+# bullish-only live/paper behavior at any time.
+enable_bearish_signals: true
+
+# Bearish entry style — backtesting-only research toggle (see
+# backtesting/simulation.py's _simulate_test_signals docstring and
+# backtesting/bearish_capitulation_fade_sweep.py). "continuation" (current,
+# unchanged default) shorts the breakdown bar itself, mirroring the bullish
+# breakout entry. "capitulation_fade" is an experimental alternative added
+# 2026-08-19: instead of shorting the fresh breakdown, it waits for the
+# relief bounce that typically follows and shorts that bounce's exhaustion —
+# CHANGELOG v2.2.58/59's working theory is that shorting a fresh breakdown
+# lands too close to where a squeeze/reversal is likeliest, unlike the
+# bullish case. NOT wired into live/paper scoring (scoring.py's
+# determine_direction() has no notion of entry "style" — this only affects
+# which bars backtesting/simulation.py treats as bearish candidates), and no
+# live pathway reads this key yet. See CHANGELOG for the backtest comparison
+# before ever wiring this live.
+bearish_entry_style: continuation
 
 # Scoring weights (max contribution per category — must sum to 100)
 scoring_weights:
@@ -522,7 +555,10 @@ sentiment:
 
 # News
 news:
-  decay_halflife_hours: 24           # Decay curve calibrated to 5-15 day holding period
+  decay_halflife_hours: 24           # Decay curve calibrated to the 1-15 day holding period (news
+                                      # relevance decay itself is a separate calibration from the
+                                      # holding-period bounds — see decay_zero_at_days below, left
+                                      # unchanged on purpose when min_days moved 5->1)
   decay_zero_at_days: 5             # News older than 5 trading days effectively zeroed out
   cluster_window_days: 2            # Same-day or adjacent days for clustering
   alpha_vantage_news_function: "NEWS_SENTIMENT"

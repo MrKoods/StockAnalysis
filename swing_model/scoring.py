@@ -68,6 +68,12 @@ from swing_model.win_probability_calibration import calibrate_win_probability
 # upward once enough live/paper-trading history accumulates to build the
 # missing modifier/positioning/sentiment archives the backtest needs to
 # simulate a fair comparison.
+#
+# Update: sector_rotation_modifier was wired in for real in v2.2.47, and
+# cross_ticker_modifier followed in v2.2.60 — the "hardcoded to 0.0" claim
+# above no longer applies to either. earnings_modifier remains hardcoded
+# 0.0 (no historical earnings-date archive exists; see backtesting/
+# simulation.py's own comment at its compute_confidence_score() call).
 CONFIDENCE_THRESHOLD = 70
 
 # Category maximums (updated for 5-category system)
@@ -202,6 +208,7 @@ def compute_confidence_score(
     event_gate_trigger: Optional[str] = None,
     as_of_date: Optional[date] = None,
     win_probability_calibration: Optional[list] = None,
+    direction_override: Optional[str] = None,
 ) -> dict:
     """
     Compute final confidence score for one ticker.
@@ -242,6 +249,14 @@ def compute_confidence_score(
                   analysis.py for what the data suggests instead of silently
                   swapping this constant. None (the default) leaves
                   calibrated_win_probability as final_score/100, unchanged.
+    direction_override: pre-determined direction ("bullish"/"bearish") from
+                  the caller, when it already hoisted determine_direction()
+                  earlier in its own pipeline (see run_swing_model.py/
+                  paper_runner.py) to score sentiment/news/positioning with
+                  the correct direction-aware sub-signal formulas before this
+                  function ever runs. None (the default) recomputes direction
+                  internally from technical/sentiment, same as before this
+                  param existed — existing callers/tests are unaffected.
 
     Returns full score breakdown dict for audit_log and Discord alert.
     """
@@ -252,10 +267,19 @@ def compute_confidence_score(
     if positioning is None:
         positioning = {}
 
+    # Direction must be known before Step 1, since bearish candidates use the
+    # mirrored bearish technical sub-score formulas (compute_technical_sub_scores'
+    # direction param) — computed here (or accepted pre-computed via
+    # direction_override) rather than after base_score like before, but from
+    # the exact same inputs (technical's raw booleans, sentiment's
+    # dominant_sentiment), so this reordering doesn't change what direction
+    # resolves to for any existing caller.
+    direction = direction_override if direction_override is not None else determine_direction(technical, sentiment, cfg)
+
     # ---------------------------------------------------------------------------
     # Step 1: Technical sub-scores (0-40)
     # ---------------------------------------------------------------------------
-    tech_sub = compute_technical_sub_scores(technical, cfg, volume_profile_score)
+    tech_sub = compute_technical_sub_scores(technical, cfg, volume_profile_score, direction=direction)
     technical_total = tech_sub["technical_total"]  # 0-40
 
     # ---------------------------------------------------------------------------
@@ -416,7 +440,6 @@ def compute_confidence_score(
     if positioning.get("positioning_offline", False) or not positioning:
         final_score = min(final_score, positioning.get("positioning_offline_cap", 70))
 
-    direction = determine_direction(technical, sentiment)
     # Event Severity Gate is advisory, not a veto — the signal still surfaces on
     # its own merits; event_gate_blocked/event_gate_trigger are carried through
     # below so the caller can flag the active event alongside the signal.
@@ -526,6 +549,7 @@ def compute_technical_sub_scores(
     technical: dict,
     cfg: Optional[dict] = None,
     volume_profile_score_override: Optional[float] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Map raw technical indicator values to 0-8 sub-scores.
@@ -536,63 +560,87 @@ def compute_technical_sub_scores(
     - rs_score:             RS vs. SMH z-score (0-8)
     - rsi_score:            RSI position mapping (0-8)
     - volume_profile_score: supplied from volume_profile.py (0-8)
+
+    direction: "bullish" (default) or "bearish". For "bearish", breakout_score/
+    trend_score/rsi_score/volume_profile_score use their mirrored bearish
+    counterparts (breakdown_confirmed instead of breakout_confirmed,
+    downtrend_intact instead of trend_intact, an oversold RSI band instead of
+    the overbought-friendly bullish one, and the bearish volume-profile
+    resistance read). rs_score is reused unchanged — rs_zscore is already
+    signed, so a strongly negative reading (underperforming the benchmark)
+    scores high for a bearish candidate the same formula already does for a
+    strongly positive reading on a bullish one.
     """
     if cfg is None:
         cfg = {}
+    is_bearish = direction == "bearish"
 
     # ---------------------------------------------------------------------------
-    # Breakout score (0-8): volume z-score signals unusual activity at breakout
+    # Breakout score (0-8): volume z-score signals unusual activity at the
+    # breakout (bullish) or breakdown (bearish) bar.
     # Clamp z-score to [-3, +3] range, then scale to 0-8
-    # z=0 (average volume) → 4; z=+2 (strong breakout volume) → 6.7; z=+3 → 8
+    # z=0 (average volume) → 4; z=+2 (strong conviction volume) → 6.7; z=+3 → 8
     # ---------------------------------------------------------------------------
     vol_z = float(technical.get("breakout_volume_zscore", 0.0))
     vol_z_clamp = max(-3.0, min(3.0, vol_z))
     breakout_raw = 4.0 + vol_z_clamp * (4.0 / 3.0)  # z=0→4, z=+3→8, z=-3→0
-    breakout_confirmed = bool(technical.get("breakout_confirmed", False))
-    if not breakout_confirmed:
-        breakout_raw = min(breakout_raw, 4.0)  # Cap at neutral if no breakout
+    confirmed_key = "breakdown_confirmed" if is_bearish else "breakout_confirmed"
+    if not bool(technical.get(confirmed_key, False)):
+        breakout_raw = min(breakout_raw, 4.0)  # Cap at neutral if no breakout/breakdown
     breakout_score = round(max(0.0, min(8.0, breakout_raw)), 2)
 
     # ---------------------------------------------------------------------------
     # Trend score (0-8): 3-tier scoring (scaled from 0-10 to 0-8)
-    #   sma20 > sma50 AND close > sma50 AND MACD bullish → 8
-    #   sma20 > sma50 AND close > sma50 → 6
-    #   close > sma50 only → 3.2
-    #   close < sma50 → 1.2
+    #   Bullish: sma20 > sma50 AND close > sma50 AND MACD bullish → 8
+    #            sma20 > sma50 AND close > sma50 → 6
+    #            close > sma50 only → 3.2
+    #            close < sma50 → 1.2
+    #   Bearish: mirror image using downtrend_intact/macd_bearish and the
+    #            inverse of sma_20_above_sma_50/price_above_sma_50.
     # ---------------------------------------------------------------------------
-    trend_intact = bool(technical.get("trend_intact", False))
-    sma20_above_50 = bool(technical.get("sma_20_above_sma_50", False))
-    price_above_50 = bool(technical.get("price_above_sma_50", False))
-    macd_bullish = bool(technical.get("macd_bullish", False))
-    # Default True: callers/tests that don't set this key are asserting a real
-    # macd_bullish value themselves, same as before this field existed. Only
-    # compute_technical_indicators sets it False for a genuine NaN (insufficient
-    # history) — that case shouldn't silently cap trend_score as if MACD had
-    # actively disagreed with an otherwise-intact SMA trend.
     macd_data_available = bool(technical.get("macd_data_available", True))
 
-    if trend_intact and (macd_bullish or not macd_data_available):
+    if is_bearish:
+        trend_broken = bool(technical.get("downtrend_intact", False))
+        sma20_below_50 = not bool(technical.get("sma_20_above_sma_50", False))
+        price_below_50 = not bool(technical.get("price_above_sma_50", False))
+        macd_bearish = bool(technical.get("macd_bearish", False))
+        macd_agrees = macd_bearish or not macd_data_available
+        secondary = sma20_below_50 and price_below_50
+        tertiary = price_below_50
+    else:
+        trend_broken = bool(technical.get("trend_intact", False))
+        macd_agrees = bool(technical.get("macd_bullish", False)) or not macd_data_available
+        secondary = bool(technical.get("sma_20_above_sma_50", False)) and bool(technical.get("price_above_sma_50", False))
+        tertiary = bool(technical.get("price_above_sma_50", False))
+
+    if trend_broken and macd_agrees:
         trend_score = 8.0
-    elif trend_intact:
+    elif trend_broken:
         trend_score = 6.0
-    elif sma20_above_50 and price_above_50:
+    elif secondary:
         trend_score = 4.64
-    elif price_above_50:
+    elif tertiary:
         trend_score = 3.2
     else:
         trend_score = 1.2
     trend_score = round(trend_score, 2)
 
     # ---------------------------------------------------------------------------
-    # RS score (0-8): RS z-score maps relative strength vs. SMH
-    # rs_z=+1.5 → 8 (strongly outperforming), rs_z=-1.5 → 0 (underperforming).
+    # RS score (0-8): RS z-score maps relative strength vs. SMH — reused as-is
+    # for both directions. Already signed/symmetric: rs_z=+1.5 → 8 (strongly
+    # outperforming, bullish-favorable), rs_z=-1.5 → 0 (strongly
+    # underperforming). A bearish candidate's thesis is confirmed by
+    # underperformance, so a bearish evaluation reflects the same z-score
+    # around its midpoint instead of re-deriving a separate formula.
     # Anchor history: 3.0 (original) -> 2.0 (v2.2.29, real improvement over 3.0
     # once the small-sample artifact was ruled out) -> 1.5 (v2.2.33, re-tested
     # against the 3-sector pooled backtest: 1.5 beat both its neighbors, 1.0 and
     # 2.0/2.5, on Sharpe — 3.21 vs 3.14/3.10/3.08 respectively).
     # ---------------------------------------------------------------------------
     rs_z = float(technical.get("rs_zscore", 0.0))
-    rs_z_clamp = max(-1.5, min(1.5, rs_z))
+    rs_z_for_scoring = -rs_z if is_bearish else rs_z
+    rs_z_clamp = max(-1.5, min(1.5, rs_z_for_scoring))
     rs_score = round(max(0.0, min(8.0, 4.0 + rs_z_clamp * (4.0 / 1.5))), 2)
 
     # ---------------------------------------------------------------------------
@@ -603,18 +651,25 @@ def compute_technical_sub_scores(
     # (Sharpe 3.17, worse on every axis — confirms 48-74 overshoots). 50-70 and
     # 52-68 were statistically tied (Sharpe 3.34 vs 3.33); kept 50-70 for +8 more
     # trades at the same Sharpe/drawdown.
+    #
+    # Bearish uses the same ladder applied to (100 - rsi_val) — an oversold
+    # momentum mirror of the bullish sweet spot (e.g. bullish 50-70 becomes
+    # bearish 30-50), starting as a direct reflection pending its own backtest
+    # re-validation the same way the bullish band's boundaries were re-tested
+    # rather than assumed.
     rsi_val = float(technical.get("rsi_14", 50.0))
-    if 50 <= rsi_val <= 70:
+    rsi_val_for_scoring = 100.0 - rsi_val if is_bearish else rsi_val
+    if 50 <= rsi_val_for_scoring <= 70:
         rsi_score = 8.0
-    elif 45 <= rsi_val < 50:
+    elif 45 <= rsi_val_for_scoring < 50:
         rsi_score = 6.0
-    elif 70 < rsi_val <= 72:
+    elif 70 < rsi_val_for_scoring <= 72:
         rsi_score = 4.64
-    elif 72 < rsi_val <= 80:
+    elif 72 < rsi_val_for_scoring <= 80:
         rsi_score = 3.36
-    elif rsi_val > 80:
+    elif rsi_val_for_scoring > 80:
         rsi_score = 1.36
-    elif 35 <= rsi_val < 45:
+    elif 35 <= rsi_val_for_scoring < 45:
         rsi_score = 2.0
     else:
         rsi_score = 0.64
@@ -626,7 +681,8 @@ def compute_technical_sub_scores(
     if volume_profile_score_override is not None:
         vp_score = round(max(0.0, min(8.0, float(volume_profile_score_override))), 2)
     else:
-        vp_score = float(technical.get("volume_profile_score", 4.0))
+        vp_field = "volume_profile_score_bearish" if is_bearish else "volume_profile_score"
+        vp_score = float(technical.get(vp_field, 4.0))
         vp_score = round(max(0.0, min(8.0, vp_score)), 2)
 
     technical_total = round(breakout_score + trend_score + rs_score + rsi_score + vp_score, 2)
@@ -642,20 +698,34 @@ def compute_technical_sub_scores(
     }
 
 
-def determine_direction(technical: dict, sentiment: dict) -> str:
+def determine_direction(technical: dict, sentiment: dict, cfg: Optional[dict] = None) -> str:
     """
     Determine trade direction ('bullish' or 'bearish') from combined signals.
     Requires agreement between technical trend and dominant sentiment.
-    Defaults to 'bullish' when mixed/neutral (system is directional-bullish biased per spec).
+    Defaults to 'bullish' when mixed/neutral or when neither side clearly agrees.
+
+    cfg: swing_config.yaml contents. The bearish branch only fires when
+    cfg["enable_bearish_signals"] is explicitly True — the kill-switch for
+    live/paper trading. cfg=None (the default) allows bearish, matching the
+    behavior backtesting/calibration callers need (they pass their own
+    explicit direction/mask logic upstream of this function, or no cfg at
+    all, and must be able to exercise the bearish path to validate it) —
+    only real live/paper callers (run_swing_model.py, paper_runner.py) pass
+    the real cfg with the flag defaulting False.
     """
     tech_bullish = bool(technical.get("trend_intact", False))
     tech_breakout = bool(technical.get("breakout_confirmed", False))
+    tech_bearish = bool(technical.get("downtrend_intact", False))
+    tech_breakdown = bool(technical.get("breakdown_confirmed", False))
     dom_sentiment = str(sentiment.get("dominant_sentiment", "neutral"))
 
     if (tech_bullish or tech_breakout) and dom_sentiment in ("bullish", "neutral"):
         return "bullish"
-    if not tech_bullish and dom_sentiment == "bearish":
+
+    bearish_enabled = bool((cfg or {}).get("enable_bearish_signals", False)) if cfg is not None else True
+    if bearish_enabled and (tech_bearish or tech_breakdown) and dom_sentiment in ("bearish", "neutral"):
         return "bearish"
+
     return "bullish"  # Default to bullish per system bias
 
 

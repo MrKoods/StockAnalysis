@@ -15,17 +15,21 @@ from backtesting.stress_test import run_all_scenarios, SCENARIOS
 
 @pytest.fixture
 def sample_positions():
-    """Two open positions for stress testing."""
+    """
+    Two open positions for stress testing. Keys match the real position-dict
+    schema swing_model/portfolio_manager.py uses (stop_loss, risk_pct) —
+    run_scenario() reads these exact field names.
+    """
     return [
         {
             "ticker": "NVDA",
             "direction": "bullish",
             "entry_price": 120.0,
             "current_price": 125.0,
-            "stop": 112.0,
+            "stop_loss": 112.0,
             "target": 138.0,
             "structure": "bull_call_spread",
-            "capital_at_risk": 320.0,
+            "risk_pct": 0.02,
             "days_held": 3,
         },
         {
@@ -33,10 +37,10 @@ def sample_positions():
             "direction": "bullish",
             "entry_price": 85.0,
             "current_price": 87.0,
-            "stop": 79.0,
+            "stop_loss": 79.0,
             "target": 103.0,
             "structure": "long_call",
-            "capital_at_risk": 200.0,
+            "risk_pct": 0.015,
             "days_held": 1,
         },
     ]
@@ -48,7 +52,6 @@ def sample_positions():
 
 class TestStressScenarios:
     def test_all_scenarios_return_valid_structure(self, sample_positions):
-        pytest.skip("Implement Phase 12 first")
         results = run_all_scenarios(
             open_positions=sample_positions,
             account_equity=15000.0,
@@ -60,7 +63,6 @@ class TestStressScenarios:
             assert "circuit_breaker_triggered" in result
 
     def test_smh_30_drop_triggers_circuit_breaker(self, sample_positions):
-        pytest.skip("Implement Phase 12 first")
         results = run_all_scenarios(
             open_positions=sample_positions,
             account_equity=15000.0,
@@ -70,7 +72,6 @@ class TestStressScenarios:
         assert smh_result.get("circuit_breaker_triggered") in ("yellow", "orange", "red")
 
     def test_nvda_40_gap_primarily_affects_nvda(self, sample_positions):
-        pytest.skip("Implement Phase 12 first")
         results = run_all_scenarios(
             open_positions=sample_positions,
             account_equity=15000.0,

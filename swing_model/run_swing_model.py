@@ -29,17 +29,19 @@ from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_
 from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings, fetch_hyperscaler_capex_snippets
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
 from shared.utils.macro_overlay import compute_macro_state, save_macro_state
-from shared.utils.sector_rotation import compute_rotation_state, dampen_rotation_penalty_for_leader
+from shared.utils.sector_rotation import (
+    compute_rotation_state, dampen_rotation_penalty_for_leader, get_rotation_modifier, ROTATION_NEUTRAL,
+)
 from shared.utils.earnings_calendar import get_earnings_modifier
 from swing_model.cross_ticker_analysis import analyze_cross_ticker
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
-from swing_model.sentiment_layer import compute_sentiment_score
+from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
-from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
+from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.trade_selector import rank_trade_structures
-from shared.utils.position_sizer import get_risk_pct, apply_circuit_breaker_sizing, apply_consecutive_loss_sizing
+from shared.utils.position_sizer import compute_position_size
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
@@ -155,15 +157,22 @@ def main(scan_type: str = "post_close") -> None:
     # Home Depot.
     regime_by_sector: dict[str, str] = {}
     regime_modifier_by_sector: dict[str, float] = {}
+    rotation_state_by_sector: dict[str, str] = {}
     rotation_modifier_by_sector: dict[str, float] = {}
     for sector_name in active_sectors:
         bench_df = mkt["sector_benchmark_dfs"].get(sector_name)
         regime = _compute_regime_safe(mkt["vix"], bench_df)
         regime_by_sector[sector_name] = regime
+        # Bullish-default values, kept for _rescore_and_alert_open_positions
+        # (existing open positions, rescored below at their own stored
+        # direction — out of scope for this change, see position_rescoring.py).
+        # The per-ticker candidate-scoring loop below recomputes both modifiers
+        # directly from regime/rotation_state once each ticker's real direction
+        # is known, rather than reading these bullish-default values.
         regime_modifier_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
-        rotation_modifier_by_sector[sector_name] = _compute_rotation_safe(
-            bench_df, mkt["spy_df"], cfg=cfg
-        ).get("confidence_modifier", 0.0)
+        rotation_result = _compute_rotation_safe(bench_df, mkt["spy_df"], cfg=cfg)
+        rotation_state_by_sector[sector_name] = rotation_result.get("rotation_state", ROTATION_NEUTRAL)
+        rotation_modifier_by_sector[sector_name] = rotation_result.get("confidence_modifier", 0.0)
 
     # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
     # META) — fetched once per scan, reused for every ticker in that sector.
@@ -207,9 +216,18 @@ def main(scan_type: str = "post_close") -> None:
     # config's feedback_loop.sector_calibration_enabled kill switch) —
     # computed once per active sector, not per ticker, since it's the same
     # lookup for every ticker in that sector.
+    # Each sector's lookup is direction-aware (bullish/bearish get independently
+    # calibrated weights once enough bearish outcomes exist — see
+    # backtesting/sector_weight_calibration.py); both are precomputed here since
+    # a ticker's real direction isn't known until the per-ticker loop below.
     sector_calibration_enabled = bool(cfg.get("feedback_loop", {}).get("sector_calibration_enabled", True))
     live_weights_by_sector = {
-        sector_name: load_live_weights_if_calibrated(sector=sector_name if sector_calibration_enabled else None)
+        sector_name: {
+            direction: load_live_weights_if_calibrated(
+                sector=sector_name if sector_calibration_enabled else None, direction=direction
+            )
+            for direction in ("bullish", "bearish")
+        }
         for sector_name in active_sectors
     }
 
@@ -248,18 +266,32 @@ def main(scan_type: str = "post_close") -> None:
             # trigger list is checked below.
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
-            regime_modifier_val = regime_modifier_by_sector.get(sector, 0.0)
-            rotation_modifier_val = dampen_rotation_penalty_for_leader(
-                rotation_modifier_by_sector.get(sector, 0.0),
-                float(indicators.get("rs_zscore", 0.0)),
-            )
             macro_modifier_val = macro_modifier_by_sector.get(sector, 0.0)
             seasonality_modifier_val = seasonality_modifier_by_sector.get(sector, 0.0)
 
-            # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy
+            # Sentiment layer — StockTwits crowd sentiment + Seeking Alpha engagement proxy.
+            # StockTwits is fetched here (ahead of the rest of Sentiment/News/
+            # Positioning scoring below) purely to classify dominant_sentiment —
+            # direction must be known BEFORE those layers run, since their
+            # bearish-mirrored sub-formulas (sentiment_layer.py's ratio/velocity,
+            # news_layer.py's credibility/theme, positioning_layer.py's 5
+            # sub-signals) need it as an input, not something computed after the
+            # fact from their own already-bullish-scored output (see
+            # scoring.py::determine_direction and compute_confidence_score's
+            # direction_override param docstring).
             stocktwits_messages = _fetch_stocktwits_safe(ticker)
             if stocktwits_messages:
                 data_sources["StockTwits"] = True
+            dominant_sentiment = classify_dominant_sentiment(stocktwits_messages)["dominant_sentiment"]
+            direction = determine_direction(indicators, {"dominant_sentiment": dominant_sentiment}, cfg)
+
+            regime_modifier_val = get_regime_modifiers(regime, cfg, direction=direction).get("regime_modifier", 0.0)
+            rotation_modifier_val = dampen_rotation_penalty_for_leader(
+                get_rotation_modifier(rotation_state_by_sector.get(sector, ROTATION_NEUTRAL), cfg, direction=direction),
+                float(indicators.get("rs_zscore", 0.0)),
+                direction=direction,
+            )
+
             sa_engagement_items = _fetch_sa_engagement_safe(ticker)
             if sa_engagement_items:
                 data_sources["SeekingAlpha"] = True
@@ -268,7 +300,9 @@ def main(scan_type: str = "post_close") -> None:
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(
+                stocktwits_messages, sa_engagement_items, ticker, price_data, cfg, direction=direction
+            )
 
             # News layer
             # Yahoo + Finnhub + Seeking Alpha are the primary sources, on every
@@ -298,7 +332,7 @@ def main(scan_type: str = "post_close") -> None:
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
-                sec_edgar_filings=sec_edgar_filings,
+                sec_edgar_filings=sec_edgar_filings, direction=direction,
             )
 
             # Earnings proximity modifier
@@ -313,8 +347,12 @@ def main(scan_type: str = "post_close") -> None:
             fundamental = indicators.get("_fundamental_full") or {}
 
             # Market Positioning data (fetched daily inside run_pipeline, cached in positioning_state.json —
-            # includes insider transactions, which are scored here instead of as a standalone modifier)
-            positioning = indicators.get("_positioning_full") or {}
+            # includes insider transactions, which are scored here instead of as a standalone modifier).
+            # Both directions are pre-scored by indicator_pipeline.py (cheap — same
+            # cached raw data); select the one matching this ticker's real direction.
+            positioning = indicators.get(
+                "_positioning_full_bearish" if direction == "bearish" else "_positioning_full"
+            ) or {}
 
             # Event Severity Gate — check for an existing block (from a prior scan)
             # covering this ticker before scoring. Advisory only: the signal still
@@ -337,15 +375,15 @@ def main(scan_type: str = "post_close") -> None:
                 seasonality_modifier=seasonality_modifier_val,
                 macro_modifier=macro_modifier_val,
                 cfg=cfg,
-                live_weights=live_weights_by_sector.get(sector),
+                live_weights=live_weights_by_sector.get(sector, {}).get(direction),
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
                 event_gate_trigger=event_gate_trigger,
+                direction_override=direction,
             )
 
             final_score = float(score.get("final_score", 0.0))
-            direction = score.get("direction", "bullish")
 
             # Event Severity Gate — process this scan's critical news: create new
             # blocks for thesis-opposed critical items (or unconditionally for
@@ -406,7 +444,13 @@ def main(scan_type: str = "post_close") -> None:
             # Trade structure evaluation (only for signals at or above threshold)
             entry_lower = entry_upper = stop_loss = target = None
             structure_recommended = ev_per_dollar = rr_ratio = None
+            capital_required = structure_legs = structure_effective_days = structure_greeks_summary = None
+            structure_max_loss = structure_max_gain = structure_strikes = structure_expiration_date = None
+            alternative_structures = None
             risk_pct = 0.01
+            dollar_risk = 0.0
+            position_size = 0
+            capital_deployed = 0.0
             notes = ""
             if score.get("event_gate_blocked"):
                 notes = f"⚠️ ACTIVE EVENT ALERT — trigger: {score.get('event_gate_trigger')} — review before trading"
@@ -434,21 +478,24 @@ def main(scan_type: str = "post_close") -> None:
                     direction=direction,
                 )
                 entry_mid = (entry_lower + entry_upper) / 2.0
-                # high_volume_support/low_volume_area_above come from the same
-                # volume-profile nodes technical_common.py already computes for
-                # the volume_profile technical sub-signal — anchoring the
-                # bullish stop/target to real support/resistance instead of
-                # always falling back to the mechanical ATR-multiple/min-R:R
-                # number (bearish ignores both; see risk_reward.py docstrings).
+                # high_volume_support/low_volume_area_above (bullish) and their
+                # high_volume_resistance/low_volume_area_below mirrors (bearish)
+                # come from the same volume-profile nodes technical_common.py
+                # already computes for the volume_profile technical sub-signal —
+                # anchoring both directions' stop/target to real support/
+                # resistance instead of always falling back to the mechanical
+                # ATR-multiple/min-R:R number (see risk_reward.py docstrings).
                 stop_loss = compute_stop_loss(
                     entry_upper if direction == "bearish" else entry_lower, atr,
                     high_volume_support=indicators.get("high_volume_support"),
+                    high_volume_resistance=indicators.get("high_volume_resistance"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
                     direction=direction,
                 )
                 target = compute_target(
                     entry_mid, stop_loss,
                     low_volume_area_above=indicators.get("low_volume_area_above"),
+                    low_volume_area_below=indicators.get("low_volume_area_below"),
                     min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
                 )
 
@@ -458,17 +505,6 @@ def main(scan_type: str = "post_close") -> None:
                 )
                 if valid_setup:
                     rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target, direction=direction)
-                    # Circuit-breaker/consecutive-loss size reduction — this
-                    # used to only ever apply get_risk_pct's raw confidence
-                    # tier, silently skipping the drawdown-aware and
-                    # streak-aware size cuts position_sizer.py already
-                    # implements (e.g. Yellow CB was supposed to halve size,
-                    # but nothing here ever applied that multiplier).
-                    base_risk_pct = get_risk_pct(final_score)
-                    risk_pct, _ = apply_circuit_breaker_sizing(base_risk_pct, cb_state, cfg)
-                    risk_pct, _ = apply_consecutive_loss_sizing(
-                        risk_pct, int(state.get("consecutive_losses", 0)), cfg
-                    )
                     force_defined_risk = (
                         earnings_result.get("force_defined_risk", False)
                         or regime == REGIME_HIGH_VOL
@@ -503,6 +539,85 @@ def main(scan_type: str = "post_close") -> None:
                             structure_recommended = best.get("name", "")
                             ev_per_dollar = best.get("ev_per_dollar_risked", 0.0)
                             rr_ratio = best.get("rr_ratio", rr_ratio)
+                            # See paper_runner.py's matching comment — these were
+                            # already computed by rank_trade_structures() and
+                            # previously discarded before reaching the Discord alert.
+                            capital_required = best.get("capital_required")
+                            structure_legs = best.get("legs")
+                            structure_effective_days = best.get("effective_days")
+                            greeks = best.get("greeks")
+                            if greeks and greeks.get("net_greeks"):
+                                g = greeks["net_greeks"]
+                                structure_greeks_summary = (
+                                    f"Δ{g.get('delta', 0.0):+.2f} "
+                                    f"Γ{g.get('gamma', 0.0):+.3f} "
+                                    f"Θ{g.get('theta', 0.0):+.3f} "
+                                    f"V{g.get('vega', 0.0):+.3f}"
+                                )
+
+                            # See paper_runner.py's matching comment — real
+                            # dollar max-loss/max-gain (None = genuinely
+                            # unbounded, never fabricated) and the actual
+                            # strikes/expiration this structure's EV was
+                            # priced against.
+                            max_loss_val = best.get("max_loss_dollars")
+                            max_gain_val = best.get("max_gain_dollars")
+                            structure_max_loss = f"{float(max_loss_val):.2f}" if max_loss_val is not None else None
+                            structure_max_gain = f"{float(max_gain_val):.2f}" if max_gain_val is not None else None
+                            strikes_dict = best.get("strikes") or {}
+                            structure_strikes = ", ".join(f"{k}={v:.2f}" for k, v in strikes_dict.items()) or None
+                            eff_days = best.get("effective_days")
+                            structure_expiration_date = (
+                                (datetime.now(timezone.utc) + timedelta(days=round(eff_days))).date().isoformat()
+                                if eff_days is not None else None
+                            )
+
+                            # Real position sizing — this used to stop at a
+                            # bare risk_pct (see the removed pre-ranking block
+                            # this replaced), never turning into an actual
+                            # dollar_risk/position_size/capital_deployed the
+                            # way paper_runner.py's does; the live Discord
+                            # alert's "Dollar Risk" field always showed $0.00.
+                            # Real circuit-breaker/consecutive-loss state
+                            # (unlike paper_runner.py's paper-trading-only
+                            # "normal"/0) — compute_position_size applies both
+                            # internally now instead of the caller pre-
+                            # applying them to a raw get_risk_pct() figure.
+                            position_type = best.get("position_type", "shares")
+                            account_equity_val = float(state.get("account_equity", 15000.0))
+                            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
+                            if position_type == "options" and capital_required:
+                                risk_per_unit = float(capital_required)
+                                per_unit_cost = risk_per_unit
+                            elif position_type == "shares" and capital_required:
+                                risk_per_unit = float(capital_required)
+                                per_unit_cost = entry_mid
+                            else:
+                                position_type = "shares"
+                                risk_per_unit = abs(entry_mid - stop_loss)
+                                per_unit_cost = entry_mid
+                            sizing = compute_position_size(
+                                confidence_score=final_score, account_equity=account_equity_val,
+                                circuit_breaker_state=cb_state, capital_required=risk_per_unit,
+                                max_capital_pct=max_capital_pct,
+                                consecutive_losses=int(state.get("consecutive_losses", 0)),
+                                cfg=cfg, per_unit_cost=per_unit_cost, position_type=position_type,
+                            )
+                            risk_pct = sizing["risk_pct"]
+                            dollar_risk = sizing["dollar_risk"]
+                            position_size = sizing["contracts_or_shares"]
+                            capital_deployed = sizing["capital_deployed"]
+
+                            # Alternatives — see paper_runner.py's matching
+                            # comment. Full ranking already exists in-memory;
+                            # only the winner ever reached the Discord alert
+                            # before this.
+                            alternatives = [s for s in ranked if s is not best][:2]
+                            alternative_structures = " | ".join(
+                                f"{alt.get('name', '')} (${alt.get('ev_per_dollar_per_day', 0.0):.5f}/day, "
+                                f"${alt.get('capital_required', 0.0):.2f})"
+                                for alt in alternatives
+                            )
                     except Exception as exc:
                         logger.error(f"{ticker}: trade structure ranking failed — {exc}")
 
@@ -558,7 +673,23 @@ def main(scan_type: str = "post_close") -> None:
                         "stop_loss": stop_loss, "target": target,
                         "structure_recommended": structure_recommended,
                         "ev_per_dollar": ev_per_dollar, "rr_ratio": rr_ratio,
+                        "capital_required": capital_required,
+                        "structure_legs": structure_legs,
+                        "structure_effective_days": structure_effective_days,
+                        "structure_greeks_summary": structure_greeks_summary,
+                        "structure_max_loss": structure_max_loss,
+                        "structure_max_gain": structure_max_gain,
+                        "structure_strikes": structure_strikes,
+                        "structure_expiration_date": structure_expiration_date,
+                        "alternative_structures": alternative_structures,
                         "direction": direction, "risk_pct": risk_pct,
+                        # dollar_risk was never populated here before v2.2.60 —
+                        # the live Discord alert's "Dollar Risk" field always
+                        # showed $0.00 (see send_trade_alert's dollar_risk
+                        # field, which reads candidate.get("dollar_risk", 0.0)).
+                        "dollar_risk": dollar_risk,
+                        "position_size": position_size,
+                        "capital_deployed": capital_deployed,
                         "notes": notes,
                     }
                     candidates.append(candidate)

@@ -41,6 +41,7 @@ def compute_sentiment_score(
     ticker: str,
     price_data: dict,
     cfg: Optional[dict] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Compute the full sentiment score bundle for a ticker.
@@ -52,6 +53,12 @@ def compute_sentiment_score(
     - ratio_score:      0-7  (bullish/bearish ratio, z-scored vs. own trailing history)
     - velocity_score:   0-5  (sentiment/volume acceleration)
     - engagement_score: 0-3  (Seeking Alpha comment-count velocity — weak proxy)
+
+    direction: "bullish" (default) or "bearish". ratio_score/velocity_score
+    mirror around their neutral midpoints for "bearish" — a strongly bearish
+    StockTwits tilt/velocity confirms a bearish thesis the same way a strongly
+    bullish one confirms a bullish thesis. engagement_score is direction-
+    neutral (a pure attention-velocity proxy, not a polarity read) — unchanged.
 
     Returns dict with all fields required by scoring.py.
     """
@@ -67,34 +74,16 @@ def compute_sentiment_score(
     daily_ratios, daily_totals = _build_daily_bullish_ratios(stocktwits_messages, days=5)
     trajectory = compute_sentiment_trajectory(daily_ratios) if not stocktwits_offline else 0.0
 
-    ratio_score, ratio_dq = _score_ratio(stocktwits_messages, daily_ratios, daily_totals)
-    velocity_score, velocity_dq = _score_velocity(stocktwits_messages, daily_ratios)
+    ratio_score, ratio_dq = _score_ratio(stocktwits_messages, daily_ratios, daily_totals, direction=direction)
+    velocity_score, velocity_dq = _score_velocity(stocktwits_messages, daily_ratios, direction=direction)
     engagement_score, engagement_dq = _score_engagement(seeking_alpha_items)
 
     sentiment_score_total = ratio_score + velocity_score + engagement_score
     sentiment_score_total = round(min(SENTIMENT_MAX, max(0.0, sentiment_score_total)), 2)
 
-    bullish_count = sum(1 for m in stocktwits_messages if m.get("sentiment") == "bullish")
-    bearish_count = sum(1 for m in stocktwits_messages if m.get("sentiment") == "bearish")
-    total_tagged = bullish_count + bearish_count
-    bullish_ratio_stocktwits = (bullish_count / total_tagged) if total_tagged > 0 else 0.5
-
-    # Same minimum-sample bar _score_ratio() already applies before trusting
-    # this ratio for the point score (see _RATIO_MIN_BASELINE_MESSAGES) — but
-    # dominant_sentiment feeds determine_direction() in scoring.py, deciding
-    # the trade's actual bullish/bearish DIRECTION, which is more consequential
-    # than a point score. Previously ungated: a single tagged message (e.g. 1
-    # bullish, 0 bearish → ratio 1.0) could flip the whole trade's direction
-    # with no sample-size protection at all, right next to code that
-    # explicitly guards against exactly that failure mode for the score.
-    if total_tagged < _RATIO_MIN_BASELINE_MESSAGES:
-        dominant_sentiment = "neutral"
-    elif bullish_ratio_stocktwits > 0.55:
-        dominant_sentiment = "bullish"
-    elif bullish_ratio_stocktwits < 0.45:
-        dominant_sentiment = "bearish"
-    else:
-        dominant_sentiment = "neutral"
+    dom = classify_dominant_sentiment(stocktwits_messages)
+    dominant_sentiment = dom["dominant_sentiment"]
+    bullish_ratio_stocktwits = dom["bullish_ratio_stocktwits"]
 
     price_change = float(price_data.get("price_change_5d_pct", 0.0))
     divergence_flag = detect_price_sentiment_divergence(price_change, trajectory)
@@ -126,10 +115,51 @@ def compute_sentiment_score(
 _RATIO_MIN_BASELINE_MESSAGES = 5  # across the trailing baseline days, not just today
 
 
+def classify_dominant_sentiment(messages: list[dict]) -> dict:
+    """
+    Classify the dominant StockTwits sentiment lean from raw tagged messages.
+
+    Extracted out of compute_sentiment_score() so the pipeline can determine
+    a candidate's trade direction (see scoring.py::determine_direction())
+    before running the full sentiment/news/positioning scoring, which need
+    direction as an input — this only depends on raw message tags, not on
+    any of those later point-scores.
+
+    Same minimum-sample bar _score_ratio() applies before trusting this ratio
+    for the point score (see _RATIO_MIN_BASELINE_MESSAGES) — dominant_sentiment
+    feeds determine_direction(), deciding the trade's actual bullish/bearish
+    DIRECTION, which is more consequential than a point score. A single tagged
+    message (e.g. 1 bullish, 0 bearish → ratio 1.0) must not flip the whole
+    trade's direction with no sample-size protection.
+    """
+    messages = messages or []
+    bullish_count = sum(1 for m in messages if m.get("sentiment") == "bullish")
+    bearish_count = sum(1 for m in messages if m.get("sentiment") == "bearish")
+    total_tagged = bullish_count + bearish_count
+    bullish_ratio_stocktwits = (bullish_count / total_tagged) if total_tagged > 0 else 0.5
+
+    if total_tagged < _RATIO_MIN_BASELINE_MESSAGES:
+        dominant_sentiment = "neutral"
+    elif bullish_ratio_stocktwits > 0.55:
+        dominant_sentiment = "bullish"
+    elif bullish_ratio_stocktwits < 0.45:
+        dominant_sentiment = "bearish"
+    else:
+        dominant_sentiment = "neutral"
+
+    return {
+        "dominant_sentiment": dominant_sentiment,
+        "bullish_ratio_stocktwits": round(bullish_ratio_stocktwits, 3),
+        "bullish_count": bullish_count,
+        "bearish_count": bearish_count,
+    }
+
+
 def _score_ratio(
     messages: list[dict],
     daily_ratios: list[float],
     daily_totals: Optional[list[int]] = None,
+    direction: str = "bullish",
 ) -> tuple[float, str]:
     """
     Score the current bullish/bearish ratio z-scored against the ticker's own
@@ -142,6 +172,11 @@ def _score_ratio(
     placeholder — see _build_daily_bullish_ratios) computes pstdev([0.5]*4)==0,
     falls back to a tiny std_baseline=0.15, and can max the 0-7 score off n=1 —
     not a real "vs. own history" comparison.
+
+    direction="bearish": mirrors the score around its neutral midpoint — a
+    ratio z-scored BELOW its own baseline (unusually bearish-tilted messaging)
+    scores high, confirming a bearish thesis the same way an above-baseline
+    ratio confirms a bullish one.
     """
     if not messages:
         return 0.0, "unavailable"
@@ -149,32 +184,40 @@ def _score_ratio(
     baseline = daily_ratios[:-1] if len(daily_ratios) > 1 else []
     current_ratio = daily_ratios[-1] if daily_ratios else 0.5
     baseline_sample_size = sum(daily_totals[:-1]) if daily_totals and len(daily_totals) > 1 else 0
+    sign = -1.0 if direction == "bearish" else 1.0
 
     if len(baseline) >= 2 and baseline_sample_size >= _RATIO_MIN_BASELINE_MESSAGES:
         mean_baseline = statistics.mean(baseline)
         std_baseline = statistics.pstdev(baseline) or 0.15
         z = (current_ratio - mean_baseline) / std_baseline
-        score = 3.5 + z * 1.75
+        score = 3.5 + (sign * z) * 1.75
         return max(0.0, min(RATIO_MAX, score)), "complete"
 
     # Not enough baseline history to z-score meaningfully — scale today's raw
     # ratio linearly onto [0, RATIO_MAX] instead of fabricating a z-score against
-    # a mostly-placeholder baseline.
-    score = current_ratio * RATIO_MAX
+    # a mostly-placeholder baseline. Bearish: scale the bearish fraction
+    # (1 - current_ratio) instead, the mirror of the bullish fraction.
+    ratio_for_scoring = (1.0 - current_ratio) if direction == "bearish" else current_ratio
+    score = ratio_for_scoring * RATIO_MAX
     return max(0.0, min(RATIO_MAX, score)), "insufficient_baseline"
 
 
-def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[float, str]:
+def _score_velocity(messages: list[dict], daily_ratios: list[float], direction: str = "bullish") -> tuple[float, str]:
     """
     Score sentiment/volume velocity. Prefers StockTwits' native per-message
     sentiment_change/volume_change fields (seeds the calc directly per the
     RapidAPI response); falls back to a trajectory-derived velocity when those
     fields aren't present. Neutral midpoint = 2.5 (of 0-5).
     Forfeits to 0 when no messages are available.
+
+    direction="bearish": mirrors the score around its neutral midpoint — accelerating
+    NEGATIVE sentiment/volume velocity scores high, confirming a bearish thesis
+    the same way accelerating positive velocity confirms a bullish one.
     """
     if not messages:
         return 0.0, "unavailable"
 
+    sign = -1.0 if direction == "bearish" else 1.0
     sent_changes = [_as_float(m.get("sentiment_change")) for m in messages]
     sent_changes = [v for v in sent_changes if v is not None]
     vol_changes = [_as_float(m.get("volume_change")) for m in messages]
@@ -197,7 +240,7 @@ def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[fl
         avg_sent_clamped = max(-1.0, min(1.0, avg_sent))
         avg_vol_clamped = max(-1.0, min(1.0, avg_vol))
         combined = (avg_sent_clamped + avg_vol_clamped) / 2.0
-        score = 2.5 + combined * 2.5
+        score = 2.5 + (sign * combined) * 2.5
         return max(0.0, min(VELOCITY_MAX, score)), "complete"
 
     # Fallback: derive velocity from the daily bullish-ratio trajectory.
@@ -214,7 +257,7 @@ def _score_velocity(messages: list[dict], daily_ratios: list[float]) -> tuple[fl
     # Judgment call pending real calibration data, same as this file's other
     # heuristic constants; not derived from a backtest.
     velocity = compute_sentiment_velocity(daily_ratios)
-    score = 2.5 + velocity * 12.5
+    score = 2.5 + (sign * velocity) * 12.5
     return max(0.0, min(VELOCITY_MAX, score)), "partial"
 
 

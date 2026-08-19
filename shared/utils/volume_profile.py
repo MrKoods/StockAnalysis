@@ -139,20 +139,27 @@ def find_nearest_low_volume_area(
 def score_volume_profile_position(
     current_price: float,
     volume_profile: pd.DataFrame,
+    direction: str = "bullish",
 ) -> float:
     """
     Score 0-12: how far current price sits above the nearest high-volume
-    node (HVN) below it — a proxy for how much real trading history backs
-    this price level (tighter above support = more defensible).
+    node (HVN) below it (bullish) — a proxy for how much real trading
+    history backs this price level (tighter above support = more
+    defensible). Bearish is the mirror image: how far current price sits
+    below the nearest HVN above it (tighter below resistance = more
+    defensible breakdown).
 
-    Scoring logic (only two real branches — see note below):
-    - No HVN found below current_price → 2.0 (no support to lean on)
-    - HVN found below current_price, tiered by % above it:
+    Scoring logic (only two real branches per direction — see note below):
+    - Bullish, no HVN found below current_price → 2.0 (no support to lean on)
+    - Bullish, HVN found below current_price, tiered by % above it:
         <=2%  above → 12.0 (sitting right on major support)
         <=5%  above → 9.0
         <=10% above → 7.0
         <=20% above → 5.0
         >20%  above → 3.0 (extended far above the nearest support)
+    - Bearish, no HVN found above current_price → 2.0 (no resistance to lean on)
+    - Bearish, HVN found above current_price, tiered by % below it (mirrors
+      the bullish tiers exactly, distance direction flipped)
     - No volume profile data at all → 6.0 (neutral)
 
     Note: an earlier version of this docstring described 5 scoring cases,
@@ -160,7 +167,7 @@ def score_volume_profile_position(
     "price in a low-volume area → momentum possible" as separate branches
     with their own point ranges. Neither was ever actually implemented —
     this function has only ever computed the two branches above (nearest-
-    support-distance tiering, or the no-support fallback). Corrected to
+    node-distance tiering, or the no-node fallback). Corrected to
     describe what the code actually does rather than an unbuilt design;
     implementing the missing branches would be a real scoring behavior
     change requiring backtest validation like every other scoring formula
@@ -169,18 +176,24 @@ def score_volume_profile_position(
     if volume_profile.empty:
         return 6.0  # neutral when no profile available
 
-    support = find_nearest_support_node(current_price, volume_profile, direction="below")
+    if direction == "bearish":
+        node = find_nearest_support_node(current_price, volume_profile, direction="above")
+        if node is None:
+            return 2.0  # No resistance found → bearish thesis has nothing overhead to lean on
+        pct_below = (node - current_price) / node
+        pct_from_node = pct_below
+    else:
+        node = find_nearest_support_node(current_price, volume_profile, direction="below")
+        if node is None:
+            return 2.0  # No support found → bearish position
+        pct_from_node = (current_price - node) / node
 
-    if support is None:
-        return 2.0  # No support found → bearish position
-
-    pct_above = (current_price - support) / support
-    if pct_above <= 0.02:
-        return 12.0  # Price sitting just above a major support node
-    if pct_above <= 0.05:
+    if pct_from_node <= 0.02:
+        return 12.0  # Price sitting right at the nearest node
+    if pct_from_node <= 0.05:
         return 9.0
-    if pct_above <= 0.10:
+    if pct_from_node <= 0.10:
         return 7.0
-    if pct_above <= 0.20:
+    if pct_from_node <= 0.20:
         return 5.0
-    return 3.0  # Far above support — extended, risk of pullback
+    return 3.0  # Far from the nearest node — extended, risk of reversion

@@ -108,8 +108,13 @@ _DEFAULT_RISK_FREE_RATE = 0.04  # fixed approximation (~short-term Treasury) —
 # swing-trade structures, so a live rate feed isn't worth the added dependency.
 
 # Magnitude only — direction (ITM vs. OTM side) is resolved separately below,
-# since it depends on both moneyness bucket and option_type.
-_MONEYNESS_MAGNITUDE = {"atm": 0.0, "otm": 0.06, "far_otm": 0.12, "deep_itm": 0.15}
+# since it depends on both moneyness bucket and option_type. "itm" (6%, added
+# alongside the existing "deep_itm" 15%) matches long_butterfly_call's wing
+# strike in resolve_structure_economics (options_math.py's _itm_k(entry,
+# "call", 0.06)) exactly — added so that structure's Greeks-resolvable legs
+# use the same strike its EV/economics were computed against, not a
+# different (15% ITM) approximation.
+_MONEYNESS_MAGNITUDE = {"atm": 0.0, "otm": 0.06, "far_otm": 0.12, "itm": 0.06, "deep_itm": 0.15}
 
 
 def select_directional_leg_strike(
@@ -134,6 +139,8 @@ def select_directional_leg_strike(
                     near/short leg of a 2-leg spread
       "far_otm"   — ~12% out of the money, same direction as "otm" — the
                     further, protective/long wing of a 2-leg spread
+      "itm"       — ~6% in the money (calls: below current_price; puts:
+                    above) — e.g. long_butterfly_call's inner wing
       "deep_itm"  — ~15% in the money (calls: below current_price;
                     puts: above)
 
@@ -142,7 +149,7 @@ def select_directional_leg_strike(
     contracts of that type.
     """
     magnitude = _MONEYNESS_MAGNITUDE.get(moneyness, 0.0)
-    if moneyness == "deep_itm":
+    if moneyness in ("deep_itm", "itm"):
         # ITM direction is the opposite side of current_price from OTM.
         sign = -1.0 if option_type == "call" else 1.0
     else:
@@ -364,7 +371,7 @@ def capital_efficiency_score(
 # least-precise formulas in this set for future refinement.
 # ---------------------------------------------------------------------------
 
-_DEFAULT_DTE_IF_UNKNOWN = 10  # midpoint of this project's 5-15 day holding period
+_DEFAULT_DTE_IF_UNKNOWN = 8   # midpoint of this project's 1-15 day holding period
 _LEAPS_MIN_DAYS = 270         # LEAPS are long-dated; ~9 months out is typical
 _MIN_IV = 0.05                # Black-Scholes is undefined at iv<=0; near-zero is never realistic
 _STOCK_MARGIN_FRACTION = 0.5  # Reg-T initial margin assumption for a marginable long stock leg
@@ -467,7 +474,12 @@ def resolve_structure_economics(
         avg_win = (fav - premium) * 100
         avg_loss = (unfav + premium) * 100
         capital = (entry * _STOCK_MARGIN_FRACTION + premium) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital, "effective_days": effective_days}
+        # Max loss: the put floors losses at k regardless of how far the stock
+        # falls beyond it. Max gain: unlimited (long stock upside, uncapped).
+        max_loss = (entry - k + premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": None,
+                "strikes": {"put_k": round(k, 2)}}
 
     if structure_name == "collar":
         put_k, call_k = _otm_k(entry, "put", 0.06), _otm_k(entry, "call", 0.06)
@@ -477,26 +489,47 @@ def resolve_structure_economics(
         avg_win = (capped_upside - net_premium) * 100
         avg_loss = (unfav + net_premium) * 100
         capital = (entry * _STOCK_MARGIN_FRACTION + max(0.0, net_premium)) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital, "effective_days": effective_days}
+        # Both sides are genuinely defined by construction — the put floors
+        # the downside at put_k, the short call caps the upside at call_k.
+        max_loss = (entry - put_k + net_premium) * 100
+        max_gain = (call_k - entry - net_premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": capital,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"put_k": round(put_k, 2), "call_k": round(call_k, 2)}}
 
     # --- Category 2: Long premium, single leg (real leveraged option payoff) ---
     if structure_name in ("long_call", "long_put"):
         opt = "call" if structure_name == "long_call" else "put"
         avg_win, avg_loss, premium = single_leg_long(opt, entry, T)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": effective_days}
+        # Max loss: a long option can never lose more than the premium paid
+        # (exact, not the avg_loss-at-technical-stop figure above). Max gain:
+        # unlimited for a call; for a put, bounded by the stock falling to 0.
+        max_loss = premium * 100
+        max_gain = None if opt == "call" else (entry - premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"strike": round(entry, 2)}}
 
     if structure_name in ("deep_itm_call", "deep_itm_put"):
         opt = "call" if structure_name == "deep_itm_call" else "put"
         k = _itm_k(entry, opt, 0.15)
         avg_win, avg_loss, premium = single_leg_long(opt, k, T)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": effective_days}
+        max_loss = premium * 100
+        max_gain = None if opt == "call" else (k - premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"strike": round(k, 2)}}
 
     if structure_name in ("leaps_call", "leaps_put"):
         opt = "call" if structure_name == "leaps_call" else "put"
         leaps_days = max(dte if dte is not None else _LEAPS_MIN_DAYS, _LEAPS_MIN_DAYS)
         T_leaps = leaps_days / 365.0
         avg_win, avg_loss, premium = single_leg_long(opt, entry, T_leaps)
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100, "effective_days": leaps_days}
+        max_loss = premium * 100
+        max_gain = None if opt == "call" else (entry - premium) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": premium * 100,
+                "effective_days": leaps_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"strike": round(entry, 2)}}
 
     # --- Category 3: Debit spreads (2 legs, defined risk = net debit) ---
     if structure_name in ("bull_call_spread", "bear_put_spread"):
@@ -509,7 +542,13 @@ def resolve_structure_economics(
         avg_win = (min(fav, width) - net_debit) * 100
         avg_loss = net_debit * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(net_debit, floor) * 100, "effective_days": effective_days}
+        # A debit spread can't lose more than the net debit (= avg_loss
+        # already) and can't gain more than the spread width minus that debit.
+        max_loss = net_debit * 100
+        max_gain = (width - net_debit) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(net_debit, floor) * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"long_k": round(long_k, 2), "short_k": round(short_k, 2)}}
 
     if structure_name in ("calendar_call", "calendar_put", "diagonal_call", "diagonal_put"):
         # Approximation, documented above: single-snapshot, not a true 2-expiry
@@ -535,7 +574,16 @@ def resolve_structure_economics(
         # capital (net_debit) isn't freed, until that longer-dated leg is
         # closed, so that's the exposure this structure's EV is really priced
         # against, not the shared short-leg dte every other structure uses.
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": net_debit * 100, "effective_days": diagonal_days}
+        # max_gain is None, not estimated: this module's calendar/diagonal
+        # model is a single-snapshot approximation (documented above as the
+        # least-precise formula in this set) — a real max-gain figure needs
+        # the true 2-expiration P&L surface near the short strike, which this
+        # function doesn't compute. Reporting a number here would fabricate
+        # precision the underlying model doesn't have.
+        max_loss = net_debit * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": net_debit * 100,
+                "effective_days": diagonal_days, "max_loss_dollars": max_loss, "max_gain_dollars": None,
+                "strikes": {"near_k": round(near_k, 2), "far_k": round(far_k, 2)}}
 
     # --- Category 4: Credit spreads (2 legs, defined risk = width - credit) ---
     if structure_name in ("bull_put_spread", "bear_call_spread"):
@@ -548,7 +596,13 @@ def resolve_structure_economics(
         avg_win = net_credit * 100
         avg_loss = max(width - net_credit, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - net_credit, floor) * 100, "effective_days": effective_days}
+        # A credit spread's max gain is the credit received (= avg_win
+        # already); max loss is the width minus that credit (= avg_loss).
+        max_gain = net_credit * 100
+        max_loss = max(width - net_credit, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - net_credit, floor) * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"short_k": round(short_k, 2), "long_k": round(long_k, 2)}}
 
     # --- Category 5: Undefined risk (excluded under $50k by Filter 1 regardless;
     #     still given a real, bounded-tail-risk formula for correctness) ---
@@ -563,7 +617,15 @@ def resolve_structure_economics(
         two_sigma_move = entry * iv * math.sqrt(T) * 2
         avg_win = premium * 100
         avg_loss = max(two_sigma_move - premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100, "effective_days": effective_days}
+        # max_loss stays None (unlimited for a naked call; bounded by
+        # stock-to-zero for a naked put but so large relative to premium that
+        # reporting a specific figure would be misleadingly precise for a
+        # position this filter already treats as effectively unbounded — the
+        # $50k+Level 3 gate is what actually protects against this, not a
+        # displayed number).
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100,
+                "effective_days": effective_days, "max_loss_dollars": None, "max_gain_dollars": premium * 100,
+                "strikes": {"strike": round(k, 2)}}
 
     # --- Category 6: Income (require real share ownership/cash-securing) ---
     if structure_name == "cash_secured_put":
@@ -571,14 +633,27 @@ def resolve_structure_economics(
         premium = bs(entry, k, T, "put")
         avg_win = premium * 100
         avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100, "effective_days": effective_days}
+        # Max gain is the premium collected (= avg_win). Max loss is bounded
+        # by the stock falling to 0 while assigned at k (unlike avg_loss,
+        # which is capped at the technical stop distance).
+        max_loss = max(k - premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": premium * 100,
+                "strikes": {"strike": round(k, 2)}}
 
     if structure_name == "covered_call":
         k = _otm_k(entry, "call", 0.06)
         premium = bs(entry, k, T, "call")
         avg_win = (min(fav, k - entry) + premium) * 100
         avg_loss = max(unfav - premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100, "effective_days": effective_days}
+        # True structural cap (assignment at k), not the fav-limited avg_win
+        # above (which reflects the technical target, not the strike cap).
+        # Max loss bounded by the stock falling to 0, offset by premium collected.
+        max_gain = (k - entry + premium) * 100
+        max_loss = max(entry - premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"strike": round(k, 2)}}
 
     if structure_name == "covered_strangle":
         call_k, put_k = _otm_k(entry, "call", 0.06), _otm_k(entry, "put", 0.06)
@@ -588,7 +663,15 @@ def resolve_structure_economics(
         # Short the put too, on top of owning stock — doubles downside exposure
         # below the put strike relative to a plain covered call.
         avg_loss = max(unfav * 2 - total_premium, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100 + max(put_k - entry, 0) * 100, "effective_days": effective_days}
+        # Max gain: assignment on the short call at call_k, plus both premiums.
+        # Max loss: stock falls to 0 (lose entry*100) AND the short put is
+        # assigned, buying another 100 shares at put_k now worth 0 — offset
+        # by both premiums collected.
+        max_gain = (call_k - entry + total_premium) * 100
+        max_loss = max(entry + put_k - total_premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 100 + max(put_k - entry, 0) * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"call_k": round(call_k, 2), "put_k": round(put_k, 2)}}
 
     if structure_name == "wheel":
         # Single-cycle approximation of a repeating CSP->assignment->CC cycle:
@@ -598,7 +681,10 @@ def resolve_structure_economics(
         premium = bs(entry, k, T, "put")
         avg_win = premium * 100
         avg_loss = max((k - stop) - premium, 0.0) * 100 if stop < k else 0.0
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100, "effective_days": effective_days}
+        max_loss = max(k - premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": k * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": premium * 100,
+                "strikes": {"strike": round(k, 2)}}
 
     # --- Category 7: Neutral/volatility (multi-leg) ---
     if structure_name in ("iron_condor", "iron_butterfly", "short_butterfly", "condor_spread"):
@@ -619,7 +705,15 @@ def resolve_structure_economics(
         avg_win = credit * 100
         avg_loss = max(width - credit, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - credit, floor) * 100, "effective_days": effective_days}
+        # Same put-spread + call-spread relationship as a single credit
+        # spread — max gain is the credit (= avg_win), max loss is the width
+        # minus that credit (= avg_loss).
+        max_gain = credit * 100
+        max_loss = max(width - credit, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(width - credit, floor) * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"put_short_k": round(put_short_k, 2), "put_long_k": round(put_long_k, 2),
+                            "call_short_k": round(call_short_k, 2), "call_long_k": round(call_long_k, 2)}}
 
     if structure_name == "long_butterfly_call":
         k_low, k_mid, k_high = _itm_k(entry, "call", 0.06), entry, _otm_k(entry, "call", 0.06)
@@ -630,7 +724,14 @@ def resolve_structure_economics(
         avg_win = min(fav, max_profit) * 100 if max_profit > 0 else 0.0
         avg_loss = max(premium, 0.0) * 100
         floor = entry * _MIN_PREMIUM_FLOOR_FRACTION
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(premium, floor) * 100, "effective_days": effective_days}
+        # True structural cap at the middle strike (max_profit, computed
+        # above), not the fav-limited avg_win. Max loss is the premium paid
+        # (= avg_loss already).
+        max_gain = max_profit * 100 if max_profit > 0 else 0.0
+        max_loss = max(premium, 0.0) * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": max(premium, floor) * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": max_gain,
+                "strikes": {"k_low": round(k_low, 2), "k_mid": round(k_mid, 2), "k_high": round(k_high, 2)}}
 
     if structure_name in ("long_straddle", "long_strangle"):
         call_k = entry if structure_name == "long_straddle" else _otm_k(entry, "call", 0.06)
@@ -644,7 +745,14 @@ def resolve_structure_economics(
         put_val_at_fav = bs(entry - fav, put_k, T, "put")
         avg_win = (max(call_val_at_fav, put_val_at_fav) - total_premium) * 100
         avg_loss = total_premium * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": total_premium * 100, "effective_days": effective_days}
+        # Max loss is both premiums paid (= avg_loss). Max gain is unbounded —
+        # the call side has no upside cap (the put side is technically bounded
+        # by stock-to-zero, but a straddle/strangle is a volatility play where
+        # the unbounded call side is the relevant "max gain" answer).
+        max_loss = total_premium * 100
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": total_premium * 100,
+                "effective_days": effective_days, "max_loss_dollars": max_loss, "max_gain_dollars": None,
+                "strikes": {"call_k": round(call_k, 2), "put_k": round(put_k, 2)}}
 
     if structure_name in ("short_straddle", "short_strangle"):
         call_k = entry if structure_name == "short_straddle" else _otm_k(entry, "call", 0.06)
@@ -654,7 +762,11 @@ def resolve_structure_economics(
         two_sigma_move = entry * iv * math.sqrt(T) * 2
         avg_win = total_credit * 100
         avg_loss = max(two_sigma_move - total_credit, 0.0) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100, "effective_days": effective_days}
+        # max_loss stays None — genuinely unlimited (short call side), same
+        # reasoning as naked_short_call/put above.
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.20 * 100,
+                "effective_days": effective_days, "max_loss_dollars": None, "max_gain_dollars": total_credit * 100,
+                "strikes": {"call_k": round(call_k, 2), "put_k": round(put_k, 2)}}
 
     # --- Category 9: Synthetic (stock-replacement combos) ---
     if structure_name in ("risk_reversal", "synthetic_long", "synthetic_short"):
@@ -679,7 +791,13 @@ def resolve_structure_economics(
         else:
             net_cost = call_premium - put_premium
             avg_win, avg_loss = (fav - net_cost) * 100, (unfav + net_cost) * 100
-        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.25 * 100, "effective_days": effective_days}
+        # Both stay None — a synthetic/risk-reversal position is genuinely
+        # stock-like in both directions (long call + short put, or the
+        # mirror), so both gain and loss are effectively unbounded, same
+        # reasoning as long/short stock itself.
+        return {"avg_win": avg_win, "avg_loss": avg_loss, "capital_required": entry * 0.25 * 100,
+                "effective_days": effective_days, "max_loss_dollars": None, "max_gain_dollars": None,
+                "strikes": {"call_k": round(call_k, 2), "put_k": round(put_k, 2)}}
 
     return None
 

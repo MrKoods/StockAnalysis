@@ -13,6 +13,7 @@ from swing_model.scoring import (
     compute_technical_sub_scores,
     compute_data_sufficiency,
     apply_high_vol_regime_cap,
+    determine_direction,
     TECHNICAL_MAX,
     POSITIONING_MAX,
     SENTIMENT_MAX,
@@ -69,6 +70,20 @@ def _max_technical():
     }
 
 
+def _max_technical_bearish():
+    """Bearish mirror of _max_technical() — breakout=8, trend=8, rs=8, rsi=8, vp=8 → total 40."""
+    return {
+        "breakout_volume_zscore": 3.0,
+        "rs_zscore": -3.0,
+        "rsi_14": 40.0,
+        "breakdown_confirmed": True,
+        "downtrend_intact": True,
+        "sma_20_above_sma_50": False,
+        "price_above_sma_50": False,
+        "macd_bearish": True,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Technical sub-score tests
 # ---------------------------------------------------------------------------
@@ -121,6 +136,123 @@ class TestTechnicalSubScores:
     def test_volume_profile_override_used(self):
         sub = compute_technical_sub_scores({}, volume_profile_score_override=6.0)
         assert sub["volume_profile_score"] == 6.0
+
+    # -- Bearish direction (mirrors the bullish tests above) --
+
+    def test_max_bearish_inputs_yield_40(self):
+        sub = compute_technical_sub_scores(
+            _max_technical_bearish(), volume_profile_score_override=8.0, direction="bearish"
+        )
+        assert sub["technical_total"] == pytest.approx(40.0)
+
+    def test_each_bearish_sub_score_bounded_0_to_8(self):
+        sub = compute_technical_sub_scores(
+            _max_technical_bearish(), volume_profile_score_override=8.0, direction="bearish"
+        )
+        for key in ("breakout_score", "trend_score", "rs_score", "rsi_score", "volume_profile_score"):
+            assert 0.0 <= sub[key] <= 8.0, f"{key} = {sub[key]} out of [0,8]"
+
+    def test_bearish_breakout_capped_at_neutral_when_no_breakdown(self):
+        technical = {"breakout_volume_zscore": 3.0, "breakdown_confirmed": False}
+        sub = compute_technical_sub_scores(technical, direction="bearish")
+        assert sub["breakout_score"] <= 4.0
+
+    def test_bearish_trend_score_8_when_downtrend_intact_and_macd_bearish(self):
+        technical = {"downtrend_intact": True, "macd_bearish": True,
+                     "sma_20_above_sma_50": False, "price_above_sma_50": False}
+        sub = compute_technical_sub_scores(technical, direction="bearish")
+        assert sub["trend_score"] == 8.0
+
+    def test_bearish_rsi_40_yields_max_rsi_score(self):
+        # 100 - 40 = 60, inside the mirrored 50-70 sweet spot
+        sub = compute_technical_sub_scores({"rsi_14": 40.0}, direction="bearish")
+        assert sub["rsi_score"] == 8.0
+
+    def test_bearish_rsi_overbought_penalized(self):
+        # For bearish, a high (overbought) RSI is the unfavorable extreme, mirroring
+        # test_rsi_overbought_penalized's low-oversold-RSI-is-unfavorable-for-bullish shape.
+        sub_normal = compute_technical_sub_scores({"rsi_14": 40.0}, direction="bearish")
+        sub_overbought = compute_technical_sub_scores({"rsi_14": 15.0}, direction="bearish")
+        assert sub_normal["rsi_score"] > sub_overbought["rsi_score"]
+
+    def test_bearish_rs_zscore_negative_gives_high_rs_score(self):
+        # Underperformance confirms a bearish thesis, mirrors test_rs_zscore_positive_gives_high_rs_score
+        sub = compute_technical_sub_scores({"rs_zscore": -2.0}, direction="bearish")
+        assert sub["rs_score"] > 6.0
+
+    def test_bearish_rs_zscore_positive_gives_low_rs_score(self):
+        sub = compute_technical_sub_scores({"rs_zscore": 2.0}, direction="bearish")
+        assert sub["rs_score"] < 2.0
+
+    def test_bearish_uses_volume_profile_score_bearish_field(self):
+        technical = {"volume_profile_score": 1.0, "volume_profile_score_bearish": 7.0}
+        sub_bullish = compute_technical_sub_scores(technical, direction="bullish")
+        sub_bearish = compute_technical_sub_scores(technical, direction="bearish")
+        assert sub_bullish["volume_profile_score"] == 1.0
+        assert sub_bearish["volume_profile_score"] == 7.0
+
+    def test_bullish_default_unaffected_by_bearish_fields(self):
+        # A ticker with strong bearish signals alongside neutral/absent bullish
+        # ones should score the same on direction="bullish" as before this
+        # feature existed — regression guard for the Phase 2 rewrite.
+        sub = compute_technical_sub_scores(_max_technical(), volume_profile_score_override=8.0)
+        assert sub["technical_total"] == pytest.approx(40.0)
+
+
+# ---------------------------------------------------------------------------
+# determine_direction tests
+# ---------------------------------------------------------------------------
+
+class TestDetermineDirection:
+    def test_bullish_technical_and_sentiment_returns_bullish(self):
+        technical = {"trend_intact": True, "breakout_confirmed": True}
+        sentiment = {"dominant_sentiment": "bullish"}
+        assert determine_direction(technical, sentiment) == "bullish"
+
+    def test_bearish_technical_and_sentiment_returns_bearish_when_no_cfg(self):
+        # cfg=None means "allow bearish" (backtesting/calibration callers) —
+        # see determine_direction's own docstring.
+        technical = {"downtrend_intact": True, "breakdown_confirmed": True}
+        sentiment = {"dominant_sentiment": "bearish"}
+        assert determine_direction(technical, sentiment) == "bearish"
+
+    def test_bearish_defaults_to_bullish_when_flag_off(self):
+        technical = {"downtrend_intact": True, "breakdown_confirmed": True}
+        sentiment = {"dominant_sentiment": "bearish"}
+        cfg = {"enable_bearish_signals": False}
+        assert determine_direction(technical, sentiment, cfg) == "bullish"
+
+    def test_bearish_defaults_to_bullish_when_flag_absent(self):
+        technical = {"downtrend_intact": True, "breakdown_confirmed": True}
+        sentiment = {"dominant_sentiment": "bearish"}
+        assert determine_direction(technical, sentiment, cfg={}) == "bullish"
+
+    def test_bearish_returned_when_flag_explicitly_enabled(self):
+        technical = {"downtrend_intact": True, "breakdown_confirmed": True}
+        sentiment = {"dominant_sentiment": "bearish"}
+        cfg = {"enable_bearish_signals": True}
+        assert determine_direction(technical, sentiment, cfg) == "bearish"
+
+    def test_bearish_with_neutral_sentiment_allowed(self):
+        # Mirrors the bullish branch's own dom_sentiment in ("bullish", "neutral") symmetry.
+        technical = {"downtrend_intact": True, "breakdown_confirmed": True}
+        sentiment = {"dominant_sentiment": "neutral"}
+        cfg = {"enable_bearish_signals": True}
+        assert determine_direction(technical, sentiment, cfg) == "bearish"
+
+    def test_no_technical_confirmation_defaults_bullish(self):
+        technical = {"trend_intact": False, "breakout_confirmed": False,
+                     "downtrend_intact": False, "breakdown_confirmed": False}
+        sentiment = {"dominant_sentiment": "neutral"}
+        cfg = {"enable_bearish_signals": True}
+        assert determine_direction(technical, sentiment, cfg) == "bullish"
+
+    def test_conflicting_bullish_technical_bearish_sentiment_defaults_bullish(self):
+        # Bullish technical always wins the first branch, regardless of the flag.
+        technical = {"trend_intact": True, "breakout_confirmed": True}
+        sentiment = {"dominant_sentiment": "bearish"}
+        cfg = {"enable_bearish_signals": True}
+        assert determine_direction(technical, sentiment, cfg) == "bullish"
 
 
 # ---------------------------------------------------------------------------
@@ -638,3 +770,48 @@ class TestScopeFormula:
 
     def test_category_maxes_sum_to_100(self):
         assert TECHNICAL_MAX + POSITIONING_MAX + SENTIMENT_MAX + NEWS_MAX + FUNDAMENTAL_MAX == 100
+
+
+# ---------------------------------------------------------------------------
+# direction_override tests
+# ---------------------------------------------------------------------------
+
+class TestDirectionOverride:
+    def test_direction_override_bearish_uses_bearish_technical_scoring(self):
+        result = compute_confidence_score(
+            technical=_max_technical_bearish(), positioning=_zero_positioning(),
+            sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0, direction_override="bearish",
+        )
+        assert result["direction"] == "bearish"
+        assert result["technical_total"] == pytest.approx(40.0)
+
+    def test_no_override_recomputes_direction_internally(self):
+        # Regression guard: omitting direction_override must behave exactly
+        # like before this param existed.
+        result = compute_confidence_score(
+            technical=_max_technical(), positioning=_zero_positioning(),
+            sentiment=_max_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
+        )
+        assert result["direction"] == "bullish"
+        assert result["technical_total"] == pytest.approx(40.0)
+
+    def test_override_ignored_technical_still_scored_for_given_direction(self):
+        # Passing bearish technical inputs but overriding to "bullish" should
+        # score technical using the bullish formulas (low score, since the
+        # inputs are bearish-favorable) — direction_override picks which
+        # formula set runs, it doesn't relabel the result of the other one.
+        result = compute_confidence_score(
+            technical=_max_technical_bearish(), positioning=_zero_positioning(),
+            sentiment=_zero_sent(), news=_zero_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0, direction_override="bullish",
+        )
+        assert result["direction"] == "bullish"
+        assert result["technical_total"] < 40.0

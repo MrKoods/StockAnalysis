@@ -87,6 +87,79 @@ def is_breakout(close: pd.Series, high: pd.Series, period: int = 20) -> pd.Serie
     return close > prior_high
 
 
+def is_breakdown(close: pd.Series, low: pd.Series, period: int = 20) -> pd.Series:
+    """
+    Returns boolean Series: True where close falls below the prior `period`-bar low.
+    Mirrors is_breakout() exactly (rolling low of the prior period, shift by 1
+    to avoid look-ahead bias) — the bearish breakdown counterpart.
+    """
+    prior_low = rolling_low(low, period=period).shift(1)
+    return close < prior_low
+
+
+def bounce_fade_setup(
+    high: pd.Series,
+    low: pd.Series,
+    close: pd.Series,
+    breakdown_mask: pd.Series,
+    downtrend_intact: pd.Series,
+    rsi_series: pd.Series,
+    atr_series: pd.Series,
+    lookback: int = 10,
+    min_bounce_atr: float = 1.0,
+    rsi_recovery_min: float = 45.0,
+    rsi_recovery_max: float = 65.0,
+) -> pd.DataFrame:
+    """
+    Capitulation/bounce-fade bearish setup — mechanically distinct from
+    is_breakdown() (continuation: short the fresh breakdown itself). This
+    instead waits for the relief bounce that typically follows a breakdown
+    and flags the point where that bounce stalls, still inside an intact
+    downtrend — the classic "sell the dead-cat-bounce" pattern.
+
+    A bar qualifies when, within the last `lookback` bars (not counting the
+    current bar):
+      1. A breakdown occurred (breakdown_mask was True at some point).
+      2. The downtrend is still intact right now (not a genuine reversal).
+      3. Price has bounced at least `min_bounce_atr` × ATR off the lowest low
+         reached since that breakdown.
+      4. RSI recovered into the rsi_recovery_min-rsi_recovery_max "relief
+         rally" band and has just turned back down (exhaustion, not
+         continuation of the bounce).
+
+    Returns a DataFrame aligned to `close`'s index with columns:
+      fade_signal (bool), swing_high_since_breakdown (the bounce's own high —
+      reusable as compute_stop_loss's high_volume_resistance override),
+      post_breakdown_low (the low the breakdown/bounce leg reached — reusable
+      as compute_target's low_volume_area_below override).
+    """
+    had_recent_breakdown = (
+        breakdown_mask.shift(1).rolling(window=lookback, min_periods=1).max().fillna(0).astype(bool)
+    )
+    post_breakdown_low = low.rolling(window=lookback, min_periods=1).min()
+    swing_high_since_breakdown = high.rolling(window=lookback, min_periods=1).max()
+
+    bounce_atr = (close - post_breakdown_low) / atr_series.replace(0, np.nan)
+    bounced_enough = bounce_atr >= min_bounce_atr
+
+    rsi_in_recovery_band = (rsi_series >= rsi_recovery_min) & (rsi_series <= rsi_recovery_max)
+    rsi_turning_down = (rsi_series < rsi_series.shift(1)) & (rsi_series.shift(1) >= rsi_series.shift(2))
+    exhaustion = rsi_in_recovery_band & rsi_turning_down
+
+    fade_signal = (
+        had_recent_breakdown
+        & downtrend_intact.fillna(False)
+        & bounced_enough.fillna(False)
+        & exhaustion.fillna(False)
+    )
+
+    return pd.DataFrame({
+        "fade_signal": fade_signal,
+        "swing_high_since_breakdown": swing_high_since_breakdown,
+        "post_breakdown_low": post_breakdown_low,
+    }, index=close.index)
+
+
 # ---------------------------------------------------------------------------
 # Relative Strength
 # ---------------------------------------------------------------------------
@@ -203,10 +276,13 @@ def compute_technical_indicators(
 
         # Boolean signals
         breakout_confirmed,       # close > prior 20-day high
+        breakdown_confirmed,      # close < prior 20-day low
         trend_intact,             # sma_20 > sma_50 AND close > sma_50
+        downtrend_intact,         # sma_20 < sma_50 AND close < sma_50
         sma_20_above_sma_50,
         price_above_sma_50,
         macd_bullish,             # macd_line > signal_line
+        macd_bearish,             # macd_line < signal_line
     }
 
     cfg: contents of swing_config.yaml['technical']
@@ -257,6 +333,7 @@ def compute_technical_indicators(
     latest = -1
 
     breakout_bool_series = is_breakout(close, high, ma_short)
+    breakdown_bool_series = is_breakdown(close, low, ma_short)
 
     c_close = float(close.iloc[latest])
     if pd.isna(c_close):
@@ -309,6 +386,7 @@ def compute_technical_indicators(
     c_rs_z = 0.0 if pd.isna(c_rs_z) else c_rs_z
     c_rsi_z = zscore_current(rsi_series, window=60)
     c_breakout = bool(breakout_bool_series.iloc[latest]) if not pd.isna(breakout_bool_series.iloc[latest]) else False
+    c_breakdown = bool(breakdown_bool_series.iloc[latest]) if not pd.isna(breakdown_bool_series.iloc[latest]) else False
 
     # ---------------------------------------------------------------------------
     # Volume profile score (0-8): previously computed by volume_profile.py but
@@ -323,23 +401,32 @@ def compute_technical_indicators(
     vp_cfg = cfg.get("volume_profile", {})
     c_high_volume_support: Optional[float] = None
     c_low_volume_area_above: Optional[float] = None
+    c_high_volume_resistance: Optional[float] = None
+    c_low_volume_area_below: Optional[float] = None
     try:
         vp_df = compute_volume_profile(
             ohlcv,
             lookback_days=vp_cfg.get("lookback_days", 60),
             price_bucket_pct=vp_cfg.get("price_bucket_pct", 0.005),
         )
-        c_volume_profile_score = score_volume_profile_position(c_close, vp_df) * (8.0 / 12.0)
+        c_volume_profile_score = score_volume_profile_position(c_close, vp_df, direction="bullish") * (8.0 / 12.0)
+        c_volume_profile_score_bearish = score_volume_profile_position(c_close, vp_df, direction="bearish") * (8.0 / 12.0)
         # Same nodes that just scored the technical sub-signal, surfaced as
         # actual price levels — risk_reward.py's compute_stop_loss/compute_target
-        # use these to anchor bullish stops/targets to real support/resistance
-        # instead of always falling back to a mechanical ATR-multiple/min-R:R
-        # number (see those functions' docstrings; bullish-only for now).
+        # use these to anchor stops/targets to real support/resistance instead
+        # of always falling back to a mechanical ATR-multiple/min-R:R number
+        # (see those functions' docstrings). high_volume_resistance/
+        # low_volume_area_below are the bearish mirror of high_volume_support/
+        # low_volume_area_above.
         c_high_volume_support = find_nearest_support_node(c_close, vp_df, direction="below")
         c_low_volume_area_above = find_nearest_low_volume_area(c_close, vp_df, direction="above")
+        c_high_volume_resistance = find_nearest_support_node(c_close, vp_df, direction="above")
+        c_low_volume_area_below = find_nearest_low_volume_area(c_close, vp_df, direction="below")
     except Exception:
         c_volume_profile_score = 4.0  # neutral fallback — matches scoring.py's prior default
+        c_volume_profile_score_bearish = 4.0
     c_volume_profile_score = round(max(0.0, min(8.0, c_volume_profile_score)), 2)
+    c_volume_profile_score_bearish = round(max(0.0, min(8.0, c_volume_profile_score_bearish)), 2)
 
     return {
         # Latest bar scalars
@@ -368,15 +455,21 @@ def compute_technical_indicators(
 
         # Boolean signals
         "breakout_confirmed": c_breakout,
+        "breakdown_confirmed": c_breakdown,
         "trend_intact": c_sma20 > c_sma50 and c_close > c_sma50,
+        "downtrend_intact": c_sma20 < c_sma50 and c_close < c_sma50,
         "sma_20_above_sma_50": c_sma20 > c_sma50,
         "price_above_sma_50": c_close > c_sma50,
         "macd_bullish": (c_macd > c_signal) if macd_data_available else False,
+        "macd_bearish": (c_macd < c_signal) if macd_data_available else False,
         "macd_data_available": macd_data_available,
 
         "volume_profile_score": c_volume_profile_score,
+        "volume_profile_score_bearish": c_volume_profile_score_bearish,
         "high_volume_support": c_high_volume_support,
         "low_volume_area_above": c_low_volume_area_above,
+        "high_volume_resistance": c_high_volume_resistance,
+        "low_volume_area_below": c_low_volume_area_below,
 
         # "complete" only when every windowed indicator had enough real
         # history to compute for real; "partial" when one or more fell back

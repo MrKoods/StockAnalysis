@@ -77,7 +77,7 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
-    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
     monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
     monkeypatch.setattr(
         pr, "get_earnings_modifier",
@@ -187,7 +187,7 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
-    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
     monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
     monkeypatch.setattr(
         pr, "get_earnings_modifier",
@@ -264,7 +264,7 @@ def test_run_paper_scan_flags_ev_outlier_against_structure_history(tmp_path, mon
     monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
-    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
     monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
     monkeypatch.setattr(
         pr, "get_earnings_modifier",
@@ -345,7 +345,7 @@ def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str, cfg_extra: dict 
     monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
     monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
     monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
-    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
     monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
     monkeypatch.setattr(
         pr, "get_earnings_modifier",

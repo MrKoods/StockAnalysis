@@ -78,43 +78,66 @@ def compute_rotation_state(
     }
 
 
-def _rotation_modifier(state: str) -> float:
-    """Map rotation state to confidence modifier (-15 / 0 / +5)."""
-    return {ROTATION_OUTFLOW: -15.0, ROTATION_NEUTRAL: 0.0, ROTATION_INFLOW: 5.0}.get(state, 0.0)
+def _rotation_modifier(state: str, direction: str = "bullish") -> float:
+    """
+    Map rotation state to confidence modifier (-15 / 0 / +5).
+    Bearish: mirrors around 0 — outflow (money leaving the sector) confirms a
+    bearish thesis instead of penalizing it, inflow penalizes a bearish thesis
+    instead of boosting it.
+    """
+    base = {ROTATION_OUTFLOW: -15.0, ROTATION_NEUTRAL: 0.0, ROTATION_INFLOW: 5.0}.get(state, 0.0)
+    return -base if direction == "bearish" else base
 
 
-def get_rotation_modifier(rotation_state: str, cfg: dict) -> float:
+def get_rotation_modifier(rotation_state: str, cfg: dict, direction: str = "bullish") -> float:
     """
     Map rotation state to confidence modifier using cfg values.
     Falls back to hardcoded defaults if cfg is missing.
+
+    Bearish: mirrors around 0 — see _rotation_modifier's docstring for why
+    (sector outflow confirms a bearish thesis, inflow works against one).
     """
     m = cfg.get("modifiers", {}).get("sector_rotation", {})
     if rotation_state == ROTATION_OUTFLOW:
-        return float(m.get("outflow_penalty", -15))
-    if rotation_state == ROTATION_INFLOW:
-        return float(m.get("inflow_boost", 5))
-    return 0.0
+        base = float(m.get("outflow_penalty", -15))
+    elif rotation_state == ROTATION_INFLOW:
+        base = float(m.get("inflow_boost", 5))
+    else:
+        base = 0.0
+    return -base if direction == "bearish" else base
 
 
-def dampen_rotation_penalty_for_leader(base_modifier: float, rs_zscore: float) -> float:
+def dampen_rotation_penalty_for_leader(base_modifier: float, rs_zscore: float, direction: str = "bullish") -> float:
     """
-    Soften the sector-wide outflow penalty for an individual ticker with strong
-    relative strength vs. its own history.
+    Soften the sector-wide penalty working against an individual ticker with
+    strong relative strength vs. its own history, in its own thesis direction.
 
     rotation_state (this sector's SMH/KRE/XLV-vs-SPY flow) and rs_zscore (this
     stock vs. its own trailing relative-strength history) measure different
     things — a genuine sector leader can keep outperforming its own history
     even while the sector as a whole is in outflow. Applying the full sector
     penalty uniformly to every ticker in the sector, leaders and laggards
-    alike, throws away that distinction. Only softens negative modifiers
-    (outflow's -15) — never touches a neutral or positive one — and caps the
-    reduction at 50%: a leader in a declining sector still carries real
-    correlated risk, this tempers the penalty, it doesn't cancel it.
+    alike, throws away that distinction. Only softens negative modifiers —
+    never touches a neutral or positive one — and caps the reduction at 50%:
+    a leader in an adverse sector-wide flow still carries real correlated
+    risk, this tempers the penalty, it doesn't cancel it.
 
-    rs_zscore >= 1.5 (a real, statistically notable outperformance) starts the
-    dampening; it scales linearly to the full 50% cap by rs_zscore >= 3.0.
+    Bullish: rs_zscore >= 1.5 (real outperformance) starts the dampening,
+    scaling linearly to the full 50% cap by rs_zscore >= 3.0 — softens
+    outflow's penalty on a bullish thesis.
+    Bearish: mirror image — rs_zscore <= -1.5 (real underperformance, "leading
+    the decline") starts the dampening, scaling to the cap by rs_zscore <= -3.0
+    — softens inflow's penalty on a bearish thesis (a genuine downside leader
+    can keep breaking down even while the sector as a whole draws inflows).
     """
-    if base_modifier >= 0.0 or rs_zscore < 1.5:
+    if base_modifier >= 0.0:
         return base_modifier
-    dampen_fraction = min(1.0, (rs_zscore - 1.5) / 1.5) * 0.5
+    if direction == "bearish":
+        if rs_zscore > -1.5:
+            return base_modifier
+        dampen_fraction = min(1.0, (-rs_zscore - 1.5) / 1.5) * 0.5
+    else:
+        if rs_zscore < 1.5:
+            return base_modifier
+        dampen_fraction = min(1.0, (rs_zscore - 1.5) / 1.5) * 0.5
     return base_modifier * (1.0 - dampen_fraction)

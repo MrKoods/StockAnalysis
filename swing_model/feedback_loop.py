@@ -383,7 +383,7 @@ def _save_live_weights(weights: dict, n_trades: Optional[int] = None) -> None:
     atomic_write_json(_LIVE_WEIGHTS_FILE, payload)
 
 
-def load_live_weights_if_calibrated(sector: Optional[str] = None) -> Optional[dict]:
+def load_live_weights_if_calibrated(sector: Optional[str] = None, direction: str = "bullish") -> Optional[dict]:
     """
     Returns the calibrated weight fractions {"technical", "sentiment", "news"}
     only if a real calibration has actually run and passed — otherwise
@@ -403,9 +403,26 @@ def load_live_weights_if_calibrated(sector: Optional[str] = None) -> Optional[di
     no entry, so they fall through to the same global-weights behavior as
     every caller that doesn't pass a sector at all. None (the default)
     preserves the original sector-agnostic behavior unchanged.
+
+    direction: looks up that sector's direction-specific entry (new nested
+    schema: {sector: {"bullish": {...}, "bearish": {...}}}), written by
+    backtesting/sector_weight_calibration.py once bearish outcomes exist to
+    calibrate against. Falls back to reading an old-format flat entry
+    (sector -> weights directly, no direction nesting — every entry written
+    before bearish parity existed) as that sector's bullish weights, so
+    already-calibrated files keep working unchanged for "bullish". A bearish
+    lookup against an old-format-only entry returns None (falls through to
+    the global weights) rather than misapplying bullish-fitted weights to a
+    bearish candidate.
     """
     if sector is not None:
-        sector_weights = _load_sector_weights_raw().get(sector)
+        sector_entry = _load_sector_weights_raw().get(sector) or {}
+        if direction in sector_entry and isinstance(sector_entry.get(direction), dict):
+            sector_weights = sector_entry[direction]
+        elif direction == "bullish" and sector_entry.get("last_calibrated"):
+            sector_weights = sector_entry  # old flat (pre-direction) schema
+        else:
+            sector_weights = None
         if sector_weights and sector_weights.get("last_calibrated"):
             return {k: sector_weights[k] for k in _WEIGHT_KEYS if k in sector_weights}
 

@@ -176,6 +176,82 @@ class TestAnalystTrendScore:
         assert result["analyst_score"] == 0.0
 
 
+class TestBearishDirection:
+    """
+    direction="bearish" mirrors each sub-signal around its own neutral
+    midpoint — the bearish-favorable side (put-heavy options, institutional
+    distribution, short interest building, insider selling, analyst
+    downgrades) scores high instead of the bullish-favorable side.
+    """
+
+    def test_put_heavy_options_scores_high_for_bearish(self):
+        data = {"options": {"put_call_ratio": 1.8, "iv_skew": None}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["options_score"] > 3.0
+
+    def test_call_heavy_options_scores_low_for_bearish(self):
+        data = {"options": {"put_call_ratio": 0.4, "iv_skew": None}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["options_score"] < 3.0
+
+    def test_institutional_distribution_scores_high_for_bearish(self):
+        current = {"institutional": {"held_percent_institutions": 0.54}}
+        previous = {"institutional": {"held_percent_institutions": 0.60}}
+        result = compute_positioning_score("NVDA", current, previous_snapshot=previous, direction="bearish")
+        assert result["institutional_score"] > 2.5
+
+    def test_institutional_accumulation_scores_low_for_bearish(self):
+        current = {"institutional": {"held_percent_institutions": 0.62}}
+        previous = {"institutional": {"held_percent_institutions": 0.58}}
+        result = compute_positioning_score("NVDA", current, previous_snapshot=previous, direction="bearish")
+        assert result["institutional_score"] < 2.5
+
+    def test_short_interest_building_scores_high_for_bearish(self):
+        data = {"short_interest": {"trend": "increasing"}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["short_interest_score"] == 4.0
+
+    def test_short_interest_covering_scores_low_for_bearish(self):
+        data = {"short_interest": {"trend": "declining"}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["short_interest_score"] == 0.0
+
+    def test_insider_selling_cluster_scores_high_for_bearish(self):
+        txs = [
+            {"insider": "A", "name": "A", "transaction": "Sale",
+             "_parsed_date": datetime.now(timezone.utc) - timedelta(days=2)},
+            {"insider": "B", "name": "B", "transaction": "Sale",
+             "_parsed_date": datetime.now(timezone.utc) - timedelta(days=2)},
+        ]
+        result = compute_positioning_score("NVDA", {"insider_transactions": txs}, direction="bearish")
+        assert result["insider_score"] == 3.0
+
+    def test_insider_buying_scores_low_for_bearish(self):
+        txs = [
+            {"insider": "A", "name": "A", "transaction": "Purchase",
+             "_parsed_date": datetime.now(timezone.utc) - timedelta(days=2)},
+            {"insider": "B", "name": "B", "transaction": "Purchase",
+             "_parsed_date": datetime.now(timezone.utc) - timedelta(days=2)},
+        ]
+        result = compute_positioning_score("NVDA", {"insider_transactions": txs}, direction="bearish")
+        assert result["insider_score"] == 0.0
+
+    def test_analyst_downgrade_scores_high_for_bearish(self):
+        data = {"analyst_trend": {"net_action": "downgrade"}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["analyst_score"] == 2.0
+
+    def test_analyst_upgrade_scores_low_for_bearish(self):
+        data = {"analyst_trend": {"net_action": "upgrade"}}
+        result = compute_positioning_score("NVDA", data, direction="bearish")
+        assert result["analyst_score"] == 0.0
+
+    def test_unavailable_data_forfeits_to_zero_regardless_of_direction(self):
+        result = compute_positioning_score("NVDA", {}, direction="bearish")
+        assert result["positioning_score_total"] == 0.0
+        assert result["positioning_offline"] is True
+
+
 class TestPositioningAggregate:
     def test_total_capped_at_max(self):
         data = {

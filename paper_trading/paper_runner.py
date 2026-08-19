@@ -20,7 +20,7 @@ Usage:
 import argparse
 import csv
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -33,15 +33,15 @@ except ImportError:
 
 from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
-from swing_model.sentiment_layer import compute_sentiment_score
+from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
-from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD
+from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from shared.utils.regime_detection import get_regime_modifiers
-from shared.utils.position_sizer import get_risk_pct
-from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader
+from shared.utils.position_sizer import compute_position_size
+from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader, get_rotation_modifier, ROTATION_NEUTRAL
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.logger import get_logger
@@ -133,6 +133,23 @@ _CSV_COLUMNS = [
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "structure_recommended", "ev_per_dollar",
+    # capital_required is the winning structure's own theoretical dollar risk
+    # from rank_trade_structures() — distinct from capital_deployed below,
+    # which is that figure after position sizing/tier-budget rounding.
+    # structure_legs/structure_effective_days/structure_greeks_summary were
+    # already computed by trade_selector.py but discarded before reaching
+    # this row until now — see the comment where they're extracted above.
+    "capital_required", "structure_legs", "structure_effective_days", "structure_greeks_summary",
+    # Real dollar max-loss/max-gain (blank = genuinely unbounded, never
+    # fabricated), the actual strikes this structure's EV was priced
+    # against, and a calendar expiration date (today + effective_days) —
+    # all computed by resolve_structure_economics()/trade_selector.py but
+    # previously discarded before reaching this row, same as the fields above.
+    "structure_max_loss", "structure_max_gain", "structure_strikes", "structure_expiration_date",
+    # Top 2 runner-up structures by ev_per_dollar_per_day, excluding the
+    # winner — the full ranking already existed in-memory; only the winner
+    # ever reached this row before this column.
+    "alternative_structures",
     # Position sizing, locked in at signal time against config's starting_capital
     # (position_sizing.starting_capital, $15k by default) — see get_risk_pct's
     # tiers. capital_deployed/dollar_risk are frozen here rather than
@@ -376,15 +393,20 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # (e.g. "hawkish rates are adverse" scoring regional banks wrong).
     regime_by_sector: dict[str, str] = {}
     regime_mod_by_sector: dict[str, float] = {}
+    rotation_state_by_sector: dict[str, str] = {}
     rotation_mod_by_sector: dict[str, float] = {}
     for sector_name in active_sectors:
         bench_df = mkt["sector_benchmark_dfs"].get(sector_name)
         regime = _compute_regime_safe(mkt["vix"], bench_df)
         regime_by_sector[sector_name] = regime
+        # Bullish-default values — the per-ticker loop below recomputes both
+        # modifiers directly from regime/rotation_state once each ticker's real
+        # direction is known (see scoring.py::determine_direction), same
+        # pattern as run_swing_model.py.
         regime_mod_by_sector[sector_name] = get_regime_modifiers(regime, cfg).get("regime_modifier", 0.0)
-        rotation_mod_by_sector[sector_name] = _compute_rotation_safe(
-            bench_df, mkt["spy_df"], cfg=cfg
-        ).get("confidence_modifier", 0.0)
+        rotation_result = _compute_rotation_safe(bench_df, mkt["spy_df"], cfg=cfg)
+        rotation_state_by_sector[sector_name] = rotation_result.get("rotation_state", ROTATION_NEUTRAL)
+        rotation_mod_by_sector[sector_name] = rotation_result.get("confidence_modifier", 0.0)
 
     # Sector-wide hyperscaler capex context (semiconductors' AMZN/MSFT/GOOGL/
     # META) — fetched once per scan, reused for every ticker in that sector.
@@ -423,9 +445,18 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # config's feedback_loop.sector_calibration_enabled kill switch) —
     # computed once per active sector here, not per ticker, since it's the
     # same lookup for every ticker in that sector.
+    # Each sector's lookup is direction-aware (bullish/bearish get independently
+    # calibrated weights once enough bearish outcomes exist — see
+    # backtesting/sector_weight_calibration.py); both are precomputed here since
+    # a ticker's real direction isn't known until the per-ticker loop below.
     sector_calibration_enabled = bool(cfg.get("feedback_loop", {}).get("sector_calibration_enabled", True))
     live_weights_by_sector = {
-        sector_name: load_live_weights_if_calibrated(sector=sector_name if sector_calibration_enabled else None)
+        sector_name: {
+            direction: load_live_weights_if_calibrated(
+                sector=sector_name if sector_calibration_enabled else None, direction=direction
+            )
+            for direction in ("bullish", "bearish")
+        }
         for sector_name in active_sectors
     }
 
@@ -463,23 +494,34 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # seasonality modifier applies.
             sector = ticker_sector_map.get(ticker)
             regime = regime_by_sector.get(sector, "choppy")
-            regime_mod = regime_mod_by_sector.get(sector, 0.0)
-            rotation_mod = dampen_rotation_penalty_for_leader(
-                rotation_mod_by_sector.get(sector, 0.0),
-                float(indicators.get("rs_zscore", 0.0)),
-            )
             macro_mod = macro_mod_by_sector.get(sector, 0.0)
             seasonality_mod = seasonality_mod_by_sector.get(sector, 0.0)
 
-            # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy
+            # Sentiment — StockTwits crowd sentiment + Seeking Alpha engagement proxy.
+            # StockTwits is fetched here (ahead of the rest of scoring below)
+            # purely to classify dominant_sentiment — direction must be known
+            # BEFORE Sentiment/News/Positioning run, since their bearish-mirrored
+            # sub-formulas need it as an input. Full parity with run_swing_model.py.
             stocktwits_messages = _fetch_stocktwits_safe(ticker)
+            dominant_sentiment = classify_dominant_sentiment(stocktwits_messages)["dominant_sentiment"]
+            direction = determine_direction(indicators, {"dominant_sentiment": dominant_sentiment}, cfg)
+
+            regime_mod = get_regime_modifiers(regime, cfg, direction=direction).get("regime_modifier", 0.0)
+            rotation_mod = dampen_rotation_penalty_for_leader(
+                get_rotation_modifier(rotation_state_by_sector.get(sector, ROTATION_NEUTRAL), cfg, direction=direction),
+                float(indicators.get("rs_zscore", 0.0)),
+                direction=direction,
+            )
+
             sa_engagement_items = _fetch_sa_engagement_safe(ticker)
             price_data = {
                 "price_change_5d_pct": (
                     indicators.get("close", 1.0) / max(indicators.get("sma_20", 1.0), 0.01) - 1
                 )
             }
-            sentiment = compute_sentiment_score(stocktwits_messages, sa_engagement_items, ticker, price_data, cfg)
+            sentiment = compute_sentiment_score(
+                stocktwits_messages, sa_engagement_items, ticker, price_data, cfg, direction=direction
+            )
 
             # News — Yahoo + Finnhub + Seeking Alpha are the primary sources, on
             # every scan — all free. Alpha Vantage is a confirmation tool, not a
@@ -501,7 +543,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
-                sec_edgar_filings=sec_edgar_filings,
+                sec_edgar_filings=sec_edgar_filings, direction=direction,
             )
 
             # Earnings + cross-ticker modifiers
@@ -511,9 +553,13 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             earnings_mod = earnings_result.get("confidence_modifier", 0.0)
             ct_mod = cross_ticker.get(ticker, {}).get("confidence_modifier", 0.0)
 
-            # Fundamental + Positioning (fetched inside run_pipeline, cached in *_state.json)
+            # Fundamental + Positioning (fetched inside run_pipeline, cached in *_state.json).
+            # Positioning is pre-scored for both directions (cheap — same cached
+            # raw data); select the one matching this ticker's real direction.
             fundamental = indicators.get("_fundamental_full") or {}
-            positioning = indicators.get("_positioning_full") or {}
+            positioning = indicators.get(
+                "_positioning_full_bearish" if direction == "bearish" else "_positioning_full"
+            ) or {}
 
             # Event Severity Gate — check for an existing block (from a prior
             # scan) before scoring. Full parity with run_swing_model.py: advisory
@@ -536,16 +582,16 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 seasonality_modifier=seasonality_mod,
                 macro_modifier=macro_mod,
                 cfg=cfg,
-                live_weights=live_weights_by_sector.get(sector),
+                live_weights=live_weights_by_sector.get(sector, {}).get(direction),
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
                 event_gate_trigger=event_gate_trigger,
                 win_probability_calibration=win_probability_calibration,
+                direction_override=direction,
             )
 
             final_score = float(score.get("final_score", 0.0))
-            direction = score.get("direction", "bullish")
 
             # Event Severity Gate — process this scan's critical news for this
             # ticker (may block it before it's even logged as a paper signal).
@@ -666,6 +712,14 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             ev_outlier_z = None
             capital_required = None
             position_type = None
+            structure_legs = ""
+            structure_effective_days = ""
+            structure_greeks_summary = ""
+            structure_max_loss = ""
+            structure_max_gain = ""
+            structure_strikes = ""
+            structure_expiration_date = ""
+            alternative_structures = ""
             if final_score >= STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD:
                 close_px = float(indicators.get("close", 0.0))
                 atr = float(indicators.get("atr_14", close_px * 0.02))
@@ -682,21 +736,24 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     direction=direction,
                 )
                 entry_mid = (entry_lower + entry_upper) / 2.0
-                # high_volume_support/low_volume_area_above come from the same
-                # volume-profile nodes technical_common.py already computes for
-                # the volume_profile technical sub-signal — anchoring the
-                # bullish stop/target to real support/resistance instead of
-                # always falling back to the mechanical ATR-multiple/min-R:R
-                # number (bearish ignores both; see risk_reward.py docstrings).
+                # high_volume_support/low_volume_area_above (bullish) and their
+                # high_volume_resistance/low_volume_area_below mirrors (bearish)
+                # come from the same volume-profile nodes technical_common.py
+                # already computes for the volume_profile technical sub-signal —
+                # anchoring both directions' stop/target to real support/
+                # resistance instead of always falling back to the mechanical
+                # ATR-multiple/min-R:R number (see risk_reward.py docstrings).
                 stop_loss = compute_stop_loss(
                     entry_upper if direction == "bearish" else entry_lower, atr,
                     high_volume_support=indicators.get("high_volume_support"),
+                    high_volume_resistance=indicators.get("high_volume_resistance"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
                     direction=direction,
                 )
                 target_px = compute_target(
                     entry_mid, stop_loss,
                     low_volume_area_above=indicators.get("low_volume_area_above"),
+                    low_volume_area_below=indicators.get("low_volume_area_below"),
                     min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
                 )
                 rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target_px, direction=direction) if target_px else 0.0
@@ -754,6 +811,62 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                         # would silently disagree with which structure was actually
                         # recommended and why.
                         ev_per_dollar = f"{best.get('ev_per_dollar_per_day', 0.0):.5f}"
+                        # Previously computed by rank_trade_structures() and immediately
+                        # discarded once "best" was picked — only structure_recommended/
+                        # ev_per_dollar/capital_required/position_type survived to the
+                        # CSV row and Discord alert. legs/effective_days/Greeks are real,
+                        # already-computed data (see trade_selector.py's ranked_structures
+                        # dict) that a trader reviewing a recommendation has no way to see
+                        # without this.
+                        structure_legs = str(best.get("legs", "") or "")
+                        structure_effective_days = str(best.get("effective_days", "") or "")
+                        greeks = best.get("greeks")
+                        if greeks and greeks.get("net_greeks"):
+                            g = greeks["net_greeks"]
+                            structure_greeks_summary = (
+                                f"Δ{g.get('delta', 0.0):+.2f} "
+                                f"Γ{g.get('gamma', 0.0):+.3f} "
+                                f"Θ{g.get('theta', 0.0):+.3f} "
+                                f"V{g.get('vega', 0.0):+.3f}"
+                            )
+
+                        # max_loss_dollars/max_gain_dollars/strikes: real
+                        # dollar figures and the actual strikes this structure's
+                        # EV was priced against — computed by
+                        # resolve_structure_economics() (options_math.py) and,
+                        # same as legs/Greeks above, previously discarded
+                        # before reaching the CSV row/Discord alert. None
+                        # means genuinely unbounded (never fabricated — see
+                        # that function's own per-branch comments).
+                        max_loss_val = best.get("max_loss_dollars")
+                        max_gain_val = best.get("max_gain_dollars")
+                        structure_max_loss = f"{float(max_loss_val):.2f}" if max_loss_val is not None else ""
+                        structure_max_gain = f"{float(max_gain_val):.2f}" if max_gain_val is not None else ""
+                        strikes_dict = best.get("strikes") or {}
+                        structure_strikes = ", ".join(f"{k}={v:.2f}" for k, v in strikes_dict.items())
+                        # Actual calendar date, not just a day count — computed
+                        # here (not in options_math.py, which stays clock-free)
+                        # since this module already has today_str available.
+                        eff_days = best.get("effective_days")
+                        structure_expiration_date = (
+                            (date.today() + timedelta(days=round(eff_days))).isoformat()
+                            if eff_days is not None else ""
+                        )
+
+                        # Alternatives: the top 2 remaining structures by
+                        # ev_per_dollar_per_day (ranked already carries this
+                        # order — best isn't always ranked[0], see the
+                        # gap-risk-preference comment above, so filter it out
+                        # by identity rather than re-sorting). Full ranking
+                        # data already exists in-memory; only the winner ever
+                        # reached the user before this — "why not #2" was
+                        # collapsed into exclusion_summary's counts alone.
+                        alternatives = [s for s in ranked if s is not best][:2]
+                        alternative_structures = " | ".join(
+                            f"{alt.get('name', '')} (${alt.get('ev_per_dollar_per_day', 0.0):.5f}/day, "
+                            f"${alt.get('capital_required', 0.0):.2f})"
+                            for alt in alternatives
+                        )
 
                         # Statistical outlier check — is this reading in line with
                         # what this same structure has produced historically, or
@@ -849,36 +962,30 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             dominant_theme = str(news.get("dominant_narrative_theme", "")) if isinstance(news, dict) else ""
 
             # Position sizing, locked in now so it can't drift if config or the
-            # structure ranking changes before this trade closes. Uses
-            # get_risk_pct() directly rather than position_sizer.compute_position_size()
-            # — that helper also folds in circuit-breaker size reduction, a
-            # portfolio-state concept paper trading deliberately has none of
-            # (see this module's docstring: "does not enforce circuit breakers
-            # or position size limits" — that's about not BLOCKING a signal
-            # from being logged, unrelated to the capital cap below, which
-            # only shrinks the size *of* a signal that's logged either way).
-            # risk_per_unit is capital_required for an options structure (a
-            # defined-risk debit trade's max loss == its premium) or the
-            # entry-to-stop distance for a bare equity trade — both are "what
-            # one unit costs if the stop is hit," so the same dollar_risk /
-            # risk_per_unit division sizes either case correctly.
+            # structure ranking changes before this trade closes. Calls
+            # position_sizer.compute_position_size() with circuit_breaker_
+            # state="normal"/consecutive_losses=0 — no-op multipliers, since
+            # paper trading deliberately has neither concept (see this
+            # module's docstring: "does not enforce circuit breakers or
+            # position size limits" — that's about not BLOCKING a signal from
+            # being logged, unrelated to the capital cap below, which only
+            # shrinks the size *of* a signal that's logged either way).
+            # risk_per_unit (passed as capital_required) is capital_required
+            # for an options structure (a defined-risk debit trade's max loss
+            # == its premium) or the entry-to-stop distance for a bare equity
+            # trade — both are "what one unit costs if the stop is hit."
             #
             # Risk-based sizing alone isn't enough: it only asks "how far to
             # my stop," so a tight-stop, low-volatility name can size to an
             # arbitrarily large capital commitment for the same dollar risk as
             # a wide-stop name (this is exactly what happened live — PFE's
             # $1.16 stop sized to $1,676 deployed, 11% of a $15k account, off
-            # the same $75 risk budget that gave AMZN a $861 position). Every
-            # real position-sizing framework pairs risk-based sizing with a
-            # hard capital/concentration cap and takes whichever binds first —
-            # same principle trade_selector.py already enforces for options
-            # (max_capital = account_equity * 5%), applied here for shares too
-            # so both position types are held to the same concentration limit.
+            # the same $75 risk budget that gave AMZN a $861 position). This
+            # is why per_unit_cost (the full per-share/per-contract dollar
+            # cost, not just the risk distance) is passed separately — see
+            # compute_position_size's own docstring for the dual-cap formula.
             account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
             max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
-            max_capital = account_equity * max_capital_pct
-            risk_pct = get_risk_pct(final_score)
-            dollar_risk = round(risk_pct * account_equity, 2)
             # Branches on trade_selector.py's own position_type field rather
             # than a truthiness heuristic on structure_recommended/
             # capital_required — that heuristic used to mislabel long_stock/
@@ -905,20 +1012,28 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 # magnitude of the risk is what matters for sizing either way.
                 risk_per_unit = abs(entry_mid - stop_loss)
                 per_unit_cost = entry_mid
-            risk_based_size = int(dollar_risk // risk_per_unit) if risk_per_unit and risk_per_unit > 0 else 0
-            capital_based_size = int(max_capital // per_unit_cost) if per_unit_cost and per_unit_cost > 0 else 0
-            position_size = min(risk_based_size, capital_based_size)
-            capital_deployed = round(position_size * per_unit_cost, 2)
+            sizing = compute_position_size(
+                confidence_score=final_score, account_equity=account_equity,
+                circuit_breaker_state="normal", capital_required=risk_per_unit,
+                max_capital_pct=max_capital_pct, consecutive_losses=0,
+                per_unit_cost=per_unit_cost, position_type=position_type,
+            )
+            risk_pct = sizing["risk_pct"]
+            dollar_risk = sizing["dollar_risk"]
+            max_capital = sizing["max_capital"]
+            position_size = sizing["contracts_or_shares"]
+            capital_deployed = sizing["capital_deployed"]
+            risk_based_size = sizing["risk_based_size"]
+            capital_based_size = sizing["capital_based_size"]
             # Actual dollar risk of the position actually sized — distinct from
-            # dollar_risk (the pre-cap tier budget) whenever capital_based_size
-            # binds tighter than risk_based_size (position_size * risk_per_unit
-            # is then strictly less than dollar_risk). paper_updater.py uses
+            # dollar_risk (the pre-cap tier budget) whenever the capital cap
+            # binds tighter than the risk-based size. paper_updater.py uses
             # this, not dollar_risk, to compute pnl_dollars at exit — otherwise
             # a capital-capped trade's realized P&L is booked against a risk
             # budget larger than the position that was actually opened (e.g.
             # AMZN 2026-08-07: capital cap capped it to 2 shares/$43.14 real
             # risk, but pnl_dollars was booked against the full $75 budget).
-            actual_dollar_risk = round(position_size * risk_per_unit, 2)
+            actual_dollar_risk = sizing["actual_dollar_risk"]
 
             # sizing_note: persisted to paper_trades.csv itself, not just logged —
             # a signal that qualifies but sizes to 0, or that had zero eligible
@@ -974,6 +1089,15 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
                 "structure_recommended": structure_recommended,
                 "ev_per_dollar": ev_per_dollar,
+                "capital_required": f"{float(capital_required):.2f}" if capital_required is not None else "",
+                "structure_legs": structure_legs,
+                "structure_effective_days": structure_effective_days,
+                "structure_greeks_summary": structure_greeks_summary,
+                "structure_max_loss": structure_max_loss,
+                "structure_max_gain": structure_max_gain,
+                "structure_strikes": structure_strikes,
+                "structure_expiration_date": structure_expiration_date,
+                "alternative_structures": alternative_structures,
                 "risk_pct": f"{risk_pct:.4f}",
                 "dollar_risk": f"{dollar_risk:.2f}",
                 "actual_dollar_risk": f"{actual_dollar_risk:.2f}",

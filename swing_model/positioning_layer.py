@@ -44,6 +44,7 @@ def compute_positioning_score(
     positioning_data: dict,
     previous_snapshot: Optional[dict] = None,
     cfg: Optional[dict] = None,
+    direction: str = "bullish",
 ) -> dict:
     """
     Compute the full Market Positioning score bundle for one ticker.
@@ -51,6 +52,12 @@ def compute_positioning_score(
     positioning_data: output of positioning_client.fetch_all_positioning(ticker)
     previous_snapshot: this ticker's positioning_data from the last cached scan
                        (data/processed/positioning_state.json), or None on first run
+    direction: "bullish" (default) or "bearish". Each sub-signal mirrors around
+    its own neutral midpoint for "bearish": put-heavy options positioning,
+    institutional distribution, short interest building, insider selling, and
+    analyst downgrades each score high instead of their bullish-favorable
+    opposites. "unavailable" (no data) always forfeits to 0 regardless of
+    direction — missing data confirms neither thesis.
 
     Returns dict with all fields required by scoring.py.
     """
@@ -58,14 +65,17 @@ def compute_positioning_score(
         cfg = {}
     positioning_data = positioning_data or {}
 
-    options_score, options_dq = _score_options(positioning_data.get("options"))
+    options_score, options_dq = _score_options(positioning_data.get("options"), direction=direction)
     institutional_score, institutional_dq = _score_institutional(
         positioning_data.get("institutional"),
         (previous_snapshot or {}).get("institutional"),
+        direction=direction,
     )
-    short_interest_score, short_interest_dq = _score_short_interest(positioning_data.get("short_interest"))
-    insider_score, insider_dq = _score_insider(positioning_data.get("insider_transactions"))
-    analyst_score, analyst_dq = _score_analyst_trend(positioning_data.get("analyst_trend"))
+    short_interest_score, short_interest_dq = _score_short_interest(
+        positioning_data.get("short_interest"), direction=direction
+    )
+    insider_score, insider_dq = _score_insider(positioning_data.get("insider_transactions"), direction=direction)
+    analyst_score, analyst_dq = _score_analyst_trend(positioning_data.get("analyst_trend"), direction=direction)
 
     positioning_score_total = (
         options_score + institutional_score + short_interest_score + insider_score + analyst_score
@@ -114,9 +124,14 @@ def compute_positioning_score(
 _PERCENTILE_MIN_DQ = "sufficient_history"
 
 
-def _score_options(options: Optional[dict]) -> tuple[float, str]:
+def _score_options(options: Optional[dict], direction: str = "bullish") -> tuple[float, str]:
     """
     Score put/call ratio + IV skew. Neutral midpoint = 3.0 (of 0-6).
+
+    direction="bearish": mirrors each component around its 3.0 midpoint —
+    a put-heavy ratio/skew (high percentile) scores high instead of a
+    call-heavy one, confirming a bearish thesis the same way a call-heavy
+    reading confirms a bullish one.
 
     Prefers each metric's own trailing-history percentile (see
     indicator_pipeline.fetch_positioning_data / positioning_client.
@@ -144,35 +159,50 @@ def _score_options(options: Optional[dict]) -> tuple[float, str]:
     components = []
     if ratio is not None:
         if options.get("put_call_ratio_percentile_data_quality") == _PERCENTILE_MIN_DQ:
-            components.append(_score_from_percentile(options["put_call_ratio_percentile"]))
+            components.append(_score_from_percentile(options["put_call_ratio_percentile"], direction))
         else:
             # ratio=1.0 (balanced) -> 3.0; ratio=0.4 (call-heavy, bullish) -> 6.0; ratio=1.6+ (put-heavy) -> 0.0
             ratio_component = 3.0 - (ratio - 1.0) * 5.0
-            components.append(max(0.0, min(6.0, ratio_component)))
+            ratio_component = max(0.0, min(6.0, ratio_component))
+            if direction == "bearish":
+                ratio_component = OPTIONS_MAX - ratio_component
+            components.append(ratio_component)
     if skew is not None:
         if options.get("iv_skew_percentile_data_quality") == _PERCENTILE_MIN_DQ:
-            components.append(_score_from_percentile(options["iv_skew_percentile"]))
+            components.append(_score_from_percentile(options["iv_skew_percentile"], direction))
         else:
             # skew=0 (balanced) -> 3.0; skew=-0.06 (calls richer, bullish) -> 6.0; skew=+0.06 (puts richer) -> 0.0
             skew_component = 3.0 - skew * 50.0
-            components.append(max(0.0, min(6.0, skew_component)))
+            skew_component = max(0.0, min(6.0, skew_component))
+            if direction == "bearish":
+                skew_component = OPTIONS_MAX - skew_component
+            components.append(skew_component)
 
     score = sum(components) / len(components)
     dq = "complete" if len(components) == 2 else "partial"
     return score, dq
 
 
-def _score_from_percentile(percentile: float) -> float:
+def _score_from_percentile(percentile: float, direction: str = "bullish") -> float:
     """
-    percentile=0 (today's reading is the lowest/most call-favoring ever seen
-    for this ticker) -> 6.0 (max bullish); percentile=100 (highest/most
-    put-favoring ever) -> 0.0; percentile=50 -> 3.0 (neutral midpoint).
+    Bullish: percentile=0 (today's reading is the lowest/most call-favoring
+    ever seen for this ticker) -> 6.0 (max bullish); percentile=100 (highest/
+    most put-favoring ever) -> 0.0; percentile=50 -> 3.0 (neutral midpoint).
+    Bearish: mirror image — a high (put-favoring) percentile scores high.
     """
-    return max(0.0, min(6.0, 6.0 * (1.0 - percentile / 100.0)))
+    score = max(0.0, min(6.0, 6.0 * (1.0 - percentile / 100.0)))
+    if direction == "bearish":
+        score = OPTIONS_MAX - score
+    return score
 
 
-def _score_institutional(current: Optional[dict], previous: Optional[dict]) -> tuple[float, str]:
-    """Score institutional ownership change vs. prior snapshot. Neutral midpoint = 2.5 (of 0-5)."""
+def _score_institutional(
+    current: Optional[dict], previous: Optional[dict], direction: str = "bullish"
+) -> tuple[float, str]:
+    """
+    Score institutional ownership change vs. prior snapshot. Neutral midpoint = 2.5 (of 0-5).
+    Bearish: mirrors around 2.5 — distribution (outflow) scores high instead of accumulation.
+    """
     if not current or current.get("held_percent_institutions") is None:
         return 0.0, "unavailable"
 
@@ -181,20 +211,35 @@ def _score_institutional(current: Optional[dict], previous: Optional[dict]) -> t
 
     if previous_pct is None:
         # First scan for this ticker — a current value exists but no trend yet
+        # (self-symmetric midpoint — same for both directions).
         return INSTITUTIONAL_MAX / 2.0, "partial"
 
     delta = current_pct - previous_pct
     # +2pp institutional accumulation -> 5.0; -2pp distribution -> 0.0; flat -> 2.5
     score = 2.5 + delta * (2.5 / 0.02)
-    return max(0.0, min(INSTITUTIONAL_MAX, score)), "complete"
+    score = max(0.0, min(INSTITUTIONAL_MAX, score))
+    if direction == "bearish":
+        score = INSTITUTIONAL_MAX - score
+    return score, "complete"
 
 
-def _score_short_interest(short_interest: Optional[dict]) -> tuple[float, str]:
-    """Score shares-short trend. Neutral midpoint = 2.0 (of 0-4)."""
+def _score_short_interest(short_interest: Optional[dict], direction: str = "bullish") -> tuple[float, str]:
+    """
+    Score shares-short trend. Neutral midpoint = 2.0 (of 0-4).
+    Bearish: shorts building scores high (confirms bearish conviction), shorts
+    covering scores low (bearish thesis losing its short-pressure tailwind).
+    """
     if not short_interest or short_interest.get("trend") is None:
         return 0.0, "unavailable"
 
     trend = short_interest["trend"]
+    if direction == "bearish":
+        if trend == "declining":
+            return 0.0, "complete"  # shorts covering -> weakens bearish thesis
+        if trend == "increasing":
+            return 4.0, "complete"  # shorts building -> confirms bearish
+        return 2.0, "complete"  # flat
+
     if trend == "declining":
         return 4.0, "complete"  # shorts covering -> bullish
     if trend == "increasing":
@@ -202,11 +247,14 @@ def _score_short_interest(short_interest: Optional[dict]) -> tuple[float, str]:
     return 2.0, "complete"  # flat
 
 
-def _score_insider(transactions: Optional[list]) -> tuple[float, str]:
+def _score_insider(transactions: Optional[list], direction: str = "bullish") -> tuple[float, str]:
     """
     Score insider transactions by reusing insider_tracker.py's classification
     logic (classify_transactions), rescaled to a 0-3 sub-signal (midpoint 1.5 =
     no signal, matching insider_tracker's 'neutral' classification).
+
+    Bearish: mirrors the bullish ladder exactly (each pair sums to INSIDER_MAX)
+    — insider selling scores high instead of insider buying.
     """
     if transactions is None:
         return 0.0, "unavailable"
@@ -214,6 +262,17 @@ def _score_insider(transactions: Optional[list]) -> tuple[float, str]:
         return INSIDER_MAX / 2.0, "partial"
 
     signal = classify_transactions(transactions, window_days=10)
+
+    if direction == "bearish":
+        if signal == "selling_cluster":
+            return INSIDER_MAX, "complete"  # 2+ sellers -> max bearish confirmation
+        if signal == "selling":
+            return INSIDER_MAX - INSIDER_MAX / 4.0, "complete"  # single seller -> partial credit (2.25)
+        if signal == "buying":
+            buy_insiders, _ = count_distinct_traders(transactions, window_days=10)
+            return (0.0 if len(buy_insiders) >= 2 else INSIDER_MAX - 2.25), "complete"
+        return INSIDER_MAX / 2.0, "complete"  # neutral
+
     if signal == "selling_cluster":
         return 0.0, "complete"
     if signal == "selling":
@@ -235,12 +294,24 @@ def _score_insider(transactions: Optional[list]) -> tuple[float, str]:
     return INSIDER_MAX / 2.0, "complete"  # neutral
 
 
-def _score_analyst_trend(analyst_trend: Optional[dict]) -> tuple[float, str]:
-    """Score recent upgrade/downgrade actions. Neutral midpoint = 1.0 (of 0-2)."""
+def _score_analyst_trend(analyst_trend: Optional[dict], direction: str = "bullish") -> tuple[float, str]:
+    """
+    Score recent upgrade/downgrade actions. Neutral midpoint = 1.0 (of 0-2).
+    Bearish: downgrade trend scores high instead of upgrade trend.
+    """
     if not analyst_trend or "net_action" not in analyst_trend:
         return 0.0, "unavailable"
 
     net_action = analyst_trend["net_action"]
+    if direction == "bearish":
+        if net_action == "downgrade":
+            return ANALYST_MAX, "complete"
+        if net_action == "upgrade":
+            return 0.0, "complete"
+        if net_action in ("mixed", "none"):
+            return 1.0, "partial" if net_action == "none" else "complete"
+        return 1.0, "partial"
+
     if net_action == "upgrade":
         return 2.0, "complete"
     if net_action == "downgrade":

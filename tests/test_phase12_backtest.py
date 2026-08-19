@@ -399,7 +399,7 @@ class TestSimulateTradeOutcome:
             signal_date="2026-01-01", direction="bullish",
             entry=100.0, stop=90.0, target=130.0,
             future_ohlcv=df,
-            holding_period=(5, 15),
+            holding_period=(1, 15),
         )
         assert result["outcome"] == "time_stop"
 
@@ -416,6 +416,52 @@ class TestSimulateTradeOutcome:
         )
         for key in ("outcome", "exit_price", "pnl_pct", "holding_days", "achieved_rr"):
             assert key in result
+
+    # -- Bearish direction (mirrors the bullish tests above) --
+
+    def test_bearish_win_when_target_hit(self):
+        # Price falls from 100 to 85 — a bearish target (below entry) is hit.
+        df = _ohlcv_range(15, start=100.0, end=85.0)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01",
+            direction="bearish",
+            entry=100.0,
+            stop=105.0,
+            target=90.0,
+            future_ohlcv=df,
+        )
+        assert result["outcome"] == "win"
+        assert result["exit_price"] == pytest.approx(90.0)
+        assert result["pnl_pct"] > 0  # price fell -> bearish position profits
+        assert result["achieved_rr"] > 0
+
+    def test_bearish_loss_when_stop_hit(self):
+        dates = pd.date_range("2026-01-01", periods=15, freq="B", tz="UTC")
+        closes = [100.0 + i * 0.5 for i in range(15)]  # price rises against the short
+        df = pd.DataFrame({
+            "Open": closes, "High": [c + 0.5 for c in closes],
+            "Low": closes, "Close": closes, "Volume": [1_000_000] * 15,
+        }, index=dates)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01", direction="bearish",
+            entry=100.0, stop=105.0, target=85.0,
+            future_ohlcv=df,
+        )
+        assert result["outcome"] == "loss"
+        assert result["exit_price"] == pytest.approx(105.0)
+        assert result["pnl_pct"] < 0
+        assert result["achieved_rr"] == pytest.approx(-1.0)
+
+    def test_bearish_time_stop_when_no_exit(self):
+        # Mild decline, never reaches either the wide stop or the far target.
+        df = _ohlcv_trending_up(15, start=100.0, daily_drift=-0.001)
+        result = simulate_trade_outcome(
+            signal_date="2026-01-01", direction="bearish",
+            entry=100.0, stop=110.0, target=70.0,
+            future_ohlcv=df,
+            holding_period=(1, 15),
+        )
+        assert result["outcome"] == "time_stop"
 
 
 # ---------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 
 **What it is not:** An autonomous trading system. Every recommendation requires your review and manual execution.
 
-**Starting capital:** $15,000 | **Holding period:** 5-15 trading days | **Sector:** Semiconductors (NVDA, AMD, AVGO, TSM, MU, ASML)
+**Starting capital:** $15,000 | **Holding period:** 1-15 trading days | **Sector:** Semiconductors (NVDA, AMD, AVGO, TSM, MU, ASML)
 
 **Performance thresholds (all three required before live trading):** 80% win rate | 90/100 minimum confidence | 1:3 minimum R:R
 
@@ -237,7 +237,7 @@ StockAnalysis/
 
 ## Swing Trading Model
 
-**Timeframe:** 5-15 trading days (1-3 calendar weeks). This is the target holding period for all swing trade candidates — short enough to capture fast semiconductor sector moves driven by news/AI narratives, long enough for multi-day sentiment and technical setups to play out. Backtesting success metrics (win rate, R:R, drawdown) are all measured against this specific window.
+**Timeframe:** 1-15 trading days (1-3 calendar weeks). This is the target holding period for all swing trade candidates — short enough to capture fast semiconductor sector moves driven by news/AI narratives, long enough for multi-day sentiment and technical setups to play out. Backtesting success metrics (win rate, R:R, drawdown) are all measured against this specific window.
 
 **Cadence:** Indicator layer runs 2-3 times daily — once pre-market, once mid-session, once after close. Technical indicators are recalculated on daily bars after close; Market Positioning runs daily; Sentiment and news layers run more frequently to capture intraday developments that may affect the next session; Fundamental runs weekly (Monday 17:00 ET) since valuation/earnings data moves far slower than the other four categories.
 
@@ -263,13 +263,13 @@ Before combining any indicators, each indicator's current value is converted to 
 Example: a breakout where volume is 3.2 standard deviations above its 20-day mean contributes more confidence than one where volume is only 0.8 standard deviations above — even though both technically qualify as "above average."
 
 **2. Rolling historical win rate per signal combination**
-For each combination of indicator states (e.g., breakout confirmed + RSI 50-65 + positive RS vs. SMH + sentiment building), the system looks back at historical instances of that same pattern in the semiconductor watchlist and calculates: what percentage of the time did price produce a meaningful move in the expected direction within the 5-15 trading day window? That empirical win rate directly weights the confidence contribution of that signal pattern. Calibrated during backtesting (Phase 7) and updated as new data accumulates.
+For each combination of indicator states (e.g., breakout confirmed + RSI 50-65 + positive RS vs. SMH + sentiment building), the system looks back at historical instances of that same pattern in the semiconductor watchlist and calculates: what percentage of the time did price produce a meaningful move in the expected direction within the 1-15 trading day window? That empirical win rate directly weights the confidence contribution of that signal pattern. Calibrated during backtesting (Phase 7) and updated as new data accumulates.
 
 **3. Correlation filtering**
 Some indicators are correlated and effectively say the same thing (e.g., MACD crossover and 20/50-day MA crossover often fire together). If both are weighted equally, the same signal gets double-counted. Before computing the final confidence score, indicator correlations are checked and redundant signals are downweighted proportionally, so the score reflects the number of *independent* confirming signals, not just the total number of signals.
 
 **4. Volatility-adjusted targets (ATR-based)**
-Rather than fixed percentage price targets, the model uses ATR to define what a "meaningful move" looks like for each specific ticker over the 5-15 day window. NVDA's meaningful move is much larger in absolute terms than ASML's — ATR scaling ensures targets and stop-losses are proportional to each stock's actual volatility profile, not arbitrary fixed numbers.
+Rather than fixed percentage price targets, the model uses ATR to define what a "meaningful move" looks like for each specific ticker over the 1-15 day window. NVDA's meaningful move is much larger in absolute terms than ASML's — ATR scaling ensures targets and stop-losses are proportional to each stock's actual volatility profile, not arbitrary fixed numbers.
 
 **5. Market regime detection**
 The model classifies the current market into one of four regimes before scoring any ticker — trending up, trending down, high-volatility/choppy, or range-bound. Regime is determined using VIX level, SMH trend (sector benchmark direction), and market breadth indicators. Confidence weights adjust dynamically based on regime:
@@ -280,7 +280,7 @@ The model classifies the current market into one of four regimes before scoring 
 This prevents the model from producing high-confidence signals during hostile market environments where even good individual setups fail because of macro conditions. Regime is computed daily and stored as a field alongside each ticker's indicator output.
 
 **6. Signal decay within the holding period**
-The model scores a setup at entry, but also re-scores it daily throughout the 5-15 day holding window. Signal decay tracks how the confidence score evolves day by day after entry — if a bullish setup's confidence drops significantly (e.g., sentiment reverses, price breaks back below a key MA, news turns negative), that is flagged as an early exit signal rather than waiting for a fixed time stop. Without this, the model gives you an entry signal but no framework for managing the trade after entry. Signal decay output is a daily updated confidence time series per open position.
+The model scores a setup at entry, but also re-scores it daily throughout the 1-15 day holding window. Signal decay tracks how the confidence score evolves day by day after entry — if a bullish setup's confidence drops significantly (e.g., sentiment reverses, price breaks back below a key MA, news turns negative), that is flagged as an early exit signal rather than waiting for a fixed time stop. Without this, the model gives you an entry signal but no framework for managing the trade after entry. Signal decay output is a daily updated confidence time series per open position.
 
 **7. Cross-ticker correlation within the sector**
 The six semiconductaor tickers are heavily correlated — when NVDA moves strongly, AMD often follows. If the model fires bullish signals on three tickers simultaneously, those are likely not three independent opportunities; they may reflect one sector-wide move expressed across correlated names. Cross-ticker correlation detection distinguishes between:
@@ -502,7 +502,7 @@ Temporal alignment determines *when* each sentiment or news signal appeared rela
 Every sentiment and news data point carries a full timestamp. The system tracks whether each signal appeared before or after a significant price move in the same ticker. Signals that historically precede moves are up-weighted; signals that historically follow moves are down-weighted. Classification is established empirically during backtesting and refined as new data accumulates.
 
 **News decay weighting**
-News sentiment is weighted by recency using a time-decay function — a bullish article published 2 hours ago gets full weight; one published 3 days ago gets near-zero weight. The decay curve is calibrated to the 5-15 day holding period (news older than ~5 trading days is effectively zeroed out for a swing trade thesis).
+News sentiment is weighted by recency using a time-decay function — a bullish article published 2 hours ago gets full weight; one published 3 days ago gets near-zero weight. The decay curve is calibrated to the 1-15 day holding period (news older than ~5 trading days is effectively zeroed out for a swing trade thesis).
 
 **Sentiment momentum vs. sentiment snapshot**
 The model does not just ask "is sentiment bullish right now." It asks "has sentiment been consistently building over the last N days, and is it accelerating?" Both trajectory (first derivative) and velocity (second derivative) are computed in `swing_model/sentiment_layer.py` as rolling slopes, not point-in-time values.
@@ -674,7 +674,7 @@ Not all 42 structures will appear in ranked output for every candidate. The filt
 | **Account type filter** | Structures requiring options Level 3+ approval | Excluded if `options_approval_level` in `swing_config.yaml` is insufficient |
 | **Direction filter** | Bullish structures when thesis is bearish, and vice versa | Excluded; only neutral structures and thesis-aligned structures evaluated |
 | **P&L surface requirement** | Ratio spreads, back spreads (items 36-39) | EV computed across full P&L surface (Day 1, 5, 10, 15 × target/flat/stop scenarios) rather than simple terminal EV formula; flagged as COMPLEX in output |
-| **0DTE exclusion** | Any structure with expiry same day | Permanently excluded — not applicable to 5-15 day swing timeframe |
+| **0DTE exclusion** | Any structure with expiry same day | Permanently excluded — not applicable to 1-15 day swing timeframe |
 
 **EV Ranking Output (stored per candidate)**
 
@@ -1017,7 +1017,7 @@ Option B (cloud hosting — more reliable): deploy to AWS EC2 t2.micro (free tie
 
 ### Enhancement 7 — Macro Overlay (Phase 3)
 
-**Rationale:** Semiconductor stocks are acutely sensitive to three macro factors that the current technical/sentiment indicators don't capture: Federal Reserve rate direction (rising rates compress tech valuations), US dollar strength (strong dollar hurts TSM and ASML which report in non-USD currencies and hurts US semiconductor exports), and China trade/export policy (directly affects the entire watchlist given exposure to Asian supply chains and markets). When all three are adverse simultaneously, even technically perfect setups have a materially lower probability of achieving the 5-15 day target move.
+**Rationale:** Semiconductor stocks are acutely sensitive to three macro factors that the current technical/sentiment indicators don't capture: Federal Reserve rate direction (rising rates compress tech valuations), US dollar strength (strong dollar hurts TSM and ASML which report in non-USD currencies and hurts US semiconductor exports), and China trade/export policy (directly affects the entire watchlist given exposure to Asian supply chains and markets). When all three are adverse simultaneously, even technically perfect setups have a materially lower probability of achieving the 1-15 day target move.
 
 **Implementation:** `shared/utils/macro_overlay.py` monitors: Fed funds futures implied rate direction (from yfinance or Alpha Vantage), DXY (US Dollar Index) trend, and China-related news keyword frequency (using the existing `news_client.py` filtered for China/Taiwan/export policy terms). Outputs a macro state (favorable/neutral/adverse) updated daily. In adverse macro state: all ticker confidence scores reduced by configurable penalty (default -10 points), maximum surfaced confidence capped at 92 (still above 90 threshold but tighter), and Discord alerts include a macro warning flag. In favorable state: small boost applied (default +3 points).
 
@@ -1129,7 +1129,7 @@ EXCLUDED (36 total):
   • R:R filter: 9 structures (EV < 1:3 after slippage)
   • Undefined risk: 4 structures (eligible with Level 3 approval)
   • Direction filter: 3 structures (bearish structures excluded for bullish thesis)
-  • Greeks filter: 2 structures (theta too severe for 5-15 day hold)
+  • Greeks filter: 2 structures (theta too severe for 1-15 day hold)
 Reply "details" for full exclusion breakdown
 ```
 
@@ -1198,7 +1198,7 @@ If you reply "details" to the alert, a follow-up message sends the complete excl
 1. ~~Confirm watchlist~~ ✅ Resolved: NVDA, AMD, AVGO, TSM, MU, ASML with SMH as benchmark
 2. ~~Confirm API stack~~ ✅ Resolved (v2.0.0): yfinance, Alpha Vantage, Finnhub (all free) + StockTwits and Seeking Alpha Finance via RapidAPI (paid, shared `RAPIDAPI_KEY`). Reddit/PRAW is fully removed from the stack — no dormant client, no modifier path. Reddit's dev app had been pending since 2026-07-07 with no auto-approval path; StockTwits' structured sentiment tagging is also a quality improvement over Reddit's keyword-inferred classification, not just an availability fix.
 8. **NEW — Resolved: Market Positioning and Fundamental added as new categories.** Weights rebalanced Technical 40 / Positioning 20 / Sentiment 15 / News 15 / Fundamental 10. Insider transactions moved from a standalone confidence modifier into a Positioning sub-signal to avoid double-counting the same Form 4 data.
-3. ~~Define holding period~~ ✅ Resolved: 5-15 trading days
+3. ~~Define holding period~~ ✅ Resolved: 1-15 trading days
 4. ~~Define backtesting success metrics~~ ✅ Resolved (see Performance Thresholds below)
 5. ~~Define minimum confidence threshold~~ ✅ Resolved: 90/100 minimum confidence required before any trade is surfaced
 6. ~~Define minimum R:R threshold~~ ✅ Resolved: 1:3 minimum risk/reward ratio required per candidate
@@ -1218,7 +1218,7 @@ All trade recommendations are delivered as formatted Discord alerts via webhook.
 🟢 SWING TRADE ALERT — NVDA
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 Confidence Score:     93/100
-⏱ Holding Period:       5-15 trading days
+⏱ Holding Period:       1-15 trading days
 📈 Direction:           BULLISH
 
 — SIGNAL BREAKDOWN —
@@ -1367,7 +1367,7 @@ These are the minimum validated benchmarks the system must achieve during Phase 
 
 | Metric | Required Threshold | What It Means |
 |---|---|---|
-| Win rate | 80% | At least 80% of surfaced trade candidates must produce a profitable outcome within the 5-15 day holding window, measured across the full backtesting period |
+| Win rate | 80% | At least 80% of surfaced trade candidates must produce a profitable outcome within the 1-15 day holding window, measured across the full backtesting period |
 | Minimum confidence score | 90/100 | No trade recommendation is surfaced unless the final confidence score (after all modifiers) is 90 or above — this is a hard filter, not a soft guideline |
 | Minimum risk/reward ratio | 1:3 | For every $1 of risk (stop-loss distance), the trade must offer at least $3 of potential reward (target distance) based on ATR-based + volume-profile stop/target calculation — candidates below this threshold are not surfaced regardless of confidence score |
 
@@ -1392,7 +1392,7 @@ The 90/100 confidence threshold enforces this selectivity. Most days, the model 
 - Fewer than 100 qualifying trades in historical window: extend historical data window; do not lower confidence threshold to artificially inflate sample size
 - Model fails in specific regime: add regime-specific disqualifying conditions; do not average across regimes to hide regime-specific failure
 - R:R below 1:3 consistently: review volume profile target placement and ATR-based stop distance; tighten stop logic or widen target criteria
-- Thresholds unmet after reasonable recalibration: re-evaluate semiconductor watchlist and 5-15 day window before assuming model logic is fundamentally flawed
+- Thresholds unmet after reasonable recalibration: re-evaluate semiconductor watchlist and 1-15 day window before assuming model logic is fundamentally flawed
 
 ---
 
@@ -1433,7 +1433,7 @@ Risk per trade is a percentage of current account equity — not a fixed dollar 
 
 ### System 2 — Trade Management (During the Hold)
 
-Positions are actively managed throughout the 5-15 day holding window. The system re-evaluates every open position daily and fires Discord alerts when any threshold is hit.
+Positions are actively managed throughout the 1-15 day holding window. The system re-evaluates every open position daily and fires Discord alerts when any threshold is hit.
 
 **Profit target rules (structure-specific):**
 | Structure Category | Profit Target Action |

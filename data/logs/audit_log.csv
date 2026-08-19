@@ -51,3 +51,6 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-17T20:39:31.895290+00:00,v2.2.57,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='labor strike' source='seekingalpha.com',True,labor strike
 2026-08-17T20:41:46.600028+00:00,v2.2.57,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
 2026-08-17T20:41:47.057632+00:00,v2.2.57,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='consumer spending slowdown',False,consumer spending slowdown
+2026-08-18T12:39:04.974944+00:00,v2.2.57,pre_market,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='benzinga.com',True,fraud
+2026-08-18T20:35:21.460161+00:00,v2.2.57,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='labor strike',False,labor strike
+2026-08-18T20:35:21.943533+00:00,v2.2.57,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud

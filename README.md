@@ -2,7 +2,7 @@
 
 ## Section 1 — What This Project Does
 
-A swing trading decision-support system for the semiconductor sector (NVDA, AMD, AVGO, TSM, MU, ASML). It pulls technical, sentiment, and news data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score (0-100), evaluates all 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts. Every recommendation requires your review and manual execution — this is not an autonomous trading system. Starting capital: $15,000 | Holding period: 5-15 trading days.
+A swing trading decision-support system for the semiconductor sector (NVDA, AMD, AVGO, TSM, MU, ASML). It pulls technical, sentiment, and news data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score (0-100), evaluates all 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts. Every recommendation requires your review and manual execution — this is not an autonomous trading system. Starting capital: $15,000 | Holding period: 1-15 trading days.
 
 ---
 
