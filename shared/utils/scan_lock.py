@@ -27,6 +27,7 @@ import contextlib
 import json
 import os
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -123,17 +124,35 @@ def acquire_scan_lock(scan_type: str, lock_dir: Optional[Path] = None):
         # it's actually stale before giving up. The reclaim attempt itself
         # goes through the same atomic _try_claim, so two processes racing
         # to reclaim the same stale lock can't both "win" it.
-        try:
-            existing = json.loads(path.read_text(encoding="utf-8"))
-            existing_pid = int(existing.get("pid", -1))
-            started_at = datetime.fromisoformat(existing["started_at_utc"])
-            age_seconds = (datetime.now(timezone.utc) - started_at).total_seconds()
-        except Exception:
-            # Unparseable/corrupt lock file — treat as stale rather than
-            # blocking every future scan on a file we can't even read.
-            existing_pid, age_seconds = -1, _MAX_LOCK_AGE_SECONDS + 1
+        # Read+parse gets a few immediate retries before being trusted as
+        # "genuinely corrupt". A single failed attempt is ambiguous — it
+        # could be a truly garbled file (crash mid-write, manual tampering)
+        # or a transient hiccup on a file that a live holder just wrote a
+        # moment ago (observed on CI's slower/shared runners, not on a fast
+        # idle dev machine). Treating a lone failure as proof of staleness
+        # reintroduces the exact "steal it out from under the actual
+        # holder" bug this module was built to fix. A retry that still
+        # fails every time means the content really is unreadable; one
+        # that succeeds means it wasn't stale to begin with.
+        existing_pid, age_seconds = -1, _MAX_LOCK_AGE_SECONDS + 1
+        parsed = False
+        for attempt in range(3):
+            try:
+                existing = json.loads(path.read_text(encoding="utf-8"))
+                existing_pid = int(existing.get("pid", -1))
+                started_at = datetime.fromisoformat(existing["started_at_utc"])
+                age_seconds = (datetime.now(timezone.utc) - started_at).total_seconds()
+                parsed = True
+                break
+            except FileNotFoundError:
+                # The holder already released it (finished, or lost a race
+                # to another reclaimer) — genuinely free, not a steal.
+                break
+            except Exception:
+                if attempt < 2:
+                    time.sleep(0.01)
 
-        stale = age_seconds > _MAX_LOCK_AGE_SECONDS or not _pid_is_alive(existing_pid)
+        stale = (not parsed) or age_seconds > _MAX_LOCK_AGE_SECONDS or not _pid_is_alive(existing_pid)
         if stale:
             try:
                 path.unlink(missing_ok=True)
