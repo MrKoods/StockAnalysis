@@ -745,16 +745,19 @@ def send_paper_outcome_alert(trade: dict) -> bool:
     exit_price = float(trade.get("exit_price", 0.0))
     confidence = float(trade.get("confidence", 0.0))
 
-    is_win = (outcome == "win") or (outcome == "time_stop" and pnl_pct > 0)
+    is_win = (outcome == "win") or (outcome in ("time_stop", "earnings_exit") and pnl_pct > 0)
 
     _outcome_labels = {
         "win": "TARGET HIT",
         "loss": "STOPPED OUT",
         "time_stop": f"TIME STOP  ({pnl_pct * 100:+.1f}%)",
+        "earnings_exit": f"EARNINGS EXIT  ({pnl_pct * 100:+.1f}%)",
     }
     label = _outcome_labels.get(outcome, outcome.upper())
-    emoji = "✅" if is_win else ("⏱️" if outcome == "time_stop" else "❌")
-    color = _COLORS["green"] if is_win else (_COLORS["yellow"] if outcome == "time_stop" else _COLORS["red"])
+    emoji = "✅" if is_win else ("⏱️" if outcome == "time_stop" else ("📅" if outcome == "earnings_exit" else "❌"))
+    color = _COLORS["green"] if is_win else (
+        _COLORS["yellow"] if outcome in ("time_stop", "earnings_exit") else _COLORS["red"]
+    )
 
     embed = {
         "title": f"{emoji} PAPER CLOSE — {ticker}  |  {label}",
@@ -770,7 +773,11 @@ def send_paper_outcome_alert(trade: dict) -> bool:
             {"name": "Achieved R:R", "value": f"{achieved_rr:+.2f}R", "inline": True},
             {"name": "Signal Confidence", "value": f"{confidence:.0f}/100", "inline": True},
         ],
-        "footer": {"text": "Paper trade closed — outcome logged for model calibration"},
+        "footer": {"text": (
+            "Flattened ahead of earnings — undefined-risk position, not held through the print"
+            if outcome == "earnings_exit"
+            else "Paper trade closed — outcome logged for model calibration"
+        )},
     }
     return _post_to_webhook({"embeds": [embed]})
 

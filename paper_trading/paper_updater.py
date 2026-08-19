@@ -18,6 +18,11 @@ Once filled, checks each bar's High/Low for:
   - Stop hit  → outcome = "loss"   (stop price assumed filled)
   - Target hit → outcome = "win"   (target price assumed filled)
   - 15 trading days elapsed → outcome = "time_stop" (closed at that day's close)
+  - Still open AND earnings now 0-5 days out for an undefined-risk shares
+    position → outcome = "earnings_exit" (flattened at the latest close; see
+    _check_earnings_exit — signal-time-only earnings screening otherwise lets
+    a trade age into an unhedged earnings print it was never re-checked
+    against)
 
 When a trade closes, sends a Discord embed and updates paper_trades.csv in-place.
 
@@ -55,6 +60,7 @@ from swing_model.feedback_loop import (
     should_recalibrate,
 )
 from swing_model.indicator_pipeline import load_config
+from shared.utils.earnings_calendar import fetch_next_earnings_date, get_earnings_modifier
 # Imported, not duplicated — this module previously kept its own copy of the
 # column list that had already drifted from paper_runner.py's real schema
 # (missing positioning_score, structure_recommended, ev_per_dollar,
@@ -76,6 +82,13 @@ MAX_HOLDING_DAYS = 15  # trading days before automatic time stop
 # than MAX_HOLDING_DAYS — that clock is for a position that's actually on,
 # this one is for an order that hasn't triggered yet.
 FILL_WINDOW_DAYS = 5
+
+# Position types with no capped max loss (trade_selector.py's
+# _GAP_RISK_STRUCTURES — long_stock/long_stock_trailing_stop/short_stock all
+# collapse to position_type "shares"). Only these get flattened early ahead
+# of earnings; a capped-loss options structure's max loss is already known
+# and bounded, so there's nothing extra to protect against a gap.
+EARNINGS_EXIT_POSITION_TYPES = {"shares"}
 
 
 def _load_trades() -> list[dict]:
@@ -196,6 +209,45 @@ def _resolve_outcome(
     return None  # Still open
 
 
+def _check_earnings_exit(
+    trade: dict,
+    bars: pd.DataFrame,
+    earnings_date,
+    cfg: Optional[dict] = None,
+) -> Optional[dict]:
+    """
+    Flatten an open, undefined-risk (plain shares) position early once it
+    ages into shared.utils.earnings_calendar's own force-defined-risk window
+    (0-5 days out) without ever having been re-checked since entry.
+
+    get_earnings_modifier already requires a NEW signal inside that window to
+    use a capped-loss structure instead of bare shares — but that check runs
+    exactly once, at signal time. A trade signaled 6+ days before earnings
+    (allowed to size as plain shares back then) can still be open when
+    earnings lands inside its up-to-15-day holding window, and nothing was
+    ever re-evaluating it as that window closed. Only called when
+    _resolve_outcome already found the trade still open through the latest
+    bar, so this can't preempt a stop/target/time-stop that already fired.
+    """
+    if (trade.get("position_type") or "shares") not in EARNINGS_EXIT_POSITION_TYPES:
+        return None
+    if earnings_date is None or bars.empty:
+        return None
+
+    modifier = get_earnings_modifier(trade.get("ticker", ""), earnings_date, cfg=cfg)
+    if not (modifier["force_defined_risk"] or modifier["no_new_trades"]):
+        return None
+
+    last_bar_date = bars.index[-1]
+    last_close = float(bars.iloc[-1]["Close"])
+    return {
+        "outcome": "earnings_exit",
+        "exit_date": last_bar_date.strftime("%Y-%m-%d"),
+        "exit_price": last_close,
+        "holding_days": len(bars),
+    }
+
+
 def _find_fill(
     df: pd.DataFrame,
     entry_zone_lower: float,
@@ -262,6 +314,12 @@ def update_paper_trades() -> int:
     open_trades = [t for t in trades if not t.get("outcome")]
     logger.info(f"{len(open_trades)} open paper trade(s) to check")
 
+    try:
+        cfg = load_config()
+    except Exception as exc:
+        logger.warning(f"Could not load config — earnings-exit penalties will use defaults: {exc}")
+        cfg = {}
+
     # Group open trades by ticker to minimise yfinance calls
     by_ticker: dict[str, list[dict]] = {}
     for t in open_trades:
@@ -297,6 +355,17 @@ def update_paper_trades() -> int:
         if df is None or df.empty:
             logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
             continue
+
+        # Fetched once per ticker per run, not per trade (PFE-style tickers can
+        # have multiple open rows) — only worth the yfinance call at all if
+        # something open here could actually act on it (see
+        # EARNINGS_EXIT_POSITION_TYPES).
+        earnings_date = None
+        if any((t.get("position_type") or "shares") in EARNINGS_EXIT_POSITION_TYPES for t in ticker_trades):
+            try:
+                earnings_date = fetch_next_earnings_date(ticker)
+            except Exception as exc:
+                logger.warning(f"{ticker}: earnings date fetch failed — {exc}")
 
         for trade in ticker_trades:
             try:
@@ -399,8 +468,16 @@ def update_paper_trades() -> int:
 
             result = _resolve_outcome(bars_for_outcome, entry_price, stop_loss, target, direction=direction)
             if result is None:
+                result = _check_earnings_exit(trade, bars_for_outcome, earnings_date, cfg=cfg)
+            if result is None:
                 logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
                 continue
+            if result["outcome"] == "earnings_exit":
+                logger.info(
+                    f"{ticker} {signal_date}: earnings inside force-defined-risk window "
+                    f"(0-5 days out) for an undefined-risk shares position — flattening early "
+                    f"at ${result['exit_price']:.2f} instead of holding through the print"
+                )
 
             # Compute P&L and R multiple. Bearish mirrors bullish throughout:
             # a price move that hurts a long (price falling) is what a short
@@ -545,8 +622,14 @@ def print_summary() -> None:
     losses = [t for t in scored if t.get("outcome") == "loss"]
     time_stops = [t for t in scored if t.get("outcome") == "time_stop"]
     ts_pos = [t for t in time_stops if float(t.get("pnl_pct", 0)) > 0]
+    # Same "closed without hitting stop or target" shape as a time stop —
+    # counts as a win by the same pnl_pct > 0 rule, so it doesn't silently
+    # drag win_rate down just for landing in the scored denominator without
+    # ever entering the wins/ts_pos numerators.
+    earnings_exits = [t for t in scored if t.get("outcome") == "earnings_exit"]
+    ee_pos = [t for t in earnings_exits if float(t.get("pnl_pct", 0)) > 0]
 
-    effective_wins = len(wins) + len(ts_pos)
+    effective_wins = len(wins) + len(ts_pos) + len(ee_pos)
     win_rate = effective_wins / len(scored) if scored else 0.0
 
     rr_values = [float(t.get("achieved_rr", 0)) for t in wins]
@@ -555,10 +638,11 @@ def print_summary() -> None:
     print(f"\n{'=' * 50}")
     print(f"PAPER TRADING SUMMARY  ({len(scored)} closed, {open_ct} open, {len(expired)} expired)")
     print(f"{'=' * 50}")
-    print(f"  Win rate (wins + profitable time stops): {win_rate:.1%}")
+    print(f"  Win rate (wins + profitable time stops/earnings exits): {win_rate:.1%}")
     print(f"  Target hits:        {len(wins)}")
     print(f"  Stops:              {len(losses)}")
     print(f"  Time stops:         {len(time_stops)}  (+{len(ts_pos)} profitable)")
+    print(f"  Earnings exits:     {len(earnings_exits)}  (+{len(ee_pos)} profitable)")
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
     print(f"  Expired (never filled): {len(expired)}")
     print(f"  Open trades:        {open_ct}")
