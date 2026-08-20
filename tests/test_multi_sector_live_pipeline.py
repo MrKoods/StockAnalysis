@@ -175,3 +175,113 @@ def test_two_sectors_flow_through_the_real_pipeline_and_tag_correctly(tmp_path, 
     # --- a semis trade and a bank trade coexisted (per-sector caps, not one shared pool) ---
     assert results["NVDA"]["category"] == app_db.CATEGORY_TRADE_RECOMMENDED
     assert results["ZION"]["category"] == app_db.CATEGORY_TRADE_RECOMMENDED
+
+
+def _one_sector_cfg():
+    return {
+        "watchlist": {
+            "sectors": {
+                "semiconductors": {
+                    "active": True, "benchmark": "SMH", "benchmark_alt": "SOXX",
+                    "tickers": ["NVDA"],
+                },
+            },
+        },
+        "portfolio": {
+            "max_simultaneous_risk_pct": 0.03,
+            "max_total_open_positions": 2,
+            "sectors": {"semiconductors": {"max_open_positions": 2, "correlated_groups": []}},
+        },
+        "risk_reward": {},
+        "options_approval_level": 2,
+    }
+
+
+def test_open_position_critical_event_fires_immediate_alert(tmp_path, monkeypatch):
+    """
+    run_swing_model.py fires an immediate alert when a critical news event hits
+    an already-open position, without waiting for the daily rescore —
+    paper_runner.py had no equivalent at all until this fix (found while
+    reviewing pipeline duplication between the two, 2026-08-19). Uses the same
+    real-pipeline-with-fakes harness as the multi-sector test above, but with
+    one ticker already open in paper_trades.csv and one critical event
+    returned from the (faked) news layer.
+    """
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+    trades_csv = tmp_path / "paper_trades.csv"
+    trades_csv.write_text("ticker,outcome\nNVDA,\n", encoding="utf-8")  # open (blank outcome)
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", trades_csv)
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    cfg = _one_sector_cfg()
+    monkeypatch.setattr(pr, "load_config", lambda: cfg)
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    monkeypatch.setattr(pr, "run_pipeline", lambda tickers, benchmark=None, scan_type=None, cfg=None: {
+        "NVDA": _fake_indicators()["NVDA"],
+    })
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {"semiconductors": None},
+        "spy_df": None, "tnx_series": None, "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_china_tension_count", lambda cfg: 0)
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+
+    critical_event = {
+        "headline": "NVDA CEO resigns amid controversy",
+        "source": "reuters.com",
+        "scope": "ticker",
+        "trigger_match": "CEO resigns",
+        "ner_sentiment": "bearish",
+        "event_timestamp_utc": "2026-08-19T00:00:00+00:00",
+    }
+    monkeypatch.setattr(
+        pr, "compute_news_score",
+        lambda *a, **k: {"critical_events": [critical_event], "dominant_narrative_theme": "none"},
+    )
+    monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
+    monkeypatch.setattr(
+        pr, "rank_trade_structures",
+        lambda *a, **k: {"ranked_structures": [{"name": "bull_call_spread", "ev_per_dollar_risked": 0.03}]},
+    )
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version: True)
+
+    alert_calls = []
+    monkeypatch.setattr(
+        pr, "_handle_open_position_critical_event",
+        lambda position, event, model_version: alert_calls.append((position, event, model_version)),
+    )
+
+    pr.run_paper_scan(scan_type="post_close")
+
+    assert len(alert_calls) == 1
+    position, event, model_version = alert_calls[0]
+    assert position["ticker"] == "NVDA"
+    assert event["trigger_match"] == "CEO resigns"
+    assert model_version == "v-test"

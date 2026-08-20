@@ -149,5 +149,9 @@ def theme_alignment_modifier(
             return 1.0
         if dominant_theme in _BULLISH_ALIGNED_THEMES:
             return -1.0
+        if dominant_theme == "supply_chain":
+            return 0.5
+        if dominant_theme == "memory_cycle":
+            return -0.5 if ticker in ("MU",) else 0.0
 
     return 0.0

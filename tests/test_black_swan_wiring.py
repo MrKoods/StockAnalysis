@@ -72,13 +72,44 @@ class TestUpdateBlackSwanStateAdvisoryOnly:
         state = update_black_swan_state(state, result)  # still triggered
         assert state.get("_black_swan_newly_triggered", False) is False
 
-    def test_clearing_resets_mode(self):
+    def test_mode_stays_active_through_the_cooldown_window(self):
+        # Signal Integrity Audit follow-up: mode used to clear the instant
+        # ONE scan read normal, even though config's black_swan.
+        # resume_after_normal_days ("resume after 3 consecutive normal
+        # days") and black_swan_normal_days were both already tracking a
+        # cooldown nothing ever gated on. 1 and 2 normal days must NOT clear it.
+        state = self._state()
+        triggered = check_black_swan(smh_current_pct_change=-0.09, vix_current_pct_change=0.0)
+        state = update_black_swan_state(state, triggered)
+        assert state["black_swan_mode"] is True
+
+        normal = check_black_swan(smh_current_pct_change=-0.01, vix_current_pct_change=0.0)
+        state = update_black_swan_state(state, normal)  # day 1 normal
+        assert state["black_swan_mode"] is True
+        assert state["black_swan_normal_days"] == 1
+
+        state = update_black_swan_state(state, normal)  # day 2 normal
+        assert state["black_swan_mode"] is True
+        assert state["black_swan_normal_days"] == 2
+
+    def test_clearing_resets_mode_after_the_full_cooldown(self):
         state = self._state()
         triggered = check_black_swan(smh_current_pct_change=-0.09, vix_current_pct_change=0.0)
         state = update_black_swan_state(state, triggered)
 
         normal = check_black_swan(smh_current_pct_change=-0.01, vix_current_pct_change=0.0)
-        state = update_black_swan_state(state, normal)
+        for _ in range(3):  # config default: resume_after_normal_days = 3
+            state = update_black_swan_state(state, normal)
+        assert state["black_swan_mode"] is False
+
+    def test_cooldown_window_is_configurable(self):
+        state = self._state()
+        cfg = {"black_swan": {"resume_after_normal_days": 1}}
+        triggered = check_black_swan(smh_current_pct_change=-0.09, vix_current_pct_change=0.0)
+        state = update_black_swan_state(state, triggered, cfg=cfg)
+
+        normal = check_black_swan(smh_current_pct_change=-0.01, vix_current_pct_change=0.0)
+        state = update_black_swan_state(state, normal, cfg=cfg)
         assert state["black_swan_mode"] is False
 
     def test_re_triggering_after_clearing_flags_newly_triggered_again(self):
@@ -88,7 +119,9 @@ class TestUpdateBlackSwanStateAdvisoryOnly:
         state.pop("_black_swan_newly_triggered", None)
 
         normal = check_black_swan(smh_current_pct_change=-0.01, vix_current_pct_change=0.0)
-        state = update_black_swan_state(state, normal)
+        for _ in range(3):  # clear the cooldown for real before re-triggering
+            state = update_black_swan_state(state, normal)
+        assert state["black_swan_mode"] is False
 
         state = update_black_swan_state(state, triggered)
         assert state["_black_swan_newly_triggered"] is True

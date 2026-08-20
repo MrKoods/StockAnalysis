@@ -14,6 +14,7 @@ import pandas as pd
 def get_insider_signal(
     ticker: str,
     lookback_days: int = 30,
+    direction: str = "bullish",
 ) -> dict:
     """
     Fetch and classify recent insider transactions.
@@ -26,9 +27,16 @@ def get_insider_signal(
         rationale: str,
     }
 
-    Buying cluster: 2+ distinct insiders buying within 10 trading days → +8
-    Selling cluster: 2+ distinct insiders selling within 10 trading days → -8
+    Buying cluster: 2+ distinct insiders buying within 10 trading days → +8 (bullish)
+    Selling cluster: 2+ distinct insiders selling within 10 trading days → -8 (bullish)
     Single large buy → +4; single large sell → -3 (asymmetric — insiders sell for many reasons)
+
+    `direction="bearish"` sign-flips confidence_modifier (selling confirms a bearish
+    thesis, buying opposes it), same convention as regime_detection/macro_overlay's
+    modifiers. This function itself is currently unused — the real, wired-in insider
+    signal is swing_model/positioning_layer.py's `_score_insider`, which has its own
+    already-mirrored bearish ladder. Kept mirrored here too so this doesn't become an
+    unmirrored bullish-only landmine if it's ever wired in as a standalone modifier.
     """
     from shared.api_clients.market_data_client import fetch_insider_transactions
 
@@ -69,7 +77,7 @@ def get_insider_signal(
         }
 
     signal = classify_transactions(recent, window_days=10)
-    modifier = _signal_to_modifier(signal, recent)
+    modifier = _signal_to_modifier(signal, recent, direction=direction)
 
     return {
         "signal": signal,
@@ -149,17 +157,28 @@ def classify_transactions(transactions: list[dict], window_days: int = 10) -> st
     return "neutral"
 
 
-def _signal_to_modifier(signal: str, transactions: list[dict], window_days: int = 10) -> float:
-    """Convert classified signal to confidence modifier (-8 to +8)."""
+def _signal_to_modifier(
+    signal: str,
+    transactions: list[dict],
+    window_days: int = 10,
+    direction: str = "bullish",
+) -> float:
+    """Convert classified signal to confidence modifier (-8 to +8).
+
+    Bearish sign-flips the raw (bullish-shaped) value: insider selling confirms
+    a bearish thesis (positive), insider buying opposes it (negative).
+    """
     if signal == "buying":
         # 2+ distinct buyers → +8; single buyer → +4
         buy_insiders, _ = count_distinct_traders(transactions, window_days)
-        return 8.0 if len(buy_insiders) >= 2 else 4.0
-    if signal == "selling_cluster":
-        return -8.0
-    if signal == "selling":
-        return -3.0
-    return 0.0
+        raw = 8.0 if len(buy_insiders) >= 2 else 4.0
+    elif signal == "selling_cluster":
+        raw = -8.0
+    elif signal == "selling":
+        raw = -3.0
+    else:
+        raw = 0.0
+    return -raw if direction == "bearish" else raw
 
 
 def _build_rationale(signal: str, transactions: list[dict]) -> str:

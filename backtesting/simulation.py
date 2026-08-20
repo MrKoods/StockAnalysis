@@ -391,12 +391,12 @@ def _simulate_test_signals(
     from shared.utils.regime_detection import classify_regime, get_regime_modifiers
     from shared.utils.seasonality import get_seasonality_modifier
     from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target
-    from shared.utils.macro_overlay import compute_macro_state
+    from shared.utils.macro_overlay import compute_macro_state, dampen_news_china_theme_if_macro_confirmed
     from shared.utils.fill_simulation import find_fill
     from shared.utils.sector_rotation import (
         compute_rotation_state, dampen_rotation_penalty_for_leader, get_rotation_modifier,
     )
-    from swing_model.cross_ticker_analysis import analyze_cross_ticker
+    from swing_model.cross_ticker_analysis import analyze_cross_ticker, get_cross_ticker_modifier_for_direction
     from backtesting.historical_news_loader import load_historical_news
 
     try:
@@ -686,6 +686,7 @@ def _simulate_test_signals(
             # unavailable, same pattern as News/Fundamental elsewhere here.
             macro_mod = 0.0
             macro_state_label = "unavailable"
+            macro_result: dict = {}
             if tnx_series is not None or dxy_series is not None:
                 try:
                     tnx_slice = tnx_series[tnx_series.index <= bar_date] if tnx_series is not None else None
@@ -749,7 +750,14 @@ def _simulate_test_signals(
                             "breakout_confirmed": bool(_sector_breakout_confirmed[peer].iloc[peer_idx[0]]),
                         }
                     cross_result = analyze_cross_ticker(ticker_scores, ohlcv_data, cfg=cfg)
-                    cross_ticker_mod = cross_result.get(ticker, {}).get("confidence_modifier", 0.0)
+                    # Direction-aware — see run_swing_model.py's matching
+                    # comment (Signal Integrity Audit follow-up finding).
+                    # Bearish candidates were silently mis-signed since
+                    # cross_ticker_modifier was first wired into the backtest
+                    # (v2.2.61) — this changes which bearish bars qualify.
+                    cross_ticker_mod = get_cross_ticker_modifier_for_direction(
+                        cross_result.get(ticker, {}), direction, cfg
+                    )
                 except Exception:
                     cross_ticker_mod = 0.0
 
@@ -776,6 +784,15 @@ def _simulate_test_signals(
                     news = _neutral_news
             else:
                 news = _neutral_news
+            # China-tension double-count fix — see macro_overlay.py's
+            # dampen_news_china_theme_if_macro_confirmed docstring. A no-op
+            # today (china_keyword_count_5d is hardcoded 0 above, so
+            # macro_state_label's china_tension_level can never reach "high"
+            # here) — wired in for when a historical news-keyword archive
+            # exists and this stops being neutral by construction.
+            news = dampen_news_china_theme_if_macro_confirmed(
+                news, macro_result.get("china_tension_level", "normal")
+            )
 
             fundamental = _fundamental_as_of(fundamental_history, ticker, bar_date, _neutral_fundamental)
 

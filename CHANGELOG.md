@@ -63,6 +63,12 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.70 | 2026-08-19 | Bug Fix | Paper trading now fires the same immediate Discord alert live trading does when a critical news event hits an already-open position, instead of waiting for the next daily rescore — a real gap found (not an intentional design choice) while reviewing why the two pipelines' event-handling code differed |
+| v2.2.69 | 2026-08-19 | Research | Pipeline deduplication, part 2 — no code change: close comparison of the 2 largest duplicated blocks between the live and paper-trading pipelines (entry/stop/target + trade-structure selection; per-ticker scoring orchestration) found both riskier to merge than they looked from a high-level pass. Left both as separate implementations, with the specific reasons documented so a future pass doesn't have to re-derive this from scratch |
+| v2.2.68 | 2026-08-19 | Bug Fix / Infrastructure | Continued the pipeline-deduplication pass: fixed a real (small) bug where paper trading's win-rate stat quietly used a narrower definition than the historical test's, undercounting profitable early exits as non-wins; consolidated 3 duplicated-but-equivalent code blocks (geopolitical penalty, position-sizing input derivation) between the live and paper-trading pipelines into shared, single-source functions. A 4th planned consolidation (event-alert creation) was found to have real behavioral differences between the two pipelines beyond what was assumed going in — left unmerged rather than forcing it and risking silently changing either pipeline's behavior; noted below for a future decision |
+| v2.2.67 | 2026-08-19 | Bug Fix / Scoring Change | Full inventory of the 4th recurring bug shape (double-counting: two signals independently penalizing/rewarding a candidate for the same underlying fact) — 4 known pairs re-confirmed already handled (documented in place, no action needed); found and fixed 1 new one: a China-trade-tension news theme and the separate macro China-tension signal both scan largely the same headlines and could each independently penalize a candidate, live/paper only (backtest already fixed at 0 for this signal, so unaffected) |
+| v2.2.66 | 2026-08-19 | Bug Fix / Infrastructure | Built a permanent CI guardrail against 2 of today's 4 recurring bug shapes (a config setting nobody reads; a new signal that handles the bullish case but not bearish) instead of relying on another one-off sweep. While cataloguing every scoring signal for the new bearish-direction check, direct code reads turned up 2 more real bullish-only gaps beyond what the check itself would have caught automatically, both fixed: a news-narrative signal (supply-chain/memory-cycle themes) went neutral instead of confirming a bearish trade; a standalone insider-trading signal (currently unused, a landmine if ever wired in) was bullish-only. Also found the config-nobody-reads problem is ~2.6x bigger than previously documented (108 decorative settings, not ~41) |
+| v2.2.65 | 2026-08-19 | Bug Fix | Asked "are we finding the same mistakes twice, and are we checking for it" — built a complete checklist for the three recurring bug shapes instead of another spot-check, then fixed the 9 quickest, safest findings: a bearish trade could get penalized by the same cross-ticker strength that should have confirmed it (never mirrored at all, unlike the other signals); two more spots quietly reused the un-sorted trade list for a streak stat already fixed once elsewhere; a real-money-relevant safety switch (Black Swan mode) turned back off after a single calm day instead of the 3 the settings promised; a stated confidence penalty for geopolitically exposed stocks was never actually subtracted from anything; the live system was quietly using a less accurate macro reading and an uncalibrated win-probability estimate than the paper-trading system did, for no reason |
 | v2.2.64 | 2026-08-19 | Bug Fix | Same-day correction to v2.2.63: the new daily "cut a position loose early if its outlook has soured" check turned out to compare a real entry-time score against a rescore built from neutral stand-ins for two of its five inputs, producing a large, mechanical-looking drop on almost every open position regardless of what actually changed. Caught immediately by running it for real — it wrongly closed 7 paper positions, which were restored before anything was committed. The check is now switched off until it can compare like with like; nothing else from v2.2.63 is affected |
 | v2.2.63 | 2026-08-19 | Bug Fix / Scoring Change / Backtest Methodology | A full model audit (5 parallel reviews covering data, scoring, risk, the historical test, and live/paper trading) found and fixed 17 real gaps — the biggest: the historical test had been assuming every signal filled instantly instead of checking whether price actually reached the entry price first, the same check real trading already uses, flattering its numbers. Win rate moved from 63.1% to a more honest 61.2% after the fix — still clears the safety bar |
 | v2.2.62 | 2026-08-19 | Bug Fix | Paper trading's earnings-proximity check only ever ran once, at signal time — an undefined-risk shares position signaled 6+ days before earnings could still be open when the report actually landed inside its up-to-15-day holding window, fully unprotected (live example: NVDA, signaled 12 days out from its 08-26 earnings). Now re-checked on every daily update and flattened early if it ages into the same 0-5-day pre-earnings window a new signal would already be forced into a capped-loss structure for. A second, same-shaped gap (news/event-gate checks are also signal-time-only) was found and flagged, not fixed — closing it needs a daily news re-scan per open ticker, a bigger change against limited free-tier API budgets that needs a design decision first |
@@ -136,6 +142,295 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.70] — 2026-08-19 — [Bug Fix] Paper trading now alerts immediately on a critical event hitting an open position
+
+**Status:** Live (paper trading).
+
+**In short:** v2.2.69 found that live trading fires an immediate Discord alert when a critical news
+event (CEO resignation, fraud investigation, etc.) hits a position that's already open, without
+waiting for the next daily rescore — and that paper trading had no equivalent at all. Nothing in
+the code or history suggested this was ever a deliberate choice; it looks like a feature that
+simply never got carried over when paper trading's event-gate handling was built. Added.
+
+**Fix:** `paper_runner.py` now tracks whether each scanned ticker has an open position (it already
+computes this set for the duplicate-position guard) and calls the same
+`_handle_open_position_critical_event()` `run_swing_model.py` uses, for every critical event on that
+ticker — same cross-module reuse pattern already used for the other 18 helpers `paper_runner.py`
+imports from `run_swing_model.py`. New end-to-end test in `tests/test_multi_sector_live_pipeline.py`
+(same real-pipeline-with-fakes harness as the existing multi-sector test) confirms the alert fires
+for an open position and threads the right ticker/event/model-version through.
+
+**Backtest:** Not applicable — this is a live/paper Discord-alerting feature with no equivalent
+concept in the historical test (confirmed unchanged: 61.2% WR, Sharpe 2.03, 152 trades).
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.69] — 2026-08-19 — [Research] Pipeline deduplication, part 2 — the 2 largest blocks are riskier to merge than they looked, left separate on purpose
+
+**Status:** Research — no code changed.
+
+**In short:** v2.2.68 named the 2 largest duplicated-but-apparently-equivalent blocks between the
+live and paper-trading pipelines as candidates for consolidation. Close, line-by-line comparison of
+both (not the higher-level pass that originally identified them) found real reasons neither is a
+safe, low-risk merge right now. Documenting the specific reasons here so a future pass doesn't
+spend time re-discovering the same thing, and doesn't assume "duplicated" automatically means
+"safe to merge."
+
+**Findings, by block:**
+
+1. **Entry/stop/target + trade-structure selection** (the largest duplicate by line count). Two
+   real differences beyond the already-known threshold/diagnostic-field distinctions: (a)
+   `run_swing_model.py` has an explicit "is this entry/stop/target setup even validly ordered"
+   check before ever calling `rank_trade_structures` — `paper_runner.py` has no equivalent, calling
+   `rank_trade_structures` unconditionally whenever the score clears its (lower, diagnostic)
+   threshold. Confirmed harmless in outcome — `trade_selector.py` recomputes reward:risk internally
+   and its own Filter 3 rejects every structure for an invalid setup either way — but it's a real
+   mechanism difference, not just a formatting one, and worth knowing about rather than silently
+   erasing by force-fitting one behavior onto both. (b) Nearly every individual field extracted from
+   the winning structure differs in type or formatting between the two call sites — `run_swing_model.py`
+   keeps native types for its Discord-alert dict, `paper_runner.py` stringifies everything for its
+   CSV row (e.g. `structure_legs` is a list on one side, `str(...)` on the other; empty defaults are
+   `None` vs `""`). A shared function returning one canonical shape wouldn't actually reduce
+   duplication — the caller-specific formatting step would just move outside the function instead of
+   disappearing.
+2. **Per-ticker scoring orchestration** (sentiment/news/earnings/positioning fetch → `compute_confidence_score`
+   call → event-gate check). Genuinely behaviorally equivalent this time — the only real difference
+   is that `run_swing_model.py` additionally tracks which data sources responded this scan
+   (`data_sources[...] = True`, an observability detail paper trading doesn't need). But a shared
+   function here would need on the order of 15 parameters in and 10 values out, since several
+   downstream steps (trade-structure evaluation, position sizing, audit logging) each need specific
+   intermediate values individually, not just the final score. Real complexity cost for a change
+   that wouldn't meaningfully reduce the drift risk this work is trying to address — worth
+   revisiting if a genuinely new signal gets added to this orchestration in the future and both
+   pipelines need it, but not on its own as a pure refactor.
+
+**How to apply:** the next audit that finds these two blocks "still duplicated" should read this
+entry before re-flagging them as an easy win — the duplication is real, but forcing it into one
+function isn't free the way v2.2.68's 3 smaller consolidations were.
+
+**Backtest:** Not applicable — no code changed.
+
+---
+
+## [v2.2.68] — 2026-08-19 — [Bug Fix / Infrastructure] Pipeline deduplication, part 1 — a real win-rate bug fixed, 3 duplicated blocks consolidated, 1 left alone on purpose
+
+**Status:** Live.
+
+**In short:** Continuing the recurring-shape guardrail work (shape #3: a fix applied to one
+pipeline but not generalized to its structural sibling), this pass compared every duplicated block
+between the live and paper-trading pipelines item by item. One real bug found in the process (not
+hypothetical): paper trading's own win-rate statistic used a narrower definition than the
+historical test's, silently under-counting real wins. Three duplicated-but-genuinely-equivalent
+blocks were consolidated into single, shared functions. One planned consolidation was found, on
+closer inspection, to not actually be safe to merge — left alone, with the real difference
+documented so a future pass doesn't have to re-discover it.
+
+**Problem, fix, by item:**
+
+1. **Paper trading's win-rate stat silently used a stricter definition than the historical test's.**
+   A profitable early exit (a "time stop" that closed above entry) counts as a real win in every
+   backtest report — but paper trading's own copy of this calculation only counted `outcome ==
+   "win"` literally, missing that case. Low real-world impact today (this number is reported for
+   visibility, not a go-live gate), but it meant paper trading's reported win rate wasn't actually
+   comparable to the backtest's own number for the same underlying trades. Fixed by importing the
+   backtest's own shared function instead of reimplementing it — it already imported two sibling
+   functions from the same module, just not this one.
+2. **Geopolitical risk penalty** (TSM/ASML's fixed confidence penalty) — identical formula
+   duplicated in both pipelines, extracted to one shared function.
+3. **Position-sizing input derivation** (turning a ranked trade structure into the risk-per-unit
+   and per-unit-cost numbers the position sizer needs) — identical branching duplicated in both
+   pipelines, extracted to one shared function.
+4. **Not merged, on purpose: Event Severity Gate block-creation.** Assumed going in to differ only
+   in whether paper trading's database-notification call fires. Closer comparison found a second,
+   real difference: the live pipeline fires an immediate Discord alert when a critical news event
+   hits an already-open position, in the same pass that creates the block; paper trading's version
+   has no equivalent call anywhere. Forcing a shared function here would mean either silently adding
+   an alert paper trading never had, or silently dropping one live has always had — a real behavior
+   question, not a pure dedup, so it's left as two separate implementations. Whether paper trading
+   *should* have this alert is a legitimate open question for a future pass, not a dedup decision.
+
+**Fix:** New `shared/utils/geopolitical_risk.py` (`apply_geopolitical_penalty`) and a new
+`derive_sizing_inputs()` in `shared/utils/position_sizer.py`, both called from `paper_runner.py`
+and `run_swing_model.py`. `paper_trade_metrics.py`'s two local win-rate reimplementations replaced
+with `backtesting.metrics.compute_win_rate`. New tests for all of it.
+
+**Backtest:** Not re-run — none of this pass's changes touch any code the historical test exercises
+(it doesn't do position sizing, apply the geopolitical penalty, or use paper trading's win-rate
+stat at all), so there is nothing for a backtest to measure. Baseline stays v2.2.67's: 61.2% WR,
+Sharpe 2.03, 152 trades.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.67] — 2026-08-19 — [Bug Fix / Scoring Change] Exhaustive double-counting inventory — 4 known pairs confirmed handled, 1 new one found and fixed
+
+**Status:** Live (paper trading).
+
+**In short:** The 4th recurring bug shape named in v2.2.66 — two scoring signals independently
+deriving from the same underlying data and both moving the score, effectively double-weighting one
+fact — had never had a complete inventory, only 3 known instances found opportunistically over
+time. This entry builds that inventory: every scoring component and modifier was checked against
+every other for a shared data source. 4 known pairs (regime/sector_rotation, cross_ticker's
+sector-wide discount, insider activity, and two News sub-signals sharing the same per-article decay
+weight) were re-verified as already fixed and documented in place — nothing to do there. One new,
+real, unfixed pair was found: a China-trade-tension theme detected from news headlines, and a
+separate macro signal counting China-tension keywords in largely the same headlines, could each
+independently penalize a candidate for the same underlying news.
+
+**Problem, fix:** `macro_overlay.py`'s China-tension signal and `news_layer.py`'s `china_export`
+theme both scan Yahoo/news headlines for the same watchlist and words. When both agree a candidate
+is heavily in China-tension news, the candidate was penalized once through News's theme-alignment
+score and again, independently, through the macro modifier — the same "same underlying signal,
+counted twice" shape already fixed once for regime/sector_rotation (both driven by SMH price
+action) and cross_ticker's sector-wide discount. Fixed the same way: when both agree, the News
+contribution is zeroed and the macro signal (a more robust multi-signal threshold: TNX + DXY +
+keyword count) stays authoritative. Live/paper only — the historical test doesn't have a China-
+news-keyword archive for its date range and already hardcodes that specific input to zero, so it
+was never exposed to this double-count in the first place.
+
+**Fix:** New `dampen_news_china_theme_if_macro_confirmed()` in `shared/utils/macro_overlay.py`,
+called from all 3 pipelines (`paper_runner.py`, `run_swing_model.py`, `backtesting/simulation.py`)
+right after both the macro and News scores are computed for a ticker, before either reaches the
+final confidence score. New regression tests in `tests/test_macro_context.py`.
+
+**Backtest:** Run date: 2026-08-19. Win rate: 61.2%. Avg R:R: 1:1.41. Sharpe ratio: 2.03. Max
+drawdown: 7.7%. Qualifying trades: 152. Max consecutive losses: 9. **Passed — unchanged from
+v2.2.66**, exactly as expected: the fix is a no-op wherever China-tension keyword counting is
+hardcoded to 0, which is every backtest run today.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.66] — 2026-08-19 — [Bug Fix / Infrastructure] Two permanent CI guardrails against the recurring bug shapes, plus 2 more real gaps found while building them
+
+**Status:** Live.
+
+**In short:** v2.2.65 named 4 shapes of bug that keep recurring across this project's history but
+said nothing in the process actually checks for them — they've only ever been caught by one-off
+manual sweeps. This entry builds automated, permanent guardrails against the first two: a CI check
+that fails the build if any `config/swing_config.yaml` setting has no real code reader, and a
+registry + test that fails the build if any scoring/modifier signal isn't explicitly classified as
+bearish-mirrored or deliberately direction-neutral. Both are designed to fail on a *future*
+regression, not just today's known backlog. Building the direction-parity registry required
+cataloguing every scoring signal by hand, which turned up 2 more real bullish-only gaps the
+automated check alone wouldn't have caught (they predate the check) — both fixed. Building the
+config-coverage check also turned up a much bigger version of an already-known problem: 108
+settings the project's own config file describes as controlling the model, that no code actually
+reads — not 41 as previously documented.
+
+**Problem, fix, by item:**
+
+1. **A supply-chain or memory-pricing news narrative had no effect on a bearish trade's score.**
+   The theme-alignment signal correctly penalized a *bullish* candidate during supply-chain
+   uncertainty (or rewarded a Micron bullish candidate during a favorable memory-pricing cycle),
+   but a *bearish* candidate in either narrative scored a flat neutral instead of the mirrored
+   confirm/oppose value every other theme in the same function already got. Fixed by adding the
+   missing bearish branches, sign-flipped from the existing bullish ones.
+2. **A standalone insider-trading signal was bullish-only.** Unlike the version of this signal
+   actually wired into live scoring (which already mirrors correctly), this second, currently
+   unused copy had no notion of trade direction at all — harmless today only because nothing calls
+   it, but a silent bullish-only bug waiting to ship the moment it is. Fixed the same way as item 1,
+   removing the landmine before it can go live.
+3. **New: `scripts/check_config_coverage.py`, wired into CI.** Flattens every setting in the
+   config file and fails the build if a setting has no real (non-test) code reference and isn't on
+   an explicit, reasoned allowlist. Running it once already found 67 more settings with this exact
+   problem beyond the ~41 already known and tracked — most of it a bigger version of an
+   already-known pattern (an entire settings block copy-pasted into hardcoded Python constants
+   instead of actually being read), just never checked exhaustively before now. None of the 108 are
+   fixed by this entry — they're allowlisted with reasons so the new check can ship without forcing
+   an unrelated, much larger cleanup; the full list lives in the script itself.
+4. **New: `tests/direction_parity_registry.py` + `tests/test_direction_parity.py`, run every test
+   suite.** Every scoring/modifier-producing function in `swing_model/` and `shared/utils/` must be
+   classified — bearish-mirrored (verified) or explicitly direction-neutral (with a stated reason,
+   e.g. earnings-proximity risk applies to either side of a trade). A brand-new signal that isn't
+   classified fails the build until someone makes that call, instead of silently shipping
+   bullish-only the way items 1 and 2 did.
+
+**Fix:** Items 1-2 fixed directly in `shared/utils/narrative_tracker.py` and
+`shared/utils/insider_tracker.py`, with new regression tests. Items 3-4 are new, permanent checks,
+not one-time fixes — verified on a throwaway branch to actually fail on a deliberately-broken
+example before being trusted.
+
+**Backtest:** Run date: 2026-08-19. Win rate: 61.2%. Avg R:R: 1:1.41. Sharpe ratio: 2.03. Max
+drawdown: 7.7%. Qualifying trades: 152. Max consecutive losses: 9. **Passed — unchanged from
+v2.2.65.** Same pattern as v2.2.65's cross-ticker fix: items 1-2 are verified correct at the
+unit-test level, but this historical semiconductor dataset doesn't have enough candidates hitting
+these specific narrative themes for it to move the aggregate numbers.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.65] — 2026-08-19 — [Bug Fix] Nine more real gaps, found by building a complete checklist instead of another spot-check
+
+**Status:** Live.
+
+**In short:** After today's earlier full audit, the question came up: are we finding the same kinds of
+mistakes over and over, and are we actually checking for that? Looking back through 7 weeks of history,
+the honest answer was: not the exact same bugs twice, but the same three *shapes* of bug kept
+resurfacing in new places, because past fixes were found by reading code and noticing something wrong,
+not by checking every place that shape of bug could hide. So instead of reading more code, three
+complete checklists were built — every function that might be unreachable, every place a bearish
+trade might still be scored like a bullish one, and every place two of the three trading pipelines
+(paper trading, live, and the historical test) do the same job with separately-written code that could
+quietly drift apart. That turned up a lot more than expected; the 9 quickest and safest findings were
+fixed now, the rest are scoped for later.
+
+**Problem, fix, by item:**
+
+1. **A bearish trade could be penalized by the very sector strength that should have confirmed it.**
+   The cross-ticker signal (is this stock moving on its own, or just riding the sector?) never had any
+   concept of trade direction at all — a stock falling faster than its peers, which should support a
+   bet that it keeps falling, was instead scored the same backwards way a rising stock would be for a
+   bullish bet. Every other signal in the model already handles this correctly for both directions;
+   this one didn't, because it never had a "which direction is this trade betting on" input to begin
+   with. Fixed by teaching it to swap which condition confirms the trade once the direction is known,
+   the same pattern already used successfully elsewhere.
+2. **Two research reports were quietly counting a losing streak out of calendar order** — the identical
+   bug already found and fixed once today in the main historical test, left unfixed in two smaller
+   diagnostic scripts that independently reimplement the same math.
+3. **Black Swan mode (a market-crash safety flag) turned back off after just one calm day**, even
+   though the settings have always said it should wait for 3 consecutive calm days before doing so. The
+   3-day check was already built and tested — it just was never actually being used.
+4. **A stated "confidence penalty" for geopolitically exposed stocks (TSM, ASML) was never actually
+   applied.** The system would log a note saying a penalty had been applied, but never actually
+   subtracted anything from the score — and the paper-trading system didn't even have the note; it
+   never referenced this setting at all.
+5. **The live trading system was quietly less accurate than the paper-trading system it's supposed to
+   match**, in three ways: it displayed a different (stale) profitability number in its alerts than the
+   one actually used to pick a trade; it never used the model's own backtested win-probability
+   calibration, always falling back to a cruder estimate; and it required both of two economic
+   indicators to be available before reading either one, while the historical test (correctly) used
+   whichever was actually available — quietly throwing away real signal live trading didn't need to.
+
+**Fix:** All 9 fixed directly in code/config, following the same patterns already proven correct
+elsewhere in the model (one shared function instead of copy-pasted logic, matching what the historical
+test and paper trading already do correctly). New test coverage added for the highest-risk items (the
+cross-ticker direction fix, the Black Swan cooldown). Full detail in the commit history.
+
+**What's next:** the same audit surfaced two bigger findings held back for a separate pass: the entire
+declared scoring-weight configuration (the numbers in the settings file that are supposed to control
+how much each signal counts) turns out to be decorative — the model's real weights are fixed in code
+and don't actually read the settings file at all, despite the settings file saying they do. And two
+whole features described in the settings (structure-specific profit-taking; a "signal decay" system
+that ages a pending trade idea over time and tracks its own win rate) don't exist in the code at all —
+not bugs to fix, but real product decisions about whether to build them or remove the settings that
+describe them. Neither was touched in this pass.
+
+**Backtest:** Run date: 2026-08-19. Win rate: 61.2%. Avg R:R: 1:1.41. Sharpe ratio: 2.03. Max drawdown:
+7.7%. Qualifying trades: 152. Max consecutive losses: 9. **Passed — unchanged from v2.2.63.** The
+cross-ticker direction fix (item 1) is verified correct at the unit-test level, but this historical
+semiconductor dataset didn't have enough individually-diverging bearish candidates for it to move the
+aggregate numbers — a real fix that happened not to change this particular sample, not a wasted one.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

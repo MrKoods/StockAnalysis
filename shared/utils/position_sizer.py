@@ -45,6 +45,46 @@ def get_risk_pct(confidence_score: float) -> float:
     return 0.0
 
 
+def derive_sizing_inputs(
+    position_type: Optional[str],
+    capital_required: Optional[float],
+    entry_mid: float,
+    stop_loss: float,
+) -> tuple[str, float, float]:
+    """
+    Derive (position_type, risk_per_unit, per_unit_cost) — compute_position_size's
+    two required inputs — from a ranked trade structure's own fields. Extracted
+    from paper_runner.py/run_swing_model.py's duplicated inline blocks (both
+    branched identically; only comment detail differed) while consolidating
+    the two live pipelines (2026-08-19).
+
+    Branches on the structure's own position_type field rather than a
+    truthiness heuristic on capital_required — that heuristic used to mislabel
+    long_stock/short_stock as "options" (cost == risk == capital_required)
+    whenever one won the ranking, when a stock position genuinely needs two
+    separate numbers: capital_required is real dollar risk (stop distance)
+    for risk-based sizing, but entry_mid (full share price) is still needed
+    separately for the capital/concentration cap.
+
+    Falls back to sizing shares directly off entry_mid/stop_loss when no
+    structure survived ranking at all (position_type is None/unrecognized, or
+    capital_required is falsy) — a rare defensive path, not the normal one.
+    """
+    if position_type == "options" and capital_required:
+        risk_per_unit = float(capital_required)
+        per_unit_cost = risk_per_unit
+    elif position_type == "shares" and capital_required:
+        risk_per_unit = float(capital_required)
+        per_unit_cost = entry_mid
+    else:
+        position_type = "shares"
+        # abs(): bearish stops sit above entry, not below — the magnitude of
+        # the risk is what matters for sizing either way.
+        risk_per_unit = abs(entry_mid - stop_loss)
+        per_unit_cost = entry_mid
+    return position_type, risk_per_unit, per_unit_cost
+
+
 def compute_position_size(
     confidence_score: float,
     account_equity: float,

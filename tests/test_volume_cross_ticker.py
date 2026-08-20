@@ -15,6 +15,7 @@ from shared.utils.volume_profile import (
 from swing_model.cross_ticker_analysis import (
     analyze_cross_ticker,
     compute_sector_correlation_state,
+    get_cross_ticker_modifier_for_direction,
     CORRELATION_SECTOR_WIDE,
     CORRELATION_NEUTRAL,
     CORRELATION_INDIVIDUAL_DIVERGENCE,
@@ -247,6 +248,66 @@ class TestCrossTickerAnalysis:
         # NVDA should have individual divergence state and non-negative modifier
         nvda_result = result["NVDA"]
         assert nvda_result["correlation_state"] == CORRELATION_INDIVIDUAL_DIVERGENCE
+
+
+class TestCrossTickerModifierDirectionMirror:
+    """
+    Signal Integrity Audit follow-up: analyze_cross_ticker() itself has no
+    direction parameter at all — get_cross_ticker_modifier_for_direction()
+    is the fix, applied at the 3 real call sites once each candidate's own
+    direction is known. Outperforming peers should CONFIRM a bullish thesis
+    (boost) but OPPOSE a bearish one (penalty), and vice versa for
+    underperforming — not the same bullish-shaped mapping applied to both.
+    """
+
+    def _outperforming_result(self):
+        return {
+            "correlation_state": CORRELATION_INDIVIDUAL_DIVERGENCE,
+            "divergence_direction": "outperforming",
+            "confidence_modifier": 5.0,  # analyze_cross_ticker's own bullish-shaped value
+        }
+
+    def _underperforming_result(self):
+        return {
+            "correlation_state": CORRELATION_INDIVIDUAL_DIVERGENCE,
+            "divergence_direction": "underperforming",
+            "confidence_modifier": -10.0,
+        }
+
+    def test_bullish_passthrough_unchanged(self):
+        # direction="bullish" must return the same value analyze_cross_ticker
+        # already computed — no behavior change for the bullish path.
+        assert get_cross_ticker_modifier_for_direction(self._outperforming_result(), "bullish") == 5.0
+        assert get_cross_ticker_modifier_for_direction(self._underperforming_result(), "bullish") == -10.0
+
+    def test_bearish_outperforming_peers_is_a_penalty_not_a_boost(self):
+        # A stock rising faster than its peers OPPOSES a short thesis.
+        modifier = get_cross_ticker_modifier_for_direction(self._outperforming_result(), "bearish")
+        assert modifier == -10.0
+
+    def test_bearish_underperforming_peers_is_a_boost_not_a_penalty(self):
+        # A stock declining faster than its peers CONFIRMS a short thesis.
+        modifier = get_cross_ticker_modifier_for_direction(self._underperforming_result(), "bearish")
+        assert modifier == 5.0
+
+    def test_sector_wide_discount_is_direction_neutral(self):
+        result = {"correlation_state": CORRELATION_SECTOR_WIDE, "divergence_direction": None,
+                  "confidence_modifier": -5.0}
+        assert get_cross_ticker_modifier_for_direction(result, "bullish") == -5.0
+        assert get_cross_ticker_modifier_for_direction(result, "bearish") == -5.0
+
+    def test_neutral_state_is_zero_both_directions(self):
+        result = {"correlation_state": CORRELATION_NEUTRAL, "divergence_direction": None,
+                  "confidence_modifier": 0.0}
+        assert get_cross_ticker_modifier_for_direction(result, "bullish") == 0.0
+        assert get_cross_ticker_modifier_for_direction(result, "bearish") == 0.0
+
+    def test_config_values_respected_for_bearish_swap(self):
+        cfg = {"modifiers": {"cross_ticker": {"divergence_boost": 7.0, "underperforming": -8.0}}}
+        boost = get_cross_ticker_modifier_for_direction(self._underperforming_result(), "bearish", cfg)
+        penalty = get_cross_ticker_modifier_for_direction(self._outperforming_result(), "bearish", cfg)
+        assert boost == 5.0  # clamped to the +5 spec bound despite cfg's 7.0
+        assert penalty == -8.0
 
 
 class TestVolatilityRelativeDivergenceThreshold:

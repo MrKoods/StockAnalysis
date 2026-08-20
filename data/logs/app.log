@@ -35276,3 +35276,39 @@
 2026-08-19 15:07:57,176 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 10 8-K filing(s) for TGT.
 2026-08-19 15:07:57,243 [__main__] INFO — TGT: SCORE 42.4/100 (technical=20.6/28, positioning=10.7/20, sentiment=16.9/28, news=4.6/14, fundamental=4.7/10 as_of=2026-08-19) modifiers(regime=+5.0, macro=+0.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
 2026-08-19 15:07:57,298 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+2026-08-19 16:06:52,960 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-19 16:06:52,975 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-19 16:06:52,982 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-19 16:06:52,989 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-19 16:06:52,996 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-19 16:06:53,003 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-19 16:06:53,011 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-19 16:06:53,011 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-19 16:07:16,637 [__main__] INFO — Backtest complete. Passed=True WinRate=61.2% Sharpe=2.03
+2026-08-19 19:59:11,255 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-19 19:59:11,272 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-19 19:59:11,279 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-19 19:59:11,287 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-19 19:59:11,294 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-19 19:59:11,301 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-19 19:59:11,308 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-19 19:59:11,308 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-19 19:59:37,609 [__main__] INFO — Backtest complete. Passed=True WinRate=61.2% Sharpe=2.03
+2026-08-19 20:04:59,995 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-19 20:05:00,009 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-19 20:05:00,019 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-19 20:05:00,026 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-19 20:05:00,034 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-19 20:05:00,041 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-19 20:05:00,049 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-19 20:05:00,049 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-19 20:05:26,096 [__main__] INFO — Backtest complete. Passed=True WinRate=61.2% Sharpe=2.03
+2026-08-19 21:26:12,965 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-19 21:26:12,979 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-19 21:26:12,986 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-19 21:26:12,995 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-19 21:26:13,002 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-19 21:26:13,010 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-19 21:26:13,017 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-19 21:26:13,017 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-19 21:26:39,627 [__main__] INFO — Backtest complete. Passed=True WinRate=61.2% Sharpe=2.03

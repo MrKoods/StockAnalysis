@@ -40,7 +40,7 @@ from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from shared.utils.regime_detection import get_regime_modifiers
-from shared.utils.position_sizer import compute_position_size
+from shared.utils.position_sizer import compute_position_size, derive_sizing_inputs
 from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader, get_rotation_modifier, ROTATION_NEUTRAL
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
@@ -50,6 +50,7 @@ from shared.utils.robust_stats import robust_z_score, DEFAULT_OUTLIER_THRESHOLD
 from shared.utils.scan_lock import acquire_scan_lock
 from shared.utils.atomic_io import exclusive_lock
 from swing_model.trade_selector import rank_trade_structures
+from swing_model.cross_ticker_analysis import get_cross_ticker_modifier_for_direction
 from shared.utils.regime_detection import REGIME_HIGH_VOL
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
@@ -59,7 +60,8 @@ from shared.utils.event_gate import (
 from shared.utils.sector_config import (
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
-from shared.utils.macro_overlay import save_macro_state
+from shared.utils.macro_overlay import dampen_news_china_theme_if_macro_confirmed, save_macro_state
+from shared.utils.geopolitical_risk import apply_geopolitical_penalty
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
@@ -81,6 +83,7 @@ from swing_model.run_swing_model import (
     _try_send_event_gate_alert,
     _try_send_event_gate_expired_alert,
     _write_event_gate_audit,
+    _handle_open_position_critical_event,
 )
 
 logger = get_logger(__name__)
@@ -566,13 +569,20 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 sector=sector, seeking_alpha_articles=sa_news_articles,
                 sec_edgar_filings=sec_edgar_filings, direction=direction,
             )
+            # China-tension double-count fix — see macro_overlay.py's
+            # dampen_news_china_theme_if_macro_confirmed docstring.
+            news = dampen_news_china_theme_if_macro_confirmed(
+                news, macro_state_by_sector.get(sector, {}).get("china_tension_level", "normal")
+            )
 
             # Earnings + cross-ticker modifiers
             earnings_info = _fetch_earnings_safe(ticker)
             earnings_date = (earnings_info or {}).get("next_earnings_date")
             earnings_result = get_earnings_modifier(ticker, earnings_date, cfg=cfg)
             earnings_mod = earnings_result.get("confidence_modifier", 0.0)
-            ct_mod = cross_ticker.get(ticker, {}).get("confidence_modifier", 0.0)
+            # Direction-aware — see run_swing_model.py's matching comment
+            # (Signal Integrity Audit follow-up finding).
+            ct_mod = get_cross_ticker_modifier_for_direction(cross_ticker.get(ticker, {}), direction, cfg)
 
             # Fundamental + Positioning (fetched inside run_pipeline, cached in *_state.json).
             # Positioning is pre-scored for both directions (cheap — same cached
@@ -613,6 +623,14 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             )
 
             final_score = float(score.get("final_score", 0.0))
+
+            # Geopolitical risk penalty — TSM/ASML per config.geopolitical_risk_tickers.
+            # Applied here before structure ranking/threshold check, so every
+            # downstream consumer sees the real, penalized score.
+            final_score, geo_note = apply_geopolitical_penalty(cfg, ticker, final_score)
+            if geo_note:
+                score["final_score"] = final_score
+                logger.info(f"{ticker}: {geo_note}")
 
             # Event Severity Gate — process this scan's critical news for this
             # ticker (may block it before it's even logged as a paper signal).
@@ -658,6 +676,17 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                         _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
                         score["event_gate_blocked"] = True
                         score["event_gate_trigger"] = trigger
+
+                # Immediate alert for an open position hit by a critical event —
+                # does not wait for the daily re-score. Matches run_swing_model.py's
+                # equivalent check; previously present only there, not here — a
+                # genuine gap, not an intentional live-only design choice (see
+                # CHANGELOG). paper trading tracks open positions via its own CSV
+                # ledger (_load_open_positions), not swing_model's dormant
+                # state["positions"] pipeline — see that function's own docstring
+                # for why the two are deliberately kept separate.
+                if ticker in open_positions:
+                    _handle_open_position_critical_event({"ticker": ticker}, event, model_version)
 
             if score.get("event_gate_blocked"):
                 logger.info(
@@ -1016,32 +1045,9 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # compute_position_size's own docstring for the dual-cap formula.
             account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
             max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
-            # Branches on trade_selector.py's own position_type field rather
-            # than a truthiness heuristic on structure_recommended/
-            # capital_required — that heuristic used to mislabel long_stock/
-            # short_stock as "options" (cost == risk == capital_required)
-            # whenever one won the ranking, when a stock position genuinely
-            # needs two separate numbers: capital_required is now real dollar
-            # risk (stop distance, post the _estimate_capital_required fix)
-            # for risk-based sizing, but entry_mid (full share price) is still
-            # needed separately for the capital/concentration cap — conflating
-            # them again here would silently reintroduce that bug.
-            if position_type == "options" and capital_required:
-                risk_per_unit = float(capital_required)
-                per_unit_cost = risk_per_unit
-            elif position_type == "shares" and capital_required:
-                risk_per_unit = float(capital_required)
-                per_unit_cost = entry_mid
-            else:
-                # No structure survived ranking at all (rare post-fix for
-                # bullish; the only path for bearish until the bearish R:R
-                # bug is fixed — see CHANGELOG). Defensive fallback, not the
-                # normal path: size shares directly off the shared entry/stop.
-                position_type = "shares"
-                # abs(): bearish stops sit above entry, not below — the
-                # magnitude of the risk is what matters for sizing either way.
-                risk_per_unit = abs(entry_mid - stop_loss)
-                per_unit_cost = entry_mid
+            position_type, risk_per_unit, per_unit_cost = derive_sizing_inputs(
+                position_type, capital_required, entry_mid, stop_loss
+            )
             sizing = compute_position_size(
                 confidence_score=final_score, account_equity=account_equity,
                 circuit_breaker_state="normal", capital_required=risk_per_unit,

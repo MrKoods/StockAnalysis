@@ -32,8 +32,19 @@ def validate_ohlcv(
 
     Returns (is_valid: bool, failure_reasons: list[str]).
     Logs each failure to validation_log.csv automatically.
+
+    cfg: when supplied, config/swing_config.yaml's data_validation.max_price_gap_days/
+    max_single_day_move_pct override the max_gap_days/max_single_day_move_pct defaults
+    above — previously accepted but never read (the one production call site passed no
+    cfg at all), so those two config keys had zero effect regardless of what a user set
+    them to (Signal Integrity Audit follow-up finding).
     """
     reasons = []
+
+    if cfg:
+        dv_cfg = cfg.get("data_validation", {})
+        max_gap_days = int(dv_cfg.get("max_price_gap_days", max_gap_days))
+        max_single_day_move_pct = float(dv_cfg.get("max_single_day_move_pct", max_single_day_move_pct))
 
     if df is None or df.empty:
         reasons.append("ohlcv_empty_dataframe")

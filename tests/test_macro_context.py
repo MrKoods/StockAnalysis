@@ -32,6 +32,7 @@ from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.macro_overlay import (
     compute_macro_state,
+    dampen_news_china_theme_if_macro_confirmed,
     get_macro_modifier,
     load_macro_state,
     save_macro_state,
@@ -522,6 +523,43 @@ class TestMacroOverlay:
         result = compute_macro_state(tnx, dxy, china_keyword_count_5d=0)
         assert result["macro_state"] == MACRO_ADVERSE
         assert result["sector_scoped"] is False
+
+
+class TestChinaThemeDoubleCountDampening:
+    """macro_overlay's china_tension_level and news_layer's china_export
+    theme both scan the same headlines — dampen_news_china_theme_if_macro_confirmed
+    zeroes the redundant News contribution when both agree, same pattern as
+    cross_ticker's sector_wide_discount dedup."""
+
+    def _news(self, dominant_theme="china_export", theme_alignment_score=4.0, news_total=10.0):
+        return {
+            "dominant_narrative_theme": dominant_theme,
+            "theme_alignment_score": theme_alignment_score,
+            "news_score_total": news_total,
+        }
+
+    def test_dampens_when_macro_high_and_news_agrees(self):
+        news = self._news()
+        result = dampen_news_china_theme_if_macro_confirmed(news, "high")
+        assert result["theme_alignment_score"] == 0.0
+        assert result["news_score_total"] == 6.0
+        assert result["china_tension_double_count_dampened"] is True
+
+    def test_no_op_when_macro_not_high(self):
+        news = self._news()
+        result = dampen_news_china_theme_if_macro_confirmed(news, "normal")
+        assert result == news
+        assert "china_tension_double_count_dampened" not in result
+
+    def test_no_op_when_news_theme_disagrees(self):
+        news = self._news(dominant_theme="ai_demand")
+        result = dampen_news_china_theme_if_macro_confirmed(news, "high")
+        assert result == news
+
+    def test_does_not_mutate_input(self):
+        news = self._news()
+        dampen_news_china_theme_if_macro_confirmed(news, "high")
+        assert news["theme_alignment_score"] == 4.0  # original untouched
 
 
 class TestMacroStatePersistence:

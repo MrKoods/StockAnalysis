@@ -29,7 +29,7 @@ from typing import Optional
 
 import pandas as pd
 
-from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples
+from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples, compute_win_rate
 
 _PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 
@@ -96,9 +96,11 @@ def evaluate_paper_trading_pass(
     failures = []
 
     # Win rate / avg R:R (winners only) — reported for continuity, no longer gate
-    # overall_pass directly.
-    wins = sum(1 for o in trade_outcomes if o.get("outcome") == "win")
-    win_rate = wins / len(trade_outcomes) if trade_outcomes else 0.0
+    # overall_pass directly. win_rate uses backtesting.metrics' shared definition
+    # (a profitable time-stop counts as a win, not just outcome=="win") — this
+    # used to reimplement a narrower local definition that silently under-counted
+    # wins relative to every backtest report, which already used the shared one.
+    win_rate = compute_win_rate(trade_outcomes)
     rr_values = [float(o.get("achieved_rr", 0.0)) for o in trade_outcomes if o.get("outcome") == "win"]
     avg_rr = sum(rr_values) / len(rr_values) if rr_values else 0.0
 
@@ -264,9 +266,7 @@ def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
     unfunded = [r for r in closed if not _is_funded(r)]
 
     def _win_rate(outcomes: list[dict]) -> float:
-        if not outcomes:
-            return 0.0
-        return round(sum(1 for o in outcomes if o.get("outcome") == "win") / len(outcomes), 4)
+        return round(compute_win_rate(outcomes), 4)
 
     return {
         "total_closed": len(closed),

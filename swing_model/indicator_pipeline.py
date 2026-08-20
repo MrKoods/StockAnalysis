@@ -138,7 +138,7 @@ def run_pipeline(
         # (Signal Integrity Audit finding E.1) — a >50% single-day move (bad
         # print, unadjusted split) or a multi-day data gap flowed straight
         # into indicator computation with zero validation.
-        ohlcv_valid, ohlcv_failures = validate_ohlcv(ticker, df)
+        ohlcv_valid, ohlcv_failures = validate_ohlcv(ticker, df, cfg=cfg)
         if not ohlcv_valid:
             logger.warning(f"{ticker}: Phase 9 OHLCV validation failed ({ohlcv_failures}) — excluded.")
             results[ticker] = None

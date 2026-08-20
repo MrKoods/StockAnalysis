@@ -40,3 +40,6 @@ jobs:
           else
             python scripts/check_version_bump.py --base "HEAD~1" --head "HEAD"
           fi
+
+      - name: Enforce config-key coverage
+        run: python scripts/check_config_coverage.py

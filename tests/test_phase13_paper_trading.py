@@ -73,6 +73,19 @@ class TestEvaluatePaperTradingPass:
         lenient = evaluate_paper_trading_pass(outcomes, fills, trading_days_elapsed=60, min_expectancy_r=-100.0)
         assert lenient["expectancy_r_ci_lower"] <= lenient["expectancy_r_mean"] <= lenient["expectancy_r_ci_upper"]
 
+    def test_profitable_time_stop_counts_as_a_win(self):
+        """win_rate now shares backtesting.metrics' definition — a profitable
+        time-stop exit is a real win, not just outcome=="win". Previously
+        reimplemented locally with a narrower definition that silently
+        under-counted wins relative to every backtest report."""
+        outcomes = [
+            {"outcome": "win", "achieved_rr": 3.0, "pnl_pct": 0.03},
+            {"outcome": "time_stop", "achieved_rr": 0.5, "pnl_pct": 0.02},  # profitable time stop
+            {"outcome": "loss", "achieved_rr": -1.0, "pnl_pct": -0.01},
+        ]
+        result = evaluate_paper_trading_pass(outcomes, [], trading_days_elapsed=60)
+        assert result["win_rate"] == pytest.approx(2 / 3, abs=1e-3)
+
     def test_fails_when_duration_insufficient(self):
         outcomes = self._win_outcomes(90, 10, rr=3.0)
         fills = self._fill_log(10)
@@ -278,3 +291,15 @@ class TestComputeSignalAccuracy:
         assert result["unfunded_count"] == 0
         assert result["win_rate_unfunded"] == 0.0
         assert result["win_rate_funded"] == pytest.approx(1.0)
+
+    def test_profitable_time_stop_counts_as_a_win(self, tmp_path):
+        """Shares backtesting.metrics' win definition — a profitable time-stop
+        exit is a real win here too, not just outcome=="win"."""
+        rows = [
+            {"signal_date": "2026-08-11", "ticker": "JNJ", "outcome": "time_stop",
+             "position_size": "2", "pnl_pct": "0.02"},
+            {"signal_date": "2026-08-07", "ticker": "AMZN", "outcome": "loss", "position_size": "2"},
+        ]
+        path = self._write_trades(tmp_path, rows)
+        result = compute_signal_accuracy(path)
+        assert result["win_rate_all"] == pytest.approx(0.5)

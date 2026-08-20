@@ -168,6 +168,34 @@ class TestRescoreAndAlertOpenPositions:
         assert regimes_seen == {"trending_up", "choppy"}
 
 
+class TestBearishPositionRescoring:
+    """rescore_open_positions() must honor a position's OWN stored direction
+    (Signal Integrity Audit finding B.2) rather than re-deriving it, and must
+    select the bearish positioning mirror for a bearish position. Fixed
+    previously but had no regression test — added while building the
+    direction-parity registry/CI check (2026-08-19)."""
+
+    def test_bearish_position_uses_bearish_positioning_mirror_and_stored_direction(self):
+        indicators = _indicators()
+        indicators["_positioning_full"] = {"marker": "bullish_mirror"}
+        indicators["_positioning_full_bearish"] = {"marker": "bearish_mirror"}
+        pos = _position(direction="bearish", entry_price=100.0, stop_loss=105.0, target=85.0)
+
+        seen = {}
+        from swing_model.position_rescoring import compute_confidence_score as real_ccs
+
+        def spy(*args, **kwargs):
+            seen["positioning"] = kwargs.get("positioning")
+            seen["direction_override"] = kwargs.get("direction_override")
+            return real_ccs(*args, **kwargs)
+
+        with patch("swing_model.position_rescoring.compute_confidence_score", side_effect=spy):
+            rescore_open_positions([pos], {"NVDA": indicators})
+
+        assert seen["positioning"] == {"marker": "bearish_mirror"}
+        assert seen["direction_override"] == "bearish"
+
+
 class TestTimeStopConfigKeyFix:
     def test_configured_min_progress_pct_is_actually_read(self):
         pos = _position(entry_price=100.0, target=110.0, opened_days_ago=12)

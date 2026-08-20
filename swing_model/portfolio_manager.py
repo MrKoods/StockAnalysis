@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from shared.utils.atomic_io import atomic_write_json
+from shared.utils.black_swan_detector import should_resume_after_black_swan
 
 _POSITION_STATE_FILE = Path("data/processed/position_state.json")
 _OVERRIDE_LOG_FILE = Path("data/logs/override_log.csv")
@@ -237,7 +238,7 @@ def update_circuit_breaker(state: dict, cfg: Optional[dict] = None) -> dict:
     return state
 
 
-def update_black_swan_state(state: dict, black_swan_result: dict) -> dict:
+def update_black_swan_state(state: dict, black_swan_result: dict, cfg: Optional[dict] = None) -> dict:
     """
     Track Black Swan trigger transitions for alert deduplication — advisory
     only, never blocks new positions (same treatment as the Event Severity
@@ -245,19 +246,38 @@ def update_black_swan_state(state: dict, black_swan_result: dict) -> dict:
 
     black_swan_result: output of shared.utils.black_swan_detector.check_black_swan().
 
-    Returns updated state with black_swan_mode reflecting THIS scan's
-    condition and "_black_swan_newly_triggered" set when it just flipped
-    False -> True this call (the caller uses that to fire the Discord alert
-    once per episode instead of on every scan while conditions stay extreme).
+    Returns updated state with black_swan_mode reflecting the cooldown-gated
+    condition (see below) and "_black_swan_newly_triggered" set when it just
+    flipped False -> True this call (the caller uses that to fire the Discord
+    alert once per episode instead of on every scan while conditions stay
+    extreme).
+
+    Previously black_swan_mode was set directly from THIS scan's raw
+    triggered flag every time — flipping off the instant one scan read
+    normal, even though config's black_swan.resume_after_normal_days ("Resume
+    after 3 consecutive normal regime days") and this module's own
+    black_swan_normal_days counter both describe/track a cooldown that was
+    never actually applied. shared.utils.black_swan_detector.should_resume_
+    after_black_swan already implements the real check (written and tested,
+    but never called from anywhere in production) — now wired in here
+    (Signal Integrity Audit follow-up finding).
     """
+    cfg = cfg or {}
+    required_normal_days = int(cfg.get("black_swan", {}).get("resume_after_normal_days", 3))
     triggered = bool(black_swan_result.get("black_swan_triggered"))
     was_active = bool(state.get("black_swan_mode", False))
 
-    state["black_swan_mode"] = triggered
     if triggered:
+        state["black_swan_mode"] = True
         state["black_swan_normal_days"] = 0
     else:
-        state["black_swan_normal_days"] = state.get("black_swan_normal_days", 0) + 1
+        normal_days = state.get("black_swan_normal_days", 0) + 1
+        state["black_swan_normal_days"] = normal_days
+        # Only a previously-active episode needs the cooldown gate — a
+        # normal scan when black swan was never active just stays inactive.
+        state["black_swan_mode"] = (
+            was_active and not should_resume_after_black_swan(normal_days, required_normal_days)
+        )
 
     if triggered and not was_active:
         state["_black_swan_newly_triggered"] = True

@@ -28,20 +28,26 @@ from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
 from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings, fetch_hyperscaler_capex_snippets
 from shared.utils.regime_detection import classify_regime, get_regime_modifiers, REGIME_HIGH_VOL
-from shared.utils.macro_overlay import compute_macro_state, save_macro_state
+from shared.utils.macro_overlay import (
+    compute_macro_state,
+    dampen_news_china_theme_if_macro_confirmed,
+    save_macro_state,
+)
+from shared.utils.geopolitical_risk import apply_geopolitical_penalty
 from shared.utils.sector_rotation import (
     compute_rotation_state, dampen_rotation_penalty_for_leader, get_rotation_modifier, ROTATION_NEUTRAL,
 )
 from shared.utils.earnings_calendar import get_earnings_modifier
-from swing_model.cross_ticker_analysis import analyze_cross_ticker
+from swing_model.cross_ticker_analysis import analyze_cross_ticker, get_cross_ticker_modifier_for_direction
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
 from swing_model.feedback_loop import load_live_weights_if_calibrated
+from swing_model.win_probability_calibration import load_calibration
 from swing_model.trade_selector import rank_trade_structures
-from shared.utils.position_sizer import compute_position_size
+from shared.utils.position_sizer import compute_position_size, derive_sizing_inputs
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
@@ -170,7 +176,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
                 vix_current_pct_change=mkt["vix_pct_change"],
                 cfg=cfg,
             )
-            state = update_black_swan_state(state, black_swan_result)
+            state = update_black_swan_state(state, black_swan_result, cfg=cfg)
             if state.pop("_black_swan_newly_triggered", False):
                 open_positions_for_alert = [p for p in state.get("positions", []) if p.get("open", True)]
                 alert_msg = build_black_swan_alert(
@@ -263,6 +269,18 @@ def _main_locked(scan_type: str = "post_close") -> None:
         }
         for sector_name in active_sectors
     }
+
+    # Real backtest-derived (threshold -> win rate) points — see
+    # win_probability_calibration.py's module docstring for why
+    # confidence/100 alone was never a real probability. None when
+    # data/processed/win_probability_calibration.json hasn't been generated
+    # yet, in which case compute_confidence_score/rank_trade_structures both
+    # fall back to the old uncalibrated behavior. paper_runner.py has loaded
+    # this every scan since it existed; this entry point never did — live's
+    # calibrated_win_probability was always the uncalibrated final_score/100,
+    # and live's trade-structure ranking was always uncalibrated too, even
+    # once a real calibration file existed (Signal Integrity Audit follow-up).
+    win_probability_calibration = load_calibration()
 
     # Step 7: Cross-ticker analysis, run once per sector so "3+ tickers moving
     # together" and peer-average divergence are computed within each sector's
@@ -376,14 +394,25 @@ def _main_locked(scan_type: str = "post_close") -> None:
                 sector=sector, seeking_alpha_articles=sa_news_articles,
                 sec_edgar_filings=sec_edgar_filings, direction=direction,
             )
+            # China-tension double-count fix — see macro_overlay.py's
+            # dampen_news_china_theme_if_macro_confirmed docstring.
+            news = dampen_news_china_theme_if_macro_confirmed(
+                news, macro_state_by_sector.get(sector, {}).get("china_tension_level", "normal")
+            )
 
             # Earnings proximity modifier
             earnings_info = _fetch_earnings_safe(ticker)
             earnings_date = (earnings_info or {}).get("next_earnings_date")
             earnings_result = get_earnings_modifier(ticker, earnings_date, cfg=cfg)
 
-            # Cross-ticker modifier for this specific ticker
-            ct_modifier = cross_ticker_results.get(ticker, {}).get("confidence_modifier", 0.0)
+            # Cross-ticker modifier for this specific ticker — direction-aware
+            # (Signal Integrity Audit follow-up finding: analyze_cross_ticker
+            # itself has no notion of trade direction; its own confidence_modifier
+            # field always assumes bullish, so a bearish candidate needs the
+            # swapped outperforming/underperforming mapping applied here).
+            ct_modifier = get_cross_ticker_modifier_for_direction(
+                cross_ticker_results.get(ticker, {}), direction, cfg
+            )
 
             # Fundamental data (fetched weekly inside run_pipeline, cached in fundamental_state.json)
             fundamental = indicators.get("_fundamental_full") or {}
@@ -422,10 +451,19 @@ def _main_locked(scan_type: str = "post_close") -> None:
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
                 event_gate_trigger=event_gate_trigger,
+                win_probability_calibration=win_probability_calibration,
                 direction_override=direction,
             )
 
             final_score = float(score.get("final_score", 0.0))
+
+            # Geopolitical risk penalty — TSM/ASML per config.geopolitical_risk_tickers.
+            # Applied here, before structure ranking/threshold check, so every
+            # downstream consumer (EV ranking, audit log, Discord alert,
+            # qualification) sees the real, penalized score consistently.
+            final_score, geo_note = apply_geopolitical_penalty(cfg, ticker, final_score)
+            if geo_note:
+                score["final_score"] = final_score
 
             # Event Severity Gate — process this scan's critical news: create new
             # blocks for thesis-opposed critical items (or unconditionally for
@@ -503,6 +541,8 @@ def _main_locked(scan_type: str = "post_close") -> None:
                     f"— advisory, review before trading"
                 )
                 notes = f"{notes} | {bs_note}" if notes else bs_note
+            if geo_note:
+                notes = f"{notes} | {geo_note}" if notes else geo_note
 
             if final_score >= CONFIDENCE_THRESHOLD:
                 close_px = indicators.get("close", 0.0)
@@ -569,6 +609,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             dte=options_raw.get("dte"),
                             atm_iv=options_raw.get("atm_iv"),
                             cfg=cfg,
+                            win_probability_calibration=win_probability_calibration,
                         )
                         ranked = trade_result.get("ranked_structures", [])
                         # Surfaced in the Discord alert below so a human
@@ -586,7 +627,13 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             # paper_runner.py actually traded on the same signal.
                             best = next((s for s in ranked if s.get("recommended")), ranked[0])
                             structure_recommended = best.get("name", "")
-                            ev_per_dollar = best.get("ev_per_dollar_risked", 0.0)
+                            # ev_per_dollar_per_day, not the un-normalized ev_per_dollar_risked —
+                            # trade_selector.py ranks (and picks ranked[0]) on the per-day metric,
+                            # so persisting the un-normalized figure here would silently disagree
+                            # with which structure was actually recommended and why (see
+                            # paper_runner.py's matching comment/fix — this call site still had
+                            # the stale field).
+                            ev_per_dollar = best.get("ev_per_dollar_per_day", 0.0)
                             rr_ratio = best.get("rr_ratio", rr_ratio)
                             # See paper_runner.py's matching comment — these were
                             # already computed by rank_trade_structures() and
@@ -635,16 +682,9 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             position_type = best.get("position_type", "shares")
                             account_equity_val = float(state.get("account_equity", 15000.0))
                             max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
-                            if position_type == "options" and capital_required:
-                                risk_per_unit = float(capital_required)
-                                per_unit_cost = risk_per_unit
-                            elif position_type == "shares" and capital_required:
-                                risk_per_unit = float(capital_required)
-                                per_unit_cost = entry_mid
-                            else:
-                                position_type = "shares"
-                                risk_per_unit = abs(entry_mid - stop_loss)
-                                per_unit_cost = entry_mid
+                            position_type, risk_per_unit, per_unit_cost = derive_sizing_inputs(
+                                position_type, capital_required, entry_mid, stop_loss
+                            )
                             sizing = compute_position_size(
                                 confidence_score=final_score, account_equity=account_equity_val,
                                 circuit_breaker_state=cb_state, capital_required=risk_per_unit,
@@ -669,10 +709,6 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             )
                     except Exception as exc:
                         logger.error(f"{ticker}: trade structure ranking failed — {exc}")
-
-                if ticker in cfg.get("geopolitical_risk_tickers", []):
-                    geo_note = f"Geopolitical risk ticker ({cfg.get('geopolitical_penalty', -5)} confidence penalty applied)"
-                    notes = f"{notes} | {geo_note}" if notes else geo_note
 
             signal_surfaced = final_score >= CONFIDENCE_THRESHOLD
 
@@ -1235,7 +1271,16 @@ def _compute_macro_safe(
     regardless of the real TNX/DXY/China readings.
     """
     try:
-        if tnx_series is None or dxy_series is None:
+        # Only bail early if BOTH series are missing — compute_macro_state's
+        # own _period_pct_change already degrades a single None series to a
+        # neutral reading for just that signal (tnx or dxy), computing the
+        # other for real. The old `or` guard bailed to fully-neutral whenever
+        # EITHER series was missing, discarding real signal the function was
+        # already safe to compute — backtesting/simulation.py's inline
+        # equivalent never had this over-conservative guard, so live/paper
+        # was silently less accurate than the backtest in this one case
+        # (Signal Integrity Audit follow-up finding).
+        if tnx_series is None and dxy_series is None:
             return {"confidence_modifier": 0.0, "macro_state": "neutral"}
         return compute_macro_state(
             tnx_close=tnx_series,

@@ -396,7 +396,11 @@ def run_sensitivity_analysis(
             "avg_rr": round(compute_avg_rr(qualifying), 2),
             "sharpe_ratio": round(sharpe, 2),
             "signals_per_month": round(len(qualifying) / max(test_months, 1.0), 2),
-            "max_consec_losses": compute_consecutive_losses(qualifying),
+            # qualifying_chrono, not qualifying — a streak is path-dependent
+            # (2026-08-19 fix; this was an unfixed sibling of that same bug,
+            # already correctly using qualifying_chrono for the equity curve/
+            # Sharpe two lines above but not for this stat).
+            "max_consec_losses": compute_consecutive_losses(qualifying_chrono),
         })
 
     df = pd.DataFrame(rows)

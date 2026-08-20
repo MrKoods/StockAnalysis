@@ -88,7 +88,9 @@ def run_variant_comparison(historical_data: dict[str, pd.DataFrame]) -> pd.DataF
             "pooled_win_rate": round(compute_win_rate(pooled), 4),
             "pooled_avg_rr": round(compute_avg_rr(pooled), 2),
             "pooled_sharpe": round(sharpe, 2),
-            "pooled_max_consec_losses": compute_consecutive_losses(pooled),
+            # pooled_chrono, not pooled — same unfixed-sibling shape as
+            # backtesting/metrics.py::run_sensitivity_analysis (2026-08-19 fix).
+            "pooled_max_consec_losses": compute_consecutive_losses(pooled_chrono),
             "windows_with_any_trades": len(windows_with_trades),
             "windows_passed": windows_passed,
             "total_windows": len(windows),

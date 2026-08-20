@@ -221,3 +221,36 @@ def get_macro_modifier(macro_state: str, cfg: Optional[dict] = None, direction: 
     else:
         return 0.0
     return -raw if direction == "bearish" else raw
+
+
+def dampen_news_china_theme_if_macro_confirmed(news: dict, china_tension_level: str) -> dict:
+    """
+    Double-counting fix: this module's china_tension_level (a keyword-count
+    threshold over Yahoo headlines, feeding macro_modifier) and news_layer's
+    dominant_narrative_theme == "china_export" (a separate keyword-cluster
+    detector, feeding theme_alignment_score) both scan substantially the same
+    news for the same watchlist — when both fire, a candidate gets penalized
+    twice for one underlying fact instead of once.
+
+    When macro has already flagged elevated China tension (china_tension_level
+    == "high") AND news's own dominant theme agrees ("china_export"), zero out
+    the News theme_alignment contribution and keep macro_modifier as the
+    authoritative source — same "zero the redundant one, keep the more robust
+    multi-signal source" pattern already used for cross_ticker's
+    sector_wide_discount (see cross_ticker_analysis.py). Call this once, right
+    after both compute_macro_state() and compute_news_score() have run for a
+    ticker, before either result reaches compute_confidence_score().
+
+    No-op (returns `news` unchanged) whenever the two don't actually agree —
+    most of the time, including every backtest run today (china_keyword_count
+    is hardcoded 0 there — see simulation.py — so china_tension_level can
+    never reach "high"), so this is currently a live/paper-only fix.
+    """
+    if china_tension_level != "high" or news.get("dominant_narrative_theme") != "china_export":
+        return news
+    adjusted = dict(news)
+    theme_score = float(adjusted.get("theme_alignment_score", 0.0))
+    adjusted["theme_alignment_score"] = 0.0
+    adjusted["news_score_total"] = round(max(0.0, float(adjusted.get("news_score_total", 0.0)) - theme_score), 2)
+    adjusted["china_tension_double_count_dampened"] = True
+    return adjusted

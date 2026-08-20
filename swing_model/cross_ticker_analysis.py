@@ -163,6 +163,56 @@ def analyze_cross_ticker(
     return results
 
 
+def get_cross_ticker_modifier_for_direction(
+    result: dict,
+    direction: str,
+    cfg: Optional[dict] = None,
+) -> float:
+    """
+    Direction-aware cross-ticker modifier.
+
+    analyze_cross_ticker() itself has no notion of a candidate's trade
+    direction — its own confidence_modifier field always assumes bullish:
+    outperforming peers confirms (divergence_boost, +5), underperforming
+    opposes (underperforming penalty, -10). For a bearish candidate the
+    confirming condition is the mirror — a stock declining faster than its
+    peers is what confirms a short thesis, and outperformance opposes it —
+    so which value each divergence_direction maps to is swapped, not just
+    sign-negated (the two magnitudes aren't symmetric). correlation_state ==
+    CORRELATION_SECTOR_WIDE's discount is direction-neutral (a sector-wide
+    tailwind dilutes stock-specific evidence regardless of which way the
+    trade points) and unaffected.
+
+    Call this instead of reading result["confidence_modifier"] directly once
+    the candidate's real trade direction is known — previously every live
+    bearish candidate got the bullish-shaped mapping applied unmodified
+    (Signal Integrity Audit follow-up finding: analyze_cross_ticker was not
+    among the 4 components already fixed for direction-mirroring on
+    2026-08-19, since it has no direction parameter at all to begin with).
+
+    result: one ticker's entry from analyze_cross_ticker()'s return dict —
+    needs "correlation_state" and "divergence_direction".
+    """
+    if cfg is None:
+        cfg = {}
+    if direction != "bearish":
+        return float(result.get("confidence_modifier", 0.0))
+
+    correlation_state = result.get("correlation_state")
+    divergence_direction = result.get("divergence_direction")
+
+    if correlation_state == CORRELATION_SECTOR_WIDE:
+        modifier = _get_modifier(cfg, "sector_wide_discount", -5.0)
+    elif correlation_state == CORRELATION_INDIVIDUAL_DIVERGENCE and divergence_direction == "underperforming":
+        modifier = _get_modifier(cfg, "divergence_boost", 5.0)
+    elif correlation_state == CORRELATION_INDIVIDUAL_DIVERGENCE and divergence_direction == "outperforming":
+        modifier = _get_modifier(cfg, "underperforming", -10.0)
+    else:
+        modifier = 0.0
+
+    return max(-10.0, min(5.0, modifier))
+
+
 def compute_sector_correlation_state(
     ticker_returns: dict[str, float],
     signal_directions: dict[str, Optional[str]],

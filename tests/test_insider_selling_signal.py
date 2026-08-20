@@ -94,3 +94,25 @@ class TestScoreInsiderSingleSellerNoLongerNeutral:
         sell_score, _ = _score_insider([_tx(-50000)])
         midpoint = INSIDER_MAX / 2.0
         assert (buy_score - midpoint) == (midpoint - sell_score)
+
+
+class TestSignalToModifierDirectionMirror:
+    """insider_tracker.get_insider_signal/_signal_to_modifier were bullish-only
+    and unused (dead code) — fixed while building the direction-parity
+    registry/CI check (2026-08-19) so it can't become a silent bullish-only
+    landmine if ever wired in as a standalone modifier."""
+
+    def test_buying_modifier_flips_negative_for_bearish(self):
+        tx = [_tx(50000, transaction="Purchase", insider="A"),
+              _tx(40000, transaction="Purchase", insider="B")]
+        assert _signal_to_modifier("buying", tx, direction="bullish") == 8.0
+        assert _signal_to_modifier("buying", tx, direction="bearish") == -8.0
+
+    def test_selling_cluster_modifier_flips_positive_for_bearish(self):
+        tx = [_tx(-50000, insider="A"), _tx(-20000, insider="B")]
+        assert _signal_to_modifier("selling_cluster", tx, direction="bullish") == -8.0
+        assert _signal_to_modifier("selling_cluster", tx, direction="bearish") == 8.0
+
+    def test_default_direction_is_bullish_unchanged(self):
+        tx = [_tx(-50000)]
+        assert _signal_to_modifier("selling", tx) == -3.0
