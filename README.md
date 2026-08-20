@@ -99,11 +99,20 @@ python monitoring/performance_dashboard.py
 
 **`config/swing_config.yaml`** — strategy-level settings:
 - `watchlist.tickers` — add/remove tickers here; `benchmark` sets the RS reference (SMH)
-- `confidence.min_threshold` — default 90; adjust only after re-backtesting
-- `scoring_weights` — technical/sentiment/news max contributions (must sum to 100)
-- `modifier_bounds` — per-modifier min/max; calibrated during Phase 12 backtesting
-- `position_sizing.tiers` — risk % per confidence tier; `max_capital_pct` caps per-trade size
-- `circuit_breakers` — yellow/orange/red drawdown levels
+- `confidence.min_threshold` — documented as 90, but not yet wired into scoring.py (real gate is
+  `CONFIDENCE_THRESHOLD=70`, hardcoded); editing this value currently has no effect (Tier B, in
+  progress — see CHANGELOG.md)
+- `scoring_weights` — technical/sentiment/news max contributions (must sum to 100); also not yet
+  wired into real code (Tier B, in progress)
+- `modifier_bounds` — per-modifier min/max safety clamps; `sector_rotation`/`earnings_proximity`/
+  `macro_overlay` are queued to be wired for real (Tier B, in progress) — `regime`/`cross_ticker`/
+  `seasonality` were removed, already enforced by hardcoded clamps in their own modules
+- risk-per-confidence-tier sizing (`position_sizing.tiers` config block was removed 2026-08-19 —
+  it had drifted stale and unread; the real ladder is `shared/utils/position_sizer.py`'s
+  `SIZING_TIERS` constant); `position_sizing.max_capital_pct` still caps per-trade size via config
+- `circuit_breakers` — yellow's drawdown/size-multiplier levels are real and config-driven;
+  orange/red's drawdown thresholds are real, but their "no new positions"/"full stop" behavior is
+  intentionally hardcoded, not config-driven (already always-on, see CHANGELOG.md 2026-08-19)
 - `options_approval_level` — set to your actual brokerage approval level (1/2/3)
 - `event_severity_gate` — enable/disable flag, sector-wide/ticker trigger keyword lists, principal sources, minimum source credibility (news veto, not a scoring category)
 

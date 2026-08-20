@@ -258,6 +258,29 @@ class TestEVCalculation:
         ev_adj = adjust_ev_for_slippage(ev_raw, "long_call", bid_ask_spread=0.50, num_legs=1)
         assert ev_adj < ev_raw
 
+    def test_slippage_options_bid_ask_pct_configurable(self):
+        """Tier B batch 3 (2026-08-19): slippage_options_bid_ask_pct now
+        reads from config in _compute_structure_ev — used by LIVE
+        rank_trade_structures, not just the backtest, despite living under
+        the `backtesting:` config section."""
+        from swing_model.trade_selector import _compute_structure_ev, STRUCTURE_MULTIPLIERS
+        structure = STRUCTURE_MULTIPLIERS["long_call"]
+        candidate = {
+            "ticker": "NVDA", "direction": "bullish", "confidence": 92,
+            "entry": 500.0, "entry_mid": 500.0, "stop_loss": 485.0,
+            "target": 545.0, "atr_14": 10.0, "force_defined_risk": False,
+        }
+        default_result = _compute_structure_ev(
+            "long_call", structure, candidate, iv=0.35, win_prob=0.55, bid_ask_spread=0.50, dte=30,
+        )
+        narrower_cfg = {"backtesting": {"slippage_options_bid_ask_pct": 0.10}}
+        custom_result = _compute_structure_ev(
+            "long_call", structure, candidate, iv=0.35, win_prob=0.55, bid_ask_spread=0.50, dte=30,
+            cfg=narrower_cfg,
+        )
+        # Lower assumed slippage -> less EV given up -> higher ev_adjusted (index 2).
+        assert custom_result[2] > default_result[2]
+
     def test_structure_multipliers_has_42_entries(self):
         assert len(STRUCTURE_MULTIPLIERS) == 42
 

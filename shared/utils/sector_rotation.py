@@ -96,6 +96,11 @@ def get_rotation_modifier(rotation_state: str, cfg: dict, direction: str = "bull
 
     Bearish: mirrors around 0 — see _rotation_modifier's docstring for why
     (sector outflow confirms a bearish thesis, inflow works against one).
+
+    Tier B batch 3 (2026-08-19): clamped to config.modifier_bounds.sector_rotation
+    (default -15/+5, matching the values this always effectively produced) —
+    previously unenforced, so a retuned outflow_penalty/inflow_boost could
+    silently exceed its own documented bound.
     """
     m = cfg.get("modifiers", {}).get("sector_rotation", {})
     if rotation_state == ROTATION_OUTFLOW:
@@ -104,6 +109,10 @@ def get_rotation_modifier(rotation_state: str, cfg: dict, direction: str = "bull
         base = float(m.get("inflow_boost", 5))
     else:
         base = 0.0
+    bounds = cfg.get("modifier_bounds", {}).get("sector_rotation", {})
+    lo = float(bounds.get("min", -15))
+    hi = float(bounds.get("max", 5))
+    base = max(lo, min(hi, base))
     return -base if direction == "bearish" else base
 
 

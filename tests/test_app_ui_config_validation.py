@@ -12,31 +12,6 @@ scoring_weights:
   news_max: 15
   fundamental_max: 10
 
-technical_sub_signals:
-  breakout: 8
-  trend: 8
-  relative_strength: 8
-  rsi: 8
-  volume_profile: 8
-
-positioning_sub_signals:
-  options_positioning: 6
-  institutional_ownership: 5
-  short_interest: 4
-  insider_transactions: 3
-  analyst_rating_trend: 2
-
-sentiment_sub_signals:
-  stocktwits_ratio: 7
-  stocktwits_velocity: 5
-  seeking_alpha_engagement: 3
-
-news_sub_signals:
-  credibility_weighted: 6
-  theme_alignment: 4
-  clustering: 3
-  decay_factor: 2
-
 confidence:
   min_threshold: 90
 """
@@ -73,12 +48,6 @@ class TestWeightSums:
         is_valid, errors = validate_config_text(bad)
         assert is_valid is False
         assert any("scoring_weights" in e and "must sum to 100" in e for e in errors)
-
-    def test_sub_signal_mismatch_with_parent_max(self):
-        bad = _VALID_YAML.replace("breakout: 8", "breakout: 9")
-        is_valid, errors = validate_config_text(bad)
-        assert is_valid is False
-        assert any("technical_sub_signals" in e for e in errors)
 
     def test_missing_weight_key(self):
         bad = _VALID_YAML.replace("  fundamental_max: 10\n", "")

@@ -337,6 +337,7 @@ def run_sensitivity_analysis(
     test_months: float = 1.0,
     thresholds: Optional[list[int]] = None,
     report_path: Optional[Path] = None,
+    config_path: str = "config/swing_config.yaml",
 ) -> pd.DataFrame:
     """
     Run backtest across 5 confidence thresholds (Clarification 3).
@@ -362,7 +363,12 @@ def run_sensitivity_analysis(
     docstring. Saves to backtesting/reports/sensitivity_analysis.csv.
     """
     if thresholds is None:
-        thresholds = [85, 87, 90, 92, 95]
+        # Explicit override, else config.confidence.sensitivity_thresholds
+        # (default [85, 87, 90, 92, 95]) — Tier B batch 2 (2026-08-19).
+        from swing_model.indicator_pipeline import load_config
+        thresholds = load_config(config_path).get("confidence", {}).get(
+            "sensitivity_thresholds", [85, 87, 90, 92, 95]
+        )
     rows = []
     for threshold in thresholds:
         qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= threshold]
@@ -457,26 +463,39 @@ def _trades_per_year(outcomes: list[dict]) -> float:
 # inventing a new, uncalibrated number. trade_selector.py already applies
 # this same cost when ranking option structures; the backtest's simulated
 # P&L previously didn't apply anything at all, making its Sharpe/expectancy
-# numbers optimistic versus what real fills will actually produce.
+# numbers optimistic versus what real fills will actually produce. Default
+# only — real callers resolve this from config.backtesting.slippage_stock_per_share
+# (Tier B batch 2, 2026-08-19) via _round_trip_slippage_per_share() below.
 _ROUND_TRIP_SLIPPAGE_PER_SHARE = 0.02 * 2
+
+
+def _round_trip_slippage_per_share(config_path: str = "config/swing_config.yaml") -> float:
+    from swing_model.indicator_pipeline import load_config
+    per_share = load_config(config_path).get("backtesting", {}).get("slippage_stock_per_share")
+    if per_share is None:
+        return _ROUND_TRIP_SLIPPAGE_PER_SHARE
+    return float(per_share) * 2  # round-trip = entry + exit
 
 
 def _build_equity_curve(
     outcomes: list[dict],
     starting_equity: float = 15000.0,
     include_slippage: bool = True,
+    config_path: str = "config/swing_config.yaml",
 ) -> pd.Series:
     """
     Build equity curve from ordered trade outcomes.
 
-    include_slippage: when True (the default), subtracts
-    _ROUND_TRIP_SLIPPAGE_PER_SHARE / entry_price from each trade's pnl_pct
+    include_slippage: when True (the default), subtracts a round-trip
+    per-share slippage estimate (config.backtesting.slippage_stock_per_share,
+    default $0.02/share each way) / entry_price from each trade's pnl_pct
     before compounding it into the curve. Pass False to reproduce the old
     frictionless behavior (e.g. to isolate some other change's effect in
     isolation from this one).
     """
     equity = starting_equity
     values = [equity]
+    round_trip_slippage_per_share = _round_trip_slippage_per_share(config_path)
 
     for o in outcomes:
         pnl_pct = float(o.get("pnl_pct", 0.0))
@@ -486,7 +505,7 @@ def _build_equity_curve(
         stop = o.get("stop", entry * 0.97) or entry * 0.97
 
         if include_slippage and entry > 0:
-            pnl_pct -= _ROUND_TRIP_SLIPPAGE_PER_SHARE / entry
+            pnl_pct -= round_trip_slippage_per_share / entry
 
         # Normalize: pnl as fraction of risk
         risk_dist = abs(float(entry) - float(stop)) / float(entry) if float(entry) > 0 else 0.03
@@ -504,6 +523,7 @@ def build_portfolio_equity_curve(
     starting_equity: float = 15000.0,
     risk_pct: float = 0.01,
     include_slippage: bool = True,
+    config_path: str = "config/swing_config.yaml",
 ) -> tuple[pd.Series, dict]:
     """
     Equity curve that accounts for concurrently open positions, unlike
@@ -553,6 +573,7 @@ def build_portfolio_equity_curve(
     open_count = 0
     max_concurrent_positions = 0
     max_concurrent_risk_pct = 0.0
+    round_trip_slippage_per_share = _round_trip_slippage_per_share(config_path)
 
     for _, _, obj_id, o in events:
         # Distinguish entry vs exit event unambiguously: an entry event for
@@ -578,7 +599,7 @@ def build_portfolio_equity_curve(
             entry = o.get("entry_price", 1.0) or 1.0
             stop = o.get("stop", entry * 0.97) or entry * 0.97
             if include_slippage and entry > 0:
-                pnl_pct -= _ROUND_TRIP_SLIPPAGE_PER_SHARE / entry
+                pnl_pct -= round_trip_slippage_per_share / entry
             risk_dist = abs(float(entry) - float(stop)) / float(entry) if float(entry) > 0 else 0.03
             dollar_pnl = risk_dollars * (pnl_pct / risk_dist) if risk_dist > 0 else risk_dollars * pnl_pct
             equity += dollar_pnl

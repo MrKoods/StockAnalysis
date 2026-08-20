@@ -1,16 +1,11 @@
 """
-Tests for Phase 8: signal_decay, portfolio_manager.
+Tests for Phase 8: portfolio_manager.
 No market data, no file I/O dependencies in most tests.
 """
 
 import pytest
 from datetime import datetime, timezone, timedelta
 
-from shared.utils.signal_decay import (
-    compute_signal_decay,
-    apply_signal_decay_to_score,
-    is_signal_expired,
-)
 from swing_model.portfolio_manager import (
     add_position,
     close_position,
@@ -20,61 +15,6 @@ from swing_model.portfolio_manager import (
     count_day_trades,
     is_pdt_warning,
 )
-
-
-# ---------------------------------------------------------------------------
-# signal_decay
-# ---------------------------------------------------------------------------
-
-class TestSignalDecay:
-    def _ts(self, days_ago=0):
-        return datetime.now(timezone.utc) - timedelta(days=days_ago)
-
-    def test_fresh_signal_is_full_strength(self):
-        factor = compute_signal_decay(self._ts(0))
-        assert factor == pytest.approx(1.0)
-
-    def test_one_day_old_still_full(self):
-        factor = compute_signal_decay(self._ts(1))
-        assert factor == pytest.approx(1.0)
-
-    def test_halfway_through_window(self):
-        # Day 3 of 5-day window: decay to ~50%
-        factor = compute_signal_decay(self._ts(3))
-        assert 0.3 < factor < 0.8  # linear decay in [1,5] range
-
-    def test_expired_signal_returns_zero(self):
-        factor = compute_signal_decay(self._ts(5))
-        assert factor == 0.0
-
-    def test_very_old_signal_returns_zero(self):
-        factor = compute_signal_decay(self._ts(10))
-        assert factor == 0.0
-
-    def test_exponential_decay_faster_than_linear(self):
-        ts = self._ts(2)
-        linear = compute_signal_decay(ts, decay_style="linear")
-        exp = compute_signal_decay(ts, decay_style="exponential")
-        assert exp < linear  # exponential decays faster in middle of window
-
-    def test_is_signal_expired_false_when_fresh(self):
-        assert is_signal_expired(self._ts(0)) is False
-
-    def test_is_signal_expired_true_when_old(self):
-        assert is_signal_expired(self._ts(6)) is True
-
-    def test_apply_decay_to_score_full_strength(self):
-        score = apply_signal_decay_to_score(92.0, 1.0, floor_score=80.0)
-        assert score == pytest.approx(92.0)
-
-    def test_apply_decay_to_score_partial(self):
-        # decay 0.5: floor=80, base=92 → 80 + (92-80)*0.5 = 86.0
-        score = apply_signal_decay_to_score(92.0, 0.5, floor_score=80.0)
-        assert score == pytest.approx(86.0)
-
-    def test_apply_decay_floor_at_zero_decay(self):
-        score = apply_signal_decay_to_score(92.0, 0.0, floor_score=80.0)
-        assert score == pytest.approx(80.0)
 
 
 # ---------------------------------------------------------------------------

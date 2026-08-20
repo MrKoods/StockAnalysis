@@ -117,6 +117,36 @@ class TestInstitutionalScore:
         result = compute_positioning_score("NVDA", {"institutional": None})
         assert result["institutional_score"] == 0.0
 
+    def test_institutional_max_configurable(self):
+        """Tier B batch 3 (2026-08-19): institutional_max now reads from
+        config — every formula reference is derived from it, so retuning it
+        rescales the midpoint/bounds/mirror correctly."""
+        current = {"institutional": {"held_percent_institutions": 0.55}}
+        default_result = compute_positioning_score("NVDA", current, previous_snapshot=None)
+        assert default_result["institutional_score"] == 2.5  # default max/2 = 5.0/2
+
+        custom_cfg = {"positioning": {"institutional_max": 10.0}}
+        custom_result = compute_positioning_score(
+            "NVDA", current, previous_snapshot=None, cfg=custom_cfg
+        )
+        assert custom_result["institutional_score"] == 5.0  # custom max/2 = 10.0/2
+
+    def test_accumulation_threshold_configurable(self):
+        """Tier B batch 2 (2026-08-19): the scaling threshold now reads from
+        config instead of being hardcoded 0.02 — a +1pp delta scores below
+        max with the default 0.02 threshold, but hits max once the
+        configured threshold is narrowed to 0.01."""
+        current = {"institutional": {"held_percent_institutions": 0.51}}
+        previous = {"institutional": {"held_percent_institutions": 0.50}}  # +1pp delta
+        default_result = compute_positioning_score("NVDA", current, previous_snapshot=previous)
+        assert default_result["institutional_score"] < 5.0
+
+        narrow_cfg = {"positioning": {"institutional_accumulation_threshold": 0.01}}
+        narrow_result = compute_positioning_score(
+            "NVDA", current, previous_snapshot=previous, cfg=narrow_cfg
+        )
+        assert narrow_result["institutional_score"] == 5.0
+
 
 class TestShortInterestScore:
     def test_declining_short_interest_is_bullish(self):

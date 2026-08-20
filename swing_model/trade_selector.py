@@ -381,7 +381,7 @@ def rank_trade_structures(
             bid_ask_spreads[name] = sum(c["ask"] - c["bid"] for c in legs) / structure.get("legs", len(legs))
 
         ev_result = _compute_structure_ev(name, structure, candidate, resolved_iv,
-                                          win_prob, bid_ask_spreads.get(name, 0.0), dte)
+                                          win_prob, bid_ask_spreads.get(name, 0.0), dte, cfg=cfg)
         if ev_result is None:
             excluded.append({"name": name, "reasons": ["ev_computation_failed"]})
             continue
@@ -644,6 +644,7 @@ def _compute_structure_ev(
     win_prob: float,
     bid_ask_spread: float = 0.0,
     dte: Optional[int] = None,
+    cfg: Optional[dict] = None,
 ) -> Optional[tuple[float, float, float, float, float, Optional[float], Optional[float], dict]]:
     """
     Compute EV for a structure. Uses surface method for complex (ratio/back
@@ -726,7 +727,20 @@ def _compute_structure_ev(
             effective_days = default_days
 
     legs = structure.get("legs", 1)
-    ev_adjusted = adjust_ev_for_slippage(ev, structure_name, bid_ask_spread, legs)
+    # Tier B batch 2/3 (2026-08-19): both slippage assumptions now read from
+    # config (defaults match adjust_ev_for_slippage's prior hardcoded values
+    # exactly). slippage_options_bid_ask_pct lives under the `backtesting:`
+    # config section but is used here, in LIVE options-structure ranking, not
+    # just the historical backtest — same shared value
+    # backtesting/metrics.py's equity-curve slippage estimate uses for
+    # slippage_stock_per_share.
+    _slip_cfg = (cfg or {}).get("backtesting", {})
+    slippage_per_share = float(_slip_cfg.get("slippage_stock_per_share", 0.02))
+    slippage_pct_of_spread = float(_slip_cfg.get("slippage_options_bid_ask_pct", 0.50))
+    ev_adjusted = adjust_ev_for_slippage(
+        ev, structure_name, bid_ask_spread, legs,
+        slippage_pct_of_spread=slippage_pct_of_spread, slippage_per_share=slippage_per_share,
+    )
     if capital <= 0:
         return None
     return (ev_adjusted / capital, ev, ev_adjusted, capital, effective_days,

@@ -6,8 +6,10 @@ building the direction-parity registry/CI check (2026-08-19).
 """
 
 from datetime import datetime, timezone
+from unittest.mock import patch
 
-from swing_model.news_layer import count_independent_cluster
+import swing_model.news_layer as news_layer
+from swing_model.news_layer import compute_news_score, count_independent_cluster
 from shared.utils.narrative_tracker import theme_alignment_modifier
 
 
@@ -17,6 +19,47 @@ def _article(sentiment_label, domain):
         "source_domain": domain,
         "overall_sentiment_label": sentiment_label,
     }
+
+
+class TestConfigWiredNewsParams:
+    """Tier B batch 2 (2026-08-19): decay_halflife_hours/decay_zero_at_days/
+    cluster_window_days now read from config instead of being hardcoded —
+    confirm compute_news_score actually threads a non-default cfg value
+    through to the underlying functions, not just that the defaults work."""
+
+    def test_cluster_window_days_threaded_from_cfg(self):
+        seen = {}
+        real = news_layer.count_independent_cluster
+
+        def spy(*args, **kwargs):
+            seen["window_days"] = kwargs.get("window_days")
+            return real(*args, **kwargs)
+
+        with patch.object(news_layer, "count_independent_cluster", side_effect=spy):
+            compute_news_score([], [], "NVDA", cfg={"news": {"cluster_window_days": 7}})
+        assert seen["window_days"] == 7
+
+    def test_decay_params_threaded_from_cfg(self):
+        seen = []
+        real = news_layer.news_decay_weight
+
+        def spy(*args, **kwargs):
+            seen.append((kwargs.get("halflife_hours"), kwargs.get("zero_at_days")))
+            return real(*args, **kwargs)
+
+        av_articles = [{
+            "title": "NVDA earnings beat expectations",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "source_domain": "reuters.com",
+            "overall_sentiment_label": "bullish",
+        }]
+        with patch.object(news_layer, "news_decay_weight", side_effect=spy):
+            compute_news_score(
+                av_articles, [], "NVDA",
+                cfg={"news": {"decay_halflife_hours": 48.0, "decay_zero_at_days": 10.0}},
+            )
+        assert seen  # at least one decay call happened
+        assert all(call == (48.0, 10.0) for call in seen)
 
 
 class TestCountIndependentClusterDirection:

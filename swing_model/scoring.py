@@ -267,6 +267,24 @@ def compute_confidence_score(
     if positioning is None:
         positioning = {}
 
+    # Tier B batch 3 (2026-08-19): the 5 category maximums now read from
+    # config.scoring_weights instead of bare module constants — each is an
+    # independent clamp on how much of that category's already-computed
+    # 0-max score counts toward the 100-point base score (not the same
+    # constant positioning_layer.py/sentiment_layer.py use internally to
+    # build their own sub-signal totals — those stay fixed, coincidentally
+    # equal to these defaults today). FUNDAMENTAL_INTERNAL_MAX (15,
+    # fundamental_layer.py's own -15..+15 internal scale) is NOT config-driven
+    # — it's that module's own fixed internal clamp, the denominator this
+    # function's rescale ratio depends on; only the numerator (fundamental_max)
+    # is a real tunable.
+    sw_cfg = cfg.get("scoring_weights", {})
+    technical_max = float(sw_cfg.get("technical_max", TECHNICAL_MAX))
+    positioning_max = float(sw_cfg.get("positioning_max", POSITIONING_MAX))
+    sentiment_max = float(sw_cfg.get("sentiment_max", SENTIMENT_MAX))
+    news_max = float(sw_cfg.get("news_max", NEWS_MAX))
+    fundamental_max = float(sw_cfg.get("fundamental_max", FUNDAMENTAL_MAX))
+
     # Direction must be known before Step 1, since bearish candidates use the
     # mirrored bearish technical sub-score formulas (compute_technical_sub_scores'
     # direction param) — computed here (or accepted pre-computed via
@@ -286,19 +304,19 @@ def compute_confidence_score(
     # Step 2: Positioning total (already 0-20 from positioning_layer)
     # ---------------------------------------------------------------------------
     positioning_total = float(positioning.get("positioning_score_total", 0.0))
-    positioning_total = min(float(POSITIONING_MAX), max(0.0, positioning_total))
+    positioning_total = min(positioning_max, max(0.0, positioning_total))
 
     # ---------------------------------------------------------------------------
     # Step 3: Sentiment total (already 0-15 from sentiment_layer)
     # ---------------------------------------------------------------------------
     sentiment_total = float(sentiment.get("sentiment_score_total", 0.0))
-    sentiment_total = min(float(SENTIMENT_MAX), max(0.0, sentiment_total))
+    sentiment_total = min(sentiment_max, max(0.0, sentiment_total))
 
     # ---------------------------------------------------------------------------
     # Step 4: News total (already 0-15 from news_layer)
     # ---------------------------------------------------------------------------
     news_total = float(news.get("news_score_total", 0.0))
-    news_total = min(float(NEWS_MAX), max(0.0, news_total))
+    news_total = min(news_max, max(0.0, news_total))
 
     # ---------------------------------------------------------------------------
     # Step 4b: Apply calibrated live_weights, if provided.
@@ -335,30 +353,27 @@ def compute_confidence_score(
     #   When live_weights is None (the default), this whole block is skipped and
     #   behavior is unchanged from before this fix.
     # ---------------------------------------------------------------------------
-    # technical_max/sentiment_max/news_max: the cap each of these three fields
-    # is actually operating under right now, for callers that display a score
-    # as "X/max" (paper_runner.py's scan log, discord_alerts.py's embeds).
-    # Nominal (40/15/15) unless live_weights is active, in which case a
-    # category's real ceiling shifts with its calibrated weight fraction of
-    # the shared 70-point pool — e.g. consumer_discretionary's sentiment=0.4
-    # weight raises sentiment's real cap to 28, not 15. Without this, a
-    # reweighted score above its nominal max (by design — see the "Deliberately
-    # NOT re-clamped" note above) reads as a scoring bug in any "X/15"-style
-    # display instead of the deliberate redistribution it actually is.
-    technical_max = float(TECHNICAL_MAX)
-    sentiment_max = float(SENTIMENT_MAX)
-    news_max = float(NEWS_MAX)
-
+    # technical_max/sentiment_max/news_max (resolved from config above): the
+    # cap each of these three fields is actually operating under right now,
+    # for callers that display a score as "X/max" (paper_runner.py's scan
+    # log, discord_alerts.py's embeds). Nominal (config-resolved) unless
+    # live_weights is active, in which case a category's real ceiling shifts
+    # with its calibrated weight fraction of the shared pool — e.g.
+    # consumer_discretionary's sentiment=0.4 weight raises sentiment's real
+    # cap accordingly. Without this, a reweighted score above its nominal max
+    # (by design — see the "Deliberately NOT re-clamped" note above) reads as
+    # a scoring bug in any "X/15"-style display instead of the deliberate
+    # redistribution it actually is.
     if live_weights:
         w_tech = float(live_weights.get("technical", 0.0))
         w_sent = float(live_weights.get("sentiment", 0.0))
         w_news = float(live_weights.get("news", 0.0))
         w_sum = w_tech + w_sent + w_news
         if w_sum > 0:
-            pool = float(TECHNICAL_MAX + SENTIMENT_MAX + NEWS_MAX)
-            tech_pct = technical_total / TECHNICAL_MAX if TECHNICAL_MAX else 0.0
-            sent_pct = sentiment_total / SENTIMENT_MAX if SENTIMENT_MAX else 0.0
-            news_pct = news_total / NEWS_MAX if NEWS_MAX else 0.0
+            pool = technical_max + sentiment_max + news_max
+            tech_pct = technical_total / technical_max if technical_max else 0.0
+            sent_pct = sentiment_total / sentiment_max if sentiment_max else 0.0
+            news_pct = news_total / news_max if news_max else 0.0
             technical_total = pool * (tech_pct * w_tech / w_sum)
             sentiment_total = pool * (sent_pct * w_sent / w_sum)
             news_total = pool * (news_pct * w_news / w_sum)
@@ -390,8 +405,8 @@ def compute_confidence_score(
     fundamental_score_raw = max(-float(FUNDAMENTAL_INTERNAL_MAX), min(float(FUNDAMENTAL_INTERNAL_MAX), fundamental_score_raw))
     if direction == "bearish":
         fundamental_score_raw = -fundamental_score_raw
-    fundamental_contribution = fundamental_score_raw * (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX)
-    fundamental_contribution = max(-float(FUNDAMENTAL_MAX), min(float(FUNDAMENTAL_MAX), fundamental_contribution))
+    fundamental_contribution = fundamental_score_raw * (fundamental_max / FUNDAMENTAL_INTERNAL_MAX)
+    fundamental_contribution = max(-fundamental_max, min(fundamental_max, fundamental_contribution))
     fundamental_data_quality = fundamental.get("data_quality", "unavailable")
     fundamental_data_as_of = fundamental.get("data_as_of")
     fundamental_staleness_weight = _fundamental_staleness_weight(fundamental_data_as_of, today=as_of_date)
@@ -590,6 +605,13 @@ def compute_technical_sub_scores(
     if cfg is None:
         cfg = {}
     is_bearish = direction == "bearish"
+    # Tier B batch 3 (2026-08-19): the overall category clamp reads from
+    # config, same source compute_confidence_score resolves its own copy
+    # from — the 5 individual per-sub-signal maxima (technical_sub_signals.*)
+    # stay fixed module-level literals; each sub-score's ladder below is
+    # hand-calibrated in terms of a fixed 8-point scale, not derived from a
+    # configurable max, so only the aggregate sum's clamp is safely tunable.
+    technical_max = float(cfg.get("scoring_weights", {}).get("technical_max", TECHNICAL_MAX))
 
     # ---------------------------------------------------------------------------
     # Breakout score (0-8): volume z-score signals unusual activity at the
@@ -702,7 +724,7 @@ def compute_technical_sub_scores(
         vp_score = round(max(0.0, min(8.0, vp_score)), 2)
 
     technical_total = round(breakout_score + trend_score + rs_score + rsi_score + vp_score, 2)
-    technical_total = min(float(TECHNICAL_MAX), technical_total)
+    technical_total = min(technical_max, technical_total)
 
     return {
         "breakout_score": breakout_score,

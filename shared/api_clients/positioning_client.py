@@ -347,7 +347,7 @@ def fetch_institutional_ownership(ticker: str) -> dict:
     return result
 
 
-def fetch_short_interest(ticker: str) -> dict:
+def fetch_short_interest(ticker: str, cfg: Optional[dict] = None) -> dict:
     """
     Fetch short interest data via yfinance Ticker.info.
 
@@ -384,10 +384,14 @@ def fetch_short_interest(ticker: str) -> dict:
     result["short_percent_of_float"] = float(short_pct_float) if short_pct_float is not None else None
 
     if result["shares_short"] is not None and result["shares_short_prior_month"] not in (None, 0):
+        # Tier B batch 2 (2026-08-19): thresholds now read from config.
+        p_cfg = (cfg or {}).get("positioning", {})
+        declining_threshold = float(p_cfg.get("short_interest_declining_threshold", -0.05))
+        increasing_threshold = float(p_cfg.get("short_interest_increasing_threshold", 0.05))
         change = (result["shares_short"] - result["shares_short_prior_month"]) / result["shares_short_prior_month"]
-        if change <= -0.05:
+        if change <= declining_threshold:
             result["trend"] = "declining"
-        elif change >= 0.05:
+        elif change >= increasing_threshold:
             result["trend"] = "increasing"
         else:
             result["trend"] = "flat"
@@ -397,11 +401,15 @@ def fetch_short_interest(ticker: str) -> dict:
     return result
 
 
-def fetch_analyst_rating_trend(ticker: str, lookback_days: int = 30) -> dict:
+def fetch_analyst_rating_trend(ticker: str, lookback_days: Optional[int] = None, cfg: Optional[dict] = None) -> dict:
     """
     Fetch recent analyst rating *changes* (upgrades/downgrades) via yfinance
     Ticker.upgrades_downgrades — distinct from the static recommendationMean
     level already scored by the Fundamental layer's analyst_consensus_score.
+
+    lookback_days: explicit override, else read from
+    config.positioning.analyst_trend_lookback_days (default 30) — Tier B
+    batch 2 (2026-08-19).
 
     Returns dict:
       recent_upgrades   — count of upgrade actions in lookback window
@@ -409,6 +417,8 @@ def fetch_analyst_rating_trend(ticker: str, lookback_days: int = 30) -> dict:
       net_action        — 'upgrade' | 'downgrade' | 'mixed' | 'none'
       suspect_fields
     """
+    if lookback_days is None:
+        lookback_days = int((cfg or {}).get("positioning", {}).get("analyst_trend_lookback_days", 30))
     result = {"recent_upgrades": 0, "recent_downgrades": 0, "net_action": "none", "suspect_fields": []}
 
     def _fetch():
@@ -454,7 +464,9 @@ def fetch_analyst_rating_trend(ticker: str, lookback_days: int = 30) -> dict:
     return result
 
 
-def fetch_all_positioning(ticker: str, current_price: Optional[float] = None, min_dte: int = 5) -> dict:
+def fetch_all_positioning(
+    ticker: str, current_price: Optional[float] = None, min_dte: int = 5, cfg: Optional[dict] = None,
+) -> dict:
     """
     Orchestrate all Market Positioning fetches for one ticker.
 
@@ -487,13 +499,13 @@ def fetch_all_positioning(ticker: str, current_price: Optional[float] = None, mi
         write_validation_entry(ticker, "positioning_institutional_error", str(exc))
 
     try:
-        result["short_interest"] = fetch_short_interest(ticker)
+        result["short_interest"] = fetch_short_interest(ticker, cfg=cfg)
     except Exception as exc:
         logger.error(f"{ticker}: fetch_short_interest failed — {exc}")
         write_validation_entry(ticker, "positioning_short_interest_error", str(exc))
 
     try:
-        result["analyst_trend"] = fetch_analyst_rating_trend(ticker)
+        result["analyst_trend"] = fetch_analyst_rating_trend(ticker, cfg=cfg)
     except Exception as exc:
         logger.error(f"{ticker}: fetch_analyst_rating_trend failed — {exc}")
         write_validation_entry(ticker, "positioning_analyst_error", str(exc))

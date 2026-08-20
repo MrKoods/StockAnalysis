@@ -89,18 +89,31 @@ _PREMIUM_MODERATE_MAX = 0.40
 _PREMIUM_HIGH_MAX = 0.75
 
 
-def _score_premium(premium: float) -> int:
+def _score_premium(premium: float, cfg: Optional[dict] = None) -> int:
     """-2..+2 score for how far a ticker's valuation multiple sits above (or
     below) its peer average. Negative premium (trading below peers) always
     scores the max +2 regardless of magnitude — a bigger discount isn't a
-    stronger signal here, just a cheaper one."""
+    stronger signal here, just a cheaper one.
+
+    Tier B batch 3 (2026-08-19): the 3 breakpoints now read from config —
+    shared by both callers (P/E-vs-sector and EV/EBITDA-vs-peers), replacing
+    3 old per-metric config keys (pe_premium_penalty_threshold,
+    pe_extreme_premium_threshold, ev_ebitda_premium_threshold) that described
+    a pre-refactor 2-ladder design this shared ladder replaced — those didn't
+    map cleanly 1:1 onto this ladder's 3 real breakpoints, so this is a
+    redesign, not a rename.
+    """
+    f_cfg = (cfg or {}).get("fundamental", {})
+    near_parity_max = float(f_cfg.get("premium_near_parity_threshold", _PREMIUM_NEAR_PARITY_MAX))
+    moderate_max = float(f_cfg.get("premium_moderate_threshold", _PREMIUM_MODERATE_MAX))
+    high_max = float(f_cfg.get("premium_high_threshold", _PREMIUM_HIGH_MAX))
     if premium < 0:
         return 2
-    if premium <= _PREMIUM_NEAR_PARITY_MAX:
+    if premium <= near_parity_max:
         return 1
-    if premium <= _PREMIUM_MODERATE_MAX:
+    if premium <= moderate_max:
         return 0
-    if premium <= _PREMIUM_HIGH_MAX:
+    if premium <= high_max:
         return -1
     return -2
 
@@ -193,6 +206,19 @@ class FundamentalScorer:
         valuation = fundamental_data.get("valuation") or {}
         revisions = fundamental_data.get("revisions") or {}
 
+        # Tier B batch 2/3 (2026-08-19): all 5 ladder breakpoints now read
+        # from config. eps_negative_threshold previously duplicated
+        # eps_flat_threshold's value (-0.05, stale/wrong) — config only had 4
+        # keys for what's actually a 5-tier ladder. Repurposed to the real
+        # first negative breakpoint (-0.15) and added eps_severe_decline_threshold
+        # for the second (-0.30), rather than a 1:1 swap of the wrong value.
+        f_cfg = self._cfg.get("fundamental", {})
+        accelerating_threshold = float(f_cfg.get("eps_accelerating_threshold", 0.10))
+        positive_threshold = float(f_cfg.get("eps_positive_threshold", 0.00))
+        flat_threshold = float(f_cfg.get("eps_flat_threshold", -0.05))
+        moderate_decline_threshold = float(f_cfg.get("eps_negative_threshold", -0.15))
+        severe_decline_threshold = float(f_cfg.get("eps_severe_decline_threshold", -0.30))
+
         breakdown = {}
 
         # -- EPS growth score (-3 to +3 pts) -----------------------------
@@ -208,11 +234,11 @@ class FundamentalScorer:
             # 2-point comparison to "accelerating" without any real momentum.
             # Degrades gracefully to fewer points when less history exists.
             if len(valid_growth) >= 3:
-                accelerating = avg_growth > 0.10 and valid_growth[0] > valid_growth[1] > valid_growth[2]
+                accelerating = avg_growth > accelerating_threshold and valid_growth[0] > valid_growth[1] > valid_growth[2]
             elif len(valid_growth) == 2:
-                accelerating = avg_growth > 0.10 and valid_growth[0] > valid_growth[1]
+                accelerating = avg_growth > accelerating_threshold and valid_growth[0] > valid_growth[1]
             else:
-                accelerating = avg_growth > 0.10
+                accelerating = avg_growth > accelerating_threshold
 
             # Symmetric -3..+3, graduated on the downside instead of a hard cliff:
             # avg_growth=-0.049 used to score +1 while -0.050 scored -2, and any
@@ -220,15 +246,15 @@ class FundamentalScorer:
             # scored identically at -2 — destroying signal for severely
             # deteriorating earnings and biasing the composite toward bullish
             # outcomes (max +3, floor -2).
-            if accelerating and avg_growth > 0.10:
+            if accelerating and avg_growth > accelerating_threshold:
                 eps_growth_score = 3
-            elif avg_growth > 0.0:
+            elif avg_growth > positive_threshold:
                 eps_growth_score = 2
-            elif avg_growth >= -0.05:
+            elif avg_growth >= flat_threshold:
                 eps_growth_score = 1
-            elif avg_growth >= -0.15:
+            elif avg_growth >= moderate_decline_threshold:
                 eps_growth_score = -1
-            elif avg_growth >= -0.30:
+            elif avg_growth >= severe_decline_threshold:
                 eps_growth_score = -2
             else:
                 eps_growth_score = -3
@@ -478,7 +504,7 @@ class FundamentalScorer:
             pe = val.get("trailingPE")
             if pe is not None and "trailingPE" not in suspect and peer_pe:
                 premium = (pe - peer_pe) / peer_pe
-                pe_vs_sector_score = _score_premium(premium)
+                pe_vs_sector_score = _score_premium(premium, cfg=self._cfg)
                 breakdown["pe_vs_sector"] = {
                     "ticker_pe": pe, "sector_pe": round(peer_pe, 2),
                     "premium": round(premium, 4),
@@ -496,10 +522,12 @@ class FundamentalScorer:
             if (fpe is not None and tpe is not None
                     and "forwardPE" not in suspect and "trailingPE" not in suspect
                     and tpe != 0):
+                # Tier B batch 2 (2026-08-19): tolerance now reads from config.
+                tolerance = float(self._cfg.get("fundamental", {}).get("forward_trailing_tolerance", 0.05))
                 ratio = fpe / tpe
-                if ratio < 0.95:
+                if ratio < (1.0 - tolerance):
                     forward_vs_trailing_pe_score = 2
-                elif ratio <= 1.05:
+                elif ratio <= (1.0 + tolerance):
                     forward_vs_trailing_pe_score = 1
                 else:
                     forward_vs_trailing_pe_score = -1
@@ -515,7 +543,7 @@ class FundamentalScorer:
             ev = val.get("enterpriseToEbitda")
             if ev is not None and "enterpriseToEbitda" not in suspect and peer_ev:
                 ev_premium = (ev - peer_ev) / peer_ev
-                ev_ebitda_vs_peers_score = _score_premium(ev_premium)
+                ev_ebitda_vs_peers_score = _score_premium(ev_premium, cfg=self._cfg)
                 breakdown["ev_ebitda_vs_peers"] = {
                     "ticker_ev": ev, "sector_ev": round(peer_ev, 2),
                     "premium": round(ev_premium, 4),

@@ -297,6 +297,93 @@ class TestEstimateRevisionsTargetDelta:
         assert result["estimate_revisions_score"] == 0  # ~2% upside is neutral, not the stale-price 150%
 
 
+class TestConfigWiredThresholds:
+    """Tier B batch 2 (2026-08-19): eps_accelerating_threshold/eps_positive_threshold/
+    eps_flat_threshold/forward_trailing_tolerance now read from config instead of
+    being hardcoded — confirm a non-default value actually changes behavior, not
+    just that the default still works."""
+
+    def _fd(self, growth_trend):
+        return {"earnings": {"eps_growth_trend": growth_trend}, "valuation": {}, "revisions": {}}
+
+    def test_eps_positive_threshold_configurable(self):
+        fd = self._fd([0.03])  # avg 3% — above default positive_threshold (0.0)
+        default_result = FundamentalScorer().score_earnings_momentum(fd)
+        assert default_result["eps_growth_score"] == 2
+
+        custom_cfg = {"fundamental": {"eps_positive_threshold": 0.05}}
+        custom_result = FundamentalScorer(cfg=custom_cfg).score_earnings_momentum(fd)
+        assert custom_result["eps_growth_score"] == 1
+
+    def test_eps_flat_threshold_configurable(self):
+        fd = self._fd([-0.03])  # -3% — within default flat_threshold (-0.05)
+        default_result = FundamentalScorer().score_earnings_momentum(fd)
+        assert default_result["eps_growth_score"] == 1
+
+        custom_cfg = {"fundamental": {"eps_flat_threshold": -0.01}}
+        custom_result = FundamentalScorer(cfg=custom_cfg).score_earnings_momentum(fd)
+        assert custom_result["eps_growth_score"] == -1
+
+    def test_eps_accelerating_threshold_configurable(self):
+        fd = self._fd([0.12])  # 12% — above default accelerating_threshold (0.10)
+        default_result = FundamentalScorer().score_earnings_momentum(fd)
+        assert default_result["eps_growth_score"] == 3
+
+        custom_cfg = {"fundamental": {"eps_accelerating_threshold": 0.15}}
+        custom_result = FundamentalScorer(cfg=custom_cfg).score_earnings_momentum(fd)
+        assert custom_result["eps_growth_score"] == 2
+
+    def test_eps_negative_and_severe_decline_thresholds_configurable(self):
+        """Tier B batch 3 (2026-08-19): eps_negative_threshold was corrected
+        from a stale -0.05 duplicate to the real -0.15 breakpoint, and
+        eps_severe_decline_threshold (-0.30) is new — the code's 5-tier
+        ladder previously had 2 breakpoints config never declared at all."""
+        fd = self._fd([-0.20])  # -20% — between default -0.15/-0.30 breakpoints
+        default_result = FundamentalScorer().score_earnings_momentum(fd)
+        assert default_result["eps_growth_score"] == -2  # below default -0.15 moderate breakpoint
+
+        custom_cfg = {"fundamental": {"eps_negative_threshold": -0.25}}
+        custom_result = FundamentalScorer(cfg=custom_cfg).score_earnings_momentum(fd)
+        assert custom_result["eps_growth_score"] == -1  # -0.20 now clears the widened -0.25 breakpoint
+
+        severe_fd = self._fd([-0.40])  # -40% — beyond default -0.30 floor
+        severe_default = FundamentalScorer().score_earnings_momentum(severe_fd)
+        assert severe_default["eps_growth_score"] == -3
+
+        wider_cfg = {"fundamental": {"eps_severe_decline_threshold": -0.50}}
+        severe_custom = FundamentalScorer(cfg=wider_cfg).score_earnings_momentum(severe_fd)
+        assert severe_custom["eps_growth_score"] == -2
+
+    def test_premium_thresholds_configurable(self):
+        """Tier B batch 3 (2026-08-19): the shared premium-vs-peers ladder
+        (near_parity/moderate/high) now reads from config, replacing 3 old
+        per-metric keys that described a design the code no longer has."""
+        fundamentals = {
+            "NVDA": {"valuation": {"trailingPE": 145.0, "enterpriseToEbitda": 10.0, "suspect_fields": []}},
+            "AMD": {"valuation": {"trailingPE": 100.0, "enterpriseToEbitda": 10.0, "suspect_fields": []}},
+        }
+        # NVDA premium vs. AMD peer average: (145-100)/100 = 45% — between
+        # default moderate_threshold (40%) and high_threshold (75%) -> -1pt.
+        default_result = FundamentalScorer().score_valuation_vs_peers(fundamentals)
+        assert default_result["ticker_scores"]["NVDA"]["pe_vs_sector_score"] == -1
+
+        wider_cfg = {"fundamental": {"premium_moderate_threshold": 0.50}}
+        custom_result = FundamentalScorer(cfg=wider_cfg).score_valuation_vs_peers(fundamentals)
+        assert custom_result["ticker_scores"]["NVDA"]["pe_vs_sector_score"] == 0  # now clears the widened bar
+
+    def test_forward_trailing_tolerance_configurable(self):
+        fundamentals = {
+            "NVDA": {"valuation": {"trailingPE": 100.0, "forwardPE": 94.0, "suspect_fields": []}},
+            "AMD": {"valuation": {"trailingPE": 30.0, "forwardPE": 30.0, "suspect_fields": []}},
+        }
+        default_result = FundamentalScorer().score_valuation_vs_peers(fundamentals)
+        assert default_result["ticker_scores"]["NVDA"]["forward_vs_trailing_pe_score"] == 2
+
+        custom_cfg = {"fundamental": {"forward_trailing_tolerance": 0.10}}
+        custom_result = FundamentalScorer(cfg=custom_cfg).score_valuation_vs_peers(fundamentals)
+        assert custom_result["ticker_scores"]["NVDA"]["forward_vs_trailing_pe_score"] == 1
+
+
 class TestPeerRelativeGrowth:
     def _fd(self, growth_trend):
         return {"earnings": {"eps_growth_trend": growth_trend}, "valuation": {}, "revisions": {}}

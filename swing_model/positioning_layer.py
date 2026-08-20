@@ -31,12 +31,35 @@ from typing import Optional
 
 from shared.utils.insider_tracker import classify_transactions, count_distinct_traders
 
+# OPTIONS_MAX/SHORT_INTEREST_MAX/ANALYST_MAX stay fixed module constants —
+# their scoring formulas below (_score_options/_score_short_interest/
+# _score_analyst_trend) hardcode midpoint/tier literals (3.0, 6.0, 4.0, 2.0,
+# 1.0...) that aren't derived from the constant, so changing it wouldn't
+# actually rescale the formula correctly — Tier B triage (2026-08-19) found
+# this and deliberately did NOT wire config.positioning.options_max/
+# short_interest_max/analyst_max for the same reason technical_sub_signals/
+# sentiment_sub_signals/news_sub_signals were stripped, not wired.
+# INSTITUTIONAL_MAX/INSIDER_MAX are genuinely derived throughout their own
+# formulas (INSTITUTIONAL_MAX/2.0, INSIDER_MAX/4, etc.) — those two ARE
+# config-driven now (institutional_max/insider_max), resolved per-call in
+# _score_institutional/_score_insider, not as module constants.
 OPTIONS_MAX = 6.0
-INSTITUTIONAL_MAX = 5.0
+INSTITUTIONAL_MAX = 5.0  # default only — real value resolved per-call, see _score_institutional
 SHORT_INTEREST_MAX = 4.0
-INSIDER_MAX = 3.0
+INSIDER_MAX = 3.0  # default only — real value resolved per-call, see _score_insider
 ANALYST_MAX = 2.0
-POSITIONING_MAX = OPTIONS_MAX + INSTITUTIONAL_MAX + SHORT_INTEREST_MAX + INSIDER_MAX + ANALYST_MAX  # 20
+
+
+def _positioning_max(cfg: Optional[dict] = None) -> float:
+    """Aggregate positioning category max — 3 fixed sub-maxes plus the 2
+    config-driven ones, so the total clamp stays correct if either is retuned."""
+    p_cfg = (cfg or {}).get("positioning", {})
+    institutional_max = float(p_cfg.get("institutional_max", INSTITUTIONAL_MAX))
+    insider_max = float(p_cfg.get("insider_max", INSIDER_MAX))
+    return OPTIONS_MAX + institutional_max + SHORT_INTEREST_MAX + insider_max + ANALYST_MAX
+
+
+POSITIONING_MAX = OPTIONS_MAX + INSTITUTIONAL_MAX + SHORT_INTEREST_MAX + INSIDER_MAX + ANALYST_MAX  # 20, default only
 
 
 def compute_positioning_score(
@@ -70,17 +93,20 @@ def compute_positioning_score(
         positioning_data.get("institutional"),
         (previous_snapshot or {}).get("institutional"),
         direction=direction,
+        cfg=cfg,
     )
     short_interest_score, short_interest_dq = _score_short_interest(
         positioning_data.get("short_interest"), direction=direction
     )
-    insider_score, insider_dq = _score_insider(positioning_data.get("insider_transactions"), direction=direction)
+    insider_score, insider_dq = _score_insider(
+        positioning_data.get("insider_transactions"), direction=direction, cfg=cfg
+    )
     analyst_score, analyst_dq = _score_analyst_trend(positioning_data.get("analyst_trend"), direction=direction)
 
     positioning_score_total = (
         options_score + institutional_score + short_interest_score + insider_score + analyst_score
     )
-    positioning_score_total = round(min(POSITIONING_MAX, max(0.0, positioning_score_total)), 2)
+    positioning_score_total = round(min(_positioning_max(cfg), max(0.0, positioning_score_total)), 2)
 
     all_unavailable = all(
         dq == "unavailable" for dq in (options_dq, institutional_dq, short_interest_dq, insider_dq, analyst_dq)
@@ -197,7 +223,8 @@ def _score_from_percentile(percentile: float, direction: str = "bullish") -> flo
 
 
 def _score_institutional(
-    current: Optional[dict], previous: Optional[dict], direction: str = "bullish"
+    current: Optional[dict], previous: Optional[dict], direction: str = "bullish",
+    cfg: Optional[dict] = None,
 ) -> tuple[float, str]:
     """
     Score institutional ownership change vs. prior snapshot. Neutral midpoint = 2.5 (of 0-5).
@@ -206,20 +233,34 @@ def _score_institutional(
     if not current or current.get("held_percent_institutions") is None:
         return 0.0, "unavailable"
 
+    # Tier B batch 3 (2026-08-19): institutional_max now reads from config —
+    # every reference in this formula is already expressed in terms of it
+    # (midpoint, scale, bearish mirror), so it rescales correctly.
+    p_cfg = (cfg or {}).get("positioning", {})
+    institutional_max = float(p_cfg.get("institutional_max", INSTITUTIONAL_MAX))
+    midpoint = institutional_max / 2.0
+
     current_pct = current["held_percent_institutions"]
     previous_pct = (previous or {}).get("held_percent_institutions")
 
     if previous_pct is None:
         # First scan for this ticker — a current value exists but no trend yet
         # (self-symmetric midpoint — same for both directions).
-        return INSTITUTIONAL_MAX / 2.0, "partial"
+        return midpoint, "partial"
+
+    # Tier B batch 2 (2026-08-19): accumulation_threshold now reads from config
+    # (default 0.02, matching the scale this formula always used). Not two
+    # independent knobs — distribution is definitionally the negative of
+    # accumulation for this symmetric linear formula, so
+    # institutional_distribution_threshold isn't read separately here.
+    accumulation_threshold = float(p_cfg.get("institutional_accumulation_threshold", 0.02))
 
     delta = current_pct - previous_pct
-    # +2pp institutional accumulation -> 5.0; -2pp distribution -> 0.0; flat -> 2.5
-    score = 2.5 + delta * (2.5 / 0.02)
-    score = max(0.0, min(INSTITUTIONAL_MAX, score))
+    # +threshold institutional accumulation -> max; -threshold distribution -> 0.0; flat -> midpoint
+    score = midpoint + delta * (midpoint / accumulation_threshold)
+    score = max(0.0, min(institutional_max, score))
     if direction == "bearish":
-        score = INSTITUTIONAL_MAX - score
+        score = institutional_max - score
     return score, "complete"
 
 
@@ -247,31 +288,40 @@ def _score_short_interest(short_interest: Optional[dict], direction: str = "bull
     return 2.0, "complete"  # flat
 
 
-def _score_insider(transactions: Optional[list], direction: str = "bullish") -> tuple[float, str]:
+def _score_insider(
+    transactions: Optional[list], direction: str = "bullish", cfg: Optional[dict] = None,
+) -> tuple[float, str]:
     """
     Score insider transactions by reusing insider_tracker.py's classification
-    logic (classify_transactions), rescaled to a 0-3 sub-signal (midpoint 1.5 =
-    no signal, matching insider_tracker's 'neutral' classification).
+    logic (classify_transactions), rescaled to a 0-max sub-signal (midpoint =
+    max/2 = no signal, matching insider_tracker's 'neutral' classification).
 
-    Bearish: mirrors the bullish ladder exactly (each pair sums to INSIDER_MAX)
+    Bearish: mirrors the bullish ladder exactly (each pair sums to insider_max)
     — insider selling scores high instead of insider buying.
+
+    Tier B batch 3 (2026-08-19): insider_max now reads from config — every
+    reference in this formula is already expressed in terms of it.
     """
+    insider_max = float((cfg or {}).get("positioning", {}).get("insider_max", INSIDER_MAX))
+    midpoint = insider_max / 2.0
+    quarter_credit = insider_max / 4.0  # single-buyer/seller partial credit
+
     if transactions is None:
         return 0.0, "unavailable"
     if len(transactions) == 0:
-        return INSIDER_MAX / 2.0, "partial"
+        return midpoint, "partial"
 
     signal = classify_transactions(transactions, window_days=10)
 
     if direction == "bearish":
         if signal == "selling_cluster":
-            return INSIDER_MAX, "complete"  # 2+ sellers -> max bearish confirmation
+            return insider_max, "complete"  # 2+ sellers -> max bearish confirmation
         if signal == "selling":
-            return INSIDER_MAX - INSIDER_MAX / 4.0, "complete"  # single seller -> partial credit (2.25)
+            return insider_max - quarter_credit, "complete"  # single seller -> partial credit
         if signal == "buying":
             buy_insiders, _ = count_distinct_traders(transactions, window_days=10)
-            return (0.0 if len(buy_insiders) >= 2 else INSIDER_MAX - 2.25), "complete"
-        return INSIDER_MAX / 2.0, "complete"  # neutral
+            return (0.0 if len(buy_insiders) >= 2 else insider_max - (midpoint + quarter_credit)), "complete"
+        return midpoint, "complete"  # neutral
 
     if signal == "selling_cluster":
         return 0.0, "complete"
@@ -279,9 +329,9 @@ def _score_insider(transactions: Optional[list], direction: str = "bullish") -> 
         # Single seller — previously fell through to "neutral" (classify_
         # transactions had no branch for it at all), scoring a lone insider
         # sale identically to having zero insider data. Mirrors "buying"'s
-        # single-buyer partial credit (2.25, i.e. 1.5 + MAX/4) on the bearish
-        # side: 1.5 - MAX/4 = 0.75.
-        return INSIDER_MAX / 4.0, "complete"
+        # single-buyer partial credit (midpoint + quarter_credit) on the
+        # bearish side: midpoint - quarter_credit.
+        return quarter_credit, "complete"
     if signal == "buying":
         # Reuse the same windowed buy_insiders count classify_transactions used to
         # decide "buying" in the first place — this used to re-derive its own
@@ -290,8 +340,9 @@ def _score_insider(transactions: Optional[list], direction: str = "bullish") -> 
         # sign with no matching text yielded 0 local buyers and only partial
         # credit; a stale out-of-window buy could inflate it to full credit).
         buy_insiders, _ = count_distinct_traders(transactions, window_days=10)
-        return (INSIDER_MAX if len(buy_insiders) >= 2 else 2.25), "complete"  # 2+ buyers -> max; single buyer -> partial credit
-    return INSIDER_MAX / 2.0, "complete"  # neutral
+        # 2+ buyers -> max; single buyer -> partial credit (midpoint + quarter_credit)
+        return (insider_max if len(buy_insiders) >= 2 else midpoint + quarter_credit), "complete"
+    return midpoint, "complete"  # neutral
 
 
 def _score_analyst_trend(analyst_trend: Optional[dict], direction: str = "bullish") -> tuple[float, str]:

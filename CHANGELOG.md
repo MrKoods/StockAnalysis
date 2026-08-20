@@ -63,6 +63,10 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Tier B batch 3 of 3 — the last 21 config keys resolved: wired the 5 scoring_weights category maximums (including the previously-flagged-highest-risk fundamental_max, which turned out to be a simple, safe wire once the rescale ratio was understood correctly), 2 positioning sub-maximums (institutional_max/insider_max — the other 3 stayed hardcoded, since their formulas use fixed literals that wouldn't rescale correctly if wired), 6 genuinely-unenforced modifier_bounds safety clamps, and corrected 5 stale config-vs-code value mismatches to match the validated code (fundamental valuation-premium ladder, EPS-decline breakpoints, walk-forward validation window). confidence.min_threshold's stale value was corrected (90→70) but deliberately left unwired — it gates real trading and is imported directly by 5+ files. Tier B is now closed: 156 config leaf keys, only 2 permanent, reasoned exceptions remain allowlisted |
+| v2.2.73 | 2026-08-19 | Scoring Change / Infrastructure | Tier B, batch 2 of 3: wired 18 of the 41 real config keys queued in batch 1 into the code that used to hardcode them (fundamental EPS/valuation thresholds, positioning ownership/short-interest/analyst thresholds, news decay/clustering windows, backtest train/test split + slippage + walk-forward window, confidence sensitivity grid, backtest max holding period). Every wired default matched its prior hardcoded value exactly, so behavior is unchanged today — editing these in config now actually does something, which it didn't before |
+| v2.2.72 | 2026-08-19 | Infrastructure | Tier B, batch 1 of 3: exhaustively triaged all 109 decorative config keys into "worth wiring into real code" (41) vs. "internal detail/stale doc/duplicate, just remove" (68). Removed the 68 — including a genuine duplicate declaration (positioning's sub-signal maximums existed twice under two different section names) and 3 safety-adjacent items deliberately left as hardcoded, not config-driven, since the config option would have added risk for no real benefit. Zero behavior change (nothing removed was ever read); fixed `app_ui/config_validation.py`'s sum-checks and `README.md`'s config docs, which had gone stale referencing some of what's now removed |
+| v2.2.71 | 2026-08-19 | Infrastructure | Tier C resolved by decision, not code: `profit_targets` config and the entire orphaned `shared/utils/signal_decay.py` module were 2 fully-unbuilt features described as if real. Both would have been genuine new engineering (structure-level options repricing; a persistent pending-signal queue that doesn't otherwise exist in this model), not a wire-in — decided not worth building given the model hasn't gone live yet. Removed both, fixed 2 stale docs that credited the deleted module for behavior `position_rescoring.py` actually provides |
 | v2.2.70 | 2026-08-19 | Bug Fix | Paper trading now fires the same immediate Discord alert live trading does when a critical news event hits an already-open position, instead of waiting for the next daily rescore — a real gap found (not an intentional design choice) while reviewing why the two pipelines' event-handling code differed |
 | v2.2.69 | 2026-08-19 | Research | Pipeline deduplication, part 2 — no code change: close comparison of the 2 largest duplicated blocks between the live and paper-trading pipelines (entry/stop/target + trade-structure selection; per-ticker scoring orchestration) found both riskier to merge than they looked from a high-level pass. Left both as separate implementations, with the specific reasons documented so a future pass doesn't have to re-derive this from scratch |
 | v2.2.68 | 2026-08-19 | Bug Fix / Infrastructure | Continued the pipeline-deduplication pass: fixed a real (small) bug where paper trading's win-rate stat quietly used a narrower definition than the historical test's, undercounting profitable early exits as non-wins; consolidated 3 duplicated-but-equivalent code blocks (geopolitical penalty, position-sizing input derivation) between the live and paper-trading pipelines into shared, single-source functions. A 4th planned consolidation (event-alert creation) was found to have real behavioral differences between the two pipelines beyond what was assumed going in — left unmerged rather than forcing it and risking silently changing either pipeline's behavior; noted below for a future decision |
@@ -142,6 +146,215 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.74] — 2026-08-19 — [Scoring Change / Bug Fix / Infrastructure] Tier B batch 3: the last 21 keys resolved, Tier B closed
+
+**Status:** Live.
+
+**In short:** The last, hardest batch of Tier B — every key needed a real refactor, a value
+correction, or a deliberate call to leave unwired, not a mechanical swap. Working through them
+found the originally-flagged "highest risk" item (`scoring_weights.fundamental_max`) was actually
+safe once its rescale math was understood correctly, while a different item
+(`positioning.options_max`/`short_interest_max`/`analyst_max`) turned out to be genuinely unsafe to
+wire and was reclassified to stay hardcoded instead — the triage itself kept getting refined by
+closer code reading, the same pattern as everything else today. Every default matched its prior
+hardcoded value exactly, so this batch's behavior is unchanged too — except the 5 stale-value
+corrections, which fix real (if currently unexercised or low-impact) config/code disagreements.
+
+**Wired, by area:**
+- **scoring_weights** (5 keys, `scoring.py`): `technical_max`/`positioning_max`/`sentiment_max`/
+  `news_max`/`fundamental_max` — each is an independent clamp on how much of that category's
+  already-computed score counts toward the 100-point base score, not the same constant
+  `positioning_layer.py`/`sentiment_layer.py` use internally for their own sub-signal totals (those
+  stay fixed — coincidentally equal to these defaults today, not a duplicate needing reconciliation).
+  `fundamental_max` is the numerator of a rescale ratio against `FUNDAMENTAL_INTERNAL_MAX` (15,
+  `fundamental_layer.py`'s own fixed internal scale) — wiring only the numerator, leaving the
+  denominator fixed, keeps the ratio correct at any configured value; new tests confirm the rescale
+  math still holds at a non-default value.
+- **positioning** (2 of 5 originally-planned keys): `institutional_max`/`insider_max` — their
+  formulas (`positioning_layer.py`) are fully expressed in terms of their own max throughout
+  (midpoint, scale, bearish mirror), so retuning rescales correctly. **`options_max`/
+  `short_interest_max`/`analyst_max` were reclassified to STRIP, not wired** — closer reading found
+  their formulas hardcode midpoint/tier literals not derived from the constant, the same reason
+  `technical_sub_signals`/`sentiment_sub_signals`/`news_sub_signals` were stripped in batch 1;
+  wiring them would silently not rescale correctly. Fixed values now documented directly in
+  `positioning_layer.py`.
+- **modifier_bounds safety clamps** (6 keys): `sector_rotation`/`earnings_proximity`/`macro_overlay`
+  min/max were genuinely unenforced before this — `get_rotation_modifier`/`get_earnings_modifier`/
+  `get_macro_modifier` read their raw config values with no clamp at all, so a retuned penalty/boost
+  could silently exceed its own documented bound. Now real clamps, applied before any bearish
+  sign-flip.
+- **backtesting.walk_forward_windows.initial_validate_months**: corrected from a stale config value
+  of 6 to the code's real, deliberately-chosen 24 (`walk_forward.py`'s own docstring explains why —
+  a 6-month window routinely yields 0-5 trades at this strategy's signal frequency, too few to judge
+  win rate on; v2.2.6 widened it and config was never updated to match). This function had zero test
+  coverage before this change; added some.
+- **backtesting.slippage_options_bid_ask_pct**: wired into `trade_selector.py`'s `_compute_structure_ev`
+  — used by **live** `rank_trade_structures`, not just the historical backtest, despite living under
+  the `backtesting:` config section.
+
+**Fixed, not just wired (real config-vs-code mismatches, corrected to match validated code):**
+- **Fundamental valuation-premium ladder**: `pe_premium_penalty_threshold`/`pe_extreme_premium_threshold`/
+  `ev_ebitda_premium_threshold` (config: 0.50/1.00/0.50) described a pre-refactor 2-ladder design the
+  code no longer has — replaced with 3 new shared keys (`premium_near_parity_threshold`/
+  `premium_moderate_threshold`/`premium_high_threshold`, 0.15/0.40/0.75) matching the real shared
+  3-tier ladder both P/E-vs-sector and EV/EBITDA-vs-peers actually use.
+- **fundamental.eps_negative_threshold**: config declared 1 breakpoint (-0.05, a stale duplicate of
+  `eps_flat_threshold`) for what's actually a 5-tier ladder with 2 negative breakpoints. Repurposed
+  to the real first one (-0.15) and added `eps_severe_decline_threshold` (-0.30) for the second.
+- **confidence.min_threshold**: corrected from a stale 90 to the real, live 70 — but deliberately
+  left unwired. `CONFIDENCE_THRESHOLD` gates whether a trade signal surfaces at all and is imported
+  directly by 5+ files (`paper_runner.py`/`run_swing_model.py`'s qualification checks,
+  `position_sizer.py`'s sizing-tier floor, `discord_alerts.py`'s display) — `scoring.py`'s own
+  docstring already states changing what gates a trade is a deliberate live-behavior decision, not
+  something to expose to a config edit silently.
+
+**Tier B is now closed**: `scripts/check_config_coverage.py` reports 156 leaf keys, all referenced
+or one of 2 permanent, reasoned exceptions (`confidence.min_threshold` above;
+`positioning.institutional_distribution_threshold`, which is definitionally the negative of
+`institutional_accumulation_threshold` for this symmetric formula, not an independent knob).
+
+**Fix:** `swing_model/scoring.py`, `swing_model/fundamental_layer.py`, `swing_model/positioning_layer.py`,
+`swing_model/trade_selector.py`, `shared/utils/sector_rotation.py`, `shared/utils/earnings_calendar.py`,
+`shared/utils/macro_overlay.py`, `backtesting/walk_forward.py`. New regression tests for every wired
+key confirm a non-default config value actually changes behavior.
+
+**Backtest:** Confirmed unchanged (61.2% WR, Sharpe 2.03, 152 trades) — every wired/corrected
+default matched what the code already validated against.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.73] — 2026-08-19 — [Scoring Change / Infrastructure] Tier B batch 2: 18 config keys wired for real, all zero-behavior-change
+
+**Status:** Live.
+
+**In short:** v2.2.72 triaged Tier B's 109 decorative config keys into 68-to-remove and 41-to-wire.
+This batch wires the 18 that were a clean, single-site `cfg.get()` swap — no new named constants
+needed, no config-vs-code value conflicts to resolve first. Every one of the 18 already matched
+its config-declared value exactly, so this is infrastructure, not a scoring change in effect —
+editing these settings now actually changes behavior, which it didn't before. The remaining 23
+(needing a new constant, a duplicate-constant dedup, or a stale-value correction) are batch 3.
+
+**Wired, by area:**
+- **Fundamental** (`fundamental_layer.py`): `eps_accelerating_threshold`, `eps_positive_threshold`,
+  `eps_flat_threshold`, `forward_trailing_tolerance`.
+- **Positioning** (`positioning_layer.py` / `positioning_client.py`): `institutional_accumulation_threshold`
+  (also governs distribution — the linear formula is symmetric, not two independent knobs),
+  `short_interest_declining_threshold`, `short_interest_increasing_threshold`,
+  `analyst_trend_lookback_days`.
+- **News** (`news_layer.py`): `decay_halflife_hours`, `decay_zero_at_days`, `cluster_window_days`.
+- **Backtesting** (`backtest_engine.py` / `walk_forward.py` / `metrics.py`): `train_split` (7
+  call sites across `backtest_engine.py` + 4 diagnostic scripts), `min_qualifying_trades`,
+  `walk_forward_windows.initial_train_months`, `slippage_stock_per_share` (2 previously-independent
+  hardcoded copies in `metrics.py` and `options_math.py`, now both read the same config value —
+  the `options_math.py` copy is also used by **live** `trade_selector.py`'s EV ranking, not just
+  the backtest, so this one got extra test coverage).
+- **Confidence** (`backtesting/metrics.py`): `sensitivity_thresholds` (the `--sensitivity` grid).
+- **Holding period** (`backtesting/simulation.py`): `max_days` (backtest's hold-to-close cutoff;
+  `min_days` was already removed in batch 1 — dead even within the one function that owned it).
+
+**Fix:** All defaults changed from hardcoded Python literals to `cfg.get(key, <same literal>)`,
+using `None`-sentinel parameters where a function already took an explicit override (so nothing
+that explicitly passes its own value anywhere is affected). New regression tests for every wired
+key confirm a *non-default* config value actually changes behavior, not just that the old default
+still works.
+
+**Backtest:** Confirmed unchanged (61.2% WR, Sharpe 2.03, 152 trades) — every wired value matched
+its prior hardcoded default exactly.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.72] — 2026-08-19 — [Infrastructure] Tier B batch 1: 68 dead config keys removed, 41 queued to be wired for real
+
+**Status:** Live.
+
+**In short:** `scripts/check_config_coverage.py` (built earlier today) found 109 config settings the
+model's own settings file describes as controlling its behavior, that no code actually reads —
+much bigger than the ~24 either prior audit had documented. Rather than either wiring all 109 into
+live scoring code (real risk for a model that hasn't gone live) or leaving them all as tracked debt
+forever, every single one was read against its actual (or intended) consumer and triaged: 41 are
+genuine tunables worth the code change, queued for the next 2 batches; 68 were internal detail,
+stale documentation of a superseded design, or — in one case — an outright duplicate. Removed those
+68 today. Zero behavior change: by definition, nothing removed was ever read by real code, and a
+fresh backtest confirms the numbers are unchanged.
+
+**Notable findings from the triage, not just "unread":**
+- **A genuine duplicate.** `positioning_sub_signals.*` and `positioning.*_max` declared the
+  identical 5 values (options/institutional/short-interest/insider/analyst maximums, summing to 20)
+  under two different key-naming conventions in two different config sections. Kept `positioning.*_max`
+  (queued to be wired, batch 3 — its formulas in `positioning_layer.py` already partially derive
+  from the named constants), removed the duplicate.
+- **3 safety-adjacent items removed on purpose, not wired.** `circuit_breakers.orange.no_new_positions`/
+  `orange.pause_days`/`red.full_stop` described behavior that's already unconditionally true in
+  `position_sizer.py` and `portfolio_manager.py` — wiring them would only add a live path for a
+  config typo to silently weaken a circuit breaker, for zero real flexibility gained.
+  `pdt.max_day_trades_per_5_days` is a regulatory (Pattern Day Trader) rule, not a strategy knob;
+  real tracking infrastructure exists but the enforcement gate is dead code with a mismatched
+  default — removed the misleading always-a-no-op config key, flagged as real future work before
+  this model ever trades real money, not a config wire-in. `position_sizing.tiers` had drifted
+  stale (missing the 70-89 "dead zone" tier `position_sizer.py`'s real `SIZING_TIERS` added later,
+  v2.2.46) — wiring it as-is would have silently zero-sized every 70-89-confidence trade.
+- **A wrong documented bound, corrected while removing it.** `modifier_bounds.regime.max` claimed
+  +10, but `regime_detection.py` can only ever produce +5 — simply incorrect documentation, not a
+  gap.
+- **A misleading key removed with a doc fix, not just deleted.** `risk_reward.breakout_lookback`
+  bound to nothing — the real 20-day breakout lookback is driven by the unrelated, already-wired
+  `technical.ma_short`, which just happens to share today's value. Added a comment on `ma_short`
+  itself so a future edit doesn't silently change the breakout level without realizing it.
+
+**Fix:** Removed 68 keys from `config/swing_config.yaml`. Fixed `app_ui/config_validation.py`'s
+sum-checks (`_SUB_SIGNAL_GROUPS`), which required 4 of the removed sections to exist, and its tests.
+Fixed `README.md`'s Section 7 config docs, which described several of the removed/still-decorative
+keys as if editing them worked today.
+
+**Backtest:** Confirmed unchanged (61.2% WR, Sharpe 2.03, 152 trades) — every key removed was
+already unread by any code path.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.71] — 2026-08-19 — [Infrastructure] Tier C closed: 2 unbuilt features removed rather than built
+
+**Status:** Live.
+
+**In short:** v2.2.65/69's Tier C named 2 config-described features with zero real implementation:
+structure-specific profit-taking (`profit_targets`) and a signal-decay/pending-signal-queue system
+(`shared/utils/signal_decay.py`). Talked through what each would actually take to build — both are
+genuine new engineering, not a wire-in — and decided neither is worth the cost right now, given the
+model hasn't cleared the go-live gate yet. Removed both instead of leaving them half-documented.
+
+**Why not built:**
+- `profit_targets` (close a defined-risk options structure early once it's captured some % of its
+  max theoretical profit, a common real options-trading practice) needs day-by-day mark-to-market
+  repricing of the specific structure, not just the underlying's price — real new logic for both
+  live (real option chain) and backtest (no historical chain archive exists, so backtest would need
+  a modeled repricing). The current underlying-price-driven exit already works and is what the
+  validated backtest numbers reflect.
+- `shared/utils/signal_decay.py` assumes a signal can sit "queued," unacted-on, aging over days
+  before expiring. That queue doesn't exist anywhere in this model — both live and paper trading
+  score fresh and act the same scan, every scan. Building this for real means introducing persistent
+  pending-signal state across scans, a genuine architecture change, not a bug fix.
+
+**Fix:** Deleted `shared/utils/signal_decay.py` and its 12 tests (`tests/test_phase8_portfolio.py`
+— NOT the `signal_decay` config *section*, which is real and unrelated: `position_rescoring.py`'s
+early-exit/time-stop logic reads `early_exit_confidence_drop`/`time_stop_no_progress_pct`/
+`time_stop_day` from it and stays exactly as it was). Removed `profit_targets` from
+`config/swing_config.yaml` and its allowlist entries from `check_config_coverage.py`. Fixed 2 stale
+`Project_Scope.md` lines that credited the deleted `signal_decay.py` for daily position re-scoring
+— that's actually `position_rescoring.py`'s job and always has been; the docs just named the wrong
+file.
+
+**Backtest:** Confirmed unchanged (61.2% WR, Sharpe 2.03, 152 trades) — neither removed item was
+ever referenced by the backtest.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

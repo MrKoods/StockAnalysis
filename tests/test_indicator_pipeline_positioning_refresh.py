@@ -35,7 +35,7 @@ def _frozen_now(dt):
 
 
 def _fake_positioning(atm_iv):
-    def _fetch(ticker, current_price=None, min_dte=5):
+    def _fetch(ticker, current_price=None, min_dte=5, cfg=None):
         return {
             "ticker": ticker,
             "options": {"put_call_ratio": 1.0, "iv_skew": 0.0, "atm_iv": atm_iv, "chain": [], "dte": 10},
@@ -96,7 +96,7 @@ class TestIvHistoryAccumulation:
     def test_min_dte_passed_through_from_cfg(self):
         captured = {}
 
-        def _fetch(ticker, current_price=None, min_dte=5):
+        def _fetch(ticker, current_price=None, min_dte=5, cfg=None):
             captured["min_dte"] = min_dte
             return _fake_positioning(0.30)()(ticker, current_price, min_dte)
 

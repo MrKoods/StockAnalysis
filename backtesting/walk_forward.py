@@ -5,6 +5,8 @@ independent of the single fixed 70/30 split and is reused by
 entry_filter_variants.py to pool trades across many windows.
 """
 
+from typing import Optional
+
 import pandas as pd
 
 from backtesting.metrics import compute_win_rate, compute_avg_rr
@@ -13,8 +15,8 @@ from backtesting.simulation import _simulate_test_signals
 
 def run_walk_forward(
     historical_data: dict[str, pd.DataFrame],
-    initial_train_months: int = 18,
-    validate_months: int = 24,
+    initial_train_months: Optional[int] = None,
+    validate_months: Optional[int] = None,
     step_months: "int | None" = None,
     config_path: str = "config/swing_config.yaml",
     signal_kwargs: "dict | None" = None,
@@ -68,6 +70,18 @@ def run_walk_forward(
     insufficient_data) and "passed" (bool, True only when verdict=="pass",
     kept for backward compatibility with anything reading the old field).
     """
+    if initial_train_months is None or validate_months is None:
+        # Explicit override, else config.backtesting.walk_forward_windows —
+        # Tier B batch 2/3 (2026-08-19). initial_train_months default 18.
+        # validate_months default 24 (NOT config's old stale 6 — see this
+        # function's own docstring above for why 24 was deliberately chosen
+        # in v2.2.6; config was corrected to match, not the other way round).
+        from swing_model.indicator_pipeline import load_config
+        wf_cfg = load_config(config_path).get("backtesting", {}).get("walk_forward_windows", {})
+        if initial_train_months is None:
+            initial_train_months = int(wf_cfg.get("initial_train_months", 18))
+        if validate_months is None:
+            validate_months = int(wf_cfg.get("initial_validate_months", 24))
     if not historical_data:
         return []
 

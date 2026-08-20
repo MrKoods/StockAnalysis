@@ -220,6 +220,14 @@ def get_macro_modifier(macro_state: str, cfg: Optional[dict] = None, direction: 
         raw = float(m_cfg.get("favorable_boost", 3))
     else:
         return 0.0
+    # Clamp to config.modifier_bounds.macro_overlay (default -10/+3, the
+    # bullish-scale bounds this docstring already documents) — Tier B batch 3
+    # (2026-08-19): previously unenforced, so a retuned adverse_penalty/
+    # favorable_boost could silently exceed its own documented bound.
+    bounds = cfg.get("modifier_bounds", {}).get("macro_overlay", {})
+    lo = float(bounds.get("min", -10.0))
+    hi = float(bounds.get("max", 3.0))
+    raw = max(lo, min(hi, raw))
     return -raw if direction == "bearish" else raw
 
 

@@ -257,6 +257,19 @@ class TestSectorRotation:
         # bullish one.
         assert dampen_rotation_penalty_for_leader(-15.0, 3.0, direction="bearish") == -15.0
 
+    def test_modifier_bounds_clamp_a_retuned_penalty(self):
+        """Tier B batch 3 (2026-08-19): outflow_penalty/inflow_boost were
+        previously unenforced against modifier_bounds — a retuned value could
+        silently exceed its own documented bound. Now genuinely clamped."""
+        cfg = {"modifiers": {"sector_rotation": {"outflow_penalty": -50}}}
+        assert get_rotation_modifier(ROTATION_OUTFLOW, cfg) == -15.0  # clamped to default bound
+
+        wider_cfg = {
+            "modifiers": {"sector_rotation": {"outflow_penalty": -50}},
+            "modifier_bounds": {"sector_rotation": {"min": -30, "max": 5}},
+        }
+        assert get_rotation_modifier(ROTATION_OUTFLOW, wider_cfg) == -30.0  # clamped to the new bound
+
 
 # ---------------------------------------------------------------------------
 # Earnings Calendar
@@ -329,6 +342,21 @@ class TestEarningsCalendar:
         result = get_earnings_modifier("NVDA", earnings, today=self._today())
         assert result["confidence_modifier"] < 0.0
         assert not result["force_defined_risk"]
+
+    def test_modifier_bounds_clamp_a_retuned_penalty(self):
+        """Tier B batch 3 (2026-08-19): the clamp now reads from
+        config.modifier_bounds.earnings_proximity instead of a bare [-20, 0]."""
+        earnings = datetime(2024, 5, 16, tzinfo=timezone.utc)  # 1 day out
+        cfg = {"modifiers": {"earnings": {"within_5_days_penalty": -50}}}
+        result = get_earnings_modifier("NVDA", earnings, today=self._today(), cfg=cfg)
+        assert result["confidence_modifier"] == -20.0  # clamped to default bound
+
+        wider_cfg = {
+            "modifiers": {"earnings": {"within_5_days_penalty": -50}},
+            "modifier_bounds": {"earnings_proximity": {"min": -40, "max": 0}},
+        }
+        result = get_earnings_modifier("NVDA", earnings, today=self._today(), cfg=wider_cfg)
+        assert result["confidence_modifier"] == -40.0  # clamped to the new bound
 
 
 # ---------------------------------------------------------------------------
@@ -484,6 +512,20 @@ class TestMacroOverlay:
         assert get_macro_modifier(MACRO_ADVERSE) == -10.0
         assert get_macro_modifier(MACRO_FAVORABLE) == 3.0
         assert get_macro_modifier(MACRO_NEUTRAL) == 0.0
+
+    def test_modifier_bounds_clamp_a_retuned_penalty(self):
+        """Tier B batch 3 (2026-08-19): adverse_penalty/favorable_boost were
+        previously unenforced against modifier_bounds — now genuinely
+        clamped, on the bullish scale, before the bearish sign-flip."""
+        cfg = {"modifiers": {"macro_overlay": {"adverse_penalty": -50}}}
+        assert get_macro_modifier(MACRO_ADVERSE, cfg) == -10.0  # clamped to default bound
+        assert get_macro_modifier(MACRO_ADVERSE, cfg, direction="bearish") == 10.0
+
+        wider_cfg = {
+            "modifiers": {"macro_overlay": {"adverse_penalty": -50}},
+            "modifier_bounds": {"macro_overlay": {"min": -25, "max": 3}},
+        }
+        assert get_macro_modifier(MACRO_ADVERSE, wider_cfg) == -25.0  # clamped to the new bound
 
     def test_insufficient_data_returns_neutral_signals(self):
         tnx = pd.Series([4.0, 4.1])  # too short for 20-day window

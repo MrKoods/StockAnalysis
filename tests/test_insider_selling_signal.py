@@ -116,3 +116,24 @@ class TestSignalToModifierDirectionMirror:
     def test_default_direction_is_bullish_unchanged(self):
         tx = [_tx(-50000)]
         assert _signal_to_modifier("selling", tx) == -3.0
+
+
+class TestScoreInsiderMaxConfigurable:
+    """Tier B batch 3 (2026-08-19): insider_max now reads from config —
+    every formula reference (midpoint, quarter-credit, mirror) is derived
+    from it, so retuning it rescales correctly."""
+
+    def test_default_max_unchanged(self):
+        score, _ = _score_insider([], direction="bullish")
+        assert score == INSIDER_MAX / 2.0  # 1.5
+
+    def test_custom_max_rescales_midpoint(self):
+        custom_cfg = {"positioning": {"insider_max": 6.0}}
+        score, _ = _score_insider([], direction="bullish", cfg=custom_cfg)
+        assert score == 3.0  # 6.0 / 2
+
+    def test_custom_max_rescales_selling_cluster(self):
+        tx = [_tx(-50000, insider="A"), _tx(-20000, insider="B")]
+        custom_cfg = {"positioning": {"insider_max": 6.0}}
+        score, _ = _score_insider(tx, direction="bearish", cfg=custom_cfg)
+        assert score == 6.0  # full max, bearish cluster confirmation

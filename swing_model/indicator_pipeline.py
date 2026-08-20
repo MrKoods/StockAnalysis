@@ -586,7 +586,7 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
         if ticker in state["tickers"]:
             state["previous_tickers"][ticker] = state["tickers"][ticker]
         try:
-            fresh = fetch_all_positioning(ticker, current_price=current_prices.get(ticker), min_dte=min_dte)
+            fresh = fetch_all_positioning(ticker, current_price=current_prices.get(ticker), min_dte=min_dte, cfg=cfg)
             # Log-only visibility, not a hard gate — positioning_layer.py
             # already defaults each sub-signal to neutral on missing/None
             # fields, so this doesn't change scoring behavior. The gap this

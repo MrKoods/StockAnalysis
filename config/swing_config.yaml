@@ -87,12 +87,20 @@ geopolitical_penalty: -5
 
 # Holding period
 holding_period:
-  min_days: 1
   max_days: 15
 
 # Confidence thresholds
 confidence:
-  min_threshold: 90                # No trade surfaced below this final score
+  # Documentation only — corrected 2026-08-19 (Tier B batch 3) to match the
+  # real, live CONFIDENCE_THRESHOLD=70 (swing_model/scoring.py), stale here
+  # since the 2026-08-06 live-data-driven threshold change. Deliberately NOT
+  # wired to control real gating: CONFIDENCE_THRESHOLD is imported directly
+  # by 5+ files (paper_runner.py/run_swing_model.py's qualification checks,
+  # position_sizer.py's sizing-tier floor, discord_alerts.py's display) —
+  # scoring.py's own docstring already states changing what gates a trade is
+  # a deliberate live-behavior decision, not something to expose to a config
+  # edit silently. Update this number by hand if the real constant ever moves.
+  min_threshold: 70
   sensitivity_thresholds:          # For --sensitivity backtest run
     - 85
     - 87
@@ -142,52 +150,20 @@ scoring_weights:
   fundamental_max: 10       # Updated from 15 (contribution scale; FundamentalScorer's internal
                             # scale stays -15..+15, rescaled by scoring.py)
 
-# Technical sub-signal max points (5 sub-signals × 8 = 40)
-technical_sub_signals:
-  breakout: 8               # Updated from 10
-  trend: 8                  # Updated from 10
-  relative_strength: 8      # Updated from 10
-  rsi: 8                    # Updated from 10
-  volume_profile: 8         # Updated from 10
-
-# Market Positioning sub-signal max points (sum = 20)
-positioning_sub_signals:
-  options_positioning: 6    # Put/call ratio + IV skew
-  institutional_ownership: 5
-  short_interest: 4
-  insider_transactions: 3
-  analyst_rating_trend: 2
-
-# Sentiment sub-signal max points (sum = 15) — StockTwits + Seeking Alpha engagement proxy
-sentiment_sub_signals:
-  stocktwits_ratio: 7       # Bullish/bearish ratio, z-scored vs. own history
-  stocktwits_velocity: 5    # Sentiment/volume velocity (native sentiment_change/volume_change fields)
-  seeking_alpha_engagement: 3  # commentCount velocity — weak engagement proxy, not true sentiment
-
-# News sub-signal max points (sum = 15)
-news_sub_signals:
-  credibility_weighted: 6
-  theme_alignment: 4
-  clustering: 3
-  decay_factor: 2
-
-# Modifier bounds (applied after base score; final clamped 0-100)
+# Modifier bounds (applied after base score; final clamped 0-100). regime/
+# cross_ticker/seasonality removed 2026-08-19 (Tier B strip) — each is already
+# enforced by an identical hardcoded clamp in its own module (regime's stated
+# +10 was even wrong; the code can only ever produce +5), so the config keys
+# were redundant-at-best documentation, not a real gap. sector_rotation/
+# earnings_proximity/macro_overlay stay — those 3 are genuinely unenforced in
+# code today and are slated to be wired as real safety clamps.
 modifier_bounds:
-  regime:
-    min: -15
-    max: 10
   sector_rotation:
     min: -15
     max: 5
   earnings_proximity:
     min: -20
     max: 0
-  cross_ticker:
-    min: -10
-    max: 5
-  seasonality:
-    min: -5
-    max: 5
   macro_overlay:
     min: -10
     max: 3
@@ -232,8 +208,6 @@ modifiers:
   # positioning_sub_signals.insider_transactions), not a standalone modifier —
   # keeping both would double-count the same Form 4 data.
   seasonality:
-    strong_period_boost: 5            # e.g., Q4
-    weak_period_penalty: -5           # e.g., post-Q1 (Jan-Feb)
     # Monthly modifiers. Signs flipped 2026-08-15 (see CHANGELOG): the original
     # "Phase 12 backtesting" calibration comment (kept for history — see below)
     # turned out to be a hypothesis, not a real calibration lineage. Measured
@@ -263,7 +237,6 @@ modifiers:
       12: -5   # December
   macro_overlay:
     adverse_penalty: -10
-    adverse_max_confidence: 92        # only 92+ surfaced in adverse macro
     favorable_boost: 3
     # Thresholds for macro signals (Clarification 2 free proxies). Key names and
     # units (fractional, not whole-percent) must match what macro_overlay.py's
@@ -295,28 +268,27 @@ risk_reward:
   stop_atr_multiplier: 2.0            # Stop = entry_zone_lower - (2.0 × ATR_14)
   min_rr_ratio: 3.0                   # 1:3 minimum R:R required
   atr_period: 14
-  breakout_lookback: 20               # 20-day rolling high as breakout level
   trailing_stop_atr_multiplier: 1.5   # Trailing stop trails at 1.5x ATR below highest close
 
-# Position sizing (confidence-scaled fixed fractional)
+# Position sizing (confidence-scaled fixed fractional). The confidence-tier
+# risk_pct ladder itself lives in shared/utils/position_sizer.py's SIZING_TIERS
+# constant, not here — a config `tiers` list existed until 2026-08-19 (Tier B
+# strip) but had drifted stale (missing the 70-89 "dead zone" tier
+# SIZING_TIERS added later, CHANGELOG v2.2.46); wiring it naively would have
+# silently zero-sized every 70-89-confidence trade. Deliberately left as a
+# code constant, not re-added here, given how safety-adjacent position sizing
+# is and how rarely this ladder is actually retuned.
 position_sizing:
-  tiers:
-    - min_score: 90
-      max_score: 92
-      risk_pct: 0.010
-    - min_score: 93
-      max_score: 95
-      risk_pct: 0.015
-    - min_score: 96
-      max_score: 98
-      risk_pct: 0.020
-    - min_score: 99
-      max_score: 100
-      risk_pct: 0.025
   max_capital_pct: 0.05               # 5% of account max per trade ($750 at $15k)
   starting_capital: 15000
 
-# Circuit breakers (drawdown from peak equity)
+# Circuit breakers (drawdown from peak equity). orange/red's "no new
+# positions"/"full stop" behavior is intentionally NOT a config toggle
+# (removed here 2026-08-19, Tier B strip) — position_sizer.py and
+# portfolio_manager.py both already hard-block new positions unconditionally
+# in these two states; adding a config bool for something already always-on
+# would only create a live path for a config typo to silently weaken a
+# circuit breaker, for no real flexibility gained.
 circuit_breakers:
   yellow:
     drawdown_pct: 0.05               # 5% drawdown from peak
@@ -324,11 +296,8 @@ circuit_breakers:
     min_confidence_override: 95
   orange:
     drawdown_pct: 0.10               # 10% drawdown from peak
-    no_new_positions: true
-    pause_days: 5
   red:
     drawdown_pct: 0.15               # 15% drawdown from peak
-    full_stop: true
   consecutive_loss:
     at_2: { size_multiplier: 0.5 }
     at_3: { pause_days: 3 }
@@ -397,9 +366,14 @@ portfolio:
         - [AMZN, TSLA]   # mega-cap growth pair — high beta, share macro/rate sensitivity
         - [HD, TGT]      # big-box retail — same-store-sales/consumer-spending correlated
 
-# PDT tracking
-pdt:
-  max_day_trades_per_5_days: 3
+# PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
+# `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking
+# exists (portfolio_manager.count_day_trades/is_pdt_warning) but the gate is
+# dead code with a mismatched default (2, not 3) and isn't called from any
+# real path. This is a regulatory rule, not a strategy knob — real work
+# (wiring the gate + fixing the default + testing) is needed before this
+# model ever trades real money, not a config wire-in. No urgency while only
+# paper trading is active. Tracked as future-scoped, not silently dropped.
 
 # Options account level
 options_approval_level: 2           # 1=covered/cash-secured, 2=debit spreads, 3=naked/complex
@@ -414,25 +388,10 @@ greeks_filter:
   max_daily_theta_pct_of_capital: 0.05   # reject if time decay alone burns >5%/day of capital at risk
   max_vega_pct_of_capital: 0.15          # reject if a 1% IV move would swing P&L >15% of capital at risk
 
-# Trade management profit targets
-profit_targets:
-  vertical_debit_spreads: 0.60
-  calendar_diagonal: 0.50
-  long_call_put_leaps: 0.60
-  vertical_credit_spreads: 0.50
-  cash_secured_put: 0.75
-  covered_call: 0.80
-  iron_condor_butterfly: 0.50
-  long_butterfly: 0.60
-  long_straddle_strangle_one_side: 1.00
-  structure_stop_debit_spread_pct: 0.50  # Close if spread loses 50% of value
-
 # Data validation thresholds
 data_validation:
   max_price_gap_days: 3
   max_single_day_move_pct: 0.50      # >50% likely a split or data error
-  sentiment_ratio_min: 0.0
-  sentiment_ratio_max: 1.0
 
 # Alpha Vantage call budget (used by app_ui/scan_worker.py's pre-scan budget
 # projection; actual enforcement is news_client.py's own daily counter).
@@ -446,22 +405,23 @@ alpha_vantage_budget:
   # draw from this daily counter at all — eps_growth_trend moved to yfinance
   # (see shared/api_clients/fundamental_client.py), so confirmation-only news
   # is the sole remaining consumer of this budget.
-  news_cadence: confirmation_only
   post_close: 6
   pre_market: 2
   mid_session: 2
-  daily_total: 20
   daily_limit: 25
 
 # Backtesting
 backtesting:
   train_split: 0.70
-  test_split: 0.30
   min_qualifying_trades: 100
   walk_forward_windows:
     initial_train_months: 18
-    initial_validate_months: 6
-  performance_review_rolling_window: 20  # trades
+    # Corrected 2026-08-19 (Tier B batch 3) from a stale 6 to the code's real,
+    # deliberately-chosen 24 (see walk_forward.py's own docstring — a 6-month
+    # window routinely yields 0-5 trades at this strategy's signal frequency,
+    # too few to judge win rate on; v2.2.6 widened it and this key was never
+    # updated to match).
+    initial_validate_months: 24
   slippage_stock_per_share: 0.02
   slippage_options_bid_ask_pct: 0.50
 
@@ -471,62 +431,60 @@ black_swan:
   vix_spike_threshold_pct: 0.40     # VIX spikes >40% intraday
   resume_after_normal_days: 3       # Resume after 3 consecutive normal regime days
 
-# Fundamental analysis layer (weekly batch — does not consume daily AV budget)
+# Fundamental analysis layer (weekly batch — does not consume daily AV budget).
+# update_cadence/update_day are themselves stale documentation, not read
+# either (the real weekly-refresh scheduling is indicator_pipeline.py's
+# per-ticker Mon-Fri hash-based stagger, _rotation_weekday — a different
+# design than a fixed Monday batch); kept for now as a known, separate
+# follow-up rather than expanding this pass's scope.
 fundamental:
   update_cadence: "weekly"
   update_day: "Monday"
-  update_time_et: "17:00"
-  cache_file: "data/processed/fundamental_state.json"
-
-  # eps_growth_trend (the only figure that used to need Alpha Vantage) now comes
-  # from yfinance's earnings-date history instead (shared/api_clients/fundamental_client.py
-  # get_eps_growth_trend) — this layer no longer calls Alpha Vantage at all.
-  alpha_vantage_calls_per_week: 0
-
-  # Scoring maximums (must sum to 15)
-  earnings_momentum_max: 9
-  valuation_peers_max: 6
-
-  # Earnings momentum sub-maximums (must sum to 9)
-  eps_growth_max: 3
-  estimate_revisions_max: 2
-  earnings_surprise_max: 2
-  analyst_consensus_max: 2
-
-  # Valuation sub-maximums (must sum to 6)
-  pe_vs_sector_max: 2
-  forward_vs_trailing_pe_max: 2
-  ev_ebitda_vs_peers_max: 2
 
   # Scoring thresholds for EPS growth
   eps_accelerating_threshold: 0.10      # >10% average growth AND accelerating
   eps_positive_threshold: 0.00          # >0% = positive
   eps_flat_threshold: -0.05             # >-5% = flat
-  eps_negative_threshold: -0.05         # <-5% = negative contribution
+  # eps_negative_threshold corrected 2026-08-19 (Tier B batch 3) from -0.05
+  # (a stale duplicate of eps_flat_threshold) to the real first negative
+  # breakpoint the code's 5-tier ladder actually uses. eps_severe_decline_threshold
+  # is new — the code's ladder had a 2nd negative breakpoint config never
+  # declared at all.
+  eps_negative_threshold: -0.15         # >= -15% = moderate decline (-1pt)
+  eps_severe_decline_threshold: -0.30   # >= -30% = severe decline (-2pt); below = -3pt
 
-  # Valuation scoring thresholds
-  pe_premium_penalty_threshold: 0.50    # 50%+ premium vs sector = -1pt
-  pe_extreme_premium_threshold: 1.00    # 100%+ premium = -2pts
-  ev_ebitda_premium_threshold: 0.50     # 50%+ above sector average = -1pt
+  # Valuation scoring thresholds — one shared 3-tier premium-vs-peers ladder,
+  # used by BOTH P/E-vs-sector and EV/EBITDA-vs-peers (fundamental_layer.py's
+  # _score_premium). Replaced 2026-08-19 (Tier B batch 3): the 3 old keys
+  # (pe_premium_penalty_threshold/pe_extreme_premium_threshold/
+  # ev_ebitda_premium_threshold, values 0.50/1.00/0.50) described a
+  # pre-refactor 2-ladder design the code no longer has and never mapped
+  # cleanly onto this shared ladder's real 3 breakpoints — a redesign, not a
+  # rename. These ARE the values the validated backtest reflects.
+  premium_near_parity_threshold: 0.15   # <=15% premium = +1pt
+  premium_moderate_threshold: 0.40      # <=40% premium = neutral; >40% = -1pt
+  premium_high_threshold: 0.75          # <=75% premium = -1pt; >75% = -2pts
   forward_trailing_tolerance: 0.05      # Within 5% = approximately equal
-
-  # Data quality handling
-  unavailable_score: 0                  # Score 0 (neutral) if data unavailable
-  suspect_field_score: 0                # Score 0 if field flagged as suspect
 
 # Market Positioning analysis layer — options, institutional ownership, short interest,
 # insider transactions, analyst rating trend. Daily cadence (faster-moving than
 # Fundamental's weekly batch) — all sourced from free yfinance data, no paid subscription.
 positioning:
   update_cadence: "daily"
-  cache_file: "data/processed/positioning_state.json"
 
-  # Scoring maximums (must sum to 20)
-  options_max: 6
+  # Scoring maximums (sum to 20 by default: 6+5+4+3+2). Only institutional_max/
+  # insider_max are real (Tier B batch 3, 2026-08-19) — positioning_layer.py's
+  # _score_institutional/_score_insider formulas are fully expressed in terms
+  # of their own max, so retuning these two rescales correctly.
+  # options_max/short_interest_max/analyst_max were removed here (not wired):
+  # their scoring formulas hardcode midpoint/tier literals (3.0, 6.0, 4.0,
+  # 2.0, 1.0...) not derived from the constant — retuning those 3 would
+  # silently NOT rescale the formula, the same reason technical_sub_signals/
+  # sentiment_sub_signals/news_sub_signals were stripped rather than wired.
+  # Fixed values: options=6.0, short_interest=4.0, analyst=2.0
+  # (shared/utils/positioning_layer.py OPTIONS_MAX/SHORT_INTEREST_MAX/ANALYST_MAX).
   institutional_max: 5
-  short_interest_max: 4
   insider_max: 3
-  analyst_max: 2
 
   # Institutional ownership delta thresholds (fraction of shares outstanding)
   institutional_accumulation_threshold: 0.02   # +2pp -> max bullish score
@@ -538,9 +496,6 @@ positioning:
 
   # Analyst rating trend lookback
   analyst_trend_lookback_days: 30
-
-  # Data quality handling
-  unavailable_score: 0                  # Sub-signal forfeits its points if data unavailable
 
 # Feedback loop recalibration
 feedback_loop:
@@ -563,29 +518,23 @@ signal_decay:
   time_stop_no_progress_pct: 0.30   # Close at Day 10 if <30% of target profit reached
   time_stop_day: 10
 
-# Sentiment analysis
-sentiment:
-  trajectory_lookback_days: 5
-  velocity_window_days: 5
-  timezone_windows:
-    asian_pre_market_start_et: "18:00"
-    asian_pre_market_end_et: "00:00"
-    european_start_et: "02:00"
-    european_end_et: "09:30"
-    us_session_start_et: "09:30"
-    us_session_end_et: "16:00"
-    us_after_hours_start_et: "16:00"
-    us_after_hours_end_et: "18:00"
+# Sentiment analysis config section removed 2026-08-19 (Tier B strip) — its
+# lookback/velocity windows were coupled to each other in a way that made
+# only one of the two independently effective (sentiment_layer.py's
+# _build_daily_bullish_ratios builds a single fixed-size history both draw
+# from), and its timezone_windows block had zero production consumers
+# anywhere plus 3 of 4 boundary pairs that didn't even match the dormant
+# code they'd have bound to. shared/utils/temporal_alignment.py's own
+# 5-day/5-day defaults are what real code uses; revisit as a real feature if
+# session-based sentiment weighting is ever built.
 
 # News
 news:
   decay_halflife_hours: 24           # Decay curve calibrated to the 1-15 day holding period (news
                                       # relevance decay itself is a separate calibration from the
-                                      # holding-period bounds — see decay_zero_at_days below, left
-                                      # unchanged on purpose when min_days moved 5->1)
+                                      # holding-period bounds — see decay_zero_at_days below)
   decay_zero_at_days: 5             # News older than 5 trading days effectively zeroed out
   cluster_window_days: 2            # Same-day or adjacent days for clustering
-  alpha_vantage_news_function: "NEWS_SENTIMENT"
 
 # Volume profile
 volume_profile:
@@ -598,7 +547,6 @@ volume_profile:
 # scan completes after the event. See Project_Scope.md "Event Severity Gate".
 event_severity_gate:
   enabled: true
-  cooling_off: next_post_close_scan   # only supported value for now
   # Sector-scoped: any match blocks only that sector's tickers, not the whole
   # multi-sector watchlist (a chip-ban headline must not block bank tickers,
   # and vice versa). Keyed by watchlist.sectors' sector names.
@@ -665,10 +613,15 @@ event_severity_gate:
     - "FDA"
     - "SEC EDGAR"                       # a company's own 8-K filing — always critical if it matches a trigger
   min_source_credibility: 0.5          # below this, trigger match logs WARNING but does not gate
-  require_headline_match: true         # case-insensitive match against post-NER headline text
 
 # Technical indicators
 technical:
+  # ma_short also drives the 20-day breakout/breakdown level (rolling_high/
+  # rolling_low use it, see shared/indicators/technical_common.py) — there is
+  # no separate "breakout lookback" config anywhere; a `risk_reward.breakout_
+  # lookback: 20` key existed until 2026-08-19 (Tier B strip) but was never
+  # actually read, and coincidentally shared today's value. Retuning ma_short
+  # for its moving-average purpose will also change the breakout level.
   ma_short: 20
   ma_long: 50
   rsi_period: 14

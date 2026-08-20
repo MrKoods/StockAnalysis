@@ -322,6 +322,87 @@ class TestBaseScore:
         assert result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX)
 
 
+class TestScoringWeightsConfigurable:
+    """Tier B batch 3 (2026-08-19): the 5 category maximums now read from
+    config.scoring_weights instead of bare module constants — confirm a
+    non-default value actually changes behavior, not just that the default
+    (matching the module constants) still works."""
+
+    def _kwargs(self, cfg=None):
+        return dict(
+            technical=_max_technical(), positioning=_max_positioning(),
+            sentiment=_max_sent(), news=_max_news(),
+            regime_modifier=0, sector_rotation_modifier=0, earnings_modifier=0,
+            cross_ticker_modifier=0, seasonality_modifier=0, macro_modifier=0,
+            volume_profile_score=8.0,
+            fundamental={"fundamental_score": 15.0, "data_quality": "complete"},
+            cfg=cfg,
+        )
+
+    def test_positioning_max_configurable(self):
+        default_result = compute_confidence_score(**self._kwargs())
+        assert default_result["positioning_total"] == POSITIONING_MAX
+
+        narrower_cfg = {"scoring_weights": {"positioning_max": 10.0}}
+        custom_result = compute_confidence_score(**self._kwargs(cfg=narrower_cfg))
+        assert custom_result["positioning_total"] == 10.0  # clamped down, not the full 20
+
+    def test_sentiment_max_configurable(self):
+        default_result = compute_confidence_score(**self._kwargs())
+        assert default_result["sentiment_total"] == SENTIMENT_MAX
+
+        narrower_cfg = {"scoring_weights": {"sentiment_max": 8.0}}
+        custom_result = compute_confidence_score(**self._kwargs(cfg=narrower_cfg))
+        assert custom_result["sentiment_total"] == 8.0
+
+    def test_news_max_configurable(self):
+        default_result = compute_confidence_score(**self._kwargs())
+        assert default_result["news_total"] == NEWS_MAX
+
+        narrower_cfg = {"scoring_weights": {"news_max": 8.0}}
+        custom_result = compute_confidence_score(**self._kwargs(cfg=narrower_cfg))
+        assert custom_result["news_total"] == 8.0
+
+    def test_technical_max_configurable(self):
+        default_result = compute_confidence_score(**self._kwargs())
+        assert default_result["technical_total"] == TECHNICAL_MAX
+
+        narrower_cfg = {"scoring_weights": {"technical_max": 20.0}}
+        custom_result = compute_confidence_score(**self._kwargs(cfg=narrower_cfg))
+        assert custom_result["technical_total"] == 20.0
+
+    def test_fundamental_max_configurable_and_rescale_ratio_still_correct(self):
+        """fundamental_max is the numerator of a rescale ratio against
+        FUNDAMENTAL_INTERNAL_MAX (15, fundamental_layer.py's own fixed
+        internal scale, NOT config-driven) — confirm retuning the numerator
+        alone still produces a correctly-proportioned contribution."""
+        default_result = compute_confidence_score(**self._kwargs())
+        assert default_result["fundamental_score"] == pytest.approx(FUNDAMENTAL_MAX)
+
+        doubled_cfg = {"scoring_weights": {"fundamental_max": 20.0}}
+        custom_result = compute_confidence_score(**self._kwargs(cfg=doubled_cfg))
+        # Raw fundamental_score=15 (max of the internal -15..+15 scale) rescaled
+        # by (20/15) -> 20.0, not the default (10/15) -> 10.0.
+        assert custom_result["fundamental_score"] == pytest.approx(20.0)
+
+    def test_technical_sub_scores_clamp_uses_same_config_value(self):
+        """compute_technical_sub_scores resolves its own copy of
+        technical_max from the same cfg — must agree with
+        compute_confidence_score's, not silently diverge."""
+        narrower_cfg = {"scoring_weights": {"technical_max": 20.0}}
+        tech_sub = compute_technical_sub_scores(_max_technical(), cfg=narrower_cfg, volume_profile_score_override=8.0)
+        assert tech_sub["technical_total"] == 20.0
+
+    def test_no_cfg_preserves_hardcoded_defaults(self):
+        """cfg=None (the default) must still return the old hardcoded caps —
+        callers that don't pass cfg shouldn't change behavior."""
+        result = compute_confidence_score(**self._kwargs(cfg=None))
+        assert result["positioning_total"] == POSITIONING_MAX
+        assert result["sentiment_total"] == SENTIMENT_MAX
+        assert result["news_total"] == NEWS_MAX
+        assert result["technical_total"] == TECHNICAL_MAX
+
+
 # ---------------------------------------------------------------------------
 # Fundamental staleness discount
 # ---------------------------------------------------------------------------

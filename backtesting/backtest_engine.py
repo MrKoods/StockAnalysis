@@ -24,6 +24,7 @@ tests/test_phase12_backtest.py).
 
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 
@@ -45,6 +46,14 @@ from backtesting.metrics import (
 )
 from backtesting.simulation import _simulate_test_signals, simulate_trade_outcome  # noqa: F401 (simulate_trade_outcome re-exported for tests/test_phase12_backtest.py)
 from backtesting.walk_forward import run_walk_forward
+
+
+def _backtesting_cfg(config_path: str) -> dict:
+    """Load config/swing_config.yaml's `backtesting` section (Tier B batch 2,
+    2026-08-19) — used to resolve train_split/min_qualifying_trades defaults
+    when the caller doesn't pass an explicit override."""
+    from swing_model.indicator_pipeline import load_config
+    return load_config(config_path).get("backtesting", {})
 
 # Referenced by name at call time in _save_report (not baked into a default arg
 # value, which Python evaluates once at import time) so tests/conftest.py's
@@ -131,8 +140,8 @@ def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 150
 def run_backtest(
     historical_data: dict[str, pd.DataFrame],
     config_path: str = "config/swing_config.yaml",
-    train_split: float = 0.70,
-    min_qualifying_trades: int = 100,
+    train_split: Optional[float] = None,
+    min_qualifying_trades: Optional[int] = None,
     min_expectancy_r: float = 0.3,
 ) -> dict:
     """
@@ -161,6 +170,10 @@ def run_backtest(
     Returns dict with all metrics (including expectancy_r_mean/ci_lower/ci_upper),
     per-regime results, walk-forward results.
     """
+    # train_split/min_qualifying_trades: explicit override, else config.backtesting
+    # (defaults 0.70/100) — Tier B batch 2 (2026-08-19).
+    if min_qualifying_trades is None:
+        min_qualifying_trades = int(_backtesting_cfg(config_path).get("min_qualifying_trades", 100))
     if not historical_data:
         return {
             "passed": False,
@@ -260,8 +273,8 @@ _SECTOR_DATASETS = {
 def run_multi_sector_backtest(
     sector_historical_data: dict[str, dict[str, pd.DataFrame]],
     config_path: str = "config/swing_config.yaml",
-    train_split: float = 0.70,
-    min_qualifying_trades: int = 100,
+    train_split: Optional[float] = None,
+    min_qualifying_trades: Optional[int] = None,
     min_expectancy_r: float = 0.3,
 ) -> dict:
     """
@@ -299,6 +312,10 @@ def run_multi_sector_backtest(
     qualifying trade count per sector, unchanged) and "per_sector_metrics" (each
     sector's own win_rate/sharpe/expectancy_r_ci_lower/max_drawdown_pct/passed).
     """
+    # train_split/min_qualifying_trades: explicit override, else config.backtesting
+    # (defaults 0.70/100) — Tier B batch 2 (2026-08-19).
+    if min_qualifying_trades is None:
+        min_qualifying_trades = int(_backtesting_cfg(config_path).get("min_qualifying_trades", 100))
     all_outcomes: list[dict] = []
     per_sector_counts: dict[str, int] = {}
     per_sector_outcomes: dict[str, list[dict]] = {}
@@ -388,7 +405,7 @@ def run_multi_sector_backtest(
 def _get_test_outcomes(
     historical_data: dict[str, pd.DataFrame],
     config_path: str = "config/swing_config.yaml",
-    train_split: float = 0.70,
+    train_split: Optional[float] = None,
     benchmark_ticker: str = "SMH",
 ) -> tuple[list[dict], float, list, "pd.Timestamp | None"]:
     """
@@ -400,8 +417,13 @@ def _get_test_outcomes(
     out-of-sample signal set instead of two independently-computed splits that
     could silently drift apart.
 
+    train_split: explicit override, else read from config.backtesting.train_split
+    (default 0.70) — Tier B batch 2 (2026-08-19).
+
     Returns (all_outcomes, test_period_months, all_dates, train_cutoff).
     """
+    if train_split is None:
+        train_split = float(_backtesting_cfg(config_path).get("train_split", 0.70))
     if not historical_data:
         return [], 0.0, [], None
 

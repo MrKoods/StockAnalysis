@@ -202,6 +202,11 @@ def compute_news_score(
     from shared.utils.sector_config import get_all_tickers
     watchlist = get_all_tickers(cfg)
 
+    # Tier B batch 2 (2026-08-19): decay params now read from config.
+    news_cfg = cfg.get("news", {})
+    decay_halflife_hours = float(news_cfg.get("decay_halflife_hours", 24.0))
+    decay_zero_at_days = float(news_cfg.get("decay_zero_at_days", 5.0))
+
     all_articles = _dedupe_articles(
         list(alpha_vantage_articles) + list(yahoo_articles) + list(finnhub_articles or [])
         + list(seeking_alpha_articles or []) + list(sec_edgar_filings or [])
@@ -223,7 +228,7 @@ def compute_news_score(
         title = art.get("title", "")
         if is_ticker_relevant(title, ticker):
             ts = _parse_ts(art.get("timestamp_utc", ""))
-            decay = news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0)
+            decay = news_decay_weight(ts, now_utc=now, halflife_hours=decay_halflife_hours, zero_at_days=decay_zero_at_days)
             if decay <= 0.0:
                 continue  # Too old
 
@@ -261,7 +266,7 @@ def compute_news_score(
         title = art.get("title", "")
         source = art.get("source_domain", "") or art.get("publisher", "") or art.get("source", "")
         ts = _parse_ts(art.get("timestamp_utc", ""))
-        decay = news_decay_weight(ts, now_utc=now, halflife_hours=24.0, zero_at_days=5.0)
+        decay = news_decay_weight(ts, now_utc=now, halflife_hours=decay_halflife_hours, zero_at_days=decay_zero_at_days)
         if decay <= 0.0:
             continue  # Too old — same recency bar as ticker-relevant articles below
         classified = classify_severity({"title": title, "source_domain": source}, cfg, sector=sector)
@@ -319,7 +324,8 @@ def compute_news_score(
     # 3. Clustering score (0-3)
     # ---------------------------------------------------------------------------
     cluster_count = count_independent_cluster(
-        relevant, ticker, window_days=2, reference_date=now, direction=direction
+        relevant, ticker, window_days=int(news_cfg.get("cluster_window_days", 2)),
+        reference_date=now, direction=direction
     )
     clustering_score = float(min(3, cluster_count))
 

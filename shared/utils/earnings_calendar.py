@@ -79,8 +79,13 @@ def get_earnings_modifier(
         modifier = float(e_cfg.get("beyond_18_days", 0))
         force_defined_risk = False
 
-    # Clamp to [-20, 0]
-    modifier = max(-20.0, min(0.0, modifier))
+    # Clamp to config.modifier_bounds.earnings_proximity (default -20/0) —
+    # Tier B batch 3 (2026-08-19): now reads from config instead of a bare
+    # hardcoded [-20, 0], previously unenforced against a retuned penalty.
+    bounds = cfg.get("modifier_bounds", {}).get("earnings_proximity", {})
+    lo = float(bounds.get("min", -20.0))
+    hi = float(bounds.get("max", 0.0))
+    modifier = max(lo, min(hi, modifier))
 
     return {
         "days_to_earnings": days,

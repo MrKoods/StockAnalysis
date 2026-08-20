@@ -17,13 +17,14 @@ _WEIGHT_GROUPS = [
     ("scoring_weights", ["technical_max", "positioning_max", "sentiment_max", "news_max", "fundamental_max"], 100),
 ]
 
-_SUB_SIGNAL_GROUPS = [
-    # (sub-signal section, parent section.key holding the target sum)
-    ("technical_sub_signals", "scoring_weights", "technical_max"),
-    ("positioning_sub_signals", "scoring_weights", "positioning_max"),
-    ("sentiment_sub_signals", "scoring_weights", "sentiment_max"),
-    ("news_sub_signals", "scoring_weights", "news_max"),
-]
+# technical_sub_signals/positioning_sub_signals/sentiment_sub_signals/
+# news_sub_signals and their sum-checks were removed 2026-08-19 (Tier B
+# strip) — none of the 4 sections' documented per-sub-signal maximums were
+# ever actually read by real scoring code (every sub-signal's ladder is a
+# hand-derived, backtest-calibrated set of magic numbers, not expressed in
+# terms of the documented max), so validating their sums only checked that
+# the decorative numbers were internally consistent with each other, not
+# with anything real.
 
 
 def validate_config_text(raw_yaml: str) -> tuple[bool, list[str]]:
@@ -58,26 +59,6 @@ def validate_config_text(raw_yaml: str) -> tuple[bool, list[str]]:
             errors.append(f"{section_name}: missing/non-numeric key(s): {', '.join(missing)}")
         elif abs(total - expected_sum) > 1e-9:
             errors.append(f"{section_name}: {'+'.join(keys)} sum to {total}, must sum to {expected_sum}")
-
-    for sub_section_name, parent_section, parent_key in _SUB_SIGNAL_GROUPS:
-        sub_section = cfg.get(sub_section_name)
-        parent = cfg.get(parent_section, {})
-        expected = parent.get(parent_key) if isinstance(parent, dict) else None
-        if not isinstance(sub_section, dict):
-            errors.append(f"Missing or invalid section: {sub_section_name}")
-            continue
-        if not isinstance(expected, (int, float)):
-            # Already reported above as part of the parent weight-group check.
-            continue
-        values = list(sub_section.values())
-        if not all(isinstance(v, (int, float)) for v in values):
-            errors.append(f"{sub_section_name}: all values must be numeric")
-            continue
-        total = sum(values)
-        if abs(total - expected) > 1e-9:
-            errors.append(
-                f"{sub_section_name}: sums to {total}, must match {parent_section}.{parent_key} ({expected})"
-            )
 
     threshold = cfg.get("confidence", {}).get("min_threshold") if isinstance(cfg.get("confidence"), dict) else None
     if threshold is not None:

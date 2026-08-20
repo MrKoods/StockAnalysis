@@ -407,6 +407,10 @@ def _simulate_test_signals(
     _decay_cfg = cfg.get("signal_decay", {})
     _time_stop_day = int(_decay_cfg.get("time_stop_day", 10))
     _min_progress_pct = float(_decay_cfg.get("time_stop_no_progress_pct", 0.30))
+    # Tier B batch 2 (2026-08-19): max hold-to-close day now reads from
+    # config.holding_period.max_days instead of simulate_trade_outcome's
+    # hardcoded 15-day default.
+    _max_days = int(cfg.get("holding_period", {}).get("max_days", 15))
 
     # get_seasonality_modifier/compute_macro_state both restrict their real
     # adverse/favorable logic to the semiconductor sector they were built and
@@ -927,6 +931,7 @@ def _simulate_test_signals(
                 future_ohlcv=outcome_bars,
                 confidence=confidence,
                 regime=regime,
+                holding_period=(1, _max_days),
                 time_stop_day=_time_stop_day,
                 min_progress_pct=_min_progress_pct,
             )
