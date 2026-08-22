@@ -143,6 +143,13 @@ _CSV_COLUMNS = [
     # already computed by trade_selector.py but discarded before reaching
     # this row until now — see the comment where they're extracted above.
     "capital_required", "structure_legs", "structure_effective_days", "structure_greeks_summary",
+    # "applied" | "not_implemented_no_options_chain_data" | blank (no structure
+    # evaluated at all) — rank_trade_structures() already computed this per
+    # signal but it previously only reached the Discord alert payload, never
+    # this row, so there was no way to audit after the fact how often the
+    # Greeks check (theta/vega bounds on undefined-risk/short-premium
+    # structures) actually ran vs. silently skipped for lack of a live chain.
+    "greeks_filter_status",
     # Real dollar max-loss/max-gain (blank = genuinely unbounded, never
     # fabricated), the actual strikes this structure's EV was priced
     # against, and a calendar expiration date (today + effective_days) —
@@ -168,6 +175,15 @@ _CSV_COLUMNS = [
     # not a filled position, until these get set (and the Discord "opened"
     # alert fires exactly once, at that transition).
     "fill_date", "fill_price",
+    # Mark-to-market snapshot from paper_updater.py's most recent run, blank
+    # until fill and cleared again once the trade closes (outcome fields
+    # below take over at that point) — previously there was no persisted way
+    # to see how an open position was doing without manually pulling a live
+    # quote; only the closing snapshot ever reached this file.
+    # unrealized_pnl_dollars mirrors pnl_dollars' own convention below
+    # (achieved_rr * actual_dollar_risk, not price_change * shares) so an
+    # open position's number is directly comparable to a closed one's.
+    "mark_price", "mark_date", "unrealized_rr", "unrealized_pnl_dollars",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days", "pnl_dollars",
 ]
@@ -1134,6 +1150,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "structure_strikes": structure_strikes,
                 "structure_expiration_date": structure_expiration_date,
                 "alternative_structures": alternative_structures,
+                "greeks_filter_status": greeks_filter_status or "",
                 "risk_pct": f"{risk_pct:.4f}",
                 "dollar_risk": f"{dollar_risk:.2f}",
                 "actual_dollar_risk": f"{actual_dollar_risk:.2f}",

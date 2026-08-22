@@ -163,6 +163,18 @@ def _download_ohlcv(ticker: str, start: str) -> Optional[pd.DataFrame]:
         return None
 
 
+def _fmt_dollars(x: float) -> str:
+    """
+    Format a dollar P&L figure, collapsing float negative-zero (a negative
+    R-multiple times a $0 actual_dollar_risk — a sized-to-0, no-real-capital
+    trade — evaluates to -0.0, which prints as the misleading "-$0.00")
+    down to a plain "0.00".
+    """
+    if x == 0.0:
+        x = 0.0
+    return f"{x:.2f}"
+
+
 def _resolve_outcome(
     df: pd.DataFrame,
     entry_price: float,
@@ -533,6 +545,10 @@ def update_paper_trades() -> int:
                         trade["achieved_rr"] = ""
                         trade["holding_days"] = str(FILL_WINDOW_DAYS)
                         trade["pnl_dollars"] = ""
+                        trade["mark_price"] = ""
+                        trade["mark_date"] = ""
+                        trade["unrealized_rr"] = ""
+                        trade["unrealized_pnl_dollars"] = ""
 
                         logger.info(
                             f"{ticker} {signal_date}: entry zone (${ez_lower:.2f}-${ez_upper:.2f}) "
@@ -561,6 +577,30 @@ def update_paper_trades() -> int:
                 fill_dt = bars_for_outcome.index[0]
                 trade["fill_date"] = fill_dt.strftime("%Y-%m-%d")
                 trade["fill_price"] = f"{pnl_entry_price:.2f}"
+
+                # Re-anchor actual_dollar_risk to the real fill price for
+                # shares positions. It was frozen at signal time off the
+                # zone-midpoint entry_price (position sizing runs before a
+                # fill exists), but achieved_rr/unrealized_rr below are
+                # always computed off pnl_entry_price (the real fill) — when
+                # the fill lands away from that midpoint, which the fill
+                # simulator allows by design, the R-multiple and the dollar
+                # figure it gets multiplied by stop sharing the same price
+                # basis (seen up to ~30% off on real trades). Share count is
+                # fixed at this point, so shares * risk_per_unit is an exact
+                # recompute — not an approximation. Options structures'
+                # actual_dollar_risk is a defined max-loss/premium figure,
+                # not price * contracts, so it's left untouched; that
+                # approximation is unrelated to this fix (see the pnl_dollars
+                # comment below).
+                if trade.get("position_type") == "shares":
+                    try:
+                        shares = int(trade.get("position_size") or 0)
+                        if shares > 0:
+                            trade["actual_dollar_risk"] = f"{shares * abs(pnl_entry_price - stop_loss):.2f}"
+                    except ValueError:
+                        pass
+
                 try:
                     send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"])
                 except Exception as exc:
@@ -588,7 +628,38 @@ def update_paper_trades() -> int:
             # fundamental sub-total on both sides — do not re-enable this
             # call site without one of those first.
             if result is None:
-                logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days")
+                mark_note = ""
+                try:
+                    mark_price = float(bars_for_outcome["Close"].iloc[-1])
+                    mark_date = bars_for_outcome.index[-1].strftime("%Y-%m-%d")
+                    # Same convention as the closed-trade P&L just below
+                    # (achieved_rr * actual_dollar_risk, not price_change *
+                    # shares) — this system doesn't model real option pricing
+                    # anywhere, so an options structure's mark stays
+                    # comparable to a shares structure's the same way a
+                    # closed trade's pnl_dollars already is.
+                    price_change = (pnl_entry_price - mark_price) if bearish else (mark_price - pnl_entry_price)
+                    risk_per_r = abs(pnl_entry_price - stop_loss)
+                    unrealized_rr = price_change / risk_per_r if risk_per_r > 0 else 0.0
+                    actual_risk_raw = (trade.get("actual_dollar_risk") or "").strip()
+                    dollar_risk_raw = actual_risk_raw or (trade.get("dollar_risk") or "").strip()
+                    unrealized_pnl_dollars = ""
+                    if dollar_risk_raw:
+                        try:
+                            unrealized_pnl_dollars = _fmt_dollars(unrealized_rr * float(dollar_risk_raw))
+                        except ValueError:
+                            pass
+                    trade["mark_price"] = f"{mark_price:.2f}"
+                    trade["mark_date"] = mark_date
+                    trade["unrealized_rr"] = f"{unrealized_rr:.3f}"
+                    trade["unrealized_pnl_dollars"] = unrealized_pnl_dollars
+                    if unrealized_pnl_dollars:
+                        mark_note = f" | mark={mark_price:.2f} | ${float(unrealized_pnl_dollars):+.2f} ({unrealized_rr:+.2f}R)"
+                    else:
+                        mark_note = f" | mark={mark_price:.2f}"
+                except Exception as exc:
+                    logger.warning(f"{ticker} {signal_date}: unrealized P&L calc failed — {exc}")
+                logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
                 continue
             if result["outcome"] == "earnings_exit":
                 logger.info(
@@ -632,7 +703,7 @@ def update_paper_trades() -> int:
             pnl_dollars_str = ""
             if dollar_risk_raw:
                 try:
-                    pnl_dollars_str = f"{achieved_rr * float(dollar_risk_raw):.2f}"
+                    pnl_dollars_str = _fmt_dollars(achieved_rr * float(dollar_risk_raw))
                 except ValueError:
                     pass
 
@@ -644,6 +715,10 @@ def update_paper_trades() -> int:
             trade["achieved_rr"] = f"{achieved_rr:.3f}"
             trade["holding_days"] = str(result["holding_days"])
             trade["pnl_dollars"] = pnl_dollars_str
+            trade["mark_price"] = ""
+            trade["mark_date"] = ""
+            trade["unrealized_rr"] = ""
+            trade["unrealized_pnl_dollars"] = ""
 
             logger.info(
                 f"{ticker} {signal_date}: {result['outcome']} | exit={exit_px:.2f} | "
@@ -772,6 +847,15 @@ def print_summary() -> None:
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
     print(f"  Expired (never filled): {len(expired)}")
     print(f"  Open trades:        {open_ct}")
+
+    # Sum of the mark-to-market snapshot paper_updater.py's own run just left
+    # on each still-open, filled trade — blank for pending/expired/zero-size
+    # rows, so this naturally only totals real open capital at risk.
+    marked = [t for t in trades if (t.get("unrealized_pnl_dollars") or "").strip()]
+    if marked:
+        unrealized_total = sum(float(t["unrealized_pnl_dollars"]) for t in marked)
+        print(f"  Open unrealized P&L: ${unrealized_total:+.2f}  ({len(marked)} marked position(s))")
+
     print(f"{'=' * 50}\n")
 
 

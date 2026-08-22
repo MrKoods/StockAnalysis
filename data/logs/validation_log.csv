@@ -3,3 +3,5 @@ timestamp_utc,ticker,failure_type,detail
 2026-07-05T00:43:35.539195+00:00,ALL,fundamental_layer_error,Simulated fundamental fetch failure
 2026-08-19T20:30:07.667858+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-19 00:00:00+00:00
 2026-08-19T22:00:26.251225+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-19 00:00:00+00:00
+2026-08-21T16:00:13.217133+00:00,UNH,ohlcv,ohlcv_open_out_of_range_2026-08-21 00:00:00+00:00
+2026-08-21T20:30:13.448218+00:00,UNH,ohlcv,ohlcv_open_out_of_range_2026-08-21 00:00:00+00:00

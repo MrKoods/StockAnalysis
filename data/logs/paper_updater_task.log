@@ -276,3 +276,65 @@ PAPER TRADING SUMMARY  (1 closed, 10 open, 0 expired)
 ==================================================
 
 Closed 0 trade(s) this run.
+2026-08-20 08:07:02,236 [__main__] INFO — 13 open paper trade(s) to check
+2026-08-20 08:07:02,761 [__main__] INFO — PFE 2026-08-07: still open after 9 trading days
+2026-08-20 08:07:02,761 [__main__] INFO — PFE 2026-08-10: still open after 8 trading days
+2026-08-20 08:07:03,141 [__main__] INFO — MRK 2026-08-10: still open after 8 trading days
+2026-08-20 08:07:03,375 [__main__] INFO — LLY 2026-08-12: still open after 6 trading days
+2026-08-20 08:07:03,751 [__main__] INFO — NVDA 2026-08-13: still open after 5 trading days
+2026-08-20 08:07:04,105 [__main__] INFO — AVGO 2026-08-14: entry zone ($428.82-$436.64) not reached yet — order still pending
+2026-08-20 08:07:04,236 [__main__] INFO — MU 2026-08-14: still open after 4 trading days
+2026-08-20 08:07:04,598 [__main__] INFO — ABBV 2026-08-14: still open after 4 trading days
+2026-08-20 08:07:04,727 [__main__] INFO — HBAN 2026-08-17: entry zone ($18.30-$18.46) not reached yet — order still pending
+2026-08-20 08:07:05,187 [__main__] INFO — JNJ 2026-08-19: entry zone ($273.43-$276.37) not reached yet — order still pending
+2026-08-20 08:07:05,527 [__main__] INFO — AMZN 2026-08-19: entry zone ($285.26-$289.14) not reached yet — order still pending
+2026-08-20 08:07:05,949 [__main__] INFO — HD 2026-08-19: entry zone ($356.10-$360.62) not reached yet — order still pending
+2026-08-20 08:07:05,949 [__main__] INFO — TGT: signal is from today — no bars possible yet, skipping
+2026-08-20 08:07:05,952 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (1 closed, 13 open, 0 expired)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Earnings exits:     0  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 0
+  Open trades:        13
+==================================================
+
+Closed 0 trade(s) this run.
+2026-08-21 08:07:02,213 [__main__] INFO — 12 open paper trade(s) to check
+2026-08-21 08:07:02,650 [__main__] INFO — PFE 2026-08-07: still open after 10 trading days | mark=28.38 | $+37.51 (+1.15R)
+2026-08-21 08:07:02,651 [__main__] INFO — PFE 2026-08-10: still open after 9 trading days | mark=28.38 | $+76.31 (+1.05R)
+2026-08-21 08:07:03,085 [__main__] INFO — MRK 2026-08-10: still open after 9 trading days | mark=154.04 | $+111.55 (+2.99R)
+2026-08-21 08:07:03,226 [__main__] INFO — LLY 2026-08-12: still open after 7 trading days | mark=1268.47 | $+0.00 (+0.35R)
+2026-08-21 08:07:03,605 [__main__] INFO — AVGO 2026-08-14: entry zone ($428.82-$436.64) never reached within 5 trading days — expired, no capital ever at risk
+2026-08-21 08:07:04,275 [__main__] INFO — MU 2026-08-14: still open after 5 trading days | mark=962.17 | $-0.00 (-0.24R)
+2026-08-21 08:07:04,656 [__main__] INFO — ABBV 2026-08-14: still open after 5 trading days | mark=266.44 | $+1.28 (+0.04R)
+2026-08-21 08:07:04,799 [__main__] INFO — HBAN 2026-08-17: entry zone ($18.30-$18.46) not reached yet — order still pending
+2026-08-21 08:07:05,272 [__main__] INFO — JNJ 2026-08-19: entry zone ($273.43-$276.37) not reached yet — order still pending
+2026-08-21 08:07:05,596 [__main__] INFO — AMZN 2026-08-19: entry zone ($285.26-$289.14) not reached yet — order still pending
+2026-08-21 08:07:06,004 [__main__] INFO — HD 2026-08-19: entry zone ($356.10-$360.62) not reached yet — order still pending
+2026-08-21 08:07:07,009 [__main__] INFO — TGT 2026-08-20: still open after 1 trading days | mark=164.43 | $+11.26 (+0.27R)
+2026-08-21 08:07:07,011 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (2 closed, 11 open, 1 expired)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 1
+  Open trades:        11
+  Open unrealized P&L: $+237.91  (7 marked position(s))
+==================================================
+
+Closed 1 trade(s) this run.
