@@ -11,10 +11,9 @@ every column after the insertion point for all new signals.
 
 Safe to re-run: exits immediately once the header already matches.
 
-Run: python -m scripts.migrate_add_greeks_filter_status_column
+Run: python -m scripts.migrate_paper_trades_csv_schema
 """
 import csv
-from pathlib import Path
 
 from paper_trading.paper_runner import PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, _CSV_COLUMNS
 from shared.utils.atomic_io import exclusive_lock
