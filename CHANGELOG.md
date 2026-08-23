@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.80 | 2026-08-23 | Infrastructure | Full model audit follow-up, performance: `run_pipeline()` (period="6mo") and `_fetch_market_context()` (period="3mo") both called `fetch_ohlcv_batch()` for a heavily-overlapping ticker set seconds apart in the same scan — roughly doubling yfinance call volume every run across 4 sectors, 3x/day. Added a process-lifetime cache to `fetch_ohlcv_batch()` (safe by construction: both pipelines launch as a fresh process per scheduled scan, so the cache can't go stale within a run or leak into the next one) — a ticker already fetched at an equal-or-longer period this scan is served from cache instead of re-fetched. Separately, `fetch_vix()`/`fetch_vix_pct_change()` were called independently by the same function for data that's a strict subset of one another — new `fetch_vix_and_pct_change()` does one `yf.download("^VIX")` call instead of two. 23 new tests |
 | v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: the weekly performance dashboard (`monitoring/performance_dashboard.py::generate_weekly_summary()`) had two real gaps — its own docstring claimed it "sends to Discord" but never actually did, and nothing outside tests ever called it at all, so this safety mechanism (a review alert when the rolling 20-trade win rate drops below 70%) was completely dormant. Both fixed: a real Discord send (new `send_weekly_summary_alert`) fires every run, and a new `StockAnalysis_WeeklyDashboard` Windows scheduled task (Sundays 6pm local, same pattern as the existing paper-trading scan tasks) actually calls it now. Caught and fixed a live instance of the exact class of bug v2.2.77 just addressed elsewhere: the new tests for this immediately wrote synthetic rows into the real `data/logs/performance_log.csv` because that file's path constant wasn't isolated in `conftest.py` — added the isolation fixture and cleaned up the 2 polluted rows before they could distort any future read of that file |
 | v2.2.78 | 2026-08-23 | Feature | Full model audit follow-up: paper trading now flags cross-sector directional concentration — advisory only, by explicit product decision (paper trading deliberately logs every qualifying signal unconstrained by portfolio limits, so it can observe the full universe of what would have qualified; a real user decision point during this session confirmed that design should stay intact). Before logging a new signal, sums net directional exposure (risk_pct signed by direction) across ALL open positions in every active sector using portfolio_manager.py's existing `get_portfolio_delta()`/1.5% threshold (previously only reachable via the unused live path) — if the new signal would push it past that threshold, appends a note to the existing `sizing_note` field (already reaches both the CSV ledger and the Discord alert), same "advisory, review before acting" treatment as Black Swan and the Event Gate. Never skips logging or resizes the signal |
 | v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: (1) isolated feedback_loop.py's 5 real-file defaults in tests (conftest.py autouse fixture) after finding `data/logs/trade_outcomes.csv` 285 rows deep in test-generated pollution — cleaned it and `signal_win_rates.json` back to empty, since no version has ever gone live to write real rows there; (2) gave `paper_trading/paper_runner.py` — the pipeline actually running 3x/day — a real Black Swan crash circuit breaker for the first time; previously only `run_swing_model.py` (which has never actually run live) had one, and even that was hardcoded to watch SMH only regardless of which sectors were active. New shared `_check_black_swan_per_sector()` checks every active sector's own benchmark (SMH/KRE/XLV/XLY) independently, with per-sector cooldown state in new `data/processed/black_swan_state.json`. Advisory only, unchanged — still never blocks a signal, only alerts |
@@ -157,6 +158,52 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.80] — 2026-08-23 — [Infrastructure] Two redundant yfinance round trips removed from every scan
+
+**Status:** Live.
+
+**In short:** The code-quality pass of the full model audit flagged that every ticker's price
+history was being fetched twice per scan, and VIX three times over across two functions. Both fixed
+with a cache and a combined fetch — no behavior change to what data is used, just less redundant
+network I/O.
+
+**1. OHLCV double-fetch.** `swing_model/indicator_pipeline.py::run_pipeline()` (called once per
+active sector, `period="6mo"`) and `swing_model/run_swing_model.py::_fetch_market_context()` (called
+once per scan covering every sector's benchmark + the full watchlist + SPY, `period="3mo"`) both call
+`fetch_ohlcv_batch()` — for a heavily-overlapping ticker set, seconds apart, in the same scan. Across
+4 active sectors this was roughly doubling yfinance call volume and scan runtime every run, 3x/day —
+relevant given a past production incident (`scan_lock.py`'s own docstring) already traced back to
+slow scans colliding under the scan lock.
+
+Added a process-lifetime, no-expiry cache to `fetch_ohlcv_batch()`, keyed by `(ticker, interval)`,
+storing how many days of history each entry covers. A request is served from cache whenever an
+existing entry already covers at least as many days as requested (a 3mo request after a 6mo fetch is
+a hit; the reverse is a real re-fetch) — safe by construction, not just in practice: both pipelines
+launch as a brand-new Python process per scheduled scan (Windows Task Scheduler), so the cache starts
+empty every run and can never carry stale data across scans. A single ticker with no cache coverage
+still uses the existing single-ticker fast path (`fetch_ohlcv`/`yf.Ticker`); multiple uncached tickers
+still batch through one `yf.download` call, now for only the tickers that actually need it.
+
+**2. VIX triple-fetch.** `_fetch_market_context()` called `fetch_vix()` and `fetch_vix_pct_change()`
+independently, back to back — two full `yf.download("^VIX", ...)` round trips for data that's a
+strict subset of one another (`fetch_vix_pct_change` already holds the latest close `fetch_vix`
+returns, plus the prior close it needs for the delta). New `fetch_vix_and_pct_change()` does one
+fetch and derives both values. `fetch_vix()`/`fetch_vix_pct_change()` are unchanged and still
+independently callable — this only changes the one call site that needed both.
+
+**Fix:** `shared/api_clients/market_data_client.py` (new `_OHLCV_BATCH_CACHE`/`_period_to_days`,
+new `fetch_vix_and_pct_change`), `swing_model/run_swing_model.py` (`_fetch_market_context` uses both).
+New `tests/conftest.py` autouse fixture (`_isolate_ohlcv_cache`) clears the cache between tests —
+`tests/test_market_data_client.py` mocks `yf.download` directly and calls the real functions on top,
+so an unmocked shared cache could silently serve one test's mocked data to another. 23 new tests.
+
+**Backtest:** Not applicable — live/paper data-fetching only, backtesting reads pre-downloaded
+historical CSVs and doesn't call these functions.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

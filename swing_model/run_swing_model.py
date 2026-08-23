@@ -19,7 +19,7 @@ from swing_model.portfolio_manager import (
     update_circuit_breaker, can_open_new_position,
 )
 from shared.api_clients.market_data_client import (
-    fetch_ohlcv_batch, fetch_vix, fetch_vix_pct_change, fetch_treasury_yield, fetch_dxy,
+    fetch_ohlcv_batch, fetch_vix_and_pct_change, fetch_treasury_yield, fetch_dxy,
     fetch_earnings_calendar,
 )
 from shared.utils.black_swan_detector import build_black_swan_alert
@@ -1160,17 +1160,15 @@ def _fetch_market_context(cfg: dict) -> dict:
     }
     spy_df = ohlcv_all.get("SPY")
 
+    # One fetch, both values — see fetch_vix_and_pct_change's docstring
+    # (2026-08-23 full model audit: this used to be 2 independent
+    # yf.download("^VIX", ...) round trips every scan).
     vix = None
-    try:
-        vix = fetch_vix()
-    except Exception as exc:
-        logger.warning(f"VIX fetch failed — {exc}")
-
     vix_pct_change = None
     try:
-        vix_pct_change = fetch_vix_pct_change()
+        vix, vix_pct_change = fetch_vix_and_pct_change()
     except Exception as exc:
-        logger.warning(f"VIX % change fetch failed — {exc}")
+        logger.warning(f"VIX fetch failed — {exc}")
 
     tnx_series: Optional[pd.Series] = None
     try:

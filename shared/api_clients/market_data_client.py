@@ -5,6 +5,7 @@ Enforces Alpha Vantage call budget (global_config.yaml).
 Implements exponential backoff (30s → 60s → 120s → fallback).
 """
 
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -66,6 +67,35 @@ def fetch_ohlcv(
     return retry_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
 
 
+# Process-lifetime OHLCV cache, keyed by (ticker, interval) -> (df, days_covered).
+# 2026-08-23 full model audit: swing_model/indicator_pipeline.py::run_pipeline()
+# (period="6mo") and swing_model/run_swing_model.py::_fetch_market_context()
+# (period="3mo") both call fetch_ohlcv_batch() for a heavily-overlapping ticker
+# set (every watchlist ticker + every sector benchmark), seconds apart, in the
+# same scan — nearly doubling yfinance call volume every run across 4 sectors,
+# 3x/day. Both live and paper trading are launched as a fresh process per scan
+# (Windows Task Scheduler), so a simple no-expiry, per-process cache is exactly
+# right: it can't go stale within one scan and it can't leak into the next one
+# (new process). Cleared per-test by tests/conftest.py's autouse
+# _isolate_ohlcv_cache fixture — without that, a test mocking yf.download for
+# ticker "X" could silently serve a different test's mocked "X" data back.
+_OHLCV_BATCH_CACHE: dict[tuple[str, str], tuple[pd.DataFrame, int]] = {}
+
+
+def _period_to_days(period: str) -> int:
+    """
+    Approximate calendar days for a yfinance period string ('3mo', '6mo',
+    '1y', '5d', ...). Returns 0 for an unrecognized format, which the cache
+    treats as "no cached entry can possibly satisfy this" — always re-fetch
+    rather than guess.
+    """
+    match = re.match(r"^(\d+)(d|mo|y)$", period)
+    if not match:
+        return 0
+    n, unit = int(match.group(1)), match.group(2)
+    return n * {"d": 1, "mo": 30, "y": 365}[unit]
+
+
 def fetch_ohlcv_batch(
     tickers: list[str],
     period: str = "6mo",
@@ -74,10 +104,31 @@ def fetch_ohlcv_batch(
     """
     Fetch OHLCV for multiple tickers in a single yfinance call.
     Returns dict mapping ticker → DataFrame (or None on failure for that ticker).
+
+    Serves a ticker from _OHLCV_BATCH_CACHE instead of re-fetching whenever an
+    already-cached entry (from an earlier, equal-or-longer period request this
+    same process) covers the requested period — see the cache's own comment
+    for why this is safe. A ticker with insufficient or no cached coverage is
+    always fetched for real; this never returns stale-relative-to-request data,
+    it only skips a redundant call when the cache already has enough history.
     """
+    requested_days = _period_to_days(period)
+    result: dict[str, Optional[pd.DataFrame]] = {}
+    to_fetch: list[str] = []
+
+    for ticker in tickers:
+        cached = _OHLCV_BATCH_CACHE.get((ticker, interval))
+        if cached is not None and cached[1] >= requested_days:
+            result[ticker] = cached[0]
+        else:
+            to_fetch.append(ticker)
+
+    if not to_fetch:
+        return result
+
     def _fetch():
         raw = yf.download(
-            tickers=" ".join(tickers),
+            tickers=" ".join(to_fetch),
             period=period,
             interval=interval,
             auto_adjust=True,
@@ -89,17 +140,20 @@ def fetch_ohlcv_batch(
             raise ValueError("Empty batch response from yfinance")
         return raw
 
-    result: dict[str, Optional[pd.DataFrame]] = {}
-
-    if len(tickers) == 1:
-        result[tickers[0]] = fetch_ohlcv(tickers[0], period=period, interval=interval)
+    if len(to_fetch) == 1:
+        df = fetch_ohlcv(to_fetch[0], period=period, interval=interval)
+        result[to_fetch[0]] = df
+        if df is not None:
+            _OHLCV_BATCH_CACHE[(to_fetch[0], interval)] = (df, requested_days)
         return result
 
     raw = retry_with_backoff(_fetch, retries=3, label="fetch_ohlcv_batch")
     if raw is None:
-        return {t: None for t in tickers}
+        for ticker in to_fetch:
+            result[ticker] = None
+        return result
 
-    for ticker in tickers:
+    for ticker in to_fetch:
         try:
             if ticker in raw.columns.get_level_values(0):
                 df = raw[ticker][["Open", "High", "Low", "Close", "Volume"]].copy()
@@ -114,6 +168,7 @@ def fetch_ohlcv_batch(
                 else:
                     df.index = df.index.tz_convert("UTC")
                 result[ticker] = df
+                _OHLCV_BATCH_CACHE[(ticker, interval)] = (df, requested_days)
             else:
                 logger.warning(f"Ticker {ticker} not found in batch response.")
                 result[ticker] = None
@@ -234,6 +289,44 @@ def fetch_vix_pct_change(period: str = "1mo", retries: int = 3) -> Optional[floa
         return (latest - prior) / prior
 
     return retry_with_backoff(_fetch, retries=retries, label="fetch_vix_pct_change")
+
+
+def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[Optional[float], Optional[float]]:
+    """
+    fetch_vix() and fetch_vix_pct_change() need the same ^VIX daily series
+    (the second is only fetch_vix() plus the prior close it discards) but
+    _fetch_market_context() was calling both independently — two full
+    yf.download("^VIX", ...) round trips, back to back, every scan (2026-08-23
+    full model audit finding). This does one fetch and derives both values
+    from it. fetch_vix()/fetch_vix_pct_change() are left as they were for any
+    caller that only needs one value — this is purely for the one call site
+    that needs both.
+
+    Returns (latest_level, pct_change) — either may be None independently
+    (e.g. exactly 2 bars gives a valid pct_change but a "latest" is always
+    derivable whenever pct_change is; only a wholesale fetch failure or fewer
+    than 2 bars affects both at once, in which case both are None).
+    """
+    def _fetch():
+        df = yf.download("^VIX", period=period, interval="1d", progress=False, auto_adjust=True)
+        if df.empty:
+            raise ValueError("Empty VIX response")
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        close = df["Close"]
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        return close
+
+    close = retry_with_backoff(_fetch, retries=retries, label="fetch_vix_and_pct_change")
+    if close is None or len(close) == 0:
+        return None, None
+    latest = float(close.iloc[-1])
+    if len(close) < 2:
+        return latest, None
+    prior = float(close.iloc[-2])
+    pct_change = (latest - prior) / prior if prior != 0 else None
+    return latest, pct_change
 
 
 def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:

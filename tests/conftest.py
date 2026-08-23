@@ -13,6 +13,7 @@ import backtesting.backtest_engine as backtest_engine_module
 import swing_model.feedback_loop as feedback_loop_module
 import shared.utils.black_swan_detector as black_swan_detector_module
 import monitoring.performance_dashboard as performance_dashboard_module
+import shared.api_clients.market_data_client as market_data_client_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -122,6 +123,22 @@ def _isolate_performance_log(tmp_path, monkeypatch):
     even right after fixing the last instance of it, not just a one-off.
     """
     monkeypatch.setattr(performance_dashboard_module, "_PERFORMANCE_LOG", tmp_path / "performance_log.csv")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_ohlcv_cache(monkeypatch):
+    """
+    market_data_client.py::fetch_ohlcv_batch() gained a process-lifetime
+    in-memory cache (2026-08-23, dedup fix for run_pipeline/_fetch_market_
+    context's overlapping fetches) keyed by (ticker, interval). Real
+    production risk is nil (a fresh process per scan naturally starts with
+    an empty cache) but tests/test_market_data_client.py mocks yf.download
+    directly and calls the real fetch_ohlcv_batch() on top — without
+    clearing this between tests, one test's mocked data for a given ticker
+    could silently satisfy a later test's request for that same ticker
+    symbol instead of exercising its own mock.
+    """
+    monkeypatch.setattr(market_data_client_module, "_OHLCV_BATCH_CACHE", {})
 
 
 @pytest.fixture(autouse=True)

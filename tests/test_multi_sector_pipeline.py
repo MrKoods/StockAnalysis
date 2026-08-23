@@ -91,7 +91,7 @@ class TestFetchMarketContextPerSector:
         }
 
         with patch("swing_model.run_swing_model.fetch_ohlcv_batch", return_value=fake_ohlcv), \
-             patch("swing_model.run_swing_model.fetch_vix", return_value=15.0), \
+             patch("swing_model.run_swing_model.fetch_vix_and_pct_change", return_value=(15.0, 0.0)), \
              patch("swing_model.run_swing_model.fetch_treasury_yield", return_value=None), \
              patch("swing_model.run_swing_model.fetch_dxy", return_value=None):
             mkt = _fetch_market_context(cfg)
@@ -110,7 +110,7 @@ class TestFetchMarketContextPerSector:
         fake_ohlcv = {"NVDA": pd.DataFrame({"Close": [1.0]}), "SMH": smh_df, "SPY": spy_df}
 
         with patch("swing_model.run_swing_model.fetch_ohlcv_batch", return_value=fake_ohlcv), \
-             patch("swing_model.run_swing_model.fetch_vix", return_value=15.0), \
+             patch("swing_model.run_swing_model.fetch_vix_and_pct_change", return_value=(15.0, 0.0)), \
              patch("swing_model.run_swing_model.fetch_treasury_yield", return_value=None), \
              patch("swing_model.run_swing_model.fetch_dxy", return_value=None):
             mkt = _fetch_market_context(cfg)
