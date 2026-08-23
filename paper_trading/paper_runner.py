@@ -240,18 +240,20 @@ def _load_open_positions() -> set[str]:
     return open_positions
 
 
-def _load_filled_open_positions_detail(sector_tickers: set[str]) -> list[dict]:
+def _load_filled_open_positions_detail(sector_tickers: Optional[set[str]] = None) -> list[dict]:
     """
-    Ticker/direction/entry/stop for real, FILLED open exposure in the given
-    sector — unlike _load_open_positions() (a bare ticker set used for the
-    duplicate-signal guard), this is for the Black Swan alert's per-position
-    display, which needs enough detail to tell the trader what to do with
-    each one. Deliberately excludes pending-unfilled rows (blank fill_date):
-    an order that hasn't filled yet has no real market exposure to warn
-    about. Uses fill_price as the entry basis when available (the real price
-    the position was actually established at — see the 2026-08-22
-    dollar-risk-basis-drift fix), falling back to the signal's entry_price
-    for the rare pre-that-fix row still missing fill_price.
+    Ticker/direction/entry/stop/risk_pct for real, FILLED open exposure —
+    unlike _load_open_positions() (a bare ticker set used for the
+    duplicate-signal guard), this carries enough detail for the Black Swan
+    alert's per-position display and the cross-sector concentration check
+    (portfolio-wide when sector_tickers is None, one sector's worth when
+    given a filter — same underlying data, two different callers). Excludes
+    pending-unfilled rows (blank fill_date): an order that hasn't filled yet
+    has no real market exposure to warn about. Uses fill_price as the entry
+    basis when available (the real price the position was actually
+    established at — see the 2026-08-22 dollar-risk-basis-drift fix),
+    falling back to the signal's entry_price for the rare pre-that-fix row
+    still missing fill_price.
     """
     if not PAPER_TRADES_CSV.exists():
         return []
@@ -261,23 +263,25 @@ def _load_filled_open_positions_detail(sector_tickers: set[str]) -> list[dict]:
             for row in csv.DictReader(f):
                 if (row.get("outcome") or "").strip():
                     continue  # already closed
-                if row.get("ticker") not in sector_tickers:
+                if sector_tickers is not None and row.get("ticker") not in sector_tickers:
                     continue
                 if not (row.get("fill_date") or "").strip():
                     continue  # never filled — no real exposure yet
                 try:
                     entry = float(row.get("fill_price") or row.get("entry_price") or 0.0)
                     stop = float(row.get("stop_loss") or 0.0)
+                    risk_pct = float(row.get("risk_pct") or 0.0)
                 except ValueError:
-                    entry = stop = 0.0
+                    entry = stop = risk_pct = 0.0
                 positions.append({
                     "ticker": row.get("ticker", ""),
                     "direction": row.get("direction", "bullish"),
                     "entry_price": entry,
                     "stop_loss": stop,
+                    "risk_pct": risk_pct,
                 })
     except Exception as exc:
-        logger.warning(f"Could not read paper_trades.csv for Black Swan alert detail: {exc}")
+        logger.warning(f"Could not read paper_trades.csv for open-position detail: {exc}")
     return positions
 
 
@@ -1147,6 +1151,35 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # risk, but pnl_dollars was booked against the full $75 budget).
             actual_dollar_risk = sizing["actual_dollar_risk"]
 
+            # Cross-sector concentration check (2026-08-23 full model audit) —
+            # advisory only, consistent with paper trading's deliberate
+            # "log every qualifying signal, don't gate on portfolio limits"
+            # design (see the position-sizing comment above): this NEVER skips
+            # logging the signal, it only notes when doing so would push net
+            # directional exposure — summed across ALL open positions in
+            # EVERY active sector, not just this ticker's own — past the same
+            # 1.5% advisory threshold portfolio_manager.py already enforces
+            # for the (currently unused) live path. Reuses that module's own
+            # get_portfolio_delta() rather than re-deriving the math.
+            from swing_model.portfolio_manager import get_portfolio_delta, MAX_NET_DIRECTIONAL_DELTA
+            _open_for_delta = _load_filled_open_positions_detail()
+            _ephemeral_state = {"positions": [
+                {"direction": p["direction"], "risk_pct": p["risk_pct"], "open": True}
+                for p in _open_for_delta
+            ]}
+            _current_delta = get_portfolio_delta(_ephemeral_state)
+            _new_dir_sign = 1.0 if direction == "bullish" else -1.0
+            _projected_delta = _current_delta + risk_pct * _new_dir_sign
+            _max_net_delta = float(cfg.get("portfolio", {}).get("max_net_directional_delta", MAX_NET_DIRECTIONAL_DELTA))
+            concentration_note = ""
+            if abs(_projected_delta) > _max_net_delta:
+                concentration_note = (
+                    f"cross-sector concentration — logging this brings net directional exposure "
+                    f"to {_projected_delta:+.2%} of account risk budget across all open sectors, "
+                    f"beyond the {_max_net_delta:.1%} advisory threshold (informational only, "
+                    f"paper trading logs every qualifying signal regardless)"
+                )
+
             # sizing_note: persisted to paper_trades.csv itself, not just logged —
             # a signal that qualifies but sizes to 0, or that had zero eligible
             # options structures at all, used to leave no trace of *why* in the
@@ -1170,6 +1203,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     f"position at {position_size} {position_type} instead of the {risk_based_size} the "
                     f"${dollar_risk:.2f} risk budget alone would allow"
                 )
+            if concentration_note:
+                sizing_note_parts.append(concentration_note)
             sizing_note = " | ".join(sizing_note_parts)
             if sizing_note:
                 logger.info(f"{ticker}: NOTE — {sizing_note}")

@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.78 | 2026-08-23 | Feature | Full model audit follow-up: paper trading now flags cross-sector directional concentration — advisory only, by explicit product decision (paper trading deliberately logs every qualifying signal unconstrained by portfolio limits, so it can observe the full universe of what would have qualified; a real user decision point during this session confirmed that design should stay intact). Before logging a new signal, sums net directional exposure (risk_pct signed by direction) across ALL open positions in every active sector using portfolio_manager.py's existing `get_portfolio_delta()`/1.5% threshold (previously only reachable via the unused live path) — if the new signal would push it past that threshold, appends a note to the existing `sizing_note` field (already reaches both the CSV ledger and the Discord alert), same "advisory, review before acting" treatment as Black Swan and the Event Gate. Never skips logging or resizes the signal |
 | v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: (1) isolated feedback_loop.py's 5 real-file defaults in tests (conftest.py autouse fixture) after finding `data/logs/trade_outcomes.csv` 285 rows deep in test-generated pollution — cleaned it and `signal_win_rates.json` back to empty, since no version has ever gone live to write real rows there; (2) gave `paper_trading/paper_runner.py` — the pipeline actually running 3x/day — a real Black Swan crash circuit breaker for the first time; previously only `run_swing_model.py` (which has never actually run live) had one, and even that was hardcoded to watch SMH only regardless of which sectors were active. New shared `_check_black_swan_per_sector()` checks every active sector's own benchmark (SMH/KRE/XLV/XLY) independently, with per-sector cooldown state in new `data/processed/black_swan_state.json`. Advisory only, unchanged — still never blocks a signal, only alerts |
 | v2.2.76 | 2026-08-23 | Backtest Methodology | Re-derived v2.2.75's still-open rescale question empirically: built `backtesting/raw_score_calibration_diagnostic.py`, which maps the backtest's own observed raw-score ceiling (86.17, n=320 real out-of-sample candidates) onto live/paper trading's own observed ceiling (79.84, n=1,476 real logged scans), replacing a rescale ratio that had been calibrated against the old 90-point threshold with no traceable derivation. Result is a much more consequential change than expected: qualifying trades collapse from 256 to **11** — nowhere near the 100-trade minimum needed to trust any win-rate/Sharpe reading. Still fails the gate, but now on sample-size and Sharpe grounds (Sharpe 0.27, unreliable at n=11) rather than the expectancy-CI shortfall v2.2.75 found; expectancy CI lower bound (0.321R) would actually now clear the 0.3R bar on its own. Read together, v2.2.75 and v2.2.76 show the same underlying problem from two angles: at the model's real, honest 70-point confidence bar, this dataset (13.5 years, one sector) cannot produce a statistically trustworthy backtest verdict either way |
 | v2.2.75 | 2026-08-22 | Backtest Methodology | Full model audit found the go-live backtest's qualifying filter still hardcoded `confidence >= 90`, unchanged since before v2.2.46 lowered live's real threshold to 70 — the backtest had been validating a signal population live trading structurally cannot produce. Fixed to import and use the real `CONFIDENCE_THRESHOLD`. Re-run result: win rate drops 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 — and the corrected number **fails** the go-live gate (expectancy CI lower bound 0.195R, below the 0.3R bar), reversing the prior "passes" status. The rescale that converts backtest's raw (positioning-neutral) score onto a 0-100 scale was calibrated years ago against the old 90 target and was NOT re-derived here — flagged as a real, still-open follow-up, not silently resolved |
@@ -155,6 +156,46 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.78] — 2026-08-23 — [Feature] Cross-sector concentration is now visible — advisory only, a real product decision this session
+
+**Status:** Live.
+
+**In short:** The audit flagged that nothing stops up to 8 simultaneous open positions across all 4
+active sectors (semiconductors/regional_banks/healthcare/consumer_discretionary) from all leaning
+the same direction — a hidden concentration risk `portfolio_manager.py`'s correlated-group checks
+don't catch, since those are scoped within one sector by design. Building a real fix surfaced a
+design fork worth deciding explicitly rather than guessing: paper trading has a documented,
+deliberate choice to log every qualifying signal unconstrained by ANY portfolio-level limit (no
+circuit breakers, no position caps — see the position-sizing comment in `paper_runner.py`), so it
+can observe the full universe of what would have qualified. A real concentration *block* would
+reverse that. Asked directly this session — the answer: advisory only, keep logging everything,
+just make concentration visible. Built that.
+
+**Fix:** Before logging a new signal, sums net directional exposure (each open position's
+`risk_pct` signed by direction — long and short partially offset, not just netted by position
+count) across every open position in every active sector, using `portfolio_manager.py`'s existing
+`get_portfolio_delta()` against its existing 1.5% (`MAX_NET_DIRECTIONAL_DELTA`) threshold — real,
+tested logic that was previously only reachable through the unused live path. If logging the new
+signal would push projected exposure past that threshold, a note is appended to the signal's
+existing `sizing_note` field, which already reaches both `paper_trades.csv` and the Discord alert —
+no new column, no new alert channel, same visibility mechanism already used for "sizes to 0" and
+"capital cap bound" notes. Extended `_load_filled_open_positions_detail()` (added in v2.2.77 for
+the Black Swan alert) to accept no sector filter for this portfolio-wide view, and to carry
+`risk_pct` per position.
+
+Never skips logging, never resizes, never blocks — same "advisory, review before acting" treatment
+as Black Swan and the Event Severity Gate, and consistent with paper trading's own documented design
+intent.
+
+**Fix:** `paper_trading/paper_runner.py` (`_load_filled_open_positions_detail` extended, new
+concentration check ahead of `sizing_note`). 6 new tests. 1359+/1359+ tests pass.
+
+**Backtest:** Not applicable — advisory-only live/paper behavior, no scoring/threshold change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

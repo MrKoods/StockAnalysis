@@ -271,6 +271,77 @@ class TestPaperRunnerBlackSwanWiring:
         monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "does_not_exist.csv")
         assert pr._load_filled_open_positions_detail({"NVDA"}) == []
 
+    def test_no_filter_returns_positions_across_every_sector_with_risk_pct(self, tmp_path, monkeypatch):
+        """The cross-sector concentration check (2026-08-23) needs the
+        portfolio-wide view — sector_tickers=None (the new default) must not
+        drop any sector's positions, and risk_pct must come through for the
+        net-delta math."""
+        import paper_trading.paper_runner as pr
+
+        csv_path = tmp_path / "paper_trades.csv"
+        rows = [
+            {"ticker": "NVDA", "direction": "bullish", "fill_date": "2026-08-20",
+             "fill_price": "120.0", "entry_price": "119.0", "stop_loss": "110.0",
+             "risk_pct": "0.0075", "outcome": ""},
+            {"ticker": "KEY", "direction": "bullish", "fill_date": "2026-08-19",
+             "fill_price": "18.0", "entry_price": "18.0", "stop_loss": "17.0",
+             "risk_pct": "0.0050", "outcome": ""},
+        ]
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+
+        monkeypatch.setattr(pr, "PAPER_TRADES_CSV", csv_path)
+        result = pr._load_filled_open_positions_detail()  # no filter = portfolio-wide
+        tickers = {p["ticker"] for p in result}
+        assert tickers == {"NVDA", "KEY"}
+        by_ticker = {p["ticker"]: p for p in result}
+        assert by_ticker["NVDA"]["risk_pct"] == pytest.approx(0.0075)
+        assert by_ticker["KEY"]["risk_pct"] == pytest.approx(0.0050)
+
+
+class TestCrossSectorConcentrationCheck:
+    """Advisory-only (2026-08-23 full model audit, by explicit product
+    decision — see the AskUserQuestion in that session): must never block a
+    signal from being logged, only note when net directional exposure across
+    ALL open sectors would cross the advisory threshold."""
+
+    def test_existing_same_direction_exposure_projects_correctly(self, tmp_path, monkeypatch):
+        """Reuses portfolio_manager.get_portfolio_delta directly — this just
+        confirms the ephemeral-state shape paper_runner.py builds from
+        _load_filled_open_positions_detail() is one that function accepts
+        and sums correctly, not a re-implementation of the delta math."""
+        from swing_model.portfolio_manager import get_portfolio_delta, MAX_NET_DIRECTIONAL_DELTA
+
+        open_for_delta = [
+            {"ticker": "NVDA", "direction": "bullish", "risk_pct": 0.01},
+            {"ticker": "KEY", "direction": "bullish", "risk_pct": 0.01},
+        ]
+        ephemeral_state = {"positions": [
+            {"direction": p["direction"], "risk_pct": p["risk_pct"], "open": True}
+            for p in open_for_delta
+        ]}
+        current_delta = get_portfolio_delta(ephemeral_state)
+        assert current_delta == pytest.approx(0.02)
+        # A third same-direction 1% position pushes projected exposure to 3%,
+        # well past the 1.5% advisory threshold used by the (currently
+        # unused) live path — proves the threshold comparison paper_runner.py
+        # makes would actually fire in this scenario.
+        projected = current_delta + 0.01
+        assert abs(projected) > MAX_NET_DIRECTIONAL_DELTA
+
+    def test_opposite_direction_exposure_nets_out_and_does_not_trigger(self):
+        from swing_model.portfolio_manager import get_portfolio_delta, MAX_NET_DIRECTIONAL_DELTA
+
+        ephemeral_state = {"positions": [
+            {"direction": "bullish", "risk_pct": 0.01, "open": True},
+            {"direction": "bearish", "risk_pct": 0.01, "open": True},
+        ]}
+        current_delta = get_portfolio_delta(ephemeral_state)
+        assert current_delta == pytest.approx(0.0)
+        assert abs(current_delta) <= MAX_NET_DIRECTIONAL_DELTA
+
 
 class TestComputeLastBarPctChange:
     def _df(self, closes):
