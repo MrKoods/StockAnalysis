@@ -8,8 +8,12 @@ signals. run_swing_model.py surfaces candidates on their own score merits
 regardless of this state; only the alert and an advisory note are affected.
 """
 
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
+
+_STATE_FILE = Path("data/processed/black_swan_state.json")
 
 
 def check_black_swan(
@@ -122,6 +126,35 @@ def build_black_swan_alert(
     )
 
     return header + body + footer
+
+
+def load_black_swan_state() -> dict:
+    """
+    Load data/processed/black_swan_state.json — one entry per sector name,
+    each holding that sector's own black_swan_mode/black_swan_normal_days
+    (see portfolio_manager.update_black_swan_state, which operates on
+    whatever flat dict it's given; this file stores one such dict per sector
+    so each sector's cooldown tracks its own benchmark independently).
+
+    Shared between run_swing_model.py (live, semiconductors-only historically)
+    and paper_trading/paper_runner.py (the pipeline actually running daily,
+    wired in 2026-08-23 after a full model audit found it had no crash
+    circuit breaker at all) — both watch the same real market, so sharing
+    trigger/cooldown state between them is correct, not a layering mistake.
+    """
+    if not _STATE_FILE.exists():
+        return {}
+    try:
+        raw = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def save_black_swan_state(state: dict) -> None:
+    """Persist per-sector black swan state to data/processed/black_swan_state.json."""
+    _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
 
 
 def should_resume_after_black_swan(

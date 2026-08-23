@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: (1) isolated feedback_loop.py's 5 real-file defaults in tests (conftest.py autouse fixture) after finding `data/logs/trade_outcomes.csv` 285 rows deep in test-generated pollution — cleaned it and `signal_win_rates.json` back to empty, since no version has ever gone live to write real rows there; (2) gave `paper_trading/paper_runner.py` — the pipeline actually running 3x/day — a real Black Swan crash circuit breaker for the first time; previously only `run_swing_model.py` (which has never actually run live) had one, and even that was hardcoded to watch SMH only regardless of which sectors were active. New shared `_check_black_swan_per_sector()` checks every active sector's own benchmark (SMH/KRE/XLV/XLY) independently, with per-sector cooldown state in new `data/processed/black_swan_state.json`. Advisory only, unchanged — still never blocks a signal, only alerts |
 | v2.2.76 | 2026-08-23 | Backtest Methodology | Re-derived v2.2.75's still-open rescale question empirically: built `backtesting/raw_score_calibration_diagnostic.py`, which maps the backtest's own observed raw-score ceiling (86.17, n=320 real out-of-sample candidates) onto live/paper trading's own observed ceiling (79.84, n=1,476 real logged scans), replacing a rescale ratio that had been calibrated against the old 90-point threshold with no traceable derivation. Result is a much more consequential change than expected: qualifying trades collapse from 256 to **11** — nowhere near the 100-trade minimum needed to trust any win-rate/Sharpe reading. Still fails the gate, but now on sample-size and Sharpe grounds (Sharpe 0.27, unreliable at n=11) rather than the expectancy-CI shortfall v2.2.75 found; expectancy CI lower bound (0.321R) would actually now clear the 0.3R bar on its own. Read together, v2.2.75 and v2.2.76 show the same underlying problem from two angles: at the model's real, honest 70-point confidence bar, this dataset (13.5 years, one sector) cannot produce a statistically trustworthy backtest verdict either way |
 | v2.2.75 | 2026-08-22 | Backtest Methodology | Full model audit found the go-live backtest's qualifying filter still hardcoded `confidence >= 90`, unchanged since before v2.2.46 lowered live's real threshold to 70 — the backtest had been validating a signal population live trading structurally cannot produce. Fixed to import and use the real `CONFIDENCE_THRESHOLD`. Re-run result: win rate drops 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 — and the corrected number **fails** the go-live gate (expectancy CI lower bound 0.195R, below the 0.3R bar), reversing the prior "passes" status. The rescale that converts backtest's raw (positioning-neutral) score onto a 0-100 scale was calibrated years ago against the old 90 target and was NOT re-derived here — flagged as a real, still-open follow-up, not silently resolved |
 | v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Tier B batch 3 of 3 — the last 21 config keys resolved: wired the 5 scoring_weights category maximums (including the previously-flagged-highest-risk fundamental_max, which turned out to be a simple, safe wire once the rescale ratio was understood correctly), 2 positioning sub-maximums (institutional_max/insider_max — the other 3 stayed hardcoded, since their formulas use fixed literals that wouldn't rescale correctly if wired), 6 genuinely-unenforced modifier_bounds safety clamps, and corrected 5 stale config-vs-code value mismatches to match the validated code (fundamental valuation-premium ladder, EPS-decline breakpoints, walk-forward validation window). confidence.min_threshold's stale value was corrected (90→70) but deliberately left unwired — it gates real trading and is imported directly by 5+ files. Tier B is now closed: 156 config leaf keys, only 2 permanent, reasoned exceptions remain allowlisted |
@@ -154,6 +155,66 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.77] — 2026-08-23 — [Bug Fix / Feature / Infrastructure] Working through the full-model-audit backlog: test pollution cleanup + a real crash circuit breaker for paper trading
+
+**Status:** Live.
+
+**In short:** Two independent fixes from the 2026-08-22 full model audit's remaining backlog.
+
+**1. Test isolation for feedback_loop.py's real files.** `data/logs/trade_outcomes.csv` was found
+285 rows deep in obviously synthetic test data (round $100→$120 prices, blank structure/signal_key,
+millisecond-apart duplicate rows). Confirmed all 285 rows are test pollution — the only real writer
+(`portfolio_manager.py`'s live-trading close path) has never actually run, since no version has gone
+live. Per-test manual monkeypatching of `feedback_loop.py`'s 5 file-path constants
+(`_TRADE_OUTCOMES_FILE`/`_SIGNAL_WIN_RATES_FILE`/`_LIVE_WEIGHTS_FILE`/`_SECTOR_LIVE_WEIGHTS_FILE`/
+`_PAPER_TRADES_FILE`) had already missed this once before (see
+`tests/test_phase14_feedback.py::test_result_contains_required_keys`'s docstring — an earlier
+incident where a forgotten patch overwrote the real `calibrated_weights.json`) and evidently missed
+it again elsewhere. Added a `conftest.py` autouse fixture isolating all 5 constants for every test,
+matching the same pattern already used for audit/validation/override logs, backtest reports, and
+scan locks. Reset `trade_outcomes.csv` to header-only and `signal_win_rates.json` to empty — the
+"20% win rate" it reported was entirely test-generated, not real paper-trading performance (which
+has 2 real closed trades total).
+
+**2. Black Swan circuit breaker wired into paper trading for the first time.** The audit found that
+`shared/utils/black_swan_detector.py` (SMH >7% drop / VIX >40% spike, advisory-only crash alert) was
+wired into `run_swing_model.py` — the live path that has never actually run — but had zero
+references anywhere in `paper_trading/paper_runner.py`, the pipeline that's actually running 3x/day.
+The pipeline that's actually trading had no crash circuit breaker at all. Separately, even
+`run_swing_model.py`'s existing check was hardcoded to watch SMH only, regardless of which of the 4
+sectors (semiconductors/regional_banks/healthcare/consumer_discretionary) were actually active —
+a bank- or healthcare-specific crash could happen with zero detection.
+
+Fixed both at once with a new shared function, `run_swing_model.py::_check_black_swan_per_sector()`,
+called from both pipelines: checks every active sector's own benchmark (SMH/KRE/XLV/XLY) for a >7%
+drop, alongside the one shared VIX-spike condition, with each sector's trigger/cooldown tracked
+independently in a new `data/processed/black_swan_state.json` (shared between both pipelines, since
+both watch the same real market). Each pipeline still builds and sends its own alert using its own
+open-positions view (live and paper track open positions in separate, non-interchangeable stores —
+deliberately left un-merged, same reasoning as the pipeline-dedup review in v2.2.69). Paper trading's
+alert now shows real filled exposure only (excludes pending-unfilled signals, which carry no market
+risk yet) via a new `_load_filled_open_positions_detail()`, using each position's actual fill price
+as the entry basis (not the signal-time zone midpoint), consistent with the 2026-08-22 dollar-risk
+fix. `black_swan_mode`/`black_swan_normal_days` in `position_state.json` are now vestigial (kept for
+schema compatibility, no longer read or written) — real state lives in the new shared file.
+
+Still advisory only — unchanged product decision, confirmed by
+`test_advisory_only_never_present_in_can_open_new_position_gating`: this never blocks a signal, it
+only flags one.
+
+**Fix:** `shared/utils/black_swan_detector.py` (new `load_black_swan_state`/`save_black_swan_state`),
+`swing_model/run_swing_model.py` (new `_check_black_swan_per_sector`, rewired existing SMH-only
+block), `swing_model/portfolio_manager.py` (docstring only), `paper_trading/paper_runner.py` (new
+wiring + `_load_filled_open_positions_detail`), `tests/conftest.py` (2 new autouse isolation
+fixtures), `data/logs/trade_outcomes.csv` + `data/processed/signal_win_rates.json` (reset). 15 new
+tests. 1351/1351 existing tests pass.
+
+**Backtest:** Not applicable — no scoring/threshold change, no backtest-relevant behavior touched.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

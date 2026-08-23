@@ -61,11 +61,14 @@ from shared.utils.sector_config import (
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
 from shared.utils.macro_overlay import dampen_news_china_theme_if_macro_confirmed, save_macro_state
+from shared.utils.black_swan_detector import build_black_swan_alert
 from shared.utils.geopolitical_risk import apply_geopolitical_penalty
 
 # Reuse all pipeline helpers from run_swing_model to avoid duplication
 from swing_model.run_swing_model import (
     _fetch_market_context,
+    _check_black_swan_per_sector,
+    _try_send_black_swan_alert,
     _compute_regime_safe,
     _compute_macro_safe,
     _compute_china_tension_count,
@@ -235,6 +238,47 @@ def _load_open_positions() -> set[str]:
     except Exception as exc:
         logger.warning(f"Could not read paper_trades.csv for open-position check: {exc}")
     return open_positions
+
+
+def _load_filled_open_positions_detail(sector_tickers: set[str]) -> list[dict]:
+    """
+    Ticker/direction/entry/stop for real, FILLED open exposure in the given
+    sector — unlike _load_open_positions() (a bare ticker set used for the
+    duplicate-signal guard), this is for the Black Swan alert's per-position
+    display, which needs enough detail to tell the trader what to do with
+    each one. Deliberately excludes pending-unfilled rows (blank fill_date):
+    an order that hasn't filled yet has no real market exposure to warn
+    about. Uses fill_price as the entry basis when available (the real price
+    the position was actually established at — see the 2026-08-22
+    dollar-risk-basis-drift fix), falling back to the signal's entry_price
+    for the rare pre-that-fix row still missing fill_price.
+    """
+    if not PAPER_TRADES_CSV.exists():
+        return []
+    positions: list[dict] = []
+    try:
+        with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if (row.get("outcome") or "").strip():
+                    continue  # already closed
+                if row.get("ticker") not in sector_tickers:
+                    continue
+                if not (row.get("fill_date") or "").strip():
+                    continue  # never filled — no real exposure yet
+                try:
+                    entry = float(row.get("fill_price") or row.get("entry_price") or 0.0)
+                    stop = float(row.get("stop_loss") or 0.0)
+                except ValueError:
+                    entry = stop = 0.0
+                positions.append({
+                    "ticker": row.get("ticker", ""),
+                    "direction": row.get("direction", "bullish"),
+                    "entry_price": entry,
+                    "stop_loss": stop,
+                })
+    except Exception as exc:
+        logger.warning(f"Could not read paper_trades.csv for Black Swan alert detail: {exc}")
+    return positions
 
 
 def _append_row(row: dict) -> None:
@@ -414,6 +458,22 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # --- Shared market context (one batch fetch covering every sector benchmark) ---
     mkt = _fetch_market_context(cfg)
     vix_val = float(mkt["vix"]) if mkt["vix"] is not None else 15.0
+
+    # --- Black Swan check — advisory only, per sector (2026-08-23 full model
+    # audit: this pipeline — the one actually running 3x/day — had NO crash
+    # circuit breaker at all before this; run_swing_model.py had one but it
+    # only ever runs there and was scoped to SMH regardless of which sectors
+    # were active. See _check_black_swan_per_sector's docstring. ---
+    black_swan_results = _check_black_swan_per_sector(active_sectors, mkt, cfg)
+    for sector_name, bs_result in black_swan_results.items():
+        if bs_result.pop("_newly_triggered", False):
+            sector_tickers = set(get_sector_tickers(cfg, sector_name))
+            open_positions_for_alert = _load_filled_open_positions_detail(sector_tickers)
+            alert_msg = build_black_swan_alert(
+                bs_result["trigger_type"], open_positions_for_alert,
+                bs_result["smh_pct_change"], bs_result["vix_pct_change"],
+            )
+            _try_send_black_swan_alert(alert_msg)
 
     # Regime/rotation/macro/seasonality modifiers computed PER SECTOR — macro's
     # TNX/DXY/China rationale and seasonality's demand calendar are only

@@ -11,6 +11,7 @@ import shared.utils.logger as logger_module
 import shared.utils.scan_lock as scan_lock_module
 import backtesting.backtest_engine as backtest_engine_module
 import swing_model.feedback_loop as feedback_loop_module
+import shared.utils.black_swan_detector as black_swan_detector_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -94,6 +95,19 @@ def _isolate_feedback_loop_files(tmp_path, monkeypatch):
     monkeypatch.setattr(feedback_loop_module, "_LIVE_WEIGHTS_FILE", tmp_path / "calibrated_weights.json")
     monkeypatch.setattr(feedback_loop_module, "_SECTOR_LIVE_WEIGHTS_FILE", tmp_path / "calibrated_weights_by_sector.json")
     monkeypatch.setattr(feedback_loop_module, "_PAPER_TRADES_FILE", tmp_path / "paper_trades.csv")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_black_swan_state(tmp_path, monkeypatch):
+    """
+    Same class of problem as _isolate_feedback_loop_files, applied
+    immediately to its own new file: black_swan_detector.py's
+    load/save_black_swan_state() (added 2026-08-23 to give paper_runner.py a
+    real crash circuit breaker) default to data/processed/black_swan_state.json.
+    Isolated from day one instead of waiting to discover a test wrote a fake
+    "black swan triggered" episode into the real state file.
+    """
+    monkeypatch.setattr(black_swan_detector_module, "_STATE_FILE", tmp_path / "black_swan_state.json")
 
 
 @pytest.fixture(autouse=True)

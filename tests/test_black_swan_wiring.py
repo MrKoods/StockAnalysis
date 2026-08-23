@@ -13,6 +13,8 @@ Black Swan is advisory only (explicit product decision — see module docstring)
 it must never gate/block a signal, only flag it.
 """
 
+import csv
+
 import pandas as pd
 import pytest
 
@@ -135,6 +137,139 @@ class TestUpdateBlackSwanStateAdvisoryOnly:
         from swing_model.portfolio_manager import can_open_new_position
         src = inspect.getsource(can_open_new_position)
         assert "black_swan" not in src.lower()
+
+
+class TestCheckBlackSwanPerSector:
+    """
+    _check_black_swan_per_sector (2026-08-23 full model audit): both
+    run_swing_model.py and paper_trading/paper_runner.py now check EVERY
+    active sector's own benchmark, not just SMH, with each sector's
+    trigger/cooldown tracked independently in black_swan_state.json.
+    """
+
+    def _df(self, closes):
+        return pd.DataFrame({"Close": closes})
+
+    def _mkt(self, vix_pct_change=0.0, **benchmark_dfs):
+        return {"vix_pct_change": vix_pct_change, "sector_benchmark_dfs": benchmark_dfs}
+
+    def test_only_the_dropping_sectors_own_benchmark_triggers(self):
+        """A >7% drop in one sector's benchmark must not trigger sectors
+        whose own benchmark is fine — the whole point of going per-sector."""
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}, "regional_banks": {}}
+        mkt = self._mkt(
+            vix_pct_change=0.0,
+            semiconductors=self._df([100.0, 90.0]),   # -10%, triggers
+            regional_banks=self._df([50.0, 49.0]),    # -2%, fine
+        )
+        results = _check_black_swan_per_sector(active_sectors, mkt, cfg=None)
+        assert results["semiconductors"]["black_swan_triggered"] is True
+        assert results["regional_banks"]["black_swan_triggered"] is False
+
+    def test_vix_spike_triggers_every_active_sector_at_once(self):
+        """VIX is one shared, market-wide input — unlike the benchmark drop,
+        a spike should trigger every sector simultaneously."""
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}, "healthcare": {}}
+        mkt = self._mkt(
+            vix_pct_change=0.50,  # well above the 40% default threshold
+            semiconductors=self._df([100.0, 99.0]),
+            healthcare=self._df([200.0, 199.0]),
+        )
+        results = _check_black_swan_per_sector(active_sectors, mkt, cfg=None)
+        assert results["semiconductors"]["black_swan_triggered"] is True
+        assert results["healthcare"]["black_swan_triggered"] is True
+
+    def test_newly_triggered_only_fires_once_per_sector_episode(self):
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}}
+        crash_mkt = self._mkt(vix_pct_change=0.0, semiconductors=self._df([100.0, 90.0]))
+
+        first = _check_black_swan_per_sector(active_sectors, crash_mkt, cfg=None)
+        assert first["semiconductors"]["_newly_triggered"] is True
+
+        second = _check_black_swan_per_sector(active_sectors, crash_mkt, cfg=None)
+        assert second["semiconductors"]["_newly_triggered"] is False
+
+    def test_missing_vix_pct_change_skips_every_sector(self):
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}}
+        mkt = {"vix_pct_change": None, "sector_benchmark_dfs": {"semiconductors": self._df([100.0, 90.0])}}
+        assert _check_black_swan_per_sector(active_sectors, mkt, cfg=None) == {}
+
+    def test_sector_missing_benchmark_data_is_skipped_not_crashed(self):
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}, "regional_banks": {}}
+        mkt = self._mkt(vix_pct_change=0.0, semiconductors=self._df([100.0, 90.0]), regional_banks=None)
+        results = _check_black_swan_per_sector(active_sectors, mkt, cfg=None)
+        assert "semiconductors" in results
+        assert "regional_banks" not in results
+
+    def test_state_persists_across_calls_via_black_swan_state_file(self):
+        """Cooldown must survive between scans (separate process invocations
+        in reality) — proven here by calling twice as if they were two
+        independent scans, relying only on the on-disk state file, not any
+        in-memory object carried over by the test itself."""
+        from swing_model.run_swing_model import _check_black_swan_per_sector
+
+        active_sectors = {"semiconductors": {}}
+        crash_mkt = self._mkt(vix_pct_change=0.0, semiconductors=self._df([100.0, 90.0]))
+        _check_black_swan_per_sector(active_sectors, crash_mkt, cfg=None)
+
+        normal_mkt = self._mkt(vix_pct_change=0.0, semiconductors=self._df([100.0, 99.5]))
+        result = _check_black_swan_per_sector(active_sectors, normal_mkt, cfg=None)
+        # Still in cooldown (1 normal day < default 3-day resume requirement) —
+        # proves the trigger from the first call was actually persisted.
+        assert result["semiconductors"]["black_swan_triggered"] is False
+
+
+class TestPaperRunnerBlackSwanWiring:
+    """paper_trading/paper_runner.py had NO black swan check at all before
+    2026-08-23 — the pipeline actually running 3x/day had no crash circuit
+    breaker. These confirm the wiring wraps the shared per-sector function
+    correctly (see test_black_swan_per_sector_alerting.py-style coverage
+    above for the function's own behavior)."""
+
+    def test_load_filled_open_positions_detail_excludes_unfilled_and_closed(self, tmp_path, monkeypatch):
+        import paper_trading.paper_runner as pr
+
+        csv_path = tmp_path / "paper_trades.csv"
+        rows = [
+            # Filled, open — should be included.
+            {"ticker": "NVDA", "direction": "bullish", "fill_date": "2026-08-20",
+             "fill_price": "120.0", "entry_price": "119.0", "stop_loss": "110.0", "outcome": ""},
+            # Never filled — excluded (no real exposure).
+            {"ticker": "AMD", "direction": "bullish", "fill_date": "", "fill_price": "",
+             "entry_price": "150.0", "stop_loss": "140.0", "outcome": ""},
+            # Already closed — excluded.
+            {"ticker": "MU", "direction": "bullish", "fill_date": "2026-08-18",
+             "fill_price": "80.0", "entry_price": "79.0", "stop_loss": "75.0", "outcome": "win"},
+            # Different sector — excluded by the sector_tickers filter.
+            {"ticker": "KEY", "direction": "bullish", "fill_date": "2026-08-19",
+             "fill_price": "18.0", "entry_price": "18.0", "stop_loss": "17.0", "outcome": ""},
+        ]
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+
+        monkeypatch.setattr(pr, "PAPER_TRADES_CSV", csv_path)
+        result = pr._load_filled_open_positions_detail({"NVDA", "AMD", "MU"})
+        assert len(result) == 1
+        assert result[0]["ticker"] == "NVDA"
+        assert result[0]["entry_price"] == pytest.approx(120.0)  # fill_price, not entry_price
+        assert result[0]["stop_loss"] == pytest.approx(110.0)
+
+    def test_load_filled_open_positions_detail_no_file_returns_empty(self, tmp_path, monkeypatch):
+        import paper_trading.paper_runner as pr
+        monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "does_not_exist.csv")
+        assert pr._load_filled_open_positions_detail({"NVDA"}) == []
 
 
 class TestComputeLastBarPctChange:

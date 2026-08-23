@@ -24,6 +24,11 @@ _EMPTY_STATE = {
     "circuit_breaker_state": "normal",     # normal | yellow | orange | red
     "day_trades_rolling_5d": [],           # list of dates of day trades in last 5 trading days
     "consecutive_losses": 0,
+    # black_swan_mode/black_swan_normal_days: vestigial defaults, kept for
+    # schema/backward compatibility. As of 2026-08-23, real black-swan state
+    # is tracked per-sector in data/processed/black_swan_state.json (see
+    # run_swing_model.py::_check_black_swan_per_sector) instead of here — this
+    # file's own two keys are never read or written by that path anymore.
     "black_swan_mode": False,
     "black_swan_normal_days": 0,
     "last_scan_timestamp_utc": None,

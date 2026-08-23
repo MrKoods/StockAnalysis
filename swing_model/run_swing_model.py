@@ -16,13 +16,13 @@ from shared.utils.logger import get_logger, write_audit_entry
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.portfolio_manager import (
     load_position_state, save_position_state,
-    update_circuit_breaker, can_open_new_position, update_black_swan_state,
+    update_circuit_breaker, can_open_new_position,
 )
 from shared.api_clients.market_data_client import (
     fetch_ohlcv_batch, fetch_vix, fetch_vix_pct_change, fetch_treasury_yield, fetch_dxy,
     fetch_earnings_calendar,
 )
-from shared.utils.black_swan_detector import check_black_swan, build_black_swan_alert
+from shared.utils.black_swan_detector import build_black_swan_alert
 from swing_model.position_rescoring import rescore_open_positions
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
 from shared.api_clients.news_client import fetch_news_alpha_vantage, fetch_news_yahoo, fetch_news_finnhub
@@ -161,29 +161,22 @@ def _main_locked(scan_type: str = "post_close") -> None:
     mkt = _fetch_market_context(cfg)
 
     # Black Swan check — advisory only (see black_swan_detector.py's module
-    # docstring): flags an extreme SMH-drop/VIX-spike condition with a Discord
-    # alert and a note on this scan's output, same treatment as the Event
-    # Severity Gate. It does not suspend or veto any signal. Scoped to the
-    # semiconductor benchmark (SMH) specifically, matching the detector's
-    # original design — skipped if that sector isn't active this run.
-    black_swan_result = None
-    if "semiconductors" in active_sectors:
-        smh_df = mkt["sector_benchmark_dfs"].get("semiconductors")
-        smh_pct_change = _compute_last_bar_pct_change(smh_df)
-        if smh_pct_change is not None and mkt.get("vix_pct_change") is not None:
-            black_swan_result = check_black_swan(
-                smh_current_pct_change=smh_pct_change,
-                vix_current_pct_change=mkt["vix_pct_change"],
-                cfg=cfg,
+    # docstring): flags an extreme benchmark-drop/VIX-spike condition with a
+    # Discord alert and a note on this scan's output, same treatment as the
+    # Event Severity Gate. It does not suspend or veto any signal. Per-sector
+    # since 2026-08-23 — see _check_black_swan_per_sector's docstring.
+    black_swan_results = _check_black_swan_per_sector(active_sectors, mkt, cfg)
+    for sector_name, bs_result in black_swan_results.items():
+        if bs_result.pop("_newly_triggered", False):
+            open_positions_for_alert = [
+                p for p in state.get("positions", [])
+                if p.get("open", True) and ticker_sector_map.get(p.get("ticker", "")) == sector_name
+            ]
+            alert_msg = build_black_swan_alert(
+                bs_result["trigger_type"], open_positions_for_alert,
+                bs_result["smh_pct_change"], bs_result["vix_pct_change"],
             )
-            state = update_black_swan_state(state, black_swan_result, cfg=cfg)
-            if state.pop("_black_swan_newly_triggered", False):
-                open_positions_for_alert = [p for p in state.get("positions", []) if p.get("open", True)]
-                alert_msg = build_black_swan_alert(
-                    black_swan_result["trigger_type"], open_positions_for_alert,
-                    black_swan_result["smh_pct_change"], black_swan_result["vix_pct_change"],
-                )
-                _try_send_black_swan_alert(alert_msg)
+            _try_send_black_swan_alert(alert_msg)
 
     # Step 6: Compute regime/rotation/macro/seasonality modifiers PER SECTOR —
     # each sector can be in a different regime at the same time, and (see
@@ -535,9 +528,10 @@ def _main_locked(scan_type: str = "post_close") -> None:
             notes = ""
             if score.get("event_gate_blocked"):
                 notes = f"⚠️ ACTIVE EVENT ALERT — trigger: {score.get('event_gate_trigger')} — review before trading"
-            if black_swan_result and black_swan_result.get("black_swan_triggered"):
+            ticker_bs_result = black_swan_results.get(sector)
+            if ticker_bs_result and ticker_bs_result.get("black_swan_triggered"):
                 bs_note = (
-                    f"🚨 BLACK SWAN CONDITIONS ACTIVE ({black_swan_result.get('trigger_type')}) "
+                    f"🚨 BLACK SWAN CONDITIONS ACTIVE ({ticker_bs_result.get('trigger_type')}) "
                     f"— advisory, review before trading"
                 )
                 notes = f"{notes} | {bs_note}" if notes else bs_note
@@ -1205,6 +1199,59 @@ def _fetch_market_context(cfg: dict) -> dict:
         "dxy_series": dxy_series,
         "ticker_ohlcv": ticker_ohlcv,
     }
+
+
+def _check_black_swan_per_sector(active_sectors: dict, mkt: dict, cfg: dict) -> dict[str, dict]:
+    """
+    Per-sector Black Swan check (2026-08-23, full model audit follow-up):
+    each active sector's OWN benchmark (SMH/KRE/XLV/XLY) checked for a >7%
+    drop, alongside the one shared VIX spike condition, with each sector's
+    trigger/cooldown state tracked independently in black_swan_state.json.
+    Previously this only ever watched SMH regardless of which sectors were
+    actually active — a bank/healthcare/consumer-discretionary-specific
+    crash could have happened with zero detection at all.
+
+    Advisory only, same as before (see black_swan_detector.py's module
+    docstring) — never blocks new signals. Shared between this module and
+    paper_trading/paper_runner.py (which had NO black swan check wired in at
+    all until this same audit pass — the pipeline actually running daily had
+    no crash circuit breaker) so both watch the same real market consistently.
+
+    Returns {sector_name: check_black_swan() result} for sectors with usable
+    data this scan, with an extra "_newly_triggered" bool per entry the
+    caller should pop and act on (build+send its own alert using its own
+    open-positions view — deliberately left to the caller since live and
+    paper track open positions in different, non-interchangeable stores).
+    Persists per-sector state as a side effect; call once per scan.
+    """
+    from shared.utils.black_swan_detector import (
+        check_black_swan, load_black_swan_state, save_black_swan_state,
+    )
+    from swing_model.portfolio_manager import update_black_swan_state
+
+    results: dict[str, dict] = {}
+    vix_pct_change = mkt.get("vix_pct_change")
+    if vix_pct_change is None:
+        return results
+
+    bs_state = load_black_swan_state()
+    for sector_name in active_sectors:
+        bench_df = mkt.get("sector_benchmark_dfs", {}).get(sector_name)
+        bench_pct_change = _compute_last_bar_pct_change(bench_df)
+        if bench_pct_change is None:
+            continue
+        result = check_black_swan(
+            smh_current_pct_change=bench_pct_change,
+            vix_current_pct_change=vix_pct_change,
+            cfg=cfg,
+        )
+        sector_state = update_black_swan_state(bs_state.get(sector_name, {}), result, cfg=cfg)
+        result["_newly_triggered"] = sector_state.pop("_black_swan_newly_triggered", False)
+        bs_state[sector_name] = sector_state
+        results[sector_name] = result
+
+    save_black_swan_state(bs_state)
+    return results
 
 
 def _compute_last_bar_pct_change(df) -> Optional[float]:
