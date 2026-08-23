@@ -10,6 +10,7 @@ import requests
 import shared.utils.logger as logger_module
 import shared.utils.scan_lock as scan_lock_module
 import backtesting.backtest_engine as backtest_engine_module
+import swing_model.feedback_loop as feedback_loop_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -65,6 +66,34 @@ def _isolate_backtest_reports(tmp_path, monkeypatch):
     suite ran.
     """
     monkeypatch.setattr(backtest_engine_module, "_REPORTS_DIR", tmp_path / "reports")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_feedback_loop_files(tmp_path, monkeypatch):
+    """
+    Same class of problem as _isolate_csv_logs, different subsystem:
+    swing_model/feedback_loop.py has 5 of its own real-file defaults
+    (_TRADE_OUTCOMES_FILE, _SIGNAL_WIN_RATES_FILE, _LIVE_WEIGHTS_FILE,
+    _SECTOR_LIVE_WEIGHTS_FILE, _PAPER_TRADES_FILE) that most tests in
+    tests/test_phase14_feedback.py already monkeypatch by hand per-test — but
+    "by hand, in every test" has already failed silently once (see that
+    file's test_result_contains_required_keys docstring: a test that forgot
+    to patch _TRADE_OUTCOMES_FILE/_LIVE_WEIGHTS_FILE overwrote the real
+    production calibrated_weights.json with a governance-bypassing
+    last_calibrated timestamp) and a full-audit pass (2026-08-22) found the
+    real data/logs/trade_outcomes.csv still 285 rows deep in obviously
+    synthetic test data (round $100/$120 prices, blank structure/signal_key,
+    millisecond-apart duplicate rows) — from some other, still-unidentified
+    test path than the one already fixed in place. A blanket autouse default
+    closes the whole class rather than relying on every current and future
+    test remembering its own explicit patch; per-test monkeypatches that
+    already exist are harmless now, not redundant to remove.
+    """
+    monkeypatch.setattr(feedback_loop_module, "_TRADE_OUTCOMES_FILE", tmp_path / "trade_outcomes.csv")
+    monkeypatch.setattr(feedback_loop_module, "_SIGNAL_WIN_RATES_FILE", tmp_path / "signal_win_rates.json")
+    monkeypatch.setattr(feedback_loop_module, "_LIVE_WEIGHTS_FILE", tmp_path / "calibrated_weights.json")
+    monkeypatch.setattr(feedback_loop_module, "_SECTOR_LIVE_WEIGHTS_FILE", tmp_path / "calibrated_weights_by_sector.json")
+    monkeypatch.setattr(feedback_loop_module, "_PAPER_TRADES_FILE", tmp_path / "paper_trades.csv")
 
 
 @pytest.fixture(autouse=True)
