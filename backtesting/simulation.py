@@ -831,7 +831,19 @@ def _simulate_test_signals(
             except Exception:
                 continue
 
-            # Scale to 0-100 so the existing >=90 qualifying threshold applies correctly
+            # Scale to 0-100 so the qualifying-confidence comparison in
+            # backtest_engine.py (against CONFIDENCE_THRESHOLD) operates on the
+            # same 0-100 scale live scoring uses, despite this backtest's raw
+            # score being structurally capped below 100 (positioning fixed at
+            # a neutral midpoint rather than variable; see _BACKTEST_SCORE_MAX
+            # above). NOTE (2026-08-22 full model audit): this rescale's ratio
+            # (100/69) was derived to make the *old* 90-point qualifying
+            # threshold reachable; that threshold is now CONFIDENCE_THRESHOLD
+            # (70, since v2.2.46). Swapping just the comparison value without
+            # re-deriving this ratio was flagged as a real, still-open risk —
+            # the ratio itself was never re-validated against 70, only against
+            # 90. Left as-is pending that re-derivation; treat any backtest
+            # result run after this date with that caveat in mind.
             raw_score = score.get("final_score", 0.0)
             confidence = min(100.0, raw_score * (100.0 / _BACKTEST_SCORE_MAX))
 

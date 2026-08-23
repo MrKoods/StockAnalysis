@@ -1,7 +1,20 @@
 """
 Replays scoring logic against historical data.
 70/30 out-of-sample split; walk-forward validation; per-regime reporting.
-Minimum 100 qualifying trades (confidence 90+, R:R 1:3+) before win rate is valid.
+Minimum 100 qualifying trades (confidence >= CONFIDENCE_THRESHOLD, R:R 1:3+) before win rate is valid.
+
+Qualifying-confidence fix (2026-08-22, full model audit): the qualifying filter
+below used to hardcode `confidence >= 90`, a relic of the original scoring
+design. Live's real gate (swing_model/scoring.py CONFIDENCE_THRESHOLD) was cut
+to 70 in v2.2.46 after 750 real logged scans never once exceeded 79.84 — so
+this backtest had been validating a signal population the live/paper pipeline
+can structurally never produce, silently drifting out of sync with the live
+threshold it exists to test. Now imports CONFIDENCE_THRESHOLD directly so the
+two can't drift apart again. This does NOT by itself revisit
+simulation.py's _BACKTEST_SCORE_MAX rescale (calibrated against the old 90
+target) — see that module's docstring for the still-open follow-up question
+of whether the rescale itself needs re-deriving now that the comparison point
+has moved.
 
 Go-live gate (v2.2.17): pass/fail no longer rests on a flat 80% win rate / 1.8
 avg R:R pair. That combination implied ~1.24R expectancy per trade — far above
@@ -46,6 +59,7 @@ from backtesting.metrics import (
 )
 from backtesting.simulation import _simulate_test_signals, simulate_trade_outcome  # noqa: F401 (simulate_trade_outcome re-exported for tests/test_phase12_backtest.py)
 from backtesting.walk_forward import run_walk_forward
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 
 
 def _backtesting_cfg(config_path: str) -> dict:
@@ -149,7 +163,7 @@ def run_backtest(
 
     Steps:
     1. Split data into train (70%) and test (30%) sets
-    2. Identify all qualifying signals (confidence >= 90, R:R >= 1:3) in test set —
+    2. Identify all qualifying signals (confidence >= CONFIDENCE_THRESHOLD, R:R >= 1:3) in test set —
        NOTE: the train split is currently only used to hold out test data; no weight
        calibration runs against it here. Live weight calibration (technical/sentiment/
        news rebalancing from real trade outcomes) is a separate, opt-in mechanism —
@@ -204,7 +218,7 @@ def run_backtest(
     )
     if not all_dates:
         return {"passed": False, "error": "no_dates", "win_rate": 0.0}
-    qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
+    qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
 
     # Step 5: Metrics
     m = _compute_metrics_bundle(qualifying, starting_equity=15000.0)
@@ -342,7 +356,7 @@ def run_multi_sector_backtest(
 
     per_sector_metrics: dict[str, dict] = {}
     for sector, outcomes in per_sector_outcomes.items():
-        sector_qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= 90]
+        sector_qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
         sm = _compute_metrics_bundle(sector_qualifying, starting_equity=15000.0)
         sector_passed = (
             sm["expectancy_ci"]["ci_lower"] >= min_expectancy_r
@@ -358,7 +372,7 @@ def run_multi_sector_backtest(
             "passed": sector_passed,
         }
 
-    qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= 90]
+    qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
 
     # Especially relevant here vs. the single-sector run_backtest(): this
     # pools outcomes across all 3 sectors, so concurrent positions can now
@@ -412,7 +426,7 @@ def _get_test_outcomes(
     Split historical_data into train/test (70/30 by default) and simulate every
     out-of-sample breakout signal in the test period, unfiltered by confidence.
 
-    Shared by run_backtest() (which filters to >=90) and run_sensitivity_analysis()
+    Shared by run_backtest() (which filters to >=CONFIDENCE_THRESHOLD) and run_sensitivity_analysis()
     (which filters at several thresholds) so both operate on the exact same
     out-of-sample signal set instead of two independently-computed splits that
     could silently drift apart.

@@ -10,15 +10,21 @@ Everything below it (Problem / Fix / Backtest) is the technical detail, for anyo
 ## Where things stand right now
 
 The model has been rebuilt and re-tested many times but has never once passed all the
-requirements to trade real money. The biggest recent milestone: on 2026-08-01, its historical
-performance test passed its own safety bar for the first time ever, after realizing an old
-setting no longer fit how the model has evolved. Several more real bugs were found and fixed
-right after that — mostly things hiding in parts of the model that the historical test can't
-check, because they depend on live, real-time data. A full model audit on 2026-08-19 (v2.2.63)
-found and fixed 17 more real gaps, including one that had been making the historical test's own
-numbers look slightly better than real trading would achieve — the corrected win rate (61.2%,
-down from 63.1%) still clears the safety bar. None of this changes whether the model is allowed
-to trade real money — it still isn't, and won't be until it's approved.
+requirements to trade real money. On 2026-08-01, its historical performance test passed its own
+safety bar for the first time ever, after realizing an old setting no longer fit how the model
+has evolved. A full model audit on 2026-08-19 (v2.2.63) found and fixed 17 more real gaps,
+including one that had been making the historical test's own numbers look slightly better than
+real trading would achieve — the corrected win rate (61.2%, down from 63.1%) still cleared the
+safety bar at the time. **A second full model audit on 2026-08-22 (v2.2.75) found that "clearing
+the safety bar" claim was itself measuring the wrong thing**: the historical test's qualifying
+bar had stayed hardcoded at the model's old 90-point scoring threshold for months after the real,
+live threshold was lowered to 70 — so it had been grading a much easier, hypothetical version of
+the signal rather than the one actually running. Corrected, the same test now says: win rate
+55.9%, and it **no longer clears the safety bar** (the statistical confidence-interval check now
+fails). This is the most consequential correction so far — every prior "passed" milestone was real
+for the population it tested, but that population wasn't the one live/paper trading actually uses.
+None of this changes whether the model is allowed to trade real money — it still isn't, and won't
+be until it's approved.
 
 ## Plain-English glossary
 
@@ -27,7 +33,7 @@ to trade real money — it still isn't, and won't be until it's approved.
 | **Live** | The change is active right now, in the real running system. |
 | **Paper trading** | The model makes real trading decisions using real, live market data — but with fake money. A dry run to prove it works before any real money is at risk. |
 | **Backtest** | Running the strategy against years of *past* stock-market data to see how it would have done, before trusting it with money (real or fake). |
-| **Signal / qualifying trade** | A stock the model considers actually worth trading — it has to score 90 out of 100 or higher. |
+| **Signal / qualifying trade** | A stock the model considers actually worth trading — it has to score 70 out of 100 or higher (lowered from 90 in v2.2.46; see v2.2.75 for the historical-test bug this caused). |
 | **Win rate** | The percentage of trades that ended up profitable. |
 | **Reward:risk (R:R)** | For every $1 a trade risks, how many dollars it's aiming to make. "2:1" means "risk $1 to try to make $2." |
 | **Sharpe ratio** | One number measuring how good the returns are compared to how bumpy the ride was to get them. Higher is better; the model needs at least 1.0 to be allowed to go live. |
@@ -63,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.75 | 2026-08-22 | Backtest Methodology | Full model audit found the go-live backtest's qualifying filter still hardcoded `confidence >= 90`, unchanged since before v2.2.46 lowered live's real threshold to 70 — the backtest had been validating a signal population live trading structurally cannot produce. Fixed to import and use the real `CONFIDENCE_THRESHOLD`. Re-run result: win rate drops 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 — and the corrected number **fails** the go-live gate (expectancy CI lower bound 0.195R, below the 0.3R bar), reversing the prior "passes" status. The rescale that converts backtest's raw (positioning-neutral) score onto a 0-100 scale was calibrated years ago against the old 90 target and was NOT re-derived here — flagged as a real, still-open follow-up, not silently resolved |
 | v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Tier B batch 3 of 3 — the last 21 config keys resolved: wired the 5 scoring_weights category maximums (including the previously-flagged-highest-risk fundamental_max, which turned out to be a simple, safe wire once the rescale ratio was understood correctly), 2 positioning sub-maximums (institutional_max/insider_max — the other 3 stayed hardcoded, since their formulas use fixed literals that wouldn't rescale correctly if wired), 6 genuinely-unenforced modifier_bounds safety clamps, and corrected 5 stale config-vs-code value mismatches to match the validated code (fundamental valuation-premium ladder, EPS-decline breakpoints, walk-forward validation window). confidence.min_threshold's stale value was corrected (90→70) but deliberately left unwired — it gates real trading and is imported directly by 5+ files. Tier B is now closed: 156 config leaf keys, only 2 permanent, reasoned exceptions remain allowlisted |
 | v2.2.73 | 2026-08-19 | Scoring Change / Infrastructure | Tier B, batch 2 of 3: wired 18 of the 41 real config keys queued in batch 1 into the code that used to hardcode them (fundamental EPS/valuation thresholds, positioning ownership/short-interest/analyst thresholds, news decay/clustering windows, backtest train/test split + slippage + walk-forward window, confidence sensitivity grid, backtest max holding period). Every wired default matched its prior hardcoded value exactly, so behavior is unchanged today — editing these in config now actually does something, which it didn't before |
 | v2.2.72 | 2026-08-19 | Infrastructure | Tier B, batch 1 of 3: exhaustively triaged all 109 decorative config keys into "worth wiring into real code" (41) vs. "internal detail/stale doc/duplicate, just remove" (68). Removed the 68 — including a genuine duplicate declaration (positioning's sub-signal maximums existed twice under two different section names) and 3 safety-adjacent items deliberately left as hardcoded, not config-driven, since the config option would have added risk for no real benefit. Zero behavior change (nothing removed was ever read); fixed `app_ui/config_validation.py`'s sum-checks and `README.md`'s config docs, which had gone stale referencing some of what's now removed |
@@ -146,6 +153,73 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.75] — 2026-08-22 — [Backtest Methodology] Go-live gate was testing a signal population live trading can't reach — fixed, and the corrected number fails
+
+**Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
+
+**In short:** A full model audit (strategy + code + live-data review, run in parallel) found that
+`backtesting/backtest_engine.py`'s qualifying filter had been hardcoded at `confidence >= 90` since
+before v2.2.46 lowered the real, live threshold to 70 — and nobody had gone back to update the
+backtest to match. That means every "passes the go-live gate" claim since v2.2.46 was measuring a
+signal population the live/paper pipeline structurally cannot produce (750 real logged scans have
+never exceeded 79.84). Fixed the filter to import the real `CONFIDENCE_THRESHOLD` instead of a
+second, silently-drifting hardcoded copy. Re-running the backtest with the honest threshold: win
+rate 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 (a much
+wider, noisier population, as expected) — and it now **fails** the go-live gate: the bootstrapped
+95% CI lower bound on expectancy is 0.195R, below the required 0.3R (Sharpe 1.67 and max drawdown
+14.96% both still individually clear their own bars). The "passes" status this project has been
+citing since the gate was introduced was real for the population it tested, but that population was
+never the one actually trading.
+
+**Problem:** `backtesting/backtest_engine.py` had `>= 90` hardcoded at three separate qualifying-filter
+call sites (`run_backtest`, and twice in `run_multi_sector_backtest`'s per-sector loop and pooled
+aggregate) — a relic of the model's original scoring design, before `CONFIDENCE_THRESHOLD` was cut
+to 70 in v2.2.46 specifically because live scoring could never reach 90 in practice. Every other
+intentional live/backtest divergence in this codebase is explicitly commented (e.g. `earnings_modifier`
+staying 0.0); this one wasn't — it just silently stopped matching reality the day v2.2.46 shipped, and
+nothing caught it because CI's `check_version_bump.py` only watches `config/swing_config.yaml` and
+`swing_model/scoring.py`, not `backtesting/`.
+
+**Fix:** `backtesting/backtest_engine.py` now imports `CONFIDENCE_THRESHOLD` from `swing_model/scoring.py`
+and uses it at all three qualifying-filter sites, so the two can't drift apart again silently.
+
+**Left open, deliberately not touched here:** `backtesting/simulation.py`'s `_BACKTEST_SCORE_MAX`
+rescale (raw score × 100/69, documented in-place) exists because the backtest's raw score is
+structurally capped below 100 — Positioning is fixed at a neutral midpoint (no historical StockTwits/
+options archive exists), not the live formula's real, variable 0-20. That ratio was derived years ago
+specifically to make the *old* 90-point threshold reachable at all; it was never re-validated against
+70. Swapping only the comparison value without re-deriving the rescale is a real, still-open
+methodological question — plausible in either direction (the rescale could now be too generous, since
+it was tuned to make a much higher bar reachable, or roughly fine, since it's a proportional scale-up
+independent of the comparison point) — flagged here rather than silently resolved. Any backtest number
+from this version forward should be read with that caveat; re-deriving it is real follow-up work, not
+a mechanical next step.
+
+**Backtest (semiconductors, single-sector `run_backtest()`, 70/30 split):**
+
+| Metric | v2.2.74 (bug) | v2.2.75 (fixed) |
+|---|---|---|
+| Passed | **True** | **False** |
+| Win rate | 61.2% | 55.9% |
+| Avg R:R | 1.82 | 1.22 |
+| Sharpe | 2.03 | 1.67 |
+| Expectancy CI lower bound | ≥0.3R (passed) | 0.195R (**fails** 0.3R bar) |
+| Max drawdown | — | 14.96% (passes 15% cap) |
+| Qualifying trades | 152 | 256 |
+| Walk-forward | 2/6 windows pass | 2/6 windows pass (unchanged: 2014-2022 fail, 2022-2026 pass) |
+
+Walk-forward pass/fail pattern is unchanged by this fix — the 2014-2022-fails/2022-2026-passes
+structure the project already knew about (rate-regime hypothesis, CHANGELOG §11-era findings) persists
+at the corrected threshold too. Per-sector and multi-sector pooled numbers (banks/healthcare/consumer
+discretionary) were not re-run in this pass — those already failed their own Sharpe bar independently
+before this fix (v2.2.56 finding) and this change only widens their qualifying population the same way
+it did for semiconductors, so they remain not-passing.
+
+**Approved:** Not applicable — this is a correction to how "passed" is measured, not a request to go
+live. The model remains not eligible for real capital regardless of this result.
 
 ---
 
