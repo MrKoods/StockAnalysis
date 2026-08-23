@@ -3,18 +3,20 @@ Replays scoring logic against historical data.
 70/30 out-of-sample split; walk-forward validation; per-regime reporting.
 Minimum 100 qualifying trades (confidence >= CONFIDENCE_THRESHOLD, R:R 1:3+) before win rate is valid.
 
-Qualifying-confidence fix (2026-08-22, full model audit): the qualifying filter
-below used to hardcode `confidence >= 90`, a relic of the original scoring
-design. Live's real gate (swing_model/scoring.py CONFIDENCE_THRESHOLD) was cut
-to 70 in v2.2.46 after 750 real logged scans never once exceeded 79.84 — so
-this backtest had been validating a signal population the live/paper pipeline
-can structurally never produce, silently drifting out of sync with the live
-threshold it exists to test. Now imports CONFIDENCE_THRESHOLD directly so the
-two can't drift apart again. This does NOT by itself revisit
-simulation.py's _BACKTEST_SCORE_MAX rescale (calibrated against the old 90
-target) — see that module's docstring for the still-open follow-up question
-of whether the rescale itself needs re-deriving now that the comparison point
-has moved.
+Qualifying-confidence fix (2026-08-22, full model audit, v2.2.75): the
+qualifying filter below used to hardcode `confidence >= 90`, a relic of the
+original scoring design. Live's real gate (swing_model/scoring.py
+CONFIDENCE_THRESHOLD) was cut to 70 in v2.2.46 after 750 real logged scans
+never once exceeded 79.84 — so this backtest had been validating a signal
+population the live/paper pipeline can structurally never produce, silently
+drifting out of sync with the live threshold it exists to test. Now imports
+CONFIDENCE_THRESHOLD directly so the two can't drift apart again.
+
+Rescale re-derivation (2026-08-23, v2.2.76): the fix above didn't by itself
+revisit simulation.py's raw-score-to-confidence rescale, which was calibrated
+against the old 90 target — see that module's `_RAW_TO_LIVE_RESCALE_FACTOR`
+docstring for the empirical re-derivation (backtesting/
+raw_score_calibration_diagnostic.py) that replaced it.
 
 Go-live gate (v2.2.17): pass/fail no longer rests on a flat 80% win rate / 1.8
 avg R:R pair. That combination implied ~1.24R expectancy per trade — far above

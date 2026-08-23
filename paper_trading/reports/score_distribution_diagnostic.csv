@@ -1,6 +1,6 @@
 category,max_points,mean_score,mean_pct_of_max,best_ever_score,best_ever_pct_of_max
-technical,40,20.98,0.5245,33.64,0.841
-market_positioning,20,9.98,0.4991,15.03,0.7515
-sentiment,15,7.1,0.4736,15.0,1.0
-news,15,6.82,0.4549,12.82,0.8547
-fundamental,10,5.14,0.514,10.0,1.0
+technical,40,21.71,0.5428,38.06,0.9515
+market_positioning,20,10.7,0.535,17.5,0.875
+sentiment,15,8.26,0.5508,26.11,1.7407
+news,15,6.75,0.4501,12.84,0.856
+fundamental,10,4.94,0.4937,10.0,1.0

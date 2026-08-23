@@ -450,15 +450,34 @@ def _simulate_test_signals(
         "positioning_offline": False, "data_quality": "unavailable",
     }
 
-    # Max achievable raw score with all layers active (5-category system):
-    # technical ≤ 36, positioning fixed at 10 (neutral proxy, not variable),
-    # price-momentum sentiment ≤ 14, real news ≤ 15,
-    # fundamental (avg qualifying tickers, rescaled to the new 10-pt contribution) ≤ 5,
-    # regime +5, seasonality +5 → ~90 theoretical.
-    # Rescaled proportionally from the pre-redesign calibrated value (72/94 ratio) pending
-    # a full Phase 12 re-backtest against real historical Positioning/StockTwits data —
-    # this constant should be re-validated once that data exists, not treated as final.
-    _BACKTEST_SCORE_MAX = 69.0
+    # Empirically-derived rescale (2026-08-23, full model audit follow-up to
+    # v2.2.75): replaces the old `_BACKTEST_SCORE_MAX = 69.0`, a theoretical
+    # sum of category ceilings discounted by a "72/94 ratio" inherited from a
+    # pre-redesign scoring system this codebase no longer has — untraceable to
+    # any current, checkable number, and derived to make the *old* 90-point
+    # threshold reachable, not the real 70 one.
+    #
+    # This instead maps the backtest's own observed raw-score ceiling onto
+    # live/paper trading's own observed real ceiling — both are "the best this
+    # pipeline's current formula has actually produced," which is comparable
+    # even though the two populations aren't (backtest only scores bars that
+    # already passed the trend/RS/RSI candidate filter; live scores every
+    # active ticker on every scan, breakout or not). Derived via
+    # `backtesting/raw_score_calibration_diagnostic.py`, re-run 2026-08-23:
+    #   backtest raw ceiling: 86.17 (n=320 out-of-sample candidate signals)
+    #   live/paper empirical ceiling: 79.84 (n=1,476 real logged scans)
+    #   -> _RAW_TO_LIVE_RESCALE_FACTOR = 79.84 / 86.17 = 0.9265
+    # Notably this is now a scale-DOWN, not the old scale-up — backtest's raw
+    # scores (fed clean, complete indicator data every time) actually run
+    # slightly hotter than live's real-world scores (dragged down by noisy
+    # live data and negative modifiers that happen empirically), the opposite
+    # of what the old "backtest is structurally capped below live" assumption
+    # held. Both ceilings are single max values from finite samples — noisy,
+    # sample-size-sensitive statistics that will drift as more backtest years
+    # and live scan history accumulate. Re-run the diagnostic periodically;
+    # this is the mechanism the old constant's own "should be re-validated"
+    # comment never had.
+    _RAW_TO_LIVE_RESCALE_FACTOR = 0.9265
 
     # Load the archived weekly fundamental snapshots once; each bar looks up the
     # snapshot on or before its own date (see _fundamental_as_of).
@@ -831,21 +850,11 @@ def _simulate_test_signals(
             except Exception:
                 continue
 
-            # Scale to 0-100 so the qualifying-confidence comparison in
-            # backtest_engine.py (against CONFIDENCE_THRESHOLD) operates on the
-            # same 0-100 scale live scoring uses, despite this backtest's raw
-            # score being structurally capped below 100 (positioning fixed at
-            # a neutral midpoint rather than variable; see _BACKTEST_SCORE_MAX
-            # above). NOTE (2026-08-22 full model audit): this rescale's ratio
-            # (100/69) was derived to make the *old* 90-point qualifying
-            # threshold reachable; that threshold is now CONFIDENCE_THRESHOLD
-            # (70, since v2.2.46). Swapping just the comparison value without
-            # re-deriving this ratio was flagged as a real, still-open risk —
-            # the ratio itself was never re-validated against 70, only against
-            # 90. Left as-is pending that re-derivation; treat any backtest
-            # result run after this date with that caveat in mind.
+            # Scale onto the same 0-100 range live scoring uses, via the
+            # empirically-derived _RAW_TO_LIVE_RESCALE_FACTOR above (2026-08-23
+            # re-derivation, replacing the old theoretical-max/90-target ratio).
             raw_score = score.get("final_score", 0.0)
-            confidence = min(100.0, raw_score * (100.0 / _BACKTEST_SCORE_MAX))
+            confidence = min(100.0, raw_score * _RAW_TO_LIVE_RESCALE_FACTOR)
 
             entry = indicators.get("close", 0.0)
             atr = indicators.get("atr_14", entry * 0.02)

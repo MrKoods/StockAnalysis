@@ -36711,3 +36711,26 @@
 2026-08-22 23:14:10,001 [__main__] INFO — Loaded 3395 bars for TSM
 2026-08-22 23:14:10,001 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
 2026-08-22 23:14:47,240 [__main__] INFO — Backtest complete. Passed=False WinRate=55.9% Sharpe=1.67
+2026-08-23 00:32:11,212 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-23 00:32:11,222 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-23 00:32:11,231 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-23 00:32:11,242 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-23 00:32:11,252 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-23 00:32:11,263 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-23 00:32:11,273 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-23 00:34:03,871 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-23 00:34:03,882 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-23 00:34:03,892 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-23 00:34:03,905 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-23 00:34:03,919 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-23 00:34:03,929 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-23 00:34:03,939 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-23 00:35:14,792 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-23 00:35:14,803 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-23 00:35:14,814 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-23 00:35:14,825 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-23 00:35:14,836 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-23 00:35:14,845 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-23 00:35:14,856 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-23 00:35:14,856 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-23 00:35:49,615 [__main__] INFO — Backtest complete. Passed=False WinRate=63.6% Sharpe=0.27

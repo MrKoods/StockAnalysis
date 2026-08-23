@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.76 | 2026-08-23 | Backtest Methodology | Re-derived v2.2.75's still-open rescale question empirically: built `backtesting/raw_score_calibration_diagnostic.py`, which maps the backtest's own observed raw-score ceiling (86.17, n=320 real out-of-sample candidates) onto live/paper trading's own observed ceiling (79.84, n=1,476 real logged scans), replacing a rescale ratio that had been calibrated against the old 90-point threshold with no traceable derivation. Result is a much more consequential change than expected: qualifying trades collapse from 256 to **11** — nowhere near the 100-trade minimum needed to trust any win-rate/Sharpe reading. Still fails the gate, but now on sample-size and Sharpe grounds (Sharpe 0.27, unreliable at n=11) rather than the expectancy-CI shortfall v2.2.75 found; expectancy CI lower bound (0.321R) would actually now clear the 0.3R bar on its own. Read together, v2.2.75 and v2.2.76 show the same underlying problem from two angles: at the model's real, honest 70-point confidence bar, this dataset (13.5 years, one sector) cannot produce a statistically trustworthy backtest verdict either way |
 | v2.2.75 | 2026-08-22 | Backtest Methodology | Full model audit found the go-live backtest's qualifying filter still hardcoded `confidence >= 90`, unchanged since before v2.2.46 lowered live's real threshold to 70 — the backtest had been validating a signal population live trading structurally cannot produce. Fixed to import and use the real `CONFIDENCE_THRESHOLD`. Re-run result: win rate drops 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 — and the corrected number **fails** the go-live gate (expectancy CI lower bound 0.195R, below the 0.3R bar), reversing the prior "passes" status. The rescale that converts backtest's raw (positioning-neutral) score onto a 0-100 scale was calibrated years ago against the old 90 target and was NOT re-derived here — flagged as a real, still-open follow-up, not silently resolved |
 | v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Tier B batch 3 of 3 — the last 21 config keys resolved: wired the 5 scoring_weights category maximums (including the previously-flagged-highest-risk fundamental_max, which turned out to be a simple, safe wire once the rescale ratio was understood correctly), 2 positioning sub-maximums (institutional_max/insider_max — the other 3 stayed hardcoded, since their formulas use fixed literals that wouldn't rescale correctly if wired), 6 genuinely-unenforced modifier_bounds safety clamps, and corrected 5 stale config-vs-code value mismatches to match the validated code (fundamental valuation-premium ladder, EPS-decline breakpoints, walk-forward validation window). confidence.min_threshold's stale value was corrected (90→70) but deliberately left unwired — it gates real trading and is imported directly by 5+ files. Tier B is now closed: 156 config leaf keys, only 2 permanent, reasoned exceptions remain allowlisted |
 | v2.2.73 | 2026-08-19 | Scoring Change / Infrastructure | Tier B, batch 2 of 3: wired 18 of the 41 real config keys queued in batch 1 into the code that used to hardcode them (fundamental EPS/valuation thresholds, positioning ownership/short-interest/analyst thresholds, news decay/clustering windows, backtest train/test split + slippage + walk-forward window, confidence sensitivity grid, backtest max holding period). Every wired default matched its prior hardcoded value exactly, so behavior is unchanged today — editing these in config now actually does something, which it didn't before |
@@ -153,6 +154,72 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.76] — 2026-08-23 — [Backtest Methodology] Re-derived v2.2.75's open rescale question — the honest answer is the dataset can't validate this either way
+
+**Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
+
+**In short:** v2.2.75 fixed the go-live backtest to compare against the real 70-point threshold
+instead of a stale 90, but deliberately left the backtest's raw-score rescale untouched — a
+constant (`_BACKTEST_SCORE_MAX = 69.0`) inherited from a pre-redesign scoring system, calibrated to
+make the *old* 90 target reachable, with no traceable connection to current reality. This entry
+re-derives it from real data instead of theory, and the result reframes the whole question: at the
+real, honest 70-point bar, the semiconductor historical dataset (13.5 years, one sector) simply
+doesn't contain enough qualifying signals to trust a verdict either way — not "fails," not
+"passes," genuinely **not enough data to know**.
+
+**Fix:** Built `backtesting/raw_score_calibration_diagnostic.py` — captures every raw (pre-rescale)
+score the backtest's real replay path produces (by hooking `compute_confidence_score` at its actual
+call site, not re-implementing the candidate filter separately), and compares its ceiling against
+the real live/paper score ceiling pulled from `paper_trading/score_distribution_diagnostic.py`.
+Result: backtest raw ceiling 86.17 (n=320 real out-of-sample candidates, semiconductors) vs. live
+empirical ceiling 79.84 (n=1,476 real logged scans) → rescale factor 0.9265. This *lowers* backtest
+scores slightly rather than inflating them — the old assumption that backtest scores are
+structurally capped below live's didn't hold once measured: backtest gets clean, complete indicator
+data every time, while live's real-world scores get dragged down by noisy live data and negative
+modifiers that happen empirically. Replaced `_BACKTEST_SCORE_MAX`/its inflate-up formula with
+`_RAW_TO_LIVE_RESCALE_FACTOR = 0.9265` in `simulation.py`.
+
+**Result — a genuinely different failure mode, not just a smaller number:**
+
+| Metric | v2.2.75 (threshold fixed, old rescale) | v2.2.76 (rescale re-derived) |
+|---|---|---|
+| Qualifying trades | 256 | **11** |
+| Win rate | 55.9% | 63.6% |
+| Avg R:R | 1.22 | 2.61 |
+| Sharpe | 1.67 | 0.27 (unreliable at n=11) |
+| Expectancy CI lower bound | 0.195R (fails 0.3R bar) | 0.321R (would clear 0.3R alone) |
+| Passed | False (expectancy shortfall) | False (sample size + Sharpe) |
+
+Both numbers fail the go-live gate, but for opposite reasons — v2.2.75's rescale let in a wide,
+noisy population whose *average* edge wasn't strong enough; v2.2.76's rescale is strict enough that
+too few signals exist to say anything statistically. One useful cross-check that the new calibration
+is at least directionally sane: live's real qualification rate is 30/1,476 = 2.0% of *all* scans
+(any ticker, any day); the new backtest calibration finds 11/320 = 3.4% of *already-pre-filtered*
+candidate setups qualify — same order of magnitude, and higher as expected since the backtest
+population was already selected for looking like a real setup. That consistency is reassuring about
+the method; it doesn't change the conclusion that 13.5 years of 6 tickers isn't enough volume of
+genuinely rare (~2-3%) events to validate a threshold this selective.
+
+**What this means, read together with v2.2.75:** the model's real, honest 70-point confidence bar is
+strict enough that this historical dataset — at its current size — cannot produce a statistically
+trustworthy backtest verdict at that exact bar, regardless of exactly how the raw-to-confidence
+rescale is calibrated. That's a materially different, and more fundamental, finding than "the edge
+looks weaker than we thought" — it's "we don't have enough historical volume of confidence-70+
+events to know." Options going forward (not decided here): extend the historical dataset further
+back or to more tickers/sectors to accumulate more qualifying events; validate at a lower,
+diagnostic-only confidence bar and treat 70 as a live-only operating threshold the backtest can't
+directly certify; or accept that this specific validation question can only be answered by
+continued paper trading, not more backtest replay.
+
+**Fix:** `backtesting/simulation.py` (`_RAW_TO_LIVE_RESCALE_FACTOR` replaces `_BACKTEST_SCORE_MAX`),
+`backtesting/backtest_engine.py` (docstring update), new `backtesting/raw_score_calibration_diagnostic.py`.
+1351/1351 tests pass — no test asserted the old constant's specific value.
+
+**Approved:** Not applicable — this changes how "passed" is measured, not a request to go live. The
+model remains not eligible for real capital regardless of this result.
 
 ---
 
