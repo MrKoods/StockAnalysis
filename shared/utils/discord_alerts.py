@@ -354,6 +354,86 @@ def send_calibration_alert(result: dict) -> bool:
     return _post_to_webhook({"embeds": [embed]})
 
 
+def send_weekly_summary_alert(summary: dict, model_version: str = "v1.0.0") -> bool:
+    """
+    Weekly performance dashboard (2026-08-23 full model audit): the docstring
+    of monitoring/performance_dashboard.py::generate_weekly_summary() has
+    long claimed it "generates weekly performance summary and send[s] to
+    Discord" — it never actually sent anything, and the audit separately
+    found the function itself had no scheduled caller at all, so this safety
+    mechanism (a review alert when the rolling win rate drops below 70%) was
+    completely dormant. This is the actual send, called from
+    generate_weekly_summary() every time it runs, not just on trigger — a
+    silent weekly dashboard is easy to forget exists; a weekly Discord post
+    is not.
+
+    summary: the dict returned by generate_weekly_summary(). Both the
+    "no_data"/"no_trades" early-return shape and the full "ok" shape are
+    handled — go_live_gate/signal_accuracy are populated from
+    paper_trades.csv (the system that's actually running) in both cases,
+    since only the trade_outcomes.csv-derived win-rate stats depend on which
+    branch generate_weekly_summary() took.
+    """
+    status = summary.get("status", "unknown")
+    review_triggered = bool(summary.get("review_triggered", False))
+    gate = summary.get("go_live_gate", {})
+    accuracy = summary.get("signal_accuracy", {})
+
+    fields = [
+        {"name": "Go-Live Gate", "value": (
+            f"{'✅ PASS' if gate.get('overall_pass') else '❌ FAIL'} "
+            f"(data: {gate.get('data_status', 'unknown')})"
+            + (f" — {', '.join(gate['failures'])}" if gate.get("failures") else "")
+        ), "inline": False},
+    ]
+
+    if status == "ok":
+        fields.extend([
+            {"name": "Win Rate (last 10 / 20 / 50)", "value": (
+                f"{summary.get('win_rate_10', 0):.0%} / "
+                f"{summary.get('win_rate_20', 0):.0%} / "
+                f"{summary.get('win_rate_50', 0):.0%}"
+            ), "inline": True},
+            {"name": "Avg R:R (last 20)", "value": f"{summary.get('avg_rr_20', 0):.2f}", "inline": True},
+            {"name": "Peak-to-Trough Drawdown", "value": f"{summary.get('peak_to_trough_pct', 0):.1f}%", "inline": True},
+            {"name": "Total Trades Logged", "value": str(summary.get("total_trades", 0)), "inline": True},
+        ])
+    else:
+        fields.append({
+            "name": "Win-Rate Trend",
+            "value": f"Not enough closed trade history yet ({status}) — see Signal Accuracy below instead.",
+            "inline": False,
+        })
+
+    if accuracy.get("status") == "error":
+        fields.append({
+            "name": "Signal Accuracy",
+            "value": f"Could not compute ({accuracy.get('message', 'unknown error')})",
+            "inline": False,
+        })
+    elif accuracy.get("total_closed", 0) > 0:
+        fields.append({
+            "name": "Signal Accuracy (all closed signals, funded or not)",
+            "value": (
+                f"{accuracy['total_closed']} closed — "
+                f"win rate {accuracy.get('win_rate_all', 0):.0%} overall "
+                f"({accuracy.get('win_rate_funded', 0):.0%} funded / "
+                f"{accuracy.get('win_rate_unfunded', 0):.0%} unfunded, "
+                f"{accuracy.get('funded_count', 0)}/{accuracy.get('unfunded_count', 0)} split)"
+            ),
+            "inline": False,
+        })
+
+    embed = {
+        "title": f"{'🔻 WEEKLY REVIEW — WIN RATE BELOW THRESHOLD' if review_triggered else '📊 WEEKLY PERFORMANCE SUMMARY'}",
+        "color": _COLORS["red"] if review_triggered else _COLORS["blue"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": fields,
+        "footer": {"text": f"StockAnalysis {model_version} — paper trading, no real capital at risk"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
 def send_circuit_breaker_alert(level: str, account_equity: float, peak_equity: float) -> bool:
     """🟡/🟠/🔴 Circuit breaker alert (Yellow/Orange/Red)."""
     emoji = {"yellow": "🟡", "orange": "🟠", "red": "🔴"}.get(level, "⚠️")

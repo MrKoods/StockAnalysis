@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: the weekly performance dashboard (`monitoring/performance_dashboard.py::generate_weekly_summary()`) had two real gaps — its own docstring claimed it "sends to Discord" but never actually did, and nothing outside tests ever called it at all, so this safety mechanism (a review alert when the rolling 20-trade win rate drops below 70%) was completely dormant. Both fixed: a real Discord send (new `send_weekly_summary_alert`) fires every run, and a new `StockAnalysis_WeeklyDashboard` Windows scheduled task (Sundays 6pm local, same pattern as the existing paper-trading scan tasks) actually calls it now. Caught and fixed a live instance of the exact class of bug v2.2.77 just addressed elsewhere: the new tests for this immediately wrote synthetic rows into the real `data/logs/performance_log.csv` because that file's path constant wasn't isolated in `conftest.py` — added the isolation fixture and cleaned up the 2 polluted rows before they could distort any future read of that file |
 | v2.2.78 | 2026-08-23 | Feature | Full model audit follow-up: paper trading now flags cross-sector directional concentration — advisory only, by explicit product decision (paper trading deliberately logs every qualifying signal unconstrained by portfolio limits, so it can observe the full universe of what would have qualified; a real user decision point during this session confirmed that design should stay intact). Before logging a new signal, sums net directional exposure (risk_pct signed by direction) across ALL open positions in every active sector using portfolio_manager.py's existing `get_portfolio_delta()`/1.5% threshold (previously only reachable via the unused live path) — if the new signal would push it past that threshold, appends a note to the existing `sizing_note` field (already reaches both the CSV ledger and the Discord alert), same "advisory, review before acting" treatment as Black Swan and the Event Gate. Never skips logging or resizes the signal |
 | v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: (1) isolated feedback_loop.py's 5 real-file defaults in tests (conftest.py autouse fixture) after finding `data/logs/trade_outcomes.csv` 285 rows deep in test-generated pollution — cleaned it and `signal_win_rates.json` back to empty, since no version has ever gone live to write real rows there; (2) gave `paper_trading/paper_runner.py` — the pipeline actually running 3x/day — a real Black Swan crash circuit breaker for the first time; previously only `run_swing_model.py` (which has never actually run live) had one, and even that was hardcoded to watch SMH only regardless of which sectors were active. New shared `_check_black_swan_per_sector()` checks every active sector's own benchmark (SMH/KRE/XLV/XLY) independently, with per-sector cooldown state in new `data/processed/black_swan_state.json`. Advisory only, unchanged — still never blocks a signal, only alerts |
 | v2.2.76 | 2026-08-23 | Backtest Methodology | Re-derived v2.2.75's still-open rescale question empirically: built `backtesting/raw_score_calibration_diagnostic.py`, which maps the backtest's own observed raw-score ceiling (86.17, n=320 real out-of-sample candidates) onto live/paper trading's own observed ceiling (79.84, n=1,476 real logged scans), replacing a rescale ratio that had been calibrated against the old 90-point threshold with no traceable derivation. Result is a much more consequential change than expected: qualifying trades collapse from 256 to **11** — nowhere near the 100-trade minimum needed to trust any win-rate/Sharpe reading. Still fails the gate, but now on sample-size and Sharpe grounds (Sharpe 0.27, unreliable at n=11) rather than the expectancy-CI shortfall v2.2.75 found; expectancy CI lower bound (0.321R) would actually now clear the 0.3R bar on its own. Read together, v2.2.75 and v2.2.76 show the same underlying problem from two angles: at the model's real, honest 70-point confidence bar, this dataset (13.5 years, one sector) cannot produce a statistically trustworthy backtest verdict either way |
@@ -156,6 +157,48 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.79] — 2026-08-23 — [Bug Fix / Feature / Infrastructure] The weekly review alert was completely dormant — a docstring that was never true, plus no scheduler. Both fixed
+
+**Status:** Live.
+
+**In short:** `monitoring/performance_dashboard.py::generate_weekly_summary()`'s docstring has read
+"Generate weekly performance summary and send to Discord" for a long time. It never sent anything —
+no code path in the module called any Discord function. Separately, nothing outside the test suite
+ever called `generate_weekly_summary()` at all, confirmed by checking this machine's real Windows
+Task Scheduler entries (only the 3 paper-trading scan tasks + the updater existed). The one safety
+mechanism this module documents — an automatic review alert when the rolling 20-trade win rate drops
+below 70% — has been fully dormant this whole time.
+
+**Fix:** Added `shared/utils/discord_alerts.py::send_weekly_summary_alert()` (go-live gate status,
+win-rate/R:R/drawdown when real trade history exists, signal accuracy from real paper-trading fills
+either way) and wired it into every return path of `generate_weekly_summary()` via a new
+`_try_send_weekly_summary()` best-effort wrapper (same pattern as every other `_try_send_*` in this
+codebase — a Discord/network failure logs and moves on, never blocks the computed summary or its CSV
+log entry). New `send_alert: bool = True` parameter lets a caller skip the post if it only wants the
+dict. Created a real Windows scheduled task, `StockAnalysis_WeeklyDashboard` (Sundays 6pm local),
+running `python -m monitoring.performance_dashboard` — same command/log-redirect pattern as the
+existing `StockAnalysis_PaperRunner*`/`StockAnalysis_PaperUpdater` tasks, confirmed against their
+real configuration before creating this one.
+
+**A live instance of v2.2.77's exact bug class, caught immediately:** writing the tests for this fix
+wrote 2 synthetic rows straight into the real `data/logs/performance_log.csv` — `log_performance_entry()`'s
+`_PERFORMANCE_LOG` path constant wasn't isolated in `conftest.py`, the same class of gap just fixed
+for `feedback_loop.py`'s 5 constants one version earlier. Added the fixture, cleaned up the 2 rows.
+Notable precisely because it happened in the same session as the fix it repeats — this class of bug
+is evidently easy to reintroduce one file at a time rather than something a single sweep closes for good.
+
+**Fix:** `monitoring/performance_dashboard.py`, `shared/utils/discord_alerts.py`, `tests/conftest.py`
+(new `_isolate_performance_log` fixture), `data/logs/performance_log.csv` (cleaned). New
+`tests/test_weekly_summary_wiring.py` + additions to `tests/test_discord_alerts.py`. A real
+`StockAnalysis_WeeklyDashboard` Windows scheduled task now exists on this machine (not
+version-controlled — Task Scheduler state, not a repo file). 1370+/1370+ tests pass.
+
+**Backtest:** Not applicable — no scoring/threshold change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

@@ -14,6 +14,7 @@ from typing import Optional
 
 
 from shared.utils.logger import get_logger
+from shared.utils.discord_alerts import send_weekly_summary_alert
 from paper_trading.paper_trade_metrics import (
     evaluate_paper_trading_pass,
     load_paper_trade_gate_inputs,
@@ -33,10 +34,37 @@ _PERF_LOG_COLUMNS = [
 ]
 
 
+def _get_model_version_safe() -> str:
+    """Best-effort model version for the weekly Discord footer — same
+    reasoning as _compute_go_live_gate_summary: a malformed/missing
+    CHANGELOG.md shouldn't take down the rest of the weekly summary."""
+    try:
+        from swing_model.run_swing_model import get_model_version
+        return get_model_version()
+    except Exception as exc:
+        logger.warning(f"Could not resolve model version for weekly summary: {exc}")
+        return "unknown"
+
+
+def _try_send_weekly_summary(summary: dict, model_version: str) -> None:
+    """
+    Best-effort Discord send, same pattern as every other _try_send_* alert
+    wrapper in this codebase (e.g. run_swing_model.py's
+    _try_send_black_swan_alert) — a Discord/network failure logs and moves
+    on, it must never take down the weekly summary computation or its CSV
+    log entry, both of which already happened before this is called.
+    """
+    try:
+        send_weekly_summary_alert(summary, model_version=model_version)
+    except Exception as exc:
+        logger.error(f"Weekly summary Discord send failed: {exc}")
+
+
 def generate_weekly_summary(
     trade_outcomes_path: str = "data/logs/trade_outcomes.csv",
     cfg: Optional[dict] = None,
     paper_trades_path: Optional[Path] = None,
+    send_alert: bool = True,
 ) -> dict:
     """
     Generate weekly performance summary and send to Discord.
@@ -51,6 +79,19 @@ def generate_weekly_summary(
 
     Returns summary dict (including go_live_gate — see _compute_go_live_gate_summary)
     and logs to performance_log.csv.
+
+    send_alert: set False to skip the Discord post (e.g. a caller that only
+    wants the computed dict, or a test exercising this directly rather than
+    through the tests/conftest.py-blocked requests.post path).
+
+    2026-08-23 full model audit: this docstring's "and send to Discord" claim
+    predates any code that actually did so — generate_weekly_summary() had no
+    scheduled caller at all (this safety mechanism, a review alert when the
+    rolling win rate drops below 70%, was completely dormant) and even a
+    manual run never posted anything. Both fixed now: a real Discord send
+    (shared/utils/discord_alerts.py::send_weekly_summary_alert) fires on
+    every call unless send_alert=False, and a new weekly scheduled task
+    (StockAnalysis_WeeklyDashboard, Sundays 6pm local) actually calls this.
     """
     # Independent of trade_outcomes_path/rows below — both the go-live gate
     # and the signal-accuracy view read paper_trading/paper_trades.csv (the
@@ -59,10 +100,11 @@ def generate_weekly_summary(
     # live) — see load_paper_trade_gate_inputs/compute_signal_accuracy.
     go_live_gate = _compute_go_live_gate_summary(paper_trades_path)
     signal_accuracy = _compute_signal_accuracy_summary(paper_trades_path)
+    model_version = _get_model_version_safe()
 
     path = Path(trade_outcomes_path)
     if not path.exists():
-        return {
+        summary = {
             "status": "no_data",
             "win_rate_10": 0.0,
             "win_rate_20": 0.0,
@@ -74,6 +116,9 @@ def generate_weekly_summary(
             "go_live_gate": go_live_gate,
             "signal_accuracy": signal_accuracy,
         }
+        if send_alert:
+            _try_send_weekly_summary(summary, model_version)
+        return summary
 
     try:
         with open(path, newline="", encoding="utf-8") as f:
@@ -83,7 +128,7 @@ def generate_weekly_summary(
         return {"status": "error", "message": str(exc), "go_live_gate": go_live_gate, "signal_accuracy": signal_accuracy}
 
     if not rows:
-        return {
+        summary = {
             "status": "no_trades",
             "win_rate_10": 0.0, "win_rate_20": 0.0, "win_rate_50": 0.0,
             "avg_rr_20": 0.0, "peak_to_trough_pct": 0.0,
@@ -91,6 +136,9 @@ def generate_weekly_summary(
             "go_live_gate": go_live_gate,
             "signal_accuracy": signal_accuracy,
         }
+        if send_alert:
+            _try_send_weekly_summary(summary, model_version)
+        return summary
 
     # Rolling win rates
     win_rate_10 = _rolling_win_rate(rows, 10)
@@ -139,6 +187,9 @@ def generate_weekly_summary(
             f"PERFORMANCE REVIEW TRIGGERED: 20-trade win rate {win_rate_20:.1%} "
             f"< {_REVIEW_TRIGGER_WIN_RATE:.0%} threshold"
         )
+
+    if send_alert:
+        _try_send_weekly_summary(summary, model_version)
 
     return summary
 
@@ -275,10 +326,10 @@ def _ev_accuracy_by_structure(rows: list[dict]) -> dict:
 
 
 if __name__ == "__main__":
-    # generate_weekly_summary() has no scheduled/cron caller yet (confirmed:
-    # nothing outside tests calls it) — this lets the go-live gate status
-    # (and the rest of the summary) actually be checked on demand rather than
-    # only via test coverage.
+    # Real caller as of 2026-08-23: the StockAnalysis_WeeklyDashboard
+    # scheduled task runs this module weekly (Sundays 6pm local). Also
+    # runnable on demand (e.g. `python -m monitoring.performance_dashboard`)
+    # to check the go-live gate status without waiting for Sunday.
     result = generate_weekly_summary()
     print(f"\nPerformance summary — status: {result.get('status')}\n")
 

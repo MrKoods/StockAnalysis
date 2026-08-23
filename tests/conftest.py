@@ -12,6 +12,7 @@ import shared.utils.scan_lock as scan_lock_module
 import backtesting.backtest_engine as backtest_engine_module
 import swing_model.feedback_loop as feedback_loop_module
 import shared.utils.black_swan_detector as black_swan_detector_module
+import monitoring.performance_dashboard as performance_dashboard_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -108,6 +109,19 @@ def _isolate_black_swan_state(tmp_path, monkeypatch):
     "black swan triggered" episode into the real state file.
     """
     monkeypatch.setattr(black_swan_detector_module, "_STATE_FILE", tmp_path / "black_swan_state.json")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_performance_log(tmp_path, monkeypatch):
+    """
+    Same class of problem, caught live while adding the fix above:
+    monitoring/performance_dashboard.py's log_performance_entry() defaults to
+    the real data/logs/performance_log.csv. Writing tests/test_weekly_summary_
+    wiring.py without this fixture immediately wrote 2 synthetic rows into
+    the real file — proof this class of bug is still easy to reintroduce
+    even right after fixing the last instance of it, not just a one-off.
+    """
+    monkeypatch.setattr(performance_dashboard_module, "_PERFORMANCE_LOG", tmp_path / "performance_log.csv")
 
 
 @pytest.fixture(autouse=True)

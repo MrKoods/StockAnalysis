@@ -21,6 +21,7 @@ from shared.utils.discord_alerts import (
     send_paper_signal_alert,
     send_trade_alert,
     send_near_miss_alert,
+    send_weekly_summary_alert,
     _extract_score_breakdown,
     _format_score_breakdown,
 )
@@ -41,6 +42,85 @@ def _fake_webhook(monkeypatch):
     import requests
     monkeypatch.setattr(requests, "post", _fake_post)
     return posted
+
+
+class TestSendWeeklySummaryAlert:
+    """
+    2026-08-23 full model audit: generate_weekly_summary()'s docstring long
+    claimed it "sends to Discord" but never actually did, and had no
+    scheduled caller either — this safety mechanism (a review alert when the
+    rolling 20-trade win rate drops below 70%) was completely dormant. These
+    cover the actual send, handling both the "ok" (real trade_outcomes.csv
+    history exists) and "no_data"/"no_trades" (go_live_gate/signal_accuracy
+    still populated from paper_trades.csv either way) summary shapes.
+    """
+
+    def test_posts_ok_summary_with_win_rate_fields(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        summary = {
+            "status": "ok",
+            "total_trades": 42,
+            "win_rate_10": 0.6, "win_rate_20": 0.55, "win_rate_50": 0.52,
+            "avg_rr_20": 1.8, "peak_to_trough_pct": 4.2,
+            "review_triggered": False,
+            "go_live_gate": {"overall_pass": False, "data_status": "insufficient_trades", "failures": ["only_11_trading_days_need_60"]},
+            "signal_accuracy": {"total_closed": 2, "funded_count": 2, "unfunded_count": 0,
+                                 "win_rate_all": 0.5, "win_rate_funded": 0.5, "win_rate_unfunded": 0.0},
+        }
+        result = send_weekly_summary_alert(summary, model_version="v2.2.78")
+        assert result is True
+        embed = posted["json"]["embeds"][0]
+        assert "WEEKLY PERFORMANCE SUMMARY" in embed["title"]
+        field_names = [f["name"] for f in embed["fields"]]
+        assert "Win Rate (last 10 / 20 / 50)" in field_names
+        assert "Go-Live Gate" in field_names
+
+    def test_review_triggered_changes_title_and_color_to_red(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        summary = {
+            "status": "ok", "total_trades": 25,
+            "win_rate_10": 0.4, "win_rate_20": 0.45, "win_rate_50": 0.5,
+            "avg_rr_20": 1.2, "peak_to_trough_pct": 9.0,
+            "review_triggered": True,
+            "go_live_gate": {"overall_pass": False, "data_status": "evaluated", "failures": []},
+            "signal_accuracy": {"total_closed": 25, "funded_count": 20, "unfunded_count": 5,
+                                 "win_rate_all": 0.45, "win_rate_funded": 0.45, "win_rate_unfunded": 0.4},
+        }
+        result = send_weekly_summary_alert(summary, model_version="v2.2.78")
+        assert result is True
+        embed = posted["json"]["embeds"][0]
+        assert "WEEKLY REVIEW" in embed["title"]
+        assert embed["color"] == 0xFF4444  # _COLORS["red"]
+
+    def test_no_data_summary_still_posts_go_live_gate(self, monkeypatch):
+        """The early-return "no_data" shape (no trade_outcomes.csv rows yet)
+        must not crash the send or silently omit go_live_gate/signal_accuracy
+        — those are populated from paper_trades.csv independent of that file."""
+        posted = _fake_webhook(monkeypatch)
+        summary = {
+            "status": "no_data",
+            "win_rate_10": 0.0, "win_rate_20": 0.0, "win_rate_50": 0.0,
+            "avg_rr_20": 0.0, "peak_to_trough_pct": 0.0,
+            "total_trades": 0, "review_triggered": False,
+            "go_live_gate": {"overall_pass": False, "data_status": "insufficient_trades", "failures": ["insufficient_trade_data_2_below_30"]},
+            "signal_accuracy": {"total_closed": 2, "funded_count": 2, "unfunded_count": 0,
+                                 "win_rate_all": 0.5, "win_rate_funded": 0.5, "win_rate_unfunded": 0.0},
+        }
+        result = send_weekly_summary_alert(summary, model_version="v2.2.78")
+        assert result is True
+        embed = posted["json"]["embeds"][0]
+        field_names = [f["name"] for f in embed["fields"]]
+        assert "Go-Live Gate" in field_names
+        assert "Win-Rate Trend" in field_names  # not the win-rate-numbers field
+        assert "Win Rate (last 10 / 20 / 50)" not in field_names
+
+    def test_no_webhook_configured_returns_false(self, monkeypatch):
+        monkeypatch.delenv("DISCORD_WEBHOOK_URL", raising=False)
+        summary = {
+            "status": "no_data", "total_trades": 0, "review_triggered": False,
+            "go_live_gate": {}, "signal_accuracy": {},
+        }
+        assert send_weekly_summary_alert(summary) is False
 
 
 class TestSendCalibrationAlert:
