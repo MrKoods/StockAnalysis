@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.81 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: the mark-to-market/dollar-risk-basis code shipped 2026-08-22 (commit c6e0d1b — open-position `mark_price`/`mark_date`/`unrealized_rr`/`unrealized_pnl_dollars`, and re-anchoring `actual_dollar_risk` to the real fill price for shares positions after a real ~30% drift bug) had zero test coverage, flagged as the single highest-risk untested code in the repo by the audit. New `tests/test_paper_updater_mark_to_market.py` (14 tests) covers both pieces end to end via the real `update_paper_trades()`: bullish/bearish mark-to-market sign handling, a degenerate zero-risk-per-R case, missing/blank dollar-risk fallback, the fill-price re-anchor for shares vs. options position types, zero shares, and a malformed `position_size` failing safe — plus direct unit tests for `_fmt_dollars`' negative-zero collapse |
 | v2.2.80 | 2026-08-23 | Infrastructure | Full model audit follow-up, performance: `run_pipeline()` (period="6mo") and `_fetch_market_context()` (period="3mo") both called `fetch_ohlcv_batch()` for a heavily-overlapping ticker set seconds apart in the same scan — roughly doubling yfinance call volume every run across 4 sectors, 3x/day. Added a process-lifetime cache to `fetch_ohlcv_batch()` (safe by construction: both pipelines launch as a fresh process per scheduled scan, so the cache can't go stale within a run or leak into the next one) — a ticker already fetched at an equal-or-longer period this scan is served from cache instead of re-fetched. Separately, `fetch_vix()`/`fetch_vix_pct_change()` were called independently by the same function for data that's a strict subset of one another — new `fetch_vix_and_pct_change()` does one `yf.download("^VIX")` call instead of two. 23 new tests |
 | v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: the weekly performance dashboard (`monitoring/performance_dashboard.py::generate_weekly_summary()`) had two real gaps — its own docstring claimed it "sends to Discord" but never actually did, and nothing outside tests ever called it at all, so this safety mechanism (a review alert when the rolling 20-trade win rate drops below 70%) was completely dormant. Both fixed: a real Discord send (new `send_weekly_summary_alert`) fires every run, and a new `StockAnalysis_WeeklyDashboard` Windows scheduled task (Sundays 6pm local, same pattern as the existing paper-trading scan tasks) actually calls it now. Caught and fixed a live instance of the exact class of bug v2.2.77 just addressed elsewhere: the new tests for this immediately wrote synthetic rows into the real `data/logs/performance_log.csv` because that file's path constant wasn't isolated in `conftest.py` — added the isolation fixture and cleaned up the 2 polluted rows before they could distort any future read of that file |
 | v2.2.78 | 2026-08-23 | Feature | Full model audit follow-up: paper trading now flags cross-sector directional concentration — advisory only, by explicit product decision (paper trading deliberately logs every qualifying signal unconstrained by portfolio limits, so it can observe the full universe of what would have qualified; a real user decision point during this session confirmed that design should stay intact). Before logging a new signal, sums net directional exposure (risk_pct signed by direction) across ALL open positions in every active sector using portfolio_manager.py's existing `get_portfolio_delta()`/1.5% threshold (previously only reachable via the unused live path) — if the new signal would push it past that threshold, appends a note to the existing `sizing_note` field (already reaches both the CSV ledger and the Discord alert), same "advisory, review before acting" treatment as Black Swan and the Event Gate. Never skips logging or resizes the signal |
@@ -158,6 +159,44 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.81] — 2026-08-23 — [Infrastructure] Test coverage for yesterday's mark-to-market fix — the audit's top code-quality finding
+
+**Status:** Live.
+
+**In short:** The code-quality pass of the full model audit flagged commit `c6e0d1b` (2026-08-22 —
+added open-position mark-to-market P&L tracking, fixed a real ~30% dollar-risk drift bug) as "the
+single highest-risk piece of untested code in the repo right now": new, fixes a real bug, touches a
+$-figure the audit trail depends on, and shipped with zero tests. Closed that gap.
+
+**Coverage added**, all exercised via the real `update_paper_trades()` end to end (not a re-derived
+parallel implementation — mocked `_download_ohlcv`/`fetch_next_earnings_date`, isolated CSV/lock
+paths, same fixture pattern already used by `tests/test_paper_trades_csv_race.py`):
+
+- Mark-to-market for a still-open position: bullish gain, bearish gain (sign flips correctly),
+  bearish adverse move (negative unrealized R), a degenerate zero-risk-per-R case (entry price ==
+  stop loss — must not divide by zero), missing/blank `actual_dollar_risk` (must leave
+  `unrealized_pnl_dollars` blank, not `"0.00"` or a crash), and the fallback to `dollar_risk` when
+  `actual_dollar_risk` is blank.
+- The fill-price re-anchor itself: a shares position that gaps through its entry zone re-anchors
+  `actual_dollar_risk` to `shares × |real_fill_price − stop_loss|`, not the stale signal-time
+  midpoint-based value; an options position's `actual_dollar_risk` (a defined max-loss figure) is
+  confirmed untouched by the same code path; zero shares skips the re-anchor entirely; a malformed
+  `position_size` (a future drift the code already guards with `except ValueError: pass`) fails safe
+  — the fill still confirms, the stale value is simply kept, and the whole run doesn't crash.
+- Direct unit tests for `_fmt_dollars`, including the exact real scenario its negative-zero collapse
+  exists for (a negative R-multiple × a `$0` `actual_dollar_risk`, IEEE `-0.0`).
+
+**Fix:** New `tests/test_paper_updater_mark_to_market.py` (14 tests). No production code changed —
+this is coverage for already-shipped, already-live behavior. All tests pass against the current
+implementation; none needed a code fix to pass, confirming the original commit's logic was correct,
+just unverified until now.
+
+**Backtest:** Not applicable — test-only change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 
