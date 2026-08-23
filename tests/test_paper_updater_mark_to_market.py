@@ -205,19 +205,22 @@ class TestFillPriceReanchor:
         trade = _run_with_bars(bars, monkeypatch)
         assert trade["actual_dollar_risk"] == "0.00"  # untouched, not recomputed off 0 shares
 
-    def test_malformed_position_size_does_not_crash_the_run(self, monkeypatch):
+    def test_malformed_position_size_does_not_crash_the_run(self, monkeypatch, caplog):
         """Today position_size is always a plain int string — this proves a
         future drift (e.g. a float-formatted string) fails safe rather than
-        crashing the whole update run."""
+        crashing the whole update run, and now logs a warning instead of
+        silently keeping the stale value with no trace of why."""
         pr._append_row(_row(
             direction="bullish", entry_price="102.00", stop_loss="95.00", target="130.00",
             entry_zone_lower="101.00", entry_zone_upper="103.00",
             position_type="shares", position_size="not_a_number", actual_dollar_risk="70.00",
         ))
         bars = _bars([("2026-08-11", 104, 106, 103.5, 105)])
-        trade = _run_with_bars(bars, monkeypatch)
+        with caplog.at_level("WARNING"):
+            trade = _run_with_bars(bars, monkeypatch)
         assert trade["fill_price"] == "104.00"  # fill itself still confirmed
         assert trade["actual_dollar_risk"] == "70.00"  # re-anchor silently no-ops, original value kept
+        assert any("position_size" in rec.message and "re-anchor skipped" in rec.message for rec in caplog.records)
 
 
 class TestFmtDollars:

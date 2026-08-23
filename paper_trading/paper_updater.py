@@ -599,7 +599,18 @@ def update_paper_trades() -> int:
                         if shares > 0:
                             trade["actual_dollar_risk"] = f"{shares * abs(pnl_entry_price - stop_loss):.2f}"
                     except ValueError:
-                        pass
+                        # position_size is always written as str(int) today
+                        # (position_sizer.py's contracts_or_shares) — this
+                        # branch shouldn't currently fire. If that invariant
+                        # ever drifts (e.g. a float-formatted string), fail
+                        # visibly rather than silently keeping the stale
+                        # signal-time actual_dollar_risk with no trace of why
+                        # (2026-08-23 full model audit finding).
+                        logger.warning(
+                            f"{ticker} {signal_date}: position_size "
+                            f"{trade.get('position_size')!r} isn't a plain int — "
+                            f"actual_dollar_risk re-anchor skipped, stale value kept"
+                        )
 
                 try:
                     send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"])

@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.82 | 2026-08-23 | Bug Fix | Full model audit follow-up: `paper_updater.py`'s fill-price `actual_dollar_risk` re-anchor silently no-opped on a malformed `position_size` (`except ValueError: pass`) — harmless today (`position_size` is always written as `str(int)`), but a future drift would have silently reintroduced the exact dollar-risk-basis-drift bug fixed 2026-08-22 for just that one trade, with no trace of why. Now logs a warning instead. Test added alongside v2.2.81's mark-to-market coverage |
 | v2.2.81 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: the mark-to-market/dollar-risk-basis code shipped 2026-08-22 (commit c6e0d1b — open-position `mark_price`/`mark_date`/`unrealized_rr`/`unrealized_pnl_dollars`, and re-anchoring `actual_dollar_risk` to the real fill price for shares positions after a real ~30% drift bug) had zero test coverage, flagged as the single highest-risk untested code in the repo by the audit. New `tests/test_paper_updater_mark_to_market.py` (14 tests) covers both pieces end to end via the real `update_paper_trades()`: bullish/bearish mark-to-market sign handling, a degenerate zero-risk-per-R case, missing/blank dollar-risk fallback, the fill-price re-anchor for shares vs. options position types, zero shares, and a malformed `position_size` failing safe — plus direct unit tests for `_fmt_dollars`' negative-zero collapse |
 | v2.2.80 | 2026-08-23 | Infrastructure | Full model audit follow-up, performance: `run_pipeline()` (period="6mo") and `_fetch_market_context()` (period="3mo") both called `fetch_ohlcv_batch()` for a heavily-overlapping ticker set seconds apart in the same scan — roughly doubling yfinance call volume every run across 4 sectors, 3x/day. Added a process-lifetime cache to `fetch_ohlcv_batch()` (safe by construction: both pipelines launch as a fresh process per scheduled scan, so the cache can't go stale within a run or leak into the next one) — a ticker already fetched at an equal-or-longer period this scan is served from cache instead of re-fetched. Separately, `fetch_vix()`/`fetch_vix_pct_change()` were called independently by the same function for data that's a strict subset of one another — new `fetch_vix_and_pct_change()` does one `yf.download("^VIX")` call instead of two. 23 new tests |
 | v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: the weekly performance dashboard (`monitoring/performance_dashboard.py::generate_weekly_summary()`) had two real gaps — its own docstring claimed it "sends to Discord" but never actually did, and nothing outside tests ever called it at all, so this safety mechanism (a review alert when the rolling 20-trade win rate drops below 70%) was completely dormant. Both fixed: a real Discord send (new `send_weekly_summary_alert`) fires every run, and a new `StockAnalysis_WeeklyDashboard` Windows scheduled task (Sundays 6pm local, same pattern as the existing paper-trading scan tasks) actually calls it now. Caught and fixed a live instance of the exact class of bug v2.2.77 just addressed elsewhere: the new tests for this immediately wrote synthetic rows into the real `data/logs/performance_log.csv` because that file's path constant wasn't isolated in `conftest.py` — added the isolation fixture and cleaned up the 2 polluted rows before they could distort any future read of that file |
@@ -159,6 +160,28 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.82] — 2026-08-23 — [Bug Fix] A silent no-op that could have quietly reintroduced yesterday's dollar-risk bug
+
+**Status:** Live.
+
+**In short:** While writing v2.2.81's test coverage, confirmed a small gap the audit had flagged:
+`paper_updater.py`'s fill-price `actual_dollar_risk` re-anchor (the fix from commit `c6e0d1b`,
+2026-08-22) parses `position_size` inside a `try/except ValueError: pass`. Today that's harmless —
+`position_size` is always written as `str(int)` — but if that invariant ever drifted (e.g. a
+future change writes a float-formatted string), the re-anchor would silently stop applying for that
+one trade, with no log line, no error — the exact dollar-risk drift bug fixed yesterday would
+quietly come back for just that trade and nobody would know.
+
+**Fix:** The `except` branch now logs a warning naming the ticker, signal date, and the actual
+malformed value, instead of passing silently. Covered by the existing malformed-`position_size` test
+in `tests/test_paper_updater_mark_to_market.py`, extended to assert the warning fires.
+
+**Backtest:** Not applicable — live/paper-only, no scoring/threshold change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 
