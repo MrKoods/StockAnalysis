@@ -11,18 +11,20 @@ Everything below it (Problem / Fix / Backtest) is the technical detail, for anyo
 
 The model has been rebuilt and re-tested many times but has never once passed all the
 requirements to trade real money. On 2026-08-01, its historical performance test passed its own
-safety bar for the first time ever, after realizing an old setting no longer fit how the model
-has evolved. A full model audit on 2026-08-19 (v2.2.63) found and fixed 17 more real gaps,
-including one that had been making the historical test's own numbers look slightly better than
-real trading would achieve — the corrected win rate (61.2%, down from 63.1%) still cleared the
-safety bar at the time. **A second full model audit on 2026-08-22 (v2.2.75) found that "clearing
-the safety bar" claim was itself measuring the wrong thing**: the historical test's qualifying
-bar had stayed hardcoded at the model's old 90-point scoring threshold for months after the real,
-live threshold was lowered to 70 — so it had been grading a much easier, hypothetical version of
-the signal rather than the one actually running. Corrected, the same test now says: win rate
-55.9%, and it **no longer clears the safety bar** (the statistical confidence-interval check now
-fails). This is the most consequential correction so far — every prior "passed" milestone was real
+safety bar for the first time ever, after an old setting was updated to match how the model has
+evolved. A full model audit on 2026-08-19 (v2.2.63) found and fixed 17 more real gaps, including
+one that had been making the historical test's own numbers look slightly better than real trading
+would achieve — the corrected win rate (61.2%, down from 63.1%) still cleared the safety bar at
+the time.
+
+**A second full model audit on 2026-08-22 (v2.2.75) found that "clearing the safety bar" claim was
+itself measuring the wrong thing.** The historical test's qualifying bar had stayed stuck at the
+model's old 90-point scoring threshold for months after the real, live threshold was lowered to
+70 — so it had been grading an easier, hypothetical version of the signal, not the one actually
+running. Corrected, the same test now says: win rate 55.9%, and it **no longer clears the safety
+bar**. This is the most consequential correction so far — every prior "passed" milestone was real
 for the population it tested, but that population wasn't the one live/paper trading actually uses.
+
 None of this changes whether the model is allowed to trade real money — it still isn't, and won't
 be until it's approved.
 
@@ -69,49 +71,49 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
-| v2.2.93 | 2026-08-23 | Scoring Change | Portfolio-level risk caps raised ~6.667x to match v2.2.92's per-trade budget increase: `portfolio_manager.py`'s `MAX_TOTAL_RISK_PCT` 3%→20% and `MAX_NET_DIRECTIONAL_DELTA` 1.5%→10%, plus config's `portfolio.max_simultaneous_risk_pct` 3%→20% (same key, both read it). User-flagged follow-up: with a single 99-100 tier trade now risking 16.67% alone, the old 3%/1.5% caps would have bound on virtually every trade regardless of real concentration risk, silencing the caps rather than enforcing them meaningfully. Both caps are currently advisory-only on the live paths that read them (live model path unused; paper trading logs every qualifying signal and only appends a note when a cap would bind) — no live behavior change today beyond what the note text reports, since neither path has ever actually blocked on these. Docstrings/comments updated throughout `portfolio_manager.py` and `paper_runner.py`'s concentration-note block to state the new percentages and the 2026-08-23 raise. Full test suite (1410 tests) passes unchanged |
-| v2.2.92 | 2026-08-23 | Scoring Change | Per-trade risk budget raised ~6.667x (explicit user decision, not a bug fix): `SIZING_TIERS` (`shared/utils/position_sizer.py`) 70-89/90-92/93-95/96-98/99-100 tiers raised from $75/$150/$225/$300/$375 (0.5-2.5% of $15k) to $500/$1,000/$1,500/$2,000/$2,500 (3.33-16.67%) — same relative ordering across tiers preserved. `max_capital_pct` raised in tandem from 5%/$750 to 33.3%/$5,000 (config + both call-site fallback defaults) so the bigger risk budget isn't immediately re-clipped by the capital cap. Directly addresses a real finding from today's earlier audit: the old $75 floor tier (where virtually every real signal lands, since live scores rarely clear 80) was structurally forcing most winning signals into undefined-risk shares instead of the capped-risk options structures the design prefers. Real example (TGT, 2026-08-20, confidence 71.8): sizing goes from 4 shares/$636 deployed/$49.96 actual risk to 31 shares/$4,929 deployed/$499.50 actual risk. 12 existing tests updated to the new dollar amounts, including one regression test (JNJ 2026-08-11) that specifically proves a real historical incident — a $249 options structure sized to 0 under the old $75 tier — no longer reproduces |
-| v2.2.91 | 2026-08-23 | Scoring Change | Tier-4 audit item: the 42-structure EV ranker sorted purely by `ev_per_dollar_per_day` (a point estimate of the mean) with no regard for loss-tail severity, so a high-win-rate/fat-tail structure and a more symmetric one with similar EV were treated as equivalent — `ev_per_dollar_per_day` is rounded to 5dp when stored, so genuine ties are common in practice. Added a secondary tiebreak on `max_loss_dollars` (smaller wins), extracted into a small testable `_ranking_sort_key` — undefined-risk structures (`max_loss_dollars is None`, never fabricated) always lose a tiebreak to any defined-risk structure at the same EV. Confirmed the tiebreak reaches the actual "recommended" pick, not just the diagnostic display order (that logic walks `ranked_structures` in this same sorted order). 5 new tests, including an end-to-end invariant check against real Black-Scholes-computed structures (real ties are hard to force, so this checks that whichever structures DO tie are correctly ordered) |
-| v2.2.90 | 2026-08-23 | Backtest Methodology | `run_backtest()` now reports a deflated Sharpe ratio (Bailey & Lopez de Prado) alongside the raw one — `compute_deflated_sharpe_ratio()` existed and was already used inside `entry_filter_variants.py`'s threshold-sweep diagnostic, but never against the actual headline number this project cites, despite 5+ documented rounds of entry-filter tuning against the same dataset. Those historical rounds' own per-trial Sharpes aren't cleanly replayable in one place (scattered across separate sweep scripts run over weeks), so this uses each walk-forward window's own Sharpe as the trial population instead — a self-contained, honest proxy for "is the single-slice Sharpe just the best of several time-window reads," not the broader historical-tuning question, but a real, directly-computable one. Reported only, doesn't gate `passed`. On real data: raw Sharpe 0.27, **deflated Sharpe -10.64 (PSR 0.00)** — not distinguishable from noise once the spread across windows is accounted for. New `deflated_sharpe`/`deflated_sharpe_psr`/`deflated_sharpe_n_trials` result fields, printed by the CLI. 4 new tests |
-| v2.2.89 | 2026-08-23 | Bug Fix / Scoring Change | Investigating why per-sector weight calibration only ever covered 1 of 4 active sectors found a real, currently-live bug: `data/processed/calibrated_weights_by_sector.json` held a `consumer_discretionary` entry (`n_trades=405`, `technical/sentiment/news=0.4/0.4/0.2`) that `paper_runner.py` was actively feeding into live scoring for AMZN/HD/TGT/NKE/SBUX — fit under the same stale `confidence >= 90` bug fixed elsewhere today (v2.2.83). Re-running the calibration with the corrected threshold finds only 5 real training trades for that sector (nowhere near the 100-trade minimum) — but `sector_weight_calibration.py`'s `run()` only ever called `save_sector_weights()` when something NEW qualified, so a sector that stops qualifying had no way to have its stale entry cleared; it would have kept being used indefinitely. Fixed: `save_sector_weights()` (a full-overwrite, not a merge) is now always called, even with `{}`, so a no-longer-qualifying sector's entry is actively cleared, not silently left stale. Re-ran for real: `calibrated_weights_by_sector.json` is now correctly `{}` — every sector currently falls back to the shared default weights, the honest state given the real data. 1 new test class, 2 existing tests' assertions corrected |
-| v2.2.88 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: `greeks_filter_status`'s underlying computation (`trade_selector.rank_trade_structures()`) was already tested, but the wiring that actually persists it to `paper_trades.csv` (`paper_runner.py` reading it off the top-level `rank_trade_structures()` return dict, not nested inside a structure) had no coverage — every existing full-pipeline test's `rank_trade_structures` mock omitted that key entirely, so `trade_result.get("greeks_filter_status")` silently returned `None` in all of them. New end-to-end test in `tests/test_multi_sector_live_pipeline.py` mocks a real value and confirms it round-trips into the CSV |
-| v2.2.87 | 2026-08-23 | Infrastructure | Full model audit follow-up, git hygiene: stopped tracking `data/logs/app.log` (4.96MB, 45 prior commits touching it) — free-text, already locally rotated/capped at 5MB×3 backups, tracking it was redundant with those local backups and produced large, noisy diffs that buried real code changes. The structured CSVs (`audit_log`/`validation_log`/`override_log`/`performance_log`/`trade_outcomes`/`fill_log` — the actual forensic audit trail) stay tracked; only the free-text log doesn't. File remains on disk, `git rm --cached` only, not deleted |
-| v2.2.86 | 2026-08-23 | Infrastructure | Tier-1 decision #4: a permanent CI guardrail against the recurring bug from v2.2.75/v2.2.83 (a file hardcoding a numeric copy of the go-live confidence threshold instead of importing the real one — recurred independently 3 times in 2 days). New `scripts/check_confidence_threshold_duplication.py`, wired into `.github/workflows/ci.yml`, flags either the exact `.get("confidence", ...) >= <number>` comparison shape or a `*CONFIDENCE_THRESHOLD*_= <number>` constant, in any file that doesn't also import the real `swing_model.scoring.CONFIDENCE_THRESHOLD`. Proven against synthetic bad/good examples before wiring in. Running it against the current codebase found one more real instance immediately: `bearish_rsi_band_sweep.py` still had the dead, unused `_CONFIDENCE_THRESHOLD_BACKTEST = 90.0` constant left over from v2.2.83's fix (never read — that file's real filtering runs through `run_walk_forward()`, already fixed) — removed |
-| v2.2.85 | 2026-08-23 | Bug Fix | The `StockAnalysis_WeeklyDashboard` scheduled task added in v2.2.79 fired for real for the first time today (Sunday 6pm) and confirmed a real gap: `monitoring/performance_dashboard.py` never loaded `.env`, unlike `paper_trading/paper_runner.py`, which does — so `DISCORD_WEBHOOK_URL` was never actually reaching `send_weekly_summary_alert()` when the module runs standalone via its own scheduled task (not imported from a process that already loaded `.env`). Confirmed by the task's own real log: `"DISCORD_WEBHOOK_URL not set in environment."` Added the same `load_dotenv()` pattern; verified the module now loads the real key |
-| v2.2.84 | 2026-08-23 | Backtest Methodology | `run_backtest()`'s `passed` flag used to rest only on the single fixed 70/30 split — walk-forward results were computed and attached to the report but never gated anything, which is exactly how a wrong "2/6 windows pass" reading (v2.2.83) went unnoticed: the fixed test period happens to sit inside the only 2 windows that looked favorable under the stale threshold. `passed` now ALSO requires the same expectancy-CI/Sharpe/drawdown/trade-count bar to clear on qualifying trades pooled across every walk-forward window — the same pooling approach `entry_filter_variants.py` already used for research, now applied to the actual gate. Chosen over a per-window majority vote (6 windows is too few data points for a binary per-window vote to mean much). On real data: pooled walk-forward is 32 trades, expectancy CI lower 0.06R, Sharpe **-1.12** — fails on its own, independent of the single-split's own failure. Per-sector gating was already correctly wired (`run_multi_sector_backtest`, v2.2.56); only single-sector `run_backtest()` needed this fix. 6 new tests |
-| v2.2.83 | 2026-08-23 | Backtest Methodology / Bug Fix | Asked to "think more" about the Tier-1 go-live decisions before acting on them — found v2.2.75's `confidence >= 90` fix only touched `backtest_engine.py`; the identical bug was independently duplicated in `backtesting/walk_forward.py`, `architecture_diagnostic.py`, and `sector_weight_calibration.py` (bearish sweep scripts and `entry_filter_variants.py` inherit the fix transitively via `run_walk_forward()`). Every walk-forward-window verdict and per-sector Sharpe number cited earlier today — including this file's own v2.2.75 entry — was measured on the wrong population. Real, corrected numbers: walk-forward is **0 of 6 windows passing** (not 2/6 — the "2022-2026 recovery" narrative doesn't survive the fix, only 1 window even has enough trades to render a verdict, and it fails); per-sector qualifying trades are semiconductors 11, regional_banks **0**, healthcare **0**, consumer_discretionary 6, pooled 17. See CHANGELOG entry below and `project_backtest_findings.md` for full detail and the corrected bearish-signal read |
-| v2.2.82 | 2026-08-23 | Bug Fix | Full model audit follow-up: `paper_updater.py`'s fill-price `actual_dollar_risk` re-anchor silently no-opped on a malformed `position_size` (`except ValueError: pass`) — harmless today (`position_size` is always written as `str(int)`), but a future drift would have silently reintroduced the exact dollar-risk-basis-drift bug fixed 2026-08-22 for just that one trade, with no trace of why. Now logs a warning instead. Test added alongside v2.2.81's mark-to-market coverage |
-| v2.2.81 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: the mark-to-market/dollar-risk-basis code shipped 2026-08-22 (commit c6e0d1b — open-position `mark_price`/`mark_date`/`unrealized_rr`/`unrealized_pnl_dollars`, and re-anchoring `actual_dollar_risk` to the real fill price for shares positions after a real ~30% drift bug) had zero test coverage, flagged as the single highest-risk untested code in the repo by the audit. New `tests/test_paper_updater_mark_to_market.py` (14 tests) covers both pieces end to end via the real `update_paper_trades()`: bullish/bearish mark-to-market sign handling, a degenerate zero-risk-per-R case, missing/blank dollar-risk fallback, the fill-price re-anchor for shares vs. options position types, zero shares, and a malformed `position_size` failing safe — plus direct unit tests for `_fmt_dollars`' negative-zero collapse |
-| v2.2.80 | 2026-08-23 | Infrastructure | Full model audit follow-up, performance: `run_pipeline()` (period="6mo") and `_fetch_market_context()` (period="3mo") both called `fetch_ohlcv_batch()` for a heavily-overlapping ticker set seconds apart in the same scan — roughly doubling yfinance call volume every run across 4 sectors, 3x/day. Added a process-lifetime cache to `fetch_ohlcv_batch()` (safe by construction: both pipelines launch as a fresh process per scheduled scan, so the cache can't go stale within a run or leak into the next one) — a ticker already fetched at an equal-or-longer period this scan is served from cache instead of re-fetched. Separately, `fetch_vix()`/`fetch_vix_pct_change()` were called independently by the same function for data that's a strict subset of one another — new `fetch_vix_and_pct_change()` does one `yf.download("^VIX")` call instead of two. 23 new tests |
-| v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: the weekly performance dashboard (`monitoring/performance_dashboard.py::generate_weekly_summary()`) had two real gaps — its own docstring claimed it "sends to Discord" but never actually did, and nothing outside tests ever called it at all, so this safety mechanism (a review alert when the rolling 20-trade win rate drops below 70%) was completely dormant. Both fixed: a real Discord send (new `send_weekly_summary_alert`) fires every run, and a new `StockAnalysis_WeeklyDashboard` Windows scheduled task (Sundays 6pm local, same pattern as the existing paper-trading scan tasks) actually calls it now. Caught and fixed a live instance of the exact class of bug v2.2.77 just addressed elsewhere: the new tests for this immediately wrote synthetic rows into the real `data/logs/performance_log.csv` because that file's path constant wasn't isolated in `conftest.py` — added the isolation fixture and cleaned up the 2 polluted rows before they could distort any future read of that file |
-| v2.2.78 | 2026-08-23 | Feature | Full model audit follow-up: paper trading now flags cross-sector directional concentration — advisory only, by explicit product decision (paper trading deliberately logs every qualifying signal unconstrained by portfolio limits, so it can observe the full universe of what would have qualified; a real user decision point during this session confirmed that design should stay intact). Before logging a new signal, sums net directional exposure (risk_pct signed by direction) across ALL open positions in every active sector using portfolio_manager.py's existing `get_portfolio_delta()`/1.5% threshold (previously only reachable via the unused live path) — if the new signal would push it past that threshold, appends a note to the existing `sizing_note` field (already reaches both the CSV ledger and the Discord alert), same "advisory, review before acting" treatment as Black Swan and the Event Gate. Never skips logging or resizes the signal |
-| v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Full model audit follow-up: (1) isolated feedback_loop.py's 5 real-file defaults in tests (conftest.py autouse fixture) after finding `data/logs/trade_outcomes.csv` 285 rows deep in test-generated pollution — cleaned it and `signal_win_rates.json` back to empty, since no version has ever gone live to write real rows there; (2) gave `paper_trading/paper_runner.py` — the pipeline actually running 3x/day — a real Black Swan crash circuit breaker for the first time; previously only `run_swing_model.py` (which has never actually run live) had one, and even that was hardcoded to watch SMH only regardless of which sectors were active. New shared `_check_black_swan_per_sector()` checks every active sector's own benchmark (SMH/KRE/XLV/XLY) independently, with per-sector cooldown state in new `data/processed/black_swan_state.json`. Advisory only, unchanged — still never blocks a signal, only alerts |
-| v2.2.76 | 2026-08-23 | Backtest Methodology | Re-derived v2.2.75's still-open rescale question empirically: built `backtesting/raw_score_calibration_diagnostic.py`, which maps the backtest's own observed raw-score ceiling (86.17, n=320 real out-of-sample candidates) onto live/paper trading's own observed ceiling (79.84, n=1,476 real logged scans), replacing a rescale ratio that had been calibrated against the old 90-point threshold with no traceable derivation. Result is a much more consequential change than expected: qualifying trades collapse from 256 to **11** — nowhere near the 100-trade minimum needed to trust any win-rate/Sharpe reading. Still fails the gate, but now on sample-size and Sharpe grounds (Sharpe 0.27, unreliable at n=11) rather than the expectancy-CI shortfall v2.2.75 found; expectancy CI lower bound (0.321R) would actually now clear the 0.3R bar on its own. Read together, v2.2.75 and v2.2.76 show the same underlying problem from two angles: at the model's real, honest 70-point confidence bar, this dataset (13.5 years, one sector) cannot produce a statistically trustworthy backtest verdict either way |
-| v2.2.75 | 2026-08-22 | Backtest Methodology | Full model audit found the go-live backtest's qualifying filter still hardcoded `confidence >= 90`, unchanged since before v2.2.46 lowered live's real threshold to 70 — the backtest had been validating a signal population live trading structurally cannot produce. Fixed to import and use the real `CONFIDENCE_THRESHOLD`. Re-run result: win rate drops 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 — and the corrected number **fails** the go-live gate (expectancy CI lower bound 0.195R, below the 0.3R bar), reversing the prior "passes" status. The rescale that converts backtest's raw (positioning-neutral) score onto a 0-100 scale was calibrated years ago against the old 90 target and was NOT re-derived here — flagged as a real, still-open follow-up, not silently resolved |
-| v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Tier B batch 3 of 3 — the last 21 config keys resolved: wired the 5 scoring_weights category maximums (including the previously-flagged-highest-risk fundamental_max, which turned out to be a simple, safe wire once the rescale ratio was understood correctly), 2 positioning sub-maximums (institutional_max/insider_max — the other 3 stayed hardcoded, since their formulas use fixed literals that wouldn't rescale correctly if wired), 6 genuinely-unenforced modifier_bounds safety clamps, and corrected 5 stale config-vs-code value mismatches to match the validated code (fundamental valuation-premium ladder, EPS-decline breakpoints, walk-forward validation window). confidence.min_threshold's stale value was corrected (90→70) but deliberately left unwired — it gates real trading and is imported directly by 5+ files. Tier B is now closed: 156 config leaf keys, only 2 permanent, reasoned exceptions remain allowlisted |
-| v2.2.73 | 2026-08-19 | Scoring Change / Infrastructure | Tier B, batch 2 of 3: wired 18 of the 41 real config keys queued in batch 1 into the code that used to hardcode them (fundamental EPS/valuation thresholds, positioning ownership/short-interest/analyst thresholds, news decay/clustering windows, backtest train/test split + slippage + walk-forward window, confidence sensitivity grid, backtest max holding period). Every wired default matched its prior hardcoded value exactly, so behavior is unchanged today — editing these in config now actually does something, which it didn't before |
-| v2.2.72 | 2026-08-19 | Infrastructure | Tier B, batch 1 of 3: exhaustively triaged all 109 decorative config keys into "worth wiring into real code" (41) vs. "internal detail/stale doc/duplicate, just remove" (68). Removed the 68 — including a genuine duplicate declaration (positioning's sub-signal maximums existed twice under two different section names) and 3 safety-adjacent items deliberately left as hardcoded, not config-driven, since the config option would have added risk for no real benefit. Zero behavior change (nothing removed was ever read); fixed `app_ui/config_validation.py`'s sum-checks and `README.md`'s config docs, which had gone stale referencing some of what's now removed |
-| v2.2.71 | 2026-08-19 | Infrastructure | Tier C resolved by decision, not code: `profit_targets` config and the entire orphaned `shared/utils/signal_decay.py` module were 2 fully-unbuilt features described as if real. Both would have been genuine new engineering (structure-level options repricing; a persistent pending-signal queue that doesn't otherwise exist in this model), not a wire-in — decided not worth building given the model hasn't gone live yet. Removed both, fixed 2 stale docs that credited the deleted module for behavior `position_rescoring.py` actually provides |
-| v2.2.70 | 2026-08-19 | Bug Fix | Paper trading now fires the same immediate Discord alert live trading does when a critical news event hits an already-open position, instead of waiting for the next daily rescore — a real gap found (not an intentional design choice) while reviewing why the two pipelines' event-handling code differed |
-| v2.2.69 | 2026-08-19 | Research | Pipeline deduplication, part 2 — no code change: close comparison of the 2 largest duplicated blocks between the live and paper-trading pipelines (entry/stop/target + trade-structure selection; per-ticker scoring orchestration) found both riskier to merge than they looked from a high-level pass. Left both as separate implementations, with the specific reasons documented so a future pass doesn't have to re-derive this from scratch |
-| v2.2.68 | 2026-08-19 | Bug Fix / Infrastructure | Continued the pipeline-deduplication pass: fixed a real (small) bug where paper trading's win-rate stat quietly used a narrower definition than the historical test's, undercounting profitable early exits as non-wins; consolidated 3 duplicated-but-equivalent code blocks (geopolitical penalty, position-sizing input derivation) between the live and paper-trading pipelines into shared, single-source functions. A 4th planned consolidation (event-alert creation) was found to have real behavioral differences between the two pipelines beyond what was assumed going in — left unmerged rather than forcing it and risking silently changing either pipeline's behavior; noted below for a future decision |
-| v2.2.67 | 2026-08-19 | Bug Fix / Scoring Change | Full inventory of the 4th recurring bug shape (double-counting: two signals independently penalizing/rewarding a candidate for the same underlying fact) — 4 known pairs re-confirmed already handled (documented in place, no action needed); found and fixed 1 new one: a China-trade-tension news theme and the separate macro China-tension signal both scan largely the same headlines and could each independently penalize a candidate, live/paper only (backtest already fixed at 0 for this signal, so unaffected) |
-| v2.2.66 | 2026-08-19 | Bug Fix / Infrastructure | Built a permanent CI guardrail against 2 of today's 4 recurring bug shapes (a config setting nobody reads; a new signal that handles the bullish case but not bearish) instead of relying on another one-off sweep. While cataloguing every scoring signal for the new bearish-direction check, direct code reads turned up 2 more real bullish-only gaps beyond what the check itself would have caught automatically, both fixed: a news-narrative signal (supply-chain/memory-cycle themes) went neutral instead of confirming a bearish trade; a standalone insider-trading signal (currently unused, a landmine if ever wired in) was bullish-only. Also found the config-nobody-reads problem is ~2.6x bigger than previously documented (108 decorative settings, not ~41) |
-| v2.2.65 | 2026-08-19 | Bug Fix | Asked "are we finding the same mistakes twice, and are we checking for it" — built a complete checklist for the three recurring bug shapes instead of another spot-check, then fixed the 9 quickest, safest findings: a bearish trade could get penalized by the same cross-ticker strength that should have confirmed it (never mirrored at all, unlike the other signals); two more spots quietly reused the un-sorted trade list for a streak stat already fixed once elsewhere; a real-money-relevant safety switch (Black Swan mode) turned back off after a single calm day instead of the 3 the settings promised; a stated confidence penalty for geopolitically exposed stocks was never actually subtracted from anything; the live system was quietly using a less accurate macro reading and an uncalibrated win-probability estimate than the paper-trading system did, for no reason |
-| v2.2.64 | 2026-08-19 | Bug Fix | Same-day correction to v2.2.63: the new daily "cut a position loose early if its outlook has soured" check turned out to compare a real entry-time score against a rescore built from neutral stand-ins for two of its five inputs, producing a large, mechanical-looking drop on almost every open position regardless of what actually changed. Caught immediately by running it for real — it wrongly closed 7 paper positions, which were restored before anything was committed. The check is now switched off until it can compare like with like; nothing else from v2.2.63 is affected |
-| v2.2.63 | 2026-08-19 | Bug Fix / Scoring Change / Backtest Methodology | A full model audit (5 parallel reviews covering data, scoring, risk, the historical test, and live/paper trading) found and fixed 17 real gaps — the biggest: the historical test had been assuming every signal filled instantly instead of checking whether price actually reached the entry price first, the same check real trading already uses, flattering its numbers. Win rate moved from 63.1% to a more honest 61.2% after the fix — still clears the safety bar |
-| v2.2.62 | 2026-08-19 | Bug Fix | Paper trading's earnings-proximity check only ever ran once, at signal time — an undefined-risk shares position signaled 6+ days before earnings could still be open when the report actually landed inside its up-to-15-day holding window, fully unprotected (live example: NVDA, signaled 12 days out from its 08-26 earnings). Now re-checked on every daily update and flattened early if it ages into the same 0-5-day pre-earnings window a new signal would already be forced into a capped-loss structure for. A second, same-shaped gap (news/event-gate checks are also signal-time-only) was found and flagged, not fixed — closing it needs a daily news re-scan per open ticker, a bigger change against limited free-tier API budgets that needs a design decision first |
-| v2.2.61 | 2026-08-19 | Feature / Bug Fix | Un-staled the 3 stress-test skips (a fixture schema mismatch, not a real blocker) and wired cross_ticker_modifier into the backtest for real (earnings_modifier stays 0.0 — no historical earnings-date archive exists, a genuine data gap, not deferred laziness); built real dollar max-loss/max-gain and actual strikes/expiration for 35 of 42 trade structures; extended Greeks coverage from 20 to 29 structures (condors/butterflies/wheel/synthetics — pure wiring, no new modeling); extracted real contract/share counts from paper_runner.py's dual-cap sizing into a shared, reusable function and wired it into run_swing_model.py for the first time (which never computed a real position size before — the live Discord alert's "Dollar Risk" field always showed $0.00); surfaced the top-2 runner-up structures alongside the winner everywhere structure data reaches the user |
-| v2.2.60 | 2026-08-19 | Feature / Bug Fix / Research | Widened the documented/configured holding period from 5-15 to 1-15 trading days (the "5" minimum was never actually enforced anywhere in code, so this is a documentation/config correction, not a behavior change); found and fixed the same bearish volume-profile stop/target gap already fixed live/paper-side in a third spot, the backtest engine itself; stopped discarding real per-structure trade economics (capital required, legs, effective days, Greeks) before they reached the Discord alert or paper-trading CSV; built and tested a genuinely different bearish entry style (capitulation/bounce-fade, not another continuation-mirror tweak) — result: worse than the continuation baseline and too rare to be usable (6 pooled trades vs. 339), a clean negative finding, left off by default |
-| v2.2.59 | 2026-08-19 | Research / Sector Rollout | Three follow-up rounds of real-data testing on v2.2.58's bearish underperformance (entry RSI band, exit target/stop sizing, entry-confirmation timing — 16 variants, all 4 sectors) each helped a little and none came close to the go-live bar; best pooled Sharpe found was -1.73 against a +1.0 requirement. `enable_bearish_signals` turned on anyway for paper trading only, by explicit decision, specifically to start collecting real bearish outcomes instead of more historical replay |
-| v2.2.58 | 2026-08-18 | Feature / Backtest Methodology | Built real bearish/breakdown detection to match the existing bullish path — technical breakdown signals, mirrored sentiment/news/positioning/regime/rotation scoring, and a bearish backtest replay — instead of the old "defaults to bullish whenever it isn't clearly bullish" behavior. Shipped behind `enable_bearish_signals: false` (stays off): the mirrored bearish path backtests to a negative Sharpe in all 4 sectors on the data available so far, a real finding to calibrate against, not a bug to force through |
-| v2.2.57 | 2026-08-15 | Scoring Change / Feature | Built per-sector category weight calibration (v2.2.56's proposed fix for the 3-of-4-sectors-failing finding) — fit on historical data, validated on true held-out data per sector: semiconductors' fit was correctly rejected (would have made it worse), consumer discretionary's passed and is now live, banks/healthcare stay on the shared default until more data exists. Also found and fixed a real bound-violation bug in the weight clamping math itself, latent since the calibration regression first shipped |
-| v2.2.56 | 2026-08-15 | Backtest Methodology | Tested two open design questions against real historical data instead of waiting on live trades: gating on Technical doesn't help and was dropped; the shared category weighting badly fails 3 of 4 sectors on their own data (only semiconductors clears the go-live bars) even though the multi-sector backtest's pooled "passed" check couldn't see that — fixed the check to require every sector to pass individually |
-| v2.2.55 | 2026-08-15 | Bug Fix / Scoring Change | Seasonality's monthly calendar was scoring backwards — confirmed on clean sector-pure data after fixing the backtest's own sector-scoping gap (WR +4.6pp, Sharpe 3.01→4.16 on the same historical set); also fixed a weight-calibration step that had been mathematically incapable of changing any score since it shipped, a go-live gate floor that couldn't be passed even by a model performing to spec, dead macro config, and ticker misattribution in news scoring |
-| v2.2.54 | 2026-08-14 | Bug Fix | Paper trading was booking stop-loss "losses" on breakout orders that never actually filled (AVGO/ABBV never traded into their entry zone); also found and fixed a support/resistance target/stop calculation that was computed every scan and silently thrown away, and a news-theme field that always logged blank due to a mismatched key name |
-| v2.2.53 | 2026-08-13 | Bug Fix / Scoring Change | Extended the fundamentals audit to every other scoring layer — the biggest find: macro/seasonality rules built for semiconductors (rate hikes are bad, strong dollar hurts TSM/ASML) were being applied identically to regional bank stocks, where rising rates usually help; found and fixed 11 more real gaps across Technical, Positioning, Sentiment, News, and cross-ticker scoring |
-| v2.2.52 | 2026-08-13 | Bug Fix / Scoring Change / Data Source | AMD's Aug 4 earnings beat never reached the model — a full audit of the fundamentals layer found and fixed 7 real gaps, including a dead scoring bucket, a stock being benchmarked partly against itself, and no revenue data being tracked at all (EPS-only) |
-| v2.2.51 | 2026-08-11 | Bug Fix / Feature | Plain stock positions were priced at full share price instead of real dollar risk, diluting their modeled edge ~20x and wrongly excluding high-priced stocks from consideration — fixed the pricing and taught the system to prefer capped-loss options over shares only when an affordable one exists |
+| v2.2.93 | 2026-08-23 | Scoring Change | Raised two portfolio-wide risk caps to match v2.2.92's bigger per-trade risk budget, so they still mean something instead of blocking almost every trade |
+| v2.2.92 | 2026-08-23 | Scoring Change | Raised how much money each trade is allowed to risk, from $75 up to $500 at minimum confidence — the old amount was too small to ever afford a real options trade |
+| v2.2.91 | 2026-08-23 | Scoring Change | When two possible trades tie on expected profit, the model now picks the one with the smaller potential loss |
+| v2.2.90 | 2026-08-23 | Backtest Methodology | Added a stricter statistical check to the historical test, to catch a good-looking result that's really just noise. Today's result: it is noise |
+| v2.2.89 | 2026-08-23 | Bug Fix / Scoring Change | Found stale, outdated scoring weights for one sector still steering live trades — cleared them out. Every sector now uses the safe shared default until it earns its own |
+| v2.2.88 | 2026-08-23 | Infrastructure | Added a missing test proving a data field was actually being saved correctly — it was, but nothing had ever checked |
+| v2.2.87 | 2026-08-23 | Infrastructure | Stopped tracking a large log file in git — it's already backed up locally and was just cluttering every commit |
+| v2.2.86 | 2026-08-23 | Infrastructure | Built an automatic check that stops the 90-vs-70 threshold bug (v2.2.75/v2.2.83) from quietly coming back a fourth time |
+| v2.2.85 | 2026-08-23 | Bug Fix | Fixed the weekly summary alert failing to send — it wasn't loading the settings file that holds the Discord key |
+| v2.2.84 | 2026-08-23 | Backtest Methodology | The historical test's pass/fail decision now also has to hold up across every past time period tested, not just one. It doesn't — it fails |
+| v2.2.83 | 2026-08-23 | Backtest Methodology / Bug Fix | The 90-vs-70 threshold bug from v2.2.75 was copied into 3 more places — fixed everywhere. Corrected numbers are worse than first thought: 0 of 6 test periods pass, not 2 |
+| v2.2.82 | 2026-08-23 | Bug Fix | A silent failure path in yesterday's risk-tracking fix could have hidden a future repeat of the same bug — it now logs a warning instead of staying quiet |
+| v2.2.81 | 2026-08-23 | Infrastructure | Added tests for a real-money-tracking feature that had none — the single riskiest untested code in the project |
+| v2.2.80 | 2026-08-23 | Infrastructure | Cut duplicate data requests that were nearly doubling how many stock-price API calls each scan made |
+| v2.2.79 | 2026-08-23 | Bug Fix / Feature / Infrastructure | The weekly performance check-in was supposed to alert on Discord and run on a schedule — it did neither. Both fixed |
+| v2.2.78 | 2026-08-23 | Feature | Paper trading now warns (but doesn't block) when a new signal would push too much money in one direction across every sector at once |
+| v2.2.77 | 2026-08-23 | Bug Fix / Feature / Infrastructure | Paper trading — the system actually running every day — never had a crash/crisis safety check. Added one |
+| v2.2.76 | 2026-08-23 | Backtest Methodology | Recalculated, from real data, the formula that converts the historical test's score onto the same 0-100 scale live trading uses |
+| v2.2.75 | 2026-08-22 | Backtest Methodology | Found the historical test had been quietly grading an easier version of the model for months (still requiring a 90+ score after live trading was lowered to 70+). Fixed — the corrected result no longer passes |
+| v2.2.74 | 2026-08-19 | Scoring Change / Bug Fix / Infrastructure | Finished wiring up the last batch of settings that used to do nothing when changed |
+| v2.2.73 | 2026-08-19 | Scoring Change / Infrastructure | Wired up another batch of settings that used to do nothing when changed — no behavior changed, since the code already matched what the settings said |
+| v2.2.72 | 2026-08-19 | Infrastructure | Sorted through 109 unused settings — removed the 68 that were dead weight, kept 41 to wire in over the next two versions |
+| v2.2.71 | 2026-08-19 | Infrastructure | Removed two features that were fully described in the settings but never actually built |
+| v2.2.70 | 2026-08-19 | Bug Fix | Paper trading now sends the same instant alert live trading does when breaking news hits an open position, instead of waiting until the next day |
+| v2.2.69 | 2026-08-19 | Research | Looked at merging two duplicated pieces of code between live and paper trading — decided it was riskier than it looked, left them separate |
+| v2.2.68 | 2026-08-19 | Bug Fix / Infrastructure | Fixed a bug undercounting paper trading's win rate; merged a few duplicated code blocks between live and paper trading |
+| v2.2.67 | 2026-08-19 | Bug Fix / Scoring Change | Checked for signals that accidentally double-penalize the same fact — found and fixed one more (two separate China-trade-tension checks overlapping) |
+| v2.2.66 | 2026-08-19 | Bug Fix / Infrastructure | Built an automatic check for two repeat-mistake patterns; along the way found and fixed 2 more real bugs it would have caught |
+| v2.2.65 | 2026-08-19 | Bug Fix | Went looking for repeated mistakes on purpose instead of one at a time — found and fixed 9 real ones, including a safety switch that was turning off a day early |
+| v2.2.64 | 2026-08-19 | Bug Fix | Same-day fix: yesterday's new "cut a bad position early" check was comparing against incomplete data and wrongly closed 7 real paper trades. Turned off until it's fixed properly |
+| v2.2.63 | 2026-08-19 | Bug Fix / Scoring Change / Backtest Methodology | A full review of the whole model found and fixed 17 real problems — the biggest one had made the historical test look better than real trading actually would |
+| v2.2.62 | 2026-08-19 | Bug Fix | Paper trading's earnings-date safety check only ran once, at signal time, so a trade could still be caught unprotected when earnings actually landed. Now re-checked every day |
+| v2.2.61 | 2026-08-19 | Feature / Bug Fix | Fixed 3 stalled tests; wired real dollar risk/reward numbers into more trade structures; fixed the live alert always showing $0.00 for dollar risk; now shows the runner-up trade options too, not just the winner |
+| v2.2.60 | 2026-08-19 | Feature / Bug Fix / Research | Corrected the documented holding period (the 5-day minimum was never actually enforced); fixed the same bearish-signal bug in a third place; stopped throwing away real trade-cost numbers before they reached the alert and paper-trading log; tested a different style of bearish signal — it did worse, so it stays off |
+| v2.2.59 | 2026-08-19 | Research / Sector Rollout | Tested 16 variations trying to fix bearish signals' weak historical results — none got close to passing. Turned bearish signals on for paper trading anyway, to start collecting real results instead of more historical guesswork |
+| v2.2.58 | 2026-08-18 | Feature / Backtest Methodology | Built real detection for bearish (falling-price) signals, instead of always defaulting to bullish. Kept switched off for now — it tested poorly on historical data in every sector |
+| v2.2.57 | 2026-08-15 | Scoring Change / Feature | Let each sector fine-tune its own scoring weights instead of sharing one set — one sector's tuning passed and went live, semiconductors' was correctly rejected as worse, the rest stay on the shared default. Also fixed a real bug in the math that keeps those weights within safe limits |
+| v2.2.56 | 2026-08-15 | Backtest Methodology | Found the shared scoring weights work for semiconductors but badly fail the other 3 sectors — the test used to average this away and call it a pass. Fixed the test to require every sector to pass on its own |
+| v2.2.55 | 2026-08-15 | Bug Fix / Scoring Change | Found the seasonal calendar was scoring backwards and fixed it — win rate improved right away on the same historical data. Also fixed a weight-calibration step that could never actually change anything, plus a few other dead or misattributed settings |
+| v2.2.54 | 2026-08-14 | Bug Fix | Fixed paper trading logging fake losses on trades that never actually filled; fixed a stop/target calculation that was computed but silently thrown away; fixed a news field that always logged blank |
+| v2.2.53 | 2026-08-13 | Bug Fix / Scoring Change | Found the model was applying semiconductor-specific rules (like "rate hikes are bad") to bank stocks, where the opposite is usually true — fixed, plus 11 more scoring bugs found the same way |
+| v2.2.52 | 2026-08-13 | Bug Fix / Scoring Change / Data Source | AMD's real earnings beat never reached the model's score — a review of the fundamentals scoring found and fixed 7 bugs, including revenue never being tracked at all |
+| v2.2.51 | 2026-08-11 | Bug Fix / Feature | Stock positions were priced by full share price instead of real dollar risk, which wrongly excluded high-priced stocks. Fixed — and now prefers capped-loss options over shares when an affordable option exists |
 | v2.2.50 | 2026-08-11 | Bug Fix | Every bearish signal has been silently excluded from all 42 trade structures since paper trading started — the reward:risk check only handled the bullish stop-below-entry case |
 | v2.2.49 | 2026-08-10 | Bug Fix | Paper trading could silently log a second same-direction position on a ticker that already had one open (found via PFE/LLY both duplicated 3 days apart) — added a duplicate-position guard scoped to paper trading's own ledger |
 | v2.2.48 | 2026-08-10 | Bug Fix | A trade sitting exactly at the 1:3 minimum reward:risk was getting silently rejected by a floating-point rounding artifact, excluding all 42 trade structures; also added a sizing_note field so a signal that sizes to 0 or finds no eligible structure now says why, right in the ledger |
@@ -178,13 +180,11 @@ logged below it — enforced automatically by the code, no exceptions.
 
 **Status:** Live.
 
-**In short:** Direct follow-up to v2.2.92. After raising the per-trade risk tiers ~6.667x, the two
-portfolio-level risk caps that were supposed to bound *total* exposure across all open positions —
-`MAX_TOTAL_RISK_PCT` (3%) and `MAX_NET_DIRECTIONAL_DELTA` (1.5%) — were left at their old, much
-smaller values. Flagged proactively (not by the user first) because a single 99-100 tier trade now
-risks 16.67% of the account alone, more than 5x the old total-portfolio cap of 3% — meaning the cap
-would bind on virtually every trade regardless of whether real concentration risk existed, making it
-a blunt, meaningless gate rather than a real backstop. User confirmed: "bring them up to scale too."
+**In short:** Follow-up to v2.2.92. After raising how much each trade can risk, the two safety caps
+meant to limit *total* risk across all open positions at once — a 3% portfolio-wide cap and a 1.5%
+one-direction cap — were left at their old, much smaller values. A single top-tier trade now risks
+16.67% alone, more than 5x the old portfolio cap, so that cap would trigger on almost every trade
+regardless of real risk, making it meaningless. Raised both caps to match, confirmed with the user.
 
 **Fix:** Same ~6.667x multiplier (500/75) applied to both caps, in `swing_model/portfolio_manager.py`:
 
@@ -222,17 +222,14 @@ signal is affected. Full test suite (1410 tests) passes unchanged.
 
 **Status:** Live.
 
-**In short:** Explicit user decision, acting directly on a real finding from today's earlier full
-model audit: the quant/strategy review found that "8 of the last 13 fills hit the $750 (5%) capital
-cap and landed as `position_type=shares` (undefined gap risk) rather than options," and recommended
-either tracking the undefined-risk share rate as its own KPI or "revisit whether the confidence-tier
-risk budget (0.5% = $75 at the 70-89 tier) is simply too small to ever afford a real contract at this
-account size." The user chose to act on it directly: raise the budget.
+**In short:** Acting on a finding from today's earlier audit: 8 of the last 13 real trades were too
+small to afford an actual options contract, so they fell back to plain stock instead — riskier,
+since stock has no built-in loss limit the way an options contract does. The cause was the smallest
+risk tier being just $75, far too little to ever buy a real contract. The user chose to raise it.
 
-**The floor tier matters most because it's the only one that's ever actually used** — real live
-confidence scores structurally cap out around ~78-80 (see v2.2.75's "750 real logged scans never
-exceeded 79.84" finding), so almost every real qualifying signal lands in the 70-89 tier, not the
-higher-confidence tiers the ladder was designed to reward with bigger size.
+**This matters most because the smallest tier is the only one that's ever actually used** — real
+live confidence scores rarely go above ~78-80 (see v2.2.75), so almost every real qualifying signal
+lands in the lowest tier, never reaching the higher tiers the ladder was designed to reward.
 
 **Fix:** `SIZING_TIERS` (`shared/utils/position_sizer.py`) raised by the same ~6.667x multiplier
 (500/75) across all 5 tiers, preserving the "higher confidence → more risk" ordering:
@@ -281,13 +278,10 @@ zero real money at risk either way).
 
 **Status:** Live.
 
-**In short:** Tier-4 audit item. `trade_selector.rank_trade_structures()` ranks all 42 applicable
-trade structures by `ev_per_dollar_per_day` alone — a point estimate of the MEAN expected outcome,
-which says nothing about the shape of the distribution around that mean. Two structures with
-near-identical EV but very different loss-tail severity (e.g. a high-win-rate credit structure with a
-large, rare loss vs. a more symmetric one) were previously treated as equivalent — pure positional/
-arbitrary tiebreak order. Since `ev_per_dollar_per_day` is rounded to 5 decimal places when stored,
-genuine ties are common in practice, not a rare theoretical edge case.
+**In short:** The system picks between 42 possible ways to structure a trade by ranking them on
+expected profit alone. When two options tie on expected profit, it used to pick between them
+arbitrarily — even when one carries a much bigger worst-case loss than the other. These ties are
+common in practice, not a rare edge case.
 
 **Fix:** Extracted the sort into a small, directly-testable `_ranking_sort_key(x)` function. Primary
 key unchanged (`ev_per_dollar_per_day`, higher is better); secondary tiebreak on `max_loss_dollars`,
@@ -316,31 +310,20 @@ change: a tied-EV structure choice can now differ from before, favoring lower ma
 
 **Status:** Live.
 
-**In short:** Tier-4 audit item: `backtesting/metrics.py::compute_deflated_sharpe_ratio()` (Bailey &
-Lopez de Prado's correction for the inflation that comes from selecting the best of N trials) has
-existed since it was built for `entry_filter_variants.py`'s threshold-sweep diagnostic, but was never
-run against the actual number this project reports as its headline result — despite 5+ documented
-rounds of entry-filter tuning (RSI band, confirmation bar, stop multiplier, ...) against the exact
-same historical dataset, real multiple-testing exposure this tool exists to discount.
+**In short:** A good-looking test result can sometimes just be the luckiest of several attempts,
+not real skill. This project has tuned its entry rules against the same historical data more than
+5 separate times — each attempt is a chance for a good-looking number to be luck rather than a real
+edge. A statistical check for exactly this (a "deflated Sharpe ratio") already existed for other
+diagnostics but had never been run against the project's own headline result. It has been now.
 
-**Why not replay the actual historical tuning rounds:** those rounds' per-trial Sharpe values aren't
-available in one clean place — they're scattered across separate one-off sweep scripts
-(`bearish_rsi_band_sweep.py`, `bearish_confirmation_sweep.py`, etc.) run over several weeks, each
-with its own scope and output format. Reconstructing a single unified trial list retroactively would
-be a real, separate undertaking, not a mechanical wiring change.
+**Real historical tuning attempts aren't all in one place to test directly** — they're scattered
+across separate one-off scripts run over several weeks. Instead, this uses each of the 6
+walk-forward test windows (different multi-year historical slices) as stand-ins for separate
+attempts, and asks: is the reported result just the best-looking of those 6 windows, or real?
 
-**What this does instead:** uses each walk-forward window's own Sharpe as the trial population, with
-the single-slice Sharpe as the "selected" trial. This answers a narrower but still real and directly
-computable question — is the reported single-slice Sharpe just the most favorable of several
-different time-window reads of the same strategy — rather than the broader "was picking this exact
-entry-filter configuration out of every historical tuning round too easy" question, which would need
-the unavailable historical trial data.
-
-**On real data:** raw single-slice Sharpe 0.27; **deflated Sharpe -10.64 (PSR 0.00, n_trials=5)** —
-essentially zero probability the true Sharpe exceeds what pure chance across 5 window-level trials
-would produce. Consistent with everything else found today (v2.2.83/v2.2.84): the headline number
-isn't just failing its stated bars, it isn't statistically distinguishable from noise once the
-spread across time windows is accounted for.
+**Answer, on real data:** yes, just the best-looking one. Raw Sharpe ratio 0.27, but once corrected
+for having 6 different windows to pick from, it drops to **-10.64 — indistinguishable from noise**.
+Consistent with everything else found today: the headline number doesn't hold up.
 
 **Fix:** `backtesting/backtest_engine.py` — new `deflated_sharpe`/`deflated_sharpe_psr`/
 `deflated_sharpe_n_trials` result fields (present and zeroed even on the no-data early-return path).
@@ -360,26 +343,18 @@ the trial population rather than counted as a fabricated zero-Sharpe data point.
 
 **Status:** Live.
 
-**In short:** Investigating a Tier-4 audit item ("why does per-sector weight calibration only cover 1
-of 4 active sectors?") found a real, currently-live bug, not just a data-sufficiency gap. Consumer
-discretionary had a calibrated-weights entry saved 2026-08-16 (`n_trades=405`,
-`technical=0.4/sentiment=0.4/news=0.2`, vs. the shared default) that `paper_runner.py` was — and had
-been — actively reading via `load_live_weights_if_calibrated(sector="consumer_discretionary", ...)`
-for every AMZN/HD/TGT/NKE/SBUX scan. That entry was fit under the exact same stale
-`confidence >= 90` bug fixed elsewhere today (v2.2.75/v2.2.83) — its 405 "qualifying trades" don't
-exist under the real threshold.
+**In short:** While checking why only 1 of 4 sectors had its own fine-tuned scoring weights, found a
+real, currently-live bug: consumer discretionary (AMZN/HD/TGT/NKE/SBUX) was still using custom
+weights fit back in August under the same "still checking for a 90 score instead of 70" bug fixed
+elsewhere today — meaning those weights were fit on a fictional dataset of 405 trades that doesn't
+actually exist at the real threshold.
 
-**Re-running the calibration with the corrected threshold:** only 5 real training trades for
-consumer_discretionary (down from the reported 405), nowhere near the 100-trade minimum any sector
-needs. No sector/direction across all 4 sectors currently qualifies.
+**Re-running the fit with the correct threshold:** only 5 real trades for that sector, nowhere near
+enough to trust (100 is the minimum). No sector currently has enough data to earn its own weights.
 
-**The deeper bug, not just stale data:** `sector_weight_calibration.py`'s `run()` only ever called
-`feedback_loop.save_sector_weights()` when something NEW qualified that run — a sector that stops
-qualifying (whether from a measurement fix like this one, or genuinely losing statistical support as
-paper trading accumulates contradicting evidence) had no code path that could ever clear its stale
-entry. `save_sector_weights()`'s own contract is a full overwrite of the file, not a merge with
-what's already there — the bug was purely in `run()` skipping the call entirely on an empty result,
-not in the save mechanism itself.
+**The deeper bug:** the calibration code only ever updated the saved weights file when a sector
+newly qualified — it had no way to go back and clear a sector's entry once it stopped qualifying.
+So a stale, no-longer-valid set of weights could sit there being used forever.
 
 **Fix:** `save_sector_weights(saved_by_sector)` is now called unconditionally, including with an
 empty dict — which correctly clears any sector/direction that no longer qualifies. Re-ran the real
@@ -406,14 +381,10 @@ a version bump and CHANGELOG entry, which this is.
 
 **Status:** Live.
 
-**In short:** The code-quality pass of the full model audit flagged that `greeks_filter_status`'s
-underlying computation (`trade_selector.rank_trade_structures()`) was well tested, but the wiring
-that actually writes it into `paper_trades.csv` had none. Confirmed the gap was real: every existing
-full-pipeline test (`tests/test_multi_sector_live_pipeline.py`) mocks `rank_trade_structures` without
-a top-level `"greeks_filter_status"` key at all, so `paper_runner.py`'s
-`trade_result.get("greeks_filter_status")` silently evaluated to `None` (written as `""`) in every
-one of them — a column-alignment or key-name regression in that specific wiring wouldn't have been
-caught by any test in the suite.
+**In short:** A data field (`greeks_filter_status`) was being calculated correctly, but the step
+that actually saves it into the paper-trading log had zero test coverage — so a bug there could
+have slipped in unnoticed. Confirmed the gap was real: every existing test skipped that field
+entirely, so it always silently came out blank in every test run without anyone noticing.
 
 **Fix:** New `test_greeks_filter_status_round_trips_into_paper_trades_csv`, same real-pipeline-with-
 fakes harness the other tests in that file already use, with `rank_trade_structures` mocked to
@@ -432,18 +403,13 @@ return shape). Confirms it survives all the way into the written CSV row.
 
 **Status:** Live.
 
-**In short:** The code-quality pass of the full model audit flagged that `data/logs/app.log`
-(free-text, `RotatingFileHandler`-capped at 5MB × 3 backups) was already 4.8MB and had been touched
-by 45 prior commits, producing large, noisy diffs that buried real code changes in the same commits.
-Since the file is already locally rotated and capped, tracking it in git is redundant with those
-local backups — nothing about it needs to survive in git history that the local rotation doesn't
-already preserve for the recent window that actually matters.
+**In short:** A large free-text log file (`app.log`, ~5MB) was being tracked in git even though it's
+already backed up locally and rotates automatically. Touched by 45 prior commits, it kept producing
+large, noisy diffs that buried the real code changes in the same commits.
 
-**Fix:** Added `data/logs/app.log*` to `.gitignore` (covers rotated backups `app.log.1`/`.2`/`.3`
-too) and ran `git rm --cached data/logs/app.log` — the file stays exactly where it is on disk,
-still being written to normally; git just stops tracking it going forward. The structured CSVs
-(`audit_log`/`validation_log`/`override_log`/`performance_log`/`trade_outcomes`/`fill_log` — the
-actual forensic audit trail this project relies on) are unaffected and remain tracked.
+**Fix:** Stopped tracking it in git. The file stays on disk and keeps being written to as normal —
+git just stops watching it. The structured audit-trail files this project actually relies on
+(trade logs, validation logs, etc.) are untouched and still tracked.
 
 **Backtest:** Not applicable — repository hygiene only.
 
@@ -455,36 +421,18 @@ actual forensic audit trail this project relies on) are unaffected and remain tr
 
 **Status:** Live.
 
-**In short:** Tier-1 decision #4 from the full model audit. v2.2.75 fixed `backtest_engine.py`'s
-hardcoded `confidence >= 90`; v2.2.83 found the identical bug independently duplicated in 3 more
-files, caught only by a manual grep sweep after the fact. Rather than trust the next recurrence to
-also get caught by hand, built the CI check this project's own `check_config_coverage.py` established
-the pattern for: fail the build automatically, not eventually.
+**In short:** The same bug — a file hardcoding its own copy of the "70-point" qualifying score
+instead of reading the real setting — was found and fixed 3 separate times in 2 days (v2.2.75,
+v2.2.83), always by manually searching for it after the fact. Built an automatic check instead, so
+the next copy of this bug fails the build right away rather than waiting to be found by hand.
 
-**What it checks:** `scripts/check_confidence_threshold_duplication.py` scans every non-test `.py`
-file for two shapes, matching exactly what the real bug looked like each time (not a broad "any
-number near the word confidence" heuristic, which would have false-positived on this project's own
-extensive changelog/docstring prose describing the bug's history):
+**What it checks:** scans every code file for the two ways this bug has shown up — a hardcoded
+comparison against a number, or a constant that looks like it should reference the real setting but
+doesn't. Any file matching either pattern must also import the real setting, or the check fails.
 
-1. `<something>.get("confidence", ...) >= <bare number>` — the real qualifying-filter comparison
-   shape every instance used.
-2. `SOME_CONFIDENCE_THRESHOLD_LIKE_NAME = <bare number>` — a module-level constant whose name says
-   "confidence threshold" but whose value is a hardcoded copy, not `= CONFIDENCE_THRESHOLD`.
-
-A file matching either shape is required to also import `CONFIDENCE_THRESHOLD` from
-`swing_model.scoring` somewhere in the same file. `swing_model/scoring.py` itself (the canonical
-definition, where `CONFIDENCE_THRESHOLD = 70` legitimately IS a bare number) is excluded.
-
-**Proven before wiring in:** ran it against 3 synthetic examples — the exact hardcoded-comparison
-shape (flagged), the exact hardcoded-constant shape (flagged), and the same shapes with the real
-import present (clean) — confirming it actually catches the bug pattern rather than passing
-trivially.
-
-**Found one more real instance immediately on first run against the actual codebase:**
-`bearish_rsi_band_sweep.py` still had `_CONFIDENCE_THRESHOLD_BACKTEST = 90.0` — dead, unused code left
-over from v2.2.83's fix (that file's real qualifying filter runs through `run_walk_forward()`, already
-fixed; this constant was defined but never read by anything). Removed rather than wired, since nothing
-uses it.
+**Proven before turning it on:** tested it against known-bad and known-good example code first, to
+confirm it actually catches the bug instead of passing trivially. It also immediately found one more
+real leftover copy in the codebase — removed.
 
 **Fix:** New `scripts/check_confidence_threshold_duplication.py`, wired into
 `.github/workflows/ci.yml`. `backtesting/bearish_rsi_band_sweep.py` (dead constant removed).
@@ -499,19 +447,10 @@ uses it.
 
 **Status:** Live.
 
-**In short:** The `StockAnalysis_WeeklyDashboard` scheduled task (added v2.2.79) fired for real for
-the first time today — Sunday, 6pm local, exactly as configured. Its own log
-(`data/logs/weekly_dashboard_task.log`) confirms the wiring works end to end (config loaded, gate
-evaluated, summary computed) but surfaced a real gap: `DISCORD_WEBHOOK_URL not set in environment` —
-the alert was never actually posted.
-
-**Problem:** `paper_trading/paper_runner.py` loads `.env` at import time (`load_dotenv()`, wrapped in
-a try/except for environments without `python-dotenv` installed) specifically so environment
-variables like `DISCORD_WEBHOOK_URL` are available regardless of how the process gets launched.
-`monitoring/performance_dashboard.py` never had the equivalent — harmless when the module was only
-ever imported from something else that already loaded `.env` (or run interactively from a shell that
-already had it exported), but the whole point of v2.2.79 was giving this module its own standalone
-scheduled task, which starts a fresh process with none of that.
+**In short:** The weekly Discord summary alert (added in v2.2.79) ran for the first time today, right
+on schedule — but its own log showed it never actually posted, because it couldn't find the Discord
+key. The step that loads that key from the settings file was simply missing from this one module,
+unlike everywhere else in the project.
 
 **Fix:** Added the identical `load_dotenv()` pattern to `monitoring/performance_dashboard.py`.
 Verified directly: `DISCORD_WEBHOOK_URL` now loads into `os.environ` on import. 1399/1399 tests still
@@ -528,24 +467,16 @@ passing).
 
 **Status:** Live.
 
-**In short:** Tier-1 decision #1 from the full model audit, implemented: `run_backtest()`'s `passed`
-flag used to rest only on the single fixed 70/30 split. `wf_results` was computed and attached to
-the returned/saved report, but nothing gated on it — which is exactly how v2.2.83's wrong "2/6
-windows pass" reading went unnoticed for most of a day: the fixed test period (2022-06-09 onward)
-happens to sit inside the only windows that looked favorable, so the single-split check had no way
-to catch that the apparent pass was a fixed-slice artifact.
+**In short:** The historical test's pass/fail verdict used to rest on just one fixed time slice.
+Results across other historical time periods ("walk-forward windows") were calculated but never
+actually counted toward the verdict — which is exactly how v2.2.83's wrong "2 of 6 periods pass"
+reading went unnoticed for most of a day: the one slice that gets graded happened to sit inside the
+only periods that looked good, hiding the fact that most periods don't.
 
-**Fix:** `passed` now also requires the bootstrapped expectancy-CI/Sharpe/drawdown/trade-count bar to
-clear on qualifying trades **pooled across every walk-forward window**, not window-by-window. A
-per-window majority vote was considered and rejected — 6 windows is too few data points for a binary
-per-window pass/fail to carry much statistical weight, and most windows don't even reach the
-10-trade minimum for their own verdict. Pooling every window's outcomes into one larger sample and
-running the same metrics bundle the single-slice check already uses is the same approach
-`entry_filter_variants.py` already established for testing entry-filter candidates without
-overfitting to one fixed slice — this applies it to the actual go-live gate instead of a research
-tool. `run_walk_forward()` is now called with `include_outcomes=True`; the raw per-trade outcome
-lists are popped back out before the window dicts reach the saved report, keeping it exactly as lean
-as it was before (matching that function's own documented intent).
+**Fix:** The verdict now also requires the same safety bar to clear when every walk-forward
+period's trades are pooled together into one larger sample, not just the one fixed slice. (A
+period-by-period vote was considered and rejected — 6 periods is too few data points, and most
+don't have enough trades to judge on their own anyway.)
 
 **On real data:** pooled walk-forward is 32 trades total, expectancy CI lower bound 0.06R (positive
 but weak), **Sharpe -1.12** — fails cleanly on its own, independent of and consistent with the
@@ -578,17 +509,11 @@ model remains not eligible for real capital regardless of this result.
 
 **Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
 
-**In short:** Asked to "think more" about the Tier-1 go-live decisions (walk-forward gating, bearish
-signals, sector eligibility) before acting on them, rather than just re-stating the earlier
-recommendations with more confidence. That reconsideration found v2.2.75's fix was incomplete: it
-only touched `backtest_engine.py`'s copy of `confidence >= 90`. The identical bug was independently
-duplicated in `backtesting/walk_forward.py`, `backtesting/architecture_diagnostic.py`, and
-`backtesting/sector_weight_calibration.py` — the same recurring-bug-shape (a fix applied to one
-instance, not swept to its duplicates) this project's own v2.2.65-70 work was built to catch, now
-caught recurring a third time within two days, including within the very fix meant to close it out.
-
-**Every walk-forward-window verdict and per-sector Sharpe number cited earlier today — including
-this file's own v2.2.75 entry, stated as fact — was measured on the wrong population.**
+**In short:** A closer look at yesterday's fix (v2.2.75) found it was incomplete — it only fixed one
+copy of the "still checking for a 90 score instead of 70" bug. The identical bug was independently
+copy-pasted into 3 more files, so every walk-forward-window result and per-sector number reported
+earlier today — including this file's own v2.2.75 entry — was actually measured on the wrong,
+too-easy population.
 
 **Fix:** `backtesting/walk_forward.py`'s own qualifying filter now imports `CONFIDENCE_THRESHOLD`
 instead of hardcoding 90 (this transitively fixes every caller that pools through
@@ -601,34 +526,16 @@ separate copies of the same constant. 3 stale `>=90`-referencing comments fixed 
 
 **Corrected numbers, re-run after the fix:**
 
-- **Walk-forward: 0 of 6 windows pass** (previously reported 2/6). Only window 2 (2016-2018, 14
-  trades) has enough data to render a real verdict at all — and it fails (42.9% win rate, below the
-  55% bar). The other 5 windows have 1, 4, 2, 5, and 6 qualifying trades respectively, all below the
-  10-trade minimum for a verdict. **The "2014-2022 fails, 2022-2026 passes, rate-regime-linked"
-  narrative — which goes back to CHANGELOG §11-era findings from July and informed real decisions
-  like wiring the macro overlay into the backtest — does not survive this fix.** It was never real;
-  it was an artifact of measuring the wrong, too-permissive population.
-- **Per-sector qualifying trades (`architecture_diagnostic.py`): semiconductors 11, regional_banks
-  0, healthcare 0, consumer_discretionary 6. Pooled: 17.** Previously cited "regional_banks Sharpe
-  0.64, healthcare 0.69, consumer_discretionary 0.22" is superseded — banks and healthcare have ZERO
-  qualifying trades at the real threshold in their entire out-of-sample test periods, not just a low
-  Sharpe. A starker version of the "not enough data" finding than previously stated.
-- **Bearish signals: re-ran `bearish_exit_sizing_sweep.py` (the sweep that produced the previously-
-  cited "best" -1.73 pooled Sharpe). Result: all 24 variant × sector combinations (6 exit-sizing
-  variants × 4 sectors) return exactly 0 qualifying trades.** The entire "339 pooled trades, Sharpe
-  -1.73 to -2.44, a real well-evidenced negative edge" conclusion from v2.2.58/59 was 100% an
-  artifact of the stale-90 measurement. The honest state of bearish-signal evidence is **zero
-  backtest data at the real threshold, not "well-evidenced negative."** This changes the standing
-  recommendation on bearish signals from "disable — clearly negative edge" to "the same 'not enough
-  data' situation as everything else — no evidence either way, backtest-side."
-
-**What this means for the Tier-1 decisions:** walk-forward/sector gating should still be coded into
-`passed` — this whole episode is itself the argument for it, not against it. The sector-eligibility
-recommendation (keep paper trading all 4 sectors — it's free and is closer to the only evidence
-source that exists for banks/healthcare) is unchanged, just resting on starker numbers. The bearish
-recommendation needs to be revisited from scratch now that the "clearly negative" premise is gone —
-paper trading (which never had this bug) remains the one place real bearish evidence could
-eventually come from.
+- **Walk-forward: 0 of 6 test periods pass** (not 2 of 6, as first reported). Only one period even
+  has enough trades to judge, and it fails. The old "recent years pass, older years don't" story was
+  never real — it was an artifact of grading the wrong, too-easy population.
+- **Per-sector trade counts:** semiconductors 11, regional banks 0, healthcare 0, consumer
+  discretionary 6. Banks and healthcare have zero qualifying trades in their whole test period, not
+  just weak results — a starker gap than previously reported.
+- **Bearish signals:** re-ran the test that previously found "clearly negative, well-evidenced"
+  results for bearish (falling-price) trades. Every single variant tested now returns zero
+  qualifying trades. That earlier negative conclusion was entirely an artifact of the same bug — the
+  honest state is "no real evidence either way yet," not "proven bad."
 
 **Fix:** `backtesting/walk_forward.py`, `backtesting/architecture_diagnostic.py`,
 `backtesting/sector_weight_calibration.py`, `backtesting/simulation.py`,
@@ -648,17 +555,12 @@ live. The model remains not eligible for real capital regardless of this result.
 
 **Status:** Live.
 
-**In short:** While writing v2.2.81's test coverage, confirmed a small gap the audit had flagged:
-`paper_updater.py`'s fill-price `actual_dollar_risk` re-anchor (the fix from commit `c6e0d1b`,
-2026-08-22) parses `position_size` inside a `try/except ValueError: pass`. Today that's harmless —
-`position_size` is always written as `str(int)` — but if that invariant ever drifted (e.g. a
-future change writes a float-formatted string), the re-anchor would silently stop applying for that
-one trade, with no log line, no error — the exact dollar-risk drift bug fixed yesterday would
-quietly come back for just that trade and nobody would know.
+**In short:** A recent risk-tracking fix (2026-08-22) has one weak spot: if the data it reads is ever
+malformed, it silently gives up and moves on with no warning — meaning the same bug it just fixed
+could quietly come back for a single trade and nobody would ever know. Not a problem today, since
+the data is always well-formed, but a silent trap for the future.
 
-**Fix:** The `except` branch now logs a warning naming the ticker, signal date, and the actual
-malformed value, instead of passing silently. Covered by the existing malformed-`position_size` test
-in `tests/test_paper_updater_mark_to_market.py`, extended to assert the warning fires.
+**Fix:** That silent failure now logs a warning instead, naming the ticker and the bad value.
 
 **Backtest:** Not applicable — live/paper-only, no scoring/threshold change.
 
@@ -670,33 +572,15 @@ in `tests/test_paper_updater_mark_to_market.py`, extended to assert the warning 
 
 **Status:** Live.
 
-**In short:** The code-quality pass of the full model audit flagged commit `c6e0d1b` (2026-08-22 —
-added open-position mark-to-market P&L tracking, fixed a real ~30% dollar-risk drift bug) as "the
-single highest-risk piece of untested code in the repo right now": new, fixes a real bug, touches a
-$-figure the audit trail depends on, and shipped with zero tests. Closed that gap.
+**In short:** Yesterday's fix for a real dollar-risk-tracking bug (added open-position profit/loss
+tracking, and corrected a ~30% drift in how risk was calculated) shipped with zero tests, despite
+touching numbers the whole audit trail depends on — flagged as the highest-risk untested code in
+the project. Added the missing coverage.
 
-**Coverage added**, all exercised via the real `update_paper_trades()` end to end (not a re-derived
-parallel implementation — mocked `_download_ohlcv`/`fetch_next_earnings_date`, isolated CSV/lock
-paths, same fixture pattern already used by `tests/test_paper_trades_csv_race.py`):
-
-- Mark-to-market for a still-open position: bullish gain, bearish gain (sign flips correctly),
-  bearish adverse move (negative unrealized R), a degenerate zero-risk-per-R case (entry price ==
-  stop loss — must not divide by zero), missing/blank `actual_dollar_risk` (must leave
-  `unrealized_pnl_dollars` blank, not `"0.00"` or a crash), and the fallback to `dollar_risk` when
-  `actual_dollar_risk` is blank.
-- The fill-price re-anchor itself: a shares position that gaps through its entry zone re-anchors
-  `actual_dollar_risk` to `shares × |real_fill_price − stop_loss|`, not the stale signal-time
-  midpoint-based value; an options position's `actual_dollar_risk` (a defined max-loss figure) is
-  confirmed untouched by the same code path; zero shares skips the re-anchor entirely; a malformed
-  `position_size` (a future drift the code already guards with `except ValueError: pass`) fails safe
-  — the fill still confirms, the stale value is simply kept, and the whole run doesn't crash.
-- Direct unit tests for `_fmt_dollars`, including the exact real scenario its negative-zero collapse
-  exists for (a negative R-multiple × a `$0` `actual_dollar_risk`, IEEE `-0.0`).
-
-**Fix:** New `tests/test_paper_updater_mark_to_market.py` (14 tests). No production code changed —
-this is coverage for already-shipped, already-live behavior. All tests pass against the current
-implementation; none needed a code fix to pass, confirming the original commit's logic was correct,
-just unverified until now.
+**14 new tests** cover both the profit/loss tracking (gains, losses, both directions, edge cases
+like a stop set at the same price as entry) and the risk-recalculation fix itself (share positions
+vs. options, zero shares, bad input data). No production code changed — every test passed against
+the existing code as-is, confirming yesterday's fix was correct, just unverified until now.
 
 **Backtest:** Not applicable — test-only change.
 
@@ -708,34 +592,17 @@ just unverified until now.
 
 **Status:** Live.
 
-**In short:** The code-quality pass of the full model audit flagged that every ticker's price
-history was being fetched twice per scan, and VIX three times over across two functions. Both fixed
-with a cache and a combined fetch — no behavior change to what data is used, just less redundant
-network I/O.
+**In short:** Every stock's price history was being downloaded twice per scan, and VIX (the market
+fear-gauge index) three times over. Both fixed — no change to what data is used, just less
+redundant network traffic and a faster scan.
 
-**1. OHLCV double-fetch.** `swing_model/indicator_pipeline.py::run_pipeline()` (called once per
-active sector, `period="6mo"`) and `swing_model/run_swing_model.py::_fetch_market_context()` (called
-once per scan covering every sector's benchmark + the full watchlist + SPY, `period="3mo"`) both call
-`fetch_ohlcv_batch()` — for a heavily-overlapping ticker set, seconds apart, in the same scan. Across
-4 active sectors this was roughly doubling yfinance call volume and scan runtime every run, 3x/day —
-relevant given a past production incident (`scan_lock.py`'s own docstring) already traced back to
-slow scans colliding under the scan lock.
+**1. Stock price data:** two different steps in the same scan each independently downloaded a
+heavily overlapping set of tickers seconds apart, roughly doubling network calls every run across 4
+sectors, 3 times a day. Added a cache that lasts just for the duration of one scan, so the second
+step reuses data the first step already fetched instead of re-fetching it.
 
-Added a process-lifetime, no-expiry cache to `fetch_ohlcv_batch()`, keyed by `(ticker, interval)`,
-storing how many days of history each entry covers. A request is served from cache whenever an
-existing entry already covers at least as many days as requested (a 3mo request after a 6mo fetch is
-a hit; the reverse is a real re-fetch) — safe by construction, not just in practice: both pipelines
-launch as a brand-new Python process per scheduled scan (Windows Task Scheduler), so the cache starts
-empty every run and can never carry stale data across scans. A single ticker with no cache coverage
-still uses the existing single-ticker fast path (`fetch_ohlcv`/`yf.Ticker`); multiple uncached tickers
-still batch through one `yf.download` call, now for only the tickers that actually need it.
-
-**2. VIX triple-fetch.** `_fetch_market_context()` called `fetch_vix()` and `fetch_vix_pct_change()`
-independently, back to back — two full `yf.download("^VIX", ...)` round trips for data that's a
-strict subset of one another (`fetch_vix_pct_change` already holds the latest close `fetch_vix`
-returns, plus the prior close it needs for the delta). New `fetch_vix_and_pct_change()` does one
-fetch and derives both values. `fetch_vix()`/`fetch_vix_pct_change()` are unchanged and still
-independently callable — this only changes the one call site that needed both.
+**2. VIX data:** one function was making two separate downloads for data that's mostly the same
+thing. Now does one download and derives both values from it.
 
 **Fix:** `shared/api_clients/market_data_client.py` (new `_OHLCV_BATCH_CACHE`/`_period_to_days`,
 new `fetch_vix_and_pct_change`), `swing_model/run_swing_model.py` (`_fetch_market_context` uses both).
@@ -754,31 +621,17 @@ historical CSVs and doesn't call these functions.
 
 **Status:** Live.
 
-**In short:** `monitoring/performance_dashboard.py::generate_weekly_summary()`'s docstring has read
-"Generate weekly performance summary and send to Discord" for a long time. It never sent anything —
-no code path in the module called any Discord function. Separately, nothing outside the test suite
-ever called `generate_weekly_summary()` at all, confirmed by checking this machine's real Windows
-Task Scheduler entries (only the 3 paper-trading scan tasks + the updater existed). The one safety
-mechanism this module documents — an automatic review alert when the rolling 20-trade win rate drops
-below 70% — has been fully dormant this whole time.
+**In short:** The weekly performance check-in was supposed to do two things: alert on Discord when
+the win rate drops too low, and actually run on a schedule. It did neither — the code that claimed
+to send a Discord alert never really did, and nothing was ever scheduled to call it in the first
+place. This safety mechanism has been completely dormant the whole time.
 
-**Fix:** Added `shared/utils/discord_alerts.py::send_weekly_summary_alert()` (go-live gate status,
-win-rate/R:R/drawdown when real trade history exists, signal accuracy from real paper-trading fills
-either way) and wired it into every return path of `generate_weekly_summary()` via a new
-`_try_send_weekly_summary()` best-effort wrapper (same pattern as every other `_try_send_*` in this
-codebase — a Discord/network failure logs and moves on, never blocks the computed summary or its CSV
-log entry). New `send_alert: bool = True` parameter lets a caller skip the post if it only wants the
-dict. Created a real Windows scheduled task, `StockAnalysis_WeeklyDashboard` (Sundays 6pm local),
-running `python -m monitoring.performance_dashboard` — same command/log-redirect pattern as the
-existing `StockAnalysis_PaperRunner*`/`StockAnalysis_PaperUpdater` tasks, confirmed against their
-real configuration before creating this one.
+**Fix:** Built the real Discord alert, and added a Sunday 6pm scheduled task so it actually runs
+every week, matching the same pattern the daily paper-trading scans already use.
 
-**A live instance of v2.2.77's exact bug class, caught immediately:** writing the tests for this fix
-wrote 2 synthetic rows straight into the real `data/logs/performance_log.csv` — `log_performance_entry()`'s
-`_PERFORMANCE_LOG` path constant wasn't isolated in `conftest.py`, the same class of gap just fixed
-for `feedback_loop.py`'s 5 constants one version earlier. Added the fixture, cleaned up the 2 rows.
-Notable precisely because it happened in the same session as the fix it repeats — this class of bug
-is evidently easy to reintroduce one file at a time rather than something a single sweep closes for good.
+**Also caught, immediately:** the new tests for this fix accidentally wrote 2 fake rows into the
+real performance log, because that file wasn't protected from test pollution the way most of the
+project's other log files are. Fixed and cleaned up.
 
 **Fix:** `monitoring/performance_dashboard.py`, `shared/utils/discord_alerts.py`, `tests/conftest.py`
 (new `_isolate_performance_log` fixture), `data/logs/performance_log.csv` (cleaned). New
@@ -796,32 +649,17 @@ version-controlled — Task Scheduler state, not a repo file). 1370+/1370+ tests
 
 **Status:** Live.
 
-**In short:** The audit flagged that nothing stops up to 8 simultaneous open positions across all 4
-active sectors (semiconductors/regional_banks/healthcare/consumer_discretionary) from all leaning
-the same direction — a hidden concentration risk `portfolio_manager.py`'s correlated-group checks
-don't catch, since those are scoped within one sector by design. Building a real fix surfaced a
-design fork worth deciding explicitly rather than guessing: paper trading has a documented,
-deliberate choice to log every qualifying signal unconstrained by ANY portfolio-level limit (no
-circuit breakers, no position caps — see the position-sizing comment in `paper_runner.py`), so it
-can observe the full universe of what would have qualified. A real concentration *block* would
-reverse that. Asked directly this session — the answer: advisory only, keep logging everything,
-just make concentration visible. Built that.
+**In short:** Nothing stopped up to 8 open positions across all 4 sectors from all leaning the same
+direction at once — a hidden concentration risk that the existing per-sector safety checks can't
+see, since they only look within one sector at a time. Paper trading deliberately logs every
+qualifying signal without limits, on purpose, so it can see the full picture of what would have
+qualified — so a real *block* here would work against that goal. Decided: make the risk visible with
+a warning note, but never block logging.
 
-**Fix:** Before logging a new signal, sums net directional exposure (each open position's
-`risk_pct` signed by direction — long and short partially offset, not just netted by position
-count) across every open position in every active sector, using `portfolio_manager.py`'s existing
-`get_portfolio_delta()` against its existing 1.5% (`MAX_NET_DIRECTIONAL_DELTA`) threshold — real,
-tested logic that was previously only reachable through the unused live path. If logging the new
-signal would push projected exposure past that threshold, a note is appended to the signal's
-existing `sizing_note` field, which already reaches both `paper_trades.csv` and the Discord alert —
-no new column, no new alert channel, same visibility mechanism already used for "sizes to 0" and
-"capital cap bound" notes. Extended `_load_filled_open_positions_detail()` (added in v2.2.77 for
-the Black Swan alert) to accept no sector filter for this portfolio-wide view, and to carry
-`risk_pct` per position.
-
-Never skips logging, never resizes, never blocks — same "advisory, review before acting" treatment
-as Black Swan and the Event Severity Gate, and consistent with paper trading's own documented design
-intent.
+**Fix:** Before logging a new signal, adds up directional exposure (accounting for direction, so a
+long and a short partly cancel out) across every open position in every sector. If a new signal
+would push that too far in one direction, a note gets added to the same field that already carries
+other warnings to the trading log and Discord alert — nothing ever gets blocked or resized.
 
 **Fix:** `paper_trading/paper_runner.py` (`_load_filled_open_positions_detail` extended, new
 concentration check ahead of `sizing_note`). 6 new tests. 1359+/1359+ tests pass.
@@ -836,48 +674,21 @@ concentration check ahead of `sizing_note`). 6 new tests. 1359+/1359+ tests pass
 
 **Status:** Live.
 
-**In short:** Two independent fixes from the 2026-08-22 full model audit's remaining backlog.
+**In short:** Two fixes from the audit backlog.
 
-**1. Test isolation for feedback_loop.py's real files.** `data/logs/trade_outcomes.csv` was found
-285 rows deep in obviously synthetic test data (round $100→$120 prices, blank structure/signal_key,
-millisecond-apart duplicate rows). Confirmed all 285 rows are test pollution — the only real writer
-(`portfolio_manager.py`'s live-trading close path) has never actually run, since no version has gone
-live. Per-test manual monkeypatching of `feedback_loop.py`'s 5 file-path constants
-(`_TRADE_OUTCOMES_FILE`/`_SIGNAL_WIN_RATES_FILE`/`_LIVE_WEIGHTS_FILE`/`_SECTOR_LIVE_WEIGHTS_FILE`/
-`_PAPER_TRADES_FILE`) had already missed this once before (see
-`tests/test_phase14_feedback.py::test_result_contains_required_keys`'s docstring — an earlier
-incident where a forgotten patch overwrote the real `calibrated_weights.json`) and evidently missed
-it again elsewhere. Added a `conftest.py` autouse fixture isolating all 5 constants for every test,
-matching the same pattern already used for audit/validation/override logs, backtest reports, and
-scan locks. Reset `trade_outcomes.csv` to header-only and `signal_win_rates.json` to empty — the
-"20% win rate" it reported was entirely test-generated, not real paper-trading performance (which
-has 2 real closed trades total).
+**1. Cleaned up test data that had leaked into real files.** A real project log file was found
+285 rows deep in obviously fake test data — round numbers, blank fields, duplicate rows written
+milliseconds apart. None of it was real (the code path that would write real rows here has never
+actually run). Fixed the tests to stop writing into real files, and cleaned the fake rows out.
 
-**2. Black Swan circuit breaker wired into paper trading for the first time.** The audit found that
-`shared/utils/black_swan_detector.py` (SMH >7% drop / VIX >40% spike, advisory-only crash alert) was
-wired into `run_swing_model.py` — the live path that has never actually run — but had zero
-references anywhere in `paper_trading/paper_runner.py`, the pipeline that's actually running 3x/day.
-The pipeline that's actually trading had no crash circuit breaker at all. Separately, even
-`run_swing_model.py`'s existing check was hardcoded to watch SMH only, regardless of which of the 4
-sectors (semiconductors/regional_banks/healthcare/consumer_discretionary) were actually active —
-a bank- or healthcare-specific crash could happen with zero detection.
+**2. Gave paper trading — the system that's actually running every day — a real crash-alert check
+for the first time.** A "market crash" safety alert existed, but only in the live-trading code path
+that has never actually run; the pipeline running 3 times a day, every day, had none at all. Also,
+even the existing check only ever watched one sector's benchmark regardless of which sectors were
+actually active — so a crash specific to, say, healthcare stocks would have gone undetected. Fixed
+both: every active sector's own benchmark is now checked independently.
 
-Fixed both at once with a new shared function, `run_swing_model.py::_check_black_swan_per_sector()`,
-called from both pipelines: checks every active sector's own benchmark (SMH/KRE/XLV/XLY) for a >7%
-drop, alongside the one shared VIX-spike condition, with each sector's trigger/cooldown tracked
-independently in a new `data/processed/black_swan_state.json` (shared between both pipelines, since
-both watch the same real market). Each pipeline still builds and sends its own alert using its own
-open-positions view (live and paper track open positions in separate, non-interchangeable stores —
-deliberately left un-merged, same reasoning as the pipeline-dedup review in v2.2.69). Paper trading's
-alert now shows real filled exposure only (excludes pending-unfilled signals, which carry no market
-risk yet) via a new `_load_filled_open_positions_detail()`, using each position's actual fill price
-as the entry basis (not the signal-time zone midpoint), consistent with the 2026-08-22 dollar-risk
-fix. `black_swan_mode`/`black_swan_normal_days` in `position_state.json` are now vestigial (kept for
-schema compatibility, no longer read or written) — real state lives in the new shared file.
-
-Still advisory only — unchanged product decision, confirmed by
-`test_advisory_only_never_present_in_can_open_new_position_gating`: this never blocks a signal, it
-only flags one.
+Still advisory only, as intended — this never blocks a signal, it only flags one.
 
 **Fix:** `shared/utils/black_swan_detector.py` (new `load_black_swan_state`/`save_black_swan_state`),
 `swing_model/run_swing_model.py` (new `_check_black_swan_per_sector`, rewired existing SMH-only
@@ -896,26 +707,16 @@ tests. 1351/1351 existing tests pass.
 
 **Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
 
-**In short:** v2.2.75 fixed the go-live backtest to compare against the real 70-point threshold
-instead of a stale 90, but deliberately left the backtest's raw-score rescale untouched — a
-constant (`_BACKTEST_SCORE_MAX = 69.0`) inherited from a pre-redesign scoring system, calibrated to
-make the *old* 90 target reachable, with no traceable connection to current reality. This entry
-re-derives it from real data instead of theory, and the result reframes the whole question: at the
-real, honest 70-point bar, the semiconductor historical dataset (13.5 years, one sector) simply
-doesn't contain enough qualifying signals to trust a verdict either way — not "fails," not
-"passes," genuinely **not enough data to know**.
+**In short:** Yesterday's fix (v2.2.75) corrected the historical test's pass bar to match the real
+70-point threshold, but deliberately left one piece untouched: the formula that converts the test's
+own raw score onto the same 0-100 scale live trading uses. That formula was old, built for the
+previous 90-point system, and never re-checked against reality. This entry re-derives it from real
+data — and the result reframes the whole question. At the honest 70-point bar, the historical
+dataset for this one sector simply doesn't have enough qualifying signals to trust a verdict either
+way. Not "fails," not "passes" — genuinely **not enough data to know**.
 
-**Fix:** Built `backtesting/raw_score_calibration_diagnostic.py` — captures every raw (pre-rescale)
-score the backtest's real replay path produces (by hooking `compute_confidence_score` at its actual
-call site, not re-implementing the candidate filter separately), and compares its ceiling against
-the real live/paper score ceiling pulled from `paper_trading/score_distribution_diagnostic.py`.
-Result: backtest raw ceiling 86.17 (n=320 real out-of-sample candidates, semiconductors) vs. live
-empirical ceiling 79.84 (n=1,476 real logged scans) → rescale factor 0.9265. This *lowers* backtest
-scores slightly rather than inflating them — the old assumption that backtest scores are
-structurally capped below live's didn't hold once measured: backtest gets clean, complete indicator
-data every time, while live's real-world scores get dragged down by noisy live data and negative
-modifiers that happen empirically. Replaced `_BACKTEST_SCORE_MAX`/its inflate-up formula with
-`_RAW_TO_LIVE_RESCALE_FACTOR = 0.9265` in `simulation.py`.
+**Fix:** Compared the historical test's own highest scores against real live trading's own highest
+scores, and used the gap between them to correct the conversion formula.
 
 **Result — a genuinely different failure mode, not just a smaller number:**
 
@@ -928,26 +729,20 @@ modifiers that happen empirically. Replaced `_BACKTEST_SCORE_MAX`/its inflate-up
 | Expectancy CI lower bound | 0.195R (fails 0.3R bar) | 0.321R (would clear 0.3R alone) |
 | Passed | False (expectancy shortfall) | False (sample size + Sharpe) |
 
-Both numbers fail the go-live gate, but for opposite reasons — v2.2.75's rescale let in a wide,
-noisy population whose *average* edge wasn't strong enough; v2.2.76's rescale is strict enough that
-too few signals exist to say anything statistically. One useful cross-check that the new calibration
-is at least directionally sane: live's real qualification rate is 30/1,476 = 2.0% of *all* scans
-(any ticker, any day); the new backtest calibration finds 11/320 = 3.4% of *already-pre-filtered*
-candidate setups qualify — same order of magnitude, and higher as expected since the backtest
-population was already selected for looking like a real setup. That consistency is reassuring about
-the method; it doesn't change the conclusion that 13.5 years of 6 tickers isn't enough volume of
-genuinely rare (~2-3%) events to validate a threshold this selective.
+Both numbers fail the go-live safety bar, but for different reasons — v2.2.75's version let in a
+wide, noisy set of trades whose average edge wasn't strong enough; this version is strict enough
+that too few trades exist to say anything statistically meaningful. As a sanity check: the rate at
+which real live trading actually qualifies a signal (2.0% of all scans) is in the same ballpark as
+this new backtest calibration's own qualification rate (3.4% of pre-filtered candidates) — which is
+reassuring that the method is sound, even though it doesn't change the bottom line.
 
-**What this means, read together with v2.2.75:** the model's real, honest 70-point confidence bar is
-strict enough that this historical dataset — at its current size — cannot produce a statistically
-trustworthy backtest verdict at that exact bar, regardless of exactly how the raw-to-confidence
-rescale is calibrated. That's a materially different, and more fundamental, finding than "the edge
-looks weaker than we thought" — it's "we don't have enough historical volume of confidence-70+
-events to know." Options going forward (not decided here): extend the historical dataset further
-back or to more tickers/sectors to accumulate more qualifying events; validate at a lower,
-diagnostic-only confidence bar and treat 70 as a live-only operating threshold the backtest can't
-directly certify; or accept that this specific validation question can only be answered by
-continued paper trading, not more backtest replay.
+**What this means, read together with v2.2.75:** the model's real, honest 70-point bar is strict
+enough that the available historical data — 13.5 years, one sector — simply isn't enough to
+statistically prove the strategy works or doesn't, no matter how the scoring conversion is tuned.
+That's a more fundamental finding than "the edge looks weaker than we thought" — it's "there isn't
+enough historical data of genuinely qualifying signals to know." Possible paths forward, not decided
+here: gather more historical data across more stocks/sectors, treat 70 as a live-only threshold the
+backtest can't directly certify, or rely on continued paper trading rather than more backtesting.
 
 **Fix:** `backtesting/simulation.py` (`_RAW_TO_LIVE_RESCALE_FACTOR` replaces `_BACKTEST_SCORE_MAX`),
 `backtesting/backtest_engine.py` (docstring update), new `backtesting/raw_score_calibration_diagnostic.py`.
@@ -962,43 +757,27 @@ model remains not eligible for real capital regardless of this result.
 
 **Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
 
-**In short:** A full model audit (strategy + code + live-data review, run in parallel) found that
-`backtesting/backtest_engine.py`'s qualifying filter had been hardcoded at `confidence >= 90` since
-before v2.2.46 lowered the real, live threshold to 70 — and nobody had gone back to update the
-backtest to match. That means every "passes the go-live gate" claim since v2.2.46 was measuring a
-signal population the live/paper pipeline structurally cannot produce (750 real logged scans have
-never exceeded 79.84). Fixed the filter to import the real `CONFIDENCE_THRESHOLD` instead of a
-second, silently-drifting hardcoded copy. Re-running the backtest with the honest threshold: win
-rate 61.2% → 55.9%, avg R:R 1.82 → 1.22, Sharpe 2.03 → 1.67, qualifying trades 152 → 256 (a much
-wider, noisier population, as expected) — and it now **fails** the go-live gate: the bootstrapped
-95% CI lower bound on expectancy is 0.195R, below the required 0.3R (Sharpe 1.67 and max drawdown
-14.96% both still individually clear their own bars). The "passes" status this project has been
-citing since the gate was introduced was real for the population it tested, but that population was
-never the one actually trading.
+**In short:** A full model audit found that the historical test's own qualifying bar had stayed
+stuck at 90 points ever since v2.2.46 lowered the real, live threshold to 70 — nobody had updated
+the test to match. That means every "this passes its safety bar" claim since v2.2.46 was measuring
+a set of trades live trading can never actually produce (real trading has never scored above ~80).
+Fixed the test to use the real 70-point bar. Re-running it with the honest threshold: win rate drops
+from 61.2% to 55.9%, and it now **fails** its own safety bar. The "passes" status this project has
+been citing wasn't wrong for what it measured — it just wasn't measuring the real thing.
 
-**Problem:** `backtesting/backtest_engine.py` had `>= 90` hardcoded at three separate qualifying-filter
-call sites (`run_backtest`, and twice in `run_multi_sector_backtest`'s per-sector loop and pooled
-aggregate) — a relic of the model's original scoring design, before `CONFIDENCE_THRESHOLD` was cut
-to 70 in v2.2.46 specifically because live scoring could never reach 90 in practice. Every other
-intentional live/backtest divergence in this codebase is explicitly commented (e.g. `earnings_modifier`
-staying 0.0); this one wasn't — it just silently stopped matching reality the day v2.2.46 shipped, and
-nothing caught it because CI's `check_version_bump.py` only watches `config/swing_config.yaml` and
-`swing_model/scoring.py`, not `backtesting/`.
+**Problem:** the historical test's qualifying filter was hardcoded to require a 90+ score in three
+separate places in the code, left over from the model's original design, before the real threshold
+was lowered to 70. Nothing caught the mismatch, because the automatic check that enforces "every
+scoring change needs a fresh test result" doesn't watch this particular file.
 
 **Fix:** `backtesting/backtest_engine.py` now imports `CONFIDENCE_THRESHOLD` from `swing_model/scoring.py`
 and uses it at all three qualifying-filter sites, so the two can't drift apart again silently.
 
-**Left open, deliberately not touched here:** `backtesting/simulation.py`'s `_BACKTEST_SCORE_MAX`
-rescale (raw score × 100/69, documented in-place) exists because the backtest's raw score is
-structurally capped below 100 — Positioning is fixed at a neutral midpoint (no historical StockTwits/
-options archive exists), not the live formula's real, variable 0-20. That ratio was derived years ago
-specifically to make the *old* 90-point threshold reachable at all; it was never re-validated against
-70. Swapping only the comparison value without re-deriving the rescale is a real, still-open
-methodological question — plausible in either direction (the rescale could now be too generous, since
-it was tuned to make a much higher bar reachable, or roughly fine, since it's a proportional scale-up
-independent of the comparison point) — flagged here rather than silently resolved. Any backtest number
-from this version forward should be read with that caveat; re-deriving it is real follow-up work, not
-a mechanical next step.
+**Left open, deliberately not touched here:** the test's raw score also gets rescaled to match live
+trading's 0-100 scale, using a conversion factor that was derived years ago specifically to make the
+*old* 90-point bar reachable. It was never re-checked against the new 70-point bar — flagged as a
+real, still-open question rather than silently assumed fine. (Re-derived properly in v2.2.76, the
+next entry below.)
 
 **Backtest (semiconductors, single-sector `run_backtest()`, 70/30 split):**
 
@@ -1020,14 +799,11 @@ discretionary) were not re-run in this pass — those already failed their own S
 before this fix (v2.2.56 finding) and this change only widens their qualifying population the same way
 it did for semiconductors, so they remain not-passing.
 
-**CORRECTION (v2.2.83, 2026-08-23, same day): the walk-forward claim directly above is wrong.**
-`backtesting/walk_forward.py` had its OWN independent hardcoded `confidence >= 90`, never touched by
-this entry's fix (which only fixed `backtest_engine.py`'s copy). The "2/6 windows pass, 2014-2022 fail,
-2022-2026 pass" pattern was still being measured on the wrong population when this entry was written.
-See v2.2.83 for the real numbers — the honest picture is worse, not the same: 0 of 6 windows pass, most
-don't even have enough trades to render a verdict, and the 2022-2026-recovery narrative doesn't survive
-the fix. Left visible rather than rewritten, per this file's own stated practice of leaving self-corrections
-in place.
+**CORRECTION (v2.2.83, 2026-08-23, same day): the walk-forward claim directly above is wrong.** The
+same 90-vs-70 bug existed independently in a different file and wasn't caught by this fix. The real
+picture is worse, not the same: 0 of 6 test periods pass, not 2 of 6. See v2.2.83 for the full
+correction. Left visible here rather than rewritten, per this file's own practice of leaving
+corrections in place instead of erasing the mistake.
 
 **Approved:** Not applicable — this is a correction to how "passed" is measured, not a request to go
 live. The model remains not eligible for real capital regardless of this result.
@@ -1117,12 +893,10 @@ default matched what the code already validated against.
 
 **Status:** Live.
 
-**In short:** v2.2.72 triaged Tier B's 109 decorative config keys into 68-to-remove and 41-to-wire.
-This batch wires the 18 that were a clean, single-site `cfg.get()` swap — no new named constants
-needed, no config-vs-code value conflicts to resolve first. Every one of the 18 already matched
-its config-declared value exactly, so this is infrastructure, not a scoring change in effect —
-editing these settings now actually changes behavior, which it didn't before. The remaining 23
-(needing a new constant, a duplicate-constant dedup, or a stale-value correction) are batch 3.
+**In short:** Continuing the settings cleanup started in v2.2.72: wired up 18 more settings that
+used to do nothing when changed. Every one of them already matched its hardcoded value exactly, so
+today's behavior is unchanged — editing these settings now actually works, which it didn't before.
+23 more settings remain for the next batch.
 
 **Wired, by area:**
 - **Fundamental** (`fundamental_layer.py`): `eps_accelerating_threshold`, `eps_positive_threshold`,
@@ -1159,15 +933,11 @@ its prior hardcoded default exactly.
 
 **Status:** Live.
 
-**In short:** `scripts/check_config_coverage.py` (built earlier today) found 109 config settings the
-model's own settings file describes as controlling its behavior, that no code actually reads —
-much bigger than the ~24 either prior audit had documented. Rather than either wiring all 109 into
-live scoring code (real risk for a model that hasn't gone live) or leaving them all as tracked debt
-forever, every single one was read against its actual (or intended) consumer and triaged: 41 are
-genuine tunables worth the code change, queued for the next 2 batches; 68 were internal detail,
-stale documentation of a superseded design, or — in one case — an outright duplicate. Removed those
-68 today. Zero behavior change: by definition, nothing removed was ever read by real code, and a
-fresh backtest confirms the numbers are unchanged.
+**In short:** Found 109 settings in the model's own settings file that describe controlling its
+behavior, but that no code actually reads — far more than previously known. Sorted every one into
+"worth wiring up for real" (41, queued for the next two versions) or "outdated, duplicate, or
+irrelevant — just remove" (68). Removed the 68 today. Since none of them were ever actually read by
+any code, removing them changes nothing about how the model behaves.
 
 **Notable findings from the triage, not just "unread":**
 - **A genuine duplicate.** `positioning_sub_signals.*` and `positioning.*_max` declared the
@@ -1209,11 +979,11 @@ already unread by any code path.
 
 **Status:** Live.
 
-**In short:** v2.2.65/69's Tier C named 2 config-described features with zero real implementation:
-structure-specific profit-taking (`profit_targets`) and a signal-decay/pending-signal-queue system
-(`shared/utils/signal_decay.py`). Talked through what each would actually take to build — both are
-genuine new engineering, not a wire-in — and decided neither is worth the cost right now, given the
-model hasn't cleared the go-live gate yet. Removed both instead of leaving them half-documented.
+**In short:** Found 2 features described in the settings file as if they were real, but that were
+never actually built: early profit-taking on options trades, and a system for aging out old signals
+that never got acted on. Both would be genuine new engineering, not a quick wire-up — decided
+neither is worth building right now, since the model hasn't even cleared its safety bar yet. Removed
+both instead of leaving them half-documented and misleading.
 
 **Why not built:**
 - `profit_targets` (close a defined-risk options structure early once it's captured some % of its
@@ -1247,11 +1017,10 @@ ever referenced by the backtest.
 
 **Status:** Live (paper trading).
 
-**In short:** v2.2.69 found that live trading fires an immediate Discord alert when a critical news
-event (CEO resignation, fraud investigation, etc.) hits a position that's already open, without
-waiting for the next daily rescore — and that paper trading had no equivalent at all. Nothing in
-the code or history suggested this was ever a deliberate choice; it looks like a feature that
-simply never got carried over when paper trading's event-gate handling was built. Added.
+**In short:** Live trading sends an immediate Discord alert when serious news (a CEO resignation, a
+fraud investigation) hits a position that's already open — paper trading had no equivalent, and
+would only find out the next day. Nothing suggests this was intentional; it looks like a feature
+that just never got carried over. Added it.
 
 **Fix:** `paper_runner.py` now tracks whether each scanned ticker has an open position (it already
 computes this set for the duplicate-position guard) and calls the same
@@ -1272,44 +1041,26 @@ concept in the historical test (confirmed unchanged: 61.2% WR, Sharpe 2.03, 152 
 
 **Status:** Research — no code changed.
 
-**In short:** v2.2.68 named the 2 largest duplicated-but-apparently-equivalent blocks between the
-live and paper-trading pipelines as candidates for consolidation. Close, line-by-line comparison of
-both (not the higher-level pass that originally identified them) found real reasons neither is a
-safe, low-risk merge right now. Documenting the specific reasons here so a future pass doesn't
-spend time re-discovering the same thing, and doesn't assume "duplicated" automatically means
-"safe to merge."
+**In short:** v2.2.68 flagged the 2 largest blocks of duplicated code between live and paper trading
+as candidates to merge into one shared piece of code. A closer look found real reasons neither is a
+safe, easy merge right now — documenting why here so a future pass doesn't waste time re-discovering
+the same thing, or assume "duplicated" automatically means "safe to combine."
 
 **Findings, by block:**
 
-1. **Entry/stop/target + trade-structure selection** (the largest duplicate by line count). Two
-   real differences beyond the already-known threshold/diagnostic-field distinctions: (a)
-   `run_swing_model.py` has an explicit "is this entry/stop/target setup even validly ordered"
-   check before ever calling `rank_trade_structures` — `paper_runner.py` has no equivalent, calling
-   `rank_trade_structures` unconditionally whenever the score clears its (lower, diagnostic)
-   threshold. Confirmed harmless in outcome — `trade_selector.py` recomputes reward:risk internally
-   and its own Filter 3 rejects every structure for an invalid setup either way — but it's a real
-   mechanism difference, not just a formatting one, and worth knowing about rather than silently
-   erasing by force-fitting one behavior onto both. (b) Nearly every individual field extracted from
-   the winning structure differs in type or formatting between the two call sites — `run_swing_model.py`
-   keeps native types for its Discord-alert dict, `paper_runner.py` stringifies everything for its
-   CSV row (e.g. `structure_legs` is a list on one side, `str(...)` on the other; empty defaults are
-   `None` vs `""`). A shared function returning one canonical shape wouldn't actually reduce
-   duplication — the caller-specific formatting step would just move outside the function instead of
-   disappearing.
-2. **Per-ticker scoring orchestration** (sentiment/news/earnings/positioning fetch → `compute_confidence_score`
-   call → event-gate check). Genuinely behaviorally equivalent this time — the only real difference
-   is that `run_swing_model.py` additionally tracks which data sources responded this scan
-   (`data_sources[...] = True`, an observability detail paper trading doesn't need). But a shared
-   function here would need on the order of 15 parameters in and 10 values out, since several
-   downstream steps (trade-structure evaluation, position sizing, audit logging) each need specific
-   intermediate values individually, not just the final score. Real complexity cost for a change
-   that wouldn't meaningfully reduce the drift risk this work is trying to address — worth
-   revisiting if a genuinely new signal gets added to this orchestration in the future and both
-   pipelines need it, but not on its own as a pure refactor.
+1. **Trade-structure selection** (the largest duplicate). Live trading has an extra validity check
+   paper trading doesn't — confirmed harmless in outcome (a later step rejects invalid setups either
+   way), but it's a real behavioral difference, not just formatting. The two pipelines also format
+   the resulting data completely differently for their own downstream needs (a Discord alert vs. a
+   CSV row) — combining them wouldn't actually remove that formatting work, just relocate it.
+2. **Per-ticker scoring.** This one really is equivalent between the two pipelines — but combining
+   it would require a shared function with around 15 inputs and 10 outputs, since several later
+   steps each need specific pieces of it individually. Real added complexity for a change that
+   wouldn't meaningfully reduce the risk of the two pipelines drifting apart. Worth revisiting only
+   if a new signal gets added that both pipelines need.
 
-**How to apply:** the next audit that finds these two blocks "still duplicated" should read this
-entry before re-flagging them as an easy win — the duplication is real, but forcing it into one
-function isn't free the way v2.2.68's 3 smaller consolidations were.
+**How to apply:** the next review that flags these two blocks as duplicated should read this entry
+first — the duplication is real, but merging it isn't free the way v2.2.68's smaller merges were.
 
 **Backtest:** Not applicable — no code changed.
 
@@ -1319,14 +1070,11 @@ function isn't free the way v2.2.68's 3 smaller consolidations were.
 
 **Status:** Live.
 
-**In short:** Continuing the recurring-shape guardrail work (shape #3: a fix applied to one
-pipeline but not generalized to its structural sibling), this pass compared every duplicated block
-between the live and paper-trading pipelines item by item. One real bug found in the process (not
-hypothetical): paper trading's own win-rate statistic used a narrower definition than the
-historical test's, silently under-counting real wins. Three duplicated-but-genuinely-equivalent
-blocks were consolidated into single, shared functions. One planned consolidation was found, on
-closer inspection, to not actually be safe to merge — left alone, with the real difference
-documented so a future pass doesn't have to re-discover it.
+**In short:** Compared every duplicated block of code between the live and paper-trading pipelines
+item by item, looking for the recurring pattern where a fix gets applied to one pipeline but not
+its twin. Found one real bug this way: paper trading's win-rate number quietly undercounted real
+wins. Merged 3 blocks that were genuinely duplicated into shared code; found a 4th planned merge
+wasn't actually safe and left it alone (documented why, so a future pass doesn't redo the work).
 
 **Problem, fix, by item:**
 
@@ -1370,16 +1118,12 @@ Sharpe 2.03, 152 trades.
 
 **Status:** Live (paper trading).
 
-**In short:** The 4th recurring bug shape named in v2.2.66 — two scoring signals independently
-deriving from the same underlying data and both moving the score, effectively double-weighting one
-fact — had never had a complete inventory, only 3 known instances found opportunistically over
-time. This entry builds that inventory: every scoring component and modifier was checked against
-every other for a shared data source. 4 known pairs (regime/sector_rotation, cross_ticker's
-sector-wide discount, insider activity, and two News sub-signals sharing the same per-article decay
-weight) were re-verified as already fixed and documented in place — nothing to do there. One new,
-real, unfixed pair was found: a China-trade-tension theme detected from news headlines, and a
-separate macro signal counting China-tension keywords in largely the same headlines, could each
-independently penalize a candidate for the same underlying news.
+**In short:** Went looking for every place two scoring signals might be independently reacting to
+the same underlying fact and double-counting it — a recurring bug shape only ever caught by chance
+before now. Checked every signal against every other one. 4 known pairs were confirmed already
+fixed. One new, real, unfixed pair turned up: a China-trade-tension news check and a separate macro
+China-tension signal both scanning largely the same headlines, each able to independently penalize
+the same stock for the same news.
 
 **Problem, fix:** `macro_overlay.py`'s China-tension signal and `news_layer.py`'s `china_export`
 theme both scan Yahoo/news headlines for the same watchlist and words. When both agree a candidate
@@ -1410,46 +1154,29 @@ hardcoded to 0, which is every backtest run today.
 
 **Status:** Live.
 
-**In short:** v2.2.65 named 4 shapes of bug that keep recurring across this project's history but
-said nothing in the process actually checks for them — they've only ever been caught by one-off
-manual sweeps. This entry builds automated, permanent guardrails against the first two: a CI check
-that fails the build if any `config/swing_config.yaml` setting has no real code reader, and a
-registry + test that fails the build if any scoring/modifier signal isn't explicitly classified as
-bearish-mirrored or deliberately direction-neutral. Both are designed to fail on a *future*
-regression, not just today's known backlog. Building the direction-parity registry required
-cataloguing every scoring signal by hand, which turned up 2 more real bullish-only gaps the
-automated check alone wouldn't have caught (they predate the check) — both fixed. Building the
-config-coverage check also turned up a much bigger version of an already-known problem: 108
-settings the project's own config file describes as controlling the model, that no code actually
-reads — not 41 as previously documented.
+**In short:** v2.2.65 named 4 recurring bug shapes in this project's history that nothing was
+actually checking for automatically — they'd only ever been caught by manual sweeps. Built
+automatic, permanent checks against the first two: one that fails the build if any setting in the
+config file has no real code reading it, and one that fails the build if any scoring signal isn't
+explicitly confirmed to handle both bullish and bearish trades. Building these checks by hand
+surfaced 2 more real bullish-only bugs, both fixed, and a much bigger version of an already-known
+problem: 108 settings the config file describes as real, that no code actually reads — not ~41 as
+previously thought.
 
 **Problem, fix, by item:**
 
-1. **A supply-chain or memory-pricing news narrative had no effect on a bearish trade's score.**
-   The theme-alignment signal correctly penalized a *bullish* candidate during supply-chain
-   uncertainty (or rewarded a Micron bullish candidate during a favorable memory-pricing cycle),
-   but a *bearish* candidate in either narrative scored a flat neutral instead of the mirrored
-   confirm/oppose value every other theme in the same function already got. Fixed by adding the
-   missing bearish branches, sign-flipped from the existing bullish ones.
-2. **A standalone insider-trading signal was bullish-only.** Unlike the version of this signal
-   actually wired into live scoring (which already mirrors correctly), this second, currently
-   unused copy had no notion of trade direction at all — harmless today only because nothing calls
-   it, but a silent bullish-only bug waiting to ship the moment it is. Fixed the same way as item 1,
-   removing the landmine before it can go live.
-3. **New: `scripts/check_config_coverage.py`, wired into CI.** Flattens every setting in the
-   config file and fails the build if a setting has no real (non-test) code reference and isn't on
-   an explicit, reasoned allowlist. Running it once already found 67 more settings with this exact
-   problem beyond the ~41 already known and tracked — most of it a bigger version of an
-   already-known pattern (an entire settings block copy-pasted into hardcoded Python constants
-   instead of actually being read), just never checked exhaustively before now. None of the 108 are
-   fixed by this entry — they're allowlisted with reasons so the new check can ship without forcing
-   an unrelated, much larger cleanup; the full list lives in the script itself.
-4. **New: `tests/direction_parity_registry.py` + `tests/test_direction_parity.py`, run every test
-   suite.** Every scoring/modifier-producing function in `swing_model/` and `shared/utils/` must be
-   classified — bearish-mirrored (verified) or explicitly direction-neutral (with a stated reason,
-   e.g. earnings-proximity risk applies to either side of a trade). A brand-new signal that isn't
-   classified fails the build until someone makes that call, instead of silently shipping
-   bullish-only the way items 1 and 2 did.
+1. **A supply-chain/memory-pricing news signal had no effect on bearish trades.** It correctly
+   scored bullish candidates during supply-chain uncertainty, but scored a bearish trade in the
+   exact same situation as neutral instead of confirming it. Fixed by adding the missing mirrored
+   logic.
+2. **A standalone insider-trading signal was bullish-only.** Currently unused, so harmless today —
+   but would have shipped a silent bug the moment it's wired in. Fixed the same way.
+3. **New:** an automatic check that fails the build if any config setting has no code actually
+   reading it. Found 67 more settings with this problem, beyond the ~41 already known and tracked —
+   allowlisted with reasons for now rather than forcing an unrelated cleanup into this change.
+4. **New:** an automatic check that fails the build if any scoring signal isn't explicitly confirmed
+   to handle both bullish and bearish trades. A brand-new signal that skips this classification now
+   fails the build, instead of silently shipping bullish-only the way items 1 and 2 did.
 
 **Fix:** Items 1-2 fixed directly in `shared/utils/narrative_tracker.py` and
 `shared/utils/insider_tracker.py`, with new regression tests. Items 3-4 are new, permanent checks,
@@ -1470,16 +1197,14 @@ these specific narrative themes for it to move the aggregate numbers.
 
 **Status:** Live.
 
-**In short:** After today's earlier full audit, the question came up: are we finding the same kinds of
-mistakes over and over, and are we actually checking for that? Looking back through 7 weeks of history,
-the honest answer was: not the exact same bugs twice, but the same three *shapes* of bug kept
-resurfacing in new places, because past fixes were found by reading code and noticing something wrong,
-not by checking every place that shape of bug could hide. So instead of reading more code, three
-complete checklists were built — every function that might be unreachable, every place a bearish
-trade might still be scored like a bullish one, and every place two of the three trading pipelines
-(paper trading, live, and the historical test) do the same job with separately-written code that could
-quietly drift apart. That turned up a lot more than expected; the 9 quickest and safest findings were
-fixed now, the rest are scoped for later.
+**In short:** After today's earlier audit, asked: are we finding the same kinds of mistakes over and
+over, and are we actually checking for that on purpose? Looking back through 7 weeks of history, the
+honest answer was: the same three *shapes* of bug kept resurfacing, because past fixes came from
+reading code and noticing something wrong, not from checking every place that shape of bug could
+hide. So instead of reading more code, built three complete checklists instead — covering unreachable
+code, bearish trades scored like bullish ones, and places where two pipelines do the same job with
+separately-written code that could quietly drift apart. That turned up more than expected; fixed the
+9 quickest, safest findings now and scoped the rest for later.
 
 **Problem, fix, by item:**
 
@@ -1502,25 +1227,21 @@ fixed now, the rest are scoped for later.
    subtracted anything from the score — and the paper-trading system didn't even have the note; it
    never referenced this setting at all.
 5. **The live trading system was quietly less accurate than the paper-trading system it's supposed to
-   match**, in three ways: it displayed a different (stale) profitability number in its alerts than the
-   one actually used to pick a trade; it never used the model's own backtested win-probability
-   calibration, always falling back to a cruder estimate; and it required both of two economic
-   indicators to be available before reading either one, while the historical test (correctly) used
-   whichever was actually available — quietly throwing away real signal live trading didn't need to.
+   match**, in three small ways: it showed a stale profitability number in alerts instead of the real
+   one; it never used the model's own calibrated win-probability estimate, always falling back to a
+   cruder one; and it required two economic indicators to both be available before using either,
+   throwing away real signal it didn't need to.
 
 **Fix:** All 9 fixed directly in code/config, following the same patterns already proven correct
 elsewhere in the model (one shared function instead of copy-pasted logic, matching what the historical
 test and paper trading already do correctly). New test coverage added for the highest-risk items (the
 cross-ticker direction fix, the Black Swan cooldown). Full detail in the commit history.
 
-**What's next:** the same audit surfaced two bigger findings held back for a separate pass: the entire
-declared scoring-weight configuration (the numbers in the settings file that are supposed to control
-how much each signal counts) turns out to be decorative — the model's real weights are fixed in code
-and don't actually read the settings file at all, despite the settings file saying they do. And two
-whole features described in the settings (structure-specific profit-taking; a "signal decay" system
-that ages a pending trade idea over time and tracks its own win rate) don't exist in the code at all —
-not bugs to fix, but real product decisions about whether to build them or remove the settings that
-describe them. Neither was touched in this pass.
+**What's next:** the same audit surfaced two bigger findings, held back for a separate pass. The
+whole scoring-weight configuration in the settings file turns out to be decorative — the model's
+real weights are fixed in code and don't read the settings file at all. And two whole features
+described in the settings don't actually exist in the code — not bugs, but real decisions about
+whether to build them or remove the settings describing them. Neither touched here.
 
 **Backtest:** Run date: 2026-08-19. Win rate: 61.2%. Avg R:R: 1:1.41. Sharpe ratio: 2.03. Max drawdown:
 7.7%. Qualifying trades: 152. Max consecutive losses: 9. **Passed — unchanged from v2.2.63.** The
@@ -1536,42 +1257,20 @@ aggregate numbers — a real fix that happened not to change this particular sam
 
 **Status:** Live.
 
-**In short:** v2.2.63 (shipped hours earlier today) added a daily check meant to cut a paper-trading
-position loose early if the reasons it was opened had genuinely soured. Running it for the first time
-against real open positions showed the problem immediately: it flagged 7 of 8 open positions as having
-"lost confidence" within seconds of each other, which is not a plausible real-world result. The cause —
-the check compares today's re-scored confidence against the confidence recorded when the trade was
-opened, but the re-score had no fresh sentiment or news data to work with and substituted neutral
-placeholder values for both, plus market-wide adjustments (like today's regime and season) it never
-recomputed at all. Every open position lost a large, made-up chunk of "confidence" the moment it was
-checked, regardless of whether anything real had actually changed. The 7 wrongly-closed positions were
-restored before this was committed anywhere — no lasting record was created. The check itself is now
-switched off until it can compare it correctly.
+**In short:** A daily check shipped just hours ago (v2.2.63) was meant to cut a paper-trading
+position loose early if its outlook had genuinely soured. Run for real for the first time, it
+immediately flagged 7 of 8 open positions as having "lost confidence" within seconds of each other —
+not a realistic result. The cause: the check compares today's re-scored confidence against the
+score recorded when the trade opened, but the re-score had no fresh sentiment or news data to work
+with, so it substituted flat placeholder values for both, manufacturing a large fake "drop" that had
+nothing to do with real market conditions. The 7 wrongly-closed positions were restored before
+anything was ever committed — no lasting record exists. The check is now switched off until it can
+compare like with like.
 
-**Problem:** `position_rescoring.py::rescore_open_positions()`, wired into `paper_updater.py`'s daily
-loop for the first time in v2.2.63, recomputes a position's confidence score using fresh technical and
-market-positioning data — but paper_updater.py has never fetched fresh sentiment or news data for an
-already-open position (a real gap, not new to this fix), so the rescore falls back to neutral stand-ins
-for both (0 for sentiment, ~7.5 for news). A real entry-time sentiment score is commonly worth 10-20+ of
-its own points, so substituting a flat 0 alone manufactures a large apparent "drop" with nothing real
-behind it. On top of that, the caller doesn't pass today's regime/seasonality/macro-overlay readings
-into the rescore, so those default to 0 too, even though the position's real entry score included
-whatever they actually were that day (often another ±5-15 points). Run for real against 8 open
-positions, this combination flagged 7 of them — confidence "drops" of 17.7 to 28.9 points apiece — and
-the daily update loop dutifully closed them as `"early_exit"`, all within about 15 seconds of each
-other. That pattern (nearly every position, all at once, right after the check was first turned on) is
-itself the tell that something structural was wrong, not that market conditions had genuinely turned on
-every open name simultaneously.
-
-**Fix:** Removed the call to this check from `paper_updater.py`'s daily loop (the function itself is
-left in place, along with its supporting fetch helper, for a future fix — see the code comment at the
-disabled call site for exactly what a correct version needs: either real sentiment/news data fetched
-for open positions, or a comparison restricted to only the sub-scores that genuinely get recomputed
-fresh on both sides). The other daily check added in the same v2.2.63 change — a pure price-based
-"day 10, insufficient progress" time stop — has no such input mismatch (it never touched sentiment/news/
-regime/etc. at all) and is unaffected; it stays active. Also restored the 7 paper-trading positions this
-bug had wrongly closed back to their real open state before this correction was ever committed, so
-`paper_trades.csv` carries no trace of the bad run.
+**Fix:** Removed the call to this check from the daily update loop for now — the underlying function
+stays in the codebase for a future proper fix. The other new daily check from the same release (a
+simple "not enough progress after 10 days" rule, which never touched sentiment/news data) had no such
+problem and stays active.
 
 **Backtest:** Not applicable — this change only affects the live/paper daily update loop, not the
 scoring formula or the historical test, and doesn't touch `config/swing_config.yaml` or
@@ -1656,9 +1355,17 @@ go-live bar**, same as the prior version, on genuinely corrected numbers this ti
 
 **Status:** Live.
 
-**In short:** Found while reviewing open paper trades: `shared/utils/earnings_calendar.py`'s earnings-proximity screen — which forces a *new* signal into a capped-loss options structure whenever earnings are 0-5 days out — only ever runs once, at signal time. A trade signaled 6+ days before earnings (and so allowed to size as a plain, undefined-risk `long_stock` position, same as any other affordability-driven fallback) is never re-checked as the clock runs down. Since a position can stay open up to 15 trading days, one signaled comfortably outside the earnings window can still be sitting fully exposed on the day the report actually lands. This wasn't hypothetical: NVDA's live 2026-08-14 signal (earnings 2026-08-26, 12 days out at signal time, sized as plain shares because its options structure didn't fit the account's risk budget) would have ridden through the print unprotected on day 12 of its hold with no code path ever re-evaluating it.
+**In short:** A safety check exists that forces a new trade into a capped-loss options structure
+whenever earnings are 0-5 days away — but it only ever runs once, at signal time. A plain stock
+position signaled well before earnings was never re-checked as the clock ran down, so it could still
+be sitting fully exposed, with no built-in loss limit, on the day earnings actually hit. Not
+hypothetical: a real NVDA trade would have ridden through its earnings report unprotected under this
+gap.
 
-**Fix:** `paper_trading/paper_updater.py`'s daily update loop now calls the new `_check_earnings_exit()` for any open, filled, still-unresolved `position_type == "shares"` trade — fetches the ticker's current next-earnings date (one `yfinance` call per ticker per run, only when at least one open row could act on it) and, if `earnings_calendar.get_earnings_modifier()` reports the position has aged into its `force_defined_risk`/`no_new_trades` window (0-5 days out), flattens it at the latest available close as a new `earnings_exit` outcome — before a post-earnings gap gets the chance to blow through the stop. Runs only after `_resolve_outcome()` finds the trade still open through the latest bar, so it can never preempt a stop/target/time-stop that already fired in the fetched price history. Options/other capped-loss structures are left untouched — their max loss is already bounded, nothing extra to protect.
+**Fix:** The daily update loop now re-checks every open plain-stock position for how close its
+earnings date is, and closes it out early if the report has moved into that 0-5-day danger window —
+before a post-earnings price gap can blow through its stop-loss. Options positions already have a
+built-in loss cap, so they don't need this.
 
 **`earnings_exit` wired through the outcome pipeline it needed to be, deliberately left out where it didn't:**
 - `shared/utils/discord_alerts.py::send_paper_outcome_alert` — new label/emoji/color (📅, yellow if profitable else red-toned) instead of falling through to a generic all-caps label with an always-red ❌ regardless of actual P&L.
@@ -1675,7 +1382,11 @@ go-live bar**, same as the prior version, on genuinely corrected numbers this ti
 
 **Status:** All live except the earnings_modifier gap, which remains an honest, undeferred limitation (no code path to fix it exists yet — see below).
 
-**In short:** Follow-up to v2.2.60's audit. Fixed two real gaps (stale test skips, a hardcoded backtest modifier), then built five requested improvements to the trade-structure output: real dollar max-loss/max-gain, actual contract counts, real strikes/expiration dates, wider Greeks coverage, and the runner-up structures alongside the winner. Two genuine scope boundaries were surfaced and resolved with the user before building: earnings_modifier can't be fixed the way cross_ticker was (no historical earnings-date archive exists anywhere in this repo), and Greeks coverage stops at the 9 structures that are pure wiring — calendars/diagonals, ratio/back spreads, and LEAPS each need real new work (a multi-expiration redesign, brand-new strike conventions, and a new data-fetch dependency respectively) that wasn't attempted here.
+**In short:** Follow-up to v2.2.60's review. Fixed two small gaps (stale test skips, a hardcoded
+backtest input), then built five improvements to the trade-structure output: real dollar
+max-loss/max-gain figures, actual contract counts, real strike prices and expiration dates, wider
+options-Greeks coverage, and showing the runner-up trade options alongside the winner instead of
+just discarding them.
 
 **1. Stress-test skips fixed — a fixture bug, not a real blocker.** `tests/test_stress_scenarios.py`'s 3 tests all `pytest.skip("Implement Phase 12 first")`, but `backtesting/stress_test.py` has been fully implemented for a long time. Ran the tests un-skipped to find out why they were never re-enabled: 2 of 3 passed immediately; the 3rd failed because `sample_positions`' fixture used a non-canonical schema (`"stop"` instead of `"stop_loss"`, no `"risk_pct"` key) that doesn't match `swing_model/portfolio_manager.py`'s real position-dict schema, which `run_scenario()` reads. Fixed the fixture, removed all 3 skips — the stress-test suite now has real coverage for the first time.
 
