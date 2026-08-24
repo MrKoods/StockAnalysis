@@ -1,0 +1,91 @@
+{
+  "passed": false,
+  "win_rate": 0.6364,
+  "avg_rr": 2.61,
+  "expectancy_r_mean": 1.412,
+  "expectancy_r_ci_lower": 0.321,
+  "expectancy_r_ci_upper": 2.495,
+  "sharpe_ratio": 0.27,
+  "sortino_ratio": 0.98,
+  "max_drawdown_pct": 0.016,
+  "max_drawdown_duration_trades": 2,
+  "ulcer_index": 0.6176,
+  "portfolio_sharpe_ratio": 0.24,
+  "portfolio_max_drawdown_pct": 0.0153,
+  "max_concurrent_positions": 4,
+  "max_concurrent_risk_pct": 0.04,
+  "qualifying_trades": 11,
+  "total_signals": 311,
+  "max_consecutive_losses": 2,
+  "per_regime": {
+    "trending_up": {
+      "win_rate": 0.6363636363636364,
+      "avg_rr": 2.6074193943984305,
+      "trade_count": 11
+    }
+  },
+  "walk_forward": [
+    {
+      "window": 1,
+      "train_through": "2014-07-02 00:00:00+00:00",
+      "validate_through": "2016-07-01 00:00:00+00:00",
+      "qualifying_trades": 1,
+      "win_rate": 1.0,
+      "avg_rr": 0.08,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 2,
+      "train_through": "2016-07-01 00:00:00+00:00",
+      "validate_through": "2018-07-03 00:00:00+00:00",
+      "qualifying_trades": 14,
+      "win_rate": 0.4286,
+      "avg_rr": 1.57,
+      "verdict": "fail",
+      "passed": false
+    },
+    {
+      "window": 3,
+      "train_through": "2018-07-03 00:00:00+00:00",
+      "validate_through": "2020-07-06 00:00:00+00:00",
+      "qualifying_trades": 4,
+      "win_rate": 0.5,
+      "avg_rr": 0.49,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 4,
+      "train_through": "2020-07-06 00:00:00+00:00",
+      "validate_through": "2022-07-06 00:00:00+00:00",
+      "qualifying_trades": 2,
+      "win_rate": 1.0,
+      "avg_rr": 0.44,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 5,
+      "train_through": "2022-07-06 00:00:00+00:00",
+      "validate_through": "2024-07-09 00:00:00+00:00",
+      "qualifying_trades": 5,
+      "win_rate": 0.8,
+      "avg_rr": 2.64,
+      "verdict": "insufficient_data",
+      "passed": false
+    },
+    {
+      "window": 6,
+      "train_through": "2024-07-09 00:00:00+00:00",
+      "validate_through": "2026-07-02 00:00:00+00:00",
+      "qualifying_trades": 6,
+      "win_rate": 0.5,
+      "avg_rr": 2.57,
+      "verdict": "insufficient_data",
+      "passed": false
+    }
+  ],
+  "train_period": "2013-01-02 00:00:00+00:00",
+  "test_period": "2022-06-09 00:00:00+00:00"
+}

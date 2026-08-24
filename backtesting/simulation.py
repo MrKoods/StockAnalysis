@@ -372,8 +372,10 @@ def _simulate_test_signals(
     only apply when bearish_entry_style == "capitulation_fade"; bullish
     candidate generation is completely unaffected either way.
 
-    Confidence is scaled to 0-100 relative to the maximum achievable raw score
-    (with all layers active) so the >=90 qualifying threshold remains consistent.
+    Confidence is scaled to 0-100 via _RAW_TO_LIVE_RESCALE_FACTOR (empirically
+    derived 2026-08-23, replacing the old theoretical-max/90-target ratio —
+    see that constant's own docstring above) so it's comparable to the real
+    CONFIDENCE_THRESHOLD every qualifying-filter call site now imports.
     """
     import yaml
     from shared.indicators.technical_common import compute_technical_indicators, bounce_fade_setup

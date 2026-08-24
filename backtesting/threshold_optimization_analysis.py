@@ -144,10 +144,11 @@ def main() -> None:
     else:
         print("No threshold in the tested grid clears the existing go-live gate on this pooled dataset.")
 
+    from swing_model.scoring import CONFIDENCE_THRESHOLD
     print(
-        "\nCONFIDENCE_THRESHOLD (swing_model/scoring.py) is currently 90 and was NOT changed by this "
-        "script — deciding whether to move it is a live-trading-behavior call, not something to apply "
-        "automatically from a backtest reading."
+        f"\nCONFIDENCE_THRESHOLD (swing_model/scoring.py) is currently {CONFIDENCE_THRESHOLD} and was NOT "
+        "changed by this script — deciding whether to move it is a live-trading-behavior call, not "
+        "something to apply automatically from a backtest reading."
     )
 
 

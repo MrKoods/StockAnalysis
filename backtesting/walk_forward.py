@@ -3,6 +3,18 @@ Walk-forward validation across all available historical windows. Split out of
 backtest_engine.py (see that module's docstring for why) — this piece is
 independent of the single fixed 70/30 split and is reused by
 entry_filter_variants.py to pool trades across many windows.
+
+Qualifying-confidence fix (2026-08-23): this module had its OWN hardcoded
+`confidence >= 90`, completely independent of backtest_engine.py's — v2.2.75
+fixed that file's copy of the same bug but missed this one, the same
+recurring-bug-shape this project has caught itself repeating before (see
+CHANGELOG v2.2.65-70). Every walk-forward-window verdict this project has
+cited, and every tool built on top of this function (bearish_rsi_band_sweep.py,
+bearish_confirmation_sweep.py, bearish_exit_sizing_sweep.py,
+bearish_capitulation_fade_sweep.py, entry_filter_variants.py — all call
+run_walk_forward() rather than re-filtering independently) was silently
+validating the wrong signal population. Fixed the same way: import
+CONFIDENCE_THRESHOLD instead of hardcoding 90.
 """
 
 from typing import Optional
@@ -11,6 +23,7 @@ import pandas as pd
 
 from backtesting.metrics import compute_win_rate, compute_avg_rr
 from backtesting.simulation import _simulate_test_signals
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 
 
 def run_walk_forward(
@@ -118,7 +131,7 @@ def run_walk_forward(
                     for t, df in historical_data.items()}
 
         outcomes = _simulate_test_signals(val_data, config_path, **signal_kwargs)
-        qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= 90]
+        qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
 
         win_rate = compute_win_rate(qualifying)
         avg_rr = compute_avg_rr(qualifying)

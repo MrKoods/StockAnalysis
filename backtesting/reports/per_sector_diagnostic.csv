@@ -1,6 +1,6 @@
 label,n_signals,n_qualifying,win_rate,avg_rr,expectancy_r_ci_lower,sharpe,max_drawdown_pct
-semiconductors,249,127,0.6693,2.17,0.86,4.16,0.0586
-regional_banks,149,90,0.5444,1.66,0.191,0.64,0.1257
-healthcare,146,68,0.5441,1.7,0.206,0.69,0.0916
-consumer_discretionary,959,506,0.4625,1.61,0.145,0.22,0.2394
-"ALL (pooled, current reported number)",1503,791,0.512,1.74,0.353,1.43,0.2394
+semiconductors,311,11,0.6364,2.61,0.321,0.27,0.016
+regional_banks,203,0,,,,,
+healthcare,261,0,,,,,
+consumer_discretionary,1178,6,0.6667,0.47,-0.571,-5.74,0.0208
+"ALL (pooled, current reported number)",1953,17,0.6471,1.83,0.123,-1.75,0.0253

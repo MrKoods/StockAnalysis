@@ -34,12 +34,20 @@ from backtesting.metrics import (
     _trades_per_year,
 )
 from backtesting.run_backtest import load_historical_data
-from swing_model.scoring import TECHNICAL_MAX
+from swing_model.scoring import TECHNICAL_MAX, CONFIDENCE_THRESHOLD
 from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_CONFIDENCE_THRESHOLD_BACKTEST = 90.0  # matches run_backtest()'s own qualifying bar
+# 2026-08-23: was hardcoded 90.0 with a comment claiming it "matches
+# run_backtest()'s own qualifying bar" — true when written, silently false
+# since v2.2.46 lowered the real threshold to 70 (backtest_engine.py's own
+# copy wasn't fixed until v2.2.75, and this file's copy was missed then too).
+# Every per-sector Sharpe/win-rate number this tool has ever produced —
+# including the "3 of 4 sectors fail independently" finding — was computed
+# against the wrong population. Now imports the real constant so the two
+# can't drift apart again.
+_CONFIDENCE_THRESHOLD_BACKTEST = CONFIDENCE_THRESHOLD
 
 
 def collect_per_sector_outcomes(config_path: str = "config/swing_config.yaml") -> dict[str, list[dict]]:
@@ -106,8 +114,8 @@ def technical_gate_sweep(all_outcomes: list[dict]) -> pd.DataFrame:
     be bought up to the qualifying bar by Positioning/Sentiment/News/
     Fundamental/modifiers — actually improve win rate/expectancy, or just
     shrink the sample for no benefit? Sweeps the floor as a percentage of
-    TECHNICAL_MAX (40) applied ON TOP OF the existing confidence>=90
-    qualifying bar, not a replacement for it.
+    TECHNICAL_MAX (40) applied ON TOP OF the existing qualifying bar
+    (CONFIDENCE_THRESHOLD), not a replacement for it.
     """
     rows = []
     for floor_pct in (0.0, 0.40, 0.50, 0.60, 0.70):

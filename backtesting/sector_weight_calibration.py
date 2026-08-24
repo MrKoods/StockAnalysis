@@ -26,11 +26,17 @@ from swing_model.feedback_loop import (
     _DEFAULT_WEIGHTS,
     _MIN_SAMPLES_FOR_SECTOR_CALIBRATION,
 )
+from swing_model.scoring import CONFIDENCE_THRESHOLD
 from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_CONFIDENCE_THRESHOLD_BACKTEST = 90.0
+# 2026-08-23: was hardcoded 90.0, the same stale-copy bug fixed in
+# backtest_engine.py (v2.2.75) and architecture_diagnostic.py — this file's
+# own copy was missed both times. The "only consumer_discretionary has
+# enough data to calibrate" finding was derived from the wrong qualifying
+# population; re-run after this fix before trusting that conclusion.
+_CONFIDENCE_THRESHOLD_BACKTEST = CONFIDENCE_THRESHOLD
 _HOLDOUT_FRACTION = 0.20
 
 

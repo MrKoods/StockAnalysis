@@ -201,8 +201,8 @@ def main() -> None:
         f"(lift={tail['lift']:.2f}x, n_conditioned={tail['n_conditioned']}). A low bulk r above "
         "doesn't rule out elevated joint-extreme co-occurrence — lift near 1.0 means the two "
         "categories peak together no more than chance would predict; lift meaningfully above "
-        "1.0 means the backtest's apparent joint-high-score rate (what a 90-point threshold "
-        "actually depends on) is inflated by the proxy beyond what the bulk correlation reading "
+        "1.0 means the backtest's apparent joint-high-score rate (what the real qualifying "
+        "threshold actually depends on) is inflated by the proxy beyond what the bulk correlation reading "
         "alone would suggest."
     )
 
