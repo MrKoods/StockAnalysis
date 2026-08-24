@@ -29,6 +29,13 @@ win_rate/avg_rr are still computed and reported for continuity with existing
 dashboards, they just no longer gate "passed" on their own. See CHANGELOG.md
 v2.2.17 and Project_Scope.md's go-live criteria section for the full rationale.
 
+Walk-forward pooled gate (2026-08-23): "passed" also requires the SAME
+expectancy-CI/Sharpe/drawdown/trade-count bar to clear on qualifying trades
+pooled across every walk-forward window, not just the single fixed 70/30
+split. Added after finding the single-split "passed" had been true only
+because the fixed test period happens to sit inside the 2 (of 6) windows
+that looked favorable — see CHANGELOG.md v2.2.83 for the full incident.
+
 Orchestration only — the historical replay/simulation engine lives in
 simulation.py, walk-forward windowing in walk_forward.py, and pure metrics
 (win rate, R:R, drawdown, Sharpe, equity curve, expectancy CI) in metrics.py.
@@ -211,6 +218,11 @@ def run_backtest(
             "qualifying_trades": 0,
             "per_regime": {},
             "walk_forward": [],
+            "walk_forward_pooled_passed": False,
+            "walk_forward_pooled_qualifying_trades": 0,
+            "walk_forward_pooled_expectancy_r_ci_lower": 0.0,
+            "walk_forward_pooled_sharpe": 0.0,
+            "walk_forward_pooled_max_drawdown_pct": 0.0,
         }
 
     # Step 1-4: Split into train/test and simulate signals in the test period.
@@ -226,7 +238,34 @@ def run_backtest(
     m = _compute_metrics_bundle(qualifying, starting_equity=15000.0)
 
     # Step 6: Walk-forward
-    wf_results = run_walk_forward(historical_data)
+    wf_results = run_walk_forward(historical_data, include_outcomes=True)
+
+    # Pooled walk-forward check (2026-08-23, full model audit follow-up):
+    # previously wf_results was computed and attached to the report but never
+    # gated "passed" — a single 70/30 split can pass by construction whenever
+    # the fixed test period happens to land in a favorable stretch, which is
+    # exactly what was happening here (the test period starts 2022-06-09,
+    # sitting entirely inside the only 2 walk-forward windows that "passed"
+    # under the confidence-threshold bug fixed the same day this was added —
+    # see CHANGELOG v2.2.83). A per-window majority vote would be a weak fix
+    # in its own right (6 windows is too few data points for a binary
+    # pass/fail vote per window to mean much, and most windows don't clear
+    # min_trades_for_verdict at all). Pooling every window's qualifying
+    # outcomes into one larger sample and running the SAME metrics bundle the
+    # single-slice check already uses is more statistically honest — it's the
+    # exact approach entry_filter_variants.py already established for testing
+    # entry-filter candidates without overfitting to one fixed slice, just
+    # applied to the go-live gate itself instead of a research tool.
+    wf_pooled_outcomes: list[dict] = []
+    for w in wf_results:
+        wf_pooled_outcomes.extend(w.pop("outcomes", []))
+    wf_m = _compute_metrics_bundle(wf_pooled_outcomes, starting_equity=15000.0)
+    walk_forward_pooled_passed = (
+        len(wf_pooled_outcomes) >= min_qualifying_trades
+        and wf_m["expectancy_ci"]["ci_lower"] >= min_expectancy_r
+        and wf_m["sharpe"] >= 1.0
+        and wf_m["max_dd"] <= 0.15
+    )
 
     # Determine pass/fail (v2.2.17): trade count + expectancy CI lower bound +
     # Sharpe + drawdown. win_rate/avg_rr no longer gate "passed" directly — see
@@ -235,11 +274,13 @@ def run_backtest(
     # Sharpe/drawdown floors are what this project's go-live decision has
     # actually been validated against; adding new gates on new metrics is a
     # deliberate bar-raising decision, not something to fold in silently.
+    # walk_forward_pooled_passed added 2026-08-23 — see the comment above.
     passed = (
         len(qualifying) >= min_qualifying_trades
         and m["expectancy_ci"]["ci_lower"] >= min_expectancy_r
         and m["sharpe"] >= 1.0
         and m["max_dd"] <= 0.15
+        and walk_forward_pooled_passed
     )
 
     result = {
@@ -263,6 +304,11 @@ def run_backtest(
         "max_consecutive_losses": m["max_consec_losses"],
         "per_regime": m["regime_metrics"],
         "walk_forward": wf_results,
+        "walk_forward_pooled_passed": walk_forward_pooled_passed,
+        "walk_forward_pooled_qualifying_trades": len(wf_pooled_outcomes),
+        "walk_forward_pooled_expectancy_r_ci_lower": round(wf_m["expectancy_ci"]["ci_lower"], 3),
+        "walk_forward_pooled_sharpe": round(wf_m["sharpe"], 2),
+        "walk_forward_pooled_max_drawdown_pct": round(wf_m["max_dd"], 4),
         "train_period": str(all_dates[0]) if all_dates else "",
         "test_period": str(train_cutoff) if train_cutoff else "",
     }

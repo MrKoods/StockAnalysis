@@ -37026,3 +37026,13 @@
 2026-08-23 17:35:30,064 [backtesting.run_backtest] INFO — Loaded 4053 bars for TSLA
 2026-08-23 17:35:30,074 [backtesting.run_backtest] INFO — Loaded 6949 bars for XLY
 2026-08-23 17:35:30,075 [__main__] INFO — tighter_stop_1xATR_1.5R / consumer_discretionary: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 1.5, 'stop_atr_multiplier_bearish': 1.0, 'benchmark_ticker': 'XLY'}
+2026-08-23 18:00:03,774 [shared.utils.discord_alerts] ERROR — DISCORD_WEBHOOK_URL not set in environment.
+2026-08-23 18:04:33,205 [__main__] INFO — Loaded 3395 bars for AMD
+2026-08-23 18:04:33,213 [__main__] INFO — Loaded 3395 bars for ASML
+2026-08-23 18:04:33,220 [__main__] INFO — Loaded 3395 bars for AVGO
+2026-08-23 18:04:33,227 [__main__] INFO — Loaded 3395 bars for MU
+2026-08-23 18:04:33,234 [__main__] INFO — Loaded 3395 bars for NVDA
+2026-08-23 18:04:33,241 [__main__] INFO — Loaded 3395 bars for SMH
+2026-08-23 18:04:33,249 [__main__] INFO — Loaded 3395 bars for TSM
+2026-08-23 18:04:33,249 [__main__] INFO — Running full backtest (70/30 split + walk-forward)
+2026-08-23 18:04:58,144 [__main__] INFO — Backtest complete. Passed=False WinRate=63.6% Sharpe=0.27

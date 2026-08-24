@@ -86,6 +86,11 @@
       "passed": false
     }
   ],
+  "walk_forward_pooled_passed": false,
+  "walk_forward_pooled_qualifying_trades": 32,
+  "walk_forward_pooled_expectancy_r_ci_lower": 0.06,
+  "walk_forward_pooled_sharpe": -1.12,
+  "walk_forward_pooled_max_drawdown_pct": 0.0589,
   "train_period": "2013-01-02 00:00:00+00:00",
   "test_period": "2022-06-09 00:00:00+00:00"
 }

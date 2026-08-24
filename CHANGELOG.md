@@ -69,6 +69,8 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.85 | 2026-08-23 | Bug Fix | The `StockAnalysis_WeeklyDashboard` scheduled task added in v2.2.79 fired for real for the first time today (Sunday 6pm) and confirmed a real gap: `monitoring/performance_dashboard.py` never loaded `.env`, unlike `paper_trading/paper_runner.py`, which does — so `DISCORD_WEBHOOK_URL` was never actually reaching `send_weekly_summary_alert()` when the module runs standalone via its own scheduled task (not imported from a process that already loaded `.env`). Confirmed by the task's own real log: `"DISCORD_WEBHOOK_URL not set in environment."` Added the same `load_dotenv()` pattern; verified the module now loads the real key |
+| v2.2.84 | 2026-08-23 | Backtest Methodology | `run_backtest()`'s `passed` flag used to rest only on the single fixed 70/30 split — walk-forward results were computed and attached to the report but never gated anything, which is exactly how a wrong "2/6 windows pass" reading (v2.2.83) went unnoticed: the fixed test period happens to sit inside the only 2 windows that looked favorable under the stale threshold. `passed` now ALSO requires the same expectancy-CI/Sharpe/drawdown/trade-count bar to clear on qualifying trades pooled across every walk-forward window — the same pooling approach `entry_filter_variants.py` already used for research, now applied to the actual gate. Chosen over a per-window majority vote (6 windows is too few data points for a binary per-window vote to mean much). On real data: pooled walk-forward is 32 trades, expectancy CI lower 0.06R, Sharpe **-1.12** — fails on its own, independent of the single-split's own failure. Per-sector gating was already correctly wired (`run_multi_sector_backtest`, v2.2.56); only single-sector `run_backtest()` needed this fix. 6 new tests |
 | v2.2.83 | 2026-08-23 | Backtest Methodology / Bug Fix | Asked to "think more" about the Tier-1 go-live decisions before acting on them — found v2.2.75's `confidence >= 90` fix only touched `backtest_engine.py`; the identical bug was independently duplicated in `backtesting/walk_forward.py`, `architecture_diagnostic.py`, and `sector_weight_calibration.py` (bearish sweep scripts and `entry_filter_variants.py` inherit the fix transitively via `run_walk_forward()`). Every walk-forward-window verdict and per-sector Sharpe number cited earlier today — including this file's own v2.2.75 entry — was measured on the wrong population. Real, corrected numbers: walk-forward is **0 of 6 windows passing** (not 2/6 — the "2022-2026 recovery" narrative doesn't survive the fix, only 1 window even has enough trades to render a verdict, and it fails); per-sector qualifying trades are semiconductors 11, regional_banks **0**, healthcare **0**, consumer_discretionary 6, pooled 17. See CHANGELOG entry below and `project_backtest_findings.md` for full detail and the corrected bearish-signal read |
 | v2.2.82 | 2026-08-23 | Bug Fix | Full model audit follow-up: `paper_updater.py`'s fill-price `actual_dollar_risk` re-anchor silently no-opped on a malformed `position_size` (`except ValueError: pass`) — harmless today (`position_size` is always written as `str(int)`), but a future drift would have silently reintroduced the exact dollar-risk-basis-drift bug fixed 2026-08-22 for just that one trade, with no trace of why. Now logs a warning instead. Test added alongside v2.2.81's mark-to-market coverage |
 | v2.2.81 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: the mark-to-market/dollar-risk-basis code shipped 2026-08-22 (commit c6e0d1b — open-position `mark_price`/`mark_date`/`unrealized_rr`/`unrealized_pnl_dollars`, and re-anchoring `actual_dollar_risk` to the real fill price for shares positions after a real ~30% drift bug) had zero test coverage, flagged as the single highest-risk untested code in the repo by the audit. New `tests/test_paper_updater_mark_to_market.py` (14 tests) covers both pieces end to end via the real `update_paper_trades()`: bullish/bearish mark-to-market sign handling, a degenerate zero-risk-per-R case, missing/blank dollar-risk fallback, the fill-price re-anchor for shares vs. options position types, zero shares, and a malformed `position_size` failing safe — plus direct unit tests for `_fmt_dollars`' negative-zero collapse |
@@ -161,6 +163,85 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.85] — 2026-08-23 — [Bug Fix] The weekly Discord alert's first real run proved it couldn't actually send
+
+**Status:** Live.
+
+**In short:** The `StockAnalysis_WeeklyDashboard` scheduled task (added v2.2.79) fired for real for
+the first time today — Sunday, 6pm local, exactly as configured. Its own log
+(`data/logs/weekly_dashboard_task.log`) confirms the wiring works end to end (config loaded, gate
+evaluated, summary computed) but surfaced a real gap: `DISCORD_WEBHOOK_URL not set in environment` —
+the alert was never actually posted.
+
+**Problem:** `paper_trading/paper_runner.py` loads `.env` at import time (`load_dotenv()`, wrapped in
+a try/except for environments without `python-dotenv` installed) specifically so environment
+variables like `DISCORD_WEBHOOK_URL` are available regardless of how the process gets launched.
+`monitoring/performance_dashboard.py` never had the equivalent — harmless when the module was only
+ever imported from something else that already loaded `.env` (or run interactively from a shell that
+already had it exported), but the whole point of v2.2.79 was giving this module its own standalone
+scheduled task, which starts a fresh process with none of that.
+
+**Fix:** Added the identical `load_dotenv()` pattern to `monitoring/performance_dashboard.py`.
+Verified directly: `DISCORD_WEBHOOK_URL` now loads into `os.environ` on import. 1399/1399 tests still
+pass (this only affects module-import-time environment loading, no test needed a code change to keep
+passing).
+
+**Backtest:** Not applicable — live/paper alerting only.
+
+**Approved:** Pending — do not go live on this version until reviewed.
+
+---
+
+## [v2.2.84] — 2026-08-23 — [Backtest Methodology] The go-live gate now actually requires walk-forward robustness, not just a favorable single split
+
+**Status:** Live.
+
+**In short:** Tier-1 decision #1 from the full model audit, implemented: `run_backtest()`'s `passed`
+flag used to rest only on the single fixed 70/30 split. `wf_results` was computed and attached to
+the returned/saved report, but nothing gated on it — which is exactly how v2.2.83's wrong "2/6
+windows pass" reading went unnoticed for most of a day: the fixed test period (2022-06-09 onward)
+happens to sit inside the only windows that looked favorable, so the single-split check had no way
+to catch that the apparent pass was a fixed-slice artifact.
+
+**Fix:** `passed` now also requires the bootstrapped expectancy-CI/Sharpe/drawdown/trade-count bar to
+clear on qualifying trades **pooled across every walk-forward window**, not window-by-window. A
+per-window majority vote was considered and rejected — 6 windows is too few data points for a binary
+per-window pass/fail to carry much statistical weight, and most windows don't even reach the
+10-trade minimum for their own verdict. Pooling every window's outcomes into one larger sample and
+running the same metrics bundle the single-slice check already uses is the same approach
+`entry_filter_variants.py` already established for testing entry-filter candidates without
+overfitting to one fixed slice — this applies it to the actual go-live gate instead of a research
+tool. `run_walk_forward()` is now called with `include_outcomes=True`; the raw per-trade outcome
+lists are popped back out before the window dicts reach the saved report, keeping it exactly as lean
+as it was before (matching that function's own documented intent).
+
+**On real data:** pooled walk-forward is 32 trades total, expectancy CI lower bound 0.06R (positive
+but weak), **Sharpe -1.12** — fails cleanly on its own, independent of and consistent with the
+single-split's own failure (0.27 Sharpe, already failing before this fix).
+
+**Per-sector gating was already correctly wired**, contrary to how "still just side diagnostics you
+have to check manually" was originally characterized in this session — `run_multi_sector_backtest()`
+has required every individual sector to also pass since v2.2.56. Only the single-sector
+`run_backtest()` (the function whose headline number actually gets cited) was missing the
+walk-forward check; that's what this entry closes.
+
+**New result fields:** `walk_forward_pooled_passed`, `walk_forward_pooled_qualifying_trades`,
+`walk_forward_pooled_expectancy_r_ci_lower`, `walk_forward_pooled_sharpe`,
+`walk_forward_pooled_max_drawdown_pct`.
+
+**Fix:** `backtesting/backtest_engine.py`. 6 new tests in `tests/test_phase12_backtest.py`
+(`TestRunBacktestWalkForwardPooledGate`) — monkeypatch `run_walk_forward` directly rather than
+generating a multi-year synthetic dataset, isolating the new pooling/gating logic from
+`run_walk_forward`'s own (separately tested) correctness. 1399/1399 tests pass.
+
+**Backtest:** `passed=False` (unchanged — was already failing on the single-split side; now also
+fails independently on the pooled walk-forward side).
+
+**Approved:** Not applicable — this changes how "passed" is measured, not a request to go live. The
+model remains not eligible for real capital regardless of this result.
 
 ---
 

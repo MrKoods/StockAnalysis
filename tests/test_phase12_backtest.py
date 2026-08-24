@@ -567,6 +567,135 @@ class TestRunBacktest:
         assert result["max_drawdown_pct"] >= 0.0
 
 
+class TestRunBacktestWalkForwardPooledGate:
+    """
+    2026-08-23: "passed" used to rest ONLY on the single fixed 70/30 split —
+    wf_results was computed and attached to the report but never gated
+    anything. Found (while re-checking whether that was the right call) that
+    this let a single-split pass purely because the fixed test period
+    happened to land inside a favorable stretch of history, with no check
+    that the edge holds up pooled across other walk-forward windows too
+    (see CHANGELOG v2.2.83). These monkeypatch run_walk_forward directly —
+    real multi-year walk-forward windows need far more synthetic data than
+    is practical to generate here, and the single-split's own pass/fail
+    behavior is already covered by TestRunBacktest above; this isolates the
+    NEW pooling-and-gating logic specifically.
+    """
+
+    def _lenient_single_split_data(self):
+        # Trivially clears the single-split side (min_qualifying_trades=1,
+        # min_expectancy_r very negative) so any failure is attributable to
+        # the walk-forward-pooled gate, not the split this class isn't testing.
+        return {"NVDA": _ohlcv_trending_up(120)}
+
+    def _dated_outcomes(self, wins, losses, rr=3.0, year=2020):
+        """Like the module-level _outcomes(), but with the extra fields
+        _compute_metrics_bundle's equity curve actually needs to behave
+        sensibly: real, evenly-spread-out exit_dates (chronological sort
+        needs realistic spacing/interleaving, not one block of wins followed
+        by one block of losses — that clusters all losses into a single deep
+        drawdown and starves _trades_per_year of a sensible timespan) and a
+        real entry_price/stop/pnl_pct consistent with achieved_rr (_build_
+        equity_curve reads pnl_pct/entry_price/stop, NOT achieved_rr — the
+        module-level _outcomes() only ever fed compute_r_multiples-style
+        functions directly, never this equity-curve path, so it never needed
+        those fields; defaulting entry_price=stop=~1.0 here degenerates into
+        a nonsensical equity curve)."""
+        total = wins + losses
+        loss_positions = set()
+        if losses > 0:
+            step = total / losses
+            loss_positions = {int(i * step) for i in range(losses)}
+        entry, stop = 100.0, 97.0  # risk_dist = 0.03, matches _build_equity_curve's own default
+        risk_dist = (entry - stop) / entry
+        result = []
+        for i in range(total):
+            is_win = i not in loss_positions
+            date = pd.Timestamp(f"{year}-01-01") + pd.Timedelta(days=3 * i)
+            achieved_rr = rr if is_win else -1.0
+            result.append({
+                "outcome": "win" if is_win else "loss",
+                "achieved_rr": achieved_rr,
+                "pnl_pct": achieved_rr * risk_dist,
+                "entry_price": entry,
+                "stop": stop,
+                "regime": "trending_up",
+                "exit_date": date.strftime("%Y-%m-%d"),
+                "signal_date": (date - pd.Timedelta(days=2)).strftime("%Y-%m-%d"),
+            })
+        return result
+
+    def test_walk_forward_pooled_passed_key_always_present(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert "walk_forward_pooled_passed" in result
+        assert "walk_forward_pooled_qualifying_trades" in result
+
+    def test_no_walk_forward_windows_fails_the_pooled_gate(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert result["walk_forward_pooled_passed"] is False
+        assert result["walk_forward_pooled_qualifying_trades"] == 0
+
+    def test_overall_passed_requires_walk_forward_pooled_too_even_when_single_split_would_pass(self, monkeypatch):
+        """The key regression guard: an empty/insufficient walk-forward pool
+        must veto an otherwise-passing single split, not just be reported
+        alongside it."""
+        import backtesting.backtest_engine as be
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert result["walk_forward_pooled_passed"] is False
+        assert result["passed"] is False
+
+    def test_pooled_outcomes_below_min_qualifying_trades_fails_the_gate(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        thin_window = {
+            "window": 1, "train_through": "2020-01-01", "validate_through": "2021-01-01",
+            "qualifying_trades": 5, "win_rate": 1.0, "avg_rr": 3.0, "verdict": "pass", "passed": True,
+            "outcomes": _outcomes(wins=5, losses=0, rr=3.0),
+        }
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [thin_window])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=10, min_expectancy_r=-100.0)
+        assert result["walk_forward_pooled_qualifying_trades"] == 5
+        assert result["walk_forward_pooled_passed"] is False  # 5 < min_qualifying_trades=10
+        assert result["passed"] is False
+
+    def test_pooled_outcomes_clearing_every_bar_passes_the_gate(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        # A few losses mixed in, not a perfect record — an all-identical-R
+        # win streak has zero return variance, which degenerates Sharpe to 0
+        # (fails >=1.0) rather than exercising the pass path this test wants.
+        windows = [
+            {"window": 1, "train_through": "2020-01-01", "validate_through": "2021-01-01",
+             "qualifying_trades": 30, "win_rate": 0.83, "avg_rr": 3.0, "verdict": "pass", "passed": True,
+             "outcomes": self._dated_outcomes(wins=25, losses=5, rr=3.0, year=2020)},
+            {"window": 2, "train_through": "2021-01-01", "validate_through": "2022-01-01",
+             "qualifying_trades": 30, "win_rate": 0.83, "avg_rr": 3.0, "verdict": "pass", "passed": True,
+             "outcomes": self._dated_outcomes(wins=25, losses=5, rr=3.0, year=2022)},
+        ]
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: windows)
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=10, min_expectancy_r=0.1)
+        assert result["walk_forward_pooled_qualifying_trades"] == 60
+        assert result["walk_forward_pooled_passed"] is True
+
+    def test_outcomes_key_stripped_from_reported_walk_forward_windows(self, monkeypatch):
+        """include_outcomes=True is needed internally to pool, but the saved
+        report should stay lean (matching run_walk_forward's own documented
+        intent) — raw per-trade outcome lists shouldn't be duplicated into
+        every window dict in the final result."""
+        import backtesting.backtest_engine as be
+        window = {
+            "window": 1, "train_through": "2020-01-01", "validate_through": "2021-01-01",
+            "qualifying_trades": 2, "win_rate": 1.0, "avg_rr": 3.0, "verdict": "insufficient_data", "passed": False,
+            "outcomes": _outcomes(wins=2, losses=0, rr=3.0),
+        }
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [window])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert "outcomes" not in result["walk_forward"][0]
+
+
 # ---------------------------------------------------------------------------
 # Stress tests
 # ---------------------------------------------------------------------------
