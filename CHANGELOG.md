@@ -71,7 +71,8 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
-| v2.2.96 | 2026-08-24 | Research / Feature | Nearly doubled the watchlist (23 -> 49 stocks) to grow the historical test's sample size, heaviest in the two sectors with zero winning-or-losing trades to learn from. Result: it didn't work the way expected — banks are still at zero qualifying trades even after more than doubling that sector's stock count, and total qualifying trades across all sectors combined actually went down slightly, not up. But the bigger dataset revealed something the smaller one couldn't: pooled across every sector, the real (non-proxy) part of the score shows a small but statistically real NEGATIVE relationship with what happened next — the opposite of what you'd want. Flagged for review, nothing acted on yet |
+| v2.2.97 | 2026-08-24 | Research / Bug Fix | v2.2.96's "the real score shows a statistically real negative relationship with returns" claim was checked more rigorously and does NOT hold up — that one p=0.05 reading was one of ~15 similar tests run in the same pass, and doesn't survive the standard correction for running that many tests at once, nor does its own resampled confidence interval clearly exclude zero. Corrected finding: no robust evidence of edge in either direction from the real (non-proxy) part of the score — not proof it's broken, just still no proof it works. Added the two statistical checks that caught this to the standard backtest report so this doesn't have to be re-derived by hand next time |
+| v2.2.96 | 2026-08-24 | Research / Feature | Nearly doubled the watchlist (23 -> 49 stocks) to grow the historical test's sample size, heaviest in the two sectors with zero winning-or-losing trades to learn from. Result: it didn't work the way expected — banks are still at zero qualifying trades even after more than doubling that sector's stock count, and total qualifying trades across all sectors combined actually went down slightly, not up. Also see v2.2.97 — the "revealed a real negative signal" framing below did not hold up under closer scrutiny |
 | v2.2.95 | 2026-08-24 | Feature / Bug Fix / Research | Added a second, much-larger-sample way to check whether the score actually predicts anything (thousands of scored days instead of only 17 historically-qualifying trades) — first read says the real Technical/News/Fundamental data shows no significant edge on its own; the earlier win-rate numbers likely leaned on a backtest-only stand-in for Sentiment. Also: a scan-time crash on one stock used to vanish with a single log line — now it's visible and doesn't affect other stocks that day |
 | v2.2.94 | 2026-08-24 | Bug Fix / Feature | Fixed two tickers being silently dropped from scans over vendor data-rounding noise, and a "fraud" news trigger repeatedly crying wolf on fraud-prevention marketing copy. Added tracking for whether trades that never filled would have won anyway, and a daily Discord summary of open/closed trades and P&L |
 | v2.2.93 | 2026-08-23 | Scoring Change | Raised two portfolio-wide risk caps to match v2.2.92's bigger per-trade risk budget, so they still mean something instead of blocking almost every trade |
@@ -176,6 +177,77 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.97] — 2026-08-24 — [Research / Bug Fix] SUPERSEDES v2.2.96's "real negative signal" claim — checked with proper statistical rigor, it does not hold up
+
+**Status:** Live.
+
+**In short:** Immediate follow-up to v2.2.96, run before starting Phase 3 at the user's explicit
+request ("run this before phase 3") to check whether that entry's headline finding — the real
+(non-proxy) part of the score has a statistically significant NEGATIVE relationship with forward
+returns — was actually real, or an artifact of not correcting for how many tests were run. **It was
+the latter.** The corrected, honest conclusion: there is currently no robust evidence of edge in
+either direction from the fully-real part of the score. That's a real result, just a less dramatic
+and less actionable one than v2.2.96 reported — and importantly, it does NOT mean "the model has no
+edge," it means "this test still can't tell us either way," the same throughline as every prior
+phase of this audit.
+
+**What was checked, in order:**
+
+1. **Look-ahead bias review of `backtesting/simulation.py`** (could the score have been leaking
+   future information into its own correlation with future returns, producing a spurious signal
+   either direction?). Found no obvious leak: technical indicators are computed on `df_slice =
+   df.iloc[:entry_idx + 1]` (structurally truncated before the entry bar, every time), news is
+   date-windowed to `<= bar_date` (`historical_news_loader.py`), fundamental data uses an explicit
+   point-in-time archive (`_fundamental_as_of` — most recent snapshot at-or-before `bar_date`), and
+   cross-ticker/macro context is explicitly sliced `<= bar_date` with comments flagging exactly this
+   concern. Not exhaustively re-verified line-by-line (e.g. every individual technical-indicator
+   window direction wasn't independently re-derived), but nothing found suggests the negative
+   reading was a simulation artifact.
+
+2. **Benjamini-Hochberg correction across every IC reading the same backtest run produced.**
+   v2.2.96's finding was one p-value (0.0501) viewed in isolation. The actual multi-sector backtest
+   run that produced it computed ~15 IC reads at once (pooled + 4 sectors x 3 score-field variants
+   each) — at that many simultaneous tests, seeing one land right at the conventional p<0.05 line is
+   close to what you'd expect from chance alone, not strong evidence. Corrected: of 15 reads, only 2
+   survive BH correction — and both are POSITIVE readings on the composite score that includes the
+   backtest's Sentiment proxy (pooled confidence, semiconductors confidence), the exact category
+   already flagged in v2.2.95 as untrustworthy. Every technical-only and real-only reading, positive
+   or negative, at every sector including the pooled one, fails to survive correction.
+
+3. **Bootstrap confidence interval on the IC itself** (does the point estimate hold up under
+   resampling, independent of the multiple-testing question). The pooled real-only reading v2.2.96
+   led with: CI = [-0.0673, +0.0004] — straddles zero, does not exclude it. Consistent with check 2:
+   this specific number was not robust.
+
+**One nuance surfaced, not resolved:** the pooled technical-only reading (IC=-0.0348, p=0.0414) has
+a bootstrap CI that DOES exclude zero ([-0.0689, -0.0009]) even though it does not survive BH
+correction — the two checks aren't measuring exactly the same thing (one asks "is this point
+estimate stable under resampling," the other asks "is this significant once you account for how
+many things were tested"), and here they disagree. Treated as inconclusive, not swept aside: this
+is the single reading closest to being real evidence of something, and would be the first thing to
+re-check if more data accumulates.
+
+**Fix — added the missing rigor to the standard report, not just this one-off check**
+(`backtesting/metrics.py`, `backtesting/backtest_engine.py`, `backtesting/run_backtest.py`):
+- `bootstrap_ic_ci()`: resampled CI on an IC point estimate (paired resampling, same principle as
+  the existing `bootstrap_expectancy_ci`).
+- `benjamini_hochberg_correction()`: standard BH step-up procedure, chosen over a stricter
+  Bonferroni correction as the more appropriate bar for an exploratory multi-test scan like this one
+  (same "best/most-extreme of N trials can look significant by chance alone" problem
+  `compute_deflated_sharpe_ratio` already exists to catch for Sharpe ratios, now covered for IC too).
+- Both wired into `_compute_metrics_bundle`'s `ic_confidence`/`ic_technical`/`ic_real_only` dicts
+  (now carrying `ci_lower`/`ci_upper`/`bh_significant` alongside `ic`/`p_value`) and into
+  `run_backtest.py`'s printed report, so a future backtest run shows the corrected picture
+  automatically instead of requiring a manual follow-up script to catch the same mistake again.
+
+**Backtest:** No scoring weights, formulas, or thresholds changed — this is a statistical-rigor
+correction to how the IC finding itself is reported, not a strategy change. 1420+ tests pass
+(14 new: bootstrap CI + BH correction pure-math tests). Both guardrail checkers pass clean.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

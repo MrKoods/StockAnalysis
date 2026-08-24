@@ -128,6 +128,107 @@ def compute_information_coefficient(
     return {"ic": round(ic, 4), "p_value": round(p_value, 4), "n": n, "method": method, "score_field": score_field}
 
 
+def bootstrap_ic_ci(
+    outcomes: list[dict],
+    score_field: str = "confidence",
+    return_field: str = "achieved_rr",
+    method: str = "spearman",
+    n_bootstrap: int = 10000,
+    ci: float = 0.95,
+    seed: Optional[int] = 42,
+) -> dict:
+    """
+    Bootstrap confidence interval on compute_information_coefficient's point
+    estimate (2026-08-24 full model audit, Phase 2 follow-up).
+
+    Why this exists: v2.2.96's pooled real-only IC (-0.0334, p=0.0501, n=3439)
+    sits right at the conventional significance threshold, computed alongside
+    ~14 other IC reads (per-sector x per-score-field) in the same pass — a
+    single p-value that close to 0.05, amid that many correlated tests, isn't
+    strong enough evidence on its own to justify a scoring-formula change
+    (see this project's own compute_deflated_sharpe_ratio, built for the
+    identical "best/most-extreme of N trials can look significant by chance
+    alone" problem applied to Sharpe). A resampled interval on the IC itself
+    is a second, complementary check: if it excludes zero robustly, the point
+    estimate wasn't a fluke of this particular sample; if it straddles zero,
+    treat the point estimate as not yet actionable.
+
+    Resamples (score, return) PAIRS with replacement — not each series
+    independently — preserving whatever real pairing structure exists between
+    them, same principle as bootstrap_expectancy_ci's resampling of r_multiples
+    (each element resampled as a unit, not decomposed).
+
+    Returns {"ic_mean": ..., "ci_lower": ..., "ci_upper": ..., "n": ...}.
+    All fields are 0.0 (n=0) when fewer than 3 valid (score, return) pairs
+    exist — same floor compute_information_coefficient itself uses, since a
+    rank correlation is meaningless below that.
+    """
+    pairs = [
+        (float(o[score_field]), float(o[return_field]))
+        for o in outcomes
+        if o.get(score_field) is not None and o.get(return_field) is not None
+    ]
+    n = len(pairs)
+    if n < 3:
+        return {"ic_mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": n}
+
+    scores = np.array([p[0] for p in pairs], dtype=float)
+    returns = np.array([p[1] for p in pairs], dtype=float)
+    corr_fn = pearsonr if method == "pearson" else spearmanr
+
+    rng = np.random.default_rng(seed)
+    boot_ics = np.empty(n_bootstrap)
+    for i in range(n_bootstrap):
+        idx = rng.integers(0, n, size=n)
+        ic_val, _ = corr_fn(scores[idx], returns[idx])
+        boot_ics[i] = ic_val if not math.isnan(ic_val) else 0.0
+
+    point_ic, _ = corr_fn(scores, returns)
+    point_ic = float(point_ic) if not math.isnan(point_ic) else 0.0
+
+    alpha = (1.0 - ci) / 2.0
+    return {
+        "ic_mean": round(point_ic, 4),
+        "ci_lower": round(float(np.percentile(boot_ics, alpha * 100)), 4),
+        "ci_upper": round(float(np.percentile(boot_ics, (1.0 - alpha) * 100)), 4),
+        "n": n,
+    }
+
+
+def benjamini_hochberg_correction(p_values: list[float], fdr: float = 0.05) -> list[bool]:
+    """
+    Benjamini-Hochberg false-discovery-rate correction (2026-08-24 full model
+    audit, Phase 2 follow-up) — flags which of a batch of p-values (e.g. the
+    ~15 IC reads a single backtest_engine.py run produces: pooled + 4 sectors
+    x 3 score fields each) remain significant after accounting for having run
+    that many tests at once. Chosen over a Bonferroni correction (divide alpha
+    by n_tests) as less conservative and the more standard choice for an
+    exploratory multi-test scan like this one — Bonferroni controls the
+    family-wise error rate (near-zero tolerance for ANY false positive across
+    the whole batch); BH controls the expected false-discovery RATE among
+    what's flagged significant, the more usual bar for "is this worth
+    investigating further" rather than "is this proven."
+
+    Returns a list of booleans, same order/length as p_values: True = still
+    significant after correction, False = does not survive it.
+    """
+    n = len(p_values)
+    if n == 0:
+        return []
+    indexed = sorted(range(n), key=lambda i: p_values[i])
+    significant = [False] * n
+    # Largest k such that the k-th smallest p-value <= (k/n) * fdr — standard
+    # BH step-up procedure. Every p-value at or below that rank is flagged.
+    largest_k = 0
+    for rank, idx in enumerate(indexed, start=1):
+        if p_values[idx] <= (rank / n) * fdr:
+            largest_k = rank
+    for rank, idx in enumerate(indexed, start=1):
+        if rank <= largest_k:
+            significant[idx] = True
+    return significant
+
+
 def bootstrap_expectancy_ci(
     r_multiples: list[float],
     n_bootstrap: int = 10000,

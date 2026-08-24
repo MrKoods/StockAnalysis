@@ -64,6 +64,8 @@ from backtesting.metrics import (
     bootstrap_expectancy_ci,
     compute_deflated_sharpe_ratio,
     compute_information_coefficient,
+    bootstrap_ic_ci,
+    benjamini_hochberg_correction,
     _trades_per_year,
     _build_equity_curve,
     build_portfolio_equity_curve,
@@ -86,6 +88,39 @@ def _backtesting_cfg(config_path: str) -> dict:
 # writing real-looking (but synthetic, all-zero) report files into the actual
 # backtesting/reports/ directory under today's real date.
 _REPORTS_DIR = Path("backtesting/reports")
+
+
+def _ic_with_ci(outcomes: list[dict], score_field: str) -> dict:
+    """compute_information_coefficient's result plus a bootstrap CI on the
+    same (outcomes, score_field) pair — merged into one dict so every ic_*
+    field in this module's reports carries both without a caller having to
+    remember to call both functions. bh_significant defaults to None (not yet
+    known) until _apply_bh_correction (below) sees every ic_* dict a given
+    backtest run produced and can correct across the whole batch."""
+    result = dict(compute_information_coefficient(outcomes, score_field=score_field))
+    ci = bootstrap_ic_ci(outcomes, score_field=score_field, n_bootstrap=2000)
+    result["ci_lower"] = ci["ci_lower"]
+    result["ci_upper"] = ci["ci_upper"]
+    result["bh_significant"] = None
+    return result
+
+
+def _apply_bh_correction(ic_dicts: list[Optional[dict]]) -> None:
+    """
+    Mutates each non-None dict in ic_dicts in place, filling bh_significant
+    (2026-08-24 audit follow-up — see _ic_with_ci's docstring for why this
+    exists). Correcting across every ic_* reading ONE backtest run produced
+    (e.g. run_multi_sector_backtest's pooled + 4 per-sector x 3 score fields
+    = 15 tests) rather than treating each p-value in isolation, which is what
+    made v2.2.96's single "p=0.05" reading look more conclusive than it was.
+    """
+    valid = [d for d in ic_dicts if d is not None]
+    if not valid:
+        return
+    p_values = [d["p_value"] for d in valid]
+    significant = benjamini_hochberg_correction(p_values, fdr=0.05)
+    for d, sig in zip(valid, significant):
+        d["bh_significant"] = sig
 
 
 def _compute_metrics_bundle(
@@ -161,11 +196,19 @@ def _compute_metrics_bundle(
     # note above. Three reads: full composite (contaminated by the backtest's
     # Positioning/Sentiment proxies), technical_total alone (fully real,
     # heaviest-weighted category), and a real-only composite (technical +
-    # news + fundamental, excluding both proxy categories).
+    # news + fundamental, excluding both proxy categories). Each also carries
+    # a bootstrap CI (2026-08-24 audit follow-up) — v2.2.96's pooled real-only
+    # reading (IC=-0.033, p=0.05) turned out NOT to survive a Benjamini-
+    # Hochberg correction once checked against the ~15 other IC reads that
+    # same backtest run produced (see CHANGELOG v2.2.97) — a bare p-value on
+    # one metric, viewed in isolation, was misleading. bh_significant gets
+    # filled in by _apply_bh_correction below, once every ic_* dict this run
+    # produced (pooled + any per-sector ones) is known — a single-population
+    # call like run_backtest()'s can only correct across its own 3 fields.
     ic_confidence = ic_technical = ic_real_only = None
     if all_outcomes:
-        ic_confidence = compute_information_coefficient(all_outcomes, score_field="confidence")
-        ic_technical = compute_information_coefficient(all_outcomes, score_field="technical_total")
+        ic_confidence = _ic_with_ci(all_outcomes, "confidence")
+        ic_technical = _ic_with_ci(all_outcomes, "technical_total")
         real_only_outcomes = [
             {
                 **o,
@@ -177,7 +220,7 @@ def _compute_metrics_bundle(
             }
             for o in all_outcomes
         ]
-        ic_real_only = compute_information_coefficient(real_only_outcomes, score_field="real_only_total")
+        ic_real_only = _ic_with_ci(real_only_outcomes, "real_only_total")
 
     return {
         "win_rate": win_rate,
@@ -279,6 +322,10 @@ def run_backtest(
 
     # Step 5: Metrics
     m = _compute_metrics_bundle(qualifying, starting_equity=15000.0, all_outcomes=all_outcomes)
+    # This run only produced 3 ic_* reads (confidence/technical/real_only, all
+    # on the same pooled population) — correct across just those 3, not some
+    # other run's batch. See _apply_bh_correction's docstring.
+    _apply_bh_correction([m["ic_confidence"], m["ic_technical"], m["ic_real_only"]])
 
     # Step 6: Walk-forward
     wf_results = run_walk_forward(historical_data, include_outcomes=True)
@@ -511,6 +558,16 @@ def run_multi_sector_backtest(
     # pools outcomes across all 3 sectors, so concurrent positions can now
     # span sectors too — exactly what live trading actually does.
     m = _compute_metrics_bundle(qualifying, starting_equity=15000.0, all_outcomes=all_outcomes)
+
+    # Correct across every ic_* reading THIS run produced — pooled (3) + each
+    # sector (3 each) — not each one viewed in isolation. This is the actual
+    # ~15-test batch v2.2.96's single-p-value framing missed correcting for
+    # (see CHANGELOG v2.2.97): the pooled real-only reading that looked
+    # significant alone (p=0.0501) does not survive this correction.
+    _apply_bh_correction(
+        [m["ic_confidence"], m["ic_technical"], m["ic_real_only"]]
+        + [d for sm in per_sector_metrics.values() for d in (sm["ic_confidence"], sm["ic_technical"], sm["ic_real_only"])]
+    )
 
     pooled_passed = (
         len(qualifying) >= min_qualifying_trades

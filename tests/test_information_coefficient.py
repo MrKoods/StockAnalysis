@@ -9,7 +9,11 @@ needed.
 
 import pytest
 
-from backtesting.metrics import compute_information_coefficient
+from backtesting.metrics import (
+    compute_information_coefficient,
+    bootstrap_ic_ci,
+    benjamini_hochberg_correction,
+)
 
 
 def _outcomes(scores: list[float], returns: list[float]) -> list[dict]:
@@ -89,3 +93,72 @@ class TestEdgeCases:
         result = compute_information_coefficient(outcomes, method="pearson")
         assert result["method"] == "pearson"
         assert result["ic"] == pytest.approx(1.0, abs=1e-9)
+
+
+class TestBootstrapICCI:
+    def test_strong_relationship_ci_excludes_zero(self):
+        # Real (noisy but genuinely monotonic) relationship, moderate sample —
+        # the resampled CI should sit clearly on the positive side of zero.
+        import random
+        rng = random.Random(7)
+        scores = list(range(1, 51))
+        returns = [s + rng.gauss(0, 3) for s in scores]
+        result = bootstrap_ic_ci(_outcomes(scores, returns), n_bootstrap=2000)
+        assert result["ic_mean"] > 0.5
+        assert result["ci_lower"] > 0.0  # excludes zero
+
+    def test_pure_noise_ci_straddles_zero(self):
+        import random
+        rng = random.Random(11)
+        scores = list(range(1, 51))
+        returns = [rng.gauss(0, 1) for _ in scores]  # no relationship to scores at all
+        result = bootstrap_ic_ci(_outcomes(scores, returns), n_bootstrap=2000)
+        assert result["ci_lower"] < 0.0 < result["ci_upper"]
+
+    def test_fewer_than_three_pairs_returns_neutral_zero(self):
+        result = bootstrap_ic_ci(_outcomes([10, 20], [1.0, 2.0]))
+        assert result == {"ic_mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": 2}
+
+    def test_empty_outcomes_returns_neutral_zero(self):
+        result = bootstrap_ic_ci([])
+        assert result == {"ic_mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": 0}
+
+    def test_deterministic_with_fixed_seed(self):
+        outcomes = _outcomes([1, 5, 3, 8, 2, 9, 4, 7, 6, 10], [2, 4, 3, 9, 1, 8, 5, 6, 7, 10])
+        r1 = bootstrap_ic_ci(outcomes, n_bootstrap=500, seed=42)
+        r2 = bootstrap_ic_ci(outcomes, n_bootstrap=500, seed=42)
+        assert r1 == r2
+
+
+class TestBenjaminiHochbergCorrection:
+    def test_all_clearly_significant_survive(self):
+        p_values = [0.001, 0.002, 0.003, 0.004]
+        result = benjamini_hochberg_correction(p_values, fdr=0.05)
+        assert result == [True, True, True, True]
+
+    def test_all_clearly_insignificant_fail(self):
+        p_values = [0.5, 0.6, 0.7, 0.8]
+        result = benjamini_hochberg_correction(p_values, fdr=0.05)
+        assert result == [False, False, False, False]
+
+    def test_borderline_single_pvalue_stricter_than_uncorrected_alpha(self):
+        # A single p=0.05 test alone would pass an uncorrected alpha=0.05 bar,
+        # but BH with n=1 reduces to the same bar (rank 1 of 1, threshold =
+        # (1/1)*fdr = fdr) -- exactly at the boundary, included.
+        assert benjamini_hochberg_correction([0.05], fdr=0.05) == [True]
+        assert benjamini_hochberg_correction([0.0501], fdr=0.05) == [False]
+
+    def test_mixed_batch_only_smallest_survive(self):
+        # This is the actual shape of the v2.2.96 finding: one borderline
+        # p-value (0.0501) sitting among many clearly-insignificant ones. At
+        # n=15 tests, BH's per-rank threshold for the largest p-value is
+        # (15/15)*0.05=0.05 -- 0.0501 is just above even that loosest
+        # threshold, so it does NOT survive correction.
+        p_values = [0.0001, 0.02, 0.0501] + [0.3 + i * 0.05 for i in range(12)]
+        result = benjamini_hochberg_correction(p_values, fdr=0.05)
+        assert result[0] is True  # 0.0001 -- clearly real
+        assert result[2] is False  # 0.0501 -- the borderline one, does not survive
+        assert all(r is False for r in result[3:])
+
+    def test_empty_list_returns_empty(self):
+        assert benjamini_hochberg_correction([]) == []

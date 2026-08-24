@@ -98,17 +98,32 @@ def main() -> None:
         # population (total_signals, not just qualifying_trades). Additive,
         # doesn't gate `passed`. See compute_information_coefficient's
         # docstring (backtesting/metrics.py) for the score_field caveats.
+        #
+        # bh_significant + the bootstrap CI (2026-08-24 audit follow-up, see
+        # CHANGELOG v2.2.97): a bare p-value here is misleading on its own —
+        # this run computes 3 (single-sector) or up to 15 (multi-sector,
+        # pooled + per-sector) IC reads at once, and v2.2.96 originally
+        # reported one borderline p=0.05 reading as if it were the only test
+        # run. bh_significant reflects Benjamini-Hochberg correction across
+        # every IC this SAME run produced; the bootstrap CI is a second,
+        # independent robustness check (does the point estimate hold up under
+        # resampling). Trust a reading only when both agree it's real.
+        def _fmt_ic(label: str, ic: dict, caveat: str) -> str:
+            sig = ic.get("bh_significant")
+            sig_str = "significant after BH correction" if sig else "does NOT survive BH correction" if sig is False else "correction not computed"
+            return (
+                f"  {label:<22} IC={ic.get('ic', 0.0):+.4f} (p={ic.get('p_value', 1.0):.4f}, n={ic.get('n', 0)}) "
+                f"CI=[{ic.get('ci_lower', 0.0):+.4f}, {ic.get('ci_upper', 0.0):+.4f}] — {sig_str} — {caveat}"
+            )
+
         ic_conf = result.get("ic_confidence") or {}
         ic_tech = result.get("ic_technical") or {}
         ic_real = result.get("ic_real_only") or {}
         print(f"\nInformation Coefficient (n={result.get('total_signals', 0)} scored, "
               f"vs. {result.get('qualifying_trades', 0)} qualifying) — reported only, doesn't gate passed:")
-        print(f"  Full composite score:  IC={ic_conf.get('ic', 0.0):+.4f} (p={ic_conf.get('p_value', 1.0):.4f}, "
-              f"n={ic_conf.get('n', 0)}) — includes backtest-only Positioning/Sentiment proxies")
-        print(f"  Technical-only:        IC={ic_tech.get('ic', 0.0):+.4f} (p={ic_tech.get('p_value', 1.0):.4f}, "
-              f"n={ic_tech.get('n', 0)}) — fully real data, heaviest-weighted category")
-        print(f"  Real-only composite:   IC={ic_real.get('ic', 0.0):+.4f} (p={ic_real.get('p_value', 1.0):.4f}, "
-              f"n={ic_real.get('n', 0)}) — technical + news + fundamental, excludes both proxies")
+        print(_fmt_ic("Full composite score:", ic_conf, "includes backtest-only Positioning/Sentiment proxies"))
+        print(_fmt_ic("Technical-only:", ic_tech, "fully real data, heaviest-weighted category"))
+        print(_fmt_ic("Real-only composite:", ic_real, "technical + news + fundamental, excludes both proxies"))
 
         if result.get("per_regime"):
             print("\nPer-Regime Results:")
