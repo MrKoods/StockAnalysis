@@ -63,6 +63,7 @@ from backtesting.metrics import (
     compute_r_multiples,
     bootstrap_expectancy_ci,
     compute_deflated_sharpe_ratio,
+    compute_information_coefficient,
     _trades_per_year,
     _build_equity_curve,
     build_portfolio_equity_curve,
@@ -87,7 +88,9 @@ def _backtesting_cfg(config_path: str) -> dict:
 _REPORTS_DIR = Path("backtesting/reports")
 
 
-def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 15000.0) -> dict:
+def _compute_metrics_bundle(
+    qualifying: list[dict], starting_equity: float = 15000.0, all_outcomes: Optional[list[dict]] = None,
+) -> dict:
     """
     Full metrics bundle for one population of qualifying trade outcomes: win
     rate, avg R:R, per-regime breakdown, bootstrapped expectancy CI, serial
@@ -107,6 +110,17 @@ def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 150
     reports win_rate/sharpe/max_dd/expectancy_ci) just read the subset of
     keys they want — computing the rest is cheap (all pure in-memory/pandas
     work on an already-small trade list, no I/O).
+
+    all_outcomes (2026-08-24 full model audit): the FULL pre-qualifying-filter
+    scored population, not just `qualifying` — see
+    compute_information_coefficient's own docstring for why this exists (the
+    qualifying population is too small — 0 trades for some sectors — to say
+    anything statistically meaningful, but the full scored population is
+    thousands of ticker-days). Optional and additive: every existing key
+    above is computed identically whether or not this is passed; when it is,
+    three complementary `ic_*` keys are added, keyed by which score field was
+    correlated (see that field's own contamination caveat in the IC
+    function's docstring). None of the three feed `evaluate_paper_trading_pass`.
     """
     win_rate = compute_win_rate(qualifying)
     avg_rr = compute_avg_rr(qualifying)
@@ -143,6 +157,28 @@ def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 150
     # `qualifying_chrono` was the same bug surviving in one more metric.
     max_consec_losses = compute_consecutive_losses(qualifying_chrono)
 
+    # IC on the full pre-filter population — see all_outcomes' own docstring
+    # note above. Three reads: full composite (contaminated by the backtest's
+    # Positioning/Sentiment proxies), technical_total alone (fully real,
+    # heaviest-weighted category), and a real-only composite (technical +
+    # news + fundamental, excluding both proxy categories).
+    ic_confidence = ic_technical = ic_real_only = None
+    if all_outcomes:
+        ic_confidence = compute_information_coefficient(all_outcomes, score_field="confidence")
+        ic_technical = compute_information_coefficient(all_outcomes, score_field="technical_total")
+        real_only_outcomes = [
+            {
+                **o,
+                "real_only_total": (
+                    float(o.get("technical_total", 0.0) or 0.0)
+                    + float(o.get("news_total", 0.0) or 0.0)
+                    + float(o.get("fundamental_total", 0.0) or 0.0)
+                ),
+            }
+            for o in all_outcomes
+        ]
+        ic_real_only = compute_information_coefficient(real_only_outcomes, score_field="real_only_total")
+
     return {
         "win_rate": win_rate,
         "avg_rr": avg_rr,
@@ -158,6 +194,9 @@ def _compute_metrics_bundle(qualifying: list[dict], starting_equity: float = 150
         "portfolio_max_dd": portfolio_max_dd,
         "portfolio_stats": portfolio_stats,
         "max_consec_losses": max_consec_losses,
+        "ic_confidence": ic_confidence,
+        "ic_technical": ic_technical,
+        "ic_real_only": ic_real_only,
     }
 
 
@@ -239,7 +278,7 @@ def run_backtest(
     qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
 
     # Step 5: Metrics
-    m = _compute_metrics_bundle(qualifying, starting_equity=15000.0)
+    m = _compute_metrics_bundle(qualifying, starting_equity=15000.0, all_outcomes=all_outcomes)
 
     # Step 6: Walk-forward
     wf_results = run_walk_forward(historical_data, include_outcomes=True)
@@ -333,6 +372,12 @@ def run_backtest(
         "total_signals": len(all_outcomes),
         "max_consecutive_losses": m["max_consec_losses"],
         "per_regime": m["regime_metrics"],
+        # IC on the full total_signals population — complementary to, not a
+        # replacement for, the qualifying-trades-based metrics above. See
+        # compute_information_coefficient's docstring; not part of `passed`.
+        "ic_confidence": m["ic_confidence"],
+        "ic_technical": m["ic_technical"],
+        "ic_real_only": m["ic_real_only"],
         "walk_forward": wf_results,
         "walk_forward_pooled_passed": walk_forward_pooled_passed,
         "walk_forward_pooled_qualifying_trades": len(wf_pooled_outcomes),
@@ -438,7 +483,7 @@ def run_multi_sector_backtest(
     per_sector_metrics: dict[str, dict] = {}
     for sector, outcomes in per_sector_outcomes.items():
         sector_qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
-        sm = _compute_metrics_bundle(sector_qualifying, starting_equity=15000.0)
+        sm = _compute_metrics_bundle(sector_qualifying, starting_equity=15000.0, all_outcomes=outcomes)
         sector_passed = (
             sm["expectancy_ci"]["ci_lower"] >= min_expectancy_r
             and sm["sharpe"] >= 1.0
@@ -451,6 +496,13 @@ def run_multi_sector_backtest(
             "sharpe_ratio": round(sm["sharpe"], 2),
             "max_drawdown_pct": round(sm["max_dd"], 4),
             "passed": sector_passed,
+            # IC on this sector's FULL scored population (not sector_qualifying —
+            # see compute_information_coefficient's docstring), useful precisely
+            # where n_qualifying is 0 or too small for win_rate/expectancy above
+            # to mean anything.
+            "ic_confidence": sm["ic_confidence"],
+            "ic_technical": sm["ic_technical"],
+            "ic_real_only": sm["ic_real_only"],
         }
 
     qualifying = [o for o in all_outcomes if float(o.get("confidence", 0)) >= CONFIDENCE_THRESHOLD]
@@ -458,7 +510,7 @@ def run_multi_sector_backtest(
     # Especially relevant here vs. the single-sector run_backtest(): this
     # pools outcomes across all 3 sectors, so concurrent positions can now
     # span sectors too — exactly what live trading actually does.
-    m = _compute_metrics_bundle(qualifying, starting_equity=15000.0)
+    m = _compute_metrics_bundle(qualifying, starting_equity=15000.0, all_outcomes=all_outcomes)
 
     pooled_passed = (
         len(qualifying) >= min_qualifying_trades
@@ -489,6 +541,12 @@ def run_multi_sector_backtest(
         "total_signals": len(all_outcomes),
         "max_consecutive_losses": m["max_consec_losses"],
         "per_regime": m["regime_metrics"],
+        # Pooled-across-sectors IC — per_sector_metrics above carries the
+        # per-sector breakdown. See compute_information_coefficient's
+        # docstring; not part of `passed`.
+        "ic_confidence": m["ic_confidence"],
+        "ic_technical": m["ic_technical"],
+        "ic_real_only": m["ic_real_only"],
         "per_sector": per_sector_counts,
         "per_sector_metrics": per_sector_metrics,
         "train_period": str(earliest_date) if earliest_date else "",

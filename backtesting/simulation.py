@@ -984,6 +984,14 @@ def _simulate_test_signals(
             outcome["technical_total"] = score.get("technical_total", 0.0)
             outcome["sentiment_total"] = score.get("sentiment_total", 0.0)
             outcome["news_total"] = score.get("news_total", 0.0)
+            # Real, point-in-time archived data (unlike sentiment_total above,
+            # a price-momentum proxy — see this module's own docstring) —
+            # needed alongside technical_total/news_total to construct an
+            # IC/rank-correlation read restricted to the backtest's genuinely
+            # real categories (backtesting/metrics.py's
+            # compute_information_coefficient), separate from a read on the
+            # full composite confidence score that partly reflects the proxy.
+            outcome["fundamental_total"] = score.get("fundamental_score", 0.0)
             outcomes.append(outcome)
 
     return outcomes

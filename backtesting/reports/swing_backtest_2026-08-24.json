@@ -24,6 +24,27 @@
       "trade_count": 11
     }
   },
+  "ic_confidence": {
+    "ic": 0.2738,
+    "p_value": 0.0,
+    "n": 311,
+    "method": "spearman",
+    "score_field": "confidence"
+  },
+  "ic_technical": {
+    "ic": 0.0182,
+    "p_value": 0.7489,
+    "n": 311,
+    "method": "spearman",
+    "score_field": "technical_total"
+  },
+  "ic_real_only": {
+    "ic": 0.0336,
+    "p_value": 0.5552,
+    "n": 311,
+    "method": "spearman",
+    "score_field": "real_only_total"
+  },
   "walk_forward": [
     {
       "window": 1,
@@ -33,7 +54,21 @@
       "win_rate": 1.0,
       "avg_rr": 0.08,
       "verdict": "insufficient_data",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": 0.0619,
+        "p_value": 0.5555,
+        "n": 93,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": 0.0236,
+        "p_value": 0.8226,
+        "n": 93,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     },
     {
       "window": 2,
@@ -43,7 +78,21 @@
       "win_rate": 0.4286,
       "avg_rr": 1.57,
       "verdict": "fail",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": 0.0245,
+        "p_value": 0.7595,
+        "n": 158,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": 0.124,
+        "p_value": 0.1205,
+        "n": 158,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     },
     {
       "window": 3,
@@ -53,7 +102,21 @@
       "win_rate": 0.5,
       "avg_rr": 0.49,
       "verdict": "insufficient_data",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": -0.0746,
+        "p_value": 0.3607,
+        "n": 152,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": 0.2385,
+        "p_value": 0.0031,
+        "n": 152,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     },
     {
       "window": 4,
@@ -63,7 +126,21 @@
       "win_rate": 1.0,
       "avg_rr": 0.44,
       "verdict": "insufficient_data",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": -0.1429,
+        "p_value": 0.1034,
+        "n": 131,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": -0.1721,
+        "p_value": 0.0493,
+        "n": 131,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     },
     {
       "window": 5,
@@ -73,7 +150,21 @@
       "win_rate": 0.8,
       "avg_rr": 2.64,
       "verdict": "insufficient_data",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": 0.1845,
+        "p_value": 0.0494,
+        "n": 114,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": -0.0094,
+        "p_value": 0.9206,
+        "n": 114,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     },
     {
       "window": 6,
@@ -83,7 +174,21 @@
       "win_rate": 0.5,
       "avg_rr": 2.57,
       "verdict": "insufficient_data",
-      "passed": false
+      "passed": false,
+      "ic_confidence": {
+        "ic": 0.3285,
+        "p_value": 0.0,
+        "n": 166,
+        "method": "spearman",
+        "score_field": "confidence"
+      },
+      "ic_technical": {
+        "ic": 0.0616,
+        "p_value": 0.4302,
+        "n": 166,
+        "method": "spearman",
+        "score_field": "technical_total"
+      }
     }
   ],
   "walk_forward_pooled_passed": false,

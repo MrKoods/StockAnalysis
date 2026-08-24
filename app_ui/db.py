@@ -23,6 +23,13 @@ CATEGORY_TRADE_RECOMMENDED = "trade_recommended"
 CATEGORY_PASSED_NO_TRADE = "passed_no_trade"
 CATEGORY_NEAR_MISS = "near_miss"
 CATEGORY_NO_SIGNAL = "no_signal"
+# An uncaught exception aborted this ticker's scoring before any of the above
+# categories could be determined (2026-08-24 full model audit) — previously a
+# failure here left zero trace beyond one log line (paper_runner.py's
+# per-ticker try/except), invisible in this same dashboard every other
+# outcome for the day is visible in. composite_score is always 0.0 for this
+# category (no score was ever computed) — not a real 0/100 read.
+CATEGORY_SCAN_ERROR = "scan_error"
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS scan_runs (

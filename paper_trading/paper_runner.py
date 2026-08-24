@@ -44,7 +44,7 @@ from shared.utils.position_sizer import compute_position_size, derive_sizing_inp
 from shared.utils.sector_rotation import dampen_rotation_penalty_for_leader, get_rotation_modifier, ROTATION_NEUTRAL
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.seasonality import get_seasonality_modifier
-from shared.utils.logger import get_logger
+from shared.utils.logger import get_logger, write_validation_entry
 from shared.utils.discord_alerts import send_paper_signal_alert, send_near_miss_alert
 from shared.utils.robust_stats import robust_z_score, DEFAULT_OUTLIER_THRESHOLD
 from shared.utils.scan_lock import acquire_scan_lock
@@ -585,6 +585,12 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     signals_logged = 0
 
     for ticker in watchlist:
+        # Reset every iteration, before the try block, so a failure on THIS
+        # ticker before line ~716 sets it can't leak a stale value from the
+        # PREVIOUS ticker's iteration into the except block below (Python
+        # doesn't block-scope loop-body variables) — None unambiguously means
+        # "no score was computed for this ticker" versus a real 0.0 read.
+        final_score = None
         try:
             indicators = indicators_by_ticker.get(ticker)
             if indicators is None:
@@ -1307,7 +1313,27 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             _db_insert_notification_safe(run_id, ticker, "trade", paper_alert_payload, paper_alert_sent)
 
         except Exception as exc:
+            # 2026-08-24 full model audit: this catch-all previously left ZERO
+            # trace of a failed ticker beyond this one log line — no
+            # validation-log entry, no DB row, invisible in the same
+            # dashboard every other outcome for the day shows up in. Both
+            # additions below are best-effort and can't themselves take down
+            # the scan (write_validation_entry/_db_insert_ticker_result_safe
+            # already degrade gracefully on their own failure, same as every
+            # other call site in this file). Re-deriving sector fresh here
+            # rather than reading the loop-local `sector` variable — that
+            # variable is only assigned partway through the try block (line
+            # ~600), so on an exception before that point it would still hold
+            # a PREVIOUS ticker's stale value, not simply be undefined.
             logger.error(f"{ticker}: paper_runner error — {exc}")
+            write_validation_entry(
+                ticker, "paper_runner_scan_error",
+                f"{exc} (score computed before failure: {final_score if final_score is not None else 'none'})",
+            )
+            _db_insert_ticker_result_safe(
+                run_id, ticker, app_db.CATEGORY_SCAN_ERROR, final_score if final_score is not None else 0.0,
+                sector=ticker_sector_map.get(ticker),
+            )
 
     # Event Severity Gate — expire blocks whose cooling-off condition is met,
     # same rule as run_swing_model.py: a post_close scan completing after the

@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.95 | 2026-08-24 | Feature / Bug Fix / Research | Added a second, much-larger-sample way to check whether the score actually predicts anything (thousands of scored days instead of only 17 historically-qualifying trades) — first read says the real Technical/News/Fundamental data shows no significant edge on its own; the earlier win-rate numbers likely leaned on a backtest-only stand-in for Sentiment. Also: a scan-time crash on one stock used to vanish with a single log line — now it's visible and doesn't affect other stocks that day |
 | v2.2.94 | 2026-08-24 | Bug Fix / Feature | Fixed two tickers being silently dropped from scans over vendor data-rounding noise, and a "fraud" news trigger repeatedly crying wolf on fraud-prevention marketing copy. Added tracking for whether trades that never filled would have won anyway, and a daily Discord summary of open/closed trades and P&L |
 | v2.2.93 | 2026-08-23 | Scoring Change | Raised two portfolio-wide risk caps to match v2.2.92's bigger per-trade risk budget, so they still mean something instead of blocking almost every trade |
 | v2.2.92 | 2026-08-23 | Scoring Change | Raised how much money each trade is allowed to risk, from $75 up to $500 at minimum confidence — the old amount was too small to ever afford a real options trade |
@@ -174,6 +175,81 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.95] — 2026-08-24 — [Feature / Bug Fix / Research] Information Coefficient validation methodology + paper_runner.py scan-error visibility (full model audit, Phase 1)
+
+**Status:** Live.
+
+**In short:** First implementation phase of a full model audit. Two independent tracks. (1) A
+second way to validate the model that doesn't need a full "did this trade win or lose" — it checks
+whether the raw 0-100 score ranks stocks in the right order relative to what actually happened
+next, across every scored day, not just the rare ones that cross the 70-point bar. Run against the
+real semiconductor history: the full score does show a real relationship (statistically real, not
+random) — but that reading leans mostly on Sentiment, and this backtest's version of Sentiment is a
+stand-in built from price movement, not real trader sentiment data. Checked on just the parts that
+are 100% real historical data (Technical, News, Fundamental) and the relationship disappears —
+statistically indistinguishable from noise. This doesn't prove the model has no edge; it means the
+main evidence for one so far may be resting more on a proxy than on the real signal layers. (2) A
+crash while scoring one stock used to disappear from view entirely except for one line in a log
+file — now it leaves a real trace and, critically, doesn't stop the rest of that day's stocks from
+being scanned.
+
+**Why now:** two prior full audits (2026-08-19, 2026-08-22/23) found and fixed a bug — a leftover
+"needs a 90 score to count" filter — that had been silently duplicated into 4 different files and
+kept surviving its own fix. Once it was fully removed everywhere and the historical test was
+re-run at the real 70-point bar, the numbers dropped hard: only 11 historically-qualifying trades
+for semiconductors (the best-performing sector) in 13.5 years of data, and ZERO for regional banks
+and healthcare. That's nowhere near enough to trust a win-rate number. Rather than lowering the bar
+again (which is exactly the mistake already made and undone twice), this adds a second validation
+method that works even with a small qualifying-trade count, since it uses every scored day instead
+of just the rare ones that clear the bar.
+
+**Fix 1 — Information Coefficient (`backtesting/metrics.py`, `backtesting/simulation.py`,
+`backtesting/backtest_engine.py`, `backtesting/walk_forward.py`, `backtesting/run_backtest.py`):**
+added `compute_information_coefficient()` — a rank correlation (Spearman) between the raw score and
+what actually happened afterward, computed on the FULL pre-filter scored population the historical
+test already builds internally and then discards (`all_outcomes`, before the `confidence >= 70`
+filter). Reported on three versions of the score to keep the read honest: the full blended score
+(which includes two stand-in categories this historical replay can't measure for real —
+Positioning is a flat neutral value, Sentiment is built from 5-day price movement, not real crowd
+sentiment data); Technical alone (the single largest, fully real category); and a "real data only"
+version combining Technical + News + Fundamental. This is purely additive — reported alongside the
+existing win-rate/Sharpe numbers, doesn't change or gate the pass/fail decision.
+
+**First real result, semiconductors (13.5yr, n=311 scored days vs. 11 qualifying trades):**
+
+| Score version | IC | p-value | Real signal? |
+|---|---|---|---|
+| Full blended score | +0.274 | <0.0001 | Yes — but includes the Sentiment stand-in |
+| Technical only (fully real) | +0.018 | 0.75 | No — statistically indistinguishable from noise |
+| Real-data-only (Technical+News+Fundamental) | +0.034 | 0.56 | No — same |
+
+**What this means:** the model's one genuinely statistically-significant reading right now comes
+from a category this historical test can't test for real. The categories that ARE real show no
+measurable edge in this check. This doesn't mean the real model has no edge — the real Sentiment
+layer uses actual StockTwits/Seeking Alpha data, nothing like the price-based stand-in — but it
+does mean the strongest evidence so far for "the score works" is resting on the part of the test
+that's the least trustworthy, not the most. Flagged as a real, open question for the next phase,
+not resolved here.
+
+**Fix 2 — scan-error visibility (`paper_trading/paper_runner.py`, `app_ui/db.py`):** the loop that
+scores every stock, once per scan, wraps the entire ~720-line per-stock process (fetch data, score
+it, size a trade, log it) in one catch-all. Any unexpected crash anywhere in that block used to
+just print one error line and move on — no record in the validation log, no row in the dashboard
+database, nothing to show the stock was ever attempted that day. Added: the same failure now also
+writes a validation-log entry (matching every other module's existing pattern) and a dashboard row
+under a new `scan_error` category, carrying whatever partial score was computed before the crash
+when one exists, instead of a blank. Verified with a real injected failure (one stock's scoring
+deliberately made to crash mid-scan): the failing stock now leaves a clear trace and the other
+stock in the same scan is completely unaffected.
+
+**Backtest:** No scoring weights, formulas, or thresholds changed — both fixes are additive
+reporting/visibility changes. Full test suite (1410+ tests, plus 2 new tests covering the IC
+function and the scan-error visibility fix) passes.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

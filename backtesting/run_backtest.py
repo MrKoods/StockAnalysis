@@ -94,6 +94,22 @@ def main() -> None:
               f"(PSR={result.get('deflated_sharpe_psr', 0.0):.2f}, "
               f"n_trials={result.get('deflated_sharpe_n_trials', 0)}) — reported only, doesn't gate passed")
 
+        # Information Coefficient — complementary read on the FULL scored
+        # population (total_signals, not just qualifying_trades). Additive,
+        # doesn't gate `passed`. See compute_information_coefficient's
+        # docstring (backtesting/metrics.py) for the score_field caveats.
+        ic_conf = result.get("ic_confidence") or {}
+        ic_tech = result.get("ic_technical") or {}
+        ic_real = result.get("ic_real_only") or {}
+        print(f"\nInformation Coefficient (n={result.get('total_signals', 0)} scored, "
+              f"vs. {result.get('qualifying_trades', 0)} qualifying) — reported only, doesn't gate passed:")
+        print(f"  Full composite score:  IC={ic_conf.get('ic', 0.0):+.4f} (p={ic_conf.get('p_value', 1.0):.4f}, "
+              f"n={ic_conf.get('n', 0)}) — includes backtest-only Positioning/Sentiment proxies")
+        print(f"  Technical-only:        IC={ic_tech.get('ic', 0.0):+.4f} (p={ic_tech.get('p_value', 1.0):.4f}, "
+              f"n={ic_tech.get('n', 0)}) — fully real data, heaviest-weighted category")
+        print(f"  Real-only composite:   IC={ic_real.get('ic', 0.0):+.4f} (p={ic_real.get('p_value', 1.0):.4f}, "
+              f"n={ic_real.get('n', 0)}) — technical + news + fundamental, excludes both proxies")
+
         if result.get("per_regime"):
             print("\nPer-Regime Results:")
             for regime, metrics in result["per_regime"].items():

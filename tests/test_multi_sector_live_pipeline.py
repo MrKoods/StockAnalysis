@@ -367,3 +367,117 @@ def test_greeks_filter_status_round_trips_into_paper_trades_csv(tmp_path, monkey
     assert len(rows) == 1
     assert rows[0]["ticker"] == "NVDA"
     assert rows[0]["greeks_filter_status"] == "not_implemented_no_options_chain_data"
+
+
+def test_ticker_scan_error_is_visible_not_silent(tmp_path, monkeypatch):
+    """
+    2026-08-24 full model audit: an uncaught exception anywhere in one
+    ticker's ~720-line per-ticker scoring block used to leave ZERO trace
+    beyond a single logger.error() line — no validation-log entry, no DB
+    row, invisible in the same dashboard every other ticker's outcome shows
+    up in. Injects a real exception (compute_confidence_score raises for
+    AMD, succeeds normally for NVDA — both in the same scan) and asserts
+    the failure is now visible two ways without taking down the rest of the
+    scan: a validation_log.csv-style entry (via write_validation_entry,
+    monkeypatched here to capture calls directly rather than parsing a real
+    CSV) and a CATEGORY_SCAN_ERROR ticker_results DB row — while NVDA is
+    scored and logged completely normally, unaffected by AMD's failure.
+    """
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA, AMD]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    cfg = {
+        "watchlist": {
+            "sectors": {
+                "semiconductors": {
+                    "active": True, "benchmark": "SMH", "benchmark_alt": "SOXX",
+                    "tickers": ["NVDA", "AMD"],
+                },
+            },
+        },
+        "portfolio": {
+            "max_simultaneous_risk_pct": 0.03,
+            "max_total_open_positions": 4,
+            "sectors": {"semiconductors": {"max_open_positions": 2, "correlated_groups": []}},
+        },
+        "risk_reward": {},
+        "options_approval_level": 2,
+    }
+    monkeypatch.setattr(pr, "load_config", lambda: cfg)
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    monkeypatch.setattr(
+        pr, "run_pipeline",
+        lambda tickers, benchmark=None, scan_type=None, cfg=None: {
+            t: v for t, v in _fake_indicators().items() if t in tickers
+        },
+    )
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {"semiconductors": None},
+        "spy_df": None, "tnx_series": None, "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_china_tension_count", lambda cfg: 0)
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "compute_news_score", lambda *a, **k: {"critical_events": [], "dominant_theme": ""})
+
+    def _raise_for_amd(technical, *a, **k):
+        if technical.get("_test_final_score") == 40.0:  # AMD's fixture marker
+            raise RuntimeError("injected scoring failure")
+        return _fake_compute_confidence_score(technical, *a, **k)
+
+    monkeypatch.setattr(pr, "compute_confidence_score", _raise_for_amd)
+    monkeypatch.setattr(
+        pr, "rank_trade_structures",
+        lambda *a, **k: {"ranked_structures": [{"name": "bull_call_spread", "ev_per_dollar_risked": 0.03}]},
+    )
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version: True)
+
+    validation_entries = []
+    monkeypatch.setattr(
+        pr, "write_validation_entry",
+        lambda ticker, failure_type, detail: validation_entries.append((ticker, failure_type, detail)),
+    )
+
+    signals_logged = pr.run_paper_scan(scan_type="post_close")
+
+    # --- NVDA (95, above threshold) unaffected by AMD's failure ---
+    assert signals_logged == 1
+    run_id = app_db.get_latest_run_id(db_path=db_path)
+    results = {r["ticker"]: r for r in app_db.get_ticker_results(run_id, db_path=db_path)}
+    assert results["NVDA"]["category"] == app_db.CATEGORY_TRADE_RECOMMENDED
+
+    # --- AMD's failure is now visible two ways instead of vanishing silently ---
+    assert len(validation_entries) == 1
+    amd_ticker, failure_type, detail = validation_entries[0]
+    assert amd_ticker == "AMD"
+    assert failure_type == "paper_runner_scan_error"
+    assert "injected scoring failure" in detail
+
+    assert results["AMD"]["category"] == app_db.CATEGORY_SCAN_ERROR

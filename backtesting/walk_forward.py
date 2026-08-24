@@ -21,7 +21,7 @@ from typing import Optional
 
 import pandas as pd
 
-from backtesting.metrics import compute_win_rate, compute_avg_rr
+from backtesting.metrics import compute_win_rate, compute_avg_rr, compute_information_coefficient
 from backtesting.simulation import _simulate_test_signals
 from swing_model.scoring import CONFIDENCE_THRESHOLD
 
@@ -143,6 +143,12 @@ def run_walk_forward(
         else:
             verdict = "fail"
 
+        # IC on this window's FULL scored population (`outcomes`, before the
+        # qualifying filter above) — most walk-forward windows land
+        # "insufficient_data" precisely because too few bars clear the
+        # binary threshold; the full population is much larger and gives a
+        # complementary, additive read even on an insufficient_data window.
+        # See compute_information_coefficient's docstring (backtesting/metrics.py).
         window_result = {
             "window": window_num + 1,
             "train_through": str(train_cutoff),
@@ -152,6 +158,8 @@ def run_walk_forward(
             "avg_rr": round(avg_rr, 2),
             "verdict": verdict,
             "passed": verdict == "pass",
+            "ic_confidence": compute_information_coefficient(outcomes, score_field="confidence"),
+            "ic_technical": compute_information_coefficient(outcomes, score_field="technical_total"),
         }
         if include_outcomes:
             window_result["outcomes"] = qualifying

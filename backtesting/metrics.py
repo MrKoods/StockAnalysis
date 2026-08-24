@@ -9,7 +9,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
+from scipy.stats import norm, spearmanr, pearsonr
 
 
 def _is_win(o: dict) -> bool:
@@ -54,6 +54,78 @@ def compute_r_multiples(outcomes: list[dict]) -> list[float]:
     contribution to expectancy, win or loss.
     """
     return [float(o["achieved_rr"]) for o in outcomes if "achieved_rr" in o]
+
+
+def compute_information_coefficient(
+    outcomes: list[dict],
+    score_field: str = "confidence",
+    return_field: str = "achieved_rr",
+    method: str = "spearman",
+) -> dict:
+    """
+    Rank correlation (Information Coefficient) between a raw per-bar score and
+    its forward outcome, across the FULL scored population — not just the
+    confidence>=CONFIDENCE_THRESHOLD qualifying subset compute_win_rate/
+    bootstrap_expectancy_ci operate on.
+
+    Why this exists (2026-08-24 full model audit): after fully correcting the
+    hardcoded-confidence>=90 bug that recurred 3 times across backtesting/*.py
+    (see CHANGELOG v2.2.75/v2.2.83), re-running at the REAL 70-point threshold
+    leaves regional_banks/healthcare with ZERO qualifying trades and
+    semiconductors with only 11 over 13.5 years — nowhere near enough for
+    win_rate/bootstrap_expectancy_ci to say anything meaningful (see that
+    function's own _MIN_TRADES_FOR_MEANINGFUL_READ-style reasoning). But
+    backtest_engine.run_backtest()/walk_forward.run_walk_forward() already
+    score EVERY bar with a filled structure before applying that threshold
+    filter (`all_outcomes`, discarded once `qualifying` is built) — thousands
+    of ticker-days, not 17. IC answers a different, complementary question
+    with that much larger sample: "does the score rank-order forward outcomes
+    at all," independent of whether any single bar clears the binary
+    qualifying bar. This is additive, not a replacement — it does not (and
+    should not, yet) feed evaluate_paper_trading_pass()'s go-live boolean;
+    promoting it to a gating role is a future decision, made only after this
+    metric itself has been sanity-checked against real results.
+
+    Known limitation, not solved here: outcomes across ticker-days are not
+    independent observations (same-stock serial correlation, sector-wide
+    common-day moves), so the p-value below is optimistic versus a true
+    i.i.d. sample — treat it as directional, not a rigorous significance
+    test, until/unless a cluster-robust variant is built.
+
+    score_field: which per-bar field to correlate. "confidence" (the full
+    composite 0-100 score) is contaminated by two backtest-only proxies —
+    Positioning is a static neutral value and Sentiment is a price-momentum
+    proxy, not the real StockTwits-driven live layer (see simulation.py's own
+    module docstring) — so also compute this against "technical_total" alone
+    (the single most heavily-weighted, fully real category) and a
+    caller-constructed real-only composite (technical_total + news_total +
+    fundamental_total, all real/point-in-time-archived data) to keep the
+    headline number honest about what it can and can't say.
+
+    Returns {"ic": float, "p_value": float, "n": int, "method": str,
+    "score_field": str}. ic/p_value are 0.0/1.0 when n < 3 (too few pairs for
+    a rank correlation to mean anything) or when the score/return series is
+    constant (zero variance — scipy returns NaN in that case, normalized here
+    to a neutral 0.0/1.0 rather than propagating NaN to callers).
+    """
+    pairs = [
+        (o[score_field], o[return_field])
+        for o in outcomes
+        if o.get(score_field) is not None and o.get(return_field) is not None
+    ]
+    n = len(pairs)
+    if n < 3:
+        return {"ic": 0.0, "p_value": 1.0, "n": n, "method": method, "score_field": score_field}
+
+    scores = [float(p[0]) for p in pairs]
+    returns = [float(p[1]) for p in pairs]
+
+    corr_fn = pearsonr if method == "pearson" else spearmanr
+    ic, p_value = corr_fn(scores, returns)
+    ic = float(ic) if not math.isnan(ic) else 0.0
+    p_value = float(p_value) if not math.isnan(p_value) else 1.0
+
+    return {"ic": round(ic, 4), "p_value": round(p_value, 4), "n": n, "method": method, "score_field": score_field}
 
 
 def bootstrap_expectancy_ci(
