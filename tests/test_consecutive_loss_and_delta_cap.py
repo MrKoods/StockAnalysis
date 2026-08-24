@@ -229,9 +229,10 @@ class TestComputePositionSizeLayersBothMultipliers:
             confidence_score=99.0, account_equity=15000.0, circuit_breaker_state="yellow",
             capital_required=100.0, consecutive_losses=2,
         )
-        # get_risk_pct(99) = 0.025; x0.5 (yellow) x0.5 (2 losses) = 0.00625,
-        # rounded to 4dp at each stage like every other sizing function here.
-        assert result["risk_pct"] == pytest.approx(0.0063, abs=1e-4)
+        # get_risk_pct(99) = 2500/15000 (raised 2026-08-23, was 0.025);
+        # x0.5 (yellow) x0.5 (2 losses) = 1/24, rounded to 4dp at each stage
+        # like every other sizing function here.
+        assert result["risk_pct"] == pytest.approx((2500 / 15000) * 0.25, abs=1e-4)
         assert result["size_multiplier"] == pytest.approx(0.25, abs=1e-6)
 
     def test_normal_cb_no_losses_is_unadjusted(self):
@@ -239,5 +240,5 @@ class TestComputePositionSizeLayersBothMultipliers:
             confidence_score=99.0, account_equity=15000.0, circuit_breaker_state="normal",
             capital_required=100.0, consecutive_losses=0,
         )
-        assert result["risk_pct"] == pytest.approx(0.025, abs=1e-6)
+        assert result["risk_pct"] == pytest.approx(2500 / 15000, abs=1e-4)
         assert result["size_multiplier"] == 1.0

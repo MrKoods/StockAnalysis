@@ -1124,7 +1124,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # cost, not just the risk distance) is passed separately — see
             # compute_position_size's own docstring for the dual-cap formula.
             account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
-            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
+            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 5000 / 15000))
             position_type, risk_per_unit, per_unit_cost = derive_sizing_inputs(
                 position_type, capital_required, entry_mid, stop_loss
             )

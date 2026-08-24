@@ -675,7 +675,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             # applying them to a raw get_risk_pct() figure.
                             position_type = best.get("position_type", "shares")
                             account_equity_val = float(state.get("account_equity", 15000.0))
-                            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 0.05))
+                            max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 5000 / 15000))
                             position_type, risk_per_unit, per_unit_cost = derive_sizing_inputs(
                                 position_type, capital_required, entry_mid, stop_loss
                             )

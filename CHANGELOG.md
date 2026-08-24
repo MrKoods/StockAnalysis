@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.92 | 2026-08-23 | Scoring Change | Per-trade risk budget raised ~6.667x (explicit user decision, not a bug fix): `SIZING_TIERS` (`shared/utils/position_sizer.py`) 70-89/90-92/93-95/96-98/99-100 tiers raised from $75/$150/$225/$300/$375 (0.5-2.5% of $15k) to $500/$1,000/$1,500/$2,000/$2,500 (3.33-16.67%) — same relative ordering across tiers preserved. `max_capital_pct` raised in tandem from 5%/$750 to 33.3%/$5,000 (config + both call-site fallback defaults) so the bigger risk budget isn't immediately re-clipped by the capital cap. Directly addresses a real finding from today's earlier audit: the old $75 floor tier (where virtually every real signal lands, since live scores rarely clear 80) was structurally forcing most winning signals into undefined-risk shares instead of the capped-risk options structures the design prefers. Real example (TGT, 2026-08-20, confidence 71.8): sizing goes from 4 shares/$636 deployed/$49.96 actual risk to 31 shares/$4,929 deployed/$499.50 actual risk. 12 existing tests updated to the new dollar amounts, including one regression test (JNJ 2026-08-11) that specifically proves a real historical incident — a $249 options structure sized to 0 under the old $75 tier — no longer reproduces |
 | v2.2.91 | 2026-08-23 | Scoring Change | Tier-4 audit item: the 42-structure EV ranker sorted purely by `ev_per_dollar_per_day` (a point estimate of the mean) with no regard for loss-tail severity, so a high-win-rate/fat-tail structure and a more symmetric one with similar EV were treated as equivalent — `ev_per_dollar_per_day` is rounded to 5dp when stored, so genuine ties are common in practice. Added a secondary tiebreak on `max_loss_dollars` (smaller wins), extracted into a small testable `_ranking_sort_key` — undefined-risk structures (`max_loss_dollars is None`, never fabricated) always lose a tiebreak to any defined-risk structure at the same EV. Confirmed the tiebreak reaches the actual "recommended" pick, not just the diagnostic display order (that logic walks `ranked_structures` in this same sorted order). 5 new tests, including an end-to-end invariant check against real Black-Scholes-computed structures (real ties are hard to force, so this checks that whichever structures DO tie are correctly ordered) |
 | v2.2.90 | 2026-08-23 | Backtest Methodology | `run_backtest()` now reports a deflated Sharpe ratio (Bailey & Lopez de Prado) alongside the raw one — `compute_deflated_sharpe_ratio()` existed and was already used inside `entry_filter_variants.py`'s threshold-sweep diagnostic, but never against the actual headline number this project cites, despite 5+ documented rounds of entry-filter tuning against the same dataset. Those historical rounds' own per-trial Sharpes aren't cleanly replayable in one place (scattered across separate sweep scripts run over weeks), so this uses each walk-forward window's own Sharpe as the trial population instead — a self-contained, honest proxy for "is the single-slice Sharpe just the best of several time-window reads," not the broader historical-tuning question, but a real, directly-computable one. Reported only, doesn't gate `passed`. On real data: raw Sharpe 0.27, **deflated Sharpe -10.64 (PSR 0.00)** — not distinguishable from noise once the spread across windows is accounted for. New `deflated_sharpe`/`deflated_sharpe_psr`/`deflated_sharpe_n_trials` result fields, printed by the CLI. 4 new tests |
 | v2.2.89 | 2026-08-23 | Bug Fix / Scoring Change | Investigating why per-sector weight calibration only ever covered 1 of 4 active sectors found a real, currently-live bug: `data/processed/calibrated_weights_by_sector.json` held a `consumer_discretionary` entry (`n_trades=405`, `technical/sentiment/news=0.4/0.4/0.2`) that `paper_runner.py` was actively feeding into live scoring for AMZN/HD/TGT/NKE/SBUX — fit under the same stale `confidence >= 90` bug fixed elsewhere today (v2.2.83). Re-running the calibration with the corrected threshold finds only 5 real training trades for that sector (nowhere near the 100-trade minimum) — but `sector_weight_calibration.py`'s `run()` only ever called `save_sector_weights()` when something NEW qualified, so a sector that stops qualifying had no way to have its stale entry cleared; it would have kept being used indefinitely. Fixed: `save_sector_weights()` (a full-overwrite, not a merge) is now always called, even with `{}`, so a no-longer-qualifying sector's entry is actively cleared, not silently left stale. Re-ran for real: `calibrated_weights_by_sector.json` is now correctly `{}` — every sector currently falls back to the shared default weights, the honest state given the real data. 1 new test class, 2 existing tests' assertions corrected |
@@ -169,6 +170,65 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.92] — 2026-08-23 — [Scoring Change] Per-trade risk budget raised ~6.667x — $75 to $500 at the floor tier
+
+**Status:** Live.
+
+**In short:** Explicit user decision, acting directly on a real finding from today's earlier full
+model audit: the quant/strategy review found that "8 of the last 13 fills hit the $750 (5%) capital
+cap and landed as `position_type=shares` (undefined gap risk) rather than options," and recommended
+either tracking the undefined-risk share rate as its own KPI or "revisit whether the confidence-tier
+risk budget (0.5% = $75 at the 70-89 tier) is simply too small to ever afford a real contract at this
+account size." The user chose to act on it directly: raise the budget.
+
+**The floor tier matters most because it's the only one that's ever actually used** — real live
+confidence scores structurally cap out around ~78-80 (see v2.2.75's "750 real logged scans never
+exceeded 79.84" finding), so almost every real qualifying signal lands in the 70-89 tier, not the
+higher-confidence tiers the ladder was designed to reward with bigger size.
+
+**Fix:** `SIZING_TIERS` (`shared/utils/position_sizer.py`) raised by the same ~6.667x multiplier
+(500/75) across all 5 tiers, preserving the "higher confidence → more risk" ordering:
+
+| Tier | Old risk_pct / $ at $15k | New risk_pct / $ at $15k |
+|---|---|---|
+| 70-89 | 0.5% / $75 | 3.33% / $500 |
+| 90-92 | 1.0% / $150 | 6.67% / $1,000 |
+| 93-95 | 1.5% / $225 | 10.0% / $1,500 |
+| 96-98 | 2.0% / $300 | 13.33% / $2,000 |
+| 99-100 | 2.5% / $375 | 16.67% / $2,500 |
+
+`position_sizing.max_capital_pct` (`config/swing_config.yaml`, plus both call-site fallback defaults
+in `paper_runner.py`/`run_swing_model.py` that apply when the config key is missing) raised in
+tandem, same multiplier: 5%/$750 → 33.3%/$5,000 — a bigger risk budget needs a bigger capital
+ceiling to actually be usable, or it just gets re-clipped back down by the blanket cap immediately
+after being raised.
+
+**Real before/after** (TGT, 2026-08-20, confidence 71.8, entry $159.00/stop $148.57): sizing goes
+from 4 shares / $636 deployed / $49.96 actual risk to **31 shares / $4,929 deployed / $499.50 actual
+risk**.
+
+**Confirmed this fixes the exact class of gap the audit flagged**, not just a bigger number in the
+abstract: `tests/test_phase7_trade_math.py`'s `test_structure_over_old_tier_budget_no_longer_falls_
+through_post_raise` uses a real historical incident (JNJ, 2026-08-11 — a $249 `long_strangle` that
+used to size to 0 and vanish entirely under the old $75 tier, falling through to a gap-risk
+`long_stock` instead) and confirms the capped-risk option is now correctly, directly affordable and
+recommended — no fallback needed.
+
+**Fix:** `shared/utils/position_sizer.py`, `config/swing_config.yaml`, `paper_trading/paper_runner.py`,
+`swing_model/run_swing_model.py` (fallback defaults), `swing_model/trade_selector.py` (docstring/comment
+accuracy). 12 existing tests updated to the new dollar amounts across `tests/test_phase7_trade_math.py`
+and `tests/test_consecutive_loss_and_delta_cap.py`. 1410/1410 tests pass.
+
+**Backtest:** Not applicable — position sizing doesn't affect confidence scoring, the qualifying
+threshold, or trade-outcome win/loss determination, none of which the backtest measures differently
+because of this change.
+
+**Approved:** Pending — do not go live on this version until reviewed. Real live/paper behavior
+change: real dollar amounts risked and deployed per trade increase substantially (paper capital only,
+zero real money at risk either way).
 
 ---
 

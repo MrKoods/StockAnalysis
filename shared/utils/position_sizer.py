@@ -1,8 +1,8 @@
 """
 SHARED: Calculates trade size based on account equity, confidence tier,
 circuit breaker state, and structure capital requirement.
-Position sizing: confidence-scaled fixed fractional (0.5-2.5% risk per tier).
-Max capital per trade: 5% of account equity ($750 at $15k).
+Position sizing: confidence-scaled fixed fractional (3.33-16.67% risk per tier).
+Max capital per trade: 33.3% of account equity ($5,000 at $15k).
 """
 
 from typing import Optional
@@ -12,18 +12,30 @@ from swing_model.scoring import CONFIDENCE_THRESHOLD
 # 70-89 was a dead zone until this tier was added: CONFIDENCE_THRESHOLD moved
 # 90 -> 70 (backtest showed the 90-point bar was practically unreachable) but
 # these tiers still started at 90, so every signal that newly qualified at
-# 70-89 silently sized to $0. A single flat 0.5% tier for the whole 70-89
-# band, not a further stepped one, because win_probability_calibration.py's
+# 70-89 silently sized to $0. A single flat tier for the whole 70-89 band,
+# not a further stepped one, because win_probability_calibration.py's
 # calibration curve is flat at ~57.4% win rate across 70/75/80/85 — there's
 # no calibration signal to justify differentiating risk within that range,
 # only between it and the 90+ bands where win rate actually climbs (59.8% at
 # 90, 62.5% at 95).
+#
+# Risk budget raised 2026-08-23 (explicit decision, not a bug fix): the
+# original 0.5-2.5% tiers ($75-$375 at $15k) were sizing most real signals
+# into undefined-risk shares positions instead of the capped-risk options
+# structures the design prefers (full model audit finding — the $75 floor
+# tier, where virtually every real signal lands since live scores rarely
+# clear 80, couldn't afford a real options contract at this account size).
+# Each tier scaled by the same ~6.667x multiplier (500/75) so the relative
+# ordering across tiers — higher confidence gets more risk — is unchanged,
+# just at dollar amounts that can actually clear a contract's premium.
+# Expressed as exact fractions of the $15k starting_capital for transparency
+# (matches this module's own hardcoded, not config-driven, design).
 SIZING_TIERS = [
-    (CONFIDENCE_THRESHOLD, 89, 0.005),  # 0.5% risk
-    (90, 92, 0.010),   # 1.0% risk
-    (93, 95, 0.015),   # 1.5% risk
-    (96, 98, 0.020),   # 2.0% risk
-    (99, 100, 0.025),  # 2.5% risk
+    (CONFIDENCE_THRESHOLD, 89, 500 / 15000),    # $500 risk at $15k (was $75)
+    (90, 92, 1000 / 15000),   # $1,000 risk at $15k (was $150)
+    (93, 95, 1500 / 15000),   # $1,500 risk at $15k (was $225)
+    (96, 98, 2000 / 15000),   # $2,000 risk at $15k (was $300)
+    (99, 100, 2500 / 15000),  # $2,500 risk at $15k (was $375)
 ]
 
 CB_NORMAL = "normal"
@@ -35,7 +47,8 @@ CB_RED = "red"
 def get_risk_pct(confidence_score: float) -> float:
     """
     Return risk % for the given confidence score tier.
-    70-89 → 0.5%; 90-92 → 1.0%; 93-95 → 1.5%; 96-98 → 2.0%; 99-100 → 2.5%.
+    70-89 → 3.33% ($500 at $15k); 90-92 → 6.67% ($1,000); 93-95 → 10.0% ($1,500);
+    96-98 → 13.33% ($2,000); 99-100 → 16.67% ($2,500).
     Returns 0.0 if score below CONFIDENCE_THRESHOLD (no trade should be surfaced).
     """
     score = int(confidence_score)
@@ -90,7 +103,7 @@ def compute_position_size(
     account_equity: float,
     circuit_breaker_state: str,
     capital_required: float,
-    max_capital_pct: float = 0.05,
+    max_capital_pct: float = 5000 / 15000,  # 33.3% of account, $5,000 at $15k (was 5%/$750, raised 2026-08-23 alongside SIZING_TIERS)
     consecutive_losses: int = 0,
     cfg: Optional[dict] = None,
     per_unit_cost: Optional[float] = None,
@@ -149,7 +162,7 @@ def compute_position_size(
     max_capital = max_capital_pct * account_equity
     capital_approved = capital_required <= max_capital
 
-    # Zero out risk_pct/dollar_risk when the 5% cap is exceeded rather than
+    # Zero out risk_pct/dollar_risk when the max-capital cap is exceeded rather than
     # returning full sizing and relying on every caller to remember to check
     # capital_approved before acting on it — trade_selector.py already hard-excludes
     # over-capital structures at the ranking stage; this keeps the same cap

@@ -279,7 +279,11 @@ risk_reward:
 # code constant, not re-added here, given how safety-adjacent position sizing
 # is and how rarely this ladder is actually retuned.
 position_sizing:
-  max_capital_pct: 0.05               # 5% of account max per trade ($750 at $15k)
+  # Raised 2026-08-23 alongside SIZING_TIERS (shared/utils/position_sizer.py)
+  # by the same ~6.667x multiplier (was 0.05/$750) — the old cap was
+  # re-clipping trades back down even after the risk-tier increase, since a
+  # bigger risk budget still needs a bigger capital ceiling to actually use it.
+  max_capital_pct: 0.33333            # 33.3% of account max per trade ($5,000 at $15k)
   starting_capital: 15000
 
 # Circuit breakers (drawdown from peak equity). orange/red's "no new

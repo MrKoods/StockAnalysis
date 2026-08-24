@@ -444,27 +444,30 @@ class TestRiskReward:
 # ---------------------------------------------------------------------------
 
 class TestPositionSizer:
-    def test_tier_70_89_returns_half_pct(self):
-        assert get_risk_pct(70) == pytest.approx(0.005)
-        assert get_risk_pct(77.8) == pytest.approx(0.005)
-        assert get_risk_pct(89) == pytest.approx(0.005)
+    # Tiers raised 2026-08-23 by ~6.667x (500/75) so the 70-89 floor tier
+    # (where virtually every real signal lands) can actually afford a real
+    # options contract at this account size — see SIZING_TIERS' own comment.
+    def test_tier_70_89_returns_500_at_15k(self):
+        assert get_risk_pct(70) == pytest.approx(500 / 15000)
+        assert get_risk_pct(77.8) == pytest.approx(500 / 15000)
+        assert get_risk_pct(89) == pytest.approx(500 / 15000)
 
-    def test_tier_90_92_returns_1pct(self):
-        assert get_risk_pct(90) == pytest.approx(0.010)
-        assert get_risk_pct(91) == pytest.approx(0.010)
-        assert get_risk_pct(92) == pytest.approx(0.010)
+    def test_tier_90_92_returns_1000_at_15k(self):
+        assert get_risk_pct(90) == pytest.approx(1000 / 15000)
+        assert get_risk_pct(91) == pytest.approx(1000 / 15000)
+        assert get_risk_pct(92) == pytest.approx(1000 / 15000)
 
-    def test_tier_93_95_returns_1_5pct(self):
-        assert get_risk_pct(93) == pytest.approx(0.015)
-        assert get_risk_pct(95) == pytest.approx(0.015)
+    def test_tier_93_95_returns_1500_at_15k(self):
+        assert get_risk_pct(93) == pytest.approx(1500 / 15000)
+        assert get_risk_pct(95) == pytest.approx(1500 / 15000)
 
-    def test_tier_96_98_returns_2pct(self):
-        assert get_risk_pct(96) == pytest.approx(0.020)
-        assert get_risk_pct(98) == pytest.approx(0.020)
+    def test_tier_96_98_returns_2000_at_15k(self):
+        assert get_risk_pct(96) == pytest.approx(2000 / 15000)
+        assert get_risk_pct(98) == pytest.approx(2000 / 15000)
 
-    def test_tier_99_100_returns_2_5pct(self):
-        assert get_risk_pct(99) == pytest.approx(0.025)
-        assert get_risk_pct(100) == pytest.approx(0.025)
+    def test_tier_99_100_returns_2500_at_15k(self):
+        assert get_risk_pct(99) == pytest.approx(2500 / 15000)
+        assert get_risk_pct(100) == pytest.approx(2500 / 15000)
 
     def test_below_confidence_threshold_returns_zero(self):
         assert get_risk_pct(69) == 0.0
@@ -495,19 +498,21 @@ class TestPositionSizer:
         assert mult == 1.0
 
     def test_compute_position_size_capital_approved(self):
-        # $15k account, 5% max = $750; capital_required=$500 → approved
+        # $15k account, 33.3% max = $5,000 (raised 2026-08-23 from 5%/$750);
+        # capital_required=$500 → approved
         result = compute_position_size(
             confidence_score=93, account_equity=15000,
             circuit_breaker_state="normal", capital_required=500.0
         )
         assert result["capital_approved"] is True
-        assert result["dollar_risk"] == pytest.approx(15000 * 0.015)
-        assert result["max_capital"] == pytest.approx(750.0)
+        assert result["dollar_risk"] == pytest.approx(15000 * (1500 / 15000))
+        assert result["max_capital"] == pytest.approx(5000.0)
 
     def test_compute_position_size_capital_denied(self):
+        # capital_required=$6,000 exceeds the $5,000 cap
         result = compute_position_size(
             confidence_score=90, account_equity=15000,
-            circuit_breaker_state="normal", capital_required=900.0
+            circuit_breaker_state="normal", capital_required=6000.0
         )
         assert result["capital_approved"] is False
 
@@ -524,11 +529,12 @@ class TestPositionSizer:
             capital_required=50.0, per_unit_cost=50.0,
         )
         assert isinstance(result["contracts_or_shares"], int)
-        # dollar_risk at 90 = 1% of 15000 = 150; risk_per_unit=50 -> 3 contracts;
-        # capital cap = 5% of 15000 = 750; per_unit_cost=50 -> 15 max -> risk-based binds.
-        assert result["contracts_or_shares"] == 3
-        assert result["capital_deployed"] == pytest.approx(150.0)
-        assert result["actual_dollar_risk"] == pytest.approx(150.0)
+        # dollar_risk at 90 (raised 2026-08-23) = 1000/15000 of 15000 = 1000;
+        # risk_per_unit=50 -> 20 contracts; capital cap = 5000; per_unit_cost=50
+        # -> 100 max -> risk-based binds.
+        assert result["contracts_or_shares"] == 20
+        assert result["capital_deployed"] == pytest.approx(1000.0)
+        assert result["actual_dollar_risk"] == pytest.approx(1000.0)
 
     def test_capital_cap_binds_tighter_than_risk_cap_for_high_priced_shares(self):
         # Regression test for the real incident this dual-cap fixes: a tight
@@ -539,11 +545,11 @@ class TestPositionSizer:
             confidence_score=90, account_equity=15000, circuit_breaker_state="normal",
             capital_required=1.16, per_unit_cost=500.0, position_type="shares",
         )
-        # Risk-based: dollar_risk=150, risk_per_unit=1.16 -> 129 shares -> $64,500 deployed (absurd).
-        # Capital-based: max_capital=750, per_unit_cost=500 -> 1 share max.
-        # Dual-cap must take the min -> 1 share, not 129.
-        assert result["contracts_or_shares"] == 1
-        assert result["capital_deployed"] == pytest.approx(500.0)
+        # Risk-based: dollar_risk=1000, risk_per_unit=1.16 -> 862 shares -> $431,000 deployed (absurd).
+        # Capital-based: max_capital=5000, per_unit_cost=500 -> 10 shares max.
+        # Dual-cap must take the min -> 10 shares, not 862.
+        assert result["contracts_or_shares"] == 10
+        assert result["capital_deployed"] == pytest.approx(5000.0)
 
     def test_per_unit_cost_defaults_to_capital_required_when_omitted(self):
         # Backward compatibility: a caller that hasn't been updated to pass
@@ -710,7 +716,7 @@ class TestTradeSelector:
         # ev_per_dollar_per_day (tiny stop distance keeps their capital small
         # and unaffected by IV, unlike options premiums), AND a positive-EV
         # options structure exists that also fits this tier's risk budget
-        # (confidence=100 -> 2.5% of $15k = $375) — recommended should still
+        # (confidence=100 -> 2500/15000 of $15k = $2,500, raised 2026-08-23) — recommended should still
         # prefer the capped-risk option, per the account's no-negative-months
         # mandate, even though it ranks below the stock structure on raw EV.
         from swing_model.trade_selector import _GAP_RISK_STRUCTURES
@@ -729,15 +735,27 @@ class TestTradeSelector:
         recommended = next(s for s in ranked if s["recommended"])
         assert recommended["name"] not in _GAP_RISK_STRUCTURES
         assert recommended["ev"] > 0
-        assert recommended["capital_required"] <= 375.0  # fits the 2.5% tier budget
+        assert recommended["capital_required"] <= 2500.0  # fits the 99-100 tier budget
 
-    def test_structure_over_tier_budget_loses_to_affordable_alternative(self):
+    def test_structure_over_old_tier_budget_no_longer_falls_through_post_raise(self):
         # The bug this whole fix chain traces back to: a signal (score 71.0,
-        # the 70-89 tier's 0.5% risk = $75 on $15k) whose best-EV options
-        # structure (long_strangle, ~$249 capital) clears the blanket 5%/$750
+        # the 70-89 tier's OLD 0.5% risk = $75 on $15k) whose best-EV options
+        # structure (long_strangle, ~$249 capital) cleared the blanket 5%/$750
         # cap but not this tier's much smaller budget. Real numbers from a
         # logged signal (JNJ, 2026-08-11) — used to size to 0 and vanish
-        # entirely; should now fall through to the affordable long_stock.
+        # entirely, falling through to long_stock instead.
+        #
+        # 2026-08-23: the 70-89 tier was raised to $500 specifically because
+        # this class of gap kept costing real signals (see SIZING_TIERS'
+        # own comment) — this exact historical case is the regression proof
+        # that the raise actually fixes it: $249 now comfortably fits $500,
+        # so long_strangle (the higher-EV capped-risk option) is correctly
+        # recommended directly, no fallback needed. The fallback mechanism
+        # ITSELF (falling through to an affordable alternative when the
+        # best-EV structure genuinely doesn't fit) is still real and still
+        # exercised by test_gap_risk_structure_does_not_win_over_affordable_
+        # positive_ev_option above — this test's job is narrower: prove this
+        # specific historical incident doesn't reproduce anymore.
         candidate = {
             "ticker": "JNJ", "direction": "bullish", "confidence": 71.0,
             "entry_mid": 274.90, "stop_loss": 261.51, "target": 315.08,
@@ -748,9 +766,9 @@ class TestTradeSelector:
             options_approval_level=2, iv_percentile=50.0
         )
         recommended = next(s for s in result["ranked_structures"] if s["recommended"])
-        assert recommended["name"] == "long_stock"
-        assert recommended["position_type"] == "shares"
-        assert recommended["capital_required"] <= 75.0  # fits the 70-89 tier budget
+        assert recommended["name"] == "long_strangle"
+        assert recommended["position_type"] == "options"
+        assert recommended["capital_required"] <= 500.0  # fits the new 70-89 tier budget
 
     def test_bearish_candidate_produces_eligible_structures(self):
         # Regression test: rank_trade_structures' own R:R computation (Filter

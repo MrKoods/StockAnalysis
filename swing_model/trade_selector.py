@@ -536,17 +536,22 @@ def rank_trade_structures(
         s["recommended"] = False
 
     # recommended: a priority chain, not just "best EV that isn't gap-risk."
-    # Filter 2 (the max_capital check above, 5% of account = $750 at $15k) is
-    # a blanket concentration cap — it doesn't know this specific signal's
-    # confidence-tier risk budget (get_risk_pct: 0.5% for a 70-89 score, up to
-    # 2.5% at 99-100 — as little as $75 on a $15k account). A structure can
-    # clear the blanket cap and still cost far more than this trade is
-    # actually allowed to risk (this is exactly what happened live: a 71.0-
-    # score signal's long_strangle cost $248, well under the $750 cap, but
-    # over 3x the $75 the 70-89 tier allows — sized to 0 shares/contracts
-    # and the signal was lost entirely, even though long_stock's $13 risk
-    # would have fit easily). So "recommended" checks tier-budget fit first,
-    # then the gap-risk preference, in priority order:
+    # Filter 2 (the max_capital check above, 33.3% of account = $5,000 at
+    # $15k, raised 2026-08-23 from 5%/$750) is a blanket concentration cap —
+    # it doesn't know this specific signal's confidence-tier risk budget
+    # (get_risk_pct: 3.33% for a 70-89 score, up to 16.67% at 99-100 — $500
+    # to $2,500 on a $15k account, also raised 2026-08-23 from $75-$375). A
+    # structure can clear the blanket cap and still cost far more than this
+    # trade is actually allowed to risk. This is exactly what happened live
+    # before the 2026-08-23 raise: a 71.0-score signal's long_strangle cost
+    # $248, well under the old $750 cap, but over 3x the old $75 the 70-89
+    # tier allowed then — sized to 0 shares/contracts and the signal was
+    # lost entirely, even though long_stock's $13 risk would have fit easily
+    # (that specific example no longer triggers the gap post-raise — $248
+    # comfortably fits the new $500 tier — but the SHAPE of the gap this
+    # priority chain exists for is general, not specific to the old dollar
+    # amounts, so the chain itself is unchanged). "recommended" checks
+    # tier-budget fit first, then the gap-risk preference, in priority order:
     #   1. non-gap-risk (capped-risk option), positive EV, fits this tier's
     #      actual dollar-risk budget — the ideal case.
     #   2. gap-risk (shares), positive EV, fits the tier budget — used only
