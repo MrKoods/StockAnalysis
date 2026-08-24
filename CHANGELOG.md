@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.86 | 2026-08-23 | Infrastructure | Tier-1 decision #4: a permanent CI guardrail against the recurring bug from v2.2.75/v2.2.83 (a file hardcoding a numeric copy of the go-live confidence threshold instead of importing the real one — recurred independently 3 times in 2 days). New `scripts/check_confidence_threshold_duplication.py`, wired into `.github/workflows/ci.yml`, flags either the exact `.get("confidence", ...) >= <number>` comparison shape or a `*CONFIDENCE_THRESHOLD*_= <number>` constant, in any file that doesn't also import the real `swing_model.scoring.CONFIDENCE_THRESHOLD`. Proven against synthetic bad/good examples before wiring in. Running it against the current codebase found one more real instance immediately: `bearish_rsi_band_sweep.py` still had the dead, unused `_CONFIDENCE_THRESHOLD_BACKTEST = 90.0` constant left over from v2.2.83's fix (never read — that file's real filtering runs through `run_walk_forward()`, already fixed) — removed |
 | v2.2.85 | 2026-08-23 | Bug Fix | The `StockAnalysis_WeeklyDashboard` scheduled task added in v2.2.79 fired for real for the first time today (Sunday 6pm) and confirmed a real gap: `monitoring/performance_dashboard.py` never loaded `.env`, unlike `paper_trading/paper_runner.py`, which does — so `DISCORD_WEBHOOK_URL` was never actually reaching `send_weekly_summary_alert()` when the module runs standalone via its own scheduled task (not imported from a process that already loaded `.env`). Confirmed by the task's own real log: `"DISCORD_WEBHOOK_URL not set in environment."` Added the same `load_dotenv()` pattern; verified the module now loads the real key |
 | v2.2.84 | 2026-08-23 | Backtest Methodology | `run_backtest()`'s `passed` flag used to rest only on the single fixed 70/30 split — walk-forward results were computed and attached to the report but never gated anything, which is exactly how a wrong "2/6 windows pass" reading (v2.2.83) went unnoticed: the fixed test period happens to sit inside the only 2 windows that looked favorable under the stale threshold. `passed` now ALSO requires the same expectancy-CI/Sharpe/drawdown/trade-count bar to clear on qualifying trades pooled across every walk-forward window — the same pooling approach `entry_filter_variants.py` already used for research, now applied to the actual gate. Chosen over a per-window majority vote (6 windows is too few data points for a binary per-window vote to mean much). On real data: pooled walk-forward is 32 trades, expectancy CI lower 0.06R, Sharpe **-1.12** — fails on its own, independent of the single-split's own failure. Per-sector gating was already correctly wired (`run_multi_sector_backtest`, v2.2.56); only single-sector `run_backtest()` needed this fix. 6 new tests |
 | v2.2.83 | 2026-08-23 | Backtest Methodology / Bug Fix | Asked to "think more" about the Tier-1 go-live decisions before acting on them — found v2.2.75's `confidence >= 90` fix only touched `backtest_engine.py`; the identical bug was independently duplicated in `backtesting/walk_forward.py`, `architecture_diagnostic.py`, and `sector_weight_calibration.py` (bearish sweep scripts and `entry_filter_variants.py` inherit the fix transitively via `run_walk_forward()`). Every walk-forward-window verdict and per-sector Sharpe number cited earlier today — including this file's own v2.2.75 entry — was measured on the wrong population. Real, corrected numbers: walk-forward is **0 of 6 windows passing** (not 2/6 — the "2022-2026 recovery" narrative doesn't survive the fix, only 1 window even has enough trades to render a verdict, and it fails); per-sector qualifying trades are semiconductors 11, regional_banks **0**, healthcare **0**, consumer_discretionary 6, pooled 17. See CHANGELOG entry below and `project_backtest_findings.md` for full detail and the corrected bearish-signal read |
@@ -163,6 +164,50 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.86] — 2026-08-23 — [Infrastructure] A permanent guardrail against the bug that recurred 3 times in 2 days
+
+**Status:** Live.
+
+**In short:** Tier-1 decision #4 from the full model audit. v2.2.75 fixed `backtest_engine.py`'s
+hardcoded `confidence >= 90`; v2.2.83 found the identical bug independently duplicated in 3 more
+files, caught only by a manual grep sweep after the fact. Rather than trust the next recurrence to
+also get caught by hand, built the CI check this project's own `check_config_coverage.py` established
+the pattern for: fail the build automatically, not eventually.
+
+**What it checks:** `scripts/check_confidence_threshold_duplication.py` scans every non-test `.py`
+file for two shapes, matching exactly what the real bug looked like each time (not a broad "any
+number near the word confidence" heuristic, which would have false-positived on this project's own
+extensive changelog/docstring prose describing the bug's history):
+
+1. `<something>.get("confidence", ...) >= <bare number>` — the real qualifying-filter comparison
+   shape every instance used.
+2. `SOME_CONFIDENCE_THRESHOLD_LIKE_NAME = <bare number>` — a module-level constant whose name says
+   "confidence threshold" but whose value is a hardcoded copy, not `= CONFIDENCE_THRESHOLD`.
+
+A file matching either shape is required to also import `CONFIDENCE_THRESHOLD` from
+`swing_model.scoring` somewhere in the same file. `swing_model/scoring.py` itself (the canonical
+definition, where `CONFIDENCE_THRESHOLD = 70` legitimately IS a bare number) is excluded.
+
+**Proven before wiring in:** ran it against 3 synthetic examples — the exact hardcoded-comparison
+shape (flagged), the exact hardcoded-constant shape (flagged), and the same shapes with the real
+import present (clean) — confirming it actually catches the bug pattern rather than passing
+trivially.
+
+**Found one more real instance immediately on first run against the actual codebase:**
+`bearish_rsi_band_sweep.py` still had `_CONFIDENCE_THRESHOLD_BACKTEST = 90.0` — dead, unused code left
+over from v2.2.83's fix (that file's real qualifying filter runs through `run_walk_forward()`, already
+fixed; this constant was defined but never read by anything). Removed rather than wired, since nothing
+uses it.
+
+**Fix:** New `scripts/check_confidence_threshold_duplication.py`, wired into
+`.github/workflows/ci.yml`. `backtesting/bearish_rsi_band_sweep.py` (dead constant removed).
+
+**Backtest:** Not applicable — CI infrastructure only, no scoring/behavior change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

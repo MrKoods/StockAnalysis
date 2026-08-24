@@ -35,8 +35,6 @@ from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_CONFIDENCE_THRESHOLD_BACKTEST = 90.0
-
 # Current default (100-minus-RSI mirror of the bullish 45-82 band) plus
 # candidates that progressively avoid the deepest oversold readings, testing
 # the "shorting into capitulation gets bounced" hypothesis directly.

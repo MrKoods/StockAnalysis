@@ -43,3 +43,6 @@ jobs:
 
       - name: Enforce config-key coverage
         run: python scripts/check_config_coverage.py
+
+      - name: Enforce no duplicated confidence-threshold hardcoding
+        run: python scripts/check_confidence_threshold_duplication.py
