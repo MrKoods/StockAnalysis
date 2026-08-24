@@ -1,0 +1,6 @@
+2026-08-23 18:00:03,774 [shared.utils.discord_alerts] ERROR — DISCORD_WEBHOOK_URL not set in environment.
+
+Performance summary — status: no_trades
+
+Go-live gate: overall_pass=False  data_status=insufficient_trades
+  Failures: insufficient_trade_data_2_below_30, only_11_trading_days_need_60

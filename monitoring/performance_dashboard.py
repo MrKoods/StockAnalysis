@@ -12,6 +12,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+# Load .env before any imports that read environment variables — matches
+# paper_trading/paper_runner.py's own pattern. Missed here originally
+# (v2.2.79): this module is launched standalone by its own scheduled task
+# (StockAnalysis_WeeklyDashboard), not imported from a process that already
+# loaded .env, so DISCORD_WEBHOOK_URL was never actually reaching
+# send_weekly_summary_alert() when run for real — confirmed by the task's
+# own first real run (2026-08-23 18:00, data/logs/weekly_dashboard_task.log:
+# "DISCORD_WEBHOOK_URL not set in environment").
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import send_weekly_summary_alert
