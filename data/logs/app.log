@@ -36995,3 +36995,34 @@
 2026-08-23 17:34:08,626 [backtesting.run_backtest] INFO — Loaded 4053 bars for TSLA
 2026-08-23 17:34:08,636 [backtesting.run_backtest] INFO — Loaded 6949 bars for XLY
 2026-08-23 17:34:08,636 [__main__] INFO — tighter_stop_1.5xATR_2R / consumer_discretionary: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 2.0, 'stop_atr_multiplier_bearish': 1.5, 'benchmark_ticker': 'XLY'}
+2026-08-23 17:34:51,251 [backtesting.run_backtest] INFO — Loaded 3395 bars for AMD
+2026-08-23 17:34:51,257 [backtesting.run_backtest] INFO — Loaded 3395 bars for ASML
+2026-08-23 17:34:51,264 [backtesting.run_backtest] INFO — Loaded 3395 bars for AVGO
+2026-08-23 17:34:51,270 [backtesting.run_backtest] INFO — Loaded 3395 bars for MU
+2026-08-23 17:34:51,276 [backtesting.run_backtest] INFO — Loaded 3395 bars for NVDA
+2026-08-23 17:34:51,283 [backtesting.run_backtest] INFO — Loaded 3395 bars for SMH
+2026-08-23 17:34:51,289 [backtesting.run_backtest] INFO — Loaded 3395 bars for TSM
+2026-08-23 17:34:51,290 [__main__] INFO — tighter_stop_1xATR_1.5R / semiconductors: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 1.5, 'stop_atr_multiplier_bearish': 1.0, 'benchmark_ticker': 'SMH'}
+2026-08-23 17:35:06,561 [backtesting.run_backtest] INFO — Loaded 3405 bars for FITB
+2026-08-23 17:35:06,567 [backtesting.run_backtest] INFO — Loaded 3405 bars for HBAN
+2026-08-23 17:35:06,574 [backtesting.run_backtest] INFO — Loaded 3405 bars for KEY
+2026-08-23 17:35:06,580 [backtesting.run_backtest] INFO — Loaded 3405 bars for KRE
+2026-08-23 17:35:06,586 [backtesting.run_backtest] INFO — Loaded 3405 bars for RF
+2026-08-23 17:35:06,592 [backtesting.run_backtest] INFO — Loaded 3405 bars for ZION
+2026-08-23 17:35:06,592 [__main__] INFO — tighter_stop_1xATR_1.5R / regional_banks: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 1.5, 'stop_atr_multiplier_bearish': 1.0, 'benchmark_ticker': 'KRE'}
+2026-08-23 17:35:17,344 [backtesting.run_backtest] INFO — Loaded 3409 bars for ABBV
+2026-08-23 17:35:17,350 [backtesting.run_backtest] INFO — Loaded 3409 bars for JNJ
+2026-08-23 17:35:17,355 [backtesting.run_backtest] INFO — Loaded 3409 bars for LLY
+2026-08-23 17:35:17,363 [backtesting.run_backtest] INFO — Loaded 3409 bars for MRK
+2026-08-23 17:35:17,369 [backtesting.run_backtest] INFO — Loaded 3409 bars for PFE
+2026-08-23 17:35:17,376 [backtesting.run_backtest] INFO — Loaded 3409 bars for UNH
+2026-08-23 17:35:17,382 [backtesting.run_backtest] INFO — Loaded 3409 bars for XLV
+2026-08-23 17:35:17,383 [__main__] INFO — tighter_stop_1xATR_1.5R / healthcare: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 1.5, 'stop_atr_multiplier_bearish': 1.0, 'benchmark_ticker': 'XLV'}
+2026-08-23 17:35:29,999 [backtesting.run_backtest] INFO — Loaded 7354 bars for AMZN
+2026-08-23 17:35:30,014 [backtesting.run_backtest] INFO — Loaded 11311 bars for HD
+2026-08-23 17:35:30,029 [backtesting.run_backtest] INFO — Loaded 11514 bars for NKE
+2026-08-23 17:35:30,040 [backtesting.run_backtest] INFO — Loaded 8589 bars for SBUX
+2026-08-23 17:35:30,057 [backtesting.run_backtest] INFO — Loaded 13480 bars for TGT
+2026-08-23 17:35:30,064 [backtesting.run_backtest] INFO — Loaded 4053 bars for TSLA
+2026-08-23 17:35:30,074 [backtesting.run_backtest] INFO — Loaded 6949 bars for XLY
+2026-08-23 17:35:30,075 [__main__] INFO — tighter_stop_1xATR_1.5R / consumer_discretionary: running walk-forward with {'rsi_min_bearish': 30.0, 'rsi_max_bearish': 55.0, 'min_rr_bearish': 1.5, 'stop_atr_multiplier_bearish': 1.0, 'benchmark_ticker': 'XLY'}

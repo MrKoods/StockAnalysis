@@ -164,6 +164,76 @@ logged below it — enforced automatically by the code, no exceptions.
 
 ---
 
+## [v2.2.83] — 2026-08-23 — [Backtest Methodology / Bug Fix] The confidence>=90 bug was duplicated across 6 more files — corrected walk-forward, per-sector, and bearish numbers are all worse than reported
+
+**Status:** Live (backtest-only fix; no live/paper scoring behavior changed).
+
+**In short:** Asked to "think more" about the Tier-1 go-live decisions (walk-forward gating, bearish
+signals, sector eligibility) before acting on them, rather than just re-stating the earlier
+recommendations with more confidence. That reconsideration found v2.2.75's fix was incomplete: it
+only touched `backtest_engine.py`'s copy of `confidence >= 90`. The identical bug was independently
+duplicated in `backtesting/walk_forward.py`, `backtesting/architecture_diagnostic.py`, and
+`backtesting/sector_weight_calibration.py` — the same recurring-bug-shape (a fix applied to one
+instance, not swept to its duplicates) this project's own v2.2.65-70 work was built to catch, now
+caught recurring a third time within two days, including within the very fix meant to close it out.
+
+**Every walk-forward-window verdict and per-sector Sharpe number cited earlier today — including
+this file's own v2.2.75 entry, stated as fact — was measured on the wrong population.**
+
+**Fix:** `backtesting/walk_forward.py`'s own qualifying filter now imports `CONFIDENCE_THRESHOLD`
+instead of hardcoding 90 (this transitively fixes every caller that pools through
+`run_walk_forward()`: `entry_filter_variants.py` and all 3 bearish sweep scripts). Same fix applied
+independently to `architecture_diagnostic.py` and `sector_weight_calibration.py`, which had their own
+separate copies of the same constant. 3 stale `>=90`-referencing comments fixed for accuracy
+(`simulation.py`, `threshold_optimization_analysis.py`, `collinearity_diagnostic.py`). Confirmed
+`paper_trading/`, `monitoring/`, and `app_ui/` have no equivalent bug — they've always imported
+`CONFIDENCE_THRESHOLD` directly, never hardcoded a duplicate.
+
+**Corrected numbers, re-run after the fix:**
+
+- **Walk-forward: 0 of 6 windows pass** (previously reported 2/6). Only window 2 (2016-2018, 14
+  trades) has enough data to render a real verdict at all — and it fails (42.9% win rate, below the
+  55% bar). The other 5 windows have 1, 4, 2, 5, and 6 qualifying trades respectively, all below the
+  10-trade minimum for a verdict. **The "2014-2022 fails, 2022-2026 passes, rate-regime-linked"
+  narrative — which goes back to CHANGELOG §11-era findings from July and informed real decisions
+  like wiring the macro overlay into the backtest — does not survive this fix.** It was never real;
+  it was an artifact of measuring the wrong, too-permissive population.
+- **Per-sector qualifying trades (`architecture_diagnostic.py`): semiconductors 11, regional_banks
+  0, healthcare 0, consumer_discretionary 6. Pooled: 17.** Previously cited "regional_banks Sharpe
+  0.64, healthcare 0.69, consumer_discretionary 0.22" is superseded — banks and healthcare have ZERO
+  qualifying trades at the real threshold in their entire out-of-sample test periods, not just a low
+  Sharpe. A starker version of the "not enough data" finding than previously stated.
+- **Bearish signals: re-ran `bearish_exit_sizing_sweep.py` (the sweep that produced the previously-
+  cited "best" -1.73 pooled Sharpe). Result: all 24 variant × sector combinations (6 exit-sizing
+  variants × 4 sectors) return exactly 0 qualifying trades.** The entire "339 pooled trades, Sharpe
+  -1.73 to -2.44, a real well-evidenced negative edge" conclusion from v2.2.58/59 was 100% an
+  artifact of the stale-90 measurement. The honest state of bearish-signal evidence is **zero
+  backtest data at the real threshold, not "well-evidenced negative."** This changes the standing
+  recommendation on bearish signals from "disable — clearly negative edge" to "the same 'not enough
+  data' situation as everything else — no evidence either way, backtest-side."
+
+**What this means for the Tier-1 decisions:** walk-forward/sector gating should still be coded into
+`passed` — this whole episode is itself the argument for it, not against it. The sector-eligibility
+recommendation (keep paper trading all 4 sectors — it's free and is closer to the only evidence
+source that exists for banks/healthcare) is unchanged, just resting on starker numbers. The bearish
+recommendation needs to be revisited from scratch now that the "clearly negative" premise is gone —
+paper trading (which never had this bug) remains the one place real bearish evidence could
+eventually come from.
+
+**Fix:** `backtesting/walk_forward.py`, `backtesting/architecture_diagnostic.py`,
+`backtesting/sector_weight_calibration.py`, `backtesting/simulation.py`,
+`backtesting/threshold_optimization_analysis.py`, `backtesting/collinearity_diagnostic.py`. Left an
+inline correction in this file's own v2.2.75 entry rather than rewriting it, per this file's stated
+practice of leaving self-corrections visible. 1393/1393 tests pass (no test asserted any of these
+stale constants' specific values).
+
+**Backtest:** See corrected numbers above — this entry IS the backtest re-run.
+
+**Approved:** Not applicable — this is a correction to how results are measured, not a request to go
+live. The model remains not eligible for real capital regardless of this result.
+
+---
+
 ## [v2.2.82] — 2026-08-23 — [Bug Fix] A silent no-op that could have quietly reintroduced yesterday's dollar-risk bug
 
 **Status:** Live.
