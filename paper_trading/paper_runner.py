@@ -1158,8 +1158,9 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # logging the signal, it only notes when doing so would push net
             # directional exposure — summed across ALL open positions in
             # EVERY active sector, not just this ticker's own — past the same
-            # 1.5% advisory threshold portfolio_manager.py already enforces
-            # for the (currently unused) live path. Reuses that module's own
+            # 10% advisory threshold portfolio_manager.py already enforces
+            # (raised 2026-08-23 from 1.5%, in scale with the position-sizing
+            # tier increase) for the (currently unused) live path. Reuses that module's own
             # get_portfolio_delta() rather than re-deriving the math.
             from swing_model.portfolio_manager import get_portfolio_delta, MAX_NET_DIRECTIONAL_DELTA
             _open_for_delta = _load_filled_open_positions_detail()

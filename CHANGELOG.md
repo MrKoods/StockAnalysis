@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.93 | 2026-08-23 | Scoring Change | Portfolio-level risk caps raised ~6.667x to match v2.2.92's per-trade budget increase: `portfolio_manager.py`'s `MAX_TOTAL_RISK_PCT` 3%→20% and `MAX_NET_DIRECTIONAL_DELTA` 1.5%→10%, plus config's `portfolio.max_simultaneous_risk_pct` 3%→20% (same key, both read it). User-flagged follow-up: with a single 99-100 tier trade now risking 16.67% alone, the old 3%/1.5% caps would have bound on virtually every trade regardless of real concentration risk, silencing the caps rather than enforcing them meaningfully. Both caps are currently advisory-only on the live paths that read them (live model path unused; paper trading logs every qualifying signal and only appends a note when a cap would bind) — no live behavior change today beyond what the note text reports, since neither path has ever actually blocked on these. Docstrings/comments updated throughout `portfolio_manager.py` and `paper_runner.py`'s concentration-note block to state the new percentages and the 2026-08-23 raise. Full test suite (1410 tests) passes unchanged |
 | v2.2.92 | 2026-08-23 | Scoring Change | Per-trade risk budget raised ~6.667x (explicit user decision, not a bug fix): `SIZING_TIERS` (`shared/utils/position_sizer.py`) 70-89/90-92/93-95/96-98/99-100 tiers raised from $75/$150/$225/$300/$375 (0.5-2.5% of $15k) to $500/$1,000/$1,500/$2,000/$2,500 (3.33-16.67%) — same relative ordering across tiers preserved. `max_capital_pct` raised in tandem from 5%/$750 to 33.3%/$5,000 (config + both call-site fallback defaults) so the bigger risk budget isn't immediately re-clipped by the capital cap. Directly addresses a real finding from today's earlier audit: the old $75 floor tier (where virtually every real signal lands, since live scores rarely clear 80) was structurally forcing most winning signals into undefined-risk shares instead of the capped-risk options structures the design prefers. Real example (TGT, 2026-08-20, confidence 71.8): sizing goes from 4 shares/$636 deployed/$49.96 actual risk to 31 shares/$4,929 deployed/$499.50 actual risk. 12 existing tests updated to the new dollar amounts, including one regression test (JNJ 2026-08-11) that specifically proves a real historical incident — a $249 options structure sized to 0 under the old $75 tier — no longer reproduces |
 | v2.2.91 | 2026-08-23 | Scoring Change | Tier-4 audit item: the 42-structure EV ranker sorted purely by `ev_per_dollar_per_day` (a point estimate of the mean) with no regard for loss-tail severity, so a high-win-rate/fat-tail structure and a more symmetric one with similar EV were treated as equivalent — `ev_per_dollar_per_day` is rounded to 5dp when stored, so genuine ties are common in practice. Added a secondary tiebreak on `max_loss_dollars` (smaller wins), extracted into a small testable `_ranking_sort_key` — undefined-risk structures (`max_loss_dollars is None`, never fabricated) always lose a tiebreak to any defined-risk structure at the same EV. Confirmed the tiebreak reaches the actual "recommended" pick, not just the diagnostic display order (that logic walks `ranked_structures` in this same sorted order). 5 new tests, including an end-to-end invariant check against real Black-Scholes-computed structures (real ties are hard to force, so this checks that whichever structures DO tie are correctly ordered) |
 | v2.2.90 | 2026-08-23 | Backtest Methodology | `run_backtest()` now reports a deflated Sharpe ratio (Bailey & Lopez de Prado) alongside the raw one — `compute_deflated_sharpe_ratio()` existed and was already used inside `entry_filter_variants.py`'s threshold-sweep diagnostic, but never against the actual headline number this project cites, despite 5+ documented rounds of entry-filter tuning against the same dataset. Those historical rounds' own per-trial Sharpes aren't cleanly replayable in one place (scattered across separate sweep scripts run over weeks), so this uses each walk-forward window's own Sharpe as the trial population instead — a self-contained, honest proxy for "is the single-slice Sharpe just the best of several time-window reads," not the broader historical-tuning question, but a real, directly-computable one. Reported only, doesn't gate `passed`. On real data: raw Sharpe 0.27, **deflated Sharpe -10.64 (PSR 0.00)** — not distinguishable from noise once the spread across windows is accounted for. New `deflated_sharpe`/`deflated_sharpe_psr`/`deflated_sharpe_n_trials` result fields, printed by the CLI. 4 new tests |
@@ -170,6 +171,50 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.93] — 2026-08-23 — [Scoring Change] Portfolio-level risk caps raised ~6.667x to match the per-trade budget increase
+
+**Status:** Live.
+
+**In short:** Direct follow-up to v2.2.92. After raising the per-trade risk tiers ~6.667x, the two
+portfolio-level risk caps that were supposed to bound *total* exposure across all open positions —
+`MAX_TOTAL_RISK_PCT` (3%) and `MAX_NET_DIRECTIONAL_DELTA` (1.5%) — were left at their old, much
+smaller values. Flagged proactively (not by the user first) because a single 99-100 tier trade now
+risks 16.67% of the account alone, more than 5x the old total-portfolio cap of 3% — meaning the cap
+would bind on virtually every trade regardless of whether real concentration risk existed, making it
+a blunt, meaningless gate rather than a real backstop. User confirmed: "bring them up to scale too."
+
+**Fix:** Same ~6.667x multiplier (500/75) applied to both caps, in `swing_model/portfolio_manager.py`:
+
+| Constant | Old | New |
+|---|---|---|
+| `MAX_TOTAL_RISK_PCT` | 3% | 20% |
+| `MAX_NET_DIRECTIONAL_DELTA` | 1.5% | 10% |
+
+And the same key in `config/swing_config.yaml` that both the live path and paper trading's advisory
+concentration check read at runtime: `portfolio.max_simultaneous_risk_pct` 3% → 20%.
+
+**Scope check — neither cap currently blocks anything live:** `swing_model/run_swing_model.py` (the
+path `can_open_new_position()`/`MAX_TOTAL_RISK_PCT` actually gates) has never run in production —
+paper trading is the only active daily pipeline, and it doesn't call that function. Paper trading's
+own cross-sector concentration check (v2.2.78) reuses `get_portfolio_delta()`/
+`MAX_NET_DIRECTIONAL_DELTA` but only as an advisory note appended to `sizing_note` — it never skips
+logging a signal, by design. So today's change is a consistency fix (the numbers now mean what they
+claim to mean, in scale with the real per-trade risk) rather than a behavior change to any currently
+enforced gate — the note text paper trading emits will read "10.0%" instead of "1.5%" going forward,
+and will fire less often now that the threshold is proportionally wider.
+
+**Docstrings/comments updated** throughout `portfolio_manager.py` (`add_position()`,
+`can_open_new_position()`, `get_portfolio_delta()`) and the concentration-note block in
+`paper_runner.py` to state the new percentages and the 2026-08-23 raise, so the code's own comments
+don't go stale the way the v2.2.75 threshold bug's duplicated constants did.
+
+**Backtest:** Not applicable — a risk-cap value, not a scoring or entry-signal change; no backtest
+signal is affected. Full test suite (1410 tests) passes unchanged.
+
+**Approved:** Pending.
 
 ---
 

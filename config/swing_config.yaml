@@ -309,7 +309,11 @@ circuit_breakers:
 
 # Portfolio construction
 portfolio:
-  max_simultaneous_risk_pct: 0.03    # 3% of account max across all open positions —
+  # Raised 2026-08-23 by the same ~6.667x multiplier as position_sizer.py's
+  # SIZING_TIERS/max_capital_pct (was 0.03/3%) — a single 99-100 tier trade
+  # now risks 16.67% alone, so the old 3% portfolio-wide cap would have
+  # bound on virtually every trade regardless of real concentration risk.
+  max_simultaneous_risk_pct: 0.2     # 20% of account max across all open positions —
                                       # dollar-risk backstop, independent of position count
   # max_total_open_positions is a secondary safety ceiling = sum of active sectors'
   # max_open_positions (2+2+2+2=8 with all four sectors active — see v2.2.24

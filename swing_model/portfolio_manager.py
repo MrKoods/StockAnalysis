@@ -36,13 +36,19 @@ _EMPTY_STATE = {
 }
 
 MAX_OPEN_POSITIONS = 2
-MAX_TOTAL_RISK_PCT = 0.03  # 3% total portfolio risk across all open positions
+# Raised 2026-08-23 by the same ~6.667x multiplier as position_sizer.py's
+# SIZING_TIERS/max_capital_pct (was 0.03/3%) — kept in scale with the
+# per-trade risk budget increase, since a single 99-100 tier trade now risks
+# 16.67% alone; leaving this portfolio-level cap at the old 3% would make it
+# bind on virtually every trade regardless of real concentration risk.
+MAX_TOTAL_RISK_PCT = 0.2  # 20% total portfolio risk across all open positions
 MAX_TOTAL_OPEN_POSITIONS = 2
 # Net directional exposure ceiling — see get_portfolio_delta()'s docstring.
 # Distinct from MAX_TOTAL_RISK_PCT: that cap is direction-agnostic (sums
 # absolute risk regardless of long/short), this one catches one-sided
-# concentration specifically.
-MAX_NET_DIRECTIONAL_DELTA = 0.015
+# concentration specifically. Raised 2026-08-23, same reasoning/multiplier
+# as MAX_TOTAL_RISK_PCT above (was 0.015/1.5%).
+MAX_NET_DIRECTIONAL_DELTA = 0.1
 
 # Fallback defaults — used when cfg lacks a portfolio.sectors block (or cfg is
 # None), so behavior is unchanged for callers that haven't migrated their
@@ -75,7 +81,7 @@ def save_position_state(state: dict) -> None:
 def add_position(state: dict, position: dict) -> dict:
     """
     Add a new open position to state.
-    Validates: max 2 open positions; max simultaneous risk 3%; correlated pair rule.
+    Validates: max 2 open positions; max simultaneous risk 20%; correlated pair rule.
     Raises ValueError if any constraint is violated.
     Updates PDT counter.
     """
@@ -367,11 +373,12 @@ def can_open_new_position(
         return False, f"total_risk_exceeds_{round(max_risk_pct*100)}pct_{round((existing_risk + new_risk)*100, 1)}pct"
 
     # Net directional exposure cap — get_portfolio_delta() was computing this
-    # number every call but nothing ever checked it against the 1.5% ceiling
-    # its own docstring documents. existing_risk is direction-agnostic (a
-    # long and a short both count toward it the same way); this catches the
-    # separate case of one-sided directional concentration even when total
-    # risk is well within budget (e.g. 3 same-direction positions at 0.5% each).
+    # number every call but nothing ever checked it against the ceiling its
+    # own docstring documents (10%, raised 2026-08-23 from 1.5% — see
+    # MAX_NET_DIRECTIONAL_DELTA's own comment). existing_risk is
+    # direction-agnostic (a long and a short both count toward it the same
+    # way); this catches the separate case of one-sided directional
+    # concentration even when total risk is well within budget.
     max_net_delta = float(portfolio_cfg.get("max_net_directional_delta", MAX_NET_DIRECTIONAL_DELTA))
     new_dir_sign = 1.0 if new_dir == "bullish" else -1.0
     projected_delta = get_portfolio_delta(state, {}) + new_risk * new_dir_sign
@@ -449,12 +456,12 @@ def get_portfolio_delta(state: dict, current_prices: Optional[dict[str, float]] 
     Calculate net portfolio delta across all open positions, as a fraction of
     account risk budget (each position's risk_pct signed by direction) —
     enforced by can_open_new_position() against MAX_NET_DIRECTIONAL_DELTA
-    (1.5%, per this project's own cap).
+    (10%, per this project's own cap — raised 2026-08-23 from 1.5%).
 
     current_prices: accepted for interface stability with callers that
     already pass today's closes (see run_swing_model.py), but not used by
     this risk-normalized formula — a position's risk_pct already IS the
-    dollar-risk fraction of the account, which is what the 1.5% cap is
+    dollar-risk fraction of the account, which is what the cap is
     measured against, so weighting by market value on top would double-count
     the same risk on a different basis. Kept as a parameter rather than
     removed so a future price-weighted refinement doesn't need a signature
