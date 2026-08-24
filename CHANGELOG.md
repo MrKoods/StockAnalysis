@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.90 | 2026-08-23 | Backtest Methodology | `run_backtest()` now reports a deflated Sharpe ratio (Bailey & Lopez de Prado) alongside the raw one — `compute_deflated_sharpe_ratio()` existed and was already used inside `entry_filter_variants.py`'s threshold-sweep diagnostic, but never against the actual headline number this project cites, despite 5+ documented rounds of entry-filter tuning against the same dataset. Those historical rounds' own per-trial Sharpes aren't cleanly replayable in one place (scattered across separate sweep scripts run over weeks), so this uses each walk-forward window's own Sharpe as the trial population instead — a self-contained, honest proxy for "is the single-slice Sharpe just the best of several time-window reads," not the broader historical-tuning question, but a real, directly-computable one. Reported only, doesn't gate `passed`. On real data: raw Sharpe 0.27, **deflated Sharpe -10.64 (PSR 0.00)** — not distinguishable from noise once the spread across windows is accounted for. New `deflated_sharpe`/`deflated_sharpe_psr`/`deflated_sharpe_n_trials` result fields, printed by the CLI. 4 new tests |
 | v2.2.89 | 2026-08-23 | Bug Fix / Scoring Change | Investigating why per-sector weight calibration only ever covered 1 of 4 active sectors found a real, currently-live bug: `data/processed/calibrated_weights_by_sector.json` held a `consumer_discretionary` entry (`n_trades=405`, `technical/sentiment/news=0.4/0.4/0.2`) that `paper_runner.py` was actively feeding into live scoring for AMZN/HD/TGT/NKE/SBUX — fit under the same stale `confidence >= 90` bug fixed elsewhere today (v2.2.83). Re-running the calibration with the corrected threshold finds only 5 real training trades for that sector (nowhere near the 100-trade minimum) — but `sector_weight_calibration.py`'s `run()` only ever called `save_sector_weights()` when something NEW qualified, so a sector that stops qualifying had no way to have its stale entry cleared; it would have kept being used indefinitely. Fixed: `save_sector_weights()` (a full-overwrite, not a merge) is now always called, even with `{}`, so a no-longer-qualifying sector's entry is actively cleared, not silently left stale. Re-ran for real: `calibrated_weights_by_sector.json` is now correctly `{}` — every sector currently falls back to the shared default weights, the honest state given the real data. 1 new test class, 2 existing tests' assertions corrected |
 | v2.2.88 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: `greeks_filter_status`'s underlying computation (`trade_selector.rank_trade_structures()`) was already tested, but the wiring that actually persists it to `paper_trades.csv` (`paper_runner.py` reading it off the top-level `rank_trade_structures()` return dict, not nested inside a structure) had no coverage — every existing full-pipeline test's `rank_trade_structures` mock omitted that key entirely, so `trade_result.get("greeks_filter_status")` silently returned `None` in all of them. New end-to-end test in `tests/test_multi_sector_live_pipeline.py` mocks a real value and confirms it round-trips into the CSV |
 | v2.2.87 | 2026-08-23 | Infrastructure | Full model audit follow-up, git hygiene: stopped tracking `data/logs/app.log` (4.96MB, 45 prior commits touching it) — free-text, already locally rotated/capped at 5MB×3 backups, tracking it was redundant with those local backups and produced large, noisy diffs that buried real code changes. The structured CSVs (`audit_log`/`validation_log`/`override_log`/`performance_log`/`trade_outcomes`/`fill_log` — the actual forensic audit trail) stay tracked; only the free-text log doesn't. File remains on disk, `git rm --cached` only, not deleted |
@@ -167,6 +168,50 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.90] — 2026-08-23 — [Backtest Methodology] Deflated Sharpe reporting — is the headline number just the best of several looks at the data
+
+**Status:** Live.
+
+**In short:** Tier-4 audit item: `backtesting/metrics.py::compute_deflated_sharpe_ratio()` (Bailey &
+Lopez de Prado's correction for the inflation that comes from selecting the best of N trials) has
+existed since it was built for `entry_filter_variants.py`'s threshold-sweep diagnostic, but was never
+run against the actual number this project reports as its headline result — despite 5+ documented
+rounds of entry-filter tuning (RSI band, confirmation bar, stop multiplier, ...) against the exact
+same historical dataset, real multiple-testing exposure this tool exists to discount.
+
+**Why not replay the actual historical tuning rounds:** those rounds' per-trial Sharpe values aren't
+available in one clean place — they're scattered across separate one-off sweep scripts
+(`bearish_rsi_band_sweep.py`, `bearish_confirmation_sweep.py`, etc.) run over several weeks, each
+with its own scope and output format. Reconstructing a single unified trial list retroactively would
+be a real, separate undertaking, not a mechanical wiring change.
+
+**What this does instead:** uses each walk-forward window's own Sharpe as the trial population, with
+the single-slice Sharpe as the "selected" trial. This answers a narrower but still real and directly
+computable question — is the reported single-slice Sharpe just the most favorable of several
+different time-window reads of the same strategy — rather than the broader "was picking this exact
+entry-filter configuration out of every historical tuning round too easy" question, which would need
+the unavailable historical trial data.
+
+**On real data:** raw single-slice Sharpe 0.27; **deflated Sharpe -10.64 (PSR 0.00, n_trials=5)** —
+essentially zero probability the true Sharpe exceeds what pure chance across 5 window-level trials
+would produce. Consistent with everything else found today (v2.2.83/v2.2.84): the headline number
+isn't just failing its stated bars, it isn't statistically distinguishable from noise once the
+spread across time windows is accounted for.
+
+**Fix:** `backtesting/backtest_engine.py` — new `deflated_sharpe`/`deflated_sharpe_psr`/
+`deflated_sharpe_n_trials` result fields (present and zeroed even on the no-data early-return path).
+Reported only — does not gate `passed`, same treatment as Sortino/Ulcer/drawdown-duration (adding a
+new gate on a new metric is a deliberate bar-raising decision, not something to fold in silently).
+`backtesting/run_backtest.py`'s CLI output prints it. 4 new tests in `tests/test_phase12_backtest.py`
+(`TestRunBacktestDeflatedSharpe`) — including confirming a window with 0-1 outcomes is excluded from
+the trial population rather than counted as a fabricated zero-Sharpe data point.
+
+**Backtest:** See numbers above — this entry IS the backtest re-run.
+
+**Approved:** Not applicable — this changes how results are reported, not a request to go live.
 
 ---
 

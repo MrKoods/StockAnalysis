@@ -696,6 +696,70 @@ class TestRunBacktestWalkForwardPooledGate:
         assert "outcomes" not in result["walk_forward"][0]
 
 
+class TestRunBacktestDeflatedSharpe:
+    """
+    2026-08-23: compute_deflated_sharpe_ratio() existed and was already used
+    inside entry_filter_variants.py's threshold-sweep diagnostic, but never
+    against the actual headline number this project cites. This project's
+    own historical tuning rounds (RSI band, confirmation bar, stop
+    multiplier, ...) aren't cleanly replayable here (scattered across
+    separate one-off sweep scripts), so run_backtest() uses each walk-forward
+    window's own Sharpe as the trial population instead — a self-contained,
+    honest proxy answering "is the single-slice Sharpe just the best of
+    several time-window reads."
+    """
+
+    def _lenient_single_split_data(self):
+        return {"NVDA": _ohlcv_trending_up(120)}
+
+    def test_result_always_has_deflated_sharpe_fields(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        for key in ("deflated_sharpe", "deflated_sharpe_psr", "deflated_sharpe_n_trials"):
+            assert key in result
+
+    def test_no_walk_forward_windows_gives_zero_trials_not_a_crash(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: [])
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert result["deflated_sharpe_n_trials"] == 0
+        assert result["deflated_sharpe"] == 0.0
+        assert result["deflated_sharpe_psr"] == 0.0
+
+    def test_windows_with_fewer_than_2_outcomes_are_excluded_from_the_trial_population(self, monkeypatch):
+        """A window with 0 or 1 qualifying trades has no real Sharpe to
+        compute (compute_sharpe needs >=2 return observations) — must be
+        skipped, not counted as a zero-Sharpe trial (which would bias the
+        deflation calculation with a fabricated data point)."""
+        import backtesting.backtest_engine as be
+        windows = [
+            {"window": 1, "train_through": "2020-01-01", "validate_through": "2021-01-01",
+             "qualifying_trades": 1, "win_rate": 1.0, "avg_rr": 3.0, "verdict": "insufficient_data", "passed": False,
+             "outcomes": _outcomes(wins=1, losses=0, rr=3.0)},
+            {"window": 2, "train_through": "2021-01-01", "validate_through": "2022-01-01",
+             "qualifying_trades": 0, "win_rate": 0.0, "avg_rr": 0.0, "verdict": "insufficient_data", "passed": False,
+             "outcomes": []},
+        ]
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: windows)
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert result["deflated_sharpe_n_trials"] == 0
+
+    def test_multiple_windows_with_real_spread_produce_a_nonzero_trial_count(self, monkeypatch):
+        import backtesting.backtest_engine as be
+        windows = [
+            {"window": 1, "train_through": "2020-01-01", "validate_through": "2021-01-01",
+             "qualifying_trades": 10, "win_rate": 0.5, "avg_rr": 2.0, "verdict": "fail", "passed": False,
+             "outcomes": _outcomes(wins=5, losses=5, rr=2.0)},
+            {"window": 2, "train_through": "2021-01-01", "validate_through": "2022-01-01",
+             "qualifying_trades": 10, "win_rate": 0.8, "avg_rr": 2.0, "verdict": "pass", "passed": True,
+             "outcomes": _outcomes(wins=8, losses=2, rr=2.0)},
+        ]
+        monkeypatch.setattr(be, "run_walk_forward", lambda *a, **kw: windows)
+        result = run_backtest(self._lenient_single_split_data(), min_qualifying_trades=1, min_expectancy_r=-100.0)
+        assert result["deflated_sharpe_n_trials"] == 2
+
+
 # ---------------------------------------------------------------------------
 # Stress tests
 # ---------------------------------------------------------------------------

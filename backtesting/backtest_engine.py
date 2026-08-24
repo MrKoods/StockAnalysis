@@ -62,6 +62,7 @@ from backtesting.metrics import (
     compute_consecutive_losses,
     compute_r_multiples,
     bootstrap_expectancy_ci,
+    compute_deflated_sharpe_ratio,
     _trades_per_year,
     _build_equity_curve,
     build_portfolio_equity_curve,
@@ -223,6 +224,9 @@ def run_backtest(
             "walk_forward_pooled_expectancy_r_ci_lower": 0.0,
             "walk_forward_pooled_sharpe": 0.0,
             "walk_forward_pooled_max_drawdown_pct": 0.0,
+            "deflated_sharpe": 0.0,
+            "deflated_sharpe_psr": 0.0,
+            "deflated_sharpe_n_trials": 0,
         }
 
     # Step 1-4: Split into train/test and simulate signals in the test period.
@@ -257,14 +261,40 @@ def run_backtest(
     # entry-filter candidates without overfitting to one fixed slice, just
     # applied to the go-live gate itself instead of a research tool.
     wf_pooled_outcomes: list[dict] = []
+    wf_window_sharpes: list[float] = []
     for w in wf_results:
-        wf_pooled_outcomes.extend(w.pop("outcomes", []))
+        window_outcomes = w.pop("outcomes", [])
+        wf_pooled_outcomes.extend(window_outcomes)
+        if len(window_outcomes) >= 2:
+            wf_window_sharpes.append(_compute_metrics_bundle(window_outcomes, starting_equity=15000.0)["sharpe"])
     wf_m = _compute_metrics_bundle(wf_pooled_outcomes, starting_equity=15000.0)
     walk_forward_pooled_passed = (
         len(wf_pooled_outcomes) >= min_qualifying_trades
         and wf_m["expectancy_ci"]["ci_lower"] >= min_expectancy_r
         and wf_m["sharpe"] >= 1.0
         and wf_m["max_dd"] <= 0.15
+    )
+
+    # Deflated Sharpe (2026-08-23, full model audit follow-up): this project
+    # has tuned the entry filter across 5+ documented rounds (RSI band,
+    # confirmation bar, stop multiplier, ...) against the same historical
+    # dataset — real multiple-testing exposure `compute_deflated_sharpe_ratio`
+    # exists specifically to discount, but it was only ever run inside
+    # entry_filter_variants.py's threshold-sweep diagnostic, never against the
+    # actual headline number this project cites. Those historical tuning
+    # rounds' own per-trial Sharpes aren't cleanly available in one place to
+    # replay here (scattered across separate one-off sweep scripts run over
+    # weeks), so this uses a self-contained, honest proxy instead: each walk-
+    # forward window's own Sharpe as the trial population, with the
+    # single-slice Sharpe as the "selected" one. Answers a real, related
+    # question this backtest CAN answer directly — is the reported single-
+    # slice Sharpe just the most favorable of several time-window reads —
+    # even though it's narrower than "was picking this exact entry-filter
+    # config out of every historical round we ever tried too easy."
+    deflated_sharpe_result = compute_deflated_sharpe_ratio(
+        sharpe_ratios=wf_window_sharpes,
+        selected_sharpe=m["sharpe"],
+        n_observations=len(qualifying),
     )
 
     # Determine pass/fail (v2.2.17): trade count + expectancy CI lower bound +
@@ -309,6 +339,9 @@ def run_backtest(
         "walk_forward_pooled_expectancy_r_ci_lower": round(wf_m["expectancy_ci"]["ci_lower"], 3),
         "walk_forward_pooled_sharpe": round(wf_m["sharpe"], 2),
         "walk_forward_pooled_max_drawdown_pct": round(wf_m["max_dd"], 4),
+        "deflated_sharpe": deflated_sharpe_result["deflated_sharpe"],
+        "deflated_sharpe_psr": deflated_sharpe_result["psr"],
+        "deflated_sharpe_n_trials": deflated_sharpe_result["n_trials"],
         "train_period": str(all_dates[0]) if all_dates else "",
         "test_period": str(train_cutoff) if train_cutoff else "",
     }

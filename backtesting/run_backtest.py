@@ -87,6 +87,12 @@ def main() -> None:
         print(f"  Max Drawdown:     {result.get('max_drawdown_pct', 0.0):.1%}")
         print(f"  Qualifying Trades:{result.get('qualifying_trades', 0)}")
         print(f"  Max Consec Loss:  {result.get('max_consecutive_losses', 0)}")
+        print(f"  Walk-Fwd Pooled:  passed={result.get('walk_forward_pooled_passed')} "
+              f"sharpe={result.get('walk_forward_pooled_sharpe', 0.0):.2f} "
+              f"trades={result.get('walk_forward_pooled_qualifying_trades', 0)}")
+        print(f"  Deflated Sharpe:  {result.get('deflated_sharpe', 0.0):.2f} "
+              f"(PSR={result.get('deflated_sharpe_psr', 0.0):.2f}, "
+              f"n_trials={result.get('deflated_sharpe_n_trials', 0)}) — reported only, doesn't gate passed")
 
         if result.get("per_regime"):
             print("\nPer-Regime Results:")
