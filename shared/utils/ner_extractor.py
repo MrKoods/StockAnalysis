@@ -70,6 +70,39 @@ _TICKER_TO_COMPANY: dict[str, list[str]] = {
     "NKE": ["Nike", "NKE"],
     "SBUX": ["Starbucks", "SBUX"],
     "TGT": ["Target Corp", "Target Corporation", "TGT"],
+    # Sector ticker-universe expansion, 2026-08-24 (full model audit Phase 2)
+    # — same "add proactively, don't repeat the ZION/KEY/HBAN/RF/FITB gap"
+    # lesson as consumer_discretionary's own note above. Bare ticker aliases
+    # excluded wherever the string is also a common English word/abbreviation
+    # that would false-match unrelated headlines (same reasoning as
+    # KEY/RF/HD/TGT above) — CFR (Code of Federal Regulations), VRTX/ABT
+    # (informal "abt" = about) excluded on that basis.
+    "TXN": ["Texas Instruments", "TXN"],
+    "ADI": ["Analog Devices", "ADI"],
+    "AMAT": ["Applied Materials", "AMAT"],
+    "QCOM": ["Qualcomm", "QCOM"],
+    "KLAC": ["KLA Corporation", "KLA", "KLAC"],
+    "CFG": ["Citizens Financial Group", "Citizens Financial", "CFG"],
+    "TFC": ["Truist Financial", "Truist", "TFC"],
+    "MTB": ["M&T Bank", "M&T Bank Corporation", "MTB"],
+    "WBS": ["Webster Financial", "Webster Bank", "WBS"],
+    "CFR": ["Cullen/Frost Bankers", "Frost Bank"],  # bare "CFR" excluded — collides with Code of Federal Regulations citations
+    "PNFP": ["Pinnacle Financial Partners", "Pinnacle Financial", "PNFP"],
+    "ONB": ["Old National Bancorp", "Old National Bank", "ONB"],
+    "UMBF": ["UMB Financial", "UMB Bank", "UMBF"],
+    "AMGN": ["Amgen", "AMGN"],
+    "GILD": ["Gilead Sciences", "Gilead", "GILD"],
+    "BMY": ["Bristol-Myers Squibb", "Bristol Myers Squibb", "BMY"],
+    "VRTX": ["Vertex Pharmaceuticals", "Vertex Pharma"],  # bare "Vertex" excluded — too generic (geometry/math usage)
+    "TMO": ["Thermo Fisher Scientific", "Thermo Fisher", "TMO"],
+    "ABT": ["Abbott Laboratories", "Abbott"],  # bare "ABT" excluded — collides with informal "abt" = about
+    "ISRG": ["Intuitive Surgical", "ISRG"],
+    "SYK": ["Stryker Corporation", "Stryker", "SYK"],
+    "MCD": ["McDonald's", "McDonalds", "MCD"],
+    "BKNG": ["Booking Holdings", "Booking.com", "BKNG"],
+    "TJX": ["TJX Companies", "TJ Maxx", "TJX"],
+    "LOW": ["Lowe's", "Lowes"],  # bare "LOW" excluded — common English word, would false-match almost any headline
+    "ORLY": ["O'Reilly Automotive", "O'Reilly Auto Parts", "ORLY"],
 }
 
 _BULLISH_KEYWORDS = [

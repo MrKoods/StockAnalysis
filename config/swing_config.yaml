@@ -15,6 +15,11 @@ watchlist:
     - TSM
     - MU
     - ASML
+    - TXN
+    - ADI
+    - AMAT
+    - QCOM
+    - KLAC
   benchmark: SMH                   # Sector ETF for relative-strength comparison
   benchmark_alt: SOXX
 
@@ -29,6 +34,13 @@ watchlist:
       active: true
       benchmark: SMH
       benchmark_alt: SOXX
+      # TXN/ADI/AMAT/QCOM/KLAC added 2026-08-24 (full model audit Phase 2) —
+      # the historical backtest at the real 70-point qualifying threshold
+      # (post v2.2.83 fix) found only 11 qualifying trades for this sector
+      # over 13.5 years, nowhere near enough for a statistically meaningful
+      # win-rate/Sharpe read. All 5 are top-10 SMH constituents (analog:
+      # TXN/ADI; fab equipment: AMAT/KLAC; comms/mobile: QCOM) — large,
+      # liquid, real options markets, decades of price history.
       tickers:
         - NVDA
         - AMD
@@ -36,6 +48,11 @@ watchlist:
         - TSM
         - MU
         - ASML
+        - TXN
+        - ADI
+        - AMAT
+        - QCOM
+        - KLAC
       # Not part of the tradeable watchlist — these 4 hyperscalers' own SEC
       # filings are checked as a sector-wide capex demand signal (see v2.2.27
       # CHANGELOG entry): AI infrastructure capex guidance from AMZN/MSFT/
@@ -50,16 +67,44 @@ watchlist:
       active: true                # paper trading only — see v2.2.10 CHANGELOG entry
       benchmark: KRE
       benchmark_alt: null
+      # CFG/TFC/MTB/WBS/CFR/PNFP/ONB/UMBF added 2026-08-24 (full model audit
+      # Phase 2) — this sector had ZERO qualifying backtest trades at the
+      # real 70-point threshold over 13.5 years, the starkest sample-size
+      # gap of any sector (post v2.2.83 fix). All 8 are real KRE constituents
+      # (a near-equal-weighted ETF — ~1.3-1.4% each, so "top holding" isn't
+      # a meaningful liquidity filter within it the way it is for XLV/SMH),
+      # chosen for size/name recognition: TFC/MTB/CFG/WBS as large Northeast
+      # super-regionals, CFR/PNFP as established Southern regionals, ONB/UMBF
+      # as Midwest super-regionals. TFC's own ticker only dates to the 2019
+      # BB&T/SunTrust merger — shallower history than the rest, kept anyway
+      # for its size/liquidity.
       tickers:
         - ZION
         - KEY
         - HBAN
         - RF
         - FITB
+        - CFG
+        - TFC
+        - MTB
+        - WBS
+        - CFR
+        - PNFP
+        - ONB
+        - UMBF
     healthcare:
       active: true                # paper trading only — see v2.2.24 CHANGELOG entry
       benchmark: XLV
       benchmark_alt: null
+      # AMGN/GILD/BMY/VRTX/TMO/ABT/ISRG/SYK added 2026-08-24 (full model
+      # audit Phase 2) — ZERO qualifying backtest trades at the real
+      # 70-point threshold over 13.5 years (post v2.2.83 fix). All 8 are
+      # top-25 XLV constituents spanning sub-industries the existing 6
+      # (mostly big pharma/managed care) don't cover: major biotech
+      # (AMGN/GILD/VRTX), a second big-pharma name (BMY), diversified life-
+      # sciences tools/diagnostics (TMO/ABT), and surgical/medtech
+      # (ISRG/SYK) — real diversification, not just more of the same
+      # sub-industry.
       tickers:
         - LLY
         - PFE
@@ -67,10 +112,25 @@ watchlist:
         - ABBV
         - UNH
         - JNJ
+        - AMGN
+        - GILD
+        - BMY
+        - VRTX
+        - TMO
+        - ABT
+        - ISRG
+        - SYK
     consumer_discretionary:
       active: true                # paper trading only — chosen to exercise all 5 scoring
       benchmark: XLY               # layers strongly (heavy options/analyst coverage, high
       benchmark_alt: XRT           # StockTwits volume, earnings-driven fundamentals) —
+      # MCD/BKNG/TJX/LOW/ORLY added 2026-08-24 (full model audit Phase 2) —
+      # only 6 qualifying backtest trades at the real 70-point threshold
+      # over 13.5 years (post v2.2.83 fix), thin like every other sector.
+      # All 5 are top-25 XLY constituents spanning sub-industries the
+      # existing 6 don't cover: quick-service restaurant (MCD, pairs with
+      # existing SBUX), travel/booking (BKNG), off-price retail (TJX), home
+      # improvement (LOW, direct HD peer), auto parts (ORLY).
       tickers:                     # see CHANGELOG multi-sector expansion entries.
         - AMZN
         - TSLA
@@ -78,6 +138,11 @@ watchlist:
         - NKE
         - SBUX
         - TGT
+        - MCD
+        - BKNG
+        - TJX
+        - LOW
+        - ORLY
 
 # Geopolitical risk tickers — apply fixed confidence penalty in alerts
 geopolitical_risk_tickers:
@@ -336,6 +401,10 @@ portfolio:
         - [MU, NVDA]
         - [TSM, NVDA]
         - [TSM, ASML]
+        # TXN/ADI/AMAT/QCOM/KLAC added 2026-08-24 (full model audit Phase 2)
+        - [TXN, ADI]     # analog chipmakers — comparable end-markets, correlated cyclically
+        - [AMAT, KLAC]   # fab equipment — both sell into the same semiconductor capex cycle
+        - [QCOM, AVGO]   # mobile/comms chips — overlapping smartphone-cycle exposure
     regional_banks:
       max_open_positions: 2
       # Genuinely correlated sub-pairs, not one all-5-tickers group (that
@@ -355,6 +424,13 @@ portfolio:
         - [KEY, HBAN]
         - [RF, FITB]
         - [ZION, RF]
+        # CFG/TFC/MTB/WBS/CFR/PNFP/ONB/UMBF added 2026-08-24 (full model
+        # audit Phase 2). CFR/PNFP deliberately ungrouped — Texas/Tennessee
+        # footprints, distinct from every cluster below (same "genuine
+        # outlier" treatment as ZION above).
+        - [TFC, MTB]     # large Northeast/Mid-Atlantic super-regionals, comparable size tier
+        - [CFG, WBS]     # Northeast regionals, comparable size tier
+        - [ONB, UMBF]    # Midwest super-regionals — adjacent to, but distinct from, the KEY/HBAN/FITB Ohio cluster
     healthcare:
       max_open_positions: 2
       # Same fix as regional_banks above. UNH is deliberately ungrouped — as
@@ -368,11 +444,26 @@ portfolio:
         - [PFE, MRK]
         - [PFE, JNJ]
         - [MRK, JNJ]
+        # AMGN/GILD/BMY/VRTX/TMO/ABT/ISRG/SYK added 2026-08-24 (full model
+        # audit Phase 2).
+        - [AMGN, GILD]   # major large-cap biotech, distinct business model from big pharma above
+        - [AMGN, VRTX]
+        - [GILD, VRTX]
+        - [BMY, MRK]     # big pharma, same diversified/steadier profile as the PFE/MRK/JNJ cluster
+        - [BMY, PFE]
+        - [TMO, ABT]     # diversified life-sciences tools/diagnostics conglomerates
+        - [ISRG, SYK]    # surgical/medtech device makers
     consumer_discretionary:
       max_open_positions: 2
       correlated_groups:
         - [AMZN, TSLA]   # mega-cap growth pair — high beta, share macro/rate sensitivity
         - [HD, TGT]      # big-box retail — same-store-sales/consumer-spending correlated
+        # MCD/BKNG/TJX/LOW/ORLY added 2026-08-24 (full model audit Phase 2).
+        # BKNG/TJX/ORLY deliberately ungrouped — travel/off-price-retail/
+        # auto-parts are each distinct enough from the rest of this sector's
+        # existing names not to force a pairing.
+        - [LOW, HD]      # home-improvement duopoly — near-identical demand drivers
+        - [MCD, SBUX]    # quick-service restaurant peers, comparable consumer-spending sensitivity
 
 # PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
 # `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking

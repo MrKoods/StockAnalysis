@@ -1,47 +1,47 @@
 {
   "passed": false,
-  "win_rate": 0.6364,
-  "avg_rr": 2.61,
-  "expectancy_r_mean": 1.412,
-  "expectancy_r_ci_lower": 0.321,
-  "expectancy_r_ci_upper": 2.495,
-  "sharpe_ratio": 0.27,
-  "sortino_ratio": 0.98,
+  "win_rate": 0.6,
+  "avg_rr": 3.01,
+  "expectancy_r_mean": 1.532,
+  "expectancy_r_ci_lower": 0.334,
+  "expectancy_r_ci_upper": 2.708,
+  "sharpe_ratio": 0.26,
+  "sortino_ratio": 1.23,
   "max_drawdown_pct": 0.016,
   "max_drawdown_duration_trades": 2,
-  "ulcer_index": 0.6176,
-  "portfolio_sharpe_ratio": 0.24,
+  "ulcer_index": 0.6451,
+  "portfolio_sharpe_ratio": 0.22,
   "portfolio_max_drawdown_pct": 0.0153,
   "max_concurrent_positions": 4,
   "max_concurrent_risk_pct": 0.04,
-  "qualifying_trades": 11,
-  "total_signals": 311,
+  "qualifying_trades": 10,
+  "total_signals": 479,
   "max_consecutive_losses": 2,
   "per_regime": {
     "trending_up": {
-      "win_rate": 0.6363636363636364,
-      "avg_rr": 2.6074193943984305,
-      "trade_count": 11
+      "win_rate": 0.6,
+      "avg_rr": 3.0067054241718103,
+      "trade_count": 10
     }
   },
   "ic_confidence": {
-    "ic": 0.2738,
+    "ic": 0.2472,
     "p_value": 0.0,
-    "n": 311,
+    "n": 479,
     "method": "spearman",
     "score_field": "confidence"
   },
   "ic_technical": {
-    "ic": 0.0182,
-    "p_value": 0.7489,
-    "n": 311,
+    "ic": -0.0169,
+    "p_value": 0.7114,
+    "n": 479,
     "method": "spearman",
     "score_field": "technical_total"
   },
   "ic_real_only": {
-    "ic": 0.0336,
-    "p_value": 0.5552,
-    "n": 311,
+    "ic": -0.0071,
+    "p_value": 0.8761,
+    "n": 479,
     "method": "spearman",
     "score_field": "real_only_total"
   },
@@ -50,22 +50,22 @@
       "window": 1,
       "train_through": "2014-07-02 00:00:00+00:00",
       "validate_through": "2016-07-01 00:00:00+00:00",
-      "qualifying_trades": 1,
-      "win_rate": 1.0,
-      "avg_rr": 0.08,
+      "qualifying_trades": 0,
+      "win_rate": 0.0,
+      "avg_rr": 0.0,
       "verdict": "insufficient_data",
       "passed": false,
       "ic_confidence": {
-        "ic": 0.0619,
-        "p_value": 0.5555,
-        "n": 93,
+        "ic": -0.0413,
+        "p_value": 0.5775,
+        "n": 184,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": 0.0236,
-        "p_value": 0.8226,
-        "n": 93,
+        "ic": -0.0536,
+        "p_value": 0.47,
+        "n": 184,
         "method": "spearman",
         "score_field": "technical_total"
       }
@@ -74,22 +74,22 @@
       "window": 2,
       "train_through": "2016-07-01 00:00:00+00:00",
       "validate_through": "2018-07-03 00:00:00+00:00",
-      "qualifying_trades": 14,
-      "win_rate": 0.4286,
-      "avg_rr": 1.57,
+      "qualifying_trades": 13,
+      "win_rate": 0.4615,
+      "avg_rr": 0.63,
       "verdict": "fail",
       "passed": false,
       "ic_confidence": {
-        "ic": 0.0245,
-        "p_value": 0.7595,
-        "n": 158,
+        "ic": -0.0112,
+        "p_value": 0.8493,
+        "n": 289,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": 0.124,
-        "p_value": 0.1205,
-        "n": 158,
+        "ic": 0.0244,
+        "p_value": 0.6789,
+        "n": 289,
         "method": "spearman",
         "score_field": "technical_total"
       }
@@ -104,16 +104,16 @@
       "verdict": "insufficient_data",
       "passed": false,
       "ic_confidence": {
-        "ic": -0.0746,
-        "p_value": 0.3607,
-        "n": 152,
+        "ic": -0.0414,
+        "p_value": 0.5344,
+        "n": 228,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": 0.2385,
-        "p_value": 0.0031,
-        "n": 152,
+        "ic": 0.1659,
+        "p_value": 0.0121,
+        "n": 228,
         "method": "spearman",
         "score_field": "technical_total"
       }
@@ -122,22 +122,22 @@
       "window": 4,
       "train_through": "2020-07-06 00:00:00+00:00",
       "validate_through": "2022-07-06 00:00:00+00:00",
-      "qualifying_trades": 2,
+      "qualifying_trades": 1,
       "win_rate": 1.0,
-      "avg_rr": 0.44,
+      "avg_rr": 0.34,
       "verdict": "insufficient_data",
       "passed": false,
       "ic_confidence": {
-        "ic": -0.1429,
-        "p_value": 0.1034,
-        "n": 131,
+        "ic": -0.2565,
+        "p_value": 0.0003,
+        "n": 199,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": -0.1721,
-        "p_value": 0.0493,
-        "n": 131,
+        "ic": -0.2176,
+        "p_value": 0.002,
+        "n": 199,
         "method": "spearman",
         "score_field": "technical_total"
       }
@@ -152,16 +152,16 @@
       "verdict": "insufficient_data",
       "passed": false,
       "ic_confidence": {
-        "ic": 0.1845,
-        "p_value": 0.0494,
-        "n": 114,
+        "ic": 0.1294,
+        "p_value": 0.0852,
+        "n": 178,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": -0.0094,
-        "p_value": 0.9206,
-        "n": 114,
+        "ic": -0.069,
+        "p_value": 0.3603,
+        "n": 178,
         "method": "spearman",
         "score_field": "technical_total"
       }
@@ -169,36 +169,36 @@
     {
       "window": 6,
       "train_through": "2024-07-09 00:00:00+00:00",
-      "validate_through": "2026-07-02 00:00:00+00:00",
-      "qualifying_trades": 6,
-      "win_rate": 0.5,
-      "avg_rr": 2.57,
+      "validate_through": "2026-07-14 00:00:00+00:00",
+      "qualifying_trades": 5,
+      "win_rate": 0.4,
+      "avg_rr": 3.74,
       "verdict": "insufficient_data",
       "passed": false,
       "ic_confidence": {
-        "ic": 0.3285,
+        "ic": 0.316,
         "p_value": 0.0,
-        "n": 166,
+        "n": 262,
         "method": "spearman",
         "score_field": "confidence"
       },
       "ic_technical": {
-        "ic": 0.0616,
-        "p_value": 0.4302,
-        "n": 166,
+        "ic": 0.0294,
+        "p_value": 0.6354,
+        "n": 262,
         "method": "spearman",
         "score_field": "technical_total"
       }
     }
   ],
   "walk_forward_pooled_passed": false,
-  "walk_forward_pooled_qualifying_trades": 32,
-  "walk_forward_pooled_expectancy_r_ci_lower": 0.06,
-  "walk_forward_pooled_sharpe": -1.12,
-  "walk_forward_pooled_max_drawdown_pct": 0.0589,
-  "deflated_sharpe": -10.6411,
+  "walk_forward_pooled_qualifying_trades": 28,
+  "walk_forward_pooled_expectancy_r_ci_lower": -0.046,
+  "walk_forward_pooled_sharpe": -1.33,
+  "walk_forward_pooled_max_drawdown_pct": 0.0547,
+  "deflated_sharpe": -4.5289,
   "deflated_sharpe_psr": 0.0,
-  "deflated_sharpe_n_trials": 5,
+  "deflated_sharpe_n_trials": 4,
   "train_period": "2013-01-02 00:00:00+00:00",
-  "test_period": "2022-06-09 00:00:00+00:00"
+  "test_period": "2022-07-18 00:00:00+00:00"
 }

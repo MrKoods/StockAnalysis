@@ -1,6 +1,6 @@
 label,n_signals,n_qualifying,win_rate,avg_rr,expectancy_r_ci_lower,sharpe,max_drawdown_pct
-technical >= 0% of max (0/40 pts),1953,17,0.6471,1.83,0.123,-1.75,0.0253
-technical >= 40% of max (16/40 pts),1953,17,0.6471,1.83,0.123,-1.75,0.0253
-technical >= 50% of max (20/40 pts),1951,17,0.6471,1.83,0.123,-1.75,0.0253
-technical >= 60% of max (24/40 pts),1913,17,0.6471,1.83,0.123,-1.75,0.0253
-technical >= 70% of max (28/40 pts),1409,17,0.6471,1.83,0.123,-1.75,0.0253
+technical >= 0% of max (0/40 pts),3439,14,0.7143,2.06,0.447,-1.58,0.016
+technical >= 40% of max (16/40 pts),3439,14,0.7143,2.06,0.447,-1.58,0.016
+technical >= 50% of max (20/40 pts),3437,14,0.7143,2.06,0.447,-1.58,0.016
+technical >= 60% of max (24/40 pts),3354,14,0.7143,2.06,0.447,-1.58,0.016
+technical >= 70% of max (28/40 pts),2455,14,0.7143,2.06,0.447,-1.58,0.016

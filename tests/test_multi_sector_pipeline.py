@@ -65,14 +65,21 @@ class TestRealConfigAllSectorsActive:
         }
 
     def test_real_config_watchlist_includes_all_sectors(self):
+        # 2026-08-24 full model audit Phase 2: ticker universes expanded for
+        # every sector (banks/healthcare most heavily — they had ZERO
+        # qualifying backtest trades; semis/consumer_discretionary lighter,
+        # since they already had some, if thin, historical evidence). See
+        # config/swing_config.yaml's own per-sector comments for the
+        # selection rationale (ETF constituency, market-cap/liquidity tier,
+        # sub-industry diversification).
         import yaml
         cfg = yaml.safe_load(open("config/swing_config.yaml").read())
         tickers = get_all_tickers(cfg)
         assert tickers == [
-            "NVDA", "AMD", "AVGO", "TSM", "MU", "ASML",
-            "ZION", "KEY", "HBAN", "RF", "FITB",
-            "LLY", "PFE", "MRK", "ABBV", "UNH", "JNJ",
-            "AMZN", "TSLA", "HD", "NKE", "SBUX", "TGT",
+            "NVDA", "AMD", "AVGO", "TSM", "MU", "ASML", "TXN", "ADI", "AMAT", "QCOM", "KLAC",
+            "ZION", "KEY", "HBAN", "RF", "FITB", "CFG", "TFC", "MTB", "WBS", "CFR", "PNFP", "ONB", "UMBF",
+            "LLY", "PFE", "MRK", "ABBV", "UNH", "JNJ", "AMGN", "GILD", "BMY", "VRTX", "TMO", "ABT", "ISRG", "SYK",
+            "AMZN", "TSLA", "HD", "NKE", "SBUX", "TGT", "MCD", "BKNG", "TJX", "LOW", "ORLY",
         ]
 
 

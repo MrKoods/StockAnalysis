@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.96 | 2026-08-24 | Research / Feature | Nearly doubled the watchlist (23 -> 49 stocks) to grow the historical test's sample size, heaviest in the two sectors with zero winning-or-losing trades to learn from. Result: it didn't work the way expected — banks are still at zero qualifying trades even after more than doubling that sector's stock count, and total qualifying trades across all sectors combined actually went down slightly, not up. But the bigger dataset revealed something the smaller one couldn't: pooled across every sector, the real (non-proxy) part of the score shows a small but statistically real NEGATIVE relationship with what happened next — the opposite of what you'd want. Flagged for review, nothing acted on yet |
 | v2.2.95 | 2026-08-24 | Feature / Bug Fix / Research | Added a second, much-larger-sample way to check whether the score actually predicts anything (thousands of scored days instead of only 17 historically-qualifying trades) — first read says the real Technical/News/Fundamental data shows no significant edge on its own; the earlier win-rate numbers likely leaned on a backtest-only stand-in for Sentiment. Also: a scan-time crash on one stock used to vanish with a single log line — now it's visible and doesn't affect other stocks that day |
 | v2.2.94 | 2026-08-24 | Bug Fix / Feature | Fixed two tickers being silently dropped from scans over vendor data-rounding noise, and a "fraud" news trigger repeatedly crying wolf on fraud-prevention marketing copy. Added tracking for whether trades that never filled would have won anyway, and a daily Discord summary of open/closed trades and P&L |
 | v2.2.93 | 2026-08-23 | Scoring Change | Raised two portfolio-wide risk caps to match v2.2.92's bigger per-trade risk budget, so they still mean something instead of blocking almost every trade |
@@ -175,6 +176,69 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.96] — 2026-08-24 — [Research / Feature] Ticker universe expansion (full model audit, Phase 2) — didn't grow qualifying trades as expected, but revealed a real negative signal in the pooled data
+
+**Status:** Live (paper trading only — watchlist expansion, no scoring/threshold change).
+
+**In short:** Phase 2 of the full model audit. Expanded the watchlist from 23 to 49 stocks —
+heaviest in regional banks and healthcare (the two sectors with ZERO historically-qualifying
+trades found in Phase 1), lighter in semiconductors and consumer discretionary (which already had
+some, if thin, data) — on the theory that more stocks means more historical setups to learn from.
+**That theory didn't hold up.** Regional banks still have ZERO qualifying trades even after growing
+from 5 to 13 stocks. Healthcare went from 0 to 1 (not remotely enough for a read). Consumer
+discretionary actually went DOWN, from 6 qualifying trades to 3, despite nearly doubling its stock
+count. Total qualifying trades across all 4 sectors combined: 14, down slightly from 17 before this
+change. Expanding the stock list was not the fix for the sample-size problem.
+
+**What it did reveal:** the same Information Coefficient check from v2.2.95, now run on the much
+bigger scored population this expansion produced (3,439 scored days pooled across all 4 sectors,
+vs. a few hundred per sector before), shows something the smaller sample couldn't detect clearly:
+the real (non-proxy) part of the score — Technical + News + Fundamental, no Sentiment stand-in —
+has a small but statistically real NEGATIVE relationship with what actually happened afterward
+(IC -0.033, p=0.05, n=3,439). Not "no signal" — a very slight signal in the wrong direction. Broken
+down by sector, this isn't uniform: regional banks and healthcare show nothing detectable either
+way; consumer discretionary is the one driving the negative pooled reading (IC -0.055, p=0.02); the
+positive read semiconductors shows on its own likely still leans on the same Sentiment proxy
+contamination flagged in v2.2.95. Effect sizes are small across the board — this isn't "the model is
+broken," but it is a second piece of real evidence, on top of v2.2.95's, that the strongest-looking
+numbers so far may be resting more on the parts of this test that aren't fully real than on the
+parts that are.
+
+**Why the trade count didn't grow the way expected:** two contributing factors, not fully separated
+here. (1) Genuinely qualifying setups (a score of 70+) are just rare at this model's real bar —
+roughly 1 in every 250 scored stock-days across the whole expanded universe — so growing the stock
+count grows the denominator a lot faster than the numerator. (2) Relative-strength and
+sector-rotation modifiers are computed relative to each sector's own stock set — adding stocks
+changes that baseline for every stock in the sector, including the original ones, which is the
+likely mechanism behind consumer discretionary's qualifying count actually dropping after
+expansion, not just staying flat.
+
+**Ticker additions** (see config/swing_config.yaml's own per-sector comments for full selection
+rationale — same ETF membership, comparable market-cap/liquidity tier, real sub-industry
+diversification, not just "more of the same"):
+- **regional_banks** (+8, 5→13): CFG, TFC, MTB, WBS, CFR, PNFP, ONB, UMBF
+- **healthcare** (+8, 6→14): AMGN, GILD, BMY, VRTX, TMO, ABT, ISRG, SYK
+- **semiconductors** (+5, 6→11): TXN, ADI, AMAT, QCOM, KLAC
+- **consumer_discretionary** (+5, 6→11): MCD, BKNG, TJX, LOW, ORLY
+
+**Implementation:** `config/swing_config.yaml` (watchlist + portfolio-level `correlated_groups` for
+the new tickers, reasoned the same way — genuine sub-industry/geography pairs, not everything
+mechanically grouped), `shared/utils/ner_extractor.py` (`_TICKER_TO_COMPANY` aliases for all 26 new
+tickers — omitting this silently zeroes a ticker's News-category NER attribution, the exact gap the
+original bank/healthcare rollout hit and this session deliberately avoided repeating). 13.5 years of
+real historical OHLCV backfilled for all 26 new tickers into the matching `data/historical*/`
+directory (2013-01-01 through today, same format/source as the existing files).
+
+**Backtest:** Full re-run across all 4 sectors post-expansion — see "what it did reveal" above for
+the headline numbers. No scoring weights, formulas, or thresholds changed. 1420 tests pass (1 test
+updated — `test_real_config_watchlist_includes_all_sectors` — to assert the new, larger real
+watchlist instead of the old one). Both guardrail checkers
+(`check_config_coverage.py`, `check_confidence_threshold_duplication.py`) pass clean.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 
