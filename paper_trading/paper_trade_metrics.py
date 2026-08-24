@@ -278,6 +278,55 @@ def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
     }
 
 
+def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> dict:
+    """
+    Entry-zone opportunity cost view: for every expired (never-filled) signal,
+    compares what actually happened (nothing — no capital was ever at risk) to
+    the hypothetical of having filled immediately at the signal-time
+    entry_price instead of waiting for the breakout/breakdown trigger
+    (populated by paper_updater.py's _resolve_hypothetical_outcome).
+
+    Deliberately separate from compute_signal_accuracy/win_rate — those stay
+    scoped to trades that actually resolved for real. This answers a
+    different question: is the entry-zone rule itself filtering out trades
+    the model would otherwise have gotten right? A hypothetical_win_rate here
+    that's meaningfully higher than the real win_rate_funded is evidence the
+    breakout requirement is costing more than it protects.
+
+    Returns {total_expired, resolved_count, pending_count,
+    hypothetical_win_rate, avg_hypothetical_r} — pending_count is signals
+    whose hypothetical position hasn't hit stop/target/time-stop yet against
+    available bars; hypothetical_win_rate/avg_hypothetical_r are computed
+    over resolved_count only (pending rows have no outcome yet to score).
+    """
+    rows, _ = _load_paper_trades_rows(csv_path)
+    expired = [r for r in rows if r.get("outcome") == "expired"]
+    resolved = [r for r in expired if (r.get("hypothetical_outcome") or "") not in ("", "pending")]
+    pending = [r for r in expired if (r.get("hypothetical_outcome") or "") in ("", "pending")]
+
+    # Map hypothetical_* fields onto the plain outcome/pnl_pct/achieved_rr
+    # keys compute_win_rate expects, same pattern feedback_loop.py's
+    # load_calibration_outcomes_from_paper_trades uses for its own field
+    # remapping — keeps one shared win definition instead of a second copy.
+    mapped = [
+        {
+            "outcome": r.get("hypothetical_outcome"),
+            "pnl_pct": r.get("hypothetical_pnl_pct"),
+            "achieved_rr": r.get("hypothetical_achieved_rr"),
+        }
+        for r in resolved
+    ]
+    rr_values = [float(m["achieved_rr"]) for m in mapped if m.get("achieved_rr")]
+
+    return {
+        "total_expired": len(expired),
+        "resolved_count": len(resolved),
+        "pending_count": len(pending),
+        "hypothetical_win_rate": round(compute_win_rate(mapped), 4) if mapped else 0.0,
+        "avg_hypothetical_r": round(sum(rr_values) / len(rr_values), 3) if rr_values else 0.0,
+    }
+
+
 def compute_forward_ev_accuracy(
     outcomes: list[dict],
 ) -> float:
@@ -297,6 +346,163 @@ def compute_forward_ev_accuracy(
     if theoretical_avg == 0:
         return 0.0
     return round(actual_avg / theoretical_avg, 4)
+
+
+def _csv_float(row: dict, key: str, default: float = 0.0) -> float:
+    """Blank-safe float pull from a paper_trades.csv row dict."""
+    raw = (row.get(key) or "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def generate_daily_summary(csv_path: Optional[Path] = None, as_of: Optional[str] = None) -> dict:
+    """
+    Daily Discord-report payload: current open positions (with mark-to-market
+    P&L), trades closed today, pending unfilled orders, lifetime realized/
+    unrealized P&L, and a short rule-based takeaway list — the same open/
+    closed/P&L/analysis breakdown a chat session reconstructs by hand from
+    paper_trades.csv on request (see the 2026-08-24 daily-review session).
+    Deterministic and rule-based throughout, no LLM step, so it's exactly
+    reproducible from the CSV at any time — meant to be sent once a day by
+    paper_updater.py's scheduled run rather than only surfaced on request.
+
+    as_of: signal_date/exit_date comparison basis for "closed today", as
+    "YYYY-MM-DD". Defaults to today — injectable for tests/backfills.
+
+    Returns {
+      as_of_date, open_positions, closed_today, pending_orders,
+      total_realized_pnl, total_unrealized_pnl, net_pnl,
+      lifetime_closed_count, lifetime_win_rate,
+      opportunity_cost, takeaways,
+    }
+    """
+    rows, _ = _load_paper_trades_rows(csv_path)
+    as_of_date = as_of or datetime.now().strftime("%Y-%m-%d")
+
+    open_positions = []
+    for r in rows:
+        if r.get("outcome") or not (r.get("fill_date") or "").strip():
+            continue
+        open_positions.append({
+            "ticker": r.get("ticker", ""),
+            "signal_date": r.get("signal_date", ""),
+            "fill_price": _csv_float(r, "fill_price"),
+            "mark_price": _csv_float(r, "mark_price"),
+            "unrealized_pnl": _csv_float(r, "unrealized_pnl_dollars"),
+            "unrealized_rr": _csv_float(r, "unrealized_rr"),
+            "capital_deployed": _csv_float(r, "capital_deployed"),
+            "funded": _csv_float(r, "position_size") > 0,
+        })
+
+    pending_orders = [
+        {
+            "ticker": r.get("ticker", ""),
+            "signal_date": r.get("signal_date", ""),
+            "entry_zone_lower": _csv_float(r, "entry_zone_lower"),
+            "entry_zone_upper": _csv_float(r, "entry_zone_upper"),
+        }
+        for r in rows
+        if not r.get("outcome") and not (r.get("fill_date") or "").strip()
+    ]
+
+    closed = [r for r in rows if r.get("outcome")]
+    closed_today = [
+        {"ticker": r.get("ticker", ""), "outcome": r.get("outcome", ""), "pnl_dollars": _csv_float(r, "pnl_dollars")}
+        for r in closed if r.get("exit_date") == as_of_date
+    ]
+
+    # Lifetime totals — realized sums every closed row's booked P&L (expired
+    # rows contribute 0.0, blank pnl_dollars, same as a real $0 outcome);
+    # unrealized sums today's mark-to-market snapshot on every funded-or-not
+    # open row, matching paper_updater.py's own print_summary() convention.
+    total_realized_pnl = sum(_csv_float(r, "pnl_dollars") for r in closed)
+    total_unrealized_pnl = sum(p["unrealized_pnl"] for p in open_positions)
+
+    scored_closed = [r for r in closed if r.get("outcome") != "expired"]
+    lifetime_win_rate = compute_win_rate(scored_closed) if scored_closed else 0.0
+
+    opportunity_cost = compute_expired_signal_opportunity_cost(csv_path)
+
+    takeaways = _build_daily_takeaways(open_positions, pending_orders, closed_today, opportunity_cost)
+
+    return {
+        "as_of_date": as_of_date,
+        "open_positions": open_positions,
+        "closed_today": closed_today,
+        "pending_orders": pending_orders,
+        "total_realized_pnl": round(total_realized_pnl, 2),
+        "total_unrealized_pnl": round(total_unrealized_pnl, 2),
+        "net_pnl": round(total_realized_pnl + total_unrealized_pnl, 2),
+        "lifetime_closed_count": len(scored_closed),
+        "lifetime_win_rate": round(lifetime_win_rate, 4),
+        "opportunity_cost": opportunity_cost,
+        "takeaways": takeaways,
+    }
+
+
+def _build_daily_takeaways(
+    open_positions: list[dict],
+    pending_orders: list[dict],
+    closed_today: list[dict],
+    opportunity_cost: dict,
+) -> list[str]:
+    """
+    Short, rule-based observations for generate_daily_summary()'s Discord
+    embed — same kind of read a chat session gives when walked through the
+    day's trades manually, just deterministic and automatic. Never a
+    trade recommendation (e.g. "close this position") — see the 2026-08-24
+    session's own conclusion that a critical-event alert or a thesis-flip
+    is a manual-review trigger, not something this system auto-acts on.
+    """
+    takeaways: list[str] = []
+    funded_open = [p for p in open_positions if p["funded"]]
+    zero_sized = [p for p in open_positions if not p["funded"]]
+
+    if funded_open:
+        best = max(funded_open, key=lambda p: p["unrealized_pnl"])
+        worst = min(funded_open, key=lambda p: p["unrealized_pnl"])
+        if best["unrealized_pnl"] > 0:
+            takeaways.append(
+                f"Best open position: {best['ticker']} {best['unrealized_pnl']:+.2f} ({best['unrealized_rr']:+.2f}R)"
+            )
+        if worst["unrealized_pnl"] < 0:
+            takeaways.append(
+                f"Worst open position: {worst['ticker']} {worst['unrealized_pnl']:+.2f} ({worst['unrealized_rr']:+.2f}R)"
+            )
+        at_risk = [p for p in funded_open if p["unrealized_rr"] <= -0.5]
+        if at_risk:
+            names = ", ".join(f"{p['ticker']} ({p['unrealized_rr']:+.2f}R)" for p in at_risk)
+            takeaways.append(f"More than halfway to stop, worth a look: {names}")
+
+    if zero_sized:
+        names = ", ".join(p["ticker"] for p in zero_sized)
+        takeaways.append(
+            f"{len(zero_sized)} position(s) show as open but carry $0 real capital "
+            f"(sized to 0 contracts): {names}"
+        )
+
+    if pending_orders:
+        names = ", ".join(p["ticker"] for p in pending_orders)
+        takeaways.append(f"{len(pending_orders)} signal(s) still pending fill: {names}")
+
+    for c in closed_today:
+        takeaways.append(f"Closed today: {c['ticker']} {c['outcome']} ${c['pnl_dollars']:+.2f}")
+
+    if opportunity_cost["resolved_count"]:
+        takeaways.append(
+            f"Entry-zone opportunity cost: {opportunity_cost['resolved_count']} expired signal(s) resolved, "
+            f"hypothetical win rate {opportunity_cost['hypothetical_win_rate']:.0%}, "
+            f"avg {opportunity_cost['avg_hypothetical_r']:+.2f}R if filled immediately at signal time"
+        )
+
+    if not takeaways:
+        takeaways.append("No notable changes today — steady state.")
+
+    return takeaways
 
 
 def _compute_slippage_excess(fill_log: list[dict]) -> float:

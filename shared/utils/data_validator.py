@@ -19,6 +19,7 @@ def validate_ohlcv(
     cfg: Optional[dict] = None,
     max_gap_days: int = 3,
     max_single_day_move_pct: float = 0.50,
+    open_range_tolerance_pct: float = 0.003,
 ) -> tuple[bool, list[str]]:
     """
     Validate OHLCV DataFrame for a ticker.
@@ -34,10 +35,11 @@ def validate_ohlcv(
     Logs each failure to validation_log.csv automatically.
 
     cfg: when supplied, config/swing_config.yaml's data_validation.max_price_gap_days/
-    max_single_day_move_pct override the max_gap_days/max_single_day_move_pct defaults
-    above — previously accepted but never read (the one production call site passed no
-    cfg at all), so those two config keys had zero effect regardless of what a user set
-    them to (Signal Integrity Audit follow-up finding).
+    max_single_day_move_pct/open_range_tolerance_pct override the defaults above —
+    previously max_price_gap_days/max_single_day_move_pct were accepted but never read
+    (the one production call site passed no cfg at all), so those two config keys had
+    zero effect regardless of what a user set them to (Signal Integrity Audit follow-up
+    finding).
     """
     reasons = []
 
@@ -45,6 +47,7 @@ def validate_ohlcv(
         dv_cfg = cfg.get("data_validation", {})
         max_gap_days = int(dv_cfg.get("max_price_gap_days", max_gap_days))
         max_single_day_move_pct = float(dv_cfg.get("max_single_day_move_pct", max_single_day_move_pct))
+        open_range_tolerance_pct = float(dv_cfg.get("open_range_tolerance_pct", open_range_tolerance_pct))
 
     if df is None or df.empty:
         reasons.append("ohlcv_empty_dataframe")
@@ -79,7 +82,17 @@ def validate_ohlcv(
         # so a corrupted Open (decimal-shift error, stale print) passed pre-flight
         # validation undetected even though entry-zone/stop-loss math elsewhere
         # can key off the day's Open.
-        if open_px < low or open_px > high:
+        #
+        # A small tolerance band, not an exact boundary — a real decimal-shift
+        # error (e.g. $304.70 mis-printed as $30.47) blows past any reasonable
+        # tolerance instantly, but vendor rounding/consolidation noise on the
+        # order of a few cents (observed live: RF 2026-08-24 printed Open
+        # $30.47 vs. Low $30.50, a 0.1% gap, in yfinance's own finalized EOD
+        # data — not a transient fetch-timing artifact) was tripping this
+        # exact-boundary check and excluding the ticker from the whole scan
+        # over noise, not corruption.
+        open_tolerance = max(high, low, abs(open_px)) * open_range_tolerance_pct
+        if open_px < low - open_tolerance or open_px > high + open_tolerance:
             reasons.append(f"ohlcv_open_out_of_range_{i}")
             break
         if volume <= 0:

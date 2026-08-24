@@ -400,6 +400,12 @@ greeks_filter:
 data_validation:
   max_price_gap_days: 3
   max_single_day_move_pct: 0.50      # >50% likely a split or data error
+  # How far Open is allowed to sit outside [Low, High] before being flagged as
+  # corrupt, as a fraction of the bar's own price level — catches genuine
+  # corruption (a decimal-shift error blows past this instantly) without
+  # excluding a ticker over vendor rounding/consolidation noise of a few
+  # cents (observed live: RF 2026-08-24, Open $30.47 vs Low $30.50).
+  open_range_tolerance_pct: 0.003
 
 # Alpha Vantage call budget (used by app_ui/scan_worker.py's pre-scan budget
 # projection; actual enforcement is news_client.py's own daily counter).
@@ -612,6 +618,19 @@ event_severity_gate:
     - "accounting irregularities"
     - "restatement"
     - "halted"
+  # A ticker_trigger match is suppressed when the headline also contains one
+  # of these phrases — company-published advisory/security/product marketing
+  # that happens to contain the trigger word, not the company being the
+  # subject of it (see event_gate.py's _find_trigger_match docstring for the
+  # real recurring KEY/AMD false positives this fixes). Genuine allegations
+  # (e.g. "Lawsuit Alleges Medicare Fraud") contain none of these and still
+  # gate normally.
+  advisory_context_exclusions:
+    - "fraud prevention"
+    - "prevent fraud"
+    - "fraud tool"
+    - "fraud detection"
+    - "recognize and avoid"
   principal_sources:                   # statements from these actors matching any trigger are always critical
     - "President"
     - "White House"

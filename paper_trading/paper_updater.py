@@ -61,6 +61,7 @@ from shared.utils.discord_alerts import (
     send_paper_expired_alert,
     send_paper_fill_alert,
     send_calibration_alert,
+    send_daily_summary_alert,
 )
 from shared.utils.atomic_io import atomic_write_text, exclusive_lock
 from swing_model.feedback_loop import (
@@ -83,6 +84,7 @@ from shared.utils.sector_config import get_active_sectors
 # One shared list closes that gap structurally instead of relying on the two
 # modules being hand-kept in sync.
 from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE
+from paper_trading.paper_trade_metrics import compute_expired_signal_opportunity_cost, generate_daily_summary
 
 logger = get_logger(__name__)
 
@@ -252,6 +254,109 @@ def _resolve_outcome(
             }
 
     return None  # Still open
+
+
+def _resolve_hypothetical_outcome(
+    trade: dict, time_stop_day: int, min_progress_pct: float,
+) -> bool:
+    """
+    Entry-zone opportunity cost for an expired (never-filled) signal —
+    simulates the trade as if it had been entered immediately at the
+    signal-time entry_price instead of waiting for the breakout/breakdown
+    trigger, walked against the same stop/target/time-stop rules real trades
+    use (_resolve_outcome above). Answers "was requiring the breakout the
+    mistake," independent of win-rate, which stays correctly scoped to
+    trades that actually resolved for real (see paper_trade_metrics.py's
+    compute_signal_accuracy docstring).
+
+    Mutates trade's hypothetical_* fields in place. Returns True once a
+    terminal outcome is recorded, False if still unresolved (leaves
+    hypothetical_outcome="pending" for a future run to re-check against
+    fresh bars) or required inputs are missing. Idempotent to re-run on an
+    already-resolved row — callers should skip those first.
+    """
+    ticker = trade.get("ticker", "")
+    signal_date = trade.get("signal_date", "")
+    try:
+        entry_price = float(trade.get("entry_price") or 0)
+        stop_loss = float(trade.get("stop_loss") or 0)
+        target = float(trade.get("target") or 0)
+    except (TypeError, ValueError):
+        return False
+    if entry_price <= 0 or stop_loss <= 0 or target <= 0 or not signal_date:
+        return False
+
+    direction = trade.get("direction") or "bullish"
+    bearish = direction == "bearish"
+
+    df = _download_ohlcv(ticker, signal_date)
+    if df is None or df.empty:
+        return False
+    df_after = df[df.index > pd.Timestamp(signal_date)]
+    if df_after.empty:
+        return False
+
+    result = _resolve_outcome(
+        df_after, entry_price, stop_loss, target, direction=direction,
+        time_stop_day=time_stop_day, min_progress_pct=min_progress_pct,
+    )
+    trade["hypothetical_outcome"] = "pending"
+    if result is None:
+        return False
+
+    exit_px = float(result["exit_price"])
+    price_change = (entry_price - exit_px) if bearish else (exit_px - entry_price)
+    risk_per_r = abs(entry_price - stop_loss)
+    pnl_pct = price_change / entry_price
+    achieved_rr = price_change / risk_per_r if risk_per_r > 0 else 0.0
+
+    # Same actual_dollar_risk basis a real fill would have used — sizing is
+    # computed at signal time off this same entry_price regardless of
+    # whether the order ever filled (see _CSV_COLUMNS' capital_deployed
+    # comment in paper_runner.py), so it's the right risk basis here too.
+    actual_risk_raw = (trade.get("actual_dollar_risk") or "").strip()
+    dollar_risk_raw = actual_risk_raw or (trade.get("dollar_risk") or "").strip()
+    pnl_dollars_str = ""
+    if dollar_risk_raw:
+        try:
+            pnl_dollars_str = _fmt_dollars(achieved_rr * float(dollar_risk_raw))
+        except ValueError:
+            pass
+
+    trade["hypothetical_outcome"] = result["outcome"]
+    trade["hypothetical_exit_date"] = result["exit_date"]
+    trade["hypothetical_exit_price"] = f"{exit_px:.2f}"
+    trade["hypothetical_pnl_pct"] = f"{pnl_pct:.4f}"
+    trade["hypothetical_achieved_rr"] = f"{achieved_rr:.3f}"
+    trade["hypothetical_holding_days"] = str(result["holding_days"])
+    trade["hypothetical_pnl_dollars"] = pnl_dollars_str
+
+    logger.info(
+        f"{ticker} {signal_date}: hypothetical (immediate-fill) outcome "
+        f"{result['outcome']} | {achieved_rr:+.2f}R — entry-zone opportunity cost"
+    )
+    return True
+
+
+def _update_hypothetical_outcomes(trades: list[dict], time_stop_day: int, min_progress_pct: float) -> int:
+    """
+    Resolve (or re-check) the hypothetical opportunity-cost simulation for
+    every expired trade that hasn't reached a terminal hypothetical outcome
+    yet. Separate from the main open_trades loop above — expired rows are
+    excluded from that loop's open_trades filter since their real outcome is
+    already final, but the hypothetical needs its own independent tracking
+    until IT resolves. Returns count newly resolved this run.
+    """
+    pending = [
+        t for t in trades
+        if t.get("outcome") == "expired"
+        and (t.get("hypothetical_outcome") or "") in ("", "pending")
+    ]
+    resolved_count = 0
+    for trade in pending:
+        if _resolve_hypothetical_outcome(trade, time_stop_day, min_progress_pct):
+            resolved_count += 1
+    return resolved_count
 
 
 def _check_earnings_exit(
@@ -753,6 +858,10 @@ def update_paper_trades() -> int:
 
             closed_count += 1
 
+    hypothetical_resolved = _update_hypothetical_outcomes(trades, _time_stop_day, _min_progress_pct)
+    if hypothetical_resolved:
+        logger.info(f"{hypothetical_resolved} hypothetical (entry-zone opportunity cost) outcome(s) resolved")
+
     _save_trades(trades)
     logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
 
@@ -800,6 +909,23 @@ def _maybe_run_calibration(trades: list[dict]) -> None:
             send_calibration_alert(result)
         except Exception as exc:
             logger.warning(f"Calibration Discord alert failed — {exc}")
+
+
+def _try_send_daily_summary() -> None:
+    """
+    Best-effort daily Discord report — open positions, anything closed
+    today, pending orders, P&L, and rule-based takeaways (see
+    generate_daily_summary's own docstring). Called once per real scheduled
+    update_paper_trades() run (paper_updater's own daily task), not on the
+    ad hoc --summary CLI path — a manual on-demand check shouldn't also post
+    to Discord. Never lets a summary/send failure take down the run that got
+    this far; the CSV is already saved by the time this runs.
+    """
+    try:
+        summary = generate_daily_summary()
+        send_daily_summary_alert(summary)
+    except Exception as exc:
+        logger.warning(f"Daily summary Discord alert failed — {exc}")
 
 
 def print_summary() -> None:
@@ -857,6 +983,17 @@ def print_summary() -> None:
     print(f"  Confidence early exits: {len(early_exits)}  (+{len(ex_pos)} profitable)")
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
     print(f"  Expired (never filled): {len(expired)}")
+    if expired:
+        opp_cost = compute_expired_signal_opportunity_cost()
+        if opp_cost["resolved_count"]:
+            print(
+                f"    -> entry-zone opportunity cost: {opp_cost['resolved_count']} resolved "
+                f"({opp_cost['pending_count']} still pending), hypothetical win rate "
+                f"{opp_cost['hypothetical_win_rate']:.1%}, avg {opp_cost['avg_hypothetical_r']:+.2f}R "
+                f"if filled immediately at signal time"
+            )
+        elif opp_cost["pending_count"]:
+            print(f"    -> entry-zone opportunity cost: {opp_cost['pending_count']} still pending resolution")
     print(f"  Open trades:        {open_ct}")
 
     # Sum of the mark-to-market snapshot paper_updater.py's own run just left
@@ -882,4 +1019,5 @@ if __name__ == "__main__":
         count = update_paper_trades()
         print_summary()
         print(f"Closed {count} trade(s) this run.")
+        _try_send_daily_summary()
     sys.exit(0)

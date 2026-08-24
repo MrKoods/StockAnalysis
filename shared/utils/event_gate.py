@@ -113,6 +113,23 @@ def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = N
     chip-ban headline must not match while scoring a bank ticker, and vice
     versa. When `sector` is None (unmigrated caller), every active sector's
     list is unioned as a defensive fallback.
+
+    Ticker triggers only (not sector triggers — those describe macro/market
+    events, not one company's own PR, so this ambiguity doesn't arise there):
+    a match is suppressed when the headline also contains one of
+    advisory_context_exclusions — the company publishing advisory/security/
+    marketing content that happens to contain the trigger word, not being the
+    subject of it. Observed live: KEY's "fraud" ticker trigger re-fired 6+
+    times between 2026-07-23 and 2026-08-24 on KeyBank's own fraud-prevention
+    marketing copy ("...How Businesses Can Help Prevent Fraud", "Launches
+    Check Fraud Tool...", "...Fraud Prevention Tips"), never once a real
+    fraud allegation about KEY itself; separately, AMD's "fraud" trigger
+    fired on "Real-Time Fraud Detection at Machine Speed: Aerospike Debuts
+    Agentic AI Stack with Google Gemini and AMD EPYC Processors" — AMD is a
+    component vendor mentioned in a different company's product story, not
+    the subject of the fraud keyword at all. A genuine allegation (e.g.
+    UNH's "Lawsuit Alleges Medicare Fraud") contains none of these exclusion
+    phrases and still matches normally.
     """
     headline_lower = (headline or "").lower()
     sector_triggers_cfg = gate_cfg.get("sector_triggers", {})
@@ -123,8 +140,12 @@ def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = N
     for trigger in candidate_triggers:
         if trigger.lower() in headline_lower:
             return {"scope": SCOPE_SECTOR, "trigger_match": trigger}
+
+    advisory_exclusions = [p.lower() for p in gate_cfg.get("advisory_context_exclusions", [])]
     for trigger in gate_cfg.get("ticker_triggers", []):
         if trigger.lower() in headline_lower:
+            if any(phrase in headline_lower for phrase in advisory_exclusions):
+                continue
             return {"scope": SCOPE_TICKER, "trigger_match": trigger}
     return None
 

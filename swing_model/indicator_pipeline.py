@@ -11,6 +11,7 @@ available every scan without API calls.
 
 import hashlib
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -20,7 +21,7 @@ import pandas as pd
 import yaml
 import yfinance as yf
 
-from shared.api_clients.market_data_client import fetch_ohlcv_batch
+from shared.api_clients.market_data_client import fetch_ohlcv, fetch_ohlcv_batch
 from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.fundamental_client import FundamentalClient
@@ -39,6 +40,12 @@ _FUNDAMENTAL_STATE_PATH = Path("data/processed/fundamental_state.json")
 _FUNDAMENTAL_HISTORY_DIR = Path("data/processed/fundamental_history")
 _POSITIONING_STATE_PATH = Path("data/processed/positioning_state.json")
 _MAX_IV_HISTORY_DAYS = 252  # ~1 trading year — bounds iv_history/put_call_ratio_history/iv_skew_history's growth, oldest dropped first
+
+# Delay before the single retry fetch on a Phase 9 OHLCV validation failure —
+# long enough to give a transient vendor-side settlement race a real chance to
+# resolve, short enough that a scan already excluding this rare a ticker
+# (roughly 1/day historically) doesn't stall meaningfully waiting on it.
+_OHLCV_RETRY_DELAY_SECONDS = 15
 
 # Fundamental refresh is staggered rather than bursting the whole watchlist on one
 # day. eps_growth_trend (the one figure that used to require Alpha Vantage) now
@@ -140,9 +147,29 @@ def run_pipeline(
         # into indicator computation with zero validation.
         ohlcv_valid, ohlcv_failures = validate_ohlcv(ticker, df, cfg=cfg)
         if not ohlcv_valid:
-            logger.warning(f"{ticker}: Phase 9 OHLCV validation failed ({ohlcv_failures}) — excluded.")
-            results[ticker] = None
-            continue
+            # One short-delay retry before excluding — some OHLC inconsistencies
+            # are a transient vendor-side settlement race rather than genuine
+            # corruption (observed live: AMD 2026-08-24 failed validation at
+            # scan time but the same trading-day bar was internally consistent
+            # when re-checked later that day). fetch_ohlcv is a fresh
+            # single-ticker call, not fetch_ohlcv_batch's cache, so this
+            # actually re-fetches rather than re-validating the same stale frame.
+            logger.info(
+                f"{ticker}: Phase 9 validation failed ({ohlcv_failures}) — "
+                f"retrying fetch once in {_OHLCV_RETRY_DELAY_SECONDS}s"
+            )
+            time.sleep(_OHLCV_RETRY_DELAY_SECONDS)
+            retry_df = fetch_ohlcv(ticker, period="6mo", interval="1d")
+            if retry_df is not None and not retry_df.empty:
+                retry_valid, ohlcv_failures = validate_ohlcv(ticker, retry_df, cfg=cfg)
+                if retry_valid:
+                    logger.info(f"{ticker}: retry fetch passed validation — using refreshed data")
+                    df = retry_df
+                    ohlcv_valid = True
+            if not ohlcv_valid:
+                logger.warning(f"{ticker}: Phase 9 OHLCV validation failed ({ohlcv_failures}) — excluded.")
+                results[ticker] = None
+                continue
 
         # Use benchmark close aligned to ticker index, or flat series if unavailable
         if benchmark_close is not None:

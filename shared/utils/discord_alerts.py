@@ -930,6 +930,75 @@ def send_paper_expired_alert(trade: dict) -> bool:
     return _post_to_webhook({"embeds": [embed]})
 
 
+def send_daily_summary_alert(summary: dict, model_version: str = "v1.0.0") -> bool:
+    """
+    Daily paper-trading report: open positions with mark-to-market P&L,
+    anything closed today, pending unfilled orders, lifetime realized/
+    unrealized P&L, and a short rule-based takeaway list. Same open/closed/
+    P&L/analysis breakdown a chat session reconstructs by hand from
+    paper_trades.csv on request (2026-08-24 session) — this surfaces it once
+    a day automatically instead of only on ask. summary is the dict returned
+    by paper_trading.paper_trade_metrics.generate_daily_summary().
+
+    Deliberately never recommends an action on a position (e.g. "close
+    this") — same reasoning as the critical-event alert
+    (_handle_open_position_critical_event in run_swing_model.py): flag for
+    human review, don't auto-act.
+    """
+    open_positions = summary.get("open_positions", [])
+    pending_orders = summary.get("pending_orders", [])
+    closed_today = summary.get("closed_today", [])
+    net_pnl = summary.get("net_pnl", 0.0)
+
+    fields = []
+
+    if open_positions:
+        lines = []
+        for p in open_positions:
+            zero_note = " — $0 capital (0-sized)" if not p.get("funded", True) else ""
+            lines.append(f"**{p['ticker']}**: {p['unrealized_pnl']:+.2f} ({p['unrealized_rr']:+.2f}R){zero_note}")
+        fields.append({"name": f"Open Positions ({len(open_positions)})", "value": "\n".join(lines)[:1024], "inline": False})
+    else:
+        fields.append({"name": "Open Positions", "value": "None", "inline": False})
+
+    if closed_today:
+        lines = [f"**{c['ticker']}**: {c['outcome']} ${c['pnl_dollars']:+.2f}" for c in closed_today]
+        fields.append({"name": f"Closed Today ({len(closed_today)})", "value": "\n".join(lines)[:1024], "inline": False})
+
+    if pending_orders:
+        names = ", ".join(p["ticker"] for p in pending_orders)
+        fields.append({"name": f"Pending Orders ({len(pending_orders)})", "value": names[:1024], "inline": False})
+
+    fields.append({
+        "name": "P&L (Realized / Unrealized / Net)",
+        "value": (
+            f"${summary.get('total_realized_pnl', 0.0):+.2f} / "
+            f"${summary.get('total_unrealized_pnl', 0.0):+.2f} / "
+            f"${net_pnl:+.2f}"
+        ),
+        "inline": False,
+    })
+
+    fields.append({
+        "name": "Lifetime Win Rate",
+        "value": f"{summary.get('lifetime_win_rate', 0.0):.0%} over {summary.get('lifetime_closed_count', 0)} closed trades",
+        "inline": False,
+    })
+
+    takeaways = summary.get("takeaways", [])
+    if takeaways:
+        fields.append({"name": "Takeaways", "value": "\n".join(f"• {t}" for t in takeaways)[:1024], "inline": False})
+
+    embed = {
+        "title": f"📋 DAILY PAPER TRADING SUMMARY — {summary.get('as_of_date', '')}",
+        "color": _COLORS["green"] if net_pnl >= 0 else _COLORS["red"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fields": fields,
+        "footer": {"text": f"StockAnalysis {model_version} — paper trading, no real capital at risk"},
+    }
+    return _post_to_webhook({"embeds": [embed]})
+
+
 def _post_to_webhook(payload: dict, webhook_url: Optional[str] = None) -> bool:
     """POST JSON payload to Discord webhook. Returns True on 204 response."""
     url = webhook_url or os.getenv("DISCORD_WEBHOOK_URL")
