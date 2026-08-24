@@ -9,8 +9,6 @@ own send_weekly_summary_alert formatting is covered in tests/test_discord_alerts
 
 import csv
 
-import pytest
-
 from monitoring.performance_dashboard import generate_weekly_summary
 
 

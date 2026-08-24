@@ -146,12 +146,15 @@ class TestNetDirectionalDeltaCap:
     def test_stacking_same_direction_risk_trips_the_cap(self):
         state = dict(_EMPTY_STATE)
         state["positions"] = [{
-            "ticker": "NVDA", "direction": "bullish", "risk_pct": 0.01, "open": True,
+            "ticker": "NVDA", "direction": "bullish", "risk_pct": 0.06, "open": True,
             "entry_price": 100.0, "stop_loss": 95.0,
         }]
-        # +1% more same-direction risk -> 2% net long, over the 1.5% cap.
+        # +6% more same-direction risk -> 12% net long, over the 10% cap
+        # (raised 2026-08-23 from 1.5% — see MAX_NET_DIRECTIONAL_DELTA) —
+        # kept well under the 20% total-risk cap so that check doesn't fire
+        # first and mask the one this test actually targets.
         ok, reason = can_open_new_position(
-            state, {"ticker": "AMD", "direction": "bullish", "confidence": 90.0, "risk_pct": 0.01}
+            state, {"ticker": "AMD", "direction": "bullish", "confidence": 90.0, "risk_pct": 0.06}
         )
         assert ok is False
         assert "net_directional_delta" in reason

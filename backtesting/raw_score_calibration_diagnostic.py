@@ -119,7 +119,7 @@ def main() -> None:
 
     result = derive_rescale_factor(raw_scores, live_scores)
 
-    print(f"\nRaw-score calibration diagnostic")
+    print("\nRaw-score calibration diagnostic")
     print(f"Backtest raw scores captured: {result['n_backtest_scores']} (semiconductors, out-of-sample test period)")
     print(f"Live/paper composite scores logged: {result['n_live_scores']} (real scan history)")
     print(f"\nBacktest raw ceiling (max):  {result['backtest_raw_ceiling']}")

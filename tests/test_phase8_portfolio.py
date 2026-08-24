@@ -78,13 +78,14 @@ class TestCanOpenNewPosition:
         assert ok is False
         assert "red" in reason
 
-    def test_blocked_by_total_risk_3pct(self):
+    def test_blocked_by_total_risk_20pct(self):
         state = _empty_state()
-        # First position at 2.5% risk
-        state["positions"] = [{**_position("NVDA"), "open": True, "risk_pct": 0.025}]
-        ok, reason = can_open_new_position(state, _position("AMD", risk_pct=0.015))
+        # First position at 15% risk
+        state["positions"] = [{**_position("NVDA"), "open": True, "risk_pct": 0.15}]
+        # +6% more -> 21% total, over the 20% cap (raised 2026-08-23 from 3%).
+        ok, reason = can_open_new_position(state, _position("AMD", risk_pct=0.06))
         assert ok is False
-        assert "3pct" in reason
+        assert "20pct" in reason
 
     def test_blocked_by_correlated_pair_same_direction(self):
         state = _empty_state()

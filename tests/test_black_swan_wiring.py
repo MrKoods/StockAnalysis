@@ -315,20 +315,20 @@ class TestCrossSectorConcentrationCheck:
         from swing_model.portfolio_manager import get_portfolio_delta, MAX_NET_DIRECTIONAL_DELTA
 
         open_for_delta = [
-            {"ticker": "NVDA", "direction": "bullish", "risk_pct": 0.01},
-            {"ticker": "KEY", "direction": "bullish", "risk_pct": 0.01},
+            {"ticker": "NVDA", "direction": "bullish", "risk_pct": 0.04},
+            {"ticker": "KEY", "direction": "bullish", "risk_pct": 0.04},
         ]
         ephemeral_state = {"positions": [
             {"direction": p["direction"], "risk_pct": p["risk_pct"], "open": True}
             for p in open_for_delta
         ]}
         current_delta = get_portfolio_delta(ephemeral_state)
-        assert current_delta == pytest.approx(0.02)
-        # A third same-direction 1% position pushes projected exposure to 3%,
-        # well past the 1.5% advisory threshold used by the (currently
-        # unused) live path — proves the threshold comparison paper_runner.py
-        # makes would actually fire in this scenario.
-        projected = current_delta + 0.01
+        assert current_delta == pytest.approx(0.08)
+        # A third same-direction 3% position pushes projected exposure to 11%,
+        # past the 10% advisory threshold used by the (currently unused) live
+        # path (raised 2026-08-23 from 1.5%) — proves the threshold comparison
+        # paper_runner.py makes would actually fire in this scenario.
+        projected = current_delta + 0.03
         assert abs(projected) > MAX_NET_DIRECTIONAL_DELTA
 
     def test_opposite_direction_exposure_nets_out_and_does_not_trigger(self):
