@@ -41,7 +41,14 @@ Thumbs.db
 .coverage
 htmlcov/
 
-# Logs (processed logs are tracked; raw API cache is not)
+# Logs (structured, processed logs are tracked as the forensic audit trail;
+# raw API cache is not). app.log is the exception: free-text, locally
+# rotated/capped at 5MB x 3 backups (shared/utils/logger.py) — tracking it
+# is redundant with those local backups and was producing large, noisy
+# diffs that buried real code changes (2026-08-23 full model audit finding).
+# The structured CSVs (audit_log/validation_log/override_log/performance_
+# log/trade_outcomes/fill_log) stay tracked; only the free-text log doesn't.
+data/logs/app.log*
 data/raw/
 data/historical/
 
