@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.94 | 2026-08-24 | Bug Fix / Feature | Fixed two tickers being silently dropped from scans over vendor data-rounding noise, and a "fraud" news trigger repeatedly crying wolf on fraud-prevention marketing copy. Added tracking for whether trades that never filled would have won anyway, and a daily Discord summary of open/closed trades and P&L |
 | v2.2.93 | 2026-08-23 | Scoring Change | Raised two portfolio-wide risk caps to match v2.2.92's bigger per-trade risk budget, so they still mean something instead of blocking almost every trade |
 | v2.2.92 | 2026-08-23 | Scoring Change | Raised how much money each trade is allowed to risk, from $75 up to $500 at minimum confidence — the old amount was too small to ever afford a real options trade |
 | v2.2.91 | 2026-08-23 | Scoring Change | When two possible trades tie on expected profit, the model now picks the one with the smaller potential loss |
@@ -173,6 +174,68 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.94] — 2026-08-24 — [Bug Fix / Feature] Fixed silent OHLCV exclusions and a recurring fraud-gate false positive; added entry-zone opportunity-cost tracking and a daily Discord summary
+
+**Status:** Live.
+
+**In short:** Four fixes/additions from a daily scan review. Two tickers (AMD, RF) were silently
+dropped from entire scans today because a data-quality check couldn't tell a few cents of vendor
+rounding noise apart from real corrupted data — fixed with a small tolerance plus a retry. KEY's
+"fraud" news trigger kept firing on KeyBank's own fraud-prevention marketing, never a real fraud
+story — fixed by teaching the keyword matcher to recognize that context. Also added: a way to
+measure whether the entry-zone breakout rule is costing missed winners or protecting capital on
+trades that never filled, and a daily Discord report summarizing open/closed trades and P&L
+instead of only being available on request.
+
+**Fix 1 — silent OHLCV exclusions (`shared/utils/data_validator.py`,
+`swing_model/indicator_pipeline.py`):** The Open-vs-[Low,High] sanity check used an exact
+boundary, so RF's real 2026-08-24 bar (Open $30.47 vs Low $30.50, a 0.1% gap) tripped the same
+check meant to catch a genuine decimal-shift corruption, and excluded RF from both the
+mid-session and post-close scans. Added `data_validation.open_range_tolerance_pct` (default
+0.3%) — still catches real corruption instantly, no longer flags vendor rounding noise.
+Separately, AMD failed the same check at scan time but its data had self-corrected by later that
+day — added one 15-second-delayed retry (fresh single-ticker fetch) before excluding a ticker, to
+catch this kind of transient vendor-side settlement race.
+
+**Fix 2 — fraud-gate false positives (`shared/utils/event_gate.py`):** Ticker-trigger keyword
+matching (`event_severity_gate.ticker_triggers`) was a plain case-insensitive substring search
+with no context. KEY's "fraud" trigger re-fired 6+ times between 2026-07-23 and 2026-08-24 on
+KeyBank's own fraud-prevention marketing copy; AMD's fired once on a headline about a different
+company's fraud-detection product that only mentioned AMD as a hardware vendor. Neither was ever
+a real fraud allegation about the ticker in question. Added
+`event_severity_gate.advisory_context_exclusions` — a ticker-trigger match is now suppressed when
+the headline also contains an advisory/marketing phrase ("fraud prevention," "fraud tool," "fraud
+detection," "recognize and avoid," "prevent fraud"). Verified a genuine fraud allegation (UNH's
+real Medicare-fraud lawsuit) and a hypothetical real KEY fraud story both still gate normally.
+
+**Addition 1 — entry-zone opportunity-cost tracking (`paper_trading/paper_trade_metrics.py`,
+`paper_trading/paper_updater.py`):** Expired (never-filled) signals were excluded from every
+accuracy metric, with no way to tell whether the breakout-confirmation entry rule was protecting
+capital or costing missed winners. Every expired row now gets a hypothetical-fill simulation —
+entered immediately at the signal-time `entry_price`, walked through the exact same stop/target/
+time-stop logic real trades use — recorded in new `hypothetical_*` CSV columns.
+`compute_expired_signal_opportunity_cost()` reports the aggregate read (hypothetical win rate,
+avg R). Deliberately kept separate from win-rate/signal-accuracy, which stay scoped to trades
+that actually resolved for real. First two real cases (AVGO, HBAN) both show the entry-zone rule
+protected capital — an immediate fill would have stopped out within a day on both.
+
+**Addition 2 — daily Discord summary (`shared/utils/discord_alerts.py`,
+`paper_trading/paper_updater.py`):** `generate_daily_summary()` + `send_daily_summary_alert()`
+post a daily report — open positions with mark-to-market P&L (flagging any sized to 0 real
+contracts), anything closed that day, pending unfilled orders, lifetime realized/unrealized/net
+P&L, and short rule-based takeaways (best/worst open position, positions more than halfway to
+stop, opportunity-cost read). Fires once per scheduled `paper_updater` run; never recommends
+closing a position, same "flag, don't auto-act" principle as the existing critical-event alert.
+
+**Backtest:** Not applicable — none of today's changes touch scoring weights, formulas, or
+thresholds; all four are data-quality, gating-context, and reporting changes. Full test suite
+(1410 tests) passes unchanged; config coverage check confirms both new config keys are properly
+wired.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 
