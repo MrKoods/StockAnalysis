@@ -285,3 +285,85 @@ def test_open_position_critical_event_fires_immediate_alert(tmp_path, monkeypatc
     assert position["ticker"] == "NVDA"
     assert event["trigger_match"] == "CEO resigns"
     assert model_version == "v-test"
+
+
+def test_greeks_filter_status_round_trips_into_paper_trades_csv(tmp_path, monkeypatch):
+    """
+    trade_selector.rank_trade_structures()'s own greeks_filter_status
+    computation is well tested (tests/test_phase7_trade_math.py), but nothing
+    previously confirmed the wiring that actually persists it: paper_runner.py
+    reads it off the TOP-LEVEL rank_trade_structures() return dict (not
+    nested inside a ranked structure) and writes it into paper_trades.csv.
+    Every existing full-pipeline test mocks rank_trade_structures() without a
+    top-level "greeks_filter_status" key at all, so trade_result.get(...)
+    silently returns None -> "" in every one of them — a column-alignment or
+    key-name regression in that specific wiring wouldn't be caught by any of
+    them (2026-08-23 full model audit finding).
+    """
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+    trades_csv = tmp_path / "paper_trades.csv"
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", trades_csv)
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    cfg = _one_sector_cfg()
+    monkeypatch.setattr(pr, "load_config", lambda: cfg)
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    monkeypatch.setattr(pr, "run_pipeline", lambda tickers, benchmark=None, scan_type=None, cfg=None: {
+        "NVDA": _fake_indicators()["NVDA"],
+    })
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {"semiconductors": None},
+        "spy_df": None, "tnx_series": None, "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_china_tension_count", lambda cfg: 0)
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "compute_news_score", lambda *a, **k: {"critical_events": [], "dominant_theme": ""})
+    monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
+    monkeypatch.setattr(
+        pr, "rank_trade_structures",
+        lambda *a, **k: {
+            "ranked_structures": [{"name": "long_call", "ev_per_dollar_risked": 0.05}],
+            # The real field under test — a top-level key on the returned
+            # dict, not nested inside a ranked structure (see
+            # paper_runner.py's `trade_result.get("greeks_filter_status")`).
+            "greeks_filter_status": "not_implemented_no_options_chain_data",
+        },
+    )
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version: True)
+
+    signals_logged = pr.run_paper_scan(scan_type="post_close")
+    assert signals_logged == 1
+
+    import csv
+    with open(trades_csv, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 1
+    assert rows[0]["ticker"] == "NVDA"
+    assert rows[0]["greeks_filter_status"] == "not_implemented_no_options_chain_data"

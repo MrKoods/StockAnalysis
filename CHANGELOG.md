@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.88 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: `greeks_filter_status`'s underlying computation (`trade_selector.rank_trade_structures()`) was already tested, but the wiring that actually persists it to `paper_trades.csv` (`paper_runner.py` reading it off the top-level `rank_trade_structures()` return dict, not nested inside a structure) had no coverage — every existing full-pipeline test's `rank_trade_structures` mock omitted that key entirely, so `trade_result.get("greeks_filter_status")` silently returned `None` in all of them. New end-to-end test in `tests/test_multi_sector_live_pipeline.py` mocks a real value and confirms it round-trips into the CSV |
 | v2.2.87 | 2026-08-23 | Infrastructure | Full model audit follow-up, git hygiene: stopped tracking `data/logs/app.log` (4.96MB, 45 prior commits touching it) — free-text, already locally rotated/capped at 5MB×3 backups, tracking it was redundant with those local backups and produced large, noisy diffs that buried real code changes. The structured CSVs (`audit_log`/`validation_log`/`override_log`/`performance_log`/`trade_outcomes`/`fill_log` — the actual forensic audit trail) stay tracked; only the free-text log doesn't. File remains on disk, `git rm --cached` only, not deleted |
 | v2.2.86 | 2026-08-23 | Infrastructure | Tier-1 decision #4: a permanent CI guardrail against the recurring bug from v2.2.75/v2.2.83 (a file hardcoding a numeric copy of the go-live confidence threshold instead of importing the real one — recurred independently 3 times in 2 days). New `scripts/check_confidence_threshold_duplication.py`, wired into `.github/workflows/ci.yml`, flags either the exact `.get("confidence", ...) >= <number>` comparison shape or a `*CONFIDENCE_THRESHOLD*_= <number>` constant, in any file that doesn't also import the real `swing_model.scoring.CONFIDENCE_THRESHOLD`. Proven against synthetic bad/good examples before wiring in. Running it against the current codebase found one more real instance immediately: `bearish_rsi_band_sweep.py` still had the dead, unused `_CONFIDENCE_THRESHOLD_BACKTEST = 90.0` constant left over from v2.2.83's fix (never read — that file's real filtering runs through `run_walk_forward()`, already fixed) — removed |
 | v2.2.85 | 2026-08-23 | Bug Fix | The `StockAnalysis_WeeklyDashboard` scheduled task added in v2.2.79 fired for real for the first time today (Sunday 6pm) and confirmed a real gap: `monitoring/performance_dashboard.py` never loaded `.env`, unlike `paper_trading/paper_runner.py`, which does — so `DISCORD_WEBHOOK_URL` was never actually reaching `send_weekly_summary_alert()` when the module runs standalone via its own scheduled task (not imported from a process that already loaded `.env`). Confirmed by the task's own real log: `"DISCORD_WEBHOOK_URL not set in environment."` Added the same `load_dotenv()` pattern; verified the module now loads the real key |
@@ -165,6 +166,32 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.88] — 2026-08-23 — [Infrastructure] greeks_filter_status now has real end-to-end test coverage
+
+**Status:** Live.
+
+**In short:** The code-quality pass of the full model audit flagged that `greeks_filter_status`'s
+underlying computation (`trade_selector.rank_trade_structures()`) was well tested, but the wiring
+that actually writes it into `paper_trades.csv` had none. Confirmed the gap was real: every existing
+full-pipeline test (`tests/test_multi_sector_live_pipeline.py`) mocks `rank_trade_structures` without
+a top-level `"greeks_filter_status"` key at all, so `paper_runner.py`'s
+`trade_result.get("greeks_filter_status")` silently evaluated to `None` (written as `""`) in every
+one of them — a column-alignment or key-name regression in that specific wiring wouldn't have been
+caught by any test in the suite.
+
+**Fix:** New `test_greeks_filter_status_round_trips_into_paper_trades_csv`, same real-pipeline-with-
+fakes harness the other tests in that file already use, with `rank_trade_structures` mocked to
+actually return a real `greeks_filter_status` value at the top level (matching the real function's
+return shape). Confirms it survives all the way into the written CSV row.
+
+**Fix:** `tests/test_multi_sector_live_pipeline.py`. 1399+/1399+ tests pass.
+
+**Backtest:** Not applicable — test-only change.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 
