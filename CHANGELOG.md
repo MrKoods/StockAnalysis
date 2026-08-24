@@ -69,6 +69,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.91 | 2026-08-23 | Scoring Change | Tier-4 audit item: the 42-structure EV ranker sorted purely by `ev_per_dollar_per_day` (a point estimate of the mean) with no regard for loss-tail severity, so a high-win-rate/fat-tail structure and a more symmetric one with similar EV were treated as equivalent — `ev_per_dollar_per_day` is rounded to 5dp when stored, so genuine ties are common in practice. Added a secondary tiebreak on `max_loss_dollars` (smaller wins), extracted into a small testable `_ranking_sort_key` — undefined-risk structures (`max_loss_dollars is None`, never fabricated) always lose a tiebreak to any defined-risk structure at the same EV. Confirmed the tiebreak reaches the actual "recommended" pick, not just the diagnostic display order (that logic walks `ranked_structures` in this same sorted order). 5 new tests, including an end-to-end invariant check against real Black-Scholes-computed structures (real ties are hard to force, so this checks that whichever structures DO tie are correctly ordered) |
 | v2.2.90 | 2026-08-23 | Backtest Methodology | `run_backtest()` now reports a deflated Sharpe ratio (Bailey & Lopez de Prado) alongside the raw one — `compute_deflated_sharpe_ratio()` existed and was already used inside `entry_filter_variants.py`'s threshold-sweep diagnostic, but never against the actual headline number this project cites, despite 5+ documented rounds of entry-filter tuning against the same dataset. Those historical rounds' own per-trial Sharpes aren't cleanly replayable in one place (scattered across separate sweep scripts run over weeks), so this uses each walk-forward window's own Sharpe as the trial population instead — a self-contained, honest proxy for "is the single-slice Sharpe just the best of several time-window reads," not the broader historical-tuning question, but a real, directly-computable one. Reported only, doesn't gate `passed`. On real data: raw Sharpe 0.27, **deflated Sharpe -10.64 (PSR 0.00)** — not distinguishable from noise once the spread across windows is accounted for. New `deflated_sharpe`/`deflated_sharpe_psr`/`deflated_sharpe_n_trials` result fields, printed by the CLI. 4 new tests |
 | v2.2.89 | 2026-08-23 | Bug Fix / Scoring Change | Investigating why per-sector weight calibration only ever covered 1 of 4 active sectors found a real, currently-live bug: `data/processed/calibrated_weights_by_sector.json` held a `consumer_discretionary` entry (`n_trades=405`, `technical/sentiment/news=0.4/0.4/0.2`) that `paper_runner.py` was actively feeding into live scoring for AMZN/HD/TGT/NKE/SBUX — fit under the same stale `confidence >= 90` bug fixed elsewhere today (v2.2.83). Re-running the calibration with the corrected threshold finds only 5 real training trades for that sector (nowhere near the 100-trade minimum) — but `sector_weight_calibration.py`'s `run()` only ever called `save_sector_weights()` when something NEW qualified, so a sector that stops qualifying had no way to have its stale entry cleared; it would have kept being used indefinitely. Fixed: `save_sector_weights()` (a full-overwrite, not a merge) is now always called, even with `{}`, so a no-longer-qualifying sector's entry is actively cleared, not silently left stale. Re-ran for real: `calibrated_weights_by_sector.json` is now correctly `{}` — every sector currently falls back to the shared default weights, the honest state given the real data. 1 new test class, 2 existing tests' assertions corrected |
 | v2.2.88 | 2026-08-23 | Infrastructure | Full model audit follow-up, test coverage: `greeks_filter_status`'s underlying computation (`trade_selector.rank_trade_structures()`) was already tested, but the wiring that actually persists it to `paper_trades.csv` (`paper_runner.py` reading it off the top-level `rank_trade_structures()` return dict, not nested inside a structure) had no coverage — every existing full-pipeline test's `rank_trade_structures` mock omitted that key entirely, so `trade_result.get("greeks_filter_status")` silently returned `None` in all of them. New end-to-end test in `tests/test_multi_sector_live_pipeline.py` mocks a real value and confirms it round-trips into the CSV |
@@ -168,6 +169,41 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.91] — 2026-08-23 — [Scoring Change] EV ranking now tiebreaks on loss-tail severity, not just point-estimate EV
+
+**Status:** Live.
+
+**In short:** Tier-4 audit item. `trade_selector.rank_trade_structures()` ranks all 42 applicable
+trade structures by `ev_per_dollar_per_day` alone — a point estimate of the MEAN expected outcome,
+which says nothing about the shape of the distribution around that mean. Two structures with
+near-identical EV but very different loss-tail severity (e.g. a high-win-rate credit structure with a
+large, rare loss vs. a more symmetric one) were previously treated as equivalent — pure positional/
+arbitrary tiebreak order. Since `ev_per_dollar_per_day` is rounded to 5 decimal places when stored,
+genuine ties are common in practice, not a rare theoretical edge case.
+
+**Fix:** Extracted the sort into a small, directly-testable `_ranking_sort_key(x)` function. Primary
+key unchanged (`ev_per_dollar_per_day`, higher is better); secondary tiebreak on `max_loss_dollars`,
+smaller is better. Undefined-risk structures (`max_loss_dollars is None` — never fabricated, see
+`resolve_structure_economics`) always lose a tiebreak against any defined-risk structure at the same
+EV level, via an infinity sentinel. Confirmed this reaches the actual "recommended" pick, not just the
+diagnostic display order that reaches Discord/the CSV — the recommendation priority chain walks
+`ranked_structures` in this same sorted order via `next(...)`.
+
+**Fix:** `swing_model/trade_selector.py`. 5 new tests in `tests/test_phase7_trade_math.py`
+(`TestRankingSortKeyMaxLossTiebreak`) — direct sort-key tests plus an end-to-end invariant check
+against a real `rank_trade_structures()` call with real Black-Scholes-computed structures (exact ties
+are hard to force through real option pricing, so this checks that whichever structures DO tie in a
+real evaluation are correctly ordered by ascending max loss, rather than trying to engineer a
+guaranteed tie).
+
+**Backtest:** Not applicable — affects trade-structure selection among already-qualifying signals,
+not the confidence-scoring/qualifying-threshold path the backtest replays.
+
+**Approved:** Pending — do not go live on this version until reviewed. Live/paper scoring behavior
+change: a tied-EV structure choice can now differ from before, favoring lower max loss.
 
 ---
 

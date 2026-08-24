@@ -210,6 +210,29 @@ def _resolve_structure_legs(
     return legs
 
 
+def _ranking_sort_key(x: dict) -> tuple[float, float]:
+    """
+    Primary: ev_per_dollar_per_day (higher is better). Secondary tiebreak on
+    max_loss_dollars, smaller-is-better (2026-08-23, full model audit
+    finding): ev_per_dollar_per_day is a point estimate of the MEAN outcome —
+    it says nothing about the shape of the distribution around that mean, so
+    two structures with near-identical EV but very different loss-tail
+    severity were previously treated as equivalent (e.g. a high-win-rate
+    credit structure with a large rare loss could rank identically to a more
+    symmetric one). ev_per_dollar_per_day is rounded to 5dp when stored, so
+    genuine ties are common in practice, not a rare edge case.
+
+    Used with sort(key=_ranking_sort_key, reverse=True): both tuple elements
+    sort descending together, so the second element is negated up front —
+    a smaller max_loss (less negative once negated) sorts first. Undefined-
+    risk structures (max_loss_dollars is None — never fabricated, see
+    resolve_structure_economics) get -inf here, always losing a tiebreak
+    against any defined-risk structure at the same EV level.
+    """
+    max_loss = x["max_loss_dollars"]
+    return (x["ev_per_dollar_per_day"], -(max_loss if max_loss is not None else float("inf")))
+
+
 def rank_trade_structures(
     candidate: dict,
     account_equity: float,
@@ -501,12 +524,13 @@ def rank_trade_structures(
             "strike_source": strike_source,
         })
 
-    # Sort by EV per dollar risked *per day held* — see ev_per_dollar_per_day's
-    # inline comment above for why the un-normalized ratio alone isn't a fair
-    # comparison across structures with different time exposure. This order is
-    # kept as pure diagnostic/EV ranking (Discord alerts, human review of "what
-    # wins on raw economics") — the actual pick is decided separately below.
-    ranked_structures.sort(key=lambda x: x["ev_per_dollar_per_day"], reverse=True)
+    # Sort by EV per dollar risked *per day held*, with a max-loss tiebreak —
+    # see _ranking_sort_key's own docstring for why. This order is kept as
+    # pure diagnostic/EV ranking (Discord alerts, human review of "what wins
+    # on raw economics") AND feeds the "recommended" priority chain below
+    # (which walks ranked_structures in this order), so the tiebreak affects
+    # the actual pick too, not just display order.
+    ranked_structures.sort(key=_ranking_sort_key, reverse=True)
     for i, s in enumerate(ranked_structures):
         s["rank"] = i + 1
         s["recommended"] = False

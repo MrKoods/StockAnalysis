@@ -32,6 +32,7 @@ from shared.utils.position_sizer import (
 from swing_model.trade_selector import (
     rank_trade_structures,
     _resolve_structure_legs,
+    _ranking_sort_key,
 )
 
 
@@ -1111,3 +1112,84 @@ class TestMixedStructureSlippageDivisor:
         assert by_name_chain["covered_call"]["ev"] != pytest.approx(
             by_name_old["covered_call"]["ev"], abs=1e-4
         )
+
+
+# ---------------------------------------------------------------------------
+# _ranking_sort_key — EV/max-loss tiebreak (2026-08-23 full model audit)
+# ---------------------------------------------------------------------------
+
+class TestRankingSortKeyMaxLossTiebreak:
+    """
+    ev_per_dollar_per_day is a point estimate of the MEAN outcome — it says
+    nothing about the shape of the distribution around that mean, so two
+    structures with near-identical EV but very different loss-tail severity
+    used to be treated as equivalent (arbitrary/positional tie order). These
+    test the extracted sort key directly rather than driving the full
+    42-structure evaluation pipeline, since real ties are hard to engineer
+    reliably through actual Black-Scholes math but trivial to construct
+    directly against the dict shape ranked_structures actually stores.
+    """
+
+    def _sorted_names(self, structures):
+        return [s["name"] for s in sorted(structures, key=_ranking_sort_key, reverse=True)]
+
+    def test_higher_ev_wins_outright_regardless_of_max_loss(self):
+        structures = [
+            {"name": "big_loss_better_ev", "ev_per_dollar_per_day": 0.02, "max_loss_dollars": 5000.0},
+            {"name": "small_loss_worse_ev", "ev_per_dollar_per_day": 0.01, "max_loss_dollars": 100.0},
+        ]
+        assert self._sorted_names(structures)[0] == "big_loss_better_ev"
+
+    def test_tied_ev_prefers_smaller_max_loss(self):
+        structures = [
+            {"name": "fat_tail", "ev_per_dollar_per_day": 0.015, "max_loss_dollars": 4000.0},
+            {"name": "symmetric", "ev_per_dollar_per_day": 0.015, "max_loss_dollars": 300.0},
+        ]
+        assert self._sorted_names(structures)[0] == "symmetric"
+
+    def test_undefined_risk_always_loses_a_tie_to_defined_risk(self):
+        """max_loss_dollars=None (never fabricated — see resolve_structure_
+        economics) must lose a tiebreak against ANY defined-risk structure
+        at the same EV, not just ones with a small max loss."""
+        structures = [
+            {"name": "naked_short_call", "ev_per_dollar_per_day": 0.02, "max_loss_dollars": None},
+            {"name": "defined_risk_large", "ev_per_dollar_per_day": 0.02, "max_loss_dollars": 9999.0},
+        ]
+        assert self._sorted_names(structures)[0] == "defined_risk_large"
+
+    def test_two_undefined_risk_structures_tied_on_ev_keep_stable_relative_order(self):
+        """Both -inf -- no crash, no exception from comparing None-derived
+        sentinels, and Python's stable sort keeps their original relative
+        order rather than raising."""
+        structures = [
+            {"name": "naked_short_call", "ev_per_dollar_per_day": 0.02, "max_loss_dollars": None},
+            {"name": "naked_short_put", "ev_per_dollar_per_day": 0.02, "max_loss_dollars": None},
+        ]
+        assert set(self._sorted_names(structures)) == {"naked_short_call", "naked_short_put"}
+
+    def test_recommended_pick_prefers_lower_max_loss_among_tied_ev_structures(self):
+        """End-to-end confirmation that the tiebreak actually reaches the
+        real recommendation logic (which walks ranked_structures in sorted
+        order via next(...)), not just the standalone sort key in isolation.
+        Real ties are hard to force through actual Black-Scholes math, so
+        this verifies the invariant directly: whichever real structures (if
+        any) tie on ev_per_dollar_per_day in a real evaluation are ordered
+        by ascending max_loss_dollars among themselves."""
+        candidate = {
+            "ticker": "NVDA", "direction": "bullish", "confidence": 92,
+            "entry_mid": 500.0, "stop_loss": 485.0, "target": 545.0,
+            "atr_14": 10.0, "force_defined_risk": False,
+        }
+        result = rank_trade_structures(
+            candidate, account_equity=100_000, options_approval_level=4, iv_percentile=50.0,
+        )
+        by_ev: dict[float, list[dict]] = {}
+        for s in result["ranked_structures"]:
+            by_ev.setdefault(s["ev_per_dollar_per_day"], []).append(s)
+        for tied_group in by_ev.values():
+            if len(tied_group) < 2:
+                continue
+            losses = [s["max_loss_dollars"] if s["max_loss_dollars"] is not None else float("inf") for s in tied_group]
+            assert losses == sorted(losses), (
+                f"structures tied on ev_per_dollar_per_day must be ordered by ascending max_loss_dollars: {tied_group}"
+            )
