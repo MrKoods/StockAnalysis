@@ -139,12 +139,30 @@ def run() -> dict:
         sector, _, direction = key.partition(":")
         saved_by_sector.setdefault(sector, {})[direction or "bullish"] = weights
 
+    # Always call save_sector_weights, even with an empty dict — its contract
+    # is a full overwrite, not a merge (see its own docstring), which is
+    # exactly what's needed to correctly CLEAR a sector/direction that no
+    # longer qualifies. Previously this call was skipped entirely whenever
+    # nothing qualified this run, silently leaving a stale entry from a prior
+    # run's now-invalid methodology sitting in the file live scoring actually
+    # reads — real live impact found 2026-08-23: consumer_discretionary had a
+    # calibrated-weights entry (n_trades=405, technical/sentiment/news
+    # 0.4/0.4/0.2) that live/paper trading was actively using for AMZN/HD/
+    # TGT/NKE/SBUX, fit under the same stale confidence>=90 bug fixed
+    # elsewhere in v2.2.83 — the corrected re-run finds only 5 real training
+    # trades for that sector, nowhere near enough, and the stale entry would
+    # have kept being used indefinitely with no code path that could ever
+    # remove it.
+    save_sector_weights(saved_by_sector)
     if saved_by_sector:
-        save_sector_weights(saved_by_sector)
         print(f"\nSaved calibrated weights for: {', '.join(saved.keys())} "
               "to data/processed/calibrated_weights_by_sector.json")
     else:
-        print("\nNo sector/direction's fitted weights beat the shared default on holdout — nothing saved.")
+        print(
+            "\nNo sector/direction's fitted weights beat the shared default on holdout — "
+            "calibrated_weights_by_sector.json cleared (any stale prior-run entry is now "
+            "invalidated too, not just left unmentioned)."
+        )
 
     return {
         "fitted": fitted, "saved": saved, "version_blocked": version_blocked,

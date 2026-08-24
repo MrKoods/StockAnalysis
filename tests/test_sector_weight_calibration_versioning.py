@@ -39,7 +39,12 @@ class TestVersionGateBlocksLargeWeightChanges:
                     with patch.object(swc, "save_sector_weights") as mock_save:
                         result = swc.run()
 
-        mock_save.assert_not_called()
+        # save_sector_weights is now ALWAYS called (even with {}) — its
+        # contract is a full overwrite, needed to clear a stale prior-run
+        # entry when nothing qualifies this run (see its own call site's
+        # 2026-08-23 comment). A version-blocked candidate correctly isn't
+        # IN the saved dict, but the call itself still happens.
+        mock_save.assert_called_once_with({})
         assert "semiconductors" in result["version_blocked"]
         assert "semiconductors" not in result["saved"]
 
@@ -75,12 +80,44 @@ class TestVersionGateBlocksLargeWeightChanges:
 
     def test_nothing_fitted_does_not_touch_model_versioning(self):
         """No candidate weights at all -> the version check has nothing to
-        gate; must not error out on an empty pass."""
+        gate; must not error out on an empty pass. save_sector_weights IS
+        still called (with {}) -- see the large-change test's comment for
+        why an unconditional call is the correct, intentional behavior now."""
         with patch.object(swc, "collect_per_sector_outcomes", return_value={"semiconductors": []}):
             with patch.object(swc, "fit_sector_calibrated_weights", return_value={}):
                 with patch.object(swc, "save_sector_weights") as mock_save:
                     result = swc.run()
 
-        mock_save.assert_not_called()
+        mock_save.assert_called_once_with({})
         assert result["saved"] == {}
         assert result["version_blocked"] == {}
+
+
+class TestStaleSectorEntryIsCleared:
+    """
+    2026-08-23 real-world finding: consumer_discretionary had a calibrated-
+    weights entry (n_trades=405) that live/paper trading was actively
+    reading via load_live_weights_if_calibrated() for AMZN/HD/TGT/NKE/SBUX,
+    fit under the same stale confidence>=90 bug fixed elsewhere this same
+    day. A corrected re-run found only 5 real training trades for that
+    sector -- nowhere near enough -- but the OLD code only ever called
+    save_sector_weights() when something NEW qualified, so the stale entry
+    from the prior (invalid) run would have kept being used indefinitely
+    with no code path that could ever clear it. This is the regression
+    guard for that class of bug, not just the mechanics tested above.
+    """
+
+    def test_a_sector_that_no_longer_qualifies_is_cleared_not_left_stale(self):
+        with patch.object(swc, "collect_per_sector_outcomes", return_value={"consumer_discretionary": []}):
+            with patch.object(swc, "fit_sector_calibrated_weights", return_value={}):
+                with patch.object(swc, "save_sector_weights") as mock_save:
+                    swc.run()
+
+        # The real regression this guards against: previously this branch
+        # never called save_sector_weights at all, so a stale entry from an
+        # earlier run under different (possibly now-invalid) methodology
+        # would sit in calibrated_weights_by_sector.json forever, still
+        # being read by live scoring. Calling it with {} is what actually
+        # clears that -- save_sector_weights' own contract is a full
+        # overwrite, not a merge.
+        mock_save.assert_called_once_with({})
