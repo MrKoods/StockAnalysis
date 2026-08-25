@@ -465,6 +465,19 @@ portfolio:
         - [LOW, HD]      # home-improvement duopoly — near-identical demand drivers
         - [MCD, SBUX]    # quick-service restaurant peers, comparable consumer-spending sensitivity
 
+# Rank-based parallel paper-trading track (2026-08-24, full model audit
+# strategy pivot) — runs alongside the 70+ threshold system in
+# paper_trading/paper_runner.py, not replacing it. Every scan, ranks all
+# scored tickers WITHIN each sector by final_score and always paper-trades
+# the top N, regardless of whether they clear CONFIDENCE_THRESHOLD (70) —
+# guarantees a steady flow of new trades to build a real dataset, since
+# genuinely 70+ setups are structurally rare (~1 in 250 scored ticker-days;
+# see CHANGELOG v2.2.96/v2.2.97) regardless of watchlist size. Logged to its
+# own paper_trading/rank_trades.csv, own Discord identity, own $15,000
+# simulated capital pool — fully independent of the threshold track.
+rank_track:
+  top_n_per_sector: 2
+
 # PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
 # `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking
 # exists (portfolio_manager.count_day_trades/is_pdt_warning) but the gate is

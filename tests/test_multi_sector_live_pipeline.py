@@ -98,6 +98,10 @@ def test_two_sectors_flow_through_the_real_pipeline_and_tag_correctly(tmp_path, 
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    # RANK_TRADES_CSV isolated too (2026-08-24) -- run_paper_scan now also
+    # runs the rank track's own pass 2; without this it writes into the
+    # REAL paper_trading/rank_trades.csv on every test run.
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     cfg = _two_sector_cfg()
@@ -215,6 +219,7 @@ def test_open_position_critical_event_fires_immediate_alert(tmp_path, monkeypatc
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", trades_csv)
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     cfg = _one_sector_cfg()
@@ -307,6 +312,7 @@ def test_greeks_filter_status_round_trips_into_paper_trades_csv(tmp_path, monkey
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", trades_csv)
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     cfg = _one_sector_cfg()
@@ -389,6 +395,7 @@ def test_ticker_scan_error_is_visible_not_silent(tmp_path, monkeypatch):
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     cfg = {
@@ -481,3 +488,141 @@ def test_ticker_scan_error_is_visible_not_silent(tmp_path, monkeypatch):
     assert "injected scoring failure" in detail
 
     assert results["AMD"]["category"] == app_db.CATEGORY_SCAN_ERROR
+
+
+def test_rank_track_picks_top_n_per_sector_regardless_of_threshold(tmp_path, monkeypatch):
+    """
+    Rank-based parallel paper-trading track (2026-08-24 full model audit
+    strategy pivot) — end-to-end via the same real-pipeline-with-fakes
+    harness as the tests above. Both tickers in the sector score well below
+    CONFIDENCE_THRESHOLD (70) AND below STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD
+    (60, so the main loop never computes a structure for either) — the
+    whole point of this track is that it still produces a real, funded pick
+    on a day like this. With top_n_per_sector=1, only the higher-scoring
+    ticker (NVDA, 45) should be picked over the lower one (AMD, 30), logged
+    to rank_trades.csv with a real (non-$0) capital_deployed and a computed
+    entry/stop/target — never to paper_trades.csv (neither clears 70), and
+    never as a ticker_results/layer_scores DB row (rank-track picks are
+    CSV + Discord only, see _run_rank_track's own docstring).
+    """
+    config_path = tmp_path / "swing_config.yaml"
+    config_path.write_text("watchlist:\n  tickers: [NVDA, AMD]\n", encoding="utf-8")
+    db_path = tmp_path / "history.db"
+    trades_csv = tmp_path / "paper_trades.csv"
+    rank_csv = tmp_path / "rank_trades.csv"
+
+    monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
+    monkeypatch.setattr(pr, "PAPER_TRADES_CSV", trades_csv)
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", rank_csv)
+    monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
+
+    cfg = {
+        "watchlist": {
+            "sectors": {
+                "semiconductors": {
+                    "active": True, "benchmark": "SMH", "benchmark_alt": "SOXX",
+                    "tickers": ["NVDA", "AMD"],
+                },
+            },
+        },
+        "portfolio": {
+            "max_simultaneous_risk_pct": 0.03,
+            "max_total_open_positions": 4,
+            "sectors": {"semiconductors": {"max_open_positions": 2, "correlated_groups": []}},
+        },
+        "rank_track": {"top_n_per_sector": 1},
+        "risk_reward": {},
+        "options_approval_level": 2,
+    }
+    monkeypatch.setattr(pr, "load_config", lambda: cfg)
+    monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
+    monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
+    monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
+
+    def _low_score_indicators():
+        base = _fake_indicators()
+        base["NVDA"]["_test_final_score"] = 45.0
+        base["AMD"]["_test_final_score"] = 30.0
+        return base
+
+    monkeypatch.setattr(
+        pr, "run_pipeline",
+        lambda tickers, benchmark=None, scan_type=None, cfg=None: {
+            t: v for t, v in _low_score_indicators().items() if t in tickers
+        },
+    )
+    monkeypatch.setattr(pr, "_fetch_market_context", lambda cfg: {
+        "vix": 15.0, "sector_benchmark_dfs": {"semiconductors": None},
+        "spy_df": None, "tnx_series": None, "dxy_series": None, "ticker_ohlcv": {},
+    })
+    monkeypatch.setattr(pr, "_compute_regime_safe", lambda vix, benchmark_df: "trending_up")
+    monkeypatch.setattr(pr, "_compute_macro_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_china_tension_count", lambda cfg: 0)
+    monkeypatch.setattr(pr, "save_macro_state", lambda state: None)
+    monkeypatch.setattr(pr, "_compute_rotation_safe", lambda *a, **k: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(pr, "_compute_cross_ticker_safe", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "get_regime_modifiers", lambda regime, cfg, **k: {"regime_modifier": 0.0})
+    monkeypatch.setattr(pr, "get_seasonality_modifier", lambda cfg=None, sector=None: {"confidence_modifier": 0.0})
+    monkeypatch.setattr(
+        pr, "get_earnings_modifier",
+        lambda ticker, earnings_date, cfg=None: {"confidence_modifier": 0.0, "force_defined_risk": False},
+    )
+    monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
+    monkeypatch.setattr(pr, "compute_sentiment_score", lambda *a, **k: {})
+    monkeypatch.setattr(pr, "compute_news_score", lambda *a, **k: {"critical_events": [], "dominant_theme": ""})
+    monkeypatch.setattr(pr, "compute_confidence_score", _fake_compute_confidence_score)
+    # Both below STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60) -> the main loop
+    # never calls rank_trade_structures for either -> this fake is ONLY
+    # ever exercised by the rank track's own _build_rank_track_row.
+    monkeypatch.setattr(
+        pr, "rank_trade_structures",
+        lambda *a, **k: {
+            "ranked_structures": [
+                {"name": "long_call", "ev_per_dollar_per_day": 0.01, "recommended": True,
+                 "capital_required": 100.0, "position_type": "options"},
+            ],
+            "greeks_filter_status": None,
+        },
+    )
+    monkeypatch.setattr(pr, "send_near_miss_alert", lambda payload, model_version: True)
+    monkeypatch.setattr(pr, "send_paper_signal_alert", lambda payload, model_version=None, track="threshold": True)
+
+    signals_logged = pr.run_paper_scan(scan_type="post_close")
+
+    # --- neither ticker cleared 70, so nothing hit the threshold track ---
+    assert signals_logged == 0
+    assert not trades_csv.exists()
+
+    # --- rank track picked exactly 1 (top_n_per_sector=1): NVDA (45 > 30) ---
+    assert rank_csv.exists()
+    import csv as csv_module
+    with open(rank_csv, newline="", encoding="utf-8") as f:
+        rank_rows = list(csv_module.DictReader(f))
+    assert len(rank_rows) == 1
+    assert rank_rows[0]["ticker"] == "NVDA"
+    assert rank_rows[0]["confidence"] == "45.0"
+
+    # --- real, funded position -- not a $0 phantom row ---
+    assert float(rank_rows[0]["capital_deployed"]) > 0.0
+    assert float(rank_rows[0]["position_size"]) > 0
+    assert rank_rows[0]["entry_price"] != ""
+    assert rank_rows[0]["stop_loss"] != ""
+    assert rank_rows[0]["structure_recommended"] == "long_call"
+
+    # --- rank track never touched the app UI dashboard DB (CSV + Discord
+    # only) -- NVDA (the rank-track pick) and AMD both still get their
+    # normal sub-threshold DB row from the MAIN loop (both score below
+    # NEAR_MISS_THRESHOLD=65 -> CATEGORY_NO_SIGNAL), completely unaffected
+    # by the rank track; neither is CATEGORY_TRADE_RECOMMENDED, confirming
+    # the rank-track pick didn't create or overwrite a "real trade" DB row.
+    run_id = app_db.get_latest_run_id(db_path=db_path)
+    results = {r["ticker"]: r for r in app_db.get_ticker_results(run_id, db_path=db_path)}
+    assert results["NVDA"]["category"] == app_db.CATEGORY_NO_SIGNAL
+    assert results["AMD"]["category"] == app_db.CATEGORY_NO_SIGNAL

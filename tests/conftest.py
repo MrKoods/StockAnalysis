@@ -14,6 +14,8 @@ import swing_model.feedback_loop as feedback_loop_module
 import shared.utils.black_swan_detector as black_swan_detector_module
 import monitoring.performance_dashboard as performance_dashboard_module
 import shared.api_clients.market_data_client as market_data_client_module
+import paper_trading.paper_runner as paper_runner_module
+import paper_trading.paper_updater as paper_updater_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -57,6 +59,45 @@ def _isolate_csv_logs(tmp_path, monkeypatch):
     monkeypatch.setattr(logger_module, "_AUDIT_LOG_PATH", tmp_path / "audit_log.csv")
     monkeypatch.setattr(logger_module, "_VALIDATION_LOG_PATH", tmp_path / "validation_log.csv")
     monkeypatch.setattr(logger_module, "_OVERRIDE_LOG_PATH", tmp_path / "override_log.csv")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_paper_trading_csvs(tmp_path, monkeypatch):
+    """
+    Same class of problem as _isolate_csv_logs, this project's own repeatedly
+    -learned lesson (see that fixture's and _isolate_feedback_loop_files'
+    docstrings for two prior real-file-pollution incidents this exact
+    "blanket autouse default" pattern was built to close) — caught again
+    live, 2026-08-24: adding the rank-based parallel paper-trading track
+    means run_paper_scan() now ALSO writes to RANK_TRADES_CSV on every
+    call, and 5 existing tests across two files that already hand-patched
+    PAPER_TRADES_CSV per-test had no reason to know about the new file at
+    all — each one silently wrote real-looking rows into the actual
+    paper_trading/rank_trades.csv until this fixture closed the gap.
+
+    Isolates both CSV paths AND both lock-file paths, in BOTH paper_runner
+    and paper_updater — paper_updater.py imports PAPER_TRADES_LOCK_FILE/
+    RANK_TRADES_LOCK_FILE BY VALUE from paper_runner (`from
+    paper_trading.paper_runner import ... PAPER_TRADES_LOCK_FILE,
+    RANK_TRADES_LOCK_FILE`), a separate name binding in paper_updater's own
+    module namespace — patching paper_runner's copy alone does not affect
+    paper_updater's, so both must be patched explicitly (confirmed by
+    tests/test_paper_updater_mark_to_market.py already needing to patch
+    both modules' copies by hand for the same reason).
+
+    Per-test monkeypatches that already exist (most of
+    tests/test_multi_sector_live_pipeline.py, tests/test_app_ui_persistence.py)
+    are harmless now, not redundant to remove — same reasoning as every
+    other fixture in this file.
+    """
+    monkeypatch.setattr(paper_runner_module, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(paper_runner_module, "PAPER_TRADES_LOCK_FILE", tmp_path / "paper_trades.csv.lock")
+    monkeypatch.setattr(paper_runner_module, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
+    monkeypatch.setattr(paper_runner_module, "RANK_TRADES_LOCK_FILE", tmp_path / "rank_trades.csv.lock")
+    monkeypatch.setattr(paper_updater_module, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    monkeypatch.setattr(paper_updater_module, "PAPER_TRADES_LOCK_FILE", tmp_path / "paper_trades.csv.lock")
+    monkeypatch.setattr(paper_updater_module, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
+    monkeypatch.setattr(paper_updater_module, "RANK_TRADES_LOCK_FILE", tmp_path / "rank_trades.csv.lock")
 
 
 @pytest.fixture(autouse=True)

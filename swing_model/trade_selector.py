@@ -244,6 +244,7 @@ def rank_trade_structures(
     dte: Optional[int] = None,
     atm_iv: Optional[float] = None,
     win_probability_calibration: Optional[list] = None,
+    risk_pct_override: Optional[float] = None,
 ) -> dict:
     """
     Evaluate all 42 structures and return EV-ranked output.
@@ -567,7 +568,16 @@ def rank_trade_structures(
     # returns 0.0 under CONFIDENCE_THRESHOLD) — steps 1-2 then never match,
     # which is correct: sub-threshold signals are diagnostic-only and were
     # never going to be sized into a real position regardless.
-    dollar_risk = get_risk_pct(confidence) * account_equity
+    #
+    # risk_pct_override (2026-08-24, rank-based parallel paper-trading
+    # track): same override this function's sibling compute_position_size()
+    # (shared/utils/position_sizer.py) just gained, for the same reason — the
+    # rank track deliberately picks its top-N-per-sector regardless of score,
+    # and needs a real dollar_risk to find an actually-sized recommended
+    # structure instead of always falling through to step 3/4's diagnostic-
+    # only ($0) path. None (the default) preserves today's exact behavior.
+    risk_pct = risk_pct_override if risk_pct_override is not None else get_risk_pct(confidence)
+    dollar_risk = risk_pct * account_equity
 
     def _capped_risk_and_positive_ev(s: dict) -> bool:
         return s["name"] not in _GAP_RISK_STRUCTURES and s["ev"] > 0

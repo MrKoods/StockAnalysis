@@ -56,6 +56,10 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    # RANK_TRADES_CSV isolated too (2026-08-24) -- run_paper_scan now also
+    # runs the rank track's own pass 2; without this it writes into the
+    # REAL paper_trading/rank_trades.csv on every test run.
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     monkeypatch.setattr(pr, "load_config", lambda: {
@@ -164,6 +168,10 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    # RANK_TRADES_CSV isolated too (2026-08-24) -- run_paper_scan now also
+    # runs the rank track's own pass 2; without this it writes into the
+    # REAL paper_trading/rank_trades.csv on every test run.
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     monkeypatch.setattr(pr, "load_config", lambda: {
@@ -231,6 +239,10 @@ def test_run_paper_scan_flags_ev_outlier_against_structure_history(tmp_path, mon
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    # RANK_TRADES_CSV isolated too (2026-08-24) -- run_paper_scan now also
+    # runs the rank track's own pass 2; without this it writes into the
+    # REAL paper_trading/rank_trades.csv on every test run.
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     # Seed history.db with a clean cluster of long_strangle readings from
@@ -324,6 +336,10 @@ def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str, cfg_extra: dict 
 
     monkeypatch.setattr(pr, "CONFIG_PATH", config_path)
     monkeypatch.setattr(pr, "PAPER_TRADES_CSV", tmp_path / "paper_trades.csv")
+    # RANK_TRADES_CSV isolated too (2026-08-24) -- run_paper_scan now also
+    # runs the rank track's own pass 2; without this it writes into the
+    # REAL paper_trading/rank_trades.csv on every test run.
+    monkeypatch.setattr(pr, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(app_db, "DEFAULT_DB_PATH", db_path)
 
     monkeypatch.setattr(pr, "load_config", lambda: cfg)

@@ -35,6 +35,38 @@ _CB_COLORS = {
     "normal": _COLORS["green"],
 }
 
+# Rank-based parallel paper-trading track (2026-08-24) — distinct Discord
+# identity so a rank-track alert is never confused with a threshold-track
+# one in the same channel/webhook. Purple isn't used by any _COLORS entry
+# above. "threshold" (the default every existing call site keeps using)
+# intentionally has no entry here — _brand_payload leaves the payload
+# untouched for it.
+_TRACK_BRANDING = {
+    "rank": {"username": "StockAnalysis — Rank Track", "color": 0x9B59B6, "title_prefix": "🧪 [RANK] "},
+}
+
+
+def _brand_payload(payload: dict, track: str) -> dict:
+    """
+    Apply rank-track branding (distinct username/color/title prefix) to a
+    webhook payload just before it's sent — see _TRACK_BRANDING. Called from
+    every paper-trading alert function below with that function's own
+    track param, so branding logic lives in exactly one place instead of
+    being duplicated at each call site. track="threshold" (or any unknown
+    value) returns payload unchanged — same webhook, same look, zero
+    behavior change for every existing caller that doesn't pass track at all.
+    """
+    branding = _TRACK_BRANDING.get(track)
+    if branding is None:
+        return payload
+    payload = dict(payload)
+    payload["username"] = branding["username"]
+    payload["embeds"] = [
+        {**embed, "color": branding["color"], "title": branding["title_prefix"] + embed.get("title", "")}
+        for embed in payload.get("embeds", [])
+    ]
+    return payload
+
 
 def _extract_score_breakdown(d: dict) -> dict:
     """
@@ -598,7 +630,7 @@ def send_event_gate_expired_alert(block: dict, model_version: str = "v1.0.0") ->
     return _post_to_webhook({"embeds": [embed]})
 
 
-def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
+def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0", track: str = "threshold") -> bool:
     """
     PAPER TRADE PENDING embed — sent when a signal is logged, before price has
     necessarily traded into its entry zone. entry_zone_lower/upper is a
@@ -765,10 +797,10 @@ def send_paper_signal_alert(trade: dict, model_version: str = "v1.0.0") -> bool:
             "inline": False,
         })
 
-    return _post_to_webhook({"embeds": [embed]})
+    return _post_to_webhook(_brand_payload({"embeds": [embed]}, track))
 
 
-def send_paper_fill_alert(trade: dict, fill_price: float, fill_date: str) -> bool:
+def send_paper_fill_alert(trade: dict, fill_price: float, fill_date: str, track: str = "threshold") -> bool:
     """
     PAPER TRADE OPENED embed — the send_paper_signal_alert "pending" order's
     counterpart, sent once paper_updater.py's _find_fill confirms price
@@ -808,7 +840,7 @@ def send_paper_fill_alert(trade: dict, fill_price: float, fill_date: str) -> boo
         ],
         "footer": {"text": "Order filled — position now open"},
     }
-    return _post_to_webhook({"embeds": [embed]})
+    return _post_to_webhook(_brand_payload({"embeds": [embed]}, track))
 
 
 def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool:
@@ -845,7 +877,7 @@ def send_near_miss_alert(candidate: dict, model_version: str = "v1.0.0") -> bool
     return _post_to_webhook({"embeds": [embed]})
 
 
-def send_paper_outcome_alert(trade: dict) -> bool:
+def send_paper_outcome_alert(trade: dict, track: str = "threshold") -> bool:
     """PAPER TRADE CLOSED embed — sends when stop, target, or time stop triggers."""
     ticker = trade.get("ticker", "?")
     outcome = str(trade.get("outcome", "unknown"))
@@ -897,10 +929,10 @@ def send_paper_outcome_alert(trade: dict) -> bool:
             else "Paper trade closed — outcome logged for model calibration"
         )},
     }
-    return _post_to_webhook({"embeds": [embed]})
+    return _post_to_webhook(_brand_payload({"embeds": [embed]}, track))
 
 
-def send_paper_expired_alert(trade: dict) -> bool:
+def send_paper_expired_alert(trade: dict, track: str = "threshold") -> bool:
     """
     PAPER SIGNAL EXPIRED embed — sends when a breakout/breakdown entry order's
     zone is never reached within paper_updater.FILL_WINDOW_DAYS. Deliberately
@@ -927,10 +959,10 @@ def send_paper_expired_alert(trade: dict) -> bool:
         ],
         "footer": {"text": "Entry zone never reached — order never filled, no capital at risk"},
     }
-    return _post_to_webhook({"embeds": [embed]})
+    return _post_to_webhook(_brand_payload({"embeds": [embed]}, track))
 
 
-def send_daily_summary_alert(summary: dict, model_version: str = "v1.0.0") -> bool:
+def send_daily_summary_alert(summary: dict, model_version: str = "v1.0.0", track: str = "threshold") -> bool:
     """
     Daily paper-trading report: open positions with mark-to-market P&L,
     anything closed today, pending unfilled orders, lifetime realized/
@@ -996,7 +1028,7 @@ def send_daily_summary_alert(summary: dict, model_version: str = "v1.0.0") -> bo
         "fields": fields,
         "footer": {"text": f"StockAnalysis {model_version} — paper trading, no real capital at risk"},
     }
-    return _post_to_webhook({"embeds": [embed]})
+    return _post_to_webhook(_brand_payload({"embeds": [embed]}, track))
 
 
 def _post_to_webhook(payload: dict, webhook_url: Optional[str] = None) -> bool:

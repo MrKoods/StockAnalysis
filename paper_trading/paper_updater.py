@@ -83,7 +83,7 @@ from shared.utils.sector_config import get_active_sectors
 # whole CSV and drop those columns from every row, not just the closed one.
 # One shared list closes that gap structurally instead of relying on the two
 # modules being hand-kept in sync.
-from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE
+from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE
 from paper_trading.paper_trade_metrics import compute_expired_signal_opportunity_cost, generate_daily_summary
 
 logger = get_logger(__name__)
@@ -105,11 +105,17 @@ FILL_WINDOW_DAYS = 5
 EARNINGS_EXIT_POSITION_TYPES = {"shares"}
 
 
-def _load_trades() -> list[dict]:
-    if not PAPER_TRADES_CSV.exists():
-        logger.warning(f"{PAPER_TRADES_CSV} not found — nothing to update.")
+def _load_trades(csv_path: Optional[Path] = None) -> list[dict]:
+    """
+    csv_path (2026-08-24, rank-based parallel paper-trading track): defaults
+    to PAPER_TRADES_CSV (today's exact behavior) — pass RANK_TRADES_CSV to
+    load the rank track's own ledger instead.
+    """
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    if not path.exists():
+        logger.warning(f"{path} not found — nothing to update.")
         return []
-    with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
@@ -120,7 +126,7 @@ def _row_key(row: dict) -> tuple:
     return (row.get("signal_date", ""), row.get("ticker", ""))
 
 
-def _save_trades(trades: list[dict]) -> None:
+def _save_trades(trades: list[dict], csv_path: Optional[Path] = None, lock_path: Optional[Path] = None) -> None:
     """
     Full-file rewrite on every update, atomic and lock-protected.
 
@@ -137,17 +143,24 @@ def _save_trades(trades: list[dict]) -> None:
     read-merge-write, not for the multi-minute fetch loop before it —
     paper_runner.py's own appends (equally brief) shouldn't have to wait
     minutes for a scan-time Discord alert to go out.
+
+    csv_path/lock_path (2026-08-24, rank-based parallel paper-trading
+    track): default to PAPER_TRADES_CSV/PAPER_TRADES_LOCK_FILE (today's
+    exact behavior) — pass RANK_TRADES_CSV/RANK_TRADES_LOCK_FILE to update
+    the rank track's own ledger instead.
     """
-    with exclusive_lock(PAPER_TRADES_LOCK_FILE, timeout=15.0):
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    lock = lock_path if lock_path is not None else PAPER_TRADES_LOCK_FILE
+    with exclusive_lock(lock, timeout=15.0):
         known_keys = {_row_key(t) for t in trades}
-        live_trades = _load_trades()
+        live_trades = _load_trades(path)
         merged = list(trades) + [t for t in live_trades if _row_key(t) not in known_keys]
 
         buf = io.StringIO(newline="")
         writer = csv.DictWriter(buf, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(merged)
-        atomic_write_text(PAPER_TRADES_CSV, buf.getvalue(), newline="")
+        atomic_write_text(path, buf.getvalue(), newline="")
 
 
 def _download_ohlcv(ticker: str, start: str) -> Optional[pd.DataFrame]:
@@ -513,12 +526,36 @@ def _check_confidence_decay_exit(
     }
 
 
-def update_paper_trades() -> int:
+def update_paper_trades(
+    csv_path: Optional[Path] = None,
+    lock_path: Optional[Path] = None,
+    track: str = "threshold",
+    run_calibration: bool = True,
+) -> int:
     """
     Load open paper trades, check outcomes, update CSV, send Discord alerts.
     Returns count of trades closed this run.
+
+    csv_path/lock_path/track (2026-08-24, rank-based parallel paper-trading
+    track): default to PAPER_TRADES_CSV/PAPER_TRADES_LOCK_FILE/"threshold"
+    (today's exact behavior) — pass RANK_TRADES_CSV/RANK_TRADES_LOCK_FILE/
+    "rank" to run this same update cycle against the rank track's own
+    ledger instead. track is threaded through only into Discord alerts
+    (fill/outcome/expired), for branding — see discord_alerts.py's
+    _TRACK_BRANDING.
+
+    run_calibration: whether a run that closes trades may call
+    _maybe_run_calibration() at the end. Defaults True (today's exact
+    behavior for the threshold track). The rank-track's daily cycle passes
+    False explicitly — see _maybe_run_calibration's docstring for why:
+    calibration writes into data/processed/calibrated_weights.json, which
+    feeds LIVE SCORING WEIGHTS shared by both tracks (same scoring.py
+    engine) — the rank track's very different outcome distribution
+    shouldn't silently recalibrate weights the threshold track also
+    depends on, at least not until there's real data to have an informed
+    opinion about whether it should.
     """
-    trades = _load_trades()
+    trades = _load_trades(csv_path)
     if not trades:
         return 0
 
@@ -660,7 +697,7 @@ def update_paper_trades() -> int:
                             f"never reached within {FILL_WINDOW_DAYS} trading days — expired, no capital ever at risk"
                         )
                         try:
-                            send_paper_expired_alert(trade)
+                            send_paper_expired_alert(trade, track=track)
                         except Exception as exc:
                             logger.warning(f"{ticker}: paper expired alert failed — {exc}")
 
@@ -718,7 +755,7 @@ def update_paper_trades() -> int:
                         )
 
                 try:
-                    send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"])
+                    send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"], track=track)
                 except Exception as exc:
                     logger.warning(f"{ticker}: paper fill alert failed — {exc}")
 
@@ -852,7 +889,7 @@ def update_paper_trades() -> int:
                     "pnl_pct": pnl_pct,
                     "achieved_rr": achieved_rr,
                     "holding_days": result["holding_days"],
-                })
+                }, track=track)
             except Exception as exc:
                 logger.warning(f"{ticker}: paper outcome Discord alert failed — {exc}")
 
@@ -862,10 +899,10 @@ def update_paper_trades() -> int:
     if hypothetical_resolved:
         logger.info(f"{hypothetical_resolved} hypothetical (entry-zone opportunity cost) outcome(s) resolved")
 
-    _save_trades(trades)
+    _save_trades(trades, csv_path=csv_path, lock_path=lock_path)
     logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
 
-    if closed_count > 0:
+    if closed_count > 0 and run_calibration:
         _maybe_run_calibration(trades)
 
     return closed_count
@@ -911,7 +948,7 @@ def _maybe_run_calibration(trades: list[dict]) -> None:
             logger.warning(f"Calibration Discord alert failed — {exc}")
 
 
-def _try_send_daily_summary() -> None:
+def _try_send_daily_summary(csv_path: Optional[Path] = None, track: str = "threshold") -> None:
     """
     Best-effort daily Discord report — open positions, anything closed
     today, pending orders, P&L, and rule-based takeaways (see
@@ -920,17 +957,27 @@ def _try_send_daily_summary() -> None:
     ad hoc --summary CLI path — a manual on-demand check shouldn't also post
     to Discord. Never lets a summary/send failure take down the run that got
     this far; the CSV is already saved by the time this runs.
+
+    csv_path/track (2026-08-24, rank-based parallel paper-trading track):
+    default to PAPER_TRADES_CSV/"threshold" (today's exact behavior) — pass
+    RANK_TRADES_CSV/"rank" for the rank track's own daily summary instead.
     """
     try:
-        summary = generate_daily_summary()
-        send_daily_summary_alert(summary)
+        summary = generate_daily_summary(csv_path=csv_path)
+        send_daily_summary_alert(summary, track=track)
     except Exception as exc:
         logger.warning(f"Daily summary Discord alert failed — {exc}")
 
 
-def print_summary() -> None:
-    """Print a quick performance summary of all paper trades to stdout."""
-    trades = _load_trades()
+def print_summary(csv_path: Optional[Path] = None) -> None:
+    """
+    Print a quick performance summary of all paper trades to stdout.
+
+    csv_path (2026-08-24, rank-based parallel paper-trading track): defaults
+    to PAPER_TRADES_CSV (today's exact behavior) — pass RANK_TRADES_CSV for
+    the rank track's own summary instead.
+    """
+    trades = _load_trades(csv_path)
     if not trades:
         print("No paper trades found.")
         return
@@ -984,7 +1031,7 @@ def print_summary() -> None:
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
     print(f"  Expired (never filled): {len(expired)}")
     if expired:
-        opp_cost = compute_expired_signal_opportunity_cost()
+        opp_cost = compute_expired_signal_opportunity_cost(csv_path)
         if opp_cost["resolved_count"]:
             print(
                 f"    -> entry-zone opportunity cost: {opp_cost['resolved_count']} resolved "
@@ -1007,6 +1054,21 @@ def print_summary() -> None:
     print(f"{'=' * 50}\n")
 
 
+def _run_daily_cycle(csv_path: Path, lock_path: Path, track: str, run_calibration: bool) -> int:
+    """
+    Run one paper-trading track's full daily cycle: resolve outcomes, print
+    a summary, send the daily Discord summary. Extracted (2026-08-24,
+    rank-based parallel paper-trading track) so __main__ below runs this
+    once per track — same logic, different CSV/lock/Discord identity/
+    calibration-eligibility — instead of two near-duplicate blocks.
+    """
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+    print_summary(csv_path=csv_path)
+    print(f"[{track}] Closed {count} trade(s) this run.")
+    _try_send_daily_summary(csv_path=csv_path, track=track)
+    return count
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Paper trade outcome updater")
@@ -1015,9 +1077,20 @@ if __name__ == "__main__":
 
     if args.summary:
         print_summary()
+        print_summary(csv_path=RANK_TRADES_CSV)
     else:
-        count = update_paper_trades()
-        print_summary()
-        print(f"Closed {count} trade(s) this run.")
-        _try_send_daily_summary()
+        # Threshold track first (as before, and the only one allowed to feed
+        # calibration); rank track second, with run_calibration=False — see
+        # update_paper_trades' own docstring for why. Each wrapped in its
+        # own try/except so the two tracks are genuinely independent — an
+        # uncaught exception in one (e.g. a yfinance outage mid-walk) must
+        # not prevent the other from getting its own chance to run.
+        try:
+            _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+        except Exception as exc:
+            logger.error(f"Threshold track daily cycle failed — {exc}")
+        try:
+            _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+        except Exception as exc:
+            logger.error(f"Rank track daily cycle failed — {exc}")
     sys.exit(0)

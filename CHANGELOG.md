@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.98 | 2026-08-24 | Feature | Strategy pivot: added a second, parallel paper-trading track that always trades the top 2 highest-scoring stocks in each sector, every scan, instead of only the rare ones that hit the official 70+ bar. Runs alongside the existing system, not replacing it, with its own ledger, own $15,000 pretend account, and its own Discord messages so the two can be told apart and compared over time. Direct fix for "not enough trades to learn from" — this guarantees a steady flow of real data instead of waiting on a bar that's proven too rare to clear reliably, in any sector, no matter how many stocks get added to the watchlist |
 | v2.2.97 | 2026-08-24 | Research / Bug Fix | v2.2.96's "the real score shows a statistically real negative relationship with returns" claim was checked more rigorously and does NOT hold up — that one p=0.05 reading was one of ~15 similar tests run in the same pass, and doesn't survive the standard correction for running that many tests at once, nor does its own resampled confidence interval clearly exclude zero. Corrected finding: no robust evidence of edge in either direction from the real (non-proxy) part of the score — not proof it's broken, just still no proof it works. Added the two statistical checks that caught this to the standard backtest report so this doesn't have to be re-derived by hand next time |
 | v2.2.96 | 2026-08-24 | Research / Feature | Nearly doubled the watchlist (23 -> 49 stocks) to grow the historical test's sample size, heaviest in the two sectors with zero winning-or-losing trades to learn from. Result: it didn't work the way expected — banks are still at zero qualifying trades even after more than doubling that sector's stock count, and total qualifying trades across all sectors combined actually went down slightly, not up. Also see v2.2.97 — the "revealed a real negative signal" framing below did not hold up under closer scrutiny |
 | v2.2.95 | 2026-08-24 | Feature / Bug Fix / Research | Added a second, much-larger-sample way to check whether the score actually predicts anything (thousands of scored days instead of only 17 historically-qualifying trades) — first read says the real Technical/News/Fundamental data shows no significant edge on its own; the earlier win-rate numbers likely leaned on a backtest-only stand-in for Sentiment. Also: a scan-time crash on one stock used to vanish with a single log line — now it's visible and doesn't affect other stocks that day |
@@ -177,6 +178,85 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.98] — 2026-08-24 — [Feature] Rank-based parallel paper-trading track — strategy pivot after Phases 1/2 confirmed the sample-size problem can't be fixed by auditing or ticker expansion
+
+**Status:** Live.
+
+**In short:** After v2.2.95-v2.2.97 confirmed — twice, rigorously — that there's still no robust
+evidence the model has real edge in either direction, and that expanding the watchlist didn't grow
+the number of trades to learn from, the user decided the fix isn't more auditing or more tickers —
+it's a strategy pivot. Added a second, fully parallel paper-trading track that ranks every scored
+stock WITHIN each sector and always trades the top N (default 2), every scan, regardless of
+whether they clear the official 70-point bar. Runs alongside — never replacing — the existing
+threshold-based system, so the two can be directly compared over time. This is the direct fix for
+the sample-size problem the 70+ bar makes structurally rare (~1 in 250 scored stock-days,
+confirmed unaffected by watchlist size in v2.2.96): a guaranteed, steady flow of new trades instead
+of waiting on rare qualifying events.
+
+**A blocking finding that reshaped the design, caught before any code was written:**
+`get_risk_pct()` (`shared/utils/position_sizer.py`) returns exactly 0.0 for any confidence score
+below 70, by design — consumed by both `compute_position_size()` and `rank_trade_structures()`.
+Without a fix, every rank-track pick (nearly all below 70, by construction) would size to **zero
+real capital** — a CSV full of unfunded rows, not usable data. Fixed with an explicit,
+user-approved design: both functions gained an optional `risk_pct_override` parameter (default
+`None` — today's exact behavior for the existing threshold/live paths, which never pass it), and
+the rank track passes a flat 3.33% for every pick regardless of score (same $500-at-$15k figure as
+the threshold track's lowest real tier — simplest, most defensible choice until there's real data
+to justify a confidence-scaled curve for a score range with zero track record).
+
+**Architecture — two-pass within the same scan, not a new pipeline**
+(`paper_trading/paper_runner.py`): Pass 1 is the existing per-ticker loop, left behaviorally
+unchanged, now additionally stashing each ticker's computed context (indicators, direction,
+sector, regime, score, earnings/positioning data) as it runs — reusing whatever this scan already
+fetched, zero additional external API cost (StockTwits/Seeking Alpha/news are not re-fetched,
+directly respecting the "leave room for practice scans" budget concern from Phase 2). Pass 2 runs
+after the loop finishes: groups the stash by sector, ranks by score, takes the top N per sector,
+and for each pick computes entry/stop/target/structure **fresh** (never reusing whatever pass 1 may
+have already computed for a 60-69 scorer — that computation used the real `get_risk_pct`, i.e. a
+$0 budget, so it was never actually budget-checked the way this track's flat 3.33% needs). Logs to
+a new `paper_trading/rank_trades.csv` (same schema as the existing ledger) and fires a
+distinctly-branded Discord alert. Deliberately does not insert an app-UI dashboard DB row (that
+table has no unique constraint per ticker per scan run — a second insert would silently duplicate;
+CSV + Discord only for now, dashboard visibility is a deliberate future decision, not an oversight).
+
+**Fully independent from the threshold track in every way:** own duplicate-position guard (a
+ticker can legitimately be open in both tracks simultaneously, even opposite directions — that
+divergence is part of what the comparison is meant to surface), own simulated $15,000 capital pool
+(not a split of the existing one — nothing in this codebase treats `starting_capital` as a real
+decremented ledger balance, it's a sizing anchor recomputed fresh per signal), own Discord identity
+(`shared/utils/discord_alerts.py`: purple embed color, `🧪 [RANK]` title prefix, distinct webhook
+username — same webhook, no new secret needed), and — importantly — **calibration stays scoped to
+the threshold track only**. `_maybe_run_calibration()` writes into the SHARED
+`data/processed/calibrated_weights.json` that feeds live scoring weights for both tracks (same
+`scoring.py` engine); `paper_trading/paper_updater.py`'s `update_paper_trades()` gained a
+`run_calibration` parameter, explicitly `False` for the rank track's daily cycle, so its very
+different outcome distribution can't silently recalibrate weights the threshold track also depends
+on — revisit deliberately once there's real rank-track data to have an informed opinion.
+
+**Outcome resolution extends the existing scheduled task, no new one added**
+(`paper_trading/paper_updater.py`): `_load_trades`/`_save_trades`/`update_paper_trades`/
+`print_summary`/`_try_send_daily_summary` all gained optional `csv_path`/`lock_path`/`track`
+parameters (defaulting to today's exact behavior), and `__main__` now runs each track's full daily
+cycle (resolve outcomes → print summary → send daily Discord summary) once per track, each wrapped
+in its own try/except so one track's failure can't prevent the other from running.
+
+**Config:** new `rank_track.top_n_per_sector: 2` in `config/swing_config.yaml` — tunable from real
+data later without a code change. Sectors now have 11-14 tickers each (post v2.2.96 expansion), so
+top-2/sector is roughly 8 new rank-track signals/day once same-day dedup collapses the 3x/day scan
+cadence — a large multiple of the current real qualifying rate, without immediately reaching down
+to bottom-of-barrel names on a weak day.
+
+**Backtest:** Not applicable — this is a live paper-trading mechanism change, not a scoring/
+threshold change; nothing here is backtestable (the backtest never simulates rank-based selection).
+1439 tests pass (9 new: `risk_pct_override` unit tests on both sizing functions, an end-to-end
+integration test confirming the rank track produces real funded rows for sub-60-scoring tickers
+with zero DB-row side effects, and calibration-exclusion tests). Both guardrail checkers
+(`check_config_coverage.py`, `check_confidence_threshold_duplication.py`) pass clean.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

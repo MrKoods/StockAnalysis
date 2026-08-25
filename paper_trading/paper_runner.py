@@ -99,6 +99,15 @@ PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 # mid-run when it does its final rewrite. See paper_updater._save_trades'
 # docstring for the full mechanism.
 PAPER_TRADES_LOCK_FILE = Path("paper_trading/paper_trades.csv.lock")
+# Rank-based parallel paper-trading track (2026-08-24) — own ledger, own
+# lock file, same _CSV_COLUMNS schema. Independent of PAPER_TRADES_CSV in
+# every way: own duplicate-position guard, own simulated $15k capital pool,
+# own Discord identity (see discord_alerts.py's _TRACK_BRANDING). See
+# CHANGELOG v2.2.96/v2.2.97 for why this track exists — the 70+ threshold
+# track's qualifying trades are too rare to build a real dataset from in any
+# reasonable timeframe.
+RANK_TRADES_CSV = Path("paper_trading/rank_trades.csv")
+RANK_TRADES_LOCK_FILE = Path("paper_trading/rank_trades.csv.lock")
 CONFIG_PATH = Path("config/swing_config.yaml")
 # CONFIDENCE_THRESHOLD imported from swing_model.scoring above — used to be its
 # own separate literal here (both at 90), which is exactly the kind of drift
@@ -203,21 +212,29 @@ _CSV_COLUMNS = [
 ]
 
 
-def _load_logged_keys() -> set[tuple[str, str]]:
-    """Return set of (signal_date, ticker) pairs already in paper_trades.csv."""
-    if not PAPER_TRADES_CSV.exists():
+def _load_logged_keys(csv_path: Optional[Path] = None) -> set[tuple[str, str]]:
+    """
+    Return set of (signal_date, ticker) pairs already logged.
+
+    csv_path (2026-08-24, rank-based parallel paper-trading track): defaults
+    to PAPER_TRADES_CSV (today's exact behavior) — pass RANK_TRADES_CSV to
+    scope this to the rank track's own ledger instead. The two tracks never
+    share a dedup key set; each only ever sees its own file.
+    """
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    if not path.exists():
         return set()
     seen: set[tuple[str, str]] = set()
     try:
-        with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+        with open(path, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 seen.add((row.get("signal_date", ""), row.get("ticker", "")))
     except Exception as exc:
-        logger.warning(f"Could not read paper_trades.csv: {exc}")
+        logger.warning(f"Could not read {path}: {exc}")
     return seen
 
 
-def _load_open_positions() -> set[str]:
+def _load_open_positions(csv_path: Optional[Path] = None) -> set[str]:
     """
     Return set of tickers with an open (outcome blank) row in
     paper_trades.csv — the duplicate-position guard, scoped to paper
@@ -237,17 +254,25 @@ def _load_open_positions() -> set[str]:
     for account-equity tracking and deliberately kept paper trading's state
     out of position_state.json to avoid "silently mixed two unrelated
     pipelines' state" — same reasoning applies here.
+
+    csv_path (2026-08-24, rank-based parallel paper-trading track): defaults
+    to PAPER_TRADES_CSV (today's exact behavior) — pass RANK_TRADES_CSV to
+    scope this to the rank track's own ledger. The two tracks' duplicate-
+    position guards are fully independent by design: a ticker can legitimately
+    be open in both simultaneously (even in opposite directions) — that
+    divergence is part of what comparing the two tracks is meant to surface.
     """
-    if not PAPER_TRADES_CSV.exists():
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    if not path.exists():
         return set()
     open_positions: set[str] = set()
     try:
-        with open(PAPER_TRADES_CSV, newline="", encoding="utf-8") as f:
+        with open(path, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 if not (row.get("outcome") or "").strip():
                     open_positions.add(row.get("ticker", ""))
     except Exception as exc:
-        logger.warning(f"Could not read paper_trades.csv for open-position check: {exc}")
+        logger.warning(f"Could not read {path} for open-position check: {exc}")
     return open_positions
 
 
@@ -296,7 +321,7 @@ def _load_filled_open_positions_detail(sector_tickers: Optional[set[str]] = None
     return positions
 
 
-def _append_row(row: dict) -> None:
+def _append_row(row: dict, csv_path: Optional[Path] = None, lock_path: Optional[Path] = None) -> None:
     """
     Append one signal row to paper_trades.csv, creating header on first write.
 
@@ -306,11 +331,18 @@ def _append_row(row: dict) -> None:
     full-file rewrite. The critical section here is brief either way, so
     this only ever waits for another brief append or for paper_updater.py's
     own (also brief, see its docstring) locked merge-and-write step.
+
+    csv_path/lock_path (2026-08-24, rank-based parallel paper-trading
+    track): default to PAPER_TRADES_CSV/PAPER_TRADES_LOCK_FILE (today's
+    exact behavior) — pass RANK_TRADES_CSV/RANK_TRADES_LOCK_FILE to append
+    to the rank track's own ledger instead.
     """
-    PAPER_TRADES_CSV.parent.mkdir(parents=True, exist_ok=True)
-    with exclusive_lock(PAPER_TRADES_LOCK_FILE, timeout=15.0):
-        write_header = not PAPER_TRADES_CSV.exists()
-        with open(PAPER_TRADES_CSV, "a", newline="", encoding="utf-8") as f:
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    lock = lock_path if lock_path is not None else PAPER_TRADES_LOCK_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with exclusive_lock(lock, timeout=15.0):
+        write_header = not path.exists()
+        with open(path, "a", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
             if write_header:
                 writer.writeheader()
@@ -443,6 +475,15 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     today_str = date.today().isoformat()
     already_logged = _load_logged_keys()
     open_positions = _load_open_positions()
+
+    # Rank-based parallel paper-trading track (2026-08-24) — collects every
+    # ticker's already-computed scoring context as the main loop below runs,
+    # for a second pass AFTER the loop that ranks within each sector and
+    # logs the top N regardless of whether they clear CONFIDENCE_THRESHOLD.
+    # Reuses this same scan's already-fetched data (StockTwits/Seeking
+    # Alpha/news are NOT re-fetched) — see _run_rank_track's own docstring.
+    rank_track_candidates: list[dict] = []
+    rank_track_open_positions = _load_open_positions(RANK_TRADES_CSV)
 
     # app_ui DB — one scan_runs row per invocation; every ticker_result and
     # notification below is tagged with this run_id. run_id is None if the DB
@@ -1042,6 +1083,37 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 except Exception as exc:
                     logger.warning(f"{ticker}: structure ranking failed — {exc}")
 
+            # Moved up from the qualifying (>=70) branch below — computed
+            # once, unconditionally, so both that branch AND the rank-track
+            # stash right after it can use the same values (2026-08-24).
+            news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles) + len(sec_edgar_filings)
+            dominant_theme = str(news.get("dominant_narrative_theme", "")) if isinstance(news, dict) else ""
+
+            # Rank-based parallel paper-trading track (2026-08-24) — stash
+            # this ticker's full computed context, regardless of whether it
+            # qualifies/is a duplicate/etc. below. This is the single latest
+            # point in the loop where every input pass 2 needs is in scope
+            # for every ticker. Deliberately NOT stashing entry_mid/stop_loss/
+            # target_px/structure_recommended/capital_required even when
+            # already computed above (score >= STRUCTURE_EVAL_DIAGNOSTIC_
+            # THRESHOLD, 60): that computation used get_risk_pct(confidence),
+            # which returns 0.0 for anything below CONFIDENCE_THRESHOLD (70)
+            # — i.e. even a 60-69 scorer's structure was picked with a $0
+            # budget (falls through to the diagnostic-only path, not a real
+            # budget-fitted pick). Pass 2 needs a DIFFERENT structure
+            # selection, computed with the rank track's own flat 3.33%
+            # risk_pct_override — reusing pass 1's would silently carry over
+            # a structure that was never actually budget-checked. Recomputing
+            # entry/stop/target/structure fresh costs nothing extra
+            # externally (pure local math + rank_trade_structures, no new
+            # API fetches) so there's no real cost to always doing it fresh.
+            rank_track_candidates.append({
+                "ticker": ticker, "sector": sector, "direction": direction, "regime": regime,
+                "final_score": final_score, "score": score, "indicators": indicators,
+                "vix_val": vix_val, "news_count": news_count, "dominant_theme": dominant_theme,
+                "earnings_result": earnings_result, "positioning": positioning,
+            })
+
             if final_score < CONFIDENCE_THRESHOLD:
                 sub_threshold_category = (
                     app_db.CATEGORY_NEAR_MISS if final_score >= NEAR_MISS_THRESHOLD else app_db.CATEGORY_NO_SIGNAL
@@ -1114,8 +1186,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             )
             _db_insert_layer_scores_safe(result_id, score)
 
-            news_count = len(av_articles) + len(yahoo_articles) + len(finnhub_articles) + len(sec_edgar_filings)
-            dominant_theme = str(news.get("dominant_narrative_theme", "")) if isinstance(news, dict) else ""
+            # news_count/dominant_theme computed earlier now (2026-08-24) —
+            # see the rank-track stash comment above the sub-threshold branch.
 
             # Position sizing, locked in now so it can't drift if config or the
             # structure ranking changes before this trade closes. Calls
@@ -1335,6 +1407,19 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 sector=ticker_sector_map.get(ticker),
             )
 
+    # Rank-based parallel paper-trading track (2026-08-24) — pass 2, run
+    # after the main loop above finishes so every ticker's score this scan
+    # is known before ranking within each sector. See _run_rank_track's own
+    # docstring for the full design.
+    try:
+        rank_signals_logged = _run_rank_track(
+            rank_track_candidates, cfg, rr_cfg, model_version, today_str, win_probability_calibration,
+        )
+        if rank_signals_logged:
+            logger.info(f"Rank track: {rank_signals_logged} new signal(s) logged to {RANK_TRADES_CSV}")
+    except Exception as exc:
+        logger.error(f"Rank track pass failed — {exc}")
+
     # Event Severity Gate — expire blocks whose cooling-off condition is met,
     # same rule as run_swing_model.py: a post_close scan completing after the
     # block's event timestamp, excluding blocks created earlier in this run.
@@ -1351,6 +1436,283 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
 
     logger.info(f"Paper scan complete — {signals_logged} new signals logged to {PAPER_TRADES_CSV}")
     return signals_logged
+
+
+# Flat risk_pct for every rank-track pick, regardless of its actual score —
+# same $500-at-$15k figure as the threshold track's lowest real tier
+# (70-89 confidence). Simplest, most defensible choice until there's real
+# rank-track data to justify a confidence-scaled curve for a score range
+# with zero win-rate track record yet (2026-08-24, confirmed with user).
+_RANK_TRACK_RISK_PCT = 0.0333
+
+
+def _run_rank_track(
+    candidates: list[dict],
+    cfg: dict,
+    rr_cfg: dict,
+    model_version: str,
+    today_str: str,
+    win_probability_calibration,
+) -> int:
+    """
+    Rank-based parallel paper-trading track (2026-08-24 full model audit
+    strategy pivot) — pass 2 of the scan, run after the main per-ticker loop
+    (_run_paper_scan_locked) finishes. Ranks `candidates` (every ticker's
+    already-computed scoring context this scan, stashed by the main loop
+    regardless of qualification — see that loop's own stash comment) WITHIN
+    each sector by final_score, and always logs the top
+    rank_track.top_n_per_sector (config, default 2) to
+    paper_trading/rank_trades.csv — regardless of whether they clear
+    CONFIDENCE_THRESHOLD (70). Direct fix for the sample-size problem the
+    70+ threshold makes structurally rare (~1 in 250 scored ticker-days —
+    see CHANGELOG v2.2.96/v2.2.97): a guaranteed, steady flow of new trades
+    to build a real, comparable dataset, instead of waiting on rare
+    qualifying events that a full model audit found don't even grow with a
+    bigger watchlist.
+
+    Runs alongside — never replaces — the main loop's threshold-based
+    logging. Fully independent: own CSV, own duplicate-position guard
+    (own RANK_TRADES_CSV, never cross-checked against the threshold track —
+    a ticker can legitimately be open in both, even opposite directions),
+    own Discord identity (track="rank", see discord_alerts.py's
+    _TRACK_BRANDING), own simulated $15,000 capital pool (same
+    position_sizing.starting_capital value the threshold track uses — a
+    sizing anchor recomputed fresh per signal, not a shared decremented
+    ledger balance, see position_sizer.py). Never inserts a
+    ticker_results/layer_scores DB row (that table has no unique constraint
+    per (run_id, ticker) — a same-run second insert would silently
+    duplicate; CSV + Discord only for now, revisit once the track's proven
+    out).
+
+    Zero additional external API cost: `candidates` carries only what the
+    main loop already fetched this scan (StockTwits/Seeking Alpha/news are
+    NOT re-fetched here).
+
+    Returns count of new rank-track signals logged this run.
+    """
+    top_n = int(cfg.get("rank_track", {}).get("top_n_per_sector", 2))
+    already_logged = _load_logged_keys(RANK_TRADES_CSV)
+    open_positions = _load_open_positions(RANK_TRADES_CSV)
+
+    by_sector: dict[str, list[dict]] = {}
+    for c in candidates:
+        by_sector.setdefault(c["sector"], []).append(c)
+
+    signals_logged = 0
+    for sector, sector_candidates in by_sector.items():
+        ranked = sorted(sector_candidates, key=lambda c: c["final_score"], reverse=True)
+        picks = 0
+        for c in ranked:
+            if picks >= top_n:
+                break
+            ticker = c["ticker"]
+            if (today_str, ticker) in already_logged:
+                continue
+            if ticker in open_positions:
+                logger.info(f"{ticker}: rank-track pick but already has an open rank-track position — skipped")
+                continue
+
+            row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration)
+            if row is None:
+                # No valid entry/stop/target could be computed (e.g. no real
+                # close price) — skip this candidate, don't leave the
+                # sector short a pick; the loop just moves to the next-
+                # ranked candidate without incrementing `picks`.
+                continue
+
+            _append_row(row, csv_path=RANK_TRADES_CSV, lock_path=RANK_TRADES_LOCK_FILE)
+            signals_logged += 1
+            picks += 1
+            logger.info(
+                f"{ticker}: RANK-TRACK signal logged — rank #{picks} in {sector}, score {c['final_score']:.1f}"
+            )
+
+            rank_alert_payload = {
+                **row,
+                "entry_zone_lower": float(row["entry_zone_lower"]),
+                "entry_zone_upper": float(row["entry_zone_upper"]),
+                "stop_loss": float(row["stop_loss"]),
+                "target": float(row["target"]) if row["target"] else 0.0,
+                "rr_ratio": float(row["rr_ratio"]),
+                "technical_score": c["score"].get("technical_total", 0.0),
+                "technical_max": c["score"].get("technical_max", 40.0),
+                "positioning_score": c["score"].get("positioning_total", 0.0),
+                "sentiment_score": c["score"].get("sentiment_total", 0.0),
+                "sentiment_max": c["score"].get("sentiment_max", 15.0),
+                "news_score": c["score"].get("news_total", 0.0),
+                "news_max": c["score"].get("news_max", 15.0),
+                "fundamental_score": c["score"].get("fundamental_score", 0.0),
+                "greeks_filter_status": row.get("greeks_filter_status"),
+            }
+            try:
+                send_paper_signal_alert(rank_alert_payload, model_version=model_version, track="rank")
+            except Exception as exc:
+                logger.warning(f"{ticker}: rank-track Discord alert failed — {exc}")
+
+    return signals_logged
+
+
+def _build_rank_track_row(
+    candidate: dict, cfg: dict, rr_cfg: dict, today_str: str, win_probability_calibration,
+) -> Optional[dict]:
+    """
+    Compute entry/stop/target/structure/sizing fresh for one rank-track pick
+    and build its paper_trades.csv-schema row.
+
+    Always recomputes the structure via rank_trade_structures — never reuses
+    whatever the main loop may have already computed for this ticker at
+    STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD (60) and above. That earlier
+    computation used get_risk_pct(confidence), which is 0.0 below
+    CONFIDENCE_THRESHOLD (70) by design — so even a 60-69 scorer's structure
+    there was never actually budget-checked (dollar_risk=0.0 there means
+    _fits_tier_budget always fails, falling through to the diagnostic-only
+    path). This track needs a structure picked against its own real flat
+    3.33% budget instead, which only risk_pct_override provides.
+
+    Returns None if there's no real close price to anchor an entry/stop/
+    target to (should be rare — the main loop already required
+    `indicators is not None` to stash this candidate at all).
+    """
+    ticker = candidate["ticker"]
+    direction = candidate["direction"]
+    final_score = candidate["final_score"]
+    indicators = candidate["indicators"]
+    score = candidate["score"]
+    earnings_result = candidate["earnings_result"] or {}
+    positioning = candidate["positioning"] or {}
+    regime = candidate["regime"]
+
+    close_px = float(indicators.get("close", 0.0))
+    if close_px <= 0:
+        return None
+    atr = float(indicators.get("atr_14", close_px * 0.02))
+    level = float(indicators.get("rolling_low_20" if direction == "bearish" else "rolling_high_20", close_px))
+
+    entry_lower, entry_upper = compute_entry_zone(
+        close_px, level, atr, rr_cfg.get("entry_zone_half_width_atr", 0.25), direction=direction,
+    )
+    entry_mid = (entry_lower + entry_upper) / 2.0
+    stop_loss = compute_stop_loss(
+        entry_upper if direction == "bearish" else entry_lower, atr,
+        high_volume_support=indicators.get("high_volume_support"),
+        high_volume_resistance=indicators.get("high_volume_resistance"),
+        stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+        direction=direction,
+    )
+    target_px = compute_target(
+        entry_mid, stop_loss,
+        low_volume_area_above=indicators.get("low_volume_area_above"),
+        low_volume_area_below=indicators.get("low_volume_area_below"),
+        min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+    )
+    rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target_px, direction=direction) if target_px else 0.0
+
+    structure_recommended = ""
+    ev_per_dollar = ""
+    capital_required = None
+    position_type = None
+    greeks_filter_status = None
+    try:
+        force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
+        options_raw = positioning.get("_options_raw") or {}
+        trade_result = rank_trade_structures(
+            {
+                "ticker": ticker, "direction": direction, "confidence": final_score,
+                "entry": entry_mid, "entry_mid": entry_mid, "stop_loss": stop_loss,
+                "target": target_px, "atr_14": atr, "force_defined_risk": force_defined_risk,
+            },
+            account_equity=float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0)),
+            options_approval_level=int(cfg.get("options_approval_level", 2)),
+            iv_percentile=options_raw.get("iv_percentile", 50.0),
+            option_chain=options_raw.get("chain"),
+            dte=options_raw.get("dte"),
+            atm_iv=options_raw.get("atm_iv"),
+            cfg=cfg,
+            win_probability_calibration=win_probability_calibration,
+            risk_pct_override=_RANK_TRACK_RISK_PCT,
+        )
+        ranked = trade_result.get("ranked_structures", [])
+        greeks_filter_status = trade_result.get("greeks_filter_status")
+        if ranked:
+            best = next((s for s in ranked if s.get("recommended")), ranked[0])
+            structure_recommended = best.get("name", "")
+            capital_required = best.get("capital_required")
+            position_type = best.get("position_type")
+            ev_per_dollar = f"{best.get('ev_per_dollar_per_day', 0.0):.5f}"
+    except Exception as exc:
+        logger.warning(f"{ticker}: rank-track structure ranking failed — {exc}")
+
+    account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
+    max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 5000 / 15000))
+    position_type, risk_per_unit, per_unit_cost = derive_sizing_inputs(
+        position_type, capital_required, entry_mid, stop_loss
+    )
+    sizing = compute_position_size(
+        confidence_score=final_score, account_equity=account_equity,
+        circuit_breaker_state="normal", capital_required=risk_per_unit,
+        max_capital_pct=max_capital_pct, consecutive_losses=0,
+        per_unit_cost=per_unit_cost, position_type=position_type,
+        risk_pct_override=_RANK_TRACK_RISK_PCT,
+    )
+
+    sizing_note = f"rank track — flat {_RANK_TRACK_RISK_PCT:.2%} risk regardless of score ({final_score:.1f}/100)"
+    if sizing["contracts_or_shares"] == 0:
+        sizing_note += " — sizes to 0 at this account size, not practically tradeable"
+
+    return {
+        "signal_date": today_str,
+        "ticker": ticker,
+        "direction": direction,
+        "confidence": f"{final_score:.1f}",
+        "technical_score": f"{score.get('technical_total', 0.0):.1f}",
+        "positioning_score": f"{score.get('positioning_total', 0.0):.1f}",
+        "sentiment_score": f"{score.get('sentiment_total', 0.0):.1f}",
+        "news_score": f"{score.get('news_total', 0.0):.1f}",
+        "fundamental_score": f"{score.get('fundamental_score', 0.0):.1f}",
+        "regime": regime,
+        "vix_at_signal": f"{float(candidate['vix_val']):.1f}",
+        "rsi_14": f"{float(indicators.get('rsi_14', 0.0)):.1f}",
+        "rs_zscore": f"{float(indicators.get('rs_zscore', 0.0)):.3f}",
+        "mom_5d": f"{float(indicators.get('mom_5d', 0.0)):.4f}",
+        "trend_intact": str(bool(indicators.get("trend_intact", False))),
+        "entry_zone_lower": f"{entry_lower:.2f}",
+        "entry_zone_upper": f"{entry_upper:.2f}",
+        "entry_price": f"{entry_mid:.2f}",
+        "stop_loss": f"{stop_loss:.2f}",
+        "target": f"{target_px:.2f}" if target_px else "",
+        "rr_ratio": f"{rr_ratio:.2f}",
+        "news_article_count": str(candidate["news_count"]),
+        "dominant_news_theme": candidate["dominant_theme"],
+        "fundamental_data_quality": str(score.get("fundamental_data_quality", "unavailable")),
+        "structure_recommended": structure_recommended,
+        "ev_per_dollar": ev_per_dollar,
+        "capital_required": f"{float(capital_required):.2f}" if capital_required is not None else "",
+        "structure_legs": "",
+        "structure_effective_days": "",
+        "structure_greeks_summary": "",
+        "structure_max_loss": "",
+        "structure_max_gain": "",
+        "structure_strikes": "",
+        "structure_expiration_date": "",
+        "alternative_structures": "",
+        "greeks_filter_status": greeks_filter_status or "",
+        "risk_pct": f"{sizing['risk_pct']:.4f}",
+        "dollar_risk": f"{sizing['dollar_risk']:.2f}",
+        "actual_dollar_risk": f"{sizing['actual_dollar_risk']:.2f}",
+        "position_type": position_type,
+        "position_size": str(sizing["contracts_or_shares"]),
+        "capital_deployed": f"{sizing['capital_deployed']:.2f}",
+        "sizing_note": sizing_note,
+        "event_gate_blocked": bool(score.get("event_gate_blocked", False)),
+        "event_gate_trigger": score.get("event_gate_trigger", "") or "",
+        "outcome": "",
+        "exit_date": "",
+        "exit_price": "",
+        "pnl_pct": "",
+        "achieved_rr": "",
+        "holding_days": "",
+        "pnl_dollars": "",
+    }
 
 
 if __name__ == "__main__":

@@ -108,6 +108,7 @@ def compute_position_size(
     cfg: Optional[dict] = None,
     per_unit_cost: Optional[float] = None,
     position_type: str = "shares",
+    risk_pct_override: Optional[float] = None,
 ) -> dict:
     """
     Compute final position sizing for a trade recommendation.
@@ -145,7 +146,16 @@ def compute_position_size(
     if cfg is None:
         cfg = {}
 
-    base_risk_pct = get_risk_pct(confidence_score)
+    # risk_pct_override (2026-08-24, rank-based parallel paper-trading track):
+    # get_risk_pct() returns exactly 0.0 below CONFIDENCE_THRESHOLD (70) BY
+    # DESIGN — correct for the threshold/live paths, where a sub-threshold
+    # signal was never meant to size into a real position. The rank track
+    # deliberately picks its top-N-per-sector regardless of whether they
+    # clear 70, so it needs a real, non-zero risk_pct to produce comparable,
+    # usable data instead of a CSV full of $0 positions. None (the default)
+    # preserves today's exact behavior for every existing caller — only a
+    # caller that explicitly passes this bypasses get_risk_pct() at all.
+    base_risk_pct = risk_pct_override if risk_pct_override is not None else get_risk_pct(confidence_score)
     adjusted_risk_pct, cb_multiplier = apply_circuit_breaker_sizing(
         base_risk_pct, circuit_breaker_state, cfg
     )

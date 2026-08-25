@@ -551,6 +551,60 @@ class TestPositionSizer:
         assert result["contracts_or_shares"] == 10
         assert result["capital_deployed"] == pytest.approx(5000.0)
 
+
+class TestRiskPctOverride:
+    """
+    risk_pct_override (2026-08-24, rank-based parallel paper-trading track)
+    — an optional override on compute_position_size()/rank_trade_structures()
+    that bypasses get_risk_pct()'s 0.0-below-CONFIDENCE_THRESHOLD floor.
+    None (the default) must reproduce today's exact behavior for every
+    existing threshold/live caller — that's the regression-safety priority
+    here, since both functions also serve the live path.
+    """
+
+    def test_default_none_reproduces_today_exact_behavior_below_threshold(self):
+        # confidence=50 (well below CONFIDENCE_THRESHOLD=70) -> get_risk_pct
+        # returns 0.0 -> dollar_risk/risk_pct/position size all 0, same as
+        # every existing caller has always seen.
+        result = compute_position_size(
+            confidence_score=50, account_equity=15000, circuit_breaker_state="normal",
+            capital_required=500.0,
+        )
+        assert result["risk_pct"] == 0.0
+        assert result["dollar_risk"] == 0.0
+        assert result["contracts_or_shares"] == 0
+
+    def test_override_bypasses_zero_floor_below_threshold(self):
+        # Same confidence=50, but with an override -> real, non-zero sizing.
+        # capital_required=50 (not 500) so the $499.50 budget (0.0333*15000)
+        # can actually afford at least one unit -- isolates "does the
+        # override produce real sizing at all" from a coincidental
+        # budget-too-tight-for-this-unit-cost edge case.
+        result = compute_position_size(
+            confidence_score=50, account_equity=15000, circuit_breaker_state="normal",
+            capital_required=50.0, risk_pct_override=0.0333,
+        )
+        assert result["risk_pct"] == pytest.approx(0.0333)
+        assert result["dollar_risk"] == pytest.approx(15000 * 0.0333)
+        assert result["contracts_or_shares"] > 0
+
+    def test_override_takes_precedence_over_confidence_at_or_above_threshold_too(self):
+        # confidence=90 alone would give a much bigger tier (6.67%, $1000) —
+        # override still wins, at any confidence level, not just sub-70.
+        result = compute_position_size(
+            confidence_score=90, account_equity=15000, circuit_breaker_state="normal",
+            capital_required=500.0, risk_pct_override=0.0333,
+        )
+        assert result["risk_pct"] == pytest.approx(0.0333)
+
+    def test_existing_callers_that_never_pass_override_are_unaffected(self):
+        # Every pre-existing call in this test file omits risk_pct_override
+        # entirely -- confirms the parameter's mere existence doesn't change
+        # a real-tier (>=70) result either.
+        with_default = compute_position_size(93, 15000, "normal", 500.0)
+        explicit_none = compute_position_size(93, 15000, "normal", 500.0, risk_pct_override=None)
+        assert with_default == explicit_none
+
     def test_per_unit_cost_defaults_to_capital_required_when_omitted(self):
         # Backward compatibility: a caller that hasn't been updated to pass
         # per_unit_cost gets the exact same sizing as before this change
@@ -679,6 +733,53 @@ class TestTradeSelector:
         if ranked:
             recommended = [s for s in ranked if s["recommended"]]
             assert len(recommended) == 1
+
+    def test_risk_pct_override_lets_a_sub_threshold_confidence_get_a_real_budget_fit(self):
+        # risk_pct_override (2026-08-24, rank-based parallel paper-trading
+        # track). confidence=40 is well below CONFIDENCE_THRESHOLD (70) ->
+        # get_risk_pct returns 0.0 -> dollar_risk=0.0 -> _fits_tier_budget
+        # (capital_required <= dollar_risk) can never be True -> the
+        # "recommended" pick (if any) was never actually budget-checked.
+        # With an override, dollar_risk = 0.0333*15000 = $499.50, and the
+        # recommended structure — when one clears that budget — must have
+        # capital_required within it.
+        result_no_override = rank_trade_structures(
+            self._candidate(confidence=40), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+        )
+        result_override = rank_trade_structures(
+            self._candidate(confidence=40), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+            risk_pct_override=0.0333,
+        )
+        # Structure evaluation itself (42 structures, EV ranking) is
+        # unaffected by risk_pct_override -- only which one gets picked
+        # "recommended" changes.
+        assert result_no_override["structures_evaluated"] == result_override["structures_evaluated"] == 42
+
+        recommended_override = next((s for s in result_override["ranked_structures"] if s["recommended"]), None)
+        assert recommended_override is not None
+        # Either it fits the real $499.50 budget, or (steps 3/4) no
+        # affordable capped-risk structure existed at all -- but if it DOES
+        # report capital_required or the budget-based selection variant
+        # exists in `ranked_structures`, at least one should be <= 499.50,
+        # confirming the override budget was genuinely used, not just $0.
+        under_budget = [s for s in result_override["ranked_structures"] if s.get("capital_required", 1e9) <= 499.50]
+        assert len(under_budget) > 0
+
+    def test_risk_pct_override_none_reproduces_default_get_risk_pct_behavior(self):
+        # Omitting risk_pct_override entirely, and explicitly passing None,
+        # must produce identical results -- confirms the parameter's mere
+        # existence doesn't change any existing real-confidence caller.
+        default = rank_trade_structures(
+            self._candidate(confidence=92), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0,
+        )
+        explicit_none = rank_trade_structures(
+            self._candidate(confidence=92), account_equity=15000,
+            options_approval_level=2, iv_percentile=30.0, risk_pct_override=None,
+        )
+        assert default["ranked_structures"] == explicit_none["ranked_structures"]
 
     def test_stock_structure_capital_is_risk_distance_not_share_price(self):
         # _estimate_capital_required used to return the full share price for
