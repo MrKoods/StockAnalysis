@@ -60,7 +60,9 @@ from shared.utils.event_gate import (
 from shared.utils.sector_config import (
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
-from shared.utils.macro_overlay import dampen_news_china_theme_if_macro_confirmed, save_macro_state
+from shared.utils.macro_overlay import (
+    dampen_news_china_theme_if_macro_confirmed, save_macro_state, MACRO_ADVERSE,
+)
 from shared.utils.black_swan_detector import build_black_swan_alert
 from shared.utils.geopolitical_risk import apply_geopolitical_penalty
 
@@ -482,8 +484,9 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # logs the top N regardless of whether they clear CONFIDENCE_THRESHOLD.
     # Reuses this same scan's already-fetched data (StockTwits/Seeking
     # Alpha/news are NOT re-fetched) — see _run_rank_track's own docstring.
+    # (open positions for this track are loaded inside _run_rank_track itself,
+    # not here — this pass only needs to stash scoring context.)
     rank_track_candidates: list[dict] = []
-    rank_track_open_positions = _load_open_positions(RANK_TRADES_CSV)
 
     # app_ui DB — one scan_runs row per invocation; every ticker_result and
     # notification below is tagged with this run_id. run_id is None if the DB
@@ -575,6 +578,17 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
         save_macro_state({"by_sector": macro_state_by_sector})
     except Exception as exc:
         logger.warning(f"Failed to persist macro state — {exc}")
+
+    # Discord visibility for adverse macro conditions (2026-08-24) — same
+    # wiring as run_swing_model.py's live scans; send_macro_warning existed,
+    # fully built, but nothing ever called it in either path.
+    for sector_name, result in macro_state_by_sector.items():
+        if result.get("macro_state") == MACRO_ADVERSE:
+            try:
+                from shared.utils.discord_alerts import send_macro_warning
+                send_macro_warning(result, sector=sector_name)
+            except Exception as exc:
+                logger.warning(f"{sector_name}: macro warning Discord alert failed — {exc}")
 
     seasonality_mod_by_sector: dict[str, float] = {
         sector_name: get_seasonality_modifier(cfg=cfg, sector=sector_name).get("confidence_modifier", 0.0)

@@ -798,17 +798,6 @@ def _basic_validate(ticker: str, df: pd.DataFrame) -> bool:
     return True
 
 
-def build_indicator_table(pipeline_output: dict[str, Optional[dict]]) -> pd.DataFrame:
-    """
-    Convert pipeline output dict to DataFrame for inspection and logging.
-    One row per ticker, all indicator fields as columns. Excludes None entries.
-    """
-    rows = [v for v in pipeline_output.values() if v is not None]
-    if not rows:
-        return pd.DataFrame()
-    return pd.DataFrame(rows).set_index("ticker")
-
-
 def load_config(config_path: str = "config/swing_config.yaml") -> dict:
     """Load and return swing_config.yaml contents."""
     path = Path(config_path)

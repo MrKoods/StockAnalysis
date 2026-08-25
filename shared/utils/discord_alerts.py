@@ -539,12 +539,27 @@ def send_position_management_alert(
     return _post_to_webhook({"embeds": [embed]})
 
 
-def send_macro_warning(macro_state: dict) -> bool:
-    """🌐 Macro overlay warning when adverse conditions detected."""
-    state = macro_state.get("macro_state", "MACRO_NEUTRAL")
+def send_macro_warning(macro_state: dict, sector: Optional[str] = None) -> bool:
+    """
+    🌐 Macro overlay warning when adverse conditions detected.
+
+    Wired in 2026-08-24 — this alert existed, fully built, since before then
+    but nothing ever called it (macro_state was computed and persisted for
+    observability but never surfaced to Discord). Also fixed the same day:
+    the color check compared for "ADVERSE" (uppercase) against
+    macro_overlay.py's actual lowercase state values ("adverse"/"neutral"),
+    so it could never have matched even if this had been called before.
+
+    sector: macro overlay is computed per-sector (shared/utils/macro_overlay.py
+    compute_macro_state's sector param) — callers looping over
+    macro_state_by_sector should pass the sector name so multiple adverse
+    sectors in one scan don't produce indistinguishable alerts.
+    """
+    state = macro_state.get("macro_state", "neutral")
+    title = f"🌐 MACRO OVERLAY — {sector + ' — ' if sector else ''}{state}"
     embed = {
-        "title": f"🌐 MACRO OVERLAY — {state}",
-        "color": _COLORS["orange"] if "ADVERSE" in state else _COLORS["blue"],
+        "title": title,
+        "color": _COLORS["orange"] if "adverse" in state.lower() else _COLORS["blue"],
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "fields": [
             {"name": "TNX Trend", "value": str(macro_state.get("tnx_trend", "unknown")), "inline": True},

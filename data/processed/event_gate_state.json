@@ -509,6 +509,41 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-08-19T20:36:49.251637+00:00"
+    },
+    {
+      "id": "5229fe26-eb6b-4e28-9b7c-9088c19fb90b",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Dow Jones Futures Due With Nvidia Earnings, Tariffs, Warsh In Focus",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-08-23T18:30:17+00:00",
+      "created_at_utc": "2026-08-24T12:31:00.605419+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-08-24T20:35:39.801878+00:00"
+    },
+    {
+      "id": "125a0c41-1994-4543-a798-6144fc9cc39b",
+      "tickers": [
+        "KEY"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "How to Recognize and Avoid Bank Imposter Scams - KeyBank Shares Essential Fraud Prevention Tips",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-08-20T17:35:00+00:00",
+      "created_at_utc": "2026-08-24T12:33:00.515768+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-08-24T20:35:39.801888+00:00"
     }
   ]
 }

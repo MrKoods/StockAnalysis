@@ -23,13 +23,10 @@ urllib3>=2.0.0
 # Options math (Black-Scholes)
 py_vollib>=1.0.1
 
-# NER (named entity recognition)
-spacy>=3.7.0
-# spacy's CLI (spacy/cli/_util.py, used by `python -m spacy download`) imports
-# click directly but doesn't declare it as a dependency — it used to arrive
-# transitively via typer, until typer dropped its own click dependency in a
-# newer release. Declared explicitly so `spacy download` doesn't ModuleNotFoundError.
-click>=8.0.0
+# spacy/click removed 2026-08-24 — ner_extractor.py's spaCy scaffold
+# (load_nlp()) was never actually wired into extract_ticker_sentiments;
+# ticker sentiment extraction is, and always was, pure keyword matching.
+# See shared/utils/ner_extractor.py's module docstring.
 
 # Scheduling (paper trading / run cadence)
 schedule>=1.2.0

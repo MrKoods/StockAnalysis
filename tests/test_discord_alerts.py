@@ -22,6 +22,7 @@ from shared.utils.discord_alerts import (
     send_trade_alert,
     send_near_miss_alert,
     send_weekly_summary_alert,
+    send_macro_warning,
     _extract_score_breakdown,
     _format_score_breakdown,
 )
@@ -352,3 +353,37 @@ class TestScoreBreakdownKeyNormalization:
             "Technical: 30.0/40\nPositioning: 12.0/20\n"
             "Sentiment: 10.0/15\nNews: 8.0/15\nFundamental: 5.0/10"
         )
+
+
+class TestSendMacroWarning:
+    """
+    Wired in 2026-08-24 — send_macro_warning existed, fully built, but nothing
+    ever called it. Also covers the same-day fix to its color check, which
+    compared for "ADVERSE" (uppercase) against macro_overlay.py's actual
+    lowercase state values ("adverse"/"neutral") and so could never have
+    matched even before this alert was ever called.
+    """
+
+    def test_adverse_state_uses_orange(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        send_macro_warning({"macro_state": "adverse", "tnx_trend": "rising"})
+        embed = posted["json"]["embeds"][0]
+        assert embed["color"] == 0xFF8800  # orange
+
+    def test_neutral_state_uses_blue(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        send_macro_warning({"macro_state": "neutral"})
+        embed = posted["json"]["embeds"][0]
+        assert embed["color"] == 0x33B5E5  # blue
+
+    def test_sector_included_in_title_when_provided(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        send_macro_warning({"macro_state": "adverse"}, sector="semiconductors")
+        embed = posted["json"]["embeds"][0]
+        assert "semiconductors" in embed["title"]
+
+    def test_sector_omitted_from_title_when_not_provided(self, monkeypatch):
+        posted = _fake_webhook(monkeypatch)
+        send_macro_warning({"macro_state": "adverse"})
+        embed = posted["json"]["embeds"][0]
+        assert "—  —" not in embed["title"]

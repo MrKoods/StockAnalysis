@@ -169,39 +169,6 @@ def compute_trailing_stop(
     return round(lowest_close_since_entry + (trailing_multiplier * atr_14), 4)
 
 
-def compute_pnl_surface(
-    entry: float,
-    stop: float,
-    target: float,
-    structure_multipliers: dict,
-) -> dict:
-    """
-    Compute theoretical position value at Day 1, 5, 10, 15 under three scenarios.
-    Returns dict: {day_1, day_5, day_10, day_15: {target_hit, flat, stop_hit}}
-    Used for complex structure EV and open-position management alerts.
-    """
-    risk = entry - stop
-    reward = target - entry
-
-    # Structure-specific multipliers (numeric values only; string multipliers → 1.0 default)
-    pm = structure_multipliers.get("profit_mult", 1.0)
-    lm = structure_multipliers.get("loss_mult", 1.0)
-    if not isinstance(pm, (int, float)):
-        pm = 1.0
-    if not isinstance(lm, (int, float)):
-        lm = 1.0
-
-    surface = {}
-    for day in [1, 5, 10, 15]:
-        t_scale = min(1.0, day / 15.0)
-        surface[f"day_{day}"] = {
-            "target_hit": round(reward * pm * t_scale, 2),
-            "flat": 0.0,
-            "stop_hit": round(-risk * lm * t_scale, 2),
-        }
-    return surface
-
-
 def compute_trade_setup(
     current_close: float,
     breakout_level: float,

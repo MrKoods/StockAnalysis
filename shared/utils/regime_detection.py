@@ -1,10 +1,8 @@
 """
 SHARED: Classifies market into trending/choppy/high-vol/range-bound
-using VIX level, SMH trend (sector benchmark direction), and market breadth.
+using VIX level and SMH trend (sector benchmark direction).
 Regime is computed daily and stored as a field in each ticker's indicator output.
 """
-
-from typing import Optional
 
 import pandas as pd
 
@@ -19,7 +17,6 @@ REGIME_HIGH_VOL = "high_vol"
 def classify_regime(
     vix: float,
     smh_ohlcv: pd.DataFrame,
-    breadth_advance_decline: Optional[float] = None,
     vix_high_threshold: float = 25.0,
     vix_extreme_threshold: float = 30.0,
     smh_trend_period: int = 20,

@@ -32,6 +32,7 @@ from shared.utils.macro_overlay import (
     compute_macro_state,
     dampen_news_china_theme_if_macro_confirmed,
     save_macro_state,
+    MACRO_ADVERSE,
 )
 from shared.utils.geopolitical_risk import apply_geopolitical_penalty
 from shared.utils.sector_rotation import (
@@ -233,6 +234,20 @@ def _main_locked(scan_type: str = "post_close") -> None:
         save_macro_state({"by_sector": macro_state_by_sector})
     except Exception as exc:
         logger.warning(f"Failed to persist macro state — {exc}")
+
+    # Discord visibility for adverse macro conditions (2026-08-24) —
+    # send_macro_warning existed, fully built, since before this date but
+    # nothing ever called it; macro state was computed and persisted above
+    # but never surfaced. One alert per adverse sector, no throttling (this
+    # is a materially high bar per compute_macro_state's own docstring —
+    # not expected to fire every scan).
+    for sector_name, bench_result in macro_state_by_sector.items():
+        if bench_result.get("macro_state") == MACRO_ADVERSE:
+            try:
+                from shared.utils.discord_alerts import send_macro_warning
+                send_macro_warning(bench_result, sector=sector_name)
+            except Exception as exc:
+                logger.warning(f"{sector_name}: macro warning Discord alert failed — {exc}")
 
     seasonality_modifier_by_sector: dict[str, float] = {
         sector_name: get_seasonality_modifier(cfg=cfg, sector=sector_name).get("confidence_modifier", 0.0)

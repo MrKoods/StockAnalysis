@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.99 | 2026-08-24 | Bug Fix / Infrastructure | Full code-cleanliness audit of the core model. Found and fixed a real pricing bug: the EV formula used for 4 of the 42 option structures (ratio/back spreads) was ignoring implied volatility and time decay entirely, and — separately — comparing per-share dollars against per-contract dollars, undervaluing those 4 structures' rankings by roughly 100x versus every other structure. Also: wired up a finished-but-never-connected Discord alert for adverse macro conditions (and fixed its color logic, dead on arrival since before it was ever connected); corrected a module's doc claiming it uses AI-based text recognition when it's always been simple keyword matching; removed several dead settings and 6 functions nothing in the codebase ever called |
 | v2.2.98 | 2026-08-24 | Feature | Strategy pivot: added a second, parallel paper-trading track that always trades the top 2 highest-scoring stocks in each sector, every scan, instead of only the rare ones that hit the official 70+ bar. Runs alongside the existing system, not replacing it, with its own ledger, own $15,000 pretend account, and its own Discord messages so the two can be told apart and compared over time. Direct fix for "not enough trades to learn from" — this guarantees a steady flow of real data instead of waiting on a bar that's proven too rare to clear reliably, in any sector, no matter how many stocks get added to the watchlist |
 | v2.2.97 | 2026-08-24 | Research / Bug Fix | v2.2.96's "the real score shows a statistically real negative relationship with returns" claim was checked more rigorously and does NOT hold up — that one p=0.05 reading was one of ~15 similar tests run in the same pass, and doesn't survive the standard correction for running that many tests at once, nor does its own resampled confidence interval clearly exclude zero. Corrected finding: no robust evidence of edge in either direction from the real (non-proxy) part of the score — not proof it's broken, just still no proof it works. Added the two statistical checks that caught this to the standard backtest report so this doesn't have to be re-derived by hand next time |
 | v2.2.96 | 2026-08-24 | Research / Feature | Nearly doubled the watchlist (23 -> 49 stocks) to grow the historical test's sample size, heaviest in the two sectors with zero winning-or-losing trades to learn from. Result: it didn't work the way expected — banks are still at zero qualifying trades even after more than doubling that sector's stock count, and total qualifying trades across all sectors combined actually went down slightly, not up. Also see v2.2.97 — the "revealed a real negative signal" framing below did not hold up under closer scrutiny |
@@ -178,6 +179,109 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.99] — 2026-08-24 — [Bug Fix / Infrastructure] Code-cleanliness audit of the core model — dead code removed, 5 real gaps found and fixed
+
+**Status:** Live.
+
+**In short:** User-requested pass over `swing_model/`, `backtesting/`, `paper_trading/`, `shared/`
+(88 files) for dead code and cleanliness, done via ruff (unused args/vars/zip-strict), a dedicated
+orphaned-function sweep, and manual verification of every candidate before touching anything. Found
+and fixed 5 real bugs/gaps, plus removed confirmed dead code. All 1443 tests pass; both guardrail
+checkers (`check_config_coverage.py`, `check_confidence_threshold_duplication.py`) pass clean.
+
+**The one with real trading impact — `compute_ev_surface` (`shared/utils/options_math.py`), used by
+4 of the 42 structures (`call_ratio_spread`, `put_ratio_spread`, `call_back_spread`,
+`put_back_spread`):**
+1. **IV/risk-free rate silently discarded.** The function has always accepted `iv`/`r` params (real
+   fetched implied vol was being passed in from `trade_selector.py`) but never referenced them in
+   its body — the EV estimate was a plain linear approximation with zero volatility or delta
+   modeling, despite the docstring promising "option value increases by estimated delta × move."
+   `daily_theta_est` was hardcoded to `0.0` with a comment acknowledging "theta is net positive for
+   ratio spreads (sellers)" — i.e. it should have been nonzero. Fixed: real per-day theta now
+   computed via `net_structure_greeks`/`compute_greeks` (already used correctly elsewhere in this
+   same file for the other 35 structures), using each structure's actual legs — ratio spreads
+   modeled 1-long/2-short at near/far OTM strikes (same 0.06/0.12 convention this module already
+   uses for its other 2-leg spreads), back spreads the exact mirror (1-short/2-long, same strikes,
+   every leg's side flipped). Deliberately did not hardcode a fixed sign either way in its place —
+   whether a ratio spread nets positive or negative theta depends on how the near (single, larger-
+   magnitude) leg compares to the two far (smaller-magnitude) legs, which itself depends on strike
+   spacing/IV/days-to-expiry, not a universal rule. Checked against this project's own real numbers:
+   at the ~8-day default hold this codebase actually uses, the near leg dominates, so
+   `call_ratio_spread` nets NEGATIVE theta here — the opposite of the old inline comment's
+   assumption, which was never actually computed before this fix and only ever described half of
+   this function's own 4 structures anyway (never addressed back spreads at all). The one
+   guaranteed, tested property is the mirror relationship: back spread theta = −(ratio spread theta)
+   exactly, since the legs are identical strikes with every side flipped.
+2. **Separately, a ~100x unit-scale bug.** `compute_ev_surface`'s output was in raw per-share
+   dollars (never multiplied by the module's standard ×100-per-contract convention), while
+   `_estimate_capital_required` — the denominator every structure's `ev_per_dollar_risked` ranking
+   divides by — returns per-contract (×100) dollars for these 4 structure names. That mismatch meant
+   these structures' ranking ratio was ~100x smaller than a fairly-computed one, regardless of their
+   real economics — likely making them effectively unselectable against the other 38 structures for
+   as long as this bug existed. Fixed by scaling the surface's output consistently with the rest of
+   the module. Also passed `dte` through from `trade_selector.py` (previously always fell back to
+   the module default) so the new theta estimate uses the real days-to-expiry when known.
+
+**Other real gaps found and fixed:**
+- **`send_macro_warning` (`shared/utils/discord_alerts.py`) existed, fully built, but nothing ever
+  called it** — adverse macro conditions (TNX/DXY/China-tension trend) were computed and persisted
+  every scan but never reached Discord. Wired into both `run_swing_model.py` and
+  `paper_trading/paper_runner.py`, once per adverse sector, right after each already persists
+  `macro_state`. Also fixed in the same function: its color logic checked for `"ADVERSE"`
+  (uppercase) against `macro_overlay.py`'s actual lowercase state values (`"adverse"`/`"neutral"`)
+  — the warning color could never have fired even before this alert was ever connected. Added a
+  `sector` param so multiple simultaneously-adverse sectors in one scan produce distinguishable
+  alerts instead of identical ones.
+- **`ner_extractor.py`'s module docstring claimed spaCy-based NER with a keyword-matching
+  fallback — the spaCy path never existed in practice.** `load_nlp()` was defined but never called
+  from anywhere; `extract_ticker_sentiments` (the real entry point, feeding every scored ticker-day's
+  News category, live and backtest) has always been pure keyword/alias matching. Removed the dead
+  `load_nlp()`/spaCy-import scaffold and corrected both docstrings to describe what the code actually
+  does. Also removed the now-unused `spacy`/`click` dependencies from `requirements.txt` (confirmed
+  unused anywhere else in the codebase first). Not a live-behavior change — the keyword-matching path
+  is what has always run — but a genuine capability-description gap worth knowing about: if real NER
+  is wanted, it needs a deliberate design + backtest revalidation, not a silent re-add.
+- **`classify_regime`'s `breadth_advance_decline` param (`shared/utils/regime_detection.py`) was
+  accepted but never used** — the module docstring claimed regime is classified using "VIX level,
+  SMH trend, and market breadth," but every real call site (`run_swing_model.py`,
+  `backtest_engine.py`/`simulation.py`, tests) has only ever passed `vix`/`smh_ohlcv`. No data source
+  for breadth exists anywhere in the pipeline. Removed the dead parameter and corrected the
+  docstring — zero behavior change, since it was never passed anyway.
+- **`identify_dominant_theme`'s `lookback_days` param (`shared/utils/narrative_tracker.py`) was
+  decorative** — `news_layer.py` called it with `lookback_days=5` as if it mattered, but the
+  function never used it; the real article window is entirely controlled by a different, decoupled
+  mechanism upstream (`news_cfg.decay_zero_at_days`, currently also 5.0 by coincidence). Harmless
+  today, but if `decay_zero_at_days` is ever retuned this parameter would keep silently doing
+  nothing — same "looks wired, isn't" shape as the 109-key config backlog closed 2026-08-19. Removed
+  the parameter; the real window is documented at the call site instead.
+
+**Confirmed dead code removed (no behavior change):**
+- `paper_runner.py`: a `_load_open_positions(RANK_TRADES_CSV)` call computed and immediately
+  discarded every scan (real file I/O for nothing — `_run_rank_track` already does its own
+  independent load).
+- `trade_selector.py`'s `_apply_filters`: `iv_percentile`/`max_capital`/`cfg` params were threaded
+  through but never used inside it (the real filtering on those already happens in the caller
+  directly). `_estimate_capital_required`'s unused `target` param.
+- 4 more orphaned functions, confirmed zero callers anywhere in the repo including tests:
+  `build_indicator_table` (`indicator_pipeline.py`), `compute_pnl_surface` (`risk_reward.py`),
+  `calibrate_weights` (`backtesting/metrics.py` — superseded by `feedback_loop.py`'s calibration),
+  `classify_lead_lag` (`temporal_alignment.py`).
+- No commented-out code blocks or unreachable code found anywhere in scope.
+
+**Backtest:** No scoring weights or thresholds changed for the 38 structures already using
+`resolve_structure_economics`; the `compute_ev_surface` fix only affects the 4 structures that were
+never being fairly priced in the first place, so there's no prior "working" baseline this regresses.
+Given how rarely qualifying trades occur at all (see CHANGELOG v2.2.94-97), these 4 structures have
+likely never actually won a ranking in live/paper trading under the old bug — this fix mainly
+determines whether they get a fair shot going forward, not a change to already-observed results.
+1445 tests pass (6 new: 4 for `send_macro_warning`'s color/sector coverage, 2 for
+`compute_ev_surface`'s per-contract scale and theta-mirror property; its 2 pre-existing tests were
+also updated for the new `structure_name`/`dte` signature). Both guardrail checkers pass clean.
+
+**Approved:** Pending — do not go live on this version until reviewed.
 
 ---
 

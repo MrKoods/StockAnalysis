@@ -39,7 +39,7 @@ _WATCHED_PATHS = ("config/swing_config.yaml", "swing_model/scoring.py")
 
 def _git(*args: str) -> str:
     result = subprocess.run(
-        ["git", *args], capture_output=True, text=True, check=True,
+        ["git", *args], capture_output=True, text=True, encoding="utf-8", check=True,
     )
     return result.stdout
 
@@ -47,7 +47,7 @@ def _git(*args: str) -> str:
 def _file_changed(base: str, head: str, path: str) -> bool:
     diff = subprocess.run(
         ["git", "diff", "--name-only", f"{base}..{head}", "--", path],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8",
     )
     return bool(diff.stdout.strip())
 

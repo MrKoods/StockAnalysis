@@ -65,9 +65,3 @@ def load_historical_news(
                 articles.append(art)
 
     return articles
-
-
-def has_historical_news(ticker: str, bar_date: datetime) -> bool:
-    """Return True if at least one quarterly file exists for this ticker/date."""
-    ql = quarter_label(bar_date if bar_date.tzinfo else bar_date.replace(tzinfo=timezone.utc))
-    return (_NEWS_DIR / ticker / f"{ql}.json").exists()

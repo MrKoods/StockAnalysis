@@ -1,35 +1,20 @@
 """
-SHARED: Named entity recognition on news headlines.
+SHARED: Ticker-specific sentiment extraction from news headlines, via keyword/
+alias matching + nearest-mention attribution (NOT spaCy NER — an earlier
+version of this module scaffolded a spaCy-backed named-entity path
+(load_nlp()) that was never actually wired into extract_ticker_sentiments
+below; removed 2026-08-24 along with the spacy dependency, since nothing in
+this codebase called it. If real NER is wanted later, it needs a deliberate
+design + backtest revalidation, not a silent re-add here — this is a live
+News-category input).
 Extracts ticker-specific sentiment from multi-company articles so that
 "NVDA gains market share as AMD struggles" yields bullish for NVDA and bearish for AMD
 rather than generic positive semiconductor sentiment applied equally to both.
 Applied to both Alpha Vantage articles and Yahoo Finance headlines.
-Uses spaCy en_core_web_sm when available; falls back to keyword matching.
-Install NLP model: python -m spacy download en_core_web_sm
 """
 
 import re
 from typing import Optional
-
-try:
-    import spacy
-    _nlp = None  # Lazy-loaded on first use
-except ImportError:
-    spacy = None  # type: ignore
-    _nlp = None
-
-
-def load_nlp():
-    """Lazy-load spaCy model. Returns None if spaCy is unavailable."""
-    global _nlp
-    if _nlp is None:
-        if spacy is None:
-            return None
-        try:
-            _nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            return None  # Model not downloaded — fall back to keyword matching
-    return _nlp
 
 
 _TICKER_TO_COMPANY: dict[str, list[str]] = {
@@ -163,9 +148,10 @@ def extract_ticker_sentiments(
     None means the ticker was not mentioned.
 
     Strategy:
-    1. If spaCy available: NER identifies ORG entities → matched to tickers
-    2. Fallback: keyword search for company name aliases in headline text
-    3. Sentiment classified by presence of bullish/bearish keywords near the entity
+    1. Keyword search for company name aliases in headline text (_TICKER_TO_COMPANY)
+    2. When multiple tickers are mentioned, each bullish/bearish keyword is
+       attributed to whichever mentioned ticker's alias sits nearest to it in
+       the headline (see the multi-company branch below)
     """
     headline_lower = headline.lower()
     result: dict[str, Optional[str]] = {t: None for t in watchlist}

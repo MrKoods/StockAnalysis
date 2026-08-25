@@ -226,22 +226,52 @@ def compute_ev_simple(
 
 
 def compute_ev_surface(
-    structure: dict,
+    structure_name: str,
     entry: float,
     stop: float,
     target: float,
     win_probability: float,
     iv: float,
-    r: float = 0.05,
+    r: float = _DEFAULT_RISK_FREE_RATE,
+    dte: Optional[int] = None,
 ) -> dict:
     """
     Full P&L surface EV for complex structures (ratio spreads, back spreads).
     Estimates P&L across Day 1, 5, 10, 15 × target_hit/flat/stop_hit scenarios.
 
     For complex structures we model relative price moves:
-    - target_hit: price reaches target, option value increases by estimated delta × move
-    - flat: price unchanged, theta decay applied
-    - stop_hit: price reaches stop, option value decreases
+    - target_hit: price reaches target, weighted by win_probability
+    - flat: price unchanged, real Black-Scholes theta decay applied (see
+      theta_legs below) — not scaled by win_probability, since decay accrues
+      regardless of whether the trade ultimately wins or loses
+    - stop_hit: price reaches stop, weighted by loss_prob
+
+    Theta (2026-08-24 fix — was hardcoded to 0.0, silently discarding the iv/r
+    this function has always accepted): call_ratio_spread/put_ratio_spread are
+    modeled 1-long/2-short at near/far OTM strikes (same 0.06/0.12 convention
+    as this module's other 2-leg spreads in resolve_structure_economics above);
+    call_back_spread/put_back_spread are the exact mirror, 1-short/2-long
+    (same strikes, every leg's side flipped). Net theta sign is NOT hardcoded
+    either way — it's computed for real via net_structure_greeks, and depends
+    on how the near (single, larger-magnitude) leg's theta compares to the two
+    far (smaller-magnitude each) legs', which itself depends on strike
+    spacing/IV/days-to-expiry. At this project's short ~8-day default hold the
+    near leg tends to dominate, so ratio spreads net NEGATIVE theta (pay
+    decay) here — the opposite of the old "ratio spreads collect theta"
+    inline comment that sat next to the hardcoded 0.0 and was never actually
+    computed. That comment only ever described half of this function's own 4
+    structures anyway (never addressed back spreads). Computed once via
+    net_structure_greeks at a representative T (dte, or
+    _DEFAULT_DTE_IF_UNKNOWN) and applied as a flat daily rate across the whole
+    day 1-15 window — the same linear simplification t_scale already makes
+    for the target/stop scenarios below.
+
+    All dollar figures are per-contract (100-share lot), matching every other
+    structure's economics in this module. Previously this function returned
+    raw per-share deltas while _compute_structure_ev divided them by a
+    per-contract (×100) capital figure from _estimate_capital_required —
+    silently underpricing these 4 structures' ev_per_dollar_risked ranking by
+    ~100x relative to every other structure in the system.
 
     Returns dict:
     {
@@ -260,9 +290,35 @@ def compute_ev_surface(
     up_move = abs(target - entry)
     down_move = abs(entry - stop)
 
-    # Approximate theta decay per structure — 3 legs typical for ratio spreads
-    legs = structure.get("legs", 3)
-    daily_theta_est = 0.0  # theta is net positive for ratio spreads (sellers)
+    # Real per-day theta from actual priced legs, not a leg-count guess — see
+    # this function's own docstring above for the strike convention and why
+    # ratio vs. back spreads have opposite theta sign.
+    effective_days = max(dte if dte is not None else _DEFAULT_DTE_IF_UNKNOWN, 1)
+    T = effective_days / 365.0
+    iv_safe = max(iv, _MIN_IV)
+
+    if structure_name in ("call_ratio_spread", "put_ratio_spread"):
+        opt = "call" if structure_name == "call_ratio_spread" else "put"
+        near_k, far_k = _otm_k(entry, opt, 0.06), _otm_k(entry, opt, 0.12)
+        theta_legs = [
+            {"strike": near_k, "option_type": opt, "side": "long", "iv": iv_safe},
+            {"strike": far_k, "option_type": opt, "side": "short", "iv": iv_safe},
+            {"strike": far_k, "option_type": opt, "side": "short", "iv": iv_safe},
+        ]
+    elif structure_name in ("call_back_spread", "put_back_spread"):
+        opt = "call" if structure_name == "call_back_spread" else "put"
+        near_k, far_k = _otm_k(entry, opt, 0.06), _otm_k(entry, opt, 0.12)
+        theta_legs = [
+            {"strike": near_k, "option_type": opt, "side": "short", "iv": iv_safe},
+            {"strike": far_k, "option_type": opt, "side": "long", "iv": iv_safe},
+            {"strike": far_k, "option_type": opt, "side": "long", "iv": iv_safe},
+        ]
+    else:
+        theta_legs = []  # unrecognized structure — fall back to no decay estimate
+
+    daily_theta_est = (
+        net_structure_greeks(theta_legs, S=entry, T=T, r=r)["net"]["theta"] if theta_legs else 0.0
+    )
 
     surface = {}
     ev_components = []
@@ -271,13 +327,13 @@ def compute_ev_surface(
         # Scale probability of reaching target/stop by time (simplified linear)
         t_scale = min(1.0, day / 15.0)
         day_ev_target = win_probability * up_move * t_scale
-        day_ev_flat = 0.0 - (daily_theta_est * day * legs)
+        day_ev_flat = daily_theta_est * day
         day_ev_stop = -loss_prob * down_move * t_scale
 
         surface[f"day_{day}"] = {
-            "target": round(day_ev_target, 2),
-            "flat": round(day_ev_flat, 2),
-            "stop": round(day_ev_stop, 2),
+            "target": round(day_ev_target * 100, 2),
+            "flat": round(day_ev_flat * 100, 2),
+            "stop": round(day_ev_stop * 100, 2),
         }
         # day_ev_target already carries win_probability and day_ev_stop already
         # carries loss_prob — both are probability-weighted expected contributions.
@@ -288,7 +344,7 @@ def compute_ev_surface(
 
     ev_weighted = sum(ev_components) / len(ev_components)
 
-    return {**surface, "ev_weighted": round(ev_weighted, 4)}
+    return {**surface, "ev_weighted": round(ev_weighted * 100, 4)}
 
 
 # ---------------------------------------------------------------------------

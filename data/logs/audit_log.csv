@@ -56,3 +56,10 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-18T20:35:21.943533+00:00,v2.2.57,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
 2026-08-19T12:38:51.722087+00:00,v2.2.61,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='labor strike' source='seekingalpha.com',True,labor strike
 2026-08-19T20:36:49.737114+00:00,v2.2.63,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='labor strike',False,labor strike
+2026-08-24T12:31:01.219952+00:00,v2.2.93,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-08-24T12:33:01.030458+00:00,v2.2.93,pre_market,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-08-24T20:32:34.239233+00:00,v2.2.93,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-24T20:32:34.682248+00:00,v2.2.93,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-24T20:32:35.110428+00:00,v2.2.93,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-24T20:35:40.319702+00:00,v2.2.93,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-24T20:35:40.775225+00:00,v2.2.93,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud

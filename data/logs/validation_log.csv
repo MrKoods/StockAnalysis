@@ -5,3 +5,7 @@ timestamp_utc,ticker,failure_type,detail
 2026-08-19T22:00:26.251225+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-19 00:00:00+00:00
 2026-08-21T16:00:13.217133+00:00,UNH,ohlcv,ohlcv_open_out_of_range_2026-08-21 00:00:00+00:00
 2026-08-21T20:30:13.448218+00:00,UNH,ohlcv,ohlcv_open_out_of_range_2026-08-21 00:00:00+00:00
+2026-08-24T16:00:07.025033+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00+00:00
+2026-08-24T20:30:02.524922+00:00,AMD,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00+00:00
+2026-08-24T20:30:07.406437+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00+00:00
+2026-08-24T21:47:48.997631+00:00,RF_BAD,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00

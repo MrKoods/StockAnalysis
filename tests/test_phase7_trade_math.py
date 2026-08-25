@@ -229,9 +229,8 @@ class TestEVCalculation:
         assert abs(ev - 86.7) < 0.1
 
     def test_ev_surface_returns_required_keys(self):
-        structure = STRUCTURE_MULTIPLIERS["call_ratio_spread"]
         result = compute_ev_surface(
-            structure=structure, entry=500, stop=480, target=560,
+            structure_name="call_ratio_spread", entry=500, stop=480, target=560,
             win_probability=0.9, iv=0.35
         )
         for key in ("day_1", "day_5", "day_10", "day_15", "ev_weighted"):
@@ -240,15 +239,49 @@ class TestEVCalculation:
             for scenario in ("target", "flat", "stop"):
                 assert scenario in result[day_key]
 
+    def test_ev_surface_is_per_contract_not_per_share(self):
+        # 2026-08-24 fix: this function used to return raw per-share dollars
+        # while _compute_structure_ev divided by a per-contract (x100)
+        # capital figure, undervaluing these 4 structures' ranking by ~100x.
+        # day_1 target here is dominated by win_probability * up_move * t_scale
+        # (t_scale = 1/15 on day 1) -- per-share that's 0.9 * 60 * (1/15) = 3.6,
+        # so the real per-contract figure should land near 360, not 3.6.
+        result = compute_ev_surface(
+            structure_name="call_ratio_spread", entry=500, stop=480, target=560,
+            win_probability=0.9, iv=0.35
+        )
+        assert result["day_1"]["target"] == pytest.approx(360.0, abs=1.0)
+
+    def test_ev_surface_theta_is_real_and_mirrored_between_ratio_and_back_spread(self):
+        # 2026-08-24 fix: theta was hardcoded to 0.0 for all 4 structures.
+        # call_back_spread's legs are the EXACT mirror of call_ratio_spread's
+        # (same strikes, every long<->short flipped) -- net_structure_greeks
+        # sums sign * greek per leg, so flipping every leg's side must flip
+        # the net theta's sign exactly, regardless of which strike convention
+        # is chosen. This is the property to test, not a fixed sign either
+        # way -- whether a *specific* ratio-spread construction nets positive
+        # or negative theta depends on how the near (larger-magnitude) leg's
+        # theta compares to the two far (smaller-magnitude) legs', which
+        # itself depends on strike spacing/IV/days-to-expiry, not a universal
+        # rule (at this project's short ~8-day default hold, the near leg's
+        # theta dominates, giving call_ratio_spread net NEGATIVE theta here --
+        # the opposite of the old "ratio spreads collect theta" folklore that
+        # was never actually computed before this fix).
+        kwargs = dict(entry=500, stop=480, target=560, win_probability=0.9, iv=0.35)
+        ratio = compute_ev_surface(structure_name="call_ratio_spread", **kwargs)
+        back = compute_ev_surface(structure_name="call_back_spread", **kwargs)
+        assert ratio["day_15"]["flat"] != 0.0
+        assert back["day_15"]["flat"] == pytest.approx(-ratio["day_15"]["flat"], rel=1e-6)
+        assert abs(ratio["day_15"]["flat"]) > abs(ratio["day_1"]["flat"])
+
     def test_ev_surface_bearish_target_hit_is_a_gain_not_a_loss(self):
         # up_move/down_move used to be signed (target-entry, entry-stop), which
         # for bearish (stop above entry, target below) flips day_ev_target
         # negative and day_ev_stop positive — treating a favorable move as a
         # loss and a stop-hit as a gain. abs()'d now, matching resolve_
         # structure_economics' fav/unfav convention.
-        structure = STRUCTURE_MULTIPLIERS["put_back_spread"]
         result = compute_ev_surface(
-            structure=structure, entry=500, stop=520, target=440,
+            structure_name="put_back_spread", entry=500, stop=520, target=440,
             win_probability=0.9, iv=0.35
         )
         assert result["day_15"]["target"] > 0

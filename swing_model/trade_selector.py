@@ -373,8 +373,7 @@ def rank_trade_structures(
         structure = STRUCTURE_MULTIPLIERS[name]
         eligible, reasons = _apply_filters(
             name, structure, candidate, account_equity,
-            options_approval_level, iv_percentile, max_capital,
-            force_defined_risk, cfg, rr, min_rr,
+            options_approval_level, force_defined_risk, rr, min_rr,
         )
         if not eligible:
             excluded.append({"name": name, "reasons": reasons})
@@ -621,10 +620,7 @@ def _apply_filters(
     candidate: dict,
     account_equity: float,
     options_approval_level: int,
-    iv_percentile: float,
-    max_capital: float,
     force_defined_risk: bool,
-    cfg: Optional[dict] = None,
     rr: float = 0.0,
     min_rr: float = 3.0,
 ) -> tuple[bool, list[str]]:
@@ -634,6 +630,11 @@ def _apply_filters(
     values (resolved legs, EV) that aren't available until after this function
     runs, same reason Filter 5 was already handled outside it. Returns
     (is_eligible, exclusion_reasons).
+
+    iv_percentile/max_capital/cfg were previously accepted here too but never
+    used — the real max_capital check (Filter 2) and iv_percentile-derived IV
+    fallback both happen in rank_trade_structures' main loop directly (2026-
+    08-24 cleanup; see that loop's own max_capital/resolved_iv computation).
     """
     reasons = []
     direction = candidate.get("direction", "bullish")
@@ -736,12 +737,12 @@ def _compute_structure_ev(
 
     if structure.get("ev_method") == "surface":
         surface = compute_ev_surface(
-            structure=structure,
+            structure_name=structure_name,
             entry=entry, stop=stop, target=target,
-            win_probability=win_prob, iv=iv,
+            win_probability=win_prob, iv=iv, dte=dte,
         )
         ev = surface["ev_weighted"]
-        capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
+        capital = _estimate_capital_required(structure_name, structure, entry, stop)
         effective_days = default_days
     else:
         econ = resolve_structure_economics(structure_name, entry, stop, target, iv, dte)
@@ -762,7 +763,7 @@ def _compute_structure_ev(
             avg_win = up_move * pm
             avg_loss = down_move * lm
             ev = compute_ev_simple(win_prob, avg_win, avg_loss)
-            capital = _estimate_capital_required(structure_name, structure, entry, stop, target)
+            capital = _estimate_capital_required(structure_name, structure, entry, stop)
             effective_days = default_days
 
     legs = structure.get("legs", 1)
@@ -791,7 +792,6 @@ def _estimate_capital_required(
     structure: dict,
     entry: float,
     stop: float,
-    target: float,
 ) -> float:
     """
     Estimate capital required for a structure (simplified, order-of-magnitude).

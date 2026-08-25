@@ -310,7 +310,7 @@ def compute_news_score(
     # genuinely newest-and-rising theme could register as "declining" purely
     # because of which source happened to come first in the concatenation.
     texts = [art.get("title", "") for art in sorted(relevant, key=lambda a: a["_ts"])]
-    theme_result = identify_dominant_theme(texts, ticker, lookback_days=5)
+    theme_result = identify_dominant_theme(texts, ticker)
     dominant_theme = theme_result["dominant_theme"]
 
     alignment_val = theme_alignment_modifier(dominant_theme, direction, ticker)

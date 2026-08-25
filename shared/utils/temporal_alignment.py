@@ -71,24 +71,6 @@ def classify_timezone_window(timestamp_utc: datetime) -> str:
     return "asian_pre_market"  # 20:00-24:00 ET or 00:00-04:00 ET (wraps midnight)
 
 
-def classify_lead_lag(
-    signal_timestamp_utc: datetime,
-    price_move_timestamp_utc: datetime,
-) -> str:
-    """
-    Classify whether a signal appeared before or after a significant price move.
-    Returns 'leading' (signal before move) or 'lagging' (signal after move).
-    """
-    if signal_timestamp_utc.tzinfo is None:
-        signal_timestamp_utc = signal_timestamp_utc.replace(tzinfo=timezone.utc)
-    if price_move_timestamp_utc.tzinfo is None:
-        price_move_timestamp_utc = price_move_timestamp_utc.replace(tzinfo=timezone.utc)
-
-    if signal_timestamp_utc < price_move_timestamp_utc:
-        return "leading"
-    return "lagging"
-
-
 def detect_price_sentiment_divergence(
     price_change_pct: float,
     sentiment_trajectory: float,

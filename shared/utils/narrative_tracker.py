@@ -46,10 +46,17 @@ _ADVERSE_THEMES = {"china_export", "macro_rates"}
 def identify_dominant_theme(
     texts: list[str],
     ticker: str,
-    lookback_days: int = 5,
 ) -> dict:
     """
     Identify the dominant narrative theme for a ticker from recent texts.
+
+    texts is expected to already be windowed to the relevant recency range by
+    the caller (news_layer.py filters by its own config-driven decay window
+    before building this list) — this function has no timestamps to filter
+    by, so it uses whatever it's given as-is. A `lookback_days` parameter
+    used to sit here suggesting this function did its own windowing; it
+    never did (removed 2026-08-24 — see news_layer.py's call site for the
+    real window).
 
     texts MUST be in chronological order, oldest first — the momentum calc
     below compares the first half of the list to the second half, so an
