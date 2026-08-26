@@ -477,6 +477,13 @@ portfolio:
 # simulated capital pool — fully independent of the threshold track.
 rank_track:
   top_n_per_sector: 2
+  # Which scan owns the day's per-sector slots. post_close is the most
+  # informed ranking (full session's data) and costs nothing in timing —
+  # entry is a next-day breakout trigger either way. Before this key existed
+  # the slots went to whichever scan ran first, i.e. pre_market, ranking on
+  # the LEAST information of the three. Set to "any" to let every scan
+  # compete for the day's slots (the per-(day, sector) budget still applies).
+  scan_type: post_close
 
 # PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
 # `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking

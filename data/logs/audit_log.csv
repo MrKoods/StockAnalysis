@@ -63,3 +63,19 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-24T20:32:35.110428+00:00,v2.2.93,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
 2026-08-24T20:35:40.319702+00:00,v2.2.93,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-24T20:35:40.775225+00:00,v2.2.93,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-08-25T12:32:40.001226+00:00,v2.2.99,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='chartmill.com',True,tariff
+2026-08-25T12:33:09.703425+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T12:33:10.116532+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T12:33:10.522707+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T16:02:28.335253+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T16:02:28.801403+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T16:02:29.664602+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T16:09:59.274839+00:00,v2.2.99,mid_session,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='clinical hold' source='finance.yahoo.com',True,clinical hold
+2026-08-25T16:09:59.756768+00:00,v2.2.99,critical,ABBV,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='clinical hold',False,clinical hold
+2026-08-25T20:31:41.129222+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T20:31:41.778614+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T20:31:42.308111+00:00,v2.2.99,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-25T20:40:15.277904+00:00,v2.2.99,critical,ABBV,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='clinical hold',False,clinical hold
+2026-08-25T20:44:16.589957+00:00,v2.2.99,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-08-25T20:45:23.430666+00:00,v2.2.99,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-25T20:45:23.935457+00:00,v2.2.99,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='clinical hold',False,clinical hold

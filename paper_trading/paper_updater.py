@@ -799,9 +799,25 @@ def update_paper_trades(
                     unrealized_pnl_dollars = ""
                     if dollar_risk_raw:
                         try:
-                            unrealized_pnl_dollars = _fmt_dollars(unrealized_rr * float(dollar_risk_raw))
+                            dollar_risk_val = float(dollar_risk_raw)
                         except ValueError:
-                            pass
+                            dollar_risk_val = 0.0
+                        # A signal that sized to 0 units (risk budget too small
+                        # for even one share/contract at this account size — see
+                        # paper_runner.py's sizing_note) never put capital at
+                        # risk, so it gets no dollar mark. Writing "0.00" here
+                        # made it a NON-BLANK string, which is exactly what the
+                        # summary's `marked` filter tests for — so these rows
+                        # counted as real marked positions in the open
+                        # capital-at-risk total, contradicting that filter's own
+                        # "blank for pending/expired/zero-size rows" comment
+                        # (2 of the 8 "marked position(s)" reported on
+                        # 2026-08-25 — LLY and MU — were these).
+                        # unrealized_rr is still written below: the R-multiple
+                        # is a genuine read on signal quality whatever the
+                        # position's dollar size.
+                        if dollar_risk_val:
+                            unrealized_pnl_dollars = _fmt_dollars(unrealized_rr * dollar_risk_val)
                     trade["mark_price"] = f"{mark_price:.2f}"
                     trade["mark_date"] = mark_date
                     trade["unrealized_rr"] = f"{unrealized_rr:.3f}"
@@ -1042,6 +1058,20 @@ def print_summary(csv_path: Optional[Path] = None) -> None:
         elif opp_cost["pending_count"]:
             print(f"    -> entry-zone opportunity cost: {opp_cost['pending_count']} still pending resolution")
     print(f"  Open trades:        {open_ct}")
+    # Signals that sized to 0 units are carried as open (their R-multiple is
+    # still tracked and still informative) but can never move the dollar book.
+    # Reported separately so open_ct isn't read as real deployed positions —
+    # the same reason `expired` is broken out of the win-rate math above.
+    unsized_open = [
+        t for t in trades
+        if not t.get("outcome") and (t.get("position_size") or "").strip() in ("0", "0.0")
+    ]
+    if unsized_open:
+        print(
+            f"    -> of which {len(unsized_open)} sized to 0 units "
+            f"({', '.join(t.get('ticker', '?') for t in unsized_open)}) — "
+            f"tracked for R-multiple only, no capital at risk"
+        )
 
     # Sum of the mark-to-market snapshot paper_updater.py's own run just left
     # on each still-open, filled trade — blank for pending/expired/zero-size

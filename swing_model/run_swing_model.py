@@ -52,6 +52,7 @@ from shared.utils.position_sizer import compute_position_size, derive_sizing_inp
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
+    was_critical_alert_sent, record_critical_alert,
     SCOPE_SECTOR,
 )
 from shared.utils.sector_config import (
@@ -526,8 +527,13 @@ def _main_locked(scan_type: str = "post_close") -> None:
                             f"no block, no boost. Trigger: '{trigger}'"
                         )
 
-                if open_position is not None:
+                # Once per (ticker, trigger, event timestamp) — see
+                # paper_runner.py's mirror of this check and
+                # was_critical_alert_sent for why the unguarded version
+                # re-alerted on every scan for as long as the item stayed live.
+                if open_position is not None and not was_critical_alert_sent(gate_state, ticker, event):
                     _handle_open_position_critical_event(open_position, event, model_version)
+                    gate_state = record_critical_alert(gate_state, ticker, event)
 
             # Trade structure evaluation (only for signals at or above threshold)
             entry_lower = entry_upper = stop_loss = target = None

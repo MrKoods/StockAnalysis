@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.100 | 2026-08-26 | Bug Fix | Review of the 2026-08-25 scan and the full trade ledger, and the four real bugs it turned up. The most serious: the new rank-based paper-trading track was logging **three times** the trades it was configured to. It is meant to record the top 2 stocks per sector per day, but the check that stopped duplicates only stopped the same *stock* twice — so each of the day's three scans went further down the list and logged 2 more, 6 per sector instead of 2, every one of them labelled "rank #1"/"rank #2" in the log. That track exists purely to build a clean dataset to judge the strategy on, so it was corrupting the only evidence it was created to produce. Also: a 5-day price-momentum figure recorded on every trade was never actually calculated and had been silently saving as 0.0000 on all 39 trades ever logged; repeat "critical event" alerts fired ~9 times a day for the same news story; and two trades too small to buy even one share were being counted as real open positions |
 | v2.2.99 | 2026-08-24 | Bug Fix / Infrastructure | Full code-cleanliness audit of the core model. Found and fixed a real pricing bug: the EV formula used for 4 of the 42 option structures (ratio/back spreads) was ignoring implied volatility and time decay entirely, and — separately — comparing per-share dollars against per-contract dollars, undervaluing those 4 structures' rankings by roughly 100x versus every other structure. Also: wired up a finished-but-never-connected Discord alert for adverse macro conditions (and fixed its color logic, dead on arrival since before it was ever connected); corrected a module's doc claiming it uses AI-based text recognition when it's always been simple keyword matching; removed several dead settings and 6 functions nothing in the codebase ever called |
 | v2.2.98 | 2026-08-24 | Feature | Strategy pivot: added a second, parallel paper-trading track that always trades the top 2 highest-scoring stocks in each sector, every scan, instead of only the rare ones that hit the official 70+ bar. Runs alongside the existing system, not replacing it, with its own ledger, own $15,000 pretend account, and its own Discord messages so the two can be told apart and compared over time. Direct fix for "not enough trades to learn from" — this guarantees a steady flow of real data instead of waiting on a bar that's proven too rare to clear reliably, in any sector, no matter how many stocks get added to the watchlist |
 | v2.2.97 | 2026-08-24 | Research / Bug Fix | v2.2.96's "the real score shows a statistically real negative relationship with returns" claim was checked more rigorously and does NOT hold up — that one p=0.05 reading was one of ~15 similar tests run in the same pass, and doesn't survive the standard correction for running that many tests at once, nor does its own resampled confidence interval clearly exclude zero. Corrected finding: no robust evidence of edge in either direction from the real (non-proxy) part of the score — not proof it's broken, just still no proof it works. Added the two statistical checks that caught this to the standard backtest report so this doesn't have to be re-derived by hand next time |
@@ -179,6 +180,168 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.100] — 2026-08-26 — [Bug Fix] Scan/trade-ledger review — 4 real bugs, including one silently tripling the rank track's own dataset
+
+**Status:** Live.
+
+**In short:** Review of the 2026-08-25 scan output and all 39 logged trades across both paper-trading
+tracks. Four real bugs, one of which was quietly corrupting the dataset the rank track was created to
+build, plus the ledger reset and three structural changes that stop it recurring. All 1499 tests
+pass (56 new); ruff and all three guardrail checkers pass clean.
+
+**1. The rank track logged 3x its configured trade count — and mislabelled every row's rank
+(`paper_trading/paper_runner.py`).** `rank_track.top_n_per_sector` is 2, and the intent is 2 picks per
+sector per DAY. `_run_rank_track` loaded a dedup key set of `(signal_date, ticker)` and, on hitting an
+already-logged ticker, `continue`d further down that sector's ranking — so it never logged the same
+ticker twice, but every scan still filled `top_n` *fresh* slots. With three scans a day (pre-market /
+mid-session / post-close) that is 3x top_n per sector: on 2026-08-25 exactly 6 rows per sector, 24
+in one day against a configured 8. Worse, scans 2 and 3 are by construction the LOWER-ranked names
+(the higher ones were already taken), and the log line reported the loop's `picks` counter as the
+rank — so ASML was written to the log as "rank #1 in semiconductors" while MU, logged hours earlier
+at a higher score, was the real #1. The track's entire purpose is a clean, comparable dataset to
+judge a rank-based strategy on (see v2.2.98), so this was inflating and biasing the only evidence it
+exists to produce, ahead of its own 2026-09-19 checkpoint. Fixed by counting slots consumed per
+`(day, sector)` and seeding each sector's `picks` from what earlier scans already used; the log line
+now reports the candidate's true within-sector rank alongside the slot number. Sector is resolved
+from this scan's candidates first (authoritative) with config's watchlist map as fallback — a ticker
+that resolves to neither cannot be attributed to a sector and so cannot consume a slot, which would
+silently restore the overcounting, so that case is now warned about rather than swallowed.
+
+**2. `mom_5d` was never computed in the live pipeline — all 39 logged trades recorded 0.0000
+(`shared/indicators/technical_common.py`).** Both `paper_runner.py` and `run_swing_model.py` persist
+5-day price momentum to their CSV rows via `indicators.get("mom_5d", 0.0)`, but nothing anywhere in
+`swing_model/` or `shared/` ever produced that key — only `backtesting/` computed a `mom_5d`, locally,
+for its own momentum-proxy sentiment layer. So every live row silently saved the default while
+presenting as a real measurement, and the column reads exactly 0.0000 on all 39 rows across both
+tracks. Now computed alongside the other windowed scalars in `compute_technical_indicators`, so every
+consumer (live pipeline, backtest, tests) picks it up without its own copy; insufficient history or a
+NaN/zero base bar reports 0.0 rather than raising or yielding `inf`. The backtest's separate local
+copy is deliberately left alone. **Note for anyone analysing the existing ledger: `mom_5d` carries no
+information on any row logged before this version — it is a constant, not a measurement.**
+
+**3. Open-position critical-event alerts re-fired on every scan
+(`swing_model/run_swing_model.py`, `paper_trading/paper_runner.py`, `shared/utils/event_gate.py`).**
+The alert fired once per matching critical event per scan, with no memory across runs. A critical news
+item stays in the feed for days, so MU produced ~9 identical "tariff" alerts a day across
+2026-08-24/25 — for a position that had sized to 0 units, so there was nothing to act on either.
+Alert fatigue on a safety channel is a real failure mode. Now fires once per
+`(ticker, trigger, event timestamp)`, keyed on the event rather than the headline so the same story
+arriving via a second vendor's phrasing does not re-alert, while a genuinely new story on the same
+trigger still does. This mirrors the `action != pos["_last_management_action"]` transition guard the
+signal-decay alert beside it already used. The dedup ledger lives in `event_gate_state.json`;
+`validate_event_gate_state` rebuilds that dict from scratch on every load, so it had to be taught to
+preserve (and prune) the new key — otherwise the ledger would reset each scan and the duplicates
+would come straight back.
+
+**4. Zero-size positions counted as real marked positions (`paper_trading/paper_updater.py`).** A
+signal whose risk budget cannot buy even one share/contract at this account size logs with
+`position_size=0` and no capital at risk. The mark-to-market step still wrote its dollar mark as
+`"0.00"` — a NON-BLANK string, which is exactly what the summary's `marked` filter tests for. So these
+rows counted toward the open capital-at-risk total, directly contradicting that filter's own "blank
+for pending/expired/zero-size rows" comment: 2 of the 8 "marked position(s)" reported on 2026-08-25
+(LLY and MU) were these. Zero-size rows now get no dollar mark, and the summary reports them on their
+own line. `unrealized_rr` is still written for them — the R-multiple is a genuine read on signal
+quality whatever the position's dollar size.
+
+**5. One scan now owns the day's rank slots — `rank_track.scan_type`, default `post_close`
+(`config/swing_config.yaml`, `paper_trading/paper_runner.py`).** Fixing bug 1 by itself left the
+day's per-sector slots going to whichever scan ran first, which is `pre_market` — the scan ranking on
+the LEAST information of the day's three. `post_close` has the full session's data and costs nothing
+in timing, since entry is a next-day breakout trigger either way. It also dissolves the contention
+rather than managing it: one scan a day, top 2 per sector, no competition between scans. Set to
+`any` to restore every-scan behaviour. Deliberately belt-and-braces with bug 1's per-(day, sector)
+budget rather than replacing it — the two fail differently: the gate picks WHICH scan ranks, the slot
+count stops any scan from logging past the budget, including a manual re-run or retry of the owning
+scan (see `data/logs/paper_runner_task_rerun.log` — those happen).
+
+**6. New standing guardrail: `scripts/check_rank_track_slot_budget.py`, wired into CI.** What makes
+bug 1 worth a permanent check rather than a one-off fix is that it was **invisible from the logs**.
+Every run reported `Rank track: 8 new signal(s) logged` — exactly the expected number — because each
+scan only ever counted its own work. Nothing was wrong in any single run's output; the violation
+existed only across runs, in the file, and would have survived to the 2026-09-19 checkpoint and
+quietly biased the verdict. The check reads the ledger (not source — the invariant is a property of
+what actually got logged, so a future refactor reintroducing the bug through a different code shape
+is still caught) and fails if any (signal_date, sector) group exceeds `top_n_per_sector`. Verified
+against the real bad example: run on the pre-fix ledger it reports all four sectors at 6 rows against
+a budget of 2 and exits 1. Rows whose ticker is no longer in any active sector are reported as a
+warning, not a failure, and the warning says plainly that those rows aren't budget-checked so a
+violation could hide among them. Same reasoning as `check_confidence_threshold_duplication.py`: the
+manual audit caught this after the fact, nothing caught it as it happened. In CI it no-ops
+(`rank_trades.csv` is untracked); its real work is against a live ledger.
+
+**Ledger reset — the 24 contaminated 2026-08-25 rank rows were deleted.** The day logged 24 against a
+configured budget of 8. The surplus can't be cleanly reconstructed: scores moved between scans, so
+"the true top 2" depends on which scan owns the day, which was itself unsettled until fix 5 above.
+One day of data on a track that produces 8 signals/day is cheaper to re-collect than a permanently
+caveated baseline, so `rank_trades.csv` was reset to headers only and the track restarts clean under
+the fixed code. None of the deleted rows had a fill or an outcome — they were unresolved signals, not
+history. Pre-reset file preserved at `paper_trading/rank_trades.csv.pre-v2.2.100.bak` (the ledger is
+untracked, so git would not have recovered it).
+
+**7. Score denominators are now persisted — `technical_max`/`sentiment_max`/`news_max`
+(`paper_trading/paper_runner.py`, both row builders).** `scoring.py`'s `live_weights` path rescales
+technical/sentiment/news to the calibrated fraction of their shared 70-point pool, which MOVES each
+category's real ceiling — deliberately, and deliberately not re-clamped, since re-clamping would
+break the three-field sum invariant `base_score` depends on. The denominator was never stored, so a
+row was uninterpretable after the fact: AMZN 2026-08-19's `sentiment_score=26.1` against a nominal
+max of 15 reads as a scoring bug and is actually a 0.4 sentiment weight raising the real cap to 28.
+Now written on every new row by both tracks, defaulting to the nominal caps when no calibration is
+active. Only these three: `positioning_max`/`fundamental_max` are fixed config constants that
+calibration never touches (and `scoring.py` doesn't return them), so they can't drift out from under
+a row the way these can.
+
+`scripts/migrate_paper_trades_csv_schema.py` extended to migrate BOTH ledgers — the two tracks share
+one `_CSV_COLUMNS` list, so migrating only the threshold track would have left the rank track's
+header short and silently corrupted its next append (`csv.DictReader` maps the old, shorter header
+positionally onto the new longer rows, shifting every column after the insertion point). The rank
+track didn't exist when that script was first written, which is why it only ever handled one file.
+
+**Historical rows backfilled rather than left blank — `scripts/backfill_score_maxes.py`.** The
+initial assessment in this entry's "not changed" list was that the pre-v2.2.100 denominators were
+unrecoverable. That was wrong: they aren't in the ledger, but they are in git, and only ONE
+calibration was ever live. Global `calibrated_weights.json` has never carried a `last_calibrated`
+key, and `load_live_weights_if_calibrated()` returns None without one — so the global path never
+reweighted anything, for any row, ever. The per-sector file held exactly one entry,
+consumer_discretionary {technical 0.4, sentiment 0.4, news 0.2}, live 2026-08-15 (946646f) to
+2026-08-23 (a085942), in the old flat pre-direction schema that is read as BULLISH weights only.
+That yields 28.0/28.0/14.0 for consumer_discretionary bullish rows in that window and nominal
+40/15/15 everywhere else.
+
+Three independent checks that the derivation is right, all asserted in the script itself and in
+`tests/test_score_max_persistence.py`: (a) exactly the 3 rows the rule marks as calibrated are the
+only 3 in the ledger whose stored scores exceed their nominal maxes — no false positives, no misses;
+(b) after backfill no row anywhere exceeds its own denominator, and the script aborts rather than
+writing if one would; (c) AMZN appears on BOTH sides of the window — 2026-08-07 sentiment 4.7 (fits
+nominal 15) and 2026-08-19 sentiment 26.1 (needs 28) — same ticker, same sector, so the date
+boundary alone separates them. All 15 threshold-track rows backfilled; both scripts refuse to
+overwrite non-blank values and are safe to re-run. Pre-migration ledger preserved at
+`paper_trading/paper_trades.csv.pre-v2.2.100-schema.bak`.
+
+**This supersedes the pooled-analysis warning below for those three rows** — they are now
+self-describing (AMZN 93% of its sentiment cap, HD 74%, TGT 75%) and can be normalised rather than
+discarded. They remain scored under a calibration later judged invalid, so treat them as a different
+scoring regime, not as bad data.
+
+**Not changed, flagged for a decision:**
+- **Three threshold-track trades (AMZN and HD 2026-08-19, TGT 2026-08-20) were scored under the
+  per-sector calibration that v2.2.89 deleted as "stale, invalid ... actively steering live scoring."**
+  Under that calibration consumer-discretionary sentiment carried a 0.4 weight (real cap 28, not the
+  nominal 15), which is why those rows show sentiment scores of 26.1 / 20.6 / 21.1 — legal at the
+  time, by the deliberate reweighting in `scoring.py`, but not comparable to anything scored after
+  2026-08-23. AMZN's 77.1 is the highest confidence in the whole ledger and was driven by that
+  inflated sentiment. The CSV never records the max a score was graded against, so this is not
+  recoverable from the ledger alone — **see fix 7 above, which revises this: they were recoverable
+  from git, and have been backfilled.** What stands is that they were scored under a calibration
+  since judged invalid, so they belong to a different scoring regime than everything around them.
+- **`position_sizing.max_capital_pct` is 0.33333 (33.3%, $5,000 at $15k), raised from 5%/$750 on
+  2026-08-23 (v2.2.92/93).** Combined with bug 1 above, the rank track deployed $14,072.80 of its
+  $15,000 notional pool in a single day, with ASML alone at $3,792.70 (25%). All within the configured
+  cap, so nothing here is a bug — but the sizer anchors to a fixed `starting_capital` per signal
+  rather than a decremented balance, so there is no portfolio-level backstop on a track that fires
+  every day. Also means pre- and post-2026-08-23 dollar P&L are not comparable.
 
 ---
 

@@ -5,11 +5,11 @@
       "tnx_trend": "neutral",
       "dxy_trend": "falling",
       "china_tension_level": "normal",
-      "tnx_20d_pct": 0.013574704799667766,
-      "dxy_20d_pct": -0.02472664844260318,
+      "tnx_20d_pct": 0.007602051849722142,
+      "dxy_20d_pct": -0.024659696860622218,
       "adverse_signal_count": 0,
       "confidence_modifier": 3.0,
-      "computed_at_utc": "2026-08-24T20:30:51.419076+00:00",
+      "computed_at_utc": "2026-08-25T20:31:03.089199+00:00",
       "sector_scoped": false
     },
     "regional_banks": {
@@ -17,11 +17,11 @@
       "tnx_trend": "neutral",
       "dxy_trend": "falling",
       "china_tension_level": "normal",
-      "tnx_20d_pct": 0.013574704799667766,
-      "dxy_20d_pct": -0.02472664844260318,
+      "tnx_20d_pct": 0.007602051849722142,
+      "dxy_20d_pct": -0.024659696860622218,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-08-24T20:30:51.419100+00:00",
+      "computed_at_utc": "2026-08-25T20:31:03.089233+00:00",
       "sector_scoped": true
     },
     "healthcare": {
@@ -29,11 +29,11 @@
       "tnx_trend": "neutral",
       "dxy_trend": "falling",
       "china_tension_level": "normal",
-      "tnx_20d_pct": 0.013574704799667766,
-      "dxy_20d_pct": -0.02472664844260318,
+      "tnx_20d_pct": 0.007602051849722142,
+      "dxy_20d_pct": -0.024659696860622218,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-08-24T20:30:51.419117+00:00",
+      "computed_at_utc": "2026-08-25T20:31:03.089340+00:00",
       "sector_scoped": true
     },
     "consumer_discretionary": {
@@ -41,11 +41,11 @@
       "tnx_trend": "neutral",
       "dxy_trend": "falling",
       "china_tension_level": "normal",
-      "tnx_20d_pct": 0.013574704799667766,
-      "dxy_20d_pct": -0.02472664844260318,
+      "tnx_20d_pct": 0.007602051849722142,
+      "dxy_20d_pct": -0.024659696860622218,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-08-24T20:30:51.419131+00:00",
+      "computed_at_utc": "2026-08-25T20:31:03.089365+00:00",
       "sector_scoped": true
     }
   }

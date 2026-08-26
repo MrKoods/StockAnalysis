@@ -330,7 +330,29 @@ def validate_event_gate_state(state: dict, max_age_trading_days: int = 5) -> dic
 
         clean_blocks.append(block)
 
-    return {"blocks": clean_blocks}
+    # critical_alerts_sent: {alert_key: sent_at_utc} dedup ledger for
+    # open-position critical alerts (see event_gate.was_critical_alert_sent).
+    # Carried through here rather than dropped — this function rebuilds the
+    # state dict from scratch, so any key it doesn't explicitly preserve is
+    # silently discarded on every load, which would reset the dedup ledger
+    # every scan and restore the duplicate-alert behaviour it exists to stop.
+    # Pruned on the same cutoff as blocks: an entry older than the window
+    # can't suppress anything still relevant, and dropping it keeps the map
+    # bounded.
+    clean_alerts: dict = {}
+    raw_alerts = state.get("critical_alerts_sent")
+    if isinstance(raw_alerts, dict):
+        for key, sent_at in raw_alerts.items():
+            try:
+                sent_dt = datetime.fromisoformat(str(sent_at))
+                if sent_dt.tzinfo is None:
+                    sent_dt = sent_dt.replace(tzinfo=timezone.utc)
+            except (ValueError, TypeError):
+                continue
+            if sent_dt >= cutoff:
+                clean_alerts[key] = sent_at
+
+    return {"blocks": clean_blocks, "critical_alerts_sent": clean_alerts}
 
 
 def run_preflight_validation(

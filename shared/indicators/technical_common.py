@@ -385,6 +385,28 @@ def compute_technical_indicators(
     c_rs_z = zscore_current(rs_series.dropna().reindex(close.index), window=60)
     c_rs_z = 0.0 if pd.isna(c_rs_z) else c_rs_z
     c_rsi_z = zscore_current(rsi_series, window=60)
+    # 5-bar return. paper_runner.py and run_swing_model.py both persist this to
+    # their CSV rows as indicators["mom_5d"], but nothing in the live pipeline
+    # ever produced the key — both call sites read it through a
+    # .get("mom_5d", 0.0) default, so every live row silently recorded 0.0
+    # while presenting as a real measurement (all 39 rows logged across both
+    # paper-trading tracks to 2026-08-25 read exactly 0.0000). Computed here,
+    # alongside the other windowed scalars, so every consumer of this function
+    # — live pipeline, backtest, tests — picks it up without its own copy.
+    # backtesting/simulation.py computes its own mom_5d locally for the
+    # momentum-proxy sentiment layer; that one is deliberately independent of
+    # this indicator dict and is left alone.
+    # Guarded like the other windowed scalars: insufficient history, or a
+    # NaN/zero base bar, reports 0.0 rather than raising or yielding inf.
+    if len(close) >= 6:
+        base_close_5d = float(close.iloc[-6])
+        c_mom_5d = (
+            (c_close - base_close_5d) / base_close_5d
+            if base_close_5d and not pd.isna(base_close_5d)
+            else 0.0
+        )
+    else:
+        c_mom_5d = 0.0
     c_breakout = bool(breakout_bool_series.iloc[latest]) if not pd.isna(breakout_bool_series.iloc[latest]) else False
     c_breakdown = bool(breakdown_bool_series.iloc[latest]) if not pd.isna(breakdown_bool_series.iloc[latest]) else False
 
@@ -446,6 +468,7 @@ def compute_technical_indicators(
         "rolling_low_20": c_rolling_low,
         "volume_sma_20": c_vol_sma,
         "rs_vs_benchmark": c_rs,
+        "mom_5d": c_mom_5d,
 
         # Z-scores
         "breakout_volume_zscore": c_vol_z,

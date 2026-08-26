@@ -240,3 +240,58 @@ class TestFmtDollars:
         unrealized_rr = -0.6
         actual_dollar_risk = 0.0
         assert _fmt_dollars(unrealized_rr * actual_dollar_risk) == "0.00"
+
+
+class TestZeroSizePositionGetsNoDollarMark:
+    """
+    A signal that sized to 0 units (risk budget too small for even one
+    share/contract at this account size) never put capital at risk, so it
+    must not carry a dollar mark. It used to be written as "0.00" — a
+    NON-BLANK string, which is exactly what the summary's `marked` filter
+    tests for, so these rows counted as real marked positions in the open
+    capital-at-risk total, contradicting that filter's own "blank for
+    pending/expired/zero-size rows" comment. Live on 2026-08-25, 2 of the 8
+    reported "marked position(s)" — LLY and MU — were these.
+
+    unrealized_rr is still written: the R-multiple is a genuine read on
+    signal quality whatever the position's dollar size.
+    """
+
+    def test_zero_size_row_gets_rr_but_blank_dollar_mark(self, monkeypatch):
+        pr._append_row(_row(
+            direction="bullish", entry_price="100.00", stop_loss="95.00",
+            fill_date="2026-08-11", fill_price="100.00",
+            position_type="options", position_size="0",
+            actual_dollar_risk="0.00", dollar_risk="75.00",
+        ))
+        bars = _bars([("2026-08-12", 101, 105, 100, 104)])
+        trade = _run_with_bars(bars, monkeypatch)
+
+        assert trade["mark_price"] == "104.00"
+        # The R-multiple is still tracked...
+        assert float(trade["unrealized_rr"]) == pytest.approx(0.8)
+        # ...but there is no dollar mark to total.
+        assert trade["unrealized_pnl_dollars"] == ""
+
+    def test_zero_size_row_is_excluded_from_the_marked_total(self, monkeypatch):
+        """The `marked` filter is a non-blank test — assert on that contract."""
+        pr._append_row(_row(
+            ticker="LLY", direction="bullish", entry_price="100.00", stop_loss="95.00",
+            fill_date="2026-08-11", fill_price="100.00",
+            position_type="options", position_size="0", actual_dollar_risk="0.00",
+        ))
+        bars = _bars([("2026-08-12", 101, 105, 100, 104)])
+        trade = _run_with_bars(bars, monkeypatch)
+        marked = [t for t in [trade] if (t.get("unrealized_pnl_dollars") or "").strip()]
+        assert marked == []
+
+    def test_a_normally_sized_row_still_gets_its_dollar_mark(self, monkeypatch):
+        """Guard against the zero-check swallowing real positions."""
+        pr._append_row(_row(
+            direction="bullish", entry_price="100.00", stop_loss="95.00",
+            fill_date="2026-08-11", fill_price="100.00",
+            position_size="10", actual_dollar_risk="50.00",
+        ))
+        bars = _bars([("2026-08-12", 101, 105, 100, 104)])
+        trade = _run_with_bars(bars, monkeypatch)
+        assert float(trade["unrealized_pnl_dollars"]) == pytest.approx(0.8 * 50.00)

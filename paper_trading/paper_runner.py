@@ -35,7 +35,10 @@ from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
 from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
-from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
+from swing_model.scoring import (
+    compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction,
+    TECHNICAL_MAX, SENTIMENT_MAX, NEWS_MAX,
+)
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
@@ -55,6 +58,7 @@ from shared.utils.regime_detection import REGIME_HIGH_VOL
 from shared.utils.event_gate import (
     load_gate_state, save_gate_state, is_ticker_blocked, add_block,
     has_active_block_for_trigger, expire_blocks, is_thesis_opposed,
+    was_critical_alert_sent, record_critical_alert,
     SCOPE_SECTOR,
 )
 from shared.utils.sector_config import (
@@ -145,6 +149,24 @@ _LAYER_SCORE_FIELDS = {
 _CSV_COLUMNS = [
     "signal_date", "ticker", "confidence", "direction",
     "technical_score", "positioning_score", "sentiment_score", "news_score", "fundamental_score",
+    # The denominator each of the three reweightable scores above was actually
+    # graded against (2026-08-26, v2.2.100). When scoring.py's live_weights
+    # calibration is active it rescales technical/sentiment/news to the
+    # calibrated fraction of their shared 70-point pool, so a category's real
+    # ceiling MOVES — deliberately, and deliberately not re-clamped, since
+    # re-clamping would break the three-field sum invariant base_score depends
+    # on (see scoring.py's "Deliberately NOT re-clamped" note). Without these,
+    # a stored score is uninterpretable: AMZN 2026-08-19 logged
+    # sentiment_score=26.1 against a nominal max of 15, which reads as a bug
+    # and is actually a 0.4 sentiment weight raising the real cap to 28. That
+    # calibration was later deleted as invalid (v2.2.89), and because the
+    # denominator was never recorded, those rows can't be re-derived from the
+    # ledger at all — they're simply not comparable to anything else in it.
+    #
+    # Only these three: positioning_max/fundamental_max are fixed config
+    # constants that calibration never touches (and scoring.py doesn't return
+    # them), so they can't drift out from under a row the way these can.
+    "technical_max", "sentiment_max", "news_max",
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
@@ -837,8 +859,14 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 # ledger (_load_open_positions), not swing_model's dormant
                 # state["positions"] pipeline — see that function's own docstring
                 # for why the two are deliberately kept separate.
-                if ticker in open_positions:
+                # Fires once per (ticker, trigger, event timestamp), not once
+                # per matching event per scan — a critical item lingers in the
+                # feed for days, and the unguarded version re-alerted on every
+                # one of the day's three scans (MU: ~9 identical 'tariff'
+                # alerts/day, 2026-08-24/25). See was_critical_alert_sent.
+                if ticker in open_positions and not was_critical_alert_sent(gate_state, ticker, event):
                     _handle_open_position_critical_event({"ticker": ticker}, event, model_version)
+                    gate_state = record_critical_alert(gate_state, ticker, event)
 
             if score.get("event_gate_blocked"):
                 logger.info(
@@ -1323,6 +1351,12 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "sentiment_score": f"{score.get('sentiment_total', 0.0):.1f}",
                 "news_score": f"{score.get('news_total', 0.0):.1f}",
                 "fundamental_score": f"{score.get('fundamental_score', 0.0):.1f}",
+                # Defaults are the nominal caps — what these fields mean when
+                # no calibration is active. See _CSV_COLUMNS for why storing
+                # them matters.
+                "technical_max": f"{float(score.get('technical_max', TECHNICAL_MAX)):.1f}",
+                "sentiment_max": f"{float(score.get('sentiment_max', SENTIMENT_MAX)):.1f}",
+                "news_max": f"{float(score.get('news_max', NEWS_MAX)):.1f}",
                 "regime": regime,
                 "vix_at_signal": f"{vix_val:.1f}",
                 "rsi_14": f"{float(indicators.get('rsi_14', 0.0)):.1f}",
@@ -1428,6 +1462,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     try:
         rank_signals_logged = _run_rank_track(
             rank_track_candidates, cfg, rr_cfg, model_version, today_str, win_probability_calibration,
+            scan_type=scan_type,
         )
         if rank_signals_logged:
             logger.info(f"Rank track: {rank_signals_logged} new signal(s) logged to {RANK_TRADES_CSV}")
@@ -1467,6 +1502,7 @@ def _run_rank_track(
     model_version: str,
     today_str: str,
     win_probability_calibration,
+    scan_type: str = "post_close",
 ) -> int:
     """
     Rank-based parallel paper-trading track (2026-08-24 full model audit
@@ -1483,6 +1519,13 @@ def _run_rank_track(
     to build a real, comparable dataset, instead of waiting on rare
     qualifying events that a full model audit found don't even grow with a
     bigger watchlist.
+
+    top_n_per_sector is a budget for the DAY, not for each scan, and only the
+    rank_track.scan_type scan (default post_close) competes for it — see the
+    two blocks at the top of the body. Both rules exist because they fail
+    differently: the scan gate picks WHICH scan ranks, the per-(day, sector)
+    slot count stops any scan — including a manual re-run of the owning one —
+    from logging past the budget.
 
     Runs alongside — never replaces — the main loop's threshold-based
     logging. Fully independent: own CSV, own duplicate-position guard
@@ -1504,9 +1547,74 @@ def _run_rank_track(
 
     Returns count of new rank-track signals logged this run.
     """
-    top_n = int(cfg.get("rank_track", {}).get("top_n_per_sector", 2))
+    rank_cfg = cfg.get("rank_track", {})
+    top_n = int(rank_cfg.get("top_n_per_sector", 2))
+
+    # One scan owns the day's slots (rank_track.scan_type, default post_close).
+    # Before this gate the slots went to whichever scan ran first — pre_market,
+    # ranking on the least information of the day's three scans — and the two
+    # later scans then competed for whatever was left. post_close ranks on the
+    # full session's data and costs nothing in timing, since entry is a
+    # next-day breakout trigger either way. "any" restores every-scan
+    # behaviour; the per-(day, sector) budget below still applies in that case,
+    # and still applies here too — this gate is not a substitute for it, since
+    # the owning scan can legitimately run twice (a manual re-run or a retry;
+    # see data/logs/paper_runner_task_rerun.log).
+    owning_scan = str(rank_cfg.get("scan_type", "post_close"))
+    if owning_scan != "any" and scan_type != owning_scan:
+        logger.info(
+            f"Rank track: skipped for scan_type={scan_type} — "
+            f"rank_track.scan_type is '{owning_scan}'"
+        )
+        return 0
+
     already_logged = _load_logged_keys(RANK_TRADES_CSV)
     open_positions = _load_open_positions(RANK_TRADES_CSV)
+
+    # Slots already consumed today, per sector — the day's budget is top_n per
+    # sector across ALL of the day's scans, not top_n per scan.
+    #
+    # `already_logged` is keyed (signal_date, ticker), which stops the same
+    # ticker being logged twice in a day but never stopped a later scan from
+    # walking further down the same sector's ranking and filling top_n fresh
+    # slots. With three scans a day (pre-market/mid-session/post-close) that
+    # logged 3 x top_n per sector — exactly 6 per sector, 24 rows, on
+    # 2026-08-25 against a configured top_n of 2 — and scans 2 and 3 are
+    # systematically the LOWER-ranked names, every one of them reported as
+    # "rank #1"/"rank #2" in the log. That silently inflates and biases the
+    # dataset this whole track exists to build (see the sample-size rationale
+    # above), so it has to be counted per (day, sector), not per scan.
+    #
+    # Sector is resolved per ticker rather than read back from the CSV: the
+    # rank-track ledger carries no sector column. THIS scan's candidates are
+    # the authoritative source (they carry the same `sector` value the rows
+    # were logged under), with config's watchlist map as the fallback for a
+    # ticker that was logged earlier today but isn't in this scan's candidate
+    # set (scan error, or removed from the watchlist mid-day).
+    #
+    # A ticker that resolves to NEITHER can't be attributed to a sector, so it
+    # can't consume a slot — which would silently restore the exact
+    # overcounting this block exists to stop. That's a quiet correctness
+    # failure on a counter, so it's warned about rather than swallowed.
+    ticker_sector_map = dict(get_ticker_sector_map(cfg))
+    ticker_sector_map.update({c["ticker"]: c["sector"] for c in candidates})
+    slots_used_today: dict[str, int] = {}
+    unresolved_today: list[str] = []
+    for logged_date, logged_ticker in already_logged:
+        if logged_date != today_str:
+            continue
+        logged_sector = ticker_sector_map.get(logged_ticker)
+        if logged_sector:
+            slots_used_today[logged_sector] = slots_used_today.get(logged_sector, 0) + 1
+        else:
+            unresolved_today.append(logged_ticker)
+    if unresolved_today:
+        logger.warning(
+            f"Rank track: {len(unresolved_today)} row(s) already logged for {today_str} "
+            f"could not be mapped to a sector ({', '.join(sorted(unresolved_today))}) — "
+            f"their slots are NOT counted against today's per-sector budget, so that "
+            f"sector may over-log today. Check these tickers are still in the watchlist."
+        )
 
     by_sector: dict[str, list[dict]] = {}
     for c in candidates:
@@ -1515,8 +1623,18 @@ def _run_rank_track(
     signals_logged = 0
     for sector, sector_candidates in by_sector.items():
         ranked = sorted(sector_candidates, key=lambda c: c["final_score"], reverse=True)
-        picks = 0
-        for c in ranked:
+        picks = slots_used_today.get(sector, 0)
+        if picks >= top_n:
+            logger.info(
+                f"{sector}: rank-track already filled its {top_n} slot(s) for {today_str} "
+                f"in an earlier scan — no further picks today"
+            )
+            continue
+        # enumerate for the ACTUAL within-sector rank of each candidate this
+        # scan. `picks` is a slot counter, not a rank — reporting it as one is
+        # what made every logged row read "rank #1"/"rank #2" regardless of
+        # where the candidate really placed.
+        for rank_in_sector, c in enumerate(ranked, start=1):
             if picks >= top_n:
                 break
             ticker = c["ticker"]
@@ -1538,7 +1656,8 @@ def _run_rank_track(
             signals_logged += 1
             picks += 1
             logger.info(
-                f"{ticker}: RANK-TRACK signal logged — rank #{picks} in {sector}, score {c['final_score']:.1f}"
+                f"{ticker}: RANK-TRACK signal logged — rank #{rank_in_sector} in {sector} "
+                f"(slot {picks}/{top_n} for {today_str}), score {c['final_score']:.1f}"
             )
 
             rank_alert_payload = {
@@ -1683,6 +1802,12 @@ def _build_rank_track_row(
         "sentiment_score": f"{score.get('sentiment_total', 0.0):.1f}",
         "news_score": f"{score.get('news_total', 0.0):.1f}",
         "fundamental_score": f"{score.get('fundamental_score', 0.0):.1f}",
+        # Mirrors the threshold track's row above — the rank track runs the
+        # same scoring.py engine and so is subject to the same calibrated
+        # reweighting. See _CSV_COLUMNS.
+        "technical_max": f"{float(score.get('technical_max', TECHNICAL_MAX)):.1f}",
+        "sentiment_max": f"{float(score.get('sentiment_max', SENTIMENT_MAX)):.1f}",
+        "news_max": f"{float(score.get('news_max', NEWS_MAX)):.1f}",
         "regime": regime,
         "vix_at_signal": f"{float(candidate['vix_val']):.1f}",
         "rsi_14": f"{float(indicators.get('rsi_14', 0.0)):.1f}",

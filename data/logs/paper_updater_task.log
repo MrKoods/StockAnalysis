@@ -641,3 +641,49 @@ PAPER TRADING SUMMARY  (2 closed, 10 open, 2 expired)
 ==================================================
 
 Closed 1 trade(s) this run.
+2026-08-25 08:07:02,559 [__main__] INFO — 11 open paper trade(s) to check
+2026-08-25 08:07:03,079 [__main__] INFO — PFE 2026-08-07: still open after 12 trading days | mark=28.34 | $+49.14 (+1.13R)
+2026-08-25 08:07:03,080 [__main__] INFO — PFE 2026-08-10: still open after 11 trading days | mark=28.34 | $+74.45 (+1.03R)
+2026-08-25 08:07:03,550 [__main__] INFO — MRK 2026-08-10: still open after 11 trading days | mark=154.52 | $+101.49 (+3.07R)
+2026-08-25 08:07:03,778 [__main__] INFO — LLY 2026-08-12: still open after 9 trading days | mark=1262.99 | $+0.00 (+0.29R)
+2026-08-25 08:07:03,949 [__main__] INFO — MU 2026-08-14: still open after 7 trading days | mark=928.31 | $+0.00 (-0.45R)
+2026-08-25 08:07:04,434 [__main__] INFO — ABBV 2026-08-14: still open after 7 trading days | mark=266.46 | $+1.19 (+0.05R)
+2026-08-25 08:07:05,352 [__main__] INFO — JNJ 2026-08-19: still open after 4 trading days | mark=273.55 | $+0.24 (+0.01R)
+2026-08-25 08:07:05,833 [__main__] INFO — AMZN 2026-08-19: entry zone ($285.26-$289.14) not reached yet — order still pending
+2026-08-25 08:07:06,439 [__main__] INFO — HD 2026-08-19: entry zone ($356.10-$360.62) not reached yet — order still pending
+2026-08-25 08:07:07,343 [__main__] INFO — TGT 2026-08-20: still open after 3 trading days | mark=163.52 | $+9.84 (+0.20R)
+2026-08-25 08:07:07,343 [__main__] INFO — AMGN: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:07,503 [__main__] INFO — AVGO 2026-08-14: hypothetical (immediate-fill) outcome loss | -1.01R — entry-zone opportunity cost
+2026-08-25 08:07:07,690 [__main__] INFO — HBAN 2026-08-17: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-08-25 08:07:07,690 [__main__] INFO — 2 hypothetical (entry-zone opportunity cost) outcome(s) resolved
+2026-08-25 08:07:07,693 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+2026-08-25 08:07:08,229 [__main__] INFO — 8 open paper trade(s) to check
+2026-08-25 08:07:08,250 [__main__] INFO — MU: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — ADI: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — UMBF: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — CFG: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — AMGN: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — GILD: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — AMZN: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,250 [__main__] INFO — TGT: signal is from today — no bars possible yet, skipping
+2026-08-25 08:07:08,252 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (2 closed, 11 open, 2 expired)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         0  (+0 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 2
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        11
+  Open unrealized P&L: $+236.35  (8 marked position(s))
+==================================================
+
+[threshold] Closed 0 trade(s) this run.
+Paper trades: 8 total, 8 open, 0 closed
+[rank] Closed 0 trade(s) this run.

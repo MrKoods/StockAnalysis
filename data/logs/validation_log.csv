@@ -9,3 +9,10 @@ timestamp_utc,ticker,failure_type,detail
 2026-08-24T20:30:02.524922+00:00,AMD,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00+00:00
 2026-08-24T20:30:07.406437+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00+00:00
 2026-08-24T21:47:48.997631+00:00,RF_BAD,ohlcv,ohlcv_open_out_of_range_2026-08-24 00:00:00
+2026-08-25T12:30:25.234823+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-25T12:30:40.449956+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-25T12:31:06.628325+00:00,CFG,positioning,positioning_held_percent_institutions_out_of_bounds_1.0043399
+2026-08-25T16:00:06.895404+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-25T16:00:22.098737+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-25T20:30:08.382449+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-25T20:30:23.602008+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days

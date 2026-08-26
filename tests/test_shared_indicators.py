@@ -538,3 +538,63 @@ class TestComputeTechnicalIndicators:
         prior_bar_low = float(df["Low"].iloc[-2])
         assert result["rolling_low_20"] == pytest.approx(prior_bar_low)
         assert result["rolling_low_20"] > todays_low
+
+
+# ---------------------------------------------------------------------------
+# mom_5d
+# ---------------------------------------------------------------------------
+
+class TestMom5d:
+    """
+    5-bar return. paper_runner.py and run_swing_model.py both persist this to
+    their CSV rows as indicators["mom_5d"], but nothing in the live pipeline
+    ever produced the key — both call sites read it through a
+    .get("mom_5d", 0.0) default, so every live row silently recorded 0.0
+    while presenting as a real measurement (all 39 rows logged across both
+    paper-trading tracks up to 2026-08-25 read exactly 0.0000).
+    """
+
+    CFG = {
+        "technical": {
+            "ma_short": 20, "ma_long": 50, "rsi_period": 14,
+            "macd_fast": 12, "macd_slow": 26, "macd_signal": 9,
+            "atr_period": 14, "rs_lookback": 20, "volume_avg_period": 20,
+        }
+    }
+
+    def test_mom_5d_is_present(self, ohlcv_trending_up):
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        result = compute_technical_indicators(ohlcv_trending_up, benchmark, self.CFG)
+        assert "mom_5d" in result
+
+    def test_mom_5d_is_not_a_constant_zero(self, ohlcv_trending_up):
+        """The whole regression: the field existed downstream but was always 0.0."""
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        result = compute_technical_indicators(ohlcv_trending_up, benchmark, self.CFG)
+        assert result["mom_5d"] != 0.0
+
+    def test_mom_5d_matches_the_5_bar_return(self, ohlcv_trending_up):
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        result = compute_technical_indicators(ohlcv_trending_up, benchmark, self.CFG)
+        close = ohlcv_trending_up["Close"]
+        expected = (close.iloc[-1] - close.iloc[-6]) / close.iloc[-6]
+        assert result["mom_5d"] == pytest.approx(expected)
+
+    def test_mom_5d_positive_in_an_uptrend(self, ohlcv_trending_up):
+        benchmark = ohlcv_trending_up["Close"] * 0.95
+        assert compute_technical_indicators(ohlcv_trending_up, benchmark, self.CFG)["mom_5d"] > 0
+
+    def test_mom_5d_negative_in_a_downtrend(self, ohlcv_trending_down):
+        benchmark = ohlcv_trending_down["Close"] * 0.95
+        assert compute_technical_indicators(ohlcv_trending_down, benchmark, self.CFG)["mom_5d"] < 0
+
+    def test_mom_5d_is_zero_with_too_little_history(self):
+        """Fewer than 6 bars has no 5-bar return — 0.0, not a crash or a NaN."""
+        n = 4
+        close = np.linspace(100, 110, n)
+        df = pd.DataFrame({
+            "Open": close * 0.99, "High": close * 1.01, "Low": close * 0.98,
+            "Close": close, "Volume": [1_000_000] * n,
+        }, index=pd.date_range("2025-01-01", periods=n, freq="B"))
+        result = compute_technical_indicators(df, df["Close"] * 0.95, self.CFG)
+        assert result["mom_5d"] == 0.0

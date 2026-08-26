@@ -22,6 +22,8 @@ from shared.utils.event_gate import (
     has_active_block_for_trigger,
     expire_blocks,
     load_gate_state,
+    was_critical_alert_sent,
+    record_critical_alert,
     SEVERITY_NORMAL,
     SEVERITY_CRITICAL,
     SCOPE_TICKER,
@@ -273,8 +275,11 @@ class TestValidateEventGateState:
         assert validate_event_gate_state({"blocks": "not-a-list"}) == {"blocks": []}
 
     def test_malformed_block_entry_dropped(self):
+        # Asserts on ["blocks"], not whole-dict equality: the subject here is
+        # which BLOCKS survive, and the state dict also carries the
+        # critical_alerts_sent dedup ledger (see TestCriticalAlertDedup).
         result = validate_event_gate_state({"blocks": [{"unexpected": "shape"}]})
-        assert result == {"blocks": []}
+        assert result["blocks"] == []
 
     def test_malformed_timestamp_dropped(self):
         block = {
@@ -282,7 +287,7 @@ class TestValidateEventGateState:
             "event_timestamp_utc": "not-a-timestamp", "expired": False,
         }
         result = validate_event_gate_state({"blocks": [block]})
-        assert result == {"blocks": []}
+        assert result["blocks"] == []
 
     def test_valid_recent_block_survives(self):
         block = {
@@ -659,3 +664,68 @@ class TestOpenPositionCriticalAlert:
         assert "AMD" in calls["message"]
         assert "CEO resigns" in calls["message"]
         assert result["discord_sent"] is True
+
+
+class TestCriticalAlertDedup:
+    """
+    Open-position critical alerts fire once per (ticker, trigger, event
+    timestamp), not once per matching event per scan.
+
+    A critical news item stays in the feed for days and the alert used to be
+    unguarded, so it re-fired on every one of the day's three scans — MU
+    generated ~9 identical 'tariff' alerts a day across 2026-08-24/25, for a
+    position that was sized to 0 units so there was nothing to act on
+    either. Alert fatigue on a safety channel is a real failure mode.
+    """
+
+    @staticmethod
+    def _event(trigger="tariff", ts="2026-08-24T07:17:51+00:00", headline="Tariffs incoming"):
+        return {"trigger_match": trigger, "event_timestamp_utc": ts, "headline": headline}
+
+    def test_first_alert_is_not_suppressed(self):
+        state = {"blocks": []}
+        assert was_critical_alert_sent(state, "MU", self._event()) is False
+
+    def test_same_event_is_suppressed_after_recording(self):
+        state = record_critical_alert({"blocks": []}, "MU", self._event())
+        assert was_critical_alert_sent(state, "MU", self._event()) is True
+
+    def test_different_headline_for_the_same_event_is_still_suppressed(self):
+        """Same event via another vendor's phrasing must not re-alert."""
+        state = record_critical_alert({"blocks": []}, "MU", self._event(headline="Trump tariff review"))
+        assert was_critical_alert_sent(state, "MU", self._event(headline="Tariffs incoming")) is True
+
+    def test_a_different_ticker_still_alerts(self):
+        state = record_critical_alert({"blocks": []}, "MU", self._event())
+        assert was_critical_alert_sent(state, "NVDA", self._event()) is False
+
+    def test_a_different_trigger_still_alerts(self):
+        state = record_critical_alert({"blocks": []}, "MU", self._event())
+        assert was_critical_alert_sent(state, "MU", self._event(trigger="fraud")) is False
+
+    def test_a_genuinely_new_event_for_the_same_trigger_still_alerts(self):
+        """A fresh tariff story days later is news again, not a duplicate."""
+        state = record_critical_alert({"blocks": []}, "MU", self._event())
+        later = self._event(ts="2026-08-28T09:00:00+00:00")
+        assert was_critical_alert_sent(state, "MU", later) is False
+
+    def test_ledger_survives_a_validate_round_trip(self):
+        """
+        validate_event_gate_state() rebuilds the state dict from scratch, so a
+        key it doesn't explicitly preserve is discarded on every load — which
+        would reset this ledger each scan and restore the duplicate alerts.
+        """
+        state = record_critical_alert({"blocks": []}, "MU", self._event())
+        reloaded = validate_event_gate_state(state)
+        assert was_critical_alert_sent(reloaded, "MU", self._event()) is True
+
+    def test_stale_ledger_entries_are_pruned_on_validate(self):
+        from datetime import datetime, timezone, timedelta
+        old = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
+        state = {"blocks": [], "critical_alerts_sent": {"MU|tariff|whenever": old}}
+        assert validate_event_gate_state(state)["critical_alerts_sent"] == {}
+
+    def test_malformed_ledger_does_not_crash_validate(self):
+        for bad in ("not-a-dict", 42, None, {"key": "not-a-timestamp"}):
+            result = validate_event_gate_state({"blocks": [], "critical_alerts_sent": bad})
+            assert result["critical_alerts_sent"] == {}

@@ -223,6 +223,52 @@ def has_active_block_for_trigger(state: dict, trigger_match: str, scope: str) ->
     return False
 
 
+def critical_alert_key(ticker: str, event: dict) -> str:
+    """
+    Stable identity for one (open position, critical news event) pair.
+
+    trigger_match + event_timestamp_utc, not the headline: the same underlying
+    event reaches us through several vendors with slightly different headline
+    text, and re-alerting once per vendor phrasing is exactly the noise this
+    key exists to collapse.
+    """
+    return "|".join([
+        ticker,
+        str(event.get("trigger_match", "")),
+        str(event.get("event_timestamp_utc", "")),
+    ])
+
+
+def was_critical_alert_sent(state: dict, ticker: str, event: dict) -> bool:
+    """
+    Has an open-position critical alert already fired for this ticker/event?
+
+    A critical news item stays in the feed for days, and the open-position
+    alert used to fire unconditionally — once per matching event, per scan,
+    with three scans a day. MU generated ~9 identical "tariff" alerts a day
+    across 2026-08-24/25 (and did it for a position sized to 0 units, so
+    there was nothing to act on either). Alert fatigue on a safety channel is
+    a real failure mode: the fix is to alert on the transition, matching the
+    `action != pos["_last_management_action"]` guard the signal-decay alert
+    beside it already uses.
+    """
+    return critical_alert_key(ticker, event) in state.get("critical_alerts_sent", {})
+
+
+def record_critical_alert(state: dict, ticker: str, event: dict) -> dict:
+    """
+    Mark this ticker/event pair as alerted (caller must save_gate_state()).
+
+    Stored as {key: sent_at_utc} — the timestamp is what
+    validate_event_gate_state() prunes on, so the map can't grow without
+    bound across the life of the state file.
+    """
+    state.setdefault("critical_alerts_sent", {})[critical_alert_key(ticker, event)] = (
+        datetime.now(timezone.utc).isoformat()
+    )
+    return state
+
+
 def add_block(
     state: dict,
     tickers: list[str],
