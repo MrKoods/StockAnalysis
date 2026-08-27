@@ -52,12 +52,9 @@ def exclusive_lock(path: Path, timeout: float = 10.0, poll_interval: float = 0.0
     silently losing one of the increments. This closes that gap for call
     sites doing exactly that read-modify-write pattern on a shared file.
 
-    Distinct from scan_lock.py's acquire_scan_lock, which SKIPS (yields
-    False) if another instance already holds the lock — appropriate for a
-    whole scan that shouldn't double-run. This BLOCKS with a short
-    retry/backoff until the lock is free or `timeout` elapses, since a fast
-    read-modify-write critical section should eventually succeed, not be
-    skipped.
+    This BLOCKS with a short retry/backoff until the lock is free or
+    `timeout` elapses, since a fast read-modify-write critical section should
+    eventually succeed rather than be skipped.
 
     A lock file older than `timeout` is treated as abandoned (the holder
     crashed without cleaning up) and reclaimed rather than waited on forever.

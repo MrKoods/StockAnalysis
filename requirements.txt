@@ -4,12 +4,19 @@
 
 # Core data
 yfinance>=0.2.36
-pandas>=2.0.0
+# pandas floor is 2.2.0, not 2.0: research/config.py's REBALANCE_FREQUENCY uses
+# the "ME" month-end offset alias, which 2.2 introduced and which raises
+# ValueError on 2.0/2.1. A looser floor would let CI resolve a pandas that
+# cannot run the rebalance at all.
+pandas>=2.2.0
 numpy>=1.26.0
 scipy>=1.11.0
 
-# Parquet panel cache (research/panel.py)
-pyarrow>=15.0.0
+# No parquet engine listed on purpose. pyarrow and fastparquet both fail to
+# import on the development machine — a Windows Application Control policy
+# blocks their native DLLs — so research/panel.py caches with pandas' built-in
+# pickle instead (see that module's Storage section). Nothing here needs a
+# compiled columnar engine.
 
 # research/panel.py reads the S&P 500 constituent table via pandas.read_html
 lxml>=5.0.0

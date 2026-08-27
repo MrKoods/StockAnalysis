@@ -2,8 +2,9 @@
 Phase 1 — data assembly.
 
 Builds a date x ticker panel of split/dividend-adjusted daily bars, cached to
-parquet so every later phase reads the same immutable dataset instead of
-re-downloading (and silently re-deriving) its own.
+disk so every later phase reads the same immutable dataset instead of
+re-downloading (and silently re-deriving) its own. See the Storage section
+below for why the cache format is pickle rather than parquet.
 
 Known, accepted limitation — survivorship bias. The universe is the *current*
 S&P 500 membership, so names that were dropped from the index (usually after
@@ -32,12 +33,39 @@ from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-_PRICE_PANEL = config.PANEL_DIR / "prices.parquet"
-_VOLUME_PANEL = config.PANEL_DIR / "dollar_volume.parquet"
-_CONTEXT_PANEL = config.PANEL_DIR / "context.parquet"
+_PRICE_PANEL = config.PANEL_DIR / "prices.pkl"
+_VOLUME_PANEL = config.PANEL_DIR / "dollar_volume.pkl"
+_CONTEXT_PANEL = config.PANEL_DIR / "context.pkl"
 _UNIVERSE_FILE = config.PANEL_DIR / "universe.csv"
 
 _WIKI_SP500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+
+
+# --------------------------------------------------------------------------
+# Storage
+#
+# Pickle rather than parquet, for an environment reason rather than a
+# preference: on this machine a Windows Application Control policy blocks
+# pyarrow's native DLL ("DLL load failed while importing _fs"), and fastparquet
+# fails the same way, so pandas has no usable parquet engine. Measured at full
+# panel scale (5500 dates x 500 tickers, ~22 MB), uncompressed pickle writes and
+# reads in ~0.01s; gzip would cut it to 4 MB but costs 23s per write.
+#
+# Pickle's usual objections do not apply here: the file is generated locally by
+# this module, never shipped or received, and gitignored. Its real weakness is
+# version fragility across pandas releases — acceptable because the cache is
+# fully regenerable with `--download` and is not a source of truth.
+#
+# These two helpers are the only place the format is named, so swapping back to
+# parquet if the policy changes is a two-line edit.
+# --------------------------------------------------------------------------
+
+def _write_frame(frame: pd.DataFrame, path) -> None:
+    frame.to_pickle(path)
+
+
+def _read_frame(path) -> pd.DataFrame:
+    return pd.read_pickle(path)
 
 
 # --------------------------------------------------------------------------
@@ -116,7 +144,7 @@ def download_panel(tickers: list[str] | None = None, batch_size: int = 50) -> No
             continue
 
         for symbol in batch:
-            frame = _extract_symbol(raw, symbol, len(batch))
+            frame = _extract_symbol(raw, symbol)
             if frame is None or frame.empty:
                 logger.warning("No data for %s", symbol)
                 continue
@@ -135,14 +163,21 @@ def download_panel(tickers: list[str] | None = None, batch_size: int = 50) -> No
     price_panel = pd.DataFrame(closes).sort_index()
     volume_panel = pd.DataFrame(dollar_volumes).sort_index()
 
+    # Context tickers come out of BOTH panels, not just prices. Dropping them
+    # from one and leaving them in the other means prices.columns and
+    # dollar_volume.columns disagree, and any later `prices[volumes.columns]`
+    # style alignment silently pulls SPY/^VIX into the tradeable universe.
+    # (^VIX also reports a nonsense volume, being an index rather than a
+    # security, so its "dollar volume" is meaningless if it survives here.)
     context_cols = [c for c in config.CONTEXT_TICKERS if c in price_panel.columns]
     context_panel = price_panel[context_cols].copy()
     price_panel = price_panel.drop(columns=context_cols, errors="ignore")
+    volume_panel = volume_panel.drop(columns=config.CONTEXT_TICKERS, errors="ignore")
 
     config.PANEL_DIR.mkdir(parents=True, exist_ok=True)
-    price_panel.to_parquet(_PRICE_PANEL)
-    volume_panel.to_parquet(_VOLUME_PANEL)
-    context_panel.to_parquet(_CONTEXT_PANEL)
+    _write_frame(price_panel, _PRICE_PANEL)
+    _write_frame(volume_panel, _VOLUME_PANEL)
+    _write_frame(context_panel, _CONTEXT_PANEL)
 
     logger.info(
         "Cached panel: %d dates x %d tickers (%s to %s), context: %s",
@@ -152,13 +187,16 @@ def download_panel(tickers: list[str] | None = None, batch_size: int = 50) -> No
     )
 
 
-def _extract_symbol(raw: pd.DataFrame, symbol: str, batch_len: int) -> pd.DataFrame | None:
+def _extract_symbol(raw: pd.DataFrame, symbol: str) -> pd.DataFrame | None:
     """
-    yfinance returns a flat frame for a single symbol and a MultiIndex-columned
-    frame for several — normalize both to a plain OHLCV frame.
+    Normalize a yfinance response to a plain OHLCV frame for one symbol.
+
+    Do not special-case a single-symbol batch: with group_by="ticker", yfinance
+    returns MultiIndex columns even for a batch of one (verified against
+    yfinance 1.4.1), so a "len(batch) == 1 means flat columns" shortcut hands
+    back a frame whose ["Close"] raises KeyError. Branch on the actual column
+    structure instead of on the batch size.
     """
-    if batch_len == 1:
-        return raw
     if isinstance(raw.columns, pd.MultiIndex):
         if symbol not in raw.columns.get_level_values(0):
             return None
@@ -170,23 +208,26 @@ def _extract_symbol(raw: pd.DataFrame, symbol: str, batch_len: int) -> pd.DataFr
 # Load
 # --------------------------------------------------------------------------
 
-def load_panel(sample: str = "full") -> dict[str, pd.DataFrame]:
+def load_panel(sample: str = "in") -> dict[str, pd.DataFrame]:
     """
     Load the cached panel, sliced to a named sample window.
 
     sample: "in" (2005-2018) | "out" (2019-2026) | "full".
 
-    Phases 1-5 pass sample="in" and nothing else. "out" is opened once, in
-    Phase 6, with the rules already locked.
+    The default is deliberately "in", the SAFE option, not "full". Phases 1-5
+    must never see out-of-sample data, and a default that quietly hands it over
+    is precisely the kind of footgun that produced V2's four months of backtests
+    graded against the wrong population. Reaching OOS data should require typing
+    it out. "out" is opened once, in Phase 6, with the rules already locked.
     """
     if not _PRICE_PANEL.exists():
         raise FileNotFoundError(
             f"No cached panel at {_PRICE_PANEL}. Run: python -m research.panel --download"
         )
 
-    prices = pd.read_parquet(_PRICE_PANEL)
-    volumes = pd.read_parquet(_VOLUME_PANEL)
-    context = pd.read_parquet(_CONTEXT_PANEL)
+    prices = _read_frame(_PRICE_PANEL)
+    volumes = _read_frame(_VOLUME_PANEL)
+    context = _read_frame(_CONTEXT_PANEL)
 
     if sample == "in":
         start, end = config.IN_SAMPLE_START, config.IN_SAMPLE_END
@@ -252,7 +293,16 @@ def verify_panel() -> dict:
     daily_returns = prices.pct_change(fill_method=None)
     report["extreme_daily_moves"] = int((daily_returns.abs() > 0.5).sum().sum())
 
-    report["volume_panel_aligned"] = bool(volumes.index.equals(prices.index))
+    # Index AND columns must agree. Checking only the index would let a
+    # context ticker survive in one panel and not the other, which silently
+    # widens the tradeable universe downstream.
+    report["volume_panel_index_aligned"] = bool(volumes.index.equals(prices.index))
+    report["volume_panel_columns_aligned"] = bool(
+        set(volumes.columns) == set(prices.columns)
+    )
+    report["context_leaked_into_prices"] = sorted(
+        set(config.CONTEXT_TICKERS) & set(prices.columns)
+    )
 
     return report
 

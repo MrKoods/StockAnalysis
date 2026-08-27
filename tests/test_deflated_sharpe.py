@@ -61,9 +61,9 @@ class TestMultipleTestingCorrection:
 
     def test_weak_selected_sharpe_among_many_trials_fails_the_bar(self):
         # A mediocre Sharpe that just happened to be the best of a large sweep
-        # should not clear the 95% PSR bar this codebase's go-live gate uses
-        # elsewhere (backtest_engine.run_backtest's sharpe >= 1.0 floor is a
-        # much lower bar than "is this Sharpe distinguishable from luck").
+        # should not clear the 95% PSR bar. Note how much stricter this is
+        # than a raw "Sharpe >= 1.0" floor: clearing a level says nothing about
+        # whether the number is distinguishable from luck.
         rng = np.random.default_rng(3)
         trials = list(rng.normal(0.0, 0.4, size=50))
         selected_sharpe = max(trials + [0.3])

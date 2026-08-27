@@ -1,8 +1,11 @@
 """
 SHARED: Wraps yfinance — pulls daily OHLCV + earnings calendar data.
-Primary price data source. Alpha Vantage daily endpoint is the fallback.
-Enforces Alpha Vantage call budget (global_config.yaml).
 Implements exponential backoff (30s → 60s → 120s → fallback).
+
+V2 carried an Alpha Vantage fallback and call budget here; both were removed
+with the rest of the alt-data stack in the V3 rebuild. yfinance is the only
+price source, and research/panel.py is the bulk historical path — this client
+is for targeted, small fetches.
 """
 
 import re
@@ -67,13 +70,11 @@ def fetch_ohlcv(
 
 
 # Process-lifetime OHLCV cache, keyed by (ticker, interval) -> (df, days_covered).
-# 2026-08-23 full model audit: swing_model/indicator_pipeline.py::run_pipeline()
-# (period="6mo") and swing_model/run_swing_model.py::_fetch_market_context()
-# (period="3mo") both call fetch_ohlcv_batch() for a heavily-overlapping ticker
-# set (every watchlist ticker + every sector benchmark), seconds apart, in the
-# same scan — nearly doubling yfinance call volume every run across 4 sectors,
-# 3x/day. Both live and paper trading are launched as a fresh process per scan
-# (Windows Task Scheduler), so a simple no-expiry, per-process cache is exactly
+# Added in V2 (2026-08-23 audit), where two pipeline entry points fetched a
+# heavily-overlapping ticker set seconds apart in the same scan, nearly doubling
+# yfinance call volume. Those callers are gone, but the cache is kept: any
+# research script that fetches the same symbol twice in one process gets the
+# same dedup for free. Each run is a fresh process, so a no-expiry cache is
 # right: it can't go stale within one scan and it can't leak into the next one
 # (new process). Cleared per-test by tests/conftest.py's autouse
 # _isolate_ohlcv_cache fixture — without that, a test mocking yf.download for
@@ -331,7 +332,10 @@ def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[flo
 def fetch_treasury_yield(period: str = "3mo") -> pd.DataFrame | None:
     """
     Fetch 10-year US Treasury yield (^TNX) via yfinance.
-    Used by macro_overlay.py as a free proxy for Fed rate direction.
+
+    No current caller — V2's macro overlay was removed in the V3 rebuild. Kept
+    because a rate-regime split is a plausible Phase 5 conditioning variable
+    and this is a thin, working wrapper.
     """
     def _fetch():
         df = yf.download("^TNX", period=period, interval="1d", progress=False, auto_adjust=True)
@@ -351,7 +355,8 @@ def fetch_treasury_yield(period: str = "3mo") -> pd.DataFrame | None:
 def fetch_dxy(period: str = "3mo") -> pd.DataFrame | None:
     """
     Fetch US Dollar Index (DX-Y.NYB) via yfinance.
-    Used by macro_overlay.py for USD strength signal.
+
+    No current caller — same status as fetch_treasury_yield above.
     """
     def _fetch():
         df = yf.download("DX-Y.NYB", period=period, interval="1d", progress=False, auto_adjust=True)

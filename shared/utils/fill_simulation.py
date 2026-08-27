@@ -4,13 +4,16 @@ where price actually trades into a signal's entry zone, the same real-world
 "is this a filled position or a still-pending conditional order" question
 paper trading and the backtest both need to answer identically.
 
-Extracted from paper_trading/paper_updater.py (2026-08-19) so backtesting/
-simulation.py can share the exact same fill logic instead of assuming every
-signal fills at the signal bar's own close — a systematic optimism bias
-toward breakouts that gap and run without ever pulling back into the zone
-(see Signal Integrity Audit finding A.1). Two independent copies of this
-logic would be a parity bug waiting to happen the first time either one
-changed; one shared function structurally can't drift from itself.
+Built in V2 after its backtest was found to fill every signal at the signal
+bar's own close, never checking whether price actually traded into the entry
+zone — a systematic optimism bias toward breakouts that gap and run without
+ever pulling back. Correcting it cut the reported average R:R from 2.03 to
+1.41, which is the measure of how much the assumption was worth.
+
+No current caller: V3's momentum hypothesis rebalances into next-open fills,
+which need no entry-zone check. Kept because Phase 5 may land on a shorter
+horizon where entry zones return, and because the lesson it encodes — model
+the fill, never assume it — is the one V2 paid the most to learn.
 """
 
 
@@ -18,7 +21,7 @@ import pandas as pd
 
 # Trading days a breakout/breakdown entry order is allowed to sit unfilled
 # before the signal is treated as stale and expired — no capital was ever
-# really at risk. Matches paper_trading/paper_updater.py's own constant.
+# really at risk.
 FILL_WINDOW_DAYS = 5
 
 
