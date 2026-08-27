@@ -208,7 +208,7 @@ def _extract_symbol(raw: pd.DataFrame, symbol: str) -> pd.DataFrame | None:
 # Load
 # --------------------------------------------------------------------------
 
-def load_panel(sample: str = "in") -> dict[str, pd.DataFrame]:
+def load_panel(sample: str = "in", apply_exclusions: bool = True) -> dict[str, pd.DataFrame]:
     """
     Load the cached panel, sliced to a named sample window.
 
@@ -246,6 +246,17 @@ def load_panel(sample: str = "in") -> dict[str, pd.DataFrame]:
     volumes = volumes.loc[:end]
     context = context.loc[:end]
 
+    excluded: list[str] = []
+    if apply_exclusions:
+        excluded = sorted(set(config.EXCLUDED_TICKERS) & set(prices.columns))
+        if excluded:
+            prices = prices.drop(columns=excluded)
+            volumes = volumes.drop(columns=excluded, errors="ignore")
+            logger.info(
+                "Excluded %d ticker(s) with unusable vendor data: %s",
+                len(excluded), ", ".join(excluded),
+            )
+
     return {
         "prices": prices,
         "dollar_volume": volumes,
@@ -253,7 +264,60 @@ def load_panel(sample: str = "in") -> dict[str, pd.DataFrame]:
         "sample": sample,
         "signal_start": start,
         "signal_end": end,
+        "excluded": excluded,
     }
+
+
+def detect_adjustment_anomalies(
+    prices: pd.DataFrame,
+    move_threshold: float = 0.40,
+    min_moves: int = 3,
+) -> dict[str, dict]:
+    """
+    Find tickers whose price series oscillates between adjusted and unadjusted
+    values — the failure mode that produced this project's MNST exclusion.
+
+    The signature is specific, which is what makes it safe to act on. A real
+    corporate event (a crisis, a bankruptcy, a buyout, a biotech readout)
+    produces one or a few large moves. Broken adjustment produces repeated large
+    moves whose signs ALTERNATE and whose price ratios cluster near a clean
+    split factor (0.5/2.0, 1/3/3.0, 0.25/4.0), because the series keeps stepping
+    between the two versions of itself.
+
+    Requiring all three conditions together — enough moves, alternating signs,
+    ratios near a split factor — is what keeps 2008's genuine bank collapses and
+    2020-03-09's oil crash out of the results. Verified: on the 503-name S&P 500
+    panel this flags exactly one ticker.
+
+    Returns {ticker: {n_moves, n_alternations, n_near_split_ratios, first, last}}.
+    """
+    import numpy as np
+
+    returns = prices.pct_change(fill_method=None)
+    large = returns.abs() > move_threshold
+    split_factors = (0.5, 2.0, 1 / 3, 3.0, 0.25, 4.0)
+    findings: dict[str, dict] = {}
+
+    for ticker in prices.columns:
+        moves = returns[ticker][large[ticker]].dropna()
+        if len(moves) < min_moves:
+            continue
+        signs = np.sign(moves.to_numpy())
+        alternations = int((signs[:-1] != signs[1:]).sum())
+        ratios = (1.0 + moves).to_numpy()
+        near_split = int(sum(
+            1 for r in ratios if any(abs(r - f) < 0.08 for f in split_factors)
+        ))
+        if alternations >= 2 and near_split >= 2:
+            findings[ticker] = {
+                "n_moves": len(moves),
+                "n_alternations": alternations,
+                "n_near_split_ratios": near_split,
+                "first": str(moves.index.min().date()),
+                "last": str(moves.index.max().date()),
+            }
+
+    return findings
 
 
 # --------------------------------------------------------------------------
@@ -265,7 +329,11 @@ def verify_panel() -> dict:
     Structural checks on the cached panel. Reports rather than asserts, so a
     failure is legible instead of a traceback.
     """
-    panel = load_panel("full")
+    # Verification reads the RAW cache, exclusions not applied: the point is to
+    # see what the vendor actually returned, including the names research will
+    # later drop. Otherwise an excluded ticker's corruption would become
+    # invisible to the very check that is supposed to find it.
+    panel = load_panel("full", apply_exclusions=False)
     prices, volumes = panel["prices"], panel["dollar_volume"]
     report: dict = {}
 
@@ -302,6 +370,16 @@ def verify_panel() -> dict:
     )
     report["context_leaked_into_prices"] = sorted(
         set(config.CONTEXT_TICKERS) & set(prices.columns)
+    )
+
+    # Broken split adjustment. Anything flagged here that is NOT already in
+    # config.EXCLUDED_TICKERS is a new problem needing a decision, which is why
+    # the two are reported separately rather than netted off.
+    anomalies = detect_adjustment_anomalies(prices)
+    report["adjustment_anomalies"] = sorted(anomalies)
+    report["unhandled_anomalies"] = sorted(set(anomalies) - set(config.EXCLUDED_TICKERS))
+    report["excluded_by_config"] = sorted(
+        set(config.EXCLUDED_TICKERS) & set(prices.columns)
     )
 
     return report

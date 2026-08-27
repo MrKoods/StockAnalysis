@@ -44,6 +44,27 @@ VOLATILITY_INDEX = "^VIX"
 CONTEXT_TICKERS = [BENCHMARK, VOLATILITY_INDEX]
 
 # --------------------------------------------------------------------------
+# Excluded tickers — names whose vendor data is unusable, with the reason.
+#
+# Applied at load time, not download time, so the cache stays a faithful record
+# of what the vendor actually returned and the exclusion stays auditable.
+# research.panel.detect_adjustment_anomalies() is what found this one, and runs
+# on every --verify, so a re-download cannot silently reintroduce the problem or
+# hide a new instance of it.
+# --------------------------------------------------------------------------
+
+EXCLUDED_TICKERS: dict[str, str] = {
+    # Found in the Phase 1 verification, 2026-08-26. MNST oscillates between
+    # ~$95 and ~$47 on scattered days through Jul-Aug 2026 — a clean 2:1 factor
+    # appearing and disappearing. This is not a split: a split happens once and
+    # adjusts all prior history. The vendor is intermittently serving
+    # unadjusted values, producing six >50% moves with alternating signs in
+    # three weeks. Left in, it would hand a momentum ranker enormous spurious
+    # signals on a name that never actually moved.
+    "MNST": "vendor split-adjustment oscillates Jul-Aug 2026 (six alternating >50% moves)",
+}
+
+# --------------------------------------------------------------------------
 # Signal definition — the Phase 2/3 hypothesis
 #
 # Classic 12-1 cross-sectional momentum: rank on the return from t-252 to t-21,

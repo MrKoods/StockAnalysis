@@ -58,21 +58,77 @@ Three deviations from the published plan, decided while tracing imports:
 
 ## Phase 1 — Data assembly
 
-**Status:** not started
+**Date:** 2026-08-26
+**Verdict:** CONFIRMED
 
 **Hypothesis:** n/a — infrastructure.
 
-**Method:** Build a date × ticker panel of adjusted daily OHLCV for current
-S&P 500 constituents, ~2005-2026, plus SPY and VIX. Survivorship bias is
-knowingly accepted at this stage and documented; point-in-time membership is a
-Phase 6 upgrade only if the signal proves real.
+**Method:** Built a date × ticker panel of adjusted daily closes and dollar
+volume for current S&P 500 constituents plus SPY and ^VIX. Survivorship bias
+knowingly accepted and documented; point-in-time membership is a Phase 6
+upgrade, and only if the signal proves real.
 
 **Pass bar:** panel reconciles against a hand-checked sample; adjusted returns
 match an external reference for 5 spot tickers.
 
-**Kill:** free daily data cannot be made clean enough to trust.
+**Result: PASS — 18/18 reconciliation checks.**
 
-**Result:** _pending_
+Panel: **5,699 dates × 503 tickers, 2004-01-02 → 2026-08-26**, median coverage
+99.98%, no duplicate dates, monotonic index, no non-positive prices, price and
+volume panels aligned on both index and columns, no context-ticker leakage.
+Download took 72s.
+
+Reconciliation (`python -m research.reconcile`), against facts sourced outside
+the panel:
+- **8/8 known splits** show no jump in the adjusted series (AAPL 7:1 and 4:1,
+  NVDA 4:1 and 10:1, TSLA 5:1 and 3:1, AMZN 20:1, GOOGL 20:1).
+- **5/5 SPY calendar-year total returns** match published figures to within
+  **0.07pp** (2008, 2013, 2017, 2020, 2022).
+- **5/5 spot tickers** match an independent fetch path (`yf.Ticker.history`)
+  to within **0.0001%** across 252 dates.
+
+### Two real findings
+
+**1. MNST has corrupt vendor data — excluded.** Six moves >50% with alternating
+signs between 2026-07-20 and 2026-08-07, oscillating between ~$95 and ~$47 — a
+clean 2:1 factor appearing and disappearing on scattered days. This is not a
+split (a split happens once and adjusts all prior history); the vendor is
+intermittently serving unadjusted values. Left in, it would have handed a
+momentum ranker enormous spurious signals on a name that never moved.
+
+Rather than hardcode a one-off fix, `detect_adjustment_anomalies()` now looks
+for the general signature — repeated large moves whose signs alternate AND whose
+ratios cluster near a clean split factor. All three conditions together are what
+keep 2008's genuine bank collapses and the 2020-03-09 oil crash out of the
+results. It runs on every `--verify` and separates *handled* anomalies from
+*unhandled* ones, so a re-download cannot silently reintroduce this or hide a
+new instance. On the 503-name panel it flags exactly one ticker.
+
+Excluded in `config.EXCLUDED_TICKERS` at **load** time, not download time, so
+the cache stays a faithful record of what the vendor returned and the exclusion
+stays auditable.
+
+**2. The first version of the SPY check was wrong, not the data.** It measured
+from the year's first close instead of the prior year's final close, silently
+dropping the first trading day. 2013 read as +29.0% against a published +32.3%,
+because 2 January 2013 alone was +2.56%; every other year was understated the
+same way, just less visibly. Fixed, and the tolerance tightened from 2pp to
+0.5pp — once measured correctly the panel is accurate to 0.07pp, so a loose
+tolerance would only hide future drift.
+
+### Accepted limitations
+
+- **Survivorship bias.** The universe is *current* index membership, so names
+  dropped from the index (usually after poor performance) are absent from the
+  whole history. This inflates any long-only result, momentum included. Every
+  Phase 2-5 number carries this caveat.
+- **43 tickers under 50% coverage** — verified to be legitimate late listings,
+  not data gaps: IPOs (UBER, ABNB, COIN, RDDT, PLTR), spin-offs (CARR/OTIS,
+  GEHC, KVUE, SOLV/GEV, VLTO), mergers (KHC, DOW). No ticker has a missing
+  chunk mid-history.
+- **Single vendor.** These checks catch a corrupted pipeline, not a wrong
+  vendor. Detecting that needs a second source — Phase 6, and only if the
+  signal proves real.
 
 ---
 
