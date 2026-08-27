@@ -71,6 +71,17 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.111 | 2026-08-26 | Feature | Added a switch (OFF by default) that lets the model count news for less in sectors where news barely exists. Regional banks average 5 news articles per stock against 65 for chip makers, so news currently occupies 15 of the 100 scoring points for banks while telling us almost nothing. This is a free control to test real fixes against — it costs no API calls, and it is deliberately switched off until measured, because "banks have little news" does not automatically mean "bank news is less predictive" |
+| v2.2.110 | 2026-08-26 | Bug Fix | The last of the "invented data treated as real" bugs. When a stock had no social-media posts on a given day, the model filled that day in with a neutral placeholder — then measured sentiment MOMENTUM against those placeholders, so a stock with 30 posts in six minutes registered maximum momentum from a jump that never happened, scoring HIGHER than a stock with genuine five-day history. Also split feed outages from code bugs in the data-fetching layer, so a broken function call can no longer look like "the vendor sent nothing" |
+| v2.2.109 | 2026-08-26 | Bug Fix | A failed request to the SEC filings service looked exactly like "this company announced nothing" — both returned an empty result. If SEC ever throttled or blocked us, the model would quietly lose one of its five news sources and all of its filing-based safety triggers while appearing perfectly healthy. Failures are now recorded separately so they can be seen |
+| v2.2.108 | 2026-08-26 | Bug Fix | Closed the last two open items from the data-source audit. Social-media sentiment was scoring a stock nobody posts about exactly like one where every post is against the trade — silence now scores neutral, matching the same fix made to news earlier today. And the daily news-API allowance is no longer spent first-come-first-served: a share is now held back for the end-of-day scan, which had been getting only 6 of 20 calls despite being the scan that actually picks the trades |
+| v2.2.107 | 2026-08-26 | Bug Fix | Two data-fetching bugs found while auditing every external data source. Taiwan Semiconductor and ASML had been returning ZERO regulatory filings on every scan ever run — as foreign companies they file a different form type than the one the model asked for, so their own announcements were invisible to the model's safety checks. And the model was reading social-media sentiment with no check on how OLD the posts were: one small bank's trade direction was being set by posts up to a year old, the newest already five weeks stale. All API keys were checked and are working correctly |
+| v2.2.106 | 2026-08-26 | Infrastructure | Housekeeping. Removed one bank stock (WBS) whose price history from the data provider is missing 15 trading days its peers all have — it had been failing data checks and getting excluded from every scan anyway, while still filling the error log daily. And stopped flagging another bank (CFG) as broken for reporting 100.4% institutional ownership: above 100% is normal and real, because shares lent to short sellers get counted twice |
+| v2.2.105 | 2026-08-26 | Bug Fix | The reward-to-risk figure recorded against each trade was the one planned before the trade opened, not the one it actually got. Trades rarely open at exactly the planned price, and the profit target does not move when they don't — so the real ratio drifts. 8 of the 10 trades opened so far were affected, the worst advertising 3.0:1 when it was really 2.0:1. The real figure is now recorded alongside the planned one. Also: a suspected position-sizing flaw was investigated and found NOT to be one — the numbers had been read on the wrong measure |
+| v2.2.104 | 2026-08-26 | Bug Fix | Two fixes to how trades set their exit prices. Some profit targets were unreachable: one pick needed a +39% move inside a two-week window, because the model would aim at any "thin volume" price level no matter how far away it sat. Targets are now capped at what the stock realistically moves in the holding period. And some stop-losses sat closer than a single normal day's price swing, so they would be triggered by ordinary noise rather than by the trade actually going wrong — stops now have a minimum distance. Of today's 8 picks, 6 are unchanged and 2 were corrected |
+| v2.2.103 | 2026-08-26 | Bug Fix | Two scoring/measurement fixes found while reviewing the day's trades. First: a stock nobody writes about was being scored exactly like a stock with unanimous, credible bad news — 7 of 12 regional banks scored zero out of fifteen on news despite pulling 30+ articles each, because none were judged relevant. Silence is now scored as neutral, not as damning. Second: a trade too small to buy even one share still counted in the win rate. LLY closed today having never risked a cent, and it had quietly turned the record from 0-of-2 into 0-of-3 |
+| v2.2.102 | 2026-08-26 | Bug Fix | The two parallel trade-selection experiments were supposed to run independently, but one was quietly filtering the other. If a stock was good enough to be picked by the main strategy earlier in the day, the second (ranking-based) strategy never even saw it — so it was systematically blind to the single best stock in each sector, the one most worth ranking. Found while answering a question about how the ranking actually picks its top two. Confirmed live: on 2026-08-25 the top-scoring healthcare stock was invisible to the ranking, which picked 2nd and 3rd place instead |
+| v2.2.101 | 2026-08-26 | Feature | The model no longer lets a stale trade idea block a fresh one. When it spots a setup, it places an order that only triggers if the stock actually moves to a certain price — and until that happens, no money is committed. Previously, that waiting order would block the same stock for up to a week, even after the model had formed a newer and better opinion about it. Now a newer signal cancels the untriggered order and takes its place. Orders that have actually been filled still block, unchanged — that's real money at stake and doubling up on it is exactly what the rule is for. Cancelled orders are recorded as "superseded" and kept out of the win-rate maths, since no money was ever at risk |
 | v2.2.100 | 2026-08-26 | Bug Fix | Review of the 2026-08-25 scan and the full trade ledger, and the four real bugs it turned up. The most serious: the new rank-based paper-trading track was logging **three times** the trades it was configured to. It is meant to record the top 2 stocks per sector per day, but the check that stopped duplicates only stopped the same *stock* twice — so each of the day's three scans went further down the list and logged 2 more, 6 per sector instead of 2, every one of them labelled "rank #1"/"rank #2" in the log. That track exists purely to build a clean dataset to judge the strategy on, so it was corrupting the only evidence it was created to produce. Also: a 5-day price-momentum figure recorded on every trade was never actually calculated and had been silently saving as 0.0000 on all 39 trades ever logged; repeat "critical event" alerts fired ~9 times a day for the same news story; and two trades too small to buy even one share were being counted as real open positions |
 | v2.2.99 | 2026-08-24 | Bug Fix / Infrastructure | Full code-cleanliness audit of the core model. Found and fixed a real pricing bug: the EV formula used for 4 of the 42 option structures (ratio/back spreads) was ignoring implied volatility and time decay entirely, and — separately — comparing per-share dollars against per-contract dollars, undervaluing those 4 structures' rankings by roughly 100x versus every other structure. Also: wired up a finished-but-never-connected Discord alert for adverse macro conditions (and fixed its color logic, dead on arrival since before it was ever connected); corrected a module's doc claiming it uses AI-based text recognition when it's always been simple keyword matching; removed several dead settings and 6 functions nothing in the codebase ever called |
 | v2.2.98 | 2026-08-24 | Feature | Strategy pivot: added a second, parallel paper-trading track that always trades the top 2 highest-scoring stocks in each sector, every scan, instead of only the rare ones that hit the official 70+ bar. Runs alongside the existing system, not replacing it, with its own ledger, own $15,000 pretend account, and its own Discord messages so the two can be told apart and compared over time. Direct fix for "not enough trades to learn from" — this guarantees a steady flow of real data instead of waiting on a bar that's proven too rare to clear reliably, in any sector, no matter how many stocks get added to the watchlist |
@@ -180,6 +191,695 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.111] — 2026-08-26 — [Feature] Per-sector News coverage weighting — shipped DISABLED as a measurement control
+
+**Status:** Live but INACTIVE (`scoring_weights.news_coverage_weighting.enabled: false`).
+
+**In short:** A configurable multiplier on the News category's share of the Technical/Sentiment/News
+pool, per sector. Off by default. Built as the zero-API-cost control arm for the user's planned
+comparison of Finnhub-coverage fixes. All 1620 tests pass (14 new); ruff and all three guardrail
+checkers pass clean.
+
+**The problem.** News coverage is wildly uneven by sector, and that is a property of a company's
+media profile rather than of its trade setup. Measured live 2026-08-26 (mean Finnhub articles per
+ticker): semiconductors 65.1, consumer_discretionary 55.0, healthcare 29.1, **regional_banks 5.4** —
+with 7 of 12 banks matching ZERO relevant articles out of 30+ fetched. v2.2.103 stopped that absence
+being scored as BAD news (it now floors at a neutral 5.0/15), but a neutral score still occupies 15
+of the 100 composite points while carrying no information at all.
+
+**Why it ships DISABLED.** "Banks have thin coverage" is measured. "Therefore bank news is less
+predictive" is **not** — it could equally be that sparse bank news is highly informative precisely
+because banks get written about only when something real happens. Sourcing better bank news may beat
+this outright. Turning it on now would also contaminate the rank track ahead of its 2026-09-19
+checkpoint, so it stays inert until deliberately switched on for a measured comparison.
+
+**Mechanism.** Freed News points are reallocated to Technical and Sentiment **pro rata to their
+existing shares**, so the pool stays at exactly 70 and base_score remains comparable across sectors —
+and Technical's 40:15 edge over Sentiment is preserved, changing the news/other balance without
+re-ranking those two against each other. Each category's contribution rescales with its cap, so a
+score is always the same percentage of a differently-sized slice.
+
+Deliberately NOT folded into `live_weights`, despite sharing its redistribution math: `live_weights`
+means "calibrated importance fitted from outcomes" (`feedback_loop.py`) and this means "how much real
+information does this sector's feed carry". Overloading one on the other would let a future
+calibration silently fight a coverage adjustment with no way to tell which produced a given weight.
+They compose instead — this applies to whatever split `live_weights` leaves behind.
+
+**Measured effect if enabled at 0.5 for regional_banks (2026-08-26 board):**
+
+| | |
+|---|---|
+| ZION / KEY / HBAN / MTB / CFR / PNFP / ONB (news 0.0) | **+2.73 to +4.16** |
+| RF / CFG / UMBF (news 3.2-7.0) | +0.44 to +1.52 |
+| FITB (news 8.6) | **-1.20** |
+| TFC (news 11.1) | **-2.47** |
+
+Mean +2.07 across 12 banks, range -2.47 to +4.16. Note this is **directional, not a blanket boost**:
+it lifts tickers whose news is uninformative and penalises tickers whose news is genuinely strong,
+which is the property that makes it a meaningful knob rather than a constant offset. No bank comes
+close to the 70 threshold either way (best moves 48.2 to 45.7).
+
+**How to test it.** Set `enabled: true` and adjust the per-sector multipliers. A sector with no entry
+is never silently reweighted, a malformed value falls back to 1.0, and 1.0 is a verified exact no-op.
+Evaluate on the News sub-score and `relevant_article_count` rather than composite score — the v2.2.103
+neutral floor otherwise masks part of the difference.
+
+---
+
+## [v2.2.110] — 2026-08-26 — [Bug Fix] Placeholder days scored as real history; feed outages and code bugs made distinguishable
+
+**Status:** Live.
+
+**In short:** The last two items from the data-source audit. All 1606 tests pass (16 new); ruff and
+all three guardrail checkers pass clean.
+
+**1. Sentiment measured momentum against fabricated days (`swing_model/sentiment_layer.py`).**
+`_build_daily_bullish_ratios` pads days with no messages using a neutral 0.5 PLACEHOLDER so the
+bucket list is always `days` long. Both the ratio z-score and the fallback velocity were reading
+those placeholders as observations.
+
+It bites because the StockTwits endpoint returns a fixed 30 messages however much activity a ticker
+has, so how many days those 30 span varies enormously (measured live 2026-08-26: NVDA 0.1 hours,
+ABBV 31 hours, PNFP 233 days). A dense, narrow sample lands almost entirely in ONE bucket — and
+scored HIGHER than a genuinely broad one, which is backwards:
+
+| Sample shape | daily_totals | ratio | velocity |
+|---|---|---|---|
+| NVDA — 30 msgs / 6 min | `[0,0,0,0,30]` | 5.6/7 | **5.0/5 (max)** |
+| spread over 5 real days | `[5,6,6,6,6]` | 4.5/7 | 0.0/5 |
+
+`_RATIO_MIN_BASELINE_MESSAGES` did not catch it: it counts baseline MESSAGES without checking how
+many baseline DAYS produced them. ABBV's `[0,0,0,7,23]` cleared the 5-message bar on strength of a
+single day, so `pstdev([0.5, 0.5, 0.5, 0.14])` was tiny and the z-score saturated at 7.0/7.
+
+New `_MIN_REAL_BASELINE_BUCKETS` (2) requires real message-bearing DAYS, not just message count. The
+velocity fallback now returns neutral when it cannot find two real observations — a rate of change
+needs two points, and NVDA's maxed 5.0 was measuring the placeholder-to-real step, not sentiment
+moving.
+
+**Correction to the original diagnosis.** The audit assumed `_score_ratio` was fabricating a z-score
+on thin data. It was not: it already falls back to scaling today's observed ratio linearly, which is
+an honest snapshot (NVDA's 5.6/7 is exactly "80% of tagged messages were bullish"). Only the BUCKET
+COVERAGE check was missing, and only the velocity fallback was inventing a signal. The fix is
+correspondingly narrower than proposed — and deliberately leaves ABBV's 5.0/5 velocity intact, since
+7 messages at ratio 0.14 followed by 23 at 1.0 is a genuine swing, not an artifact.
+
+**2. A code bug could not be told apart from a feed outage
+(`swing_model/run_swing_model.py`).** Seven external-feed wrappers each carried their own bare
+`except Exception`, degrading EVERY failure to an empty list. That is correct for an outage — one
+flaky ticker must not kill a 48-ticker scan — and wrong for a programming fault, which then presents
+as "the vendor returned nothing".
+
+This cost a real debugging detour the same day: v2.2.108 added kwargs to `_fetch_av_news_safe`, a
+stale test stub raised `TypeError` on the new signature, and the wrapper swallowed it into an empty
+result that read as "AV was simply not called". Same class as an SEC block reading as "no filings"
+(v2.2.109).
+
+One shared `_safe_fetch` helper replaces the seven copies — matching how this codebase has already
+consolidated `_CSV_COLUMNS`, `trade_outcomes` and `_http_backoff`. Expected failures (`OSError` and
+so covering requests' ConnectionError/Timeout, plus `ValueError`/`KeyError`/`IndexError` from vendor
+payloads) log and return `[]` as before. Anything else logs at ERROR with a traceback AND writes a
+`fetch_bug` row to `validation_log.csv`, then still returns `[]` so the scan survives. The reporting
+path is itself wrapped, so a failure to log can never break a scan.
+
+---
+
+## [v2.2.109] — 2026-08-26 — [Bug Fix] An SEC request failure was indistinguishable from "nothing was filed"
+
+**Status:** Live.
+
+**In short:** `sec_edgar_client` returned `[]` both when a request FAILED and when it succeeded
+against a company with no recent filings. Failures now return `None` internally and are written to
+`validation_log.csv`. All 1590 tests pass (5 new); ruff and all three guardrail checkers pass clean.
+
+**Why this was worth fixing rather than setting an email.** The project is technically out of
+compliance with SEC's fair-access policy: `SEC_EDGAR_USER_AGENT` is unset, so requests carry
+`StockAnalysis-SwingModel research@stockanalysis.local` — a non-routable domain. SEC asks for a
+reachable contact and enforces by IP blocking. Assessed properly, the risk profile is:
+
+- **Probability: low.** ~156 sequential requests a day (52 per scan x 3 scans) against a 10/second
+  limit — two orders of magnitude of headroom. A User-Agent IS being sent, just an unreachable one,
+  and SEC's automated enforcement targets missing or abusive agents. The realistic trigger is SEC
+  wanting to make contact and having no route.
+- **Impact: moderate.** One of five news sources, plus every filing-based Event Severity Gate
+  trigger.
+- **Detectability: poor — and that was the real problem.** A block returned `[]`, identical to a
+  quiet week. Scores would drift down across the whole board with no visible cause.
+
+Low probability x poor detectability is the profile that costs a day to diagnose six months later, so
+the detectability half is the durable fix — it protects against every SEC outage, not just a policy
+block, and it needs no contact address at all. The user opted for this over setting an email.
+
+**The fix.** `_fetch_filings_for_form` now returns `None` on a request or parse failure and `[]` only
+on a successful-but-empty feed. `fetch_recent_8k_filings` writes a `sec_edgar_request_failed_{form}`
+row to `validation_log.csv` and logs a warning naming the consequence ("news and event-gate coverage
+reduced"), while a genuine empty result stays quiet — a signal that fires on quiet weeks would be
+worthless. A malformed feed counts as a failure, not an empty result.
+
+**This also repairs a latent hazard in v2.2.107's own 6-K fallback**, shipped hours earlier: because
+failure and emptiness were the same value, a FAILED 8-K request fell through to the 6-K branch, and a
+successful 6-K response would then have cached 6-K as that ticker's form type — silently mislabelling
+a domestic filer off the back of a transient outage, permanently for the life of the process. The
+failure path now stops immediately without attempting the fallback.
+
+---
+
+## [v2.2.108] — 2026-08-26 — [Bug Fix] Sentiment neutral-on-missing; Alpha Vantage budget reserved for the owning scan
+
+**Status:** Live.
+
+**In short:** The two items left open by v2.2.107's data-source audit. All 1586 tests pass (13 new);
+ruff and all three guardrail checkers pass clean.
+
+**1. Sentiment forfeited to 0 on missing data where neutral is 7.5/15
+(`swing_model/sentiment_layer.py`).** All three sub-scores are SYMMETRIC measures — a
+bullish/bearish ratio, a sentiment/volume velocity, and a comment-count velocity — so 0 is not "no
+information", it is the maximally-OPPOSING end of each scale:
+
+| Sub-score | Range | Neutral | Was returning on no data |
+|---|---|---|---|
+| ratio | 0-7 | 3.5 | 0 |
+| velocity | 0-5 | 2.5 | 0 |
+| engagement | 0-3 | 1.5 | 0 |
+
+A ticker nobody posts about was therefore scored exactly like one whose chatter is unanimously
+against the thesis, across 15 of the 100 composite points — the same correction News received in
+v2.2.103. `_score_engagement` was already internally inconsistent about this: it returned the neutral
+midpoint when it had ONE item ("partial") and forfeited to 0 only at zero. Now all three return their
+own midpoint, and `SENTIMENT_NEUTRAL_TOTAL` (7.5) is exactly `SENTIMENT_MAX / 2`.
+
+`SENTIMENT_OFFLINE_CAP` still applies on top, deliberately. The two answer different questions: the
+neutral score says "no evidence either way", the cap says "be less confident overall when this signal
+is missing". Scoring absence as maximally bearish AND capping confidence was double-counting the same
+gap.
+
+**This and v2.2.107 are a matched pair.** Zero of the day's 48 tickers hit the forfeit path under the
+old rules — nothing was "offline", because every ticker returned messages, however stale. v2.2.107's
+staleness guard is what starts routing tickers there (3 of 5 sampled regional banks had no StockTwits
+message inside the 5-day window). Shipped alone, that guard would have knocked ONB/CFR/UMBF from a
+FABRICATED ~6.0/15 down to 0/15. Together they land on an honest 7.5 instead — more truthful than the
+fabrication and not a penalty for being small.
+
+**2. Alpha Vantage budget is no longer first-come-first-served
+(`shared/api_clients/news_client.py`, `config/swing_config.yaml`).** AV is a confirmation source, not
+a routine feed: a scan spends a call only when a free source already flagged a critical event. That
+makes consumption lumpy, and the budget was drained in scan order — so the EARLIEST scan, ranking on
+the least information, spent it and the most informed one went without. Measured live 2026-08-26: all
+20 calls consumed, the post_close scan got only **6**, and TGT's news fetch was skipped outright.
+Structurally the same failure as the rank-track slot bug fixed in v2.2.100, where the first scan of
+the day claimed every per-sector slot.
+
+New `alpha_vantage.reserve_for_owner_scan` (default 8 of 20) holds calls back for post_close — the
+scan that ranks on the full session's data and owns the rank track's per-sector slots. Earlier scans
+now stop at 12; post_close keeps the full 20 available. Deliberately a reservation rather than a
+raised ceiling: AV's free tier allows 25/day against the 20 used here, so raising the limit buys five
+calls and does nothing about the ordering. `scan_type=None` preserves the original behaviour for any
+caller that does not know its scan type, and `reserve_for_owner_scan: 0` restores it globally.
+
+**Test note.** Two existing tests asserted the old forfeit-to-0 behaviour and were rewritten — that 0
+was the bug, not the contract, the same situation as `test_no_articles_returns_zero` in v2.2.103. A
+third (`test_av_news_fetched_when_free_source_flags_critical_event`) failed for an unrelated reason
+worth recording: its `_fetch_av_news_safe` stub took only `(ticker)`, so the new `scan_type`/`cfg`
+kwargs raised a TypeError that the wrapper's broad `except Exception` swallowed into an empty result.
+The wrapper logs a warning, so it is not silent in production — but a signature error is a
+programming fault rather than the transient network failure that catch exists for, and it presented
+as "AV was simply not called". Stubs updated to `(ticker, **kw)`.
+
+---
+
+## [v2.2.107] — 2026-08-26 — [Bug Fix] TSM/ASML filed a form the client never asked for; StockTwits had no staleness guard
+
+**Status:** Live.
+
+**In short:** Full audit of every external data source and API key. All 7 sources healthy and all 4
+keys accepted; two real fetching bugs found, both silent. All 1573 tests pass (12 new); ruff and all
+three guardrail checkers pass clean.
+
+**1. TSM and ASML returned zero SEC filings on every scan ever run
+(`shared/api_clients/sec_edgar_client.py`).** The client requested `type=8-K` only. A FOREIGN PRIVATE
+ISSUER never files an 8-K — it files a 6-K, the same "a material event happened" current report.
+Verified against SEC's submissions API:
+
+| Ticker | 6-K | 8-K |
+|---|---|---|
+| TSM | 712 | **0** |
+| ASML | 361 | **0** |
+| NVDA (domestic control) | — | 63 |
+
+Silent because an empty Atom feed is indistinguishable from "nothing was filed recently". That is 2
+of 11 semiconductors permanently blind on this input — and since these filings feed the Event
+Severity Gate, neither could ever raise a ticker-specific critical event from its own disclosures,
+for a sector whose gate fires on tariff and export-control news constantly.
+
+EDGAR's `type` parameter takes a single value, so the fix tries 8-K first and falls back to 6-K on an
+empty result, caching whichever produced filings for the rest of the process. A domestic filer still
+costs exactly one request; a foreign issuer costs two on its first fetch of the run. Deliberately
+discovery-based rather than a hardcoded TSM/ASML list, so it works for any foreign issuer added to
+the watchlist later without anyone remembering this distinction exists. Confirmed live: TSM and ASML
+now return 10 filings each.
+
+**2. StockTwits had no staleness guard on the path that decides trade DIRECTION
+(`swing_model/sentiment_layer.py`).** `_build_daily_bullish_ratios` has always bucketed to
+`0 <= age_days < days`, so the POINT score was protected. `classify_dominant_sentiment` read the raw
+message list with no age filter at all — and it feeds `scoring.determine_direction()`, which decides
+whether a trade is taken long or short. Its own docstring calls that "more consequential than a point
+score". The most consequential output in the pipeline was the one input nothing was filtering.
+
+It matters because the endpoint returns a fixed 30 messages regardless of how much real activity a
+ticker has, so "30 messages" means wildly different things per ticker. Measured live 2026-08-26:
+
+| Ticker | 30 messages span | Newest message |
+|---|---|---|
+| NVDA | 0.1 hours | today |
+| ABBV | 31 hours | today |
+| PNFP | 233 days | today |
+| **ONB** | **364 days** | **2026-07-22 — 5 weeks stale** |
+
+Sampling 5 regional banks, **3 (ONB, CFR, UMBF) had ZERO messages inside the 5-day window** while
+still being scored as though they had data — ONB scored 6.0/15 sentiment on 2026-08-26 with no post
+newer than 2026-07-22.
+
+Fixed with a shared `_STOCKTWITS_MAX_AGE_DAYS` window applied in `classify_dominant_sentiment` and in
+the `sentiment_offline` check, so the direction path and the point-score path can no longer disagree
+about which messages are real. `sentiment_offline` previously tested only for an EMPTY list; 30
+year-old messages counted as "online". Undated messages are now dropped rather than kept, because
+`_parse_ts` falls back to `now()` on a parse failure — which would make an undated message look
+maximally fresh, precisely backwards for a staleness filter.
+
+**API key audit — all clean, nothing changed.** All four keys present and accepted:
+Alpha Vantage (HTTP 200, 50 items), Finnhub (200, 246 articles), RapidAPI for both StockTwits and
+Seeking Alpha (200), plus keyless SEC EDGAR and yfinance. The Discord webhook was shape-validated
+only and deliberately NOT posted to — that would be an outward-facing side effect, not a read. `.env`
+is untracked and gitignored, a repo-wide grep for hardcoded secrets is clean, the Alpha Vantage key
+is redacted from error text, RapidAPI's key travels in a header rather than a URL, and
+`tests/test_news_client.py` already asserts keys never reach the logs.
+
+**Known and NOT changed, flagged for a decision:**
+- **Sentiment forfeits to 0 when offline, where neutral would be 7.5/15.** All three sub-scores
+  document a neutral midpoint (ratio 3.5 of 7, velocity 2.5 of 5, engagement 1.5 of 3) and all three
+  "forfeit to 0" instead — the same absence-scored-as-worst shape fixed for News in v2.2.103. Fix 2
+  above moves the fully-stale tickers into that path, so ONB/CFR/UMBF now score 0/15 rather than a
+  fabricated ~6/15. That is more honest either way, but it is a further hit to exactly the
+  low-coverage banks News was already penalising. Deliberately left alone here because, unlike News,
+  this behaviour is intentional and has a documented compensating mechanism
+  (`SENTIMENT_OFFLINE_CAP = 70` caps overall confidence when sentiment is unavailable). Whether
+  forfeit-or-neutral is right is a strategy decision, and the two layers should agree.
+- **`SEC_EDGAR_USER_AGENT` is unset**, so it falls back to
+  `StockAnalysis-SwingModel research@stockanalysis.local` — a non-routable domain. SEC's fair-access
+  policy asks for a reachable contact so they can make contact before throttling. Working today
+  (HTTP 200), but a one-line `.env` addition removes the risk.
+- **Finnhub coverage is heavily sector-skewed** — semiconductors average 65.1 articles per ticker,
+  consumer discretionary 55.0, healthcare 29.1, regional banks **5.4** (one ticker zero). The
+  upstream cause of the News disparity fixed in v2.2.103. A vendor coverage limitation, not a bug.
+- **Alpha Vantage budget** — deferred to a wider API discussion (see v2.2.106).
+
+---
+
+## [v2.2.106] — 2026-08-26 — [Infrastructure] Dropped a ticker with unusable vendor data; stopped failing a real market condition as invalid
+
+**Status:** Live.
+
+**In short:** Two data-quality items from the day's scan review, both producing daily noise and
+neither affecting scoring correctness. All 1561 tests pass (7 new); ruff and all three guardrail
+checkers pass clean.
+
+**1. WBS removed from the regional_banks watchlist (`config/swing_config.yaml`).** It had been
+failing pre-flight OHLCV validation and being excluded from EVERY scan since at least 2026-08-24,
+while still costing 6 validation-log rows a day. Checked directly against the vendor rather than
+assumed:
+
+| Ticker | Bars (1y) | Max gap | Gaps > 4d | Zero-volume days |
+|---|---|---|---|---|
+| **WBS** | **236** | **9** | **3** | **2** |
+| ZION / KEY / MTB / CFR | 251 | 4 | 0 | 0 |
+
+WBS is missing 15 trading days its peers all have, and carries zero-volume prints on otherwise normal
+price action (2026-04-08 opened 71.92, closed 71.64, volume 0). Every peer comes back clean, so this
+is specific to WBS — not a vendor-wide artifact, and not an over-strict validator. The validator was
+right; the data is genuinely unusable. Removing it loses no coverage that was actually being
+collected. Regional banks keep 12 tickers, active watchlist 48. Re-add if the data source is fixed or
+replaced — the ticker itself is a legitimate KRE constituent.
+
+**2. Institutional-ownership bound widened from 1.0 to 1.5 — and deliberately NOT clamped
+(`shared/utils/data_validator.py`).** CFG reported `held_percent_institutions` 1.0043 and failed
+validation every scan on a 0.43% overshoot. That overshoot is almost certainly accurate: ownership
+above 100% is a real, routine market phenomenon, not corrupt data — shares lent to short sellers and
+resold are counted by both the original holder and the buyer, and 13F filing dates lag the share
+count they are divided by. Yahoo reports >100% for heavily-shorted names as a matter of course.
+
+The initial proposal was to clamp the value to 1.0. That would have been wrong:
+`positioning_layer._score_institutional` scores the TREND (this scan's value against the previous
+scan's), never the absolute level, so clamping would erase a genuine 1.0043 -> 1.0100 accumulation
+into a flat 1.0 -> 1.0 non-event. The raw value is exactly what the signal is built from. The bound
+is now a unit-error tripwire rather than a market judgement: a percentage passed as 100.43 instead of
+1.0043 lands far outside 1.5, while any plausible real reading lands well inside.
+
+**Not changed: the Alpha Vantage daily budget.** All 20 calls were spent on 2026-08-26 and the
+post-close scan — the most informed one, and the one that now owns the rank-track picks — got only 6
+of them, with TGT's news fetch skipped entirely. Earlier scans consume the budget first, which is the
+same first-come-first-served shape as the rank-track slot bug fixed in v2.2.100. Deferred at the
+user's request pending a wider API discussion; the fix would be reserving a share of the budget for
+the owning scan rather than raising the limit (AV's free tier is 25/day, only five more calls, which
+would not address the ordering).
+
+---
+
+## [v2.2.105] — 2026-08-26 — [Bug Fix] Recorded reward:risk was the planned figure, not the one the trade got
+
+**Status:** Live.
+
+**In short:** `rr_ratio` is frozen at signal time off the zone-midpoint `entry_price`, but the target
+price does not move when the fill lands somewhere else — so the ratio the ledger advertises stops
+being the ratio the trade is running. New `rr_ratio_at_fill` records the real one. All 1554 tests
+pass (4 new); ruff and all three guardrail checkers pass clean.
+
+**The problem.** A fill rarely lands on the zone midpoint — the fill simulator prices a gap at the
+open, deliberately (`shared/utils/fill_simulation.py`'s "worse of trigger-vs-open" convention). When
+it doesn't, risk changes while the target stays put. A worse fill means MORE risk for the SAME
+target, so the real ratio falls; a better fill raises it. Measured across all 10 filled trades on
+2026-08-26, **8 drifted**:
+
+| Ticker | Planned | Actually got |
+|---|---|---|
+| PFE 2026-08-07 | 3.00 | **2.00** |
+| TGT | 3.00 | **2.34** |
+| PFE 2026-08-10 | 3.00 | 2.48 |
+| LLY | 3.00 | 3.06 |
+| NVDA | 3.00 | 3.12 |
+| MU | 3.00 | 3.31 |
+| AMGN | 3.00 | 3.32 |
+| MRK / ABBV / JNJ | 3.00 | **3.50** |
+
+Worst case is a 33% overstatement. The drift is signed and trade-specific, not noise, so it does not
+wash out across a sample — any EV, expectancy or R:R statistic reading `rr_ratio` after a fill is
+reading the planned number rather than the real one.
+
+**The fix.** `paper_updater.py` computes and stamps `rr_ratio_at_fill` at the moment a fill is
+confirmed, in the same block that already re-anchors `actual_dollar_risk` to the fill price for
+exactly this reason ("the R-multiple and the dollar figure it gets multiplied by sharing the same
+price basis"). Written ALONGSIDE `rr_ratio`, never over it: the planned ratio is what the signal was
+selected on and is worth keeping for provenance. Exit behaviour is deliberately untouched — the
+target price does not move, this only records what that target is worth from where the trade actually
+got in. `scripts/backfill_rr_ratio_at_fill.py` populated the 10 rows filled before the column
+existed; it fills blanks only and never overwrites.
+
+**Investigated and found NOT to be a bug: shares positions "getting ~10x the exposure" of options.**
+The earlier review flagged MU deploying $4,144 (27.6% of the simulated account) against $263-484 for
+every options pick, and proposed equalising the cap. Measured on the dimension that actually matters,
+there is nothing to equalise — **risk is already comparable**:
+
+| | capital deployed | % account | dollar risk | % account |
+|---|---|---|---|---|
+| MU (shares) | $4,144.52 | 27.6% | $405.88 | 2.71% |
+| options picks | $263-484 | 1.8-3.2% | $263-484 | 1.75-3.23% |
+
+MU's risk sits mid-range against the options rows. The gap is in capital COMMITTED, not capital at
+risk: shares tie up full notional while a long option ties up only its premium, which is also its max
+loss. `position_sizer.py` takes whichever of the risk budget and the capital cap binds tighter, and
+for options those two are near-identical because premium approximates risk — so the apparent
+asymmetry is an artifact of comparing a notional figure against a risk figure, not a sizing defect.
+No change made. The residual concern — that committed capital matters if the account is treated as a
+finite cash balance — is real but is the deferred portfolio-simulation question (the sizer anchors to
+a fixed `starting_capital` rather than a decremented balance), not a per-position sizing fix.
+
+**Test note.** Both new drift tests failed on first run, and the fixtures were at fault rather than
+the code: they left `entry_zone_lower`/`entry_zone_upper` blank, which sends the updater down its
+legacy no-zone path where `pnl_entry_price` IS `entry_price` — so no slippage occurs and there is
+nothing to measure. Corrected to use a real zone with a bar that gaps past it, which is the situation
+the column exists to capture.
+
+---
+
+## [v2.2.104] — 2026-08-26 — [Bug Fix] Unreachable targets and sub-noise stops — entry/stop/target geometry now ATR-bounded
+
+**Status:** Live.
+
+**In short:** Targets could be set anywhere a low-volume pocket happened to sit, with no upper bound,
+and stops could be pulled inside a single day's typical range. Both are now bounded in ATR terms.
+All 1550 tests pass (12 new); ruff and all three guardrail checkers pass clean.
+
+**A correction to how this was originally diagnosed.** The first pass flagged MU's +29.4% target as a
+fantasy on percentage alone. Measured properly it is nothing of the sort: MU's ATR is 6.6% of price,
+so that target is 1.55x its expected 10-day move — the second most achievable of the day's eight
+picks. Percentage move is the wrong lens for this entirely; a 29% target on a high-volatility
+semiconductor and a 6% target on a mega-cap staple can be equally (im)plausible. Every threshold here
+is therefore ATR-relative. The genuine outlier was QCOM at 3.26x.
+
+**1. Volume-profile targets had no upper bound (`shared/utils/risk_reward.py`).** `compute_target`
+took any `low_volume_area_above` sitting beyond the `min_rr` target, on the sound reasoning that price
+travels quickly through thin volume — but that says nothing about WHEN. Live 2026-08-26: QCOM drew a
+pocket 65.84 away against a 5.63 stop distance, an **11.69:1 target needing +39%**, or 3.26x its
+expected 10-day range, inside a 10-day time stop. Every other pick that day sat at 0.79-2.14x.
+
+New `reachable_move(atr, holding_days, multiple)` = `multiple x ATR x sqrt(holding_days)`. The square
+root is the random-walk scaling of volatility with time — a stock does not travel ATR x N over N days,
+it travels roughly ATR x sqrt(N), so a target set as a flat ATR multiple silently gets harder the
+shorter the window. Deliberately a coarse feasibility bound, not a forecast: it answers "is this
+target in the same postcode as what this stock actually does in two weeks", which a fixed `min_rr`
+multiple never asks.
+
+An out-of-range volume level is DISCARDED, not clamped to the ceiling: the pocket was the entire
+justification for reaching past `min_rr`, so if it is unreachable there is no evidence for an
+intermediate target either — the `min_rr` target stands. The `min_rr` target itself is never capped;
+shrinking it would quietly violate the configured minimum R:R, and a `min_rr` target that is itself
+unreachable means the STOP is too wide for the window, which is a sizing question, not a target one.
+
+**2. HVN stops could sit inside one day's range (`shared/utils/risk_reward.py`).** `compute_stop_loss`
+accepted a high-volume-node support/resistance whenever it was tighter than the ATR stop, no matter
+how close. Live 2026-08-26: **SBUX stopped at 0.83 x ATR and QCOM at 0.88 x ATR**, against ~2.25 for
+the picks that fell back to the plain ATR stop. A stop inside a single day's typical range is hit by
+ordinary noise rather than by the thesis being wrong — and it is doubly bad here because
+target = `min_rr` x stop distance, so a too-tight stop ALSO shrinks the target. The trade gets an
+easily-triggered stop and a small target at the same time: stopped out on noise before its own modest
+target is reached. New `min_stop_atr_multiple` (default 1.0) floors the distance; the ATR stop remains
+the outer bound, so this only ever trims tightness.
+
+**Measured effect on the day's 8 rank picks — 6 unchanged, 2 corrected:**
+
+| Ticker | Stop was | Stop now | Target R:R was | now | Target / expected 10-day move |
+|---|---|---|---|---|---|
+| QCOM | 0.88 x ATR | 1.25 x ATR | 11.69 | 3.00 | 3.26 -> 1.19 |
+| SBUX | 0.83 x ATR | 1.25 x ATR | 3.00 | 3.00 | 0.79 -> 1.19 |
+
+The book moves from a 0.79-3.26x spread to 1.19-2.14x. Stops land at 1.25 x ATR rather than 1.0
+because the floor is measured from `entry_zone_lower` while entry is the zone midpoint, a further
+0.25 x ATR up.
+
+Both knobs are config-driven (`risk_reward.min_stop_atr_multiple`,
+`risk_reward.max_target_atr_multiple`) and both degrade to the old behaviour — set the stop multiple
+to 0, or omit `atr_14`/`holding_days`, and the functions behave exactly as before. The feasibility
+ceiling is measured against `signal_decay.time_stop_day` (10), not `MAX_HOLDING_DAYS` (15): a trade
+holding under 30% of the target move is closed at day 10, so sizing a target against 15 days it will
+rarely be given is part of what made targets unreachable in practice.
+
+**Test note — the first implementation was written backwards, in both directions.** The existing
+`test_hvn_stop_used_when_tighter` / `..._bearish` tests caught it immediately. Bullish stops sit BELOW
+entry, so a floor on stop DISTANCE is a ceiling on stop PRICE, and the clamp needs `min()`, not
+`max()`; bearish is the mirror. As written it pushed an HVN at 1.25 x ATR (perfectly acceptable) IN to
+the floor instead of leaving it alone — the exact opposite of the intent. `TestStopDistanceFloor` now
+covers both directions on both sides of the boundary specifically so this cannot silently invert
+again.
+
+---
+
+## [v2.2.103] — 2026-08-26 — [Bug Fix] "No news" scored as worst-possible news; unfunded trades counted in the win rate
+
+**Status:** Live.
+
+**In short:** Two fixes from a review of the day's scan and trades, both distorting numbers that feed
+the rank track's 2026-09-19 checkpoint. All 1538 tests pass (7 new); ruff and all three guardrail
+checkers pass clean.
+
+**1. A ticker with no relevant coverage was scored identically to one with unanimous, credible,
+thesis-destroying news (`swing_model/news_layer.py`).** Every news sub-score returns 0.0 on an empty
+article list — but 0.0 is also the maximally-OPPOSING value of both symmetric sub-scores.
+`credibility_weighted_score` maps confirming 1.0 / neutral 0.5 / opposing 0.0 scaled to 0-6, so a
+wholly neutral article set lands on 3.0 and an empty one landed on 0.0. `theme_alignment_score` maps
+[-1,+1] through `(v+1)*2` to 0-4, so opposing lands on 0.0, neutral on 2.0 — and empty landed on 0.0
+again. Absence of evidence was being scored as strong evidence against, across 15 of the 100
+composite points.
+
+Measured live on 2026-08-26: **7 of 12 regional banks scored 0.0/15 despite each fetching 30+
+articles** (the relevance filter matched none of them), pulling the sector to a 2.97 mean against
+7.52-9.42 for every other sector. That is a ~5-point composite handicap applied for lack of press
+coverage — a function of market cap and media profile, not of the trade setup. It is also a standing
+candidate explanation for a finding this project has recorded repeatedly without resolving: regional
+banks producing zero qualifying trades in every audit.
+
+Fixed by scoring no-coverage at each symmetric sub-score's own midpoint (credibility 3.0, theme
+alignment 2.0). `clustering_score` and `decay_score` deliberately stay at 0.0: unlike the other two
+they are not confirm/oppose axes but counts of positive evidence ("how many independent corroborating
+clusters", "how fresh is the newest item"), so zero is the honest answer when there is nothing to
+count, not a penalty. Neutral therefore totals **5.0/15, not the 7.5 midpoint** — silence should not
+score like evidence. Effect on today's board: the 8 affected tickers each gain exactly +5.0, the best
+of them moving 44.9 to 49.9 — still far below the 70 threshold, so this removes an artificial
+handicap without manufacturing qualifying trades.
+
+News also now reports a `data_quality` field (`complete` / `no_relevant_articles` / `no_articles`) and
+is counted by `compute_data_sufficiency()`. It was the last scoring layer reporting no data-quality
+signal at all — fundamental has had `unavailable` -> neutral since it was built, sentiment has
+`sentiment_offline`, and technical gained one in the 2026-08-22 audit.
+
+**2. Trades that never deployed capital were counted in the win rate
+(`shared/utils/trade_outcomes.py`, `paper_updater.py`, `paper_trade_metrics.py`).** A signal can
+qualify, resolve a real directional call, and still size to zero units when its best structure costs
+more than the risk budget allows at this account size. **LLY 2026-08-12 closed 2026-08-26 as a
+time_stop at -0.264R with `position_size=0` and `pnl_dollars=0.00`** — it could never have made or
+lost a cent. Counted by outcome alone it landed in the win-rate denominator and, being unprofitable,
+not the numerator: the paper track went from 0-of-2 to **0-of-3** on the strength of a trade that did
+not exist in dollar terms. MU is the same shape and still open, so it would have done this again.
+
+New `is_funded()` / `is_performance_row()` alongside the existing `is_scored()`, and the win-rate
+paths in `paper_updater.print_summary()` and `paper_trade_metrics`' lifetime totals now use
+`is_performance_row`. The summary reports unfunded closed rows on their own line rather than hiding
+them.
+
+Deliberately NOT applied to signal accuracy or weight calibration. An unaffordable call still
+resolved a genuine directional prediction, and that is real evidence about whether the MODEL is
+right — just not about whether the STRATEGY is fit to trade money.
+`compute_signal_accuracy()` already reports funded and unfunded side by side, and `feedback_loop`'s
+calibration set keeps both; both are correct as they stand. `paper_trade_metrics._is_funded` is now
+an alias of the shared definition rather than a second copy.
+
+**Test note.** `test_no_articles_returns_zero` asserted the old behaviour and was rewritten — the
+0.0 it locked in was the bug, not the contract. The replacement comparison test was also rewritten
+after it failed: driving theme alignment with synthetic "bearish" headlines is unreliable, since
+`identify_dominant_theme` scored a hand-written "NVDA bearish outlook" fixture at 4.0, i.e. maximally
+CONFIRMING. The test now asserts per sub-score on the credibility axis, which is driven directly by
+the sentiment label and isolates the axis cleanly.
+
+---
+
+## [v2.2.102] — 2026-08-26 — [Bug Fix] The threshold track's dedup was silently filtering the rank track's candidate pool
+
+**Status:** Live.
+
+**In short:** `_run_rank_track`'s docstring promises the two paper-trading tracks are "fully
+independent ... never cross-checked against the threshold track". They weren't. The main scan loop
+checked the THRESHOLD track's same-day dedup at the top of the loop and `continue`d before the
+rank-track candidate stash, so any ticker that had already produced a qualifying signal that day
+never entered the rank track's candidate pool at all. Found while answering a question about whether
+the rank track really picks its sector top two. All 1531 tests pass (6 new); ruff and all three
+guardrail checkers pass clean.
+
+**Why it matters more than a normal dedup bug: the bias has a direction.** The only tickers that
+land in `paper_trades.csv` are the ones scoring 70+. So the filtered-out set was never random — it
+was precisely the STRONGEST name in each sector, the one most worth ranking. The rank track was
+therefore not testing "does rank-selection work" so much as "does rank-selection work on everything
+that didn't already qualify outright."
+
+**Confirmed live on 2026-08-25.** AMGN qualified pre-market at 75.0 and was logged to the threshold
+track. It is then absent from the entire 47-ticker post-close scoreboard — skipped at that
+`continue`. Healthcare's post-close rank picks were MRK (72.6) and ABT (68.7), with the sector's
+highest scorer silently ineligible.
+
+**v2.2.100 made this worse, not better.** Gating the rank track to `post_close` was right on its own
+terms (it ranks on the full session's data), but it means the rank track now always runs LAST — which
+is exactly when the threshold ledger is most populated, and so when this filter bites hardest.
+Before that change the pre-market scan usually took the rank slots before the threshold track had
+logged anything, so the leak mostly didn't fire.
+
+**The fix.** The dedup moved from the top of the loop to immediately after the rank-track candidate
+stash. The threshold track still refuses to log a second same-day signal — unchanged — but the
+ticker now reaches the ranking with a real score.
+
+Two placement details, both deliberate. It stays ABOVE the sub-threshold branch: that branch fires a
+near-miss Discord alert, and a ticker with a live signal already logged today shouldn't also ping as
+a near-miss if it slips under 70 on a later scan. And the cost of moving it is that an already-logged
+ticker now re-runs the loop's per-ticker fetches instead of short-circuiting — unavoidable rather
+than incidental, since a ticker can't be ranked without a score and the score needs those fetches.
+It is also small: only tickers that already produced a qualifying signal TODAY reach there, typically
+0-1 a day (2026-08-25: just AMGN) against 47 scanned, and the Alpha Vantage fetch stays
+budget-guarded by `free_sources_flag_critical_event` either way.
+
+**Test note.** The existing 1525-test suite passed both before and after the fix — nothing covered
+this ordering, which is why it survived. `tests/test_rank_track_threshold_independence.py` asserts
+the invariant directly against the loop's source (the same approach the repo's guardrail checkers
+take, since the behavioural path needs a full network scan), and was verified to FAIL when the bug is
+deliberately reintroduced rather than passing vacuously. It also guards the two ways the fix could be
+undone: deleting the dedup outright (which would double-log threshold signals) and moving it back
+above the stash.
+
+---
+
+## [v2.2.101] — 2026-08-26 — [Feature] A newer qualifying signal now supersedes a still-pending one on the same ticker
+
+**Status:** Live.
+
+**In short:** The duplicate-position guard treated every open row as equivalent. It isn't: a PENDING
+row (logged, entry order never triggered, no capital at risk) is a stale opinion, while a FILLED row
+is real exposure. A pending row on a ticker now gets cancelled when a newer signal qualifies on that
+same ticker, and the fresh signal takes its place. Filled rows block exactly as before. All 1525
+tests pass (26 new); ruff and all three guardrail checkers pass clean.
+
+**The problem.** `entry_zone_lower/upper` is a breakout/breakdown trigger, not a price the stock is
+already at, so a signal sits unfilled for up to `FILL_WINDOW_DAYS` (5) before expiring. Throughout
+that window `_load_open_positions()` reported the ticker as occupied and
+`paper_runner.py` skipped every new qualifying signal on it. But that pending row's entry zone, stop
+and target were computed from data now up to a week old — and if the same model scores the same
+ticker as qualifying again today, today's read is strictly the better-informed one. The old
+behaviour let a stale, never-triggered order hold the slot until it expired, and the replacement
+signal was simply discarded. On the current ledger that guard is holding three tickers (AMZN, HD,
+AMGN), all pending, none with a cent at risk.
+
+**The change.** New `_load_pending_positions()` returns tickers whose open rows are all unfilled —
+deliberately a strict subset of `_load_open_positions()`, so a ticker carrying ANY filled row is
+absent even if it also has a pending one (real exposure wins). Both tracks' guards now split on it:
+pending → `_supersede_pending_signals()` cancels the old row and the new signal is logged; filled →
+skip, unchanged.
+
+Cancelled rows get `outcome="superseded"`, `exit_date`, and a `sizing_note` recording the date and
+the superseding signal's confidence. They book no P&L, because no capital was ever at risk.
+
+**The race it guards against.** `paper_updater.py` stamps `fill_date` the moment the entry zone
+trades, and can do so mid-scan — between the guard reading its snapshot and the supersede actually
+running. Cancelling then would close a position with real money in it. So
+`_supersede_pending_signals()` re-checks pending status UNDER THE LOCK and returns an empty list if
+the row filled underneath it; both call sites treat that as "ticker still occupied" and fall back to
+skipping. The check that matters is the one holding the lock, not the one that decided to try.
+
+**Supersede fires across OPPOSITE directions — deliberate, confirmed with the user.** A qualifying
+bearish signal cancels a pending bullish one on the same ticker, and vice versa. Three reasons: it
+matches the guard it sits inside, which already blocks regardless of direction on the Signal
+Integrity Audit's C.5 reasoning (conflicting-direction signals on one name read as noisy signal
+quality, not a hedge this model is built to run); a direction flip is the STRONGEST evidence the
+pending order is stale, so restricting to same-direction would preserve that order precisely when
+the model has most emphatically repudiated it, while discarding the newer read; and a pending order
+has no capital committed, so there is no exposure to net out. The filled-position check is
+unaffected — real exposure blocks whichever way it points.
+
+The code achieves this by never consulting `direction` at all, which reads as an oversight rather
+than a decision, so `TestSupersedeIgnoresDirection` exists to stop it being "fixed" into
+same-direction-only later. Worth noting this also improves the data: previously a bearish signal on
+a pending-bullish ticker was silently discarded and the flip left no trace, whereas the ledger now
+records what replaced what, making direction flips visible and countable for the first time. If
+whipsaw on a ticker turns out to be a real problem, that is the data needed to prove it — and the
+remedy would be a separate whipsaw guard ("suppress this ticker after N direction changes in M
+days"), not a restriction on supersede. Conflating the two would give the worst of both: keeping the
+stale order AND rejecting the new one, which is not caution, just acting on older information.
+
+**New `shared/utils/trade_outcomes.py` — the reason this change is small instead of risky.** "Did
+this row ever put money at risk?" was written as a scattered `outcome != "expired"` literal in eight
+places across `paper_updater.py`, `paper_trade_metrics.py` and `feedback_loop.py` — every win-rate
+denominator, every P&L total, and the calibration training set. Adding a second never-funded outcome
+meant finding all eight, and any one missed would silently count an unfilled signal as a real closed
+trade: dragging win rate down, feeding a phantom loss into live scoring-weight calibration, and doing
+it invisibly, since the row looks structurally identical to a genuine close. That is the same shape
+as the hardcoded-threshold bug this project already hit three times (v2.2.75/v2.2.83). Replaced with
+one `UNFUNDED_OUTCOMES` set and `is_scored()`/`is_unfunded()` helpers, imported everywhere.
+
+One call site deliberately keeps the `expired`-only literal:
+`compute_expired_signal_opportunity_cost()` asks "the market never came to our entry order — would
+entering at signal price have paid?". A superseded row was cancelled because a newer signal replaced
+it on the same ticker, so its hypothetical would double-count the same underlying move the
+replacement already tracks.
+
+The summary counts the two causes separately rather than pooling them — expired means the market
+never came to the order, superseded means the model changed its mind before it got there, and those
+say different things about the model.
 
 ---
 

@@ -52,5 +52,13 @@ data/logs/app.log*
 data/raw/
 data/historical/
 
+# One-off ledger backups written before a schema migration or a retroactive
+# correction (e.g. paper_trades.csv.pre-v2.2.105.bak). Local safety copies for
+# the operator, not history worth carrying in the repo — the CHANGELOG entry
+# for each migration records what changed, and the migrations themselves are
+# idempotent and re-runnable. Added 2026-08-26 after a day of schema work left
+# five of these in paper_trading/.
+*.bak
+
 # Desktop app UI — local scan history (App_UI_Scope.md), regenerated per machine
 stockanalysis_history.db

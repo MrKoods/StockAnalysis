@@ -48,7 +48,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from xml.etree import ElementTree as ET
 
-from shared.utils.logger import get_logger
+from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients._http_backoff import http_get_with_backoff
 
 logger = get_logger(__name__)
@@ -79,6 +79,18 @@ _CAPEX_CONTEXT_TERMS = [
 # Module-level cache: SEC's ticker->CIK map is ~800KB and changes rarely, so
 # fetching it once per process (not once per ticker per scan) is enough.
 _ticker_cik_cache: Optional[dict] = None
+
+# Which current-report form each ticker actually files, discovered on first
+# fetch and reused for the rest of the process. See fetch_recent_8k_filings.
+_ticker_form_type_cache: dict[str, str] = {}
+
+# A domestic filer's current report is an 8-K; a FOREIGN PRIVATE ISSUER files a
+# 6-K instead and never files an 8-K at all. Verified against SEC's submissions
+# API on 2026-08-26: TSM has 712 6-K filings and 0 8-K, ASML has 361 and 0,
+# while domestic NVDA has 63 8-K. EDGAR's browse-edgar `type` parameter takes a
+# single value, so covering both means trying one and falling back.
+_FORM_8K = "8-K"
+_FORM_6K = "6-K"
 
 
 def _user_agent() -> str:
@@ -157,7 +169,7 @@ def _parse_atom_timestamp(ts_raw: Optional[str]) -> datetime:
 
 def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
     """
-    Fetch recent 8-K filings for `ticker` from SEC EDGAR.
+    Fetch recent current-report filings for `ticker` from SEC EDGAR.
 
     Returns list of dicts (same shape as fetch_news_yahoo/fetch_news_finnhub):
     {article_id, timestamp_utc, title, url, source, source_domain,
@@ -167,17 +179,85 @@ def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
     5.02: ...") so is_ticker_relevant() matches it even when the item
     description alone doesn't name the company.
     Returns [] if the ticker's CIK can't be resolved or the feed is unavailable.
+
+    Covers BOTH 8-K and 6-K (2026-08-26, v2.2.107). This asked for `type=8-K`
+    only, which a foreign private issuer never files — it files a 6-K instead,
+    the same "material event happened" current report. TSM and ASML therefore
+    returned zero filings on every scan since the SEC source was added, and
+    silently: an empty feed is indistinguishable from "nothing was filed". That
+    is 2 of 11 semiconductors permanently blind on this input, and because
+    these filings feed the Event Severity Gate, neither could ever raise a
+    ticker-specific critical event from its own disclosures. Verified against
+    SEC's submissions API on 2026-08-26 — TSM: 712 6-K / 0 8-K, ASML: 361 / 0,
+    domestic NVDA: 63 8-K.
+
+    EDGAR's `type` parameter takes one value, so this tries 8-K first and falls
+    back to 6-K when that comes back empty, caching whichever produced results
+    for the rest of the process. Domestic filers therefore cost exactly one
+    request as before; a foreign issuer costs two on its first fetch of the run.
+    Deliberately discovery-based rather than a hardcoded ticker list: it works
+    for any foreign issuer added to the watchlist later without anyone
+    remembering this distinction exists.
     """
     cik_map = _load_ticker_cik_map()
     cik = cik_map.get(ticker.upper())
     if not cik:
-        logger.warning(f"[sec_edgar] No CIK found for {ticker} — skipping 8-K fetch.")
+        logger.warning(f"[sec_edgar] No CIK found for {ticker} — skipping filing fetch.")
         return []
 
+    key = ticker.upper()
+    cached = _ticker_form_type_cache.get(key)
+    form_types = [cached] if cached else [_FORM_8K, _FORM_6K]
+
+    for form_type in form_types:
+        articles = _fetch_filings_for_form(ticker, cik, form_type, limit)
+
+        # None means the REQUEST failed (network error, SEC throttle/block,
+        # unparseable feed); [] means the request succeeded and this company
+        # genuinely has no recent filings of this type. Collapsing the two was
+        # the real hazard here (2026-08-26, v2.2.109): an SEC block returned
+        # exactly what a quiet news week returns, so the model would lose one
+        # of five news sources AND all filing-based Event Severity Gate
+        # triggers while looking completely healthy — scores drifting down
+        # across the board with no visible cause. Precisely the shape of the
+        # TSM/ASML 8-K bug fixed one version earlier.
+        #
+        # This also matters for the 8-K -> 6-K fallback directly above: on a
+        # FAILED 8-K request we must not fall through and cache 6-K as this
+        # ticker's form type, which would silently mislabel a domestic filer
+        # off the back of a transient outage.
+        if articles is None:
+            write_validation_entry(
+                ticker, "sec_edgar", f"sec_edgar_request_failed_{form_type}"
+            )
+            logger.warning(
+                f"[sec_edgar] {ticker}: {form_type} request FAILED (not an empty result) — "
+                f"filings unavailable this scan; news and event-gate coverage reduced."
+            )
+            return []
+
+        if articles:
+            _ticker_form_type_cache[key] = form_type
+            return articles
+
+    logger.info(f"SEC EDGAR: no recent filings for {ticker} (request succeeded).")
+    return []
+
+
+def _fetch_filings_for_form(
+    ticker: str, cik: str, form_type: str, limit: int,
+) -> Optional[list[dict]]:
+    """
+    One EDGAR browse-edgar Atom request for a single form type.
+
+    Returns None if the request or parse FAILED, [] if it succeeded and there
+    are no filings of this type. The caller depends on telling those apart —
+    see fetch_recent_8k_filings.
+    """
     params = {
         "action": "getcompany",
         "CIK": cik,
-        "type": "8-K",
+        "type": form_type,
         "dateb": "",
         "owner": "include",
         "count": limit,
@@ -185,13 +265,13 @@ def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
     }
     resp = _get_with_backoff(_BROWSE_EDGAR_URL, params=params)
     if resp is None:
-        return []
+        return None  # request failed — NOT "no filings"
 
     try:
         root = ET.fromstring(resp.content)
     except ET.ParseError as exc:
         logger.error(f"[sec_edgar] Failed to parse Atom feed for {ticker}: {exc}")
-        return []
+        return None  # malformed feed is a failure, not an empty result
 
     articles = []
     for entry in root.findall("atom:entry", _ATOM_NS):
@@ -200,7 +280,7 @@ def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
         link_el = entry.find("atom:link", _ATOM_NS)
 
         item_desc = _extract_item_descriptions(summary_el.text if summary_el is not None else None)
-        title = f"{ticker} 8-K: {item_desc}" if item_desc else f"{ticker} 8-K filing"
+        title = f"{ticker} {form_type}: {item_desc}" if item_desc else f"{ticker} {form_type} filing"
         link = link_el.get("href") if link_el is not None else ""
         ts = _parse_atom_timestamp(updated_el.text if updated_el is not None else None)
 
@@ -216,7 +296,7 @@ def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
             "ticker_sentiment": [],
         })
 
-    logger.info(f"SEC EDGAR: fetched {len(articles)} 8-K filing(s) for {ticker}.")
+    logger.info(f"SEC EDGAR: fetched {len(articles)} {form_type} filing(s) for {ticker}.")
     return articles
 
 

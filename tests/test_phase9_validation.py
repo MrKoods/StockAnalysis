@@ -10,6 +10,7 @@ from shared.utils.data_validator import (
     validate_ohlcv,
     validate_sentiment_data,
     validate_news_data,
+    validate_positioning_data,
     run_preflight_validation,
 )
 from shared.utils.black_swan_detector import (
@@ -248,3 +249,48 @@ class TestBlackSwanDetector:
         # -8% should NOT trigger with -10% threshold
         result = check_black_swan(-0.08, 0.10, cfg=cfg)
         assert result["black_swan_triggered"] is False
+
+
+class TestInstitutionalOwnershipBounds:
+    """
+    held_percent_institutions accepts up to 1.5, not 1.0 (v2.2.106).
+
+    Ownership above 100% is a real, routine market phenomenon rather than
+    corrupt data: shares lent to short sellers and resold are counted by both
+    the original holder and the buyer, and 13F filing dates lag the share count
+    they are divided by. CFG read 1.0043 on 2026-08-26 and was failing
+    pre-flight validation every single scan on a 0.43% overshoot that was
+    almost certainly accurate.
+
+    1.5 is a unit-error tripwire — a percentage passed as 100.43 rather than
+    1.0043 lands far outside it.
+    """
+
+    @staticmethod
+    def _check(value):
+        return validate_positioning_data(
+            "TEST", {"institutional": {"held_percent_institutions": value}}
+        )[0]
+
+    def test_normal_ownership_is_valid(self):
+        assert self._check(0.85)
+
+    def test_slightly_over_100_percent_is_valid(self):
+        """The live CFG case that was failing daily."""
+        assert self._check(1.0043)
+
+    def test_just_inside_the_upper_bound_is_valid(self):
+        assert self._check(1.49)
+
+    def test_just_outside_the_upper_bound_is_invalid(self):
+        assert not self._check(1.51)
+
+    def test_percentage_scale_unit_error_is_caught(self):
+        """100.43 instead of 1.0043 — the thing the bound actually exists for."""
+        assert not self._check(100.43)
+
+    def test_negative_ownership_is_invalid(self):
+        assert not self._check(-0.1)
+
+    def test_missing_value_is_valid(self):
+        assert validate_positioning_data("TEST", {"institutional": {}})[0]

@@ -144,7 +144,8 @@ _FULLY_AVAILABLE_DATA_QUALITY = {"complete"}
 
 
 def compute_data_sufficiency(
-    positioning: dict, sentiment: dict, fundamental: dict, technical: Optional[dict] = None
+    positioning: dict, sentiment: dict, fundamental: dict, technical: Optional[dict] = None,
+    news: Optional[dict] = None,
 ) -> dict:
     """
     Returns {"degraded_sub_signal_count", "total_sub_signals_checked",
@@ -174,6 +175,19 @@ def compute_data_sufficiency(
         degraded += 1
     total += 1
 
+    # News: optional for the same back-compat reason technical is. Added
+    # 2026-08-26 — News was the last scoring layer reporting no data-quality
+    # signal at all, so a ticker with zero relevant coverage (now scored
+    # neutral rather than zero, see news_layer's NEUTRAL_* constants) looked
+    # exactly as trustworthy here as one backed by real, on-topic reporting.
+    # Measured live the same day: 7 of 12 regional banks had no relevant
+    # coverage whatsoever.
+    if news is not None:
+        news_quality = news.get("data_quality", "unavailable")
+        if news_quality not in _FULLY_AVAILABLE_DATA_QUALITY:
+            degraded += 1
+        total += 1
+
     if degraded == 0:
         confidence = "high"
     elif degraded <= 2:
@@ -201,6 +215,7 @@ def compute_confidence_score(
     macro_modifier: float,
     cfg: Optional[dict] = None,
     live_weights: Optional[dict] = None,
+    news_weight_scale: float = 1.0,
     volume_profile_score: Optional[float] = None,
     regime: Optional[str] = None,
     fundamental: Optional[dict] = None,
@@ -225,6 +240,12 @@ def compute_confidence_score(
                   (reads data/processed/calibrated_weights.json — only returns
                   non-None once a real calibration has passed holdout); if
                   None (the default, and today's actual state), uses spec weights
+    news_weight_scale:   multiplier on the News category's share of the
+                  Technical/Sentiment/News pool, for sectors whose news feed
+                  carries structurally little information (see Step 4c). 1.0
+                  (default) is a no-op. Freed points are reallocated to
+                  Technical and Sentiment pro rata, so base_score stays 0-70
+                  and remains comparable across sectors.
     event_gate_blocked:  True if data/processed/event_gate_state.json has an active
                   block covering this ticker (checked by the caller before this call
                   via shared/utils/event_gate.py). Advisory only — does not affect
@@ -382,6 +403,67 @@ def compute_confidence_score(
             news_max = pool * (w_news / w_sum)
 
     # ---------------------------------------------------------------------------
+    # Step 4c: Per-sector news coverage weighting (2026-08-26, v2.2.111)
+    #
+    # OFF by default (news_weight_scale == 1.0) and off in config. This exists to
+    # be MEASURED against real alternatives, not because it is known to be right.
+    #
+    # The problem it addresses: news coverage is wildly uneven by sector, and
+    # that is a property of a company's media profile rather than of its trade
+    # setup. Measured live 2026-08-26 (mean Finnhub articles per ticker):
+    # semiconductors 65.1, consumer_discretionary 55.0, healthcare 29.1,
+    # regional_banks 5.4 — with 7 of 12 banks matching ZERO relevant articles
+    # from 30+ fetched. v2.2.103 stopped that absence being scored as BAD news
+    # (it now floors at a neutral 5.0/15), but a neutral score still occupies 15
+    # of the 100 composite points with no information in it. Weighting News down
+    # for a structurally low-coverage sector reallocates those points to
+    # categories that do have data, instead of spending them on a constant.
+    #
+    # The honest counter-argument, and why this ships OFF: it is a HYPOTHESIS.
+    # "Banks have thin coverage" is measured; "therefore bank news is less
+    # predictive" is not. It could equally be that sparse bank news is highly
+    # informative precisely because banks are only written about when something
+    # real happens. Sourcing better bank news may beat this outright. This is
+    # the cheap control that costs no API budget, to measure those against.
+    #
+    # Deliberately NOT folded into live_weights above, despite sharing its
+    # redistribution math: live_weights means "calibrated importance fitted from
+    # outcomes" (feedback_loop.py) and this means "how much real information does
+    # this sector's feed carry". Overloading one on the other would make a future
+    # calibration silently fight a coverage adjustment, with no way to tell which
+    # produced a given weight. They compose instead — this applies to whatever
+    # split live_weights left behind.
+    #
+    # Scores rescale with the caps: each category's contribution is its own
+    # percentage of its max, re-spread across the same fixed pool, so base_score
+    # stays 0-70 here and comparable across sectors. Freed News points go to
+    # Technical and Sentiment in proportion to their existing shares, so this
+    # changes the news/other BALANCE without re-ranking technical against
+    # sentiment.
+    # ---------------------------------------------------------------------------
+    if news_weight_scale != 1.0 and news_max > 0:
+        pool = technical_max + sentiment_max + news_max
+        if pool > 0:
+            scale = max(0.0, min(1.0, float(news_weight_scale)))
+            tech_pct = technical_total / technical_max if technical_max else 0.0
+            sent_pct = sentiment_total / sentiment_max if sentiment_max else 0.0
+            news_pct = news_total / news_max if news_max else 0.0
+
+            new_news_max = news_max * scale
+            freed = news_max - new_news_max
+            other = technical_max + sentiment_max
+            tech_share = (technical_max / other) if other > 0 else 0.0
+            sent_share = (sentiment_max / other) if other > 0 else 0.0
+
+            technical_max = technical_max + freed * tech_share
+            sentiment_max = sentiment_max + freed * sent_share
+            news_max = new_news_max
+
+            technical_total = technical_max * tech_pct
+            sentiment_total = sentiment_max * sent_pct
+            news_total = news_max * news_pct
+
+    # ---------------------------------------------------------------------------
     # Step 5: Fundamental contribution
     #   fundamental_score is on FundamentalScorer's internal -15..+15 scale.
     #   Rescaled here to a -10..+10 contribution (FUNDAMENTAL_MAX / FUNDAMENTAL_INTERNAL_MAX).
@@ -476,7 +558,7 @@ def compute_confidence_score(
     # below so the caller can flag the active event alongside the signal.
     meets_threshold = final_score >= CONFIDENCE_THRESHOLD
 
-    data_sufficiency = compute_data_sufficiency(positioning, sentiment, fundamental, technical)
+    data_sufficiency = compute_data_sufficiency(positioning, sentiment, fundamental, technical, news)
 
     if win_probability_calibration:
         calibrated_win_probability = calibrate_win_probability(final_score, win_probability_calibration)

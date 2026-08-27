@@ -79,3 +79,13 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-25T20:44:16.589957+00:00,v2.2.99,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
 2026-08-25T20:45:23.430666+00:00,v2.2.99,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-25T20:45:23.935457+00:00,v2.2.99,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='clinical hold',False,clinical hold
+2026-08-26T14:39:56.971216+00:00,v2.2.101,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='The Globe and Mail',True,tariff
+2026-08-26T14:40:37.948346+00:00,v2.2.101,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-26T14:40:38.385943+00:00,v2.2.101,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-26T14:40:38.778591+00:00,v2.2.101,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-26T14:44:41.553087+00:00,v2.2.101,pre_market,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='clinical hold' source='Yahoo Finance',True,clinical hold
+2026-08-26T14:44:41.934052+00:00,v2.2.101,critical,ABBV,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='clinical hold',False,clinical hold
+2026-08-26T14:48:16.680687+00:00,v2.2.101,critical,TGT,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='boycott',False,boycott
+2026-08-26T21:12:39.670868+00:00,v2.2.102,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-08-26T21:12:40.177363+00:00,v2.2.102,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-26T21:12:40.584438+00:00,v2.2.102,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='clinical hold',False,clinical hold

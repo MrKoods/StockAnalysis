@@ -31,10 +31,13 @@ def fetch_news_alpha_vantage(
     ticker: str,
     time_from: Optional[str] = None,
     limit: int = 10,
+    scan_type: Optional[str] = None,
+    cfg: Optional[dict] = None,
 ) -> list[dict]:
     """
     Fetch news and sentiment from Alpha Vantage NEWS_SENTIMENT endpoint.
-    Enforces 20 call/day budget. Returns empty list if budget exceeded.
+    Enforces the configured daily budget, with a share reserved for the
+    post_close scan (see check_av_budget). Returns [] if exhausted.
 
     Returns list of dicts:
     {
@@ -48,8 +51,18 @@ def fetch_news_alpha_vantage(
         logger.warning("ALPHA_VANTAGE_API_KEY not set — AV news unavailable.")
         return []
 
-    if not check_av_budget():
-        logger.warning(f"Alpha Vantage budget exhausted for today — skipping news fetch for {ticker}.")
+    av_cfg = (cfg or {}).get("alpha_vantage", {})
+    daily_limit = int(av_cfg.get("daily_limit", 20))
+    reserved = int(av_cfg.get("reserve_for_owner_scan", 0))
+    if not check_av_budget(daily_limit, scan_type=scan_type, reserved_for_owner=reserved):
+        held = (
+            f" ({reserved} of {daily_limit} held for the {AV_OWNER_SCAN_TYPE} scan)"
+            if scan_type is not None and scan_type != AV_OWNER_SCAN_TYPE and reserved > 0
+            else ""
+        )
+        logger.warning(
+            f"Alpha Vantage budget exhausted for today{held} — skipping news fetch for {ticker}."
+        )
         return []
 
     params = {
@@ -264,9 +277,44 @@ def increment_av_call_count() -> int:
         return data["count"]
 
 
-def check_av_budget(daily_limit: int = 20) -> bool:
-    """Return True if a call is available within today's budget."""
-    return get_av_call_count()["count"] < daily_limit
+# The scan that owns the reserved share of the daily budget. post_close ranks
+# on the full session's data and owns the rank track's per-sector slots
+# (rank_track.scan_type), so it is the scan whose news coverage matters most.
+AV_OWNER_SCAN_TYPE = "post_close"
+
+
+def check_av_budget(
+    daily_limit: int = 20,
+    scan_type: Optional[str] = None,
+    reserved_for_owner: int = 0,
+) -> bool:
+    """
+    Return True if a call is available within today's budget.
+
+    reserved_for_owner (2026-08-26, v2.2.108): calls held back for the
+    AV_OWNER_SCAN_TYPE scan. Earlier scans see an effective limit of
+    `daily_limit - reserved_for_owner`; the owner scan sees the full
+    `daily_limit`.
+
+    Without this the budget was purely first-come-first-served across the day's
+    three scans, so the EARLIEST scan — ranking on the least information — spent
+    it and the most informed one went without. Measured live 2026-08-26: all 20
+    calls were consumed, the post_close scan got only 6 of them, and TGT's news
+    fetch was skipped outright. Structurally the same failure as the rank-track
+    slot bug fixed in v2.2.100, where the first scan of the day claimed every
+    per-sector slot.
+
+    Deliberately a reservation rather than a raised ceiling: Alpha Vantage's
+    free tier allows 25/day against the 20 used here, so raising the limit buys
+    five calls and does not address the ordering at all.
+
+    scan_type=None keeps the original unreserved behaviour, so callers that do
+    not know their scan type are unaffected.
+    """
+    count = get_av_call_count()["count"]
+    if scan_type is not None and scan_type != AV_OWNER_SCAN_TYPE and reserved_for_owner > 0:
+        return count < max(0, daily_limit - reserved_for_owner)
+    return count < daily_limit
 
 
 _SECRET_PARAM_KEYS = ("apikey", "api_key", "token")

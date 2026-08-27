@@ -84,6 +84,9 @@ from shared.utils.sector_config import get_active_sectors
 # One shared list closes that gap structurally instead of relying on the two
 # modules being hand-kept in sync.
 from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE
+from shared.utils.trade_outcomes import (
+    OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
+)
 from paper_trading.paper_trade_metrics import compute_expired_signal_opportunity_cost, generate_daily_summary
 
 logger = get_logger(__name__)
@@ -754,6 +757,42 @@ def update_paper_trades(
                             f"actual_dollar_risk re-anchor skipped, stale value kept"
                         )
 
+                # Real reward:risk this trade actually got, measured from the
+                # fill. `rr_ratio` is frozen at signal time off the zone-midpoint
+                # entry_price, but the target price does NOT move when the fill
+                # lands away from that midpoint — so the ratio the ledger
+                # advertises stops being the ratio the trade is running.
+                #
+                # Same price-basis problem the actual_dollar_risk re-anchor
+                # above fixes, and it is not a rounding-scale effect: measured
+                # across the 10 filled trades on 2026-08-26, 8 drifted and the
+                # worst were PFE 2026-08-07 (planned 3.01, actually 2.00 — a
+                # 33% overstatement) and TGT (3.00 -> 2.34). A worse fill means
+                # MORE risk for the SAME target, so the ratio falls; a better
+                # fill raises it (MRK/ABBV/JNJ 3.00 -> 3.50). Trade-specific and
+                # signed, so it does not wash out across a sample — every EV,
+                # expectancy or R:R statistic reading `rr_ratio` after a fill is
+                # reading the planned number, not the real one.
+                #
+                # Written alongside `rr_ratio` rather than overwriting it: the
+                # planned ratio is what the signal was selected on and is worth
+                # keeping for provenance. Exit behaviour is untouched — the
+                # target price is unchanged, this only records the truth about
+                # what that target is worth from where the trade actually got in.
+                try:
+                    risk_at_fill = abs(pnl_entry_price - stop_loss)
+                    if risk_at_fill > 0 and target:
+                        reward = (
+                            pnl_entry_price - float(target) if direction == "bearish"
+                            else float(target) - pnl_entry_price
+                        )
+                        trade["rr_ratio_at_fill"] = f"{reward / risk_at_fill:.2f}"
+                except (TypeError, ValueError):
+                    logger.warning(
+                        f"{ticker} {signal_date}: could not compute rr_ratio_at_fill "
+                        f"(target={target!r}, stop={stop_loss!r}) — left blank"
+                    )
+
                 try:
                     send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"], track=track)
                 except Exception as exc:
@@ -1005,11 +1044,21 @@ def print_summary(csv_path: Optional[Path] = None) -> None:
         print(f"Paper trades: {len(trades)} total, {open_ct} open, 0 closed")
         return
 
-    # Expired (entry zone never reached) trades never had capital at risk —
-    # exclude them from win-rate/R:R math the same way an open trade is,
-    # just report the count separately.
-    expired = [t for t in closed if t.get("outcome") == "expired"]
-    scored = [t for t in closed if t.get("outcome") != "expired"]
+    # Unfunded trades never had capital at risk — excluded from win-rate/R:R
+    # math the same way an open trade is, and reported separately. Two causes,
+    # counted apart because they say different things about the model:
+    # expired = the market never came to our entry order; superseded = a newer
+    # qualifying signal on the same ticker replaced this one before it filled.
+    expired = [t for t in closed if t.get("outcome") == OUTCOME_EXPIRED]
+    superseded = [t for t in closed if t.get("outcome") == OUTCOME_SUPERSEDED]
+    # is_performance_row, not is_scored: a row that resolved a real directional
+    # call but sized to 0 units never had a cent at risk and cannot belong in a
+    # win rate. LLY 2026-08-12 closed as a time_stop at -0.264R with
+    # position_size=0 and pnl_dollars=0.00, and counted by outcome alone it took
+    # this track from 0-of-2 to 0-of-3 — a trade that could not have won or lost
+    # dragging the headline number. Reported separately below instead.
+    scored = [t for t in closed if is_performance_row(t)]
+    unfunded_closed = [t for t in closed if is_scored(t.get("outcome")) and not is_funded(t)]
 
     wins = [t for t in scored if t.get("outcome") == "win"]
     losses = [t for t in scored if t.get("outcome") == "loss"]
@@ -1036,7 +1085,10 @@ def print_summary(csv_path: Optional[Path] = None) -> None:
     avg_rr = sum(rr_values) / len(rr_values) if rr_values else 0.0
 
     print(f"\n{'=' * 50}")
-    print(f"PAPER TRADING SUMMARY  ({len(scored)} closed, {open_ct} open, {len(expired)} expired)")
+    _unfunded_note = f", {len(expired)} expired"
+    if superseded:
+        _unfunded_note += f", {len(superseded)} superseded"
+    print(f"PAPER TRADING SUMMARY  ({len(scored)} closed, {open_ct} open{_unfunded_note})")
     print(f"{'=' * 50}")
     print(f"  Win rate (wins + profitable time stops/earnings/confidence exits): {win_rate:.1%}")
     print(f"  Target hits:        {len(wins)}")
@@ -1045,7 +1097,18 @@ def print_summary(csv_path: Optional[Path] = None) -> None:
     print(f"  Earnings exits:     {len(earnings_exits)}  (+{len(ee_pos)} profitable)")
     print(f"  Confidence early exits: {len(early_exits)}  (+{len(ex_pos)} profitable)")
     print(f"  Avg R:R on wins:    {avg_rr:.2f}R")
+    if unfunded_closed:
+        print(
+            f"  Closed but never funded (sized to 0 units): {len(unfunded_closed)}"
+            f"  ({', '.join(t.get('ticker', '?') for t in unfunded_closed)})"
+            f" — real directional result, no capital at risk, excluded from win rate"
+        )
     print(f"  Expired (never filled): {len(expired)}")
+    if superseded:
+        print(
+            f"  Superseded (pending, replaced by a newer signal): {len(superseded)}"
+            f"  ({', '.join(t.get('ticker', '?') for t in superseded)})"
+        )
     if expired:
         opp_cost = compute_expired_signal_opportunity_cost(csv_path)
         if opp_cost["resolved_count"]:

@@ -349,3 +349,150 @@ class TestFetchHyperscalerCapexSnippets:
             articles = fetch_hyperscaler_capex_snippets("NOTATICKER")
         assert articles == []
         assert mock_get.call_count == 1
+
+
+class TestForeignPrivateIssuer6KFallback:
+    """
+    Foreign private issuers file 6-K, never 8-K (v2.2.107).
+
+    The client asked for `type=8-K` only, so TSM and ASML returned zero filings
+    on every scan since the SEC source was added — silently, because an empty
+    feed is indistinguishable from "nothing was filed". Verified against SEC's
+    submissions API on 2026-08-26: TSM 712 6-K / 0 8-K, ASML 361 / 0, domestic
+    NVDA 63 8-K. Since these filings feed the Event Severity Gate, neither
+    ticker could raise a critical event from its own disclosures.
+    """
+
+    @staticmethod
+    def _atom(form_type, n=2):
+        entries = "".join(
+            f'<entry><summary>Item 8.01: Other Events</summary>'
+            f'<updated>2026-08-2{i}T12:00:00-04:00</updated>'
+            f'<link href="https://sec.gov/f{i}"/></entry>'
+            for i in range(n)
+        )
+        return f'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">{entries}</feed>'.encode()
+
+    def _patch(self, monkeypatch, responses):
+        """responses: {form_type: body}. Records the order types were tried."""
+        import shared.api_clients.sec_edgar_client as sec
+        monkeypatch.setattr(sec, "_load_ticker_cik_map", lambda: {"TSM": "0001046179", "NVDA": "0001045810"})
+        sec._ticker_form_type_cache.clear()
+        tried = []
+
+        class R:
+            def __init__(self, content): self.content = content
+
+        def fake(url, params=None, retries=3):
+            tried.append(params["type"])
+            body = responses.get(params["type"])
+            return R(body) if body is not None else R(self._atom("x", 0))
+
+        monkeypatch.setattr(sec, "_get_with_backoff", fake)
+        return tried
+
+    def test_foreign_issuer_falls_back_to_6k(self, monkeypatch):
+        from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+        tried = self._patch(monkeypatch, {"6-K": self._atom("6-K")})
+        articles = fetch_recent_8k_filings("TSM")
+        assert tried == ["8-K", "6-K"], "must try 8-K first, then fall back"
+        assert len(articles) == 2
+        assert "6-K" in articles[0]["title"]
+
+    def test_domestic_filer_costs_one_request(self, monkeypatch):
+        """No extra call for the common case."""
+        from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+        tried = self._patch(monkeypatch, {"8-K": self._atom("8-K")})
+        articles = fetch_recent_8k_filings("NVDA")
+        assert tried == ["8-K"]
+        assert len(articles) == 2
+        assert "8-K" in articles[0]["title"]
+
+    def test_discovered_form_type_is_cached(self, monkeypatch):
+        """A foreign issuer pays the extra request once per process, not per call."""
+        from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+        tried = self._patch(monkeypatch, {"6-K": self._atom("6-K")})
+        fetch_recent_8k_filings("TSM")
+        fetch_recent_8k_filings("TSM")
+        assert tried == ["8-K", "6-K", "6-K"]
+
+    def test_no_filings_of_either_type_returns_empty(self, monkeypatch):
+        from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+        tried = self._patch(monkeypatch, {})
+        assert fetch_recent_8k_filings("TSM") == []
+        assert tried == ["8-K", "6-K"]
+
+
+class TestRequestFailureIsDistinguishableFromNoFilings:
+    """
+    A failed SEC request must not look like "this company filed nothing"
+    (v2.2.109).
+
+    Both used to return []. That meant an SEC throttle or block — the stated
+    enforcement for their fair-access policy, which this project is technically
+    out of compliance with while SEC_EDGAR_USER_AGENT points at a
+    non-routable domain — produced exactly what a quiet news week produces. The
+    model would lose one of five news sources AND every filing-based Event
+    Severity Gate trigger while looking completely healthy, with scores drifting
+    down across the board and no visible cause. Same shape as the TSM/ASML 8-K
+    bug fixed one version earlier.
+
+    Low probability (~156 sequential requests/day against a 10/second limit),
+    but poor detectability is exactly what makes it expensive when it happens.
+    """
+
+    @staticmethod
+    def _empty_feed():
+        class R:
+            content = b'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+        return R()
+
+    def _setup(self, monkeypatch, resp):
+        import shared.api_clients.sec_edgar_client as sec
+        monkeypatch.setattr(sec, "_load_ticker_cik_map", lambda: {"NVDA": "0001045810"})
+        sec._ticker_form_type_cache.clear()
+        entries = []
+        monkeypatch.setattr(sec, "write_validation_entry", lambda t, k, d: entries.append((t, k, d)))
+        monkeypatch.setattr(sec, "_get_with_backoff", lambda url, params=None, retries=3: resp)
+        return sec, entries
+
+    def test_request_failure_is_logged_to_validation(self, monkeypatch):
+        sec, entries = self._setup(monkeypatch, None)
+        assert sec.fetch_recent_8k_filings("NVDA") == []
+        assert len(entries) == 1
+        assert entries[0][1] == "sec_edgar"
+        assert "request_failed" in entries[0][2]
+
+    def test_genuinely_no_filings_logs_nothing(self, monkeypatch):
+        """A quiet week must stay quiet — otherwise the signal is worthless."""
+        sec, entries = self._setup(monkeypatch, self._empty_feed())
+        assert sec.fetch_recent_8k_filings("NVDA") == []
+        assert entries == []
+
+    def test_failed_8k_does_not_fall_through_to_6k(self, monkeypatch):
+        """
+        A failed 8-K request must not cause the 6-K fallback to fire and cache
+        6-K as this ticker's form type — that would silently mislabel a domestic
+        filer off the back of a transient outage.
+        """
+        import shared.api_clients.sec_edgar_client as sec
+        monkeypatch.setattr(sec, "_load_ticker_cik_map", lambda: {"NVDA": "0001045810"})
+        sec._ticker_form_type_cache.clear()
+        monkeypatch.setattr(sec, "write_validation_entry", lambda *a: None)
+        tried = []
+
+        def fake(url, params=None, retries=3):
+            tried.append(params["type"])
+            return None
+
+        monkeypatch.setattr(sec, "_get_with_backoff", fake)
+        sec.fetch_recent_8k_filings("NVDA")
+        assert tried == ["8-K"], "must stop on failure, not try 6-K"
+        assert "NVDA" not in sec._ticker_form_type_cache
+
+    def test_malformed_feed_counts_as_failure(self, monkeypatch):
+        class R:
+            content = b"<<<not xml at all"
+        sec, entries = self._setup(monkeypatch, R())
+        assert sec.fetch_recent_8k_filings("NVDA") == []
+        assert any("request_failed" in e[2] for e in entries)

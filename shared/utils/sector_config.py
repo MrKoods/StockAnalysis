@@ -80,3 +80,21 @@ def get_ticker_benchmark(cfg: dict, ticker: str) -> Optional[str]:
     if sector_name is None:
         return None
     return get_sector_benchmark(cfg, sector_name)
+
+
+def get_news_weight_scale(cfg: dict, sector: Optional[str]) -> float:
+    """
+    News-category weight multiplier for `sector` (see scoring.py Step 4c).
+
+    Returns 1.0 (no-op) unless scoring_weights.news_coverage_weighting.enabled
+    is true AND this sector has an entry — so the feature is inert in both
+    directions until deliberately switched on, and a sector with no entry is
+    never silently reweighted.
+    """
+    block = (cfg or {}).get("scoring_weights", {}).get("news_coverage_weighting", {})
+    if not block.get("enabled", False):
+        return 1.0
+    try:
+        return float(block.get("sectors", {}).get(sector, 1.0))
+    except (TypeError, ValueError):
+        return 1.0

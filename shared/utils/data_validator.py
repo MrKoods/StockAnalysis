@@ -261,9 +261,27 @@ def validate_positioning_data(
     if not positioning_data:
         return True, []
 
+    # held_percent_institutions upper bound is 1.5, not 1.0 (2026-08-26,
+    # v2.2.106). Institutional ownership above 100% is a REAL, routine market
+    # phenomenon, not corrupt data: shares lent to short sellers and resold are
+    # counted by both the original holder and the buyer, and 13F filing dates
+    # lag the share-count date they are divided by. Yahoo reports >100% for
+    # heavily-shorted or heavily-institutional names as a matter of course.
+    # CFG read 1.0043 on 2026-08-26 and failed pre-flight validation daily on a
+    # 0.43% overshoot that was almost certainly accurate.
+    #
+    # Deliberately NOT clamped to 1.0 either: positioning_layer._score_institutional
+    # scores the TREND (this scan's value vs the previous scan's), never the
+    # absolute level, so clamping would erase a genuine 1.0043 -> 1.0100
+    # accumulation into a flat 1.0 -> 1.0 non-event. The raw value is what the
+    # signal is built from.
+    #
+    # 1.5 is a unit-error tripwire, not a market judgement: a percentage passed
+    # as 100.43 instead of 1.0043 lands far outside it, while any plausible
+    # real reading lands well inside.
     institutional = positioning_data.get("institutional") or {}
     held_pct = institutional.get("held_percent_institutions")
-    if held_pct is not None and not (0.0 <= float(held_pct) <= 1.0):
+    if held_pct is not None and not (0.0 <= float(held_pct) <= 1.5):
         reasons.append(f"positioning_held_percent_institutions_out_of_bounds_{held_pct}")
 
     short_interest = positioning_data.get("short_interest") or {}

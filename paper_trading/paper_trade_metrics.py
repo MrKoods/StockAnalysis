@@ -30,6 +30,7 @@ from typing import Optional
 import pandas as pd
 
 from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples, compute_win_rate
+from shared.utils.trade_outcomes import OUTCOME_EXPIRED, is_funded, is_performance_row, is_scored
 
 _PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 
@@ -155,18 +156,9 @@ def evaluate_paper_trading_pass(
     }
 
 
-def _is_funded(row: dict) -> bool:
-    """True if this row actually deployed capital (position_size > 0) rather
-    than qualifying but sizing to 0 (e.g. its best structure cost more than
-    the confidence tier's risk budget allowed — see trade_selector.py's
-    recommended-selection priority chain). A qualifying-but-unaffordable call
-    is real signal-accuracy data (see compute_signal_accuracy) but shouldn't
-    count the same as a real, capital-deployed trade when deciding whether
-    this strategy is fit to trade real money."""
-    try:
-        return float(row.get("position_size", 0) or 0) > 0
-    except (TypeError, ValueError):
-        return False
+# Local alias for the shared definition — kept so this module's existing
+# call sites read unchanged. See shared/utils/trade_outcomes.is_funded.
+_is_funded = is_funded
 
 
 def _load_paper_trades_rows(csv_path: Optional[Path] = None) -> tuple[list[dict], int]:
@@ -232,7 +224,7 @@ def load_paper_trade_gate_inputs(csv_path: Optional[Path] = None) -> dict:
     rows, trading_days_elapsed = _load_paper_trades_rows(csv_path)
     trade_outcomes = [
         r for r in rows
-        if r.get("outcome") and r.get("outcome") != "expired" and _is_funded(r)
+        if is_scored(r.get("outcome")) and _is_funded(r)
     ]
 
     return {
@@ -261,7 +253,7 @@ def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
     # "expired" rows (entry zone never reached — see paper_updater.py's fill
     # confirmation) never had a directional call resolve either way, so they
     # don't belong in a model-accuracy view any more than an open trade does.
-    closed = [r for r in rows if r.get("outcome") and r.get("outcome") != "expired"]
+    closed = [r for r in rows if is_scored(r.get("outcome"))]
     funded = [r for r in closed if _is_funded(r)]
     unfunded = [r for r in closed if not _is_funded(r)]
 
@@ -300,7 +292,12 @@ def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> 
     over resolved_count only (pending rows have no outcome yet to score).
     """
     rows, _ = _load_paper_trades_rows(csv_path)
-    expired = [r for r in rows if r.get("outcome") == "expired"]
+    # Deliberately OUTCOME_EXPIRED only, not UNFUNDED_OUTCOMES: this metric asks
+    # "the market never came to our entry order — would entering at signal price
+    # have paid?". A superseded row was cancelled because a NEWER signal replaced
+    # it on the same ticker, so its hypothetical would double-count the same
+    # underlying move the replacement already tracks.
+    expired = [r for r in rows if r.get("outcome") == OUTCOME_EXPIRED]
     resolved = [r for r in expired if (r.get("hypothetical_outcome") or "") not in ("", "pending")]
     pending = [r for r in expired if (r.get("hypothetical_outcome") or "") in ("", "pending")]
 
@@ -422,7 +419,11 @@ def generate_daily_summary(csv_path: Optional[Path] = None, as_of: Optional[str]
     total_realized_pnl = sum(_csv_float(r, "pnl_dollars") for r in closed)
     total_unrealized_pnl = sum(p["unrealized_pnl"] for p in open_positions)
 
-    scored_closed = [r for r in closed if r.get("outcome") != "expired"]
+    # is_performance_row, not is_scored: a size-0 row resolved a real
+    # directional call but never deployed a cent, so it belongs in
+    # signal-accuracy (above) and not in a win rate that is meant to describe
+    # whether this strategy is fit to trade money.
+    scored_closed = [r for r in closed if is_performance_row(r)]
     lifetime_win_rate = compute_win_rate(scored_closed) if scored_closed else 0.0
 
     opportunity_cost = compute_expired_signal_opportunity_cost(csv_path)

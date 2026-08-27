@@ -21,6 +21,16 @@ from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+# Neutral values for the two SYMMETRIC news sub-scores, used when a ticker has
+# no relevant coverage at all. Derived from each sub-score's own midpoint, not
+# picked: credibility maps confirming=1.0 / neutral=0.5 / opposing=0.0 scaled
+# to 0-6, so a wholly neutral article set lands on 3.0; theme alignment maps
+# [-1,+1] via (v+1)*2 to 0-4, so alignment 0 lands on 2.0. See the block in
+# compute_news_score() for why the other two sub-scores stay at 0.0.
+NEUTRAL_CREDIBILITY_SCORE = 3.0
+NEUTRAL_THEME_ALIGNMENT_SCORE = 2.0
+NEUTRAL_NEWS_SCORE_TOTAL = NEUTRAL_CREDIBILITY_SCORE + NEUTRAL_THEME_ALIGNMENT_SCORE  # 5.0 / 15
+
 
 
 def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[str] = None) -> dict:
@@ -348,6 +358,46 @@ def compute_news_score(
     else:
         decay_score = 0.0
 
+    # ---------------------------------------------------------------------------
+    # No relevant coverage → NEUTRAL, not zero.
+    #
+    # Every sub-score above returns 0.0 on an empty `relevant` list, but 0.0 is
+    # also each symmetric sub-score's MAXIMALLY OPPOSING value:
+    #   credibility_weighted_score — confirming article = 1.0, opposing = 0.0,
+    #     neutral = 0.5, scaled x6. A fully neutral article set scores 3.0.
+    #     Empty scored 0.0, i.e. identical to unanimously contradictory news.
+    #   theme_alignment_score — (alignment_val + 1) * 2, so opposing (-1) = 0.0,
+    #     neutral (0) = 2.0, confirming (+1) = 4.0. Empty scored 0.0 again.
+    # So a ticker nobody writes about was scored exactly like one carrying
+    # unanimous, credible, thesis-destroying coverage — on 15 of the 100
+    # composite points.
+    #
+    # Measured live 2026-08-26: 7 of 12 regional banks scored 0.0/15 despite
+    # each fetching 30+ articles (the relevance filter matched none of them),
+    # dragging the sector to a 2.97 mean against 7.5-9.4 for every other
+    # sector. That is a ~5-point composite handicap applied purely for lack of
+    # press coverage, which is a property of a company's market cap and media
+    # profile, not of its trade setup.
+    #
+    # clustering_score and decay_score are deliberately left at 0.0: unlike the
+    # two above they are not symmetric confirm/oppose axes but counts of
+    # positive evidence ("how many independent corroborating clusters", "how
+    # fresh is the newest item"). Zero is the honest answer when there is
+    # nothing to count, not a penalty. Neutral total is therefore 5.0/15, not
+    # the 7.5 midpoint — absence of evidence should not score like evidence.
+    #
+    # Same treatment fundamental_layer already gets (data_quality
+    # 'unavailable' -> neutral 0 on its symmetric -15..+15 scale) and sentiment
+    # (sentiment_offline). News was the last scoring layer without it.
+    # ---------------------------------------------------------------------------
+    news_data_quality = "complete"
+    if not relevant:
+        news_data_quality = (
+            "no_articles" if not all_articles else "no_relevant_articles"
+        )
+        credibility_weighted_score = NEUTRAL_CREDIBILITY_SCORE
+        theme_alignment_score = NEUTRAL_THEME_ALIGNMENT_SCORE
+
     news_score_total = credibility_weighted_score + theme_alignment_score + clustering_score + decay_score
 
     return {
@@ -357,6 +407,11 @@ def compute_news_score(
         "clustering_score": round(clustering_score, 2),
         "decay_score": round(decay_score, 2),
         "news_score_total": round(min(15.0, news_score_total), 2),
+        # "complete" | "no_relevant_articles" | "no_articles" — lets
+        # scoring.py's compute_data_sufficiency() count News alongside the
+        # other layers that already self-report, and lets a caller tell a
+        # genuinely neutral read apart from an absent one.
+        "data_quality": news_data_quality,
 
         # Metadata
         "news_decay_weighted_score": round(credibility_weighted_score, 2),

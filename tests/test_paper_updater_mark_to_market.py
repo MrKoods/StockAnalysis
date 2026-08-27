@@ -295,3 +295,64 @@ class TestZeroSizePositionGetsNoDollarMark:
         bars = _bars([("2026-08-12", 101, 105, 100, 104)])
         trade = _run_with_bars(bars, monkeypatch)
         assert float(trade["unrealized_pnl_dollars"]) == pytest.approx(0.8 * 50.00)
+
+
+class TestRRRatioAtFill:
+    """
+    rr_ratio_at_fill (v2.2.105): the reward:risk the trade actually got,
+    measured from the FILL rather than the signal-time zone midpoint.
+
+    `rr_ratio` is frozen at signal time off entry_price, but the target does
+    NOT move when the fill lands elsewhere — so the advertised ratio stops
+    being the ratio the trade is running. Measured across the 10 filled trades
+    on 2026-08-26, 8 drifted: worst were PFE 2026-08-07 (planned 3.01, really
+    2.00 — a 33% overstatement) and TGT (3.00 -> 2.34). Signed and
+    trade-specific, so it does not wash out across a sample.
+    """
+
+    def test_worse_fill_lowers_the_real_rr(self, monkeypatch):
+        """More risk for the same target — the PFE/TGT case."""
+        # A real entry zone is required: with it blank the updater takes the
+        # legacy no-zone path and fills at entry_price, so no slippage happens
+        # and there is nothing to measure.
+        pr._append_row(_row(
+            direction="bullish", entry_price="100.00", stop_loss="95.00", target="115.00",
+            entry_zone_lower="99.00", entry_zone_upper="101.00", fill_date="",
+            actual_dollar_risk="50.00",
+        ))
+        # Bar GAPS above the zone -> fill_price = max(zone_lower, open) = 102,
+        # i.e. worse than planned. risk 7, reward 13 -> 1.86 vs a planned 3.00.
+        bars = _bars([("2026-08-12", 102.0, 104.0, 101.5, 103.0)])
+        trade = _run_with_bars(bars, monkeypatch)
+        assert trade["fill_price"] == "102.00"
+        assert float(trade["rr_ratio_at_fill"]) == pytest.approx(13 / 7, abs=0.01)
+
+    def test_better_fill_raises_the_real_rr(self, monkeypatch):
+        """Less risk for the same target — the MRK/ABBV/JNJ case."""
+        pr._append_row(_row(
+            direction="bullish", entry_price="100.00", stop_loss="95.00", target="115.00",
+            entry_zone_lower="99.00", entry_zone_upper="101.00", fill_date="",
+            actual_dollar_risk="50.00",
+        ))
+        bars = _bars([("2026-08-12", 99.0, 100.5, 98.5, 100.0)])
+        trade = _run_with_bars(bars, monkeypatch)
+        fill = float(trade["fill_price"])
+        expected = (115.0 - fill) / (fill - 95.0)
+        assert float(trade["rr_ratio_at_fill"]) == pytest.approx(expected, abs=0.01)
+        assert float(trade["rr_ratio_at_fill"]) > 3.0
+
+    def test_planned_rr_ratio_is_left_intact(self, monkeypatch):
+        """Written alongside, never over — rr_ratio is what the signal was
+        selected on and is worth keeping for provenance."""
+        pr._append_row(_row(
+            direction="bullish", entry_price="100.00", stop_loss="95.00", target="115.00",
+            rr_ratio="3.00", entry_zone_lower="99.00", entry_zone_upper="101.00",
+            fill_date="", actual_dollar_risk="50.00",
+        ))
+        bars = _bars([("2026-08-12", 102.0, 104.0, 101.5, 103.0)])
+        trade = _run_with_bars(bars, monkeypatch)
+        assert trade["rr_ratio"] == "3.00"
+        assert trade["rr_ratio_at_fill"] != "3.00"
+
+    def test_column_is_in_the_shared_schema(self):
+        assert "rr_ratio_at_fill" in pr._CSV_COLUMNS

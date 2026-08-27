@@ -90,7 +90,7 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
 
     monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
-    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker, **kw: [])
     monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
@@ -203,7 +203,7 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     )
     monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
-    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker, **kw: [])
     monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
@@ -284,7 +284,7 @@ def test_run_paper_scan_flags_ev_outlier_against_structure_history(tmp_path, mon
     )
     monkeypatch.setattr(pr, "_fetch_stocktwits_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
-    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: [])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker, **kw: [])
     monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)
@@ -371,7 +371,7 @@ def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str, cfg_extra: dict 
     monkeypatch.setattr(pr, "_fetch_sa_engagement_safe", lambda ticker: [])
 
     av_calls = []
-    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker: av_calls.append(ticker) or [{"title": "x"}])
+    monkeypatch.setattr(pr, "_fetch_av_news_safe", lambda ticker, **kw: av_calls.append(ticker) or [{"title": "x"}])
     monkeypatch.setattr(pr, "_fetch_yahoo_news_safe", lambda ticker: yahoo_articles or [])
     monkeypatch.setattr(pr, "_fetch_finnhub_news_safe", lambda ticker: [])
     monkeypatch.setattr(pr, "_fetch_earnings_safe", lambda ticker: None)

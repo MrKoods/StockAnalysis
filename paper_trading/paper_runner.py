@@ -61,7 +61,9 @@ from shared.utils.event_gate import (
     was_critical_alert_sent, record_critical_alert,
     SCOPE_SECTOR,
 )
+from shared.utils.trade_outcomes import OUTCOME_SUPERSEDED
 from shared.utils.sector_config import (
+    get_news_weight_scale,
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
 from shared.utils.macro_overlay import (
@@ -170,6 +172,14 @@ _CSV_COLUMNS = [
     "regime", "vix_at_signal",
     "rsi_14", "rs_zscore", "mom_5d", "trend_intact",
     "entry_zone_lower", "entry_zone_upper", "entry_price", "stop_loss", "target", "rr_ratio",
+    # The reward:risk the trade actually got, measured from its FILL price —
+    # stamped by paper_updater.py when the fill is confirmed, blank until then.
+    # `rr_ratio` above is frozen at signal time off the zone-midpoint
+    # entry_price and the target does not move when the fill lands elsewhere,
+    # so the two diverge on almost every real fill (8 of 10 on 2026-08-26,
+    # worst case a planned 3.01 that was really 2.00). Kept as a separate
+    # column, not an overwrite: `rr_ratio` is what the signal was selected on.
+    "rr_ratio_at_fill",
     "news_article_count", "dominant_news_theme", "fundamental_data_quality",
     "structure_recommended", "ev_per_dollar",
     # capital_required is the winning structure's own theoretical dollar risk
@@ -298,6 +308,96 @@ def _load_open_positions(csv_path: Optional[Path] = None) -> set[str]:
     except Exception as exc:
         logger.warning(f"Could not read {path} for open-position check: {exc}")
     return open_positions
+
+
+def _load_pending_positions(csv_path: Optional[Path] = None) -> set[str]:
+    """
+    Return set of tickers whose only open row(s) are still PENDING — logged,
+    but the breakout/breakdown entry order never triggered, so no capital was
+    ever at risk (blank outcome AND blank fill_date).
+
+    Subset of _load_open_positions(): a ticker with any FILLED open row is
+    deliberately absent, even if it also has a pending one. See the
+    duplicate-position guard's call site for why the two are treated
+    differently — a pending order is a stale opinion and can be replaced, a
+    filled position is real exposure and must not be doubled up on.
+    """
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    if not path.exists():
+        return set()
+    pending: set[str] = set()
+    filled: set[str] = set()
+    try:
+        with open(path, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if (row.get("outcome") or "").strip():
+                    continue
+                ticker = row.get("ticker", "")
+                if (row.get("fill_date") or "").strip():
+                    filled.add(ticker)
+                else:
+                    pending.add(ticker)
+    except Exception as exc:
+        logger.warning(f"Could not read {path} for pending-position check: {exc}")
+    return pending - filled
+
+
+def _supersede_pending_signals(
+    ticker: str,
+    today_str: str,
+    superseding_confidence: float,
+    csv_path: Optional[Path] = None,
+    lock_path: Optional[Path] = None,
+) -> list[str]:
+    """
+    Cancel every still-pending row for `ticker`, marking it superseded by a
+    newer qualifying signal. Returns the signal_dates actually cancelled.
+
+    Re-checks pending status UNDER THE LOCK rather than trusting the caller's
+    earlier snapshot. paper_updater.py can be mid-run while a scan is going,
+    and it stamps fill_date onto a row the moment the entry zone trades — so
+    a row that was pending when the guard looked can be genuinely filled by
+    the time we get here. Cancelling it then would silently close a position
+    that has real capital at risk. An empty return means "nothing was
+    cancelled", and the caller must treat the ticker as still occupied.
+    """
+    path = csv_path if csv_path is not None else PAPER_TRADES_CSV
+    lock = lock_path if lock_path is not None else PAPER_TRADES_LOCK_FILE
+    if not path.exists():
+        return []
+
+    superseded: list[str] = []
+    with exclusive_lock(lock, timeout=15.0):
+        with open(path, newline="", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+
+        for row in rows:
+            if row.get("ticker") != ticker:
+                continue
+            if (row.get("outcome") or "").strip():
+                continue
+            if (row.get("fill_date") or "").strip():
+                # Filled between the guard's snapshot and now — real exposure.
+                return []
+            row["outcome"] = OUTCOME_SUPERSEDED
+            row["exit_date"] = today_str
+            note = (row.get("sizing_note") or "").strip()
+            replacement = (
+                f"superseded {today_str} — a newer qualifying signal "
+                f"(confidence {superseding_confidence:.1f}) replaced this still-unfilled entry order"
+            )
+            row["sizing_note"] = f"{note} | {replacement}" if note else replacement
+            superseded.append(row.get("signal_date", ""))
+
+        if not superseded:
+            return []
+
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(rows)
+
+    return superseded
 
 
 def _load_filled_open_positions_detail(sector_tickers: Optional[set[str]] = None) -> list[dict]:
@@ -499,6 +599,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     today_str = date.today().isoformat()
     already_logged = _load_logged_keys()
     open_positions = _load_open_positions()
+    pending_positions = _load_pending_positions()
 
     # Rank-based parallel paper-trading track (2026-08-24) — collects every
     # ticker's already-computed scoring context as the main loop below runs,
@@ -674,9 +775,6 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 logger.debug(f"{ticker}: no indicators — skipped")
                 continue
 
-            if (today_str, ticker) in already_logged:
-                logger.info(f"{ticker}: already logged today — skipped")
-                continue
 
             # This ticker's sector — drives which regime/rotation/macro/
             # seasonality modifier applies.
@@ -737,7 +835,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             fetch_av_now = free_sources_flag_critical_event(
                 free_source_articles, ticker, cfg, sector=sector
             )
-            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
+            av_articles = _fetch_av_news_safe(ticker, scan_type=scan_type, cfg=cfg) if fetch_av_now else []
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
@@ -788,6 +886,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 macro_modifier=macro_mod,
                 cfg=cfg,
                 live_weights=live_weights_by_sector.get(sector, {}).get(direction),
+                news_weight_scale=get_news_weight_scale(cfg, sector),
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
@@ -979,6 +1078,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     high_volume_support=indicators.get("high_volume_support"),
                     high_volume_resistance=indicators.get("high_volume_resistance"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                    min_stop_atr_multiple=rr_cfg.get("min_stop_atr_multiple", 1.0),
                     direction=direction,
                 )
                 target_px = compute_target(
@@ -986,6 +1086,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                     low_volume_area_above=indicators.get("low_volume_area_above"),
                     low_volume_area_below=indicators.get("low_volume_area_below"),
                     min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+                    atr_14=atr, holding_days=_TIME_STOP_DAY_DEFAULT,
+                    max_target_atr_multiple=rr_cfg.get("max_target_atr_multiple", 2.5),
                 )
                 rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target_px, direction=direction) if target_px else 0.0
 
@@ -1156,6 +1258,48 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                 "earnings_result": earnings_result, "positioning": positioning,
             })
 
+            if (today_str, ticker) in already_logged:
+                logger.info(
+                    f"{ticker}: already logged to the threshold track today — "
+                    f"no second threshold signal (still ranked for the rank track)"
+                )
+                continue
+
+            # Threshold track's same-day dedup. Deliberately checked HERE,
+            # immediately after the rank-track stash above, and not at the top
+            # of the loop where it used to sit (2026-08-26, v2.2.102).
+            #
+            # Up there it `continue`d before the stash, so a ticker already
+            # logged to paper_trades.csv earlier today never entered the rank
+            # track's candidate pool at all — it couldn't be ranked, let alone
+            # picked. That silently contradicted _run_rank_track's own
+            # "fully independent ... never cross-checked against the threshold
+            # track" contract, and it biased the rank track against precisely
+            # the STRONGEST names in each sector: the ones good enough to have
+            # already qualified outright. Confirmed live on 2026-08-25 — AMGN
+            # qualified pre-market at 75.0, and is absent from the entire
+            # 47-ticker post-close scoreboard, so healthcare's post-close rank
+            # picks were MRK (72.6) and ABT (68.7) with the sector's highest
+            # scorer silently ineligible. Gating the rank track to post_close
+            # (v2.2.100) made this worse, not better: the rank track now always
+            # runs last, which is exactly when the threshold ledger is most
+            # populated.
+            #
+            # Cost of moving it: an already-logged ticker now re-runs this
+            # loop's per-ticker fetches instead of short-circuiting. That is
+            # unavoidable rather than incidental — a ticker cannot be ranked
+            # without a score, and the score needs those fetches. It is also
+            # small: only tickers that already produced a qualifying signal
+            # TODAY reach here, typically 0-1 a day (2026-08-25: just AMGN),
+            # against 47 tickers scanned. The AV fetch stays budget-guarded by
+            # free_sources_flag_critical_event either way.
+            #
+            # Kept ABOVE the sub-threshold branch below rather than moved down
+            # beside the duplicate-position guard: that branch fires a
+            # near-miss Discord alert, and a ticker that already has a live
+            # signal logged today shouldn't also generate a near-miss ping if
+            # it happens to slip under 70 on a later scan.
+
             if final_score < CONFIDENCE_THRESHOLD:
                 sub_threshold_category = (
                     app_db.CATEGORY_NEAR_MISS if final_score >= NEAR_MISS_THRESHOLD else app_db.CATEGORY_NO_SIGNAL
@@ -1205,12 +1349,40 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # already_logged) because it only applies to real qualifying
             # signals — near-miss/no-signal rows above are informational
             # only and never touch paper_trades.csv.
+            #
+            # A PENDING row (logged, never filled) is the exception: it's a
+            # stale opinion, not exposure. Its entry zone, stop and target were
+            # computed from data that is now days old, and today's signal is
+            # the same model's newer read on the same ticker. Cancel the
+            # pending order and let the fresh one take its place, rather than
+            # letting the stale one keep the slot until it expires.
             if ticker in open_positions:
-                logger.info(
-                    f"{ticker}: qualifies ({final_score:.1f}) but already has an open "
-                    f"position — skipped (duplicate-position guard)"
-                )
-                continue
+                if ticker in pending_positions:
+                    cancelled = _supersede_pending_signals(
+                        ticker, today_str, final_score,
+                    )
+                    if cancelled:
+                        logger.info(
+                            f"{ticker}: qualifies ({final_score:.1f}) and had {len(cancelled)} "
+                            f"pending (unfilled) signal(s) from {', '.join(cancelled)} — "
+                            f"cancelled as superseded, logging the newer signal"
+                        )
+                        pending_positions.discard(ticker)
+                        open_positions.discard(ticker)
+                    else:
+                        # Filled underneath us since the snapshot — real
+                        # exposure now, so the guard applies after all.
+                        logger.info(
+                            f"{ticker}: qualifies ({final_score:.1f}) but its pending signal "
+                            f"filled during this scan — skipped (duplicate-position guard)"
+                        )
+                        continue
+                else:
+                    logger.info(
+                        f"{ticker}: qualifies ({final_score:.1f}) but already has a filled open "
+                        f"position — skipped (duplicate-position guard)"
+                    )
+                    continue
 
             qualified_category = (
                 app_db.CATEGORY_TRADE_RECOMMENDED if structure_recommended else app_db.CATEGORY_PASSED_NO_TRADE
@@ -1492,6 +1664,13 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
 # (70-89 confidence). Simplest, most defensible choice until there's real
 # rank-track data to justify a confidence-scaled curve for a score range
 # with zero win-rate track record yet (2026-08-24, confirmed with user).
+# Holding window the target-feasibility ceiling is measured against — the
+# day-10 time stop, not MAX_HOLDING_DAYS (15), because a trade with under
+# 30% of the target captured is closed at day 10 (see paper_updater's
+# signal_decay.time_stop_day). Sizing a target against 15 days it will
+# rarely be given is what makes it unreachable in practice.
+_TIME_STOP_DAY_DEFAULT = 10
+
 _RANK_TRACK_RISK_PCT = 0.0333
 
 
@@ -1570,6 +1749,7 @@ def _run_rank_track(
 
     already_logged = _load_logged_keys(RANK_TRADES_CSV)
     open_positions = _load_open_positions(RANK_TRADES_CSV)
+    pending_positions = _load_pending_positions(RANK_TRADES_CSV)
 
     # Slots already consumed today, per sector — the day's budget is top_n per
     # sector across ALL of the day's scans, not top_n per scan.
@@ -1640,9 +1820,26 @@ def _run_rank_track(
             ticker = c["ticker"]
             if (today_str, ticker) in already_logged:
                 continue
+            # Same pending-vs-filled split as the threshold track's guard —
+            # a never-filled entry order is a stale opinion this scan's newer
+            # ranking supersedes; a filled one is real exposure.
             if ticker in open_positions:
-                logger.info(f"{ticker}: rank-track pick but already has an open rank-track position — skipped")
-                continue
+                if ticker in pending_positions and _supersede_pending_signals(
+                    ticker, today_str, c["final_score"],
+                    csv_path=RANK_TRADES_CSV, lock_path=RANK_TRADES_LOCK_FILE,
+                ):
+                    logger.info(
+                        f"{ticker}: rank-track pick with a pending (unfilled) signal — "
+                        f"cancelled as superseded, logging the newer signal"
+                    )
+                    pending_positions.discard(ticker)
+                    open_positions.discard(ticker)
+                else:
+                    logger.info(
+                        f"{ticker}: rank-track pick but already has a filled open "
+                        f"rank-track position — skipped"
+                    )
+                    continue
 
             row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration)
             if row is None:
@@ -1730,6 +1927,7 @@ def _build_rank_track_row(
         high_volume_support=indicators.get("high_volume_support"),
         high_volume_resistance=indicators.get("high_volume_resistance"),
         stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+        min_stop_atr_multiple=rr_cfg.get("min_stop_atr_multiple", 1.0),
         direction=direction,
     )
     target_px = compute_target(
@@ -1737,6 +1935,8 @@ def _build_rank_track_row(
         low_volume_area_above=indicators.get("low_volume_area_above"),
         low_volume_area_below=indicators.get("low_volume_area_below"),
         min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+        atr_14=atr, holding_days=_TIME_STOP_DAY_DEFAULT,
+        max_target_atr_multiple=rr_cfg.get("max_target_atr_multiple", 2.5),
     )
     rr_ratio = compute_rr_ratio(entry_mid, stop_loss, target_px, direction=direction) if target_px else 0.0
 

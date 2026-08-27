@@ -77,7 +77,11 @@ class TestRealConfigAllSectorsActive:
         tickers = get_all_tickers(cfg)
         assert tickers == [
             "NVDA", "AMD", "AVGO", "TSM", "MU", "ASML", "TXN", "ADI", "AMAT", "QCOM", "KLAC",
-            "ZION", "KEY", "HBAN", "RF", "FITB", "CFG", "TFC", "MTB", "WBS", "CFR", "PNFP", "ONB", "UMBF",
+            # WBS removed 2026-08-26 (v2.2.106) — yfinance returns 236 bars for
+            # it against 251 for every peer, plus 3 gaps over 4 days and 2
+            # zero-volume days, so it had been failing pre-flight validation and
+            # being excluded from every scan anyway. See the config comment.
+            "ZION", "KEY", "HBAN", "RF", "FITB", "CFG", "TFC", "MTB", "CFR", "PNFP", "ONB", "UMBF",
             "LLY", "PFE", "MRK", "ABBV", "UNH", "JNJ", "AMGN", "GILD", "BMY", "VRTX", "TMO", "ABT", "ISRG", "SYK",
             "AMZN", "TSLA", "HD", "NKE", "SBUX", "TGT", "MCD", "BKNG", "TJX", "LOW", "ORLY",
         ]

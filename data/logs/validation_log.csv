@@ -16,3 +16,13 @@ timestamp_utc,ticker,failure_type,detail
 2026-08-25T16:00:22.098737+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
 2026-08-25T20:30:08.382449+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
 2026-08-25T20:30:23.602008+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T14:37:17.077579+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T14:37:32.266318+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T14:37:52.178772+00:00,CFG,positioning,positioning_held_percent_institutions_out_of_bounds_1.00449
+2026-08-26T16:00:11.110279+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T16:00:26.299038+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T21:01:03.895052+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 00:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T21:01:19.118785+00:00,WBS,ohlcv,ohlcv_zero_or_negative_volume_2026-04-08 04:00:00+00:00; ohlcv_gap_9_days
+2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_1.51
+2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_100.43
+2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_-0.1

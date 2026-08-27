@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 
-from shared.utils.logger import get_logger, write_audit_entry
+from shared.utils.logger import get_logger, write_audit_entry, write_validation_entry
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.portfolio_manager import (
     load_position_state, save_position_state,
@@ -56,6 +56,7 @@ from shared.utils.event_gate import (
     SCOPE_SECTOR,
 )
 from shared.utils.sector_config import (
+    get_news_weight_scale,
     get_active_sectors, get_all_tickers, get_ticker_sector_map, get_sector_tickers,
 )
 from shared.utils.scan_lock import acquire_scan_lock
@@ -397,7 +398,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
             fetch_av_now = free_sources_flag_critical_event(
                 free_source_articles, ticker, cfg, sector=sector
             )
-            av_articles = _fetch_av_news_safe(ticker) if fetch_av_now else []
+            av_articles = _fetch_av_news_safe(ticker, scan_type=scan_type, cfg=cfg) if fetch_av_now else []
             news = compute_news_score(
                 av_articles, yahoo_articles, ticker, cfg, finnhub_articles=finnhub_articles,
                 sector=sector, seeking_alpha_articles=sa_news_articles,
@@ -456,6 +457,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
                 macro_modifier=macro_modifier_val,
                 cfg=cfg,
                 live_weights=live_weights_by_sector.get(sector, {}).get(direction),
+                news_weight_scale=get_news_weight_scale(cfg, sector),
                 regime=regime,
                 fundamental=fundamental,
                 event_gate_blocked=event_gate_blocked,
@@ -588,6 +590,7 @@ def _main_locked(scan_type: str = "post_close") -> None:
                     high_volume_support=indicators.get("high_volume_support"),
                     high_volume_resistance=indicators.get("high_volume_resistance"),
                     stop_atr_multiplier=rr_cfg.get("stop_atr_multiplier", 2.0),
+                    min_stop_atr_multiple=rr_cfg.get("min_stop_atr_multiple", 1.0),
                     direction=direction,
                 )
                 target = compute_target(
@@ -595,6 +598,8 @@ def _main_locked(scan_type: str = "post_close") -> None:
                     low_volume_area_above=indicators.get("low_volume_area_above"),
                     low_volume_area_below=indicators.get("low_volume_area_below"),
                     min_rr=rr_cfg.get("min_rr_ratio", 3.0), direction=direction,
+                    atr_14=atr, holding_days=int(cfg.get("signal_decay", {}).get("time_stop_day", 10)),
+                    max_target_atr_multiple=rr_cfg.get("max_target_atr_multiple", 2.5),
                 )
 
                 valid_setup = (
@@ -1450,52 +1455,91 @@ def _compute_cross_ticker_safe(
 # scoring pipeline can continue with neutral values.
 # ---------------------------------------------------------------------------
 
-def _fetch_stocktwits_safe(ticker: str) -> list[dict]:
+# Exceptions a live external feed legitimately produces: the network was
+# unreachable, the vendor returned a 5xx or malformed body, a payload was
+# missing a field. One flaky ticker must not kill a 48-ticker scan, so these
+# degrade to an empty result and the scan continues.
+#
+# Everything NOT in this tuple — TypeError, AttributeError, NameError — is a
+# PROGRAMMING fault, and a bare `except Exception` swallowed those into the
+# exact same empty result (2026-08-26, v2.2.110). That is how a wrong call
+# signature presents as "the vendor returned nothing": it cost a genuinely
+# confusing debugging detour when v2.2.108 added kwargs to
+# _fetch_av_news_safe and a stale test stub silently made AV look uncalled.
+# Same class of failure as an SEC block reading as "no filings" (v2.2.109) —
+# a fault indistinguishable from a legitimate empty answer.
+_EXPECTED_FETCH_ERRORS = (
+    OSError,          # includes requests' ConnectionError/Timeout via IOError
+    ValueError,       # JSON decode, bad literals in a vendor payload
+    KeyError,
+    IndexError,
+)
+
+
+def _safe_fetch(label: str, ticker: str, fn, *args, level: str = "warning", **kwargs) -> list:
+    """
+    Run one external-feed fetch, degrading to [] on an EXPECTED failure and
+    making an UNEXPECTED one loud.
+
+    Expected failures log at `level` ("warning", or "debug" for feeds that are
+    routinely absent) and return []. Unexpected ones log at ERROR with a full
+    traceback AND write a validation_log row, then still return [] — the scan
+    survives, but the fault is visible in the same place every other data-quality
+    problem surfaces, instead of masquerading as an empty vendor response.
+    """
     try:
-        return fetch_stocktwits(ticker) or []
-    except Exception as exc:
-        logger.debug(f"{ticker}: StockTwits fetch skipped — {exc}")
+        return fn(*args, **kwargs) or []
+    except _EXPECTED_FETCH_ERRORS as exc:
+        getattr(logger, level)(f"{ticker}: {label} fetch failed — {exc}")
         return []
+    except Exception as exc:
+        logger.error(
+            f"{ticker}: {label} fetch raised an UNEXPECTED {type(exc).__name__} "
+            f"— this is a bug, not a feed outage: {exc}",
+            exc_info=True,
+        )
+        try:
+            write_validation_entry(ticker, "fetch_bug", f"{label}_{type(exc).__name__}")
+        except Exception:  # never let the reporting path break the scan
+            pass
+        return []
+
+
+def _fetch_stocktwits_safe(ticker: str) -> list[dict]:
+    return _safe_fetch("StockTwits", ticker, fetch_stocktwits, ticker, level="debug")
 
 
 def _fetch_sa_engagement_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_seeking_alpha_engagement(ticker) or []
-    except Exception as exc:
-        logger.debug(f"{ticker}: Seeking Alpha engagement fetch skipped — {exc}")
-        return []
+    return _safe_fetch(
+        "Seeking Alpha engagement", ticker, fetch_seeking_alpha_engagement, ticker, level="debug",
+    )
 
 
-def _fetch_av_news_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_news_alpha_vantage(ticker) or []
-    except Exception as exc:
-        logger.warning(f"{ticker}: Alpha Vantage news fetch failed — {exc}")
-        return []
+def _fetch_av_news_safe(
+    ticker: str, scan_type: Optional[str] = None, cfg: Optional[dict] = None,
+) -> list[dict]:
+    """
+    scan_type/cfg (2026-08-26, v2.2.108) let the Alpha Vantage budget hold back
+    a reserved share of the day's calls for the post_close scan — see
+    news_client.check_av_budget. Both optional, so a caller that passes neither
+    keeps the original first-come-first-served behaviour.
+    """
+    return _safe_fetch(
+        "Alpha Vantage news", ticker, fetch_news_alpha_vantage, ticker,
+        scan_type=scan_type, cfg=cfg,
+    )
 
 
 def _fetch_yahoo_news_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_news_yahoo(ticker) or []
-    except Exception as exc:
-        logger.warning(f"{ticker}: Yahoo news fetch failed — {exc}")
-        return []
+    return _safe_fetch("Yahoo news", ticker, fetch_news_yahoo, ticker)
 
 
 def _fetch_finnhub_news_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_news_finnhub(ticker) or []
-    except Exception as exc:
-        logger.warning(f"{ticker}: Finnhub news fetch failed — {exc}")
-        return []
+    return _safe_fetch("Finnhub news", ticker, fetch_news_finnhub, ticker)
 
 
 def _fetch_sec_edgar_safe(ticker: str) -> list[dict]:
-    try:
-        return fetch_recent_8k_filings(ticker) or []
-    except Exception as exc:
-        logger.warning(f"{ticker}: SEC EDGAR 8-K fetch failed — {exc}")
-        return []
+    return _safe_fetch("SEC EDGAR filings", ticker, fetch_recent_8k_filings, ticker)
 
 
 def _fetch_hyperscaler_capex_safe(ticker: str) -> list[dict]:

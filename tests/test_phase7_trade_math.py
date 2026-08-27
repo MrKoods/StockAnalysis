@@ -1345,3 +1345,94 @@ class TestRankingSortKeyMaxLossTiebreak:
             assert losses == sorted(losses), (
                 f"structures tied on ev_per_dollar_per_day must be ordered by ascending max_loss_dollars: {tied_group}"
             )
+
+
+class TestStopDistanceFloor:
+    """
+    min_stop_atr_multiple (v2.2.104): an HVN support/resistance may tighten the
+    stop, but never inside min_stop_atr_multiple x ATR. A stop inside one day's
+    typical range is hit by ordinary noise rather than by the thesis failing —
+    and since target = min_rr x stop distance, a too-tight stop also shrinks the
+    target, so the trade tends to be stopped out before its own modest target is
+    reached. Live 2026-08-26: SBUX 0.83xATR, QCOM 0.88xATR vs ~2.25 for picks
+    falling back to the plain ATR stop.
+
+    The clamp is direction-sensitive and was written backwards first time —
+    bullish stops sit BELOW entry, so a floor on stop DISTANCE is a ceiling on
+    stop PRICE. These cover both sides.
+    """
+
+    def test_too_tight_hvn_is_pushed_out_to_the_floor(self):
+        # entry_bound 99.5, ATR 2.0 -> floor price 97.5. HVN at 98.5 is 0.5 ATR.
+        assert compute_stop_loss(99.5, atr_14=2.0, high_volume_support=98.5) == pytest.approx(97.5)
+
+    def test_hvn_beyond_the_floor_is_left_alone(self):
+        """The regression the first implementation caused: 1.25 ATR is fine."""
+        assert compute_stop_loss(99.5, atr_14=2.0, high_volume_support=97.0) == pytest.approx(97.0)
+
+    def test_bearish_too_tight_resistance_is_pushed_out(self):
+        stop = compute_stop_loss(
+            100.5, atr_14=2.0, direction="bearish", high_volume_resistance=101.5
+        )
+        assert stop == pytest.approx(102.5)
+
+    def test_bearish_resistance_beyond_the_floor_is_left_alone(self):
+        stop = compute_stop_loss(
+            100.5, atr_14=2.0, direction="bearish", high_volume_resistance=103.0
+        )
+        assert stop == pytest.approx(103.0)
+
+    def test_floor_never_widens_past_the_atr_stop(self):
+        """The ATR stop remains the outer bound; the floor only trims tightness."""
+        assert compute_stop_loss(99.5, atr_14=2.0, high_volume_support=90.0) == pytest.approx(95.5)
+
+    def test_zero_multiple_restores_old_behaviour(self):
+        stop = compute_stop_loss(
+            99.5, atr_14=2.0, high_volume_support=99.4, min_stop_atr_multiple=0.0
+        )
+        assert stop == pytest.approx(99.4)
+
+
+class TestTargetFeasibilityCeiling:
+    """
+    max_target_atr_multiple (v2.2.104): the volume-profile target is only used
+    when it is reachable inside the holding window. That branch previously
+    accepted ANY low-volume area past the min_rr target with no upper bound.
+    Live 2026-08-26: QCOM drew a pocket giving an 11.69:1 target needing +39%,
+    3.26x its expected 10-day range, inside a 10-day time stop.
+    """
+
+    def test_reachable_volume_target_is_used(self):
+        # entry 100, stop 95 -> min target 115. ATR 3, 10 days -> ceiling
+        # 2.5*3*sqrt(10) = 23.7, so a target 20 away is reachable.
+        t = compute_target(entry=100, stop=95, low_volume_area_above=120.0,
+                           atr_14=3.0, holding_days=10)
+        assert t == pytest.approx(120.0)
+
+    def test_unreachable_volume_target_falls_back_to_min_rr(self):
+        """Discarded, not clamped — the pocket was the only justification for
+        reaching past min_rr, so if it's unreachable there is no evidence for
+        an intermediate target either."""
+        t = compute_target(entry=100, stop=95, low_volume_area_above=200.0,
+                           atr_14=3.0, holding_days=10)
+        assert t == pytest.approx(115.0)
+
+    def test_min_rr_target_is_never_capped(self):
+        """Shrinking it would quietly violate the configured minimum R:R."""
+        t = compute_target(entry=100, stop=50, low_volume_area_above=None,
+                           atr_14=1.0, holding_days=10)
+        assert t == pytest.approx(250.0)
+
+    def test_omitting_atr_preserves_old_behaviour(self):
+        t = compute_target(entry=100, stop=95, low_volume_area_above=200.0)
+        assert t == pytest.approx(200.0)
+
+    def test_bearish_unreachable_volume_target_falls_back(self):
+        t = compute_target(entry=100, stop=105, low_volume_area_below=10.0,
+                           direction="bearish", atr_14=3.0, holding_days=10)
+        assert t == pytest.approx(85.0)
+
+    def test_reachable_move_scales_with_sqrt_of_time(self):
+        from shared.utils.risk_reward import reachable_move
+        assert reachable_move(2.0, 100, 1.0) == pytest.approx(20.0)
+        assert reachable_move(2.0, 25, 1.0) == pytest.approx(10.0)

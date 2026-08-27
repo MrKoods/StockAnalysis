@@ -103,3 +103,59 @@ class TestFetchNewsAlphaVantageRedaction:
         assert result == []
         assert "SUPERSECRETKEY123" not in caplog.text
         assert "***REDACTED***" in caplog.text
+
+
+class TestAlphaVantageBudgetReservation:
+    """
+    A share of the daily Alpha Vantage budget is held for the post_close scan
+    (v2.2.108).
+
+    Without a reservation the budget was first-come-first-served across the
+    day's three scans, so the EARLIEST scan — ranking on the least information —
+    spent it and the most informed one went without. Measured live 2026-08-26:
+    all 20 calls consumed, post_close got only 6, and TGT's news fetch was
+    skipped outright. Structurally the same failure as the rank-track slot bug
+    fixed in v2.2.100, where the first scan of the day claimed every per-sector
+    slot.
+
+    A reservation rather than a raised ceiling on purpose: AV's free tier allows
+    25/day against the 20 used here, so raising the limit buys five calls and
+    does nothing about the ordering.
+    """
+
+    @staticmethod
+    def _at(monkeypatch, used):
+        import shared.api_clients.news_client as nc
+        monkeypatch.setattr(nc, "get_av_call_count", lambda: {"count": used, "date": "2026-08-26"})
+        return nc
+
+    def test_earlier_scans_stop_at_the_reserved_boundary(self, monkeypatch):
+        nc = self._at(monkeypatch, 12)
+        assert nc.check_av_budget(20, scan_type="pre_market", reserved_for_owner=8) is False
+        assert nc.check_av_budget(20, scan_type="mid_session", reserved_for_owner=8) is False
+
+    def test_owner_scan_can_use_the_reserve(self, monkeypatch):
+        nc = self._at(monkeypatch, 12)
+        assert nc.check_av_budget(20, scan_type="post_close", reserved_for_owner=8) is True
+
+    def test_owner_scan_still_stops_at_the_full_limit(self, monkeypatch):
+        nc = self._at(monkeypatch, 20)
+        assert nc.check_av_budget(20, scan_type="post_close", reserved_for_owner=8) is False
+
+    def test_earlier_scans_unaffected_below_the_boundary(self, monkeypatch):
+        nc = self._at(monkeypatch, 11)
+        assert nc.check_av_budget(20, scan_type="pre_market", reserved_for_owner=8) is True
+
+    def test_no_scan_type_keeps_original_behaviour(self, monkeypatch):
+        """Callers that don't know their scan type must not be changed."""
+        nc = self._at(monkeypatch, 15)
+        assert nc.check_av_budget(20) is True
+        assert nc.check_av_budget(20, scan_type=None, reserved_for_owner=8) is True
+
+    def test_zero_reservation_restores_first_come_first_served(self, monkeypatch):
+        nc = self._at(monkeypatch, 15)
+        assert nc.check_av_budget(20, scan_type="pre_market", reserved_for_owner=0) is True
+
+    def test_reservation_larger_than_limit_does_not_go_negative(self, monkeypatch):
+        nc = self._at(monkeypatch, 0)
+        assert nc.check_av_budget(5, scan_type="pre_market", reserved_for_owner=99) is False

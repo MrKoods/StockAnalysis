@@ -28,8 +28,12 @@ from shared.utils.ner_extractor import extract_ticker_sentiments, is_ticker_rele
 from shared.utils.narrative_tracker import identify_dominant_theme, theme_alignment_modifier
 from swing_model.sentiment_layer import (
     compute_sentiment_score, SENTIMENT_MAX, _build_daily_bullish_ratios, _score_velocity,
+    classify_dominant_sentiment, SENTIMENT_NEUTRAL_TOTAL, SENTIMENT_OFFLINE_CAP,
+    _score_ratio,
 )
-from swing_model.news_layer import compute_news_score, count_independent_cluster
+from swing_model.news_layer import (
+    compute_news_score, count_independent_cluster, NEUTRAL_NEWS_SCORE_TOTAL,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +233,12 @@ class TestSentimentLayer:
         result = compute_sentiment_score([], [], "NVDA", {})
         assert result["sentiment_offline"]
         assert result["sentiment_offline_cap"] == 70
-        assert result["sentiment_score_total"] == 0.0
+        # Changed 2026-08-26 (v2.2.108) — this asserted 0.0, which was the bug
+        # rather than the contract. All three sub-scores are symmetric, so 0 is
+        # the maximally-OPPOSING end of the scale, not "no information". The
+        # offline CAP still carries the "trust this less" signal (asserted
+        # above); the score itself is now neutral.
+        assert result["sentiment_score_total"] == SENTIMENT_NEUTRAL_TOTAL
 
     def test_not_offline_when_only_one_source_available(self):
         messages = self._make_messages(10, 2)
@@ -391,22 +400,36 @@ class TestSentimentVelocityFallback:
     close to binary for realistic inputs.
     """
 
+    # daily_totals added 2026-08-26 (v2.2.110): the fallback now refuses to
+    # derive a trajectory unless at least _MIN_REAL_BASELINE_BUCKETS days hold
+    # REAL messages, because daily_ratios pads empty days with a 0.5
+    # placeholder and a one-real-bucket sample measures the placeholder->real
+    # step rather than sentiment moving. These two cover the multiplier
+    # calibration, so they supply genuinely-populated buckets — the guard
+    # itself is covered in TestPlaceholderBaselineGuard below.
+    _REAL_BUCKETS = [6, 6, 6, 6, 6]
+
     def test_moderate_trajectory_swing_no_longer_saturates(self):
         messages = [{"message_id": "1"}]  # no native fields -> fallback path
         daily_ratios = [0.5, 0.5, 0.5, 0.53, 0.59]  # velocity ~= 0.06
-        score, dq = _score_velocity(messages, daily_ratios)
+        score, dq = _score_velocity(messages, daily_ratios, daily_totals=self._REAL_BUCKETS)
         assert dq == "partial"
         assert 3.0 < score < 4.0  # a real lift above neutral, not maxed out
 
     def test_large_trajectory_swing_still_approaches_ceiling(self):
         messages = [{"message_id": "1"}]
         daily_ratios = [0.2, 0.2, 0.2, 0.7, 1.0]  # a genuinely large swing
-        score, dq = _score_velocity(messages, daily_ratios)
+        score, dq = _score_velocity(messages, daily_ratios, daily_totals=self._REAL_BUCKETS)
         assert score >= 4.5
 
     def test_no_messages_is_unavailable(self):
+        """Neutral, not 0 (v2.2.108) — velocity is a symmetric accelerating/
+        decelerating measure, so 0 means 'maximally decelerating', not
+        'unmeasurable'. data_quality is what flags the absence."""
+        from swing_model.sentiment_layer import VELOCITY_NEUTRAL
         score, dq = _score_velocity([], [0.5, 0.6, 0.7])
-        assert score == 0.0
+        assert score == VELOCITY_NEUTRAL
+        assert dq == "unavailable"
         assert dq == "unavailable"
 
 
@@ -501,9 +524,52 @@ class TestNewsLayer:
         result = compute_news_score(arts, [], "NVDA")
         assert result["news_score_total"] > 0
 
-    def test_no_articles_returns_zero(self):
+    def test_no_articles_returns_neutral_not_zero(self):
+        """
+        Changed 2026-08-26 (v2.2.103) — this used to assert 0.0, which was the
+        bug, not the contract. 0.0 is also the maximally-OPPOSING value of both
+        symmetric news sub-scores (credibility: confirming 1.0 / neutral 0.5 /
+        opposing 0.0; theme alignment: (v+1)*2 over [-1,+1]). So a ticker with
+        no coverage scored identically to one carrying unanimous, credible,
+        thesis-destroying news — on 15 of the 100 composite points.
+
+        Neutral is 5.0/15, not the 7.5 midpoint: clustering and decay are
+        counts of positive evidence rather than confirm/oppose axes, so zero
+        stays honest for them. See news_layer's NEUTRAL_* constants.
+        """
         result = compute_news_score([], [], "NVDA")
-        assert result["news_score_total"] == 0.0
+        assert result["news_score_total"] == NEUTRAL_NEWS_SCORE_TOTAL == 5.0
+        assert result["credibility_weighted_score"] == 3.0
+        assert result["theme_alignment_score"] == 2.0
+        # Not symmetric — nothing to count is genuinely zero, not a penalty.
+        assert result["clustering_score"] == 0.0
+        assert result["decay_score"] == 0.0
+        assert result["data_quality"] == "no_articles"
+
+    def test_no_coverage_scores_above_the_opposing_floor_on_both_symmetric_axes(self):
+        """
+        The ordering that was inverted. Asserted per sub-score rather than on
+        the total: clustering and decay legitimately reward the mere EXISTENCE
+        of fresh corroborated news regardless of direction, so a total-vs-total
+        comparison doesn't isolate the thing that was broken.
+
+        Deliberately not using synthetic "bearish" headlines to drive theme
+        alignment — identify_dominant_theme reads fabricated titles
+        unpredictably (a hand-written "NVDA bearish outlook" fixture scored
+        theme 4.0, i.e. maximally CONFIRMING). Credibility is driven directly
+        by the sentiment label, so it isolates the axis cleanly.
+        """
+        opposing = self._make_articles(["bearish", "bearish"], ["reuters.com", "cnbc.com"])
+        opposed = compute_news_score(opposing, [], "NVDA", direction="bullish")
+        silent = compute_news_score([], [], "NVDA", direction="bullish")
+
+        # Credibility: unanimous opposition floors at 0.0; silence must not.
+        assert opposed["credibility_weighted_score"] == 0.0
+        assert silent["credibility_weighted_score"] == 3.0
+
+        # Theme alignment: silence sits at the midpoint, not the opposing floor.
+        assert silent["theme_alignment_score"] == 2.0
+        assert 0.0 < silent["theme_alignment_score"] < 4.0
 
     def test_score_capped_at_15(self):
         arts = self._make_articles(
@@ -565,3 +631,208 @@ class TestNewsLayer:
         result_high = compute_news_score(arts_high, [], "NVDA")
         result_low = compute_news_score(arts_low, [], "NVDA")
         assert result_high["credibility_weighted_score"] >= result_low["credibility_weighted_score"]
+
+
+class TestStockTwitsStaleness:
+    """
+    StockTwits messages older than _STOCKTWITS_MAX_AGE_DAYS are excluded
+    everywhere, not just in the daily buckets (v2.2.107).
+
+    _build_daily_bullish_ratios always filtered to `0 <= age_days < days`, so
+    the POINT score was protected. classify_dominant_sentiment read the raw list
+    with no age filter — and it feeds scoring.determine_direction(), which
+    decides whether a trade is taken long or short. The most consequential
+    output in the pipeline was the one input nothing was filtering.
+
+    It bites because the endpoint returns a fixed 30 messages however much real
+    activity a ticker has. Measured live 2026-08-26: NVDA's 30 messages spanned
+    0.1 HOURS while ONB's spanned 364 days with its newest already 5 weeks old,
+    and 3 of 5 sampled regional banks (ONB/CFR/UMBF) had ZERO messages inside
+    the 5-day window.
+    """
+
+    @staticmethod
+    def _msgs(n, age_days, sentiment="bullish"):
+        from datetime import datetime, timezone, timedelta
+        ts = (datetime.now(timezone.utc) - timedelta(days=age_days)).isoformat()
+        return [{"sentiment": sentiment, "timestamp_utc": ts} for _ in range(n)]
+
+    def test_fresh_messages_set_direction(self):
+        r = classify_dominant_sentiment(self._msgs(30, 1))
+        assert r["dominant_sentiment"] == "bullish"
+        assert r["bullish_count"] == 30
+
+    def test_stale_messages_cannot_set_direction(self):
+        """The ONB case — newest post 5 weeks old."""
+        r = classify_dominant_sentiment(self._msgs(30, 35))
+        assert r["dominant_sentiment"] == "neutral"
+        assert r["bullish_count"] == 0
+
+    def test_year_old_messages_cannot_set_direction(self):
+        r = classify_dominant_sentiment(self._msgs(30, 365))
+        assert r["dominant_sentiment"] == "neutral"
+
+    def test_boundary_just_inside_the_window(self):
+        assert classify_dominant_sentiment(self._msgs(30, 4))["dominant_sentiment"] == "bullish"
+
+    def test_boundary_just_outside_the_window(self):
+        assert classify_dominant_sentiment(self._msgs(30, 5))["dominant_sentiment"] == "neutral"
+
+    def test_all_stale_counts_as_offline_not_as_data(self):
+        """30 messages is not the same as 30 usable messages — treating a fully
+        stale window as 'online' produced a real-looking score from nothing."""
+        r = compute_sentiment_score(
+            self._msgs(30, 35), [], "ONB", {"price_change_5d_pct": 0.0}, direction="bullish"
+        )
+        assert r["sentiment_offline"] is True
+        assert r["dominant_sentiment"] == "neutral"
+
+    def test_fresh_messages_are_not_offline(self):
+        r = compute_sentiment_score(
+            self._msgs(30, 1), [], "NVDA", {"price_change_5d_pct": 0.0}, direction="bullish"
+        )
+        assert r["sentiment_offline"] is False
+
+    def test_undated_messages_are_dropped_not_treated_as_fresh(self):
+        """_parse_ts falls back to now() on a bad timestamp, which would make
+        undated messages look maximally fresh — backwards for a staleness
+        filter, so they are excluded instead."""
+        r = classify_dominant_sentiment([{"sentiment": "bullish"} for _ in range(30)])
+        assert r["dominant_sentiment"] == "neutral"
+        assert r["bullish_count"] == 0
+
+
+class TestSentimentNeutralOnMissingData:
+    """
+    Each sentiment sub-score returns its own neutral midpoint when it has no
+    data, instead of forfeiting to 0 (v2.2.108).
+
+    All three are SYMMETRIC measures — a bullish/bearish ratio, a
+    sentiment/volume velocity, and a comment-count velocity — so 0 is not "no
+    information", it is the maximally-OPPOSING end of each scale. A ticker
+    nobody posts about was scored exactly like one whose chatter is unanimously
+    against the thesis, across 15 of the 100 composite points. Same correction
+    News received in v2.2.103.
+
+    This became load-bearing when v2.2.107's staleness guard moved fully-stale
+    tickers into the offline path: 3 of 5 sampled regional banks (ONB/CFR/UMBF)
+    had zero StockTwits messages inside the 5-day window.
+    """
+
+    def test_neutral_total_is_the_scale_midpoint(self):
+        assert SENTIMENT_NEUTRAL_TOTAL == SENTIMENT_MAX / 2.0 == 7.5
+
+    def test_no_data_scores_neutral_not_zero(self):
+        r = compute_sentiment_score([], [], "ONB", {"price_change_5d_pct": 0.0}, direction="bullish")
+        assert r["sentiment_score_total"] == SENTIMENT_NEUTRAL_TOTAL
+
+    def test_offline_cap_still_applies_on_top(self):
+        """The neutral score and the confidence cap answer different questions:
+        'no evidence either way' vs 'be less confident when this is missing'.
+        Scoring absence as maximally bearish AND capping was double-counting."""
+        r = compute_sentiment_score([], [], "ONB", {"price_change_5d_pct": 0.0}, direction="bullish")
+        assert r["sentiment_offline"] is True
+        assert r["sentiment_offline_cap"] == SENTIMENT_OFFLINE_CAP
+
+    def test_each_sub_score_reports_its_own_midpoint(self):
+        r = compute_sentiment_score([], [], "ONB", {"price_change_5d_pct": 0.0}, direction="bullish")
+        assert r["ratio_score"] == 3.5
+        assert r["velocity_score"] == 2.5
+        assert r["engagement_score"] == 1.5
+
+    def test_no_coverage_beats_unanimously_bearish_coverage(self):
+        """The ordering that was inverted — silence must not score like a
+        thesis-destroying pile-on."""
+        from datetime import datetime, timezone, timedelta
+        ts = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+        bearish = [{"sentiment": "bearish", "timestamp_utc": ts} for _ in range(30)]
+        opposed = compute_sentiment_score(bearish, [], "X", {"price_change_5d_pct": 0.0}, direction="bullish")
+        silent = compute_sentiment_score([], [], "X", {"price_change_5d_pct": 0.0}, direction="bullish")
+        assert silent["sentiment_score_total"] > opposed["sentiment_score_total"]
+
+    def test_single_engagement_item_and_none_agree(self):
+        """_score_engagement already returned neutral for ONE item while
+        forfeiting to 0 for zero — an internal inconsistency this removes."""
+        from swing_model.sentiment_layer import _score_engagement, ENGAGEMENT_NEUTRAL
+        assert _score_engagement([])[0] == ENGAGEMENT_NEUTRAL
+        assert _score_engagement([{"comment_count": 5}])[0] == ENGAGEMENT_NEUTRAL
+
+
+class TestPlaceholderBaselineGuard:
+    """
+    Placeholder days are never treated as real history (v2.2.110).
+
+    _build_daily_bullish_ratios pads days with no messages using a neutral 0.5
+    PLACEHOLDER so the bucket list is always `days` long. Both the ratio
+    z-score and the fallback velocity were reading those placeholders as
+    observations.
+
+    It bites because the endpoint returns a fixed 30 messages however much
+    activity a ticker has, so how many days those 30 span varies enormously
+    (measured live 2026-08-26: NVDA 0.1 hours, ABBV 31 hours, PNFP 233 days).
+    A dense, narrow sample lands almost entirely in ONE bucket — and used to
+    score HIGHER than a genuinely broad one, which is backwards:
+
+        NVDA shape  [0,0,0,0,30]  -> ratio 5.6/7, velocity 5.0/5 (max)
+        spread over 5 real days   -> ratio 4.5/7, velocity 0.0/5
+
+    _RATIO_MIN_BASELINE_MESSAGES alone did not catch it: it counts baseline
+    MESSAGES without checking how many baseline DAYS produced them.
+    """
+
+    MSGS = [{"message_id": "1"}]  # no native velocity fields -> fallback path
+
+    def test_single_real_bucket_cannot_produce_a_velocity(self):
+        """A rate of change needs two real observations. The 'acceleration'
+        here is the placeholder->real step, not sentiment moving."""
+        from swing_model.sentiment_layer import VELOCITY_NEUTRAL
+        score, dq = _score_velocity(
+            self.MSGS, [0.5, 0.5, 0.5, 0.5, 0.8], daily_totals=[0, 0, 0, 0, 30]
+        )
+        assert score == VELOCITY_NEUTRAL
+        assert dq == "insufficient_baseline"
+
+    def test_two_real_buckets_is_enough_for_a_velocity(self):
+        """ABBV's real shape — 7 messages yesterday, 23 today — is a genuine
+        swing and must still score."""
+        score, dq = _score_velocity(
+            self.MSGS, [0.5, 0.5, 0.5, 0.14, 1.0], daily_totals=[0, 0, 0, 7, 23]
+        )
+        assert dq == "partial"
+        assert score > 2.5
+
+    def test_missing_totals_defaults_to_conservative(self):
+        """Cannot verify the baseline is real -> neutral, not a fabricated
+        score. Conservative-on-missing-information, matching the rest of the
+        layer's data-quality handling."""
+        from swing_model.sentiment_layer import VELOCITY_NEUTRAL
+        score, dq = _score_velocity(self.MSGS, [0.5, 0.5, 0.5, 0.53, 0.59])
+        assert score == VELOCITY_NEUTRAL
+        assert dq == "insufficient_baseline"
+
+    def test_ratio_needs_real_baseline_days_not_just_messages(self):
+        """
+        The ABBV case: 7 baseline messages clears
+        _RATIO_MIN_BASELINE_MESSAGES, but they all came from ONE day. pstdev
+        over [0.5, 0.5, 0.5, 0.14] is tiny, so the z-score saturates.
+        """
+        _, dq = _score_ratio(
+            [{"sentiment": "bullish"}], [0.5, 0.5, 0.5, 0.14, 1.0], [0, 0, 0, 7, 23]
+        )
+        assert dq == "insufficient_baseline", "one dense day is not a baseline"
+
+    def test_ratio_trusts_a_genuinely_spread_baseline(self):
+        _, dq = _score_ratio(
+            [{"sentiment": "bullish"}], [0.4, 0.5, 0.6, 0.55, 0.7], [5, 6, 6, 6, 6]
+        )
+        assert dq == "complete"
+
+    def test_insufficient_baseline_ratio_is_an_honest_snapshot(self):
+        """Falls back to scaling today's observed ratio, which is a real
+        measurement — not a z-score against invented history."""
+        from swing_model.sentiment_layer import RATIO_MAX
+        score, dq = _score_ratio(
+            [{"sentiment": "bullish"}], [0.5, 0.5, 0.5, 0.5, 0.8], [0, 0, 0, 0, 30]
+        )
+        assert dq == "insufficient_baseline"
+        assert abs(score - 0.8 * RATIO_MAX) < 0.01

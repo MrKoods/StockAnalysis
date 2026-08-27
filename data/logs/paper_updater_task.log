@@ -687,3 +687,40 @@ PAPER TRADING SUMMARY  (2 closed, 11 open, 2 expired)
 [threshold] Closed 0 trade(s) this run.
 Paper trades: 8 total, 8 open, 0 closed
 [rank] Closed 0 trade(s) this run.
+2026-08-26 08:07:02,670 [__main__] INFO — 11 open paper trade(s) to check
+2026-08-26 08:07:03,161 [__main__] INFO — PFE 2026-08-07: still open after 13 trading days | mark=28.28 | $+47.46 (+1.09R)
+2026-08-26 08:07:03,162 [__main__] INFO — PFE 2026-08-10: still open after 12 trading days | mark=28.28 | $+71.28 (+0.98R)
+2026-08-26 08:07:03,752 [__main__] INFO — MRK 2026-08-10: still open after 12 trading days | mark=154.24 | $+100.10 (+3.02R)
+2026-08-26 08:07:03,953 [__main__] INFO — LLY 2026-08-12: time_stop | exit=1212.16 | pnl=-1.97% | -0.26R | $+0.00 | 10d
+2026-08-26 08:07:04,566 [__main__] INFO — MU 2026-08-14: still open after 8 trading days | mark=938.38
+2026-08-26 08:07:04,984 [__main__] INFO — ABBV 2026-08-14: still open after 8 trading days | mark=262.54 | $-6.66 (-0.26R)
+2026-08-26 08:07:05,472 [__main__] INFO — JNJ 2026-08-19: still open after 5 trading days | mark=270.83 | $-5.19 (-0.22R)
+2026-08-26 08:07:05,912 [__main__] INFO — AMZN 2026-08-19: entry zone ($285.26-$289.14) never reached within 5 trading days — expired, no capital ever at risk
+2026-08-26 08:07:07,164 [__main__] INFO — HD 2026-08-19: entry zone ($356.10-$360.62) never reached within 5 trading days — expired, no capital ever at risk
+2026-08-26 08:07:08,017 [__main__] INFO — TGT 2026-08-20: still open after 4 trading days | mark=163.40 | $+9.38 (+0.19R)
+2026-08-26 08:07:08,829 [__main__] INFO — AMGN 2026-08-25: still open after 1 trading days | mark=440.02 | $-35.73 (-0.09R)
+2026-08-26 08:07:08,979 [__main__] INFO — AMZN 2026-08-19: hypothetical (immediate-fill) outcome loss | -1.38R — entry-zone opportunity cost
+2026-08-26 08:07:09,167 [__main__] INFO — HD 2026-08-19: hypothetical (immediate-fill) outcome loss | -1.15R — entry-zone opportunity cost
+2026-08-26 08:07:09,168 [__main__] INFO — 2 hypothetical (entry-zone opportunity cost) outcome(s) resolved
+2026-08-26 08:07:09,170 [__main__] INFO — Paper updater complete — 3 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (3 closed, 8 open, 4 expired)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 0.0%
+  Target hits:        0
+  Stops:              1
+  Time stops:         1  (+0 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Expired (never filled): 4
+    -> entry-zone opportunity cost: 4 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.13R if filled immediately at signal time
+  Open trades:        8
+    -> of which 1 sized to 0 units (MU) — tracked for R-multiple only, no capital at risk
+  Open unrealized P&L: $+180.64  (7 marked position(s))
+==================================================
+
+[threshold] Closed 3 trade(s) this run.
+No paper trades found.
+[rank] Closed 0 trade(s) this run.
