@@ -1,8 +1,10 @@
 """
 Tests for backtesting.metrics.compute_deflated_sharpe_ratio — the
-multiple-testing correction for picking the best Sharpe out of a sweep
-(run_sensitivity_analysis's threshold sweep, entry_filter_variants.py's
-filter-variant sweep). Pure-math tests only; no historical data needed.
+multiple-testing correction for picking the best Sharpe out of a sweep.
+
+V3 reports this alongside any headline Sharpe that a parameter sweep preceded,
+which in practice is almost always (see docs/v2_postmortem.md, rule 2). Pure-math
+tests only; no historical data needed.
 """
 
 import numpy as np

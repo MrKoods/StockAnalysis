@@ -1,14 +1,19 @@
 # Secrets
 .env
 
-# Raw and historical data (large, gitignored per scope)
-data/raw/
-data/historical/
-data/historical_banks/
-data/historical_macro/
-data/historical_healthcare/
-data/historical_market/
-data/historical_consumer_discretionary/
+# All local data is regenerable and none of it is tracked. The V3 panel is
+# rebuilt with `python -m research.panel --download`; V2's sector CSVs, news
+# archive and processed state files are superseded and remain on Version-1.
+# Nothing in here is a source of truth — RESEARCH_LOG.md is.
+data/
+output/
+
+# Research outputs — regenerable by re-running the phase that produced them.
+# Findings belong in RESEARCH_LOG.md, which IS tracked; the artifacts are not.
+research/results/
+
+# Desktop app UI local history (V2, removed) — regenerated per machine
+stockanalysis_history.db
 
 # Python
 __pycache__/
@@ -24,7 +29,6 @@ build/
 venv/
 .venv/
 env/
-.env/
 
 # IDE
 .vscode/
@@ -41,24 +45,5 @@ Thumbs.db
 .coverage
 htmlcov/
 
-# Logs (structured, processed logs are tracked as the forensic audit trail;
-# raw API cache is not). app.log is the exception: free-text, locally
-# rotated/capped at 5MB x 3 backups (shared/utils/logger.py) — tracking it
-# is redundant with those local backups and was producing large, noisy
-# diffs that buried real code changes (2026-08-23 full model audit finding).
-# The structured CSVs (audit_log/validation_log/override_log/performance_
-# log/trade_outcomes/fill_log) stay tracked; only the free-text log doesn't.
-data/logs/app.log*
-data/raw/
-data/historical/
-
-# One-off ledger backups written before a schema migration or a retroactive
-# correction (e.g. paper_trades.csv.pre-v2.2.105.bak). Local safety copies for
-# the operator, not history worth carrying in the repo — the CHANGELOG entry
-# for each migration records what changed, and the migrations themselves are
-# idempotent and re-runnable. Added 2026-08-26 after a day of schema work left
-# five of these in paper_trading/.
+# Local backups
 *.bak
-
-# Desktop app UI — local scan history (App_UI_Scope.md), regenerated per machine
-stockanalysis_history.db

@@ -15,10 +15,10 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
-def atomic_write_text(path: Path, text: str, newline: Optional[str] = None) -> None:
+def atomic_write_text(path: Path, text: str, newline: str | None = None) -> None:
     """
     Write text to `path` atomically via a same-directory temp file + rename.
     `newline` is forwarded to Path.write_text — pass newline="" when `text`
@@ -80,7 +80,7 @@ def exclusive_lock(path: Path, timeout: float = 10.0, poll_interval: float = 0.0
         # "file exists" errno, depending on exact timing — confirmed via a
         # real concurrent-thread test, not a hypothetical. Both mean the same
         # thing here: someone else has (or just got) the lock.
-        except (FileExistsError, PermissionError):
+        except (FileExistsError, PermissionError) as exc:
             if time.monotonic() >= deadline:
                 try:
                     if time.time() - path.stat().st_mtime > timeout:
@@ -88,7 +88,10 @@ def exclusive_lock(path: Path, timeout: float = 10.0, poll_interval: float = 0.0
                         continue
                 except FileNotFoundError:
                     continue
-                raise TimeoutError(f"Could not acquire lock {path} within {timeout}s")
+                # Chain the contention error: the timeout is the symptom, and
+                # which of FileExistsError/PermissionError we kept losing to is
+                # the diagnostic detail worth keeping in the traceback.
+                raise TimeoutError(f"Could not acquire lock {path} within {timeout}s") from exc
             time.sleep(poll_interval)
 
     try:

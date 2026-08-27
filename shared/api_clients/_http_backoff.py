@@ -19,7 +19,8 @@ the first API client was built) — overridable per call via `delays`.
 """
 
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 import requests
 
@@ -34,13 +35,13 @@ def retry_with_backoff(
     fn: Callable[[], Any],
     retries: int = 3,
     delays: tuple[int, ...] = DEFAULT_BACKOFF_DELAYS,
-    max_total_seconds: Optional[float] = None,
+    max_total_seconds: float | None = None,
     label: str = "",
-    redact: Optional[Callable[[str], str]] = None,
-    should_retry: Optional[Callable[[BaseException], bool]] = None,
-    on_exhausted: Optional[Callable[[BaseException], None]] = None,
-    on_attempt: Optional[Callable[[], None]] = None,
-) -> Optional[Any]:
+    redact: Callable[[str], str] | None = None,
+    should_retry: Callable[[BaseException], bool] | None = None,
+    on_exhausted: Callable[[BaseException], None] | None = None,
+    on_attempt: Callable[[], None] | None = None,
+) -> Any | None:
     """
     Call fn() with exponential backoff on any exception. Returns fn()'s
     result, or None once retries (or max_total_seconds/should_retry, if
@@ -85,7 +86,7 @@ def retry_with_backoff(
       counter silently undercounted real usage on any retry (Signal
       Integrity Audit finding E.3). None (default) does nothing extra.
     """
-    last_exc: Optional[BaseException] = None
+    last_exc: BaseException | None = None
     elapsed = 0.0
     for attempt in range(retries):
         try:
@@ -132,16 +133,16 @@ def retry_with_backoff(
 
 def http_get_with_backoff(
     url: str,
-    params: Optional[dict] = None,
-    headers: Optional[dict] = None,
+    params: dict | None = None,
+    headers: dict | None = None,
     timeout: int = 15,
     retries: int = 3,
     delays: tuple[int, ...] = DEFAULT_BACKOFF_DELAYS,
     label: str = "",
-    redact: Optional[Callable[[str], str]] = None,
+    redact: Callable[[str], str] | None = None,
     parse_json: bool = True,
-    should_retry: Optional[Callable[[BaseException], bool]] = None,
-    on_attempt: Optional[Callable[[], None]] = None,
+    should_retry: Callable[[BaseException], bool] | None = None,
+    on_attempt: Callable[[], None] | None = None,
 ):
     """
     GET url with exponential backoff, built on retry_with_backoff — the

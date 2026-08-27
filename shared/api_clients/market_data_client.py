@@ -6,14 +6,13 @@ Implements exponential backoff (30s → 60s → 120s → fallback).
 """
 
 import re
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
-from shared.utils.logger import get_logger
 from shared.api_clients._http_backoff import retry_with_backoff
+from shared.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -40,7 +39,7 @@ def fetch_ohlcv(
     period: str = "6mo",
     interval: str = "1d",
     retries: int = 3,
-) -> Optional[pd.DataFrame]:
+) -> pd.DataFrame | None:
     """
     Fetch daily OHLCV bars for a single ticker via yfinance.
 
@@ -100,7 +99,7 @@ def fetch_ohlcv_batch(
     tickers: list[str],
     period: str = "6mo",
     interval: str = "1d",
-) -> dict[str, Optional[pd.DataFrame]]:
+) -> dict[str, pd.DataFrame | None]:
     """
     Fetch OHLCV for multiple tickers in a single yfinance call.
     Returns dict mapping ticker → DataFrame (or None on failure for that ticker).
@@ -113,7 +112,7 @@ def fetch_ohlcv_batch(
     it only skips a redundant call when the cache already has enough history.
     """
     requested_days = _period_to_days(period)
-    result: dict[str, Optional[pd.DataFrame]] = {}
+    result: dict[str, pd.DataFrame | None] = {}
     to_fetch: list[str] = []
 
     for ticker in tickers:
@@ -179,7 +178,7 @@ def fetch_ohlcv_batch(
     return result
 
 
-def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
+def fetch_earnings_calendar(ticker: str) -> dict | None:
     """
     Fetch upcoming earnings date for a ticker via yfinance calendar data.
 
@@ -227,10 +226,10 @@ def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
             return None
 
         if next_date.tzinfo is None:
-            next_date = next_date.replace(tzinfo=timezone.utc)
+            next_date = next_date.replace(tzinfo=UTC)
 
-        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        days_to_earnings = (next_date.replace(tzinfo=timezone.utc) - today).days
+        today = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        days_to_earnings = (next_date.replace(tzinfo=UTC) - today).days
 
         return {
             "next_earnings_date": next_date,
@@ -240,7 +239,7 @@ def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
     return retry_with_backoff(_fetch, retries=3, label=f"fetch_earnings_calendar({ticker})")
 
 
-def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
+def fetch_vix(period: str = "1mo", retries: int = 3) -> float | None:
     """
     Fetch current VIX level via yfinance (^VIX).
     Returns latest closing value or None on failure.
@@ -260,7 +259,7 @@ def fetch_vix(period: str = "1mo", retries: int = 3) -> Optional[float]:
     return retry_with_backoff(_fetch, retries=retries, label="fetch_vix")
 
 
-def fetch_vix_pct_change(period: str = "1mo", retries: int = 3) -> Optional[float]:
+def fetch_vix_pct_change(period: str = "1mo", retries: int = 3) -> float | None:
     """
     Fetch VIX's most recent session-over-session % change via yfinance (^VIX).
 
@@ -291,7 +290,7 @@ def fetch_vix_pct_change(period: str = "1mo", retries: int = 3) -> Optional[floa
     return retry_with_backoff(_fetch, retries=retries, label="fetch_vix_pct_change")
 
 
-def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[Optional[float], Optional[float]]:
+def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[float | None, float | None]:
     """
     fetch_vix() and fetch_vix_pct_change() need the same ^VIX daily series
     (the second is only fetch_vix() plus the prior close it discards) but
@@ -329,7 +328,7 @@ def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[Opt
     return latest, pct_change
 
 
-def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
+def fetch_treasury_yield(period: str = "3mo") -> pd.DataFrame | None:
     """
     Fetch 10-year US Treasury yield (^TNX) via yfinance.
     Used by macro_overlay.py as a free proxy for Fed rate direction.
@@ -349,7 +348,7 @@ def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
     return retry_with_backoff(_fetch, retries=3, label="fetch_treasury_yield")
 
 
-def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
+def fetch_dxy(period: str = "3mo") -> pd.DataFrame | None:
     """
     Fetch US Dollar Index (DX-Y.NYB) via yfinance.
     Used by macro_overlay.py for USD strength signal.
@@ -369,7 +368,7 @@ def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
     return retry_with_backoff(_fetch, retries=3, label="fetch_dxy")
 
 
-def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:
+def fetch_insider_transactions(ticker: str) -> list[dict] | None:
     """
     Fetch SEC Form 4 insider transactions for a ticker via yfinance.
     Returns list of {date, insider_name, transaction_type, shares, value} dicts.
@@ -387,7 +386,7 @@ def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:
                 if hasattr(date, "to_pydatetime"):
                     date = date.to_pydatetime()
                 if date and hasattr(date, "tzinfo") and date.tzinfo is None:
-                    date = date.replace(tzinfo=timezone.utc)
+                    date = date.replace(tzinfo=UTC)
                 records.append({
                     "date": date,
                     "insider_name": row.get("Insider", ""),

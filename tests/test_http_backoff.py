@@ -7,8 +7,8 @@ sec_edgar_client.py, sentiment_client.py, and fundamental_client.py.
 
 from shared.api_clients._http_backoff import (
     DEFAULT_BACKOFF_DELAYS,
-    retry_with_backoff,
     http_get_with_backoff,
+    retry_with_backoff,
 )
 
 

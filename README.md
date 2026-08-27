@@ -1,130 +1,114 @@
-# AI-Assisted Swing Trading Signal System
+# StockAnalysis — V3
 
-## Section 1 — What This Project Does
+A research project testing whether a systematic equity strategy has a real,
+measurable edge, before any code is written to trade it.
 
-A swing trading decision-support system for the semiconductor sector (NVDA, AMD, AVGO, TSM, MU, ASML). It pulls technical, sentiment, and news data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score (0-100), evaluates all 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts. Every recommendation requires your review and manual execution — this is not an autonomous trading system. Starting capital: $15,000 | Holding period: 1-15 trading days.
-
----
-
-## Section 2 — Quick Start
-
-1. Clone the repo: `git clone <repo-url> && cd StockAnalysis`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Install spaCy English model: `python -m spacy download en_core_web_sm`
-4. Copy env template: `cp .env.example .env` — fill in your API keys
-5. Run the swing model: `python swing_model/run_swing_model.py`
-6. Check Discord for output (configure `DISCORD_WEBHOOK_URL` in `.env` first)
+**This does not trade, and does not recommend trades.** It is a research rig.
 
 ---
 
-## Section 3 — API Keys Required
+## Why V3 exists
 
-| Key | Where to Get It | `.env` Variable |
+V2 (branch `Version-1`, ~110 versions, Jun-Aug 2026) built a complete trading
+system — five scoring categories, 42 trade structures, four sectors, ~150 config
+keys — on top of hypotheses that had never been individually tested. It never
+passed its own go-live gate. Its final measurement: the real, non-proxy part of
+the score had an Information Coefficient of −0.01 (p=0.77), statistically
+indistinguishable from noise, on 10 qualifying trades across 13 years.
+
+The failure was the order of operations, not the code. V3 inverts it.
+
+> **Signal before architecture:** prove a single hypothesis predicts returns, on
+> a sample large enough to mean it, out-of-sample, net of costs — and only then
+> build anything around it.
+
+The full trap list is in [`docs/v2_postmortem.md`](docs/v2_postmortem.md). Read
+it before adding anything to this repo.
+
+---
+
+## Current hypothesis
+
+Classic **cross-sectional momentum with a trend filter**: rank a large liquid
+universe on the return from t−252 to t−21 (skipping the most recent month to
+avoid short-term reversal), hold the top quintile, rebalance monthly, and
+overlay a 200-day trend filter at the name level, the market level, or both.
+
+Chosen because it is the most independently replicated anomaly in the equity
+literature, it is cheap to test, and — unlike sentiment, V2's fatal dependency —
+there is real point-in-time history to test it against.
+
+**Honest caveat:** the robust form of this effect holds for weeks-to-months. At a
+1-15 day horizon the dominant documented effect is short-term *reversal*, not
+momentum. Phase 5 maps where the edge actually lives, and the strategy's cadence
+follows the data rather than the project's original name.
+
+---
+
+## Phases
+
+| # | Phase | Pass bar |
 |---|---|---|
-| Alpha Vantage | [alphavantage.co](https://www.alphavantage.co/support/#api-key) — free tier | `ALPHA_VANTAGE_API_KEY` |
-| StockTwits + Seeking Alpha Finance (RapidAPI) | [rapidapi.com](https://rapidapi.com) — paid subscription, shared key for both (Sentiment layer) | `RAPIDAPI_KEY` |
-| Finnhub | [finnhub.io](https://finnhub.io) — free tier; used for `/company-news` headlines only (social-sentiment requires a paid plan) | `FINNHUB_API_KEY` |
-| Discord Webhook | Discord server → Edit Channel → Integrations → Webhooks | `DISCORD_WEBHOOK_URL` |
+| 0 | Strip-down & scaffold | Repo builds, kept tests pass — **done** |
+| 1 | Data assembly | Panel reconciles; returns match an external reference |
+| 2 | Replicate classic momentum | Reproduces the published sign and rough magnitude |
+| 3 | Trend / regime filter | Beats baseline Sharpe *and* cuts drawdown |
+| 4 | Cost & implementation reality at $15k | Net-of-cost Sharpe holds; executable by hand |
+| 5 | Horizon exploration | Exploratory — no bar |
+| 6 | Out-of-sample & walk-forward gate | See `research/config.py`, `GATE_*` |
+
+Progress and verdicts: [`RESEARCH_LOG.md`](RESEARCH_LOG.md).
 
 ---
 
-## Section 4 — Project Structure
-
-| Folder | Purpose |
-|---|---|
-| `shared/` | All reusable logic: API clients, indicator math, utilities (used by swing model and backtesting) |
-| `swing_model/` | Pipeline, scoring, trade selection, and portfolio management for the semiconductor swing strategy |
-| `backtesting/` | Historical replay engine, metrics, walk-forward validation, stress testing |
-| `paper_trading/` | Forward-testing with real-time data and simulated fills (no real capital) |
-| `monitoring/` | Weekly performance dashboard sent to Discord |
-| `data/` | `raw/` (gitignored API cache), `processed/` (position state, live weights), `historical/` (gitignored), `logs/` (audit, override, validation, fill, trade outcomes, performance) |
-| `config/` | `global_config.yaml` (infrastructure settings) + `swing_config.yaml` (watchlist, all thresholds) |
-| `output/` | Daily ranked CSV/JSON recommendations |
-| `tests/` | pytest test suites for indicators, scoring, and stress scenarios |
-
----
-
-## Section 5 — Current Build Status
-
-**Phase: Scaffolding complete — Phase 1 (market data + technical indicators) in progress.**
-
-| Phase | Status | Description |
-|---|---|---|
-| 1 | 🔄 In progress | `market_data_client.py`, `technical_common.py` with z-score normalization |
-| 2 | ⏳ Pending | `indicator_pipeline.py` |
-| 3 | ⏳ Pending | Macro context layer (regime, rotation, earnings, seasonality, macro overlay) |
-| 4 | ⏳ Pending | Sentiment + news layer |
-| 5 | ⏳ Pending | Volume profile + cross-ticker analysis |
-| 6 | ⏳ Pending | Confidence scoring (`scoring.py`) |
-| 7 | ⏳ Pending | EV-based trade selector (42 structures) |
-| 8 | ⏳ Pending | Signal decay + portfolio management |
-| 9 | ⏳ Pending | Risk mitigation layer |
-| 10 | ⏳ Pending | Discord alerts + notification routing + `run_swing_model.py` |
-| 11 | ⏳ Pending | Model versioning + CHANGELOG enforcement |
-| 12 | ⏳ Pending | Backtesting (70/30, walk-forward, stress test) |
-| 13 | ⏳ Pending | Paper trading (60-90 trading days minimum) |
-| 14 | ⏳ Pending | Feedback loop + performance monitoring |
-| 15 | 🔮 Future | Live execution (after Phase 13 paper trading passes) |
-| 16 | 🔮 Ongoing | Continuous improvement |
-
-**Event Severity Gate (v2.1.0):** ✅ Built and tested — `shared/utils/event_gate.py`, wired into `news_layer.py`/`scoring.py`/`run_swing_model.py`. Binary veto (not a scoring category) that suppresses signal surfacing on critical, thesis-opposed news until the next post-close scan completes after the event. See `CHANGELOG.md` v2.1.0 and `Project_Scope.md` → "Event Severity Gate". **Not yet backtested** — same not-live-eligible status as the rest of the model until a passing backtest is logged.
-
----
-
-## Section 6 — How to Run Each Component
+## Quick start
 
 ```bash
-# Run daily swing model scan
-python swing_model/run_swing_model.py
+pip install -r requirements.txt
 
-# Run full backtest
-python backtesting/run_backtest.py
+python -m research.panel --download    # Phase 1: fetch + cache (slow, network)
+python -m research.panel --verify      # structural checks on the cached panel
 
-# Run sensitivity analysis only
-python backtesting/run_backtest.py --sensitivity
-
-# Run stress test
-python backtesting/stress_test.py
-
-# Run paper trading engine
-python paper_trading/paper_trade_engine.py
-
-# Run performance dashboard (generate weekly summary)
-python monitoring/performance_dashboard.py
+pytest                                 # test suite
+ruff check .                           # lint
 ```
 
 ---
 
-## Section 7 — Configuration
+## Layout
 
-**`config/swing_config.yaml`** — strategy-level settings:
-- `watchlist.tickers` — add/remove tickers here; `benchmark` sets the RS reference (SMH)
-- `confidence.min_threshold` — documented as 90, but not yet wired into scoring.py (real gate is
-  `CONFIDENCE_THRESHOLD=70`, hardcoded); editing this value currently has no effect (Tier B, in
-  progress — see CHANGELOG.md)
-- `scoring_weights` — technical/sentiment/news max contributions (must sum to 100); also not yet
-  wired into real code (Tier B, in progress)
-- `modifier_bounds` — per-modifier min/max safety clamps; `sector_rotation`/`earnings_proximity`/
-  `macro_overlay` are queued to be wired for real (Tier B, in progress) — `regime`/`cross_ticker`/
-  `seasonality` were removed, already enforced by hardcoded clamps in their own modules
-- risk-per-confidence-tier sizing (`position_sizing.tiers` config block was removed 2026-08-19 —
-  it had drifted stale and unread; the real ladder is `shared/utils/position_sizer.py`'s
-  `SIZING_TIERS` constant); `position_sizing.max_capital_pct` still caps per-trade size via config
-- `circuit_breakers` — yellow's drawdown/size-multiplier levels are real and config-driven;
-  orange/red's drawdown thresholds are real, but their "no new positions"/"full stop" behavior is
-  intentionally hardcoded, not config-driven (already always-on, see CHANGELOG.md 2026-08-19)
-- `options_approval_level` — set to your actual brokerage approval level (1/2/3)
-- `event_severity_gate` — enable/disable flag, sector-wide/ticker trigger keyword lists, principal sources, minimum source credibility (news veto, not a scoring category)
-
-**`config/global_config.yaml`** — infrastructure settings:
-- API base URLs, rate limits, retry backoff parameters
-- Scan schedule (pre-market 8:30am ET, mid-session 12pm ET, post-close 4:30pm ET)
-- Log file paths, notification routing rules
+```
+research/          Phase scripts. config.py holds every shared constant.
+backtesting/       metrics.py — the statistical lab (IC, bootstrap CIs,
+                   Benjamini-Hochberg, deflated Sharpe, drawdown/Sortino/Ulcer).
+shared/            market data client, logging, atomic IO, robust z-score,
+                   fill simulation.
+docs/              v2_postmortem.md — the rules this rebuild runs on.
+data/panel/        Cached parquet panel (gitignored).
+CHANGELOG.md       V2's full history, retained as the archive.
+```
 
 ---
 
-## Section 8 — Warnings
+## Rules of the road
 
-- **Backtesting required before live use.** The $15,000 must not go live until Phase 12 backtesting confirms 80% win rate + 1:3 R:R + 90/100 minimum confidence across multiple market regimes, including at least one high-volatility period (VIX > 30).
-- **Not financial advice.** This system is a decision-support tool. Every recommendation requires your review and manual execution. Past backtested performance does not guarantee future results.
-- **Paper trading gate.** Even after backtesting passes, the $15,000 must not go live until Phase 13 paper trading sustains 80% win rate + 1:3 R:R + slippage within 10% of modeled estimates over a minimum of 60 trading days (~3 calendar months).
+1. **Out-of-sample data (2019-2026) stays sealed until Phase 6.** If you look at
+   it, record that in `RESEARCH_LOG.md` — it stops being out-of-sample.
+2. **Write the hypothesis and the pass bar before the run**, not after seeing the
+   result.
+3. **Correct for multiple testing.** Report `bh_significant` and a bootstrap CI,
+   never a bare p-value. Report the deflated Sharpe whenever a sweep preceded
+   the headline number.
+4. **No shared constant is defined locally.** It is imported from
+   `research/config.py` or it does not exist.
+5. **New ideas go in the `RESEARCH_LOG.md` backlog, not the code**, until the
+   current hypothesis has a verdict.
+6. **"No edge" is a valid, expected outcome.** Kill criteria are written down
+   before each phase, and honored.
+
+---
+
+## Status
+
+Phase 0 complete. Nothing has been validated. There is no strategy here yet, and
+no capital — real or simulated — is at risk.

@@ -18,8 +18,8 @@ from shared.api_clients.market_data_client import (
     _trim_incomplete_last_bar,
     fetch_ohlcv,
     fetch_ohlcv_batch,
-    fetch_vix_pct_change,
     fetch_vix_and_pct_change,
+    fetch_vix_pct_change,
 )
 
 

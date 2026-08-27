@@ -3,7 +3,7 @@ paper_runner.py's ev_outlier flag (fix for the MU long_strangle EV/$ anomaly).""
 
 import pytest
 
-from shared.utils.robust_stats import robust_z_score, is_outlier, DEFAULT_OUTLIER_THRESHOLD
+from shared.utils.robust_stats import DEFAULT_OUTLIER_THRESHOLD, is_outlier, robust_z_score
 
 
 class TestRobustZScore:

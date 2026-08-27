@@ -7,10 +7,8 @@ audit_log.csv is the forensic CSV log of every scan decision — written by this
 import csv
 import logging
 import logging.handlers
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
-
 
 _loggers: dict[str, logging.Logger] = {}
 
@@ -79,7 +77,7 @@ _AUDIT_COLUMNS = [
 ]
 
 
-def write_audit_entry(entry: dict, audit_log_path: Optional[str] = None) -> None:
+def write_audit_entry(entry: dict, audit_log_path: str | None = None) -> None:
     """
     Append one row to audit_log.csv. Creates file with headers if it doesn't exist.
     Called by run_swing_model.py after every ticker is scored.
@@ -90,13 +88,13 @@ def write_audit_entry(entry: dict, audit_log_path: Optional[str] = None) -> None
         writer = csv.DictWriter(f, fieldnames=_AUDIT_COLUMNS, extrasaction="ignore")
         if write_header:
             writer.writeheader()
-        entry.setdefault("timestamp_utc", datetime.now(timezone.utc).isoformat())
+        entry.setdefault("timestamp_utc", datetime.now(UTC).isoformat())
         writer.writerow(entry)
 
 
 def write_validation_entry(
     ticker: str, failure_type: str, detail: str,
-    log_path: Optional[str] = None
+    log_path: str | None = None
 ) -> None:
     """Append a data validation failure to validation_log.csv."""
     path = Path(log_path) if log_path is not None else _VALIDATION_LOG_PATH
@@ -109,7 +107,7 @@ def write_validation_entry(
         if write_header:
             writer.writeheader()
         writer.writerow({
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "timestamp_utc": datetime.now(UTC).isoformat(),
             "ticker": ticker,
             "failure_type": failure_type,
             "detail": detail,
@@ -118,7 +116,7 @@ def write_validation_entry(
 
 def write_override_entry(
     ticker: str, system_recommendation: str, action_taken: str, reason: str,
-    log_path: Optional[str] = None
+    log_path: str | None = None
 ) -> None:
     """Append a manual override to override_log.csv."""
     path = Path(log_path) if log_path is not None else _OVERRIDE_LOG_PATH
@@ -132,7 +130,7 @@ def write_override_entry(
         if write_header:
             writer.writeheader()
         writer.writerow({
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "timestamp_utc": datetime.now(UTC).isoformat(),
             "ticker": ticker,
             "system_recommendation": system_recommendation,
             "action_taken": action_taken,

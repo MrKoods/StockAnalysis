@@ -7,7 +7,6 @@ value drags the mean toward it and inflates the std, shrinking its own
 z-score) — median/MAD is resistant to exactly that.
 """
 
-from typing import Optional
 
 # Iglewicz & Hoaglin's (1993) standard cutoff for the modified z-score — the
 # commonly cited threshold for "this observation is probably not part of the
@@ -20,7 +19,7 @@ DEFAULT_OUTLIER_THRESHOLD = 3.5
 _MAD_TO_SIGMA = 0.6745
 
 
-def robust_z_score(value: float, historical_values: list[float]) -> Optional[float]:
+def robust_z_score(value: float, historical_values: list[float]) -> float | None:
     """
     Modified (MAD-based) z-score of `value` against `historical_values`:
     0.6745 * (value - median) / MAD, where MAD is the median absolute

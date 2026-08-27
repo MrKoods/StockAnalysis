@@ -1,189 +1,206 @@
 """
-Win rate, R:R, drawdown, Sharpe -- confidence calibration, per-regime stats,
-stress test results. All metrics computed on the test (out-of-sample) set only.
+Statistical evaluation primitives — the part of the V2 codebase that survived
+the V3 rebuild, because it is the part that was never the problem.
+
+Everything here operates on plain numeric sequences or a pandas equity/returns
+series. Nothing here knows what a "signal", a "score", or a "trade structure"
+is. That decoupling is deliberate: in V2 these functions took V2's own
+outcome-dict shape as input, which quietly made the measurement layer a
+dependent of the strategy layer, and meant a change in scoring semantics could
+alter what "win rate" meant without anything failing.
+
+The three functions that exist specifically to stop this project fooling itself
+again — and the incidents that produced them — are:
+
+  benjamini_hochberg_correction   A single backtest run computes many
+                                  correlations at once. In V2 (v2.2.96) one
+                                  p=0.0501 reading out of ~15 was reported as a
+                                  real finding; it did not survive correction
+                                  (v2.2.97). Always correct across the batch.
+
+  bootstrap_ic_ci                 A second, independent check on any IC point
+                                  estimate. If the resampled interval straddles
+                                  zero, the point estimate is not actionable
+                                  regardless of its p-value.
+
+  compute_deflated_sharpe_ratio   Trying N configurations and reporting the
+                                  winner inflates Sharpe even when every
+                                  configuration has zero true edge. Report the
+                                  deflated number whenever a sweep preceded the
+                                  headline figure.
+
+See docs/v2_postmortem.md for the full trap list.
 """
 
 import math
-from pathlib import Path
-from typing import Optional
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
-from scipy.stats import norm, spearmanr, pearsonr
+from scipy.stats import norm, pearsonr, spearmanr
 
-
-def _is_win(o: dict) -> bool:
-    """
-    A trade is a win if:
-    - It hit the target price, OR
-    - It was time-stopped out at a profit (pnl_pct > 0).
-    Time stops at profit are genuine wins — the strategy made money on the trade.
-    """
-    if o.get("outcome") == "win":
-        return True
-    if o.get("outcome") == "time_stop" and float(o.get("pnl_pct", 0.0)) > 0:
-        return True
-    return False
-
-
-def compute_win_rate(outcomes: list[dict]) -> float:
-    """Compute win rate from list of trade outcome dicts. Returns 0.0 if no trades."""
-    if not outcomes:
-        return 0.0
-    wins = sum(1 for o in outcomes if _is_win(o))
-    return wins / len(outcomes)
-
-
-def compute_avg_rr(outcomes: list[dict]) -> float:
-    """
-    Compute average achieved R:R ratio for winning trades only.
-    Measures how much R winning trades captured on average —
-    target hits score ~3.0R, profitable time stops score a partial R.
-    """
-    wins = [o for o in outcomes if _is_win(o) and "achieved_rr" in o]
-    if not wins:
-        return 0.0
-    return sum(o["achieved_rr"] for o in wins) / len(wins)
-
-
-def compute_r_multiples(outcomes: list[dict]) -> list[float]:
-    """
-    Per-trade achieved R multiple for every outcome (wins negative-free, losses
-    negative) — unlike compute_avg_rr, which only averages winning trades to
-    describe "how much winners capture," this is every qualifying trade's
-    contribution to expectancy, win or loss.
-    """
-    return [float(o["achieved_rr"]) for o in outcomes if "achieved_rr" in o]
-
+# --------------------------------------------------------------------------
+# Predictive power
+# --------------------------------------------------------------------------
 
 def compute_information_coefficient(
-    outcomes: list[dict],
-    score_field: str = "confidence",
-    return_field: str = "achieved_rr",
+    scores: Sequence[float],
+    forward_returns: Sequence[float],
     method: str = "spearman",
 ) -> dict:
     """
-    Rank correlation (Information Coefficient) between a raw per-bar score and
-    its forward outcome, across the FULL scored population — not just the
-    confidence>=CONFIDENCE_THRESHOLD qualifying subset compute_win_rate/
-    bootstrap_expectancy_ci operate on.
+    Rank correlation (Information Coefficient) between a score and the forward
+    return realized after it.
 
-    Why this exists (2026-08-24 full model audit): after fully correcting the
-    hardcoded-confidence>=90 bug that recurred 3 times across backtesting/*.py
-    (see CHANGELOG v2.2.75/v2.2.83), re-running at the REAL 70-point threshold
-    leaves regional_banks/healthcare with ZERO qualifying trades and
-    semiconductors with only 11 over 13.5 years — nowhere near enough for
-    win_rate/bootstrap_expectancy_ci to say anything meaningful (see that
-    function's own _MIN_TRADES_FOR_MEANINGFUL_READ-style reasoning). But
-    backtest_engine.run_backtest()/walk_forward.run_walk_forward() already
-    score EVERY bar with a filled structure before applying that threshold
-    filter (`all_outcomes`, discarded once `qualifying` is built) — thousands
-    of ticker-days, not 17. IC answers a different, complementary question
-    with that much larger sample: "does the score rank-order forward outcomes
-    at all," independent of whether any single bar clears the binary
-    qualifying bar. This is additive, not a replacement — it does not (and
-    should not, yet) feed evaluate_paper_trading_pass()'s go-live boolean;
-    promoting it to a gating role is a future decision, made only after this
-    metric itself has been sanity-checked against real results.
+    This is the primary V3 evidence metric, and it is deliberately computed on
+    the FULL scored population rather than on a filtered subset of "qualifying"
+    observations. V2's central failure mode was that its qualifying filter left
+    10-28 trades across 13 years — far too few to say anything — while thousands
+    of scored ticker-days sat discarded one line earlier. IC uses all of them.
 
-    Known limitation, not solved here: outcomes across ticker-days are not
-    independent observations (same-stock serial correlation, sector-wide
-    common-day moves), so the p-value below is optimistic versus a true
-    i.i.d. sample — treat it as directional, not a rigorous significance
-    test, until/unless a cluster-robust variant is built.
+    Known limitation, unchanged from V2 and still not solved: observations
+    across ticker-days are not independent (same-name serial correlation,
+    common-day market moves), so the p-value is optimistic versus a true i.i.d.
+    sample. Treat it as directional. For a cross-sectional panel strategy the
+    honest version is a per-date IC averaged across dates (see
+    compute_cross_sectional_ic below), which sidesteps most of the common-day
+    dependence.
 
-    score_field: which per-bar field to correlate. "confidence" (the full
-    composite 0-100 score) is contaminated by two backtest-only proxies —
-    Positioning is a static neutral value and Sentiment is a price-momentum
-    proxy, not the real StockTwits-driven live layer (see simulation.py's own
-    module docstring) — so also compute this against "technical_total" alone
-    (the single most heavily-weighted, fully real category) and a
-    caller-constructed real-only composite (technical_total + news_total +
-    fundamental_total, all real/point-in-time-archived data) to keep the
-    headline number honest about what it can and can't say.
-
-    Returns {"ic": float, "p_value": float, "n": int, "method": str,
-    "score_field": str}. ic/p_value are 0.0/1.0 when n < 3 (too few pairs for
-    a rank correlation to mean anything) or when the score/return series is
-    constant (zero variance — scipy returns NaN in that case, normalized here
-    to a neutral 0.0/1.0 rather than propagating NaN to callers).
+    Returns {"ic", "p_value", "n", "method"}. ic/p_value are 0.0/1.0 when fewer
+    than 3 valid pairs exist or either series is constant (scipy returns NaN in
+    that case; normalized here rather than propagated to callers).
     """
     pairs = [
-        (o[score_field], o[return_field])
-        for o in outcomes
-        if o.get(score_field) is not None and o.get(return_field) is not None
+        (float(s), float(r))
+        # strict=True: a length mismatch between scores and forward returns
+        # is a caller bug (misaligned panel), not something to silently truncate.
+        for s, r in zip(scores, forward_returns, strict=True)
+        if s is not None and r is not None and not (_isnan(s) or _isnan(r))
     ]
     n = len(pairs)
     if n < 3:
-        return {"ic": 0.0, "p_value": 1.0, "n": n, "method": method, "score_field": score_field}
+        return {"ic": 0.0, "p_value": 1.0, "n": n, "method": method}
 
-    scores = [float(p[0]) for p in pairs]
-    returns = [float(p[1]) for p in pairs]
+    x = [p[0] for p in pairs]
+    y = [p[1] for p in pairs]
 
     corr_fn = pearsonr if method == "pearson" else spearmanr
-    ic, p_value = corr_fn(scores, returns)
+    ic, p_value = corr_fn(x, y)
     ic = float(ic) if not math.isnan(ic) else 0.0
     p_value = float(p_value) if not math.isnan(p_value) else 1.0
 
-    return {"ic": round(ic, 4), "p_value": round(p_value, 4), "n": n, "method": method, "score_field": score_field}
+    return {"ic": round(ic, 4), "p_value": round(p_value, 4), "n": n, "method": method}
+
+
+def compute_cross_sectional_ic(
+    panel: pd.DataFrame,
+    score_col: str,
+    forward_return_col: str,
+    date_col: str = "date",
+    method: str = "spearman",
+) -> dict:
+    """
+    Per-date cross-sectional IC, then averaged across dates — the standard way
+    to measure a ranking signal, and the honest counterpart to the pooled
+    compute_information_coefficient above.
+
+    Why this is the better number for a cross-sectional strategy: pooling every
+    ticker-day into one correlation lets a few strong market-wide days dominate,
+    and badly violates independence. Ranking within each date and averaging the
+    per-date correlations asks the question the strategy actually acts on — "on
+    a given day, does this score rank names correctly against each other?" — and
+    the resulting series of per-date ICs is far closer to independent, so the
+    t-statistic on its mean is meaningful.
+
+    Returns {"mean_ic", "std_ic", "t_stat", "p_value", "n_dates", "ic_series"}.
+    The Information Ratio of the signal is mean_ic / std_ic.
+    """
+    corr_fn = pearsonr if method == "pearson" else spearmanr
+    per_date: list[float] = []
+    dates: list = []
+
+    for date, group in panel.groupby(date_col):
+        sub = group[[score_col, forward_return_col]].dropna()
+        if len(sub) < 3:
+            continue
+        if sub[score_col].nunique() < 2 or sub[forward_return_col].nunique() < 2:
+            continue
+        ic, _ = corr_fn(sub[score_col].to_numpy(), sub[forward_return_col].to_numpy())
+        if not math.isnan(ic):
+            per_date.append(float(ic))
+            dates.append(date)
+
+    n_dates = len(per_date)
+    if n_dates < 3:
+        return {
+            "mean_ic": 0.0, "std_ic": 0.0, "t_stat": 0.0,
+            "p_value": 1.0, "n_dates": n_dates,
+            "ic_series": pd.Series(dtype=float),
+        }
+
+    arr = np.array(per_date, dtype=float)
+    mean_ic = float(arr.mean())
+    std_ic = float(arr.std(ddof=1))
+    t_stat = mean_ic / (std_ic / math.sqrt(n_dates)) if std_ic > 0 else 0.0
+    # Two-sided p-value from the normal approximation; n_dates is typically
+    # in the hundreds for a monthly-or-finer panel, where t and z agree closely.
+    p_value = float(2.0 * (1.0 - norm.cdf(abs(t_stat)))) if std_ic > 0 else 1.0
+
+    return {
+        "mean_ic": round(mean_ic, 4),
+        "std_ic": round(std_ic, 4),
+        "t_stat": round(t_stat, 3),
+        "p_value": round(p_value, 4),
+        "n_dates": n_dates,
+        "ic_series": pd.Series(per_date, index=dates, name="ic"),
+    }
 
 
 def bootstrap_ic_ci(
-    outcomes: list[dict],
-    score_field: str = "confidence",
-    return_field: str = "achieved_rr",
+    scores: Sequence[float],
+    forward_returns: Sequence[float],
     method: str = "spearman",
     n_bootstrap: int = 10000,
     ci: float = 0.95,
-    seed: Optional[int] = 42,
+    seed: int | None = 42,
 ) -> dict:
     """
     Bootstrap confidence interval on compute_information_coefficient's point
-    estimate (2026-08-24 full model audit, Phase 2 follow-up).
+    estimate — a second, independent check on whether an IC is real.
 
-    Why this exists: v2.2.96's pooled real-only IC (-0.0334, p=0.0501, n=3439)
-    sits right at the conventional significance threshold, computed alongside
-    ~14 other IC reads (per-sector x per-score-field) in the same pass — a
-    single p-value that close to 0.05, amid that many correlated tests, isn't
-    strong enough evidence on its own to justify a scoring-formula change
-    (see this project's own compute_deflated_sharpe_ratio, built for the
-    identical "best/most-extreme of N trials can look significant by chance
-    alone" problem applied to Sharpe). A resampled interval on the IC itself
-    is a second, complementary check: if it excludes zero robustly, the point
-    estimate wasn't a fluke of this particular sample; if it straddles zero,
-    treat the point estimate as not yet actionable.
+    Resamples (score, return) PAIRS with replacement, not each series
+    independently, preserving whatever real pairing structure exists.
 
-    Resamples (score, return) PAIRS with replacement — not each series
-    independently — preserving whatever real pairing structure exists between
-    them, same principle as bootstrap_expectancy_ci's resampling of r_multiples
-    (each element resampled as a unit, not decomposed).
+    seed defaults to a fixed value so repeated calls on the same data give the
+    same answer: this feeds go/no-go decisions, and a verdict that flips between
+    runs from resampling noise would undermine the gate itself.
 
-    Returns {"ic_mean": ..., "ci_lower": ..., "ci_upper": ..., "n": ...}.
-    All fields are 0.0 (n=0) when fewer than 3 valid (score, return) pairs
-    exist — same floor compute_information_coefficient itself uses, since a
-    rank correlation is meaningless below that.
+    Returns {"ic_mean", "ci_lower", "ci_upper", "n"}, all 0.0 when fewer than
+    3 valid pairs exist.
     """
     pairs = [
-        (float(o[score_field]), float(o[return_field]))
-        for o in outcomes
-        if o.get(score_field) is not None and o.get(return_field) is not None
+        (float(s), float(r))
+        # strict=True: a length mismatch between scores and forward returns
+        # is a caller bug (misaligned panel), not something to silently truncate.
+        for s, r in zip(scores, forward_returns, strict=True)
+        if s is not None and r is not None and not (_isnan(s) or _isnan(r))
     ]
     n = len(pairs)
     if n < 3:
         return {"ic_mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": n}
 
-    scores = np.array([p[0] for p in pairs], dtype=float)
-    returns = np.array([p[1] for p in pairs], dtype=float)
+    x = np.array([p[0] for p in pairs], dtype=float)
+    y = np.array([p[1] for p in pairs], dtype=float)
     corr_fn = pearsonr if method == "pearson" else spearmanr
 
     rng = np.random.default_rng(seed)
     boot_ics = np.empty(n_bootstrap)
     for i in range(n_bootstrap):
         idx = rng.integers(0, n, size=n)
-        ic_val, _ = corr_fn(scores[idx], returns[idx])
+        ic_val, _ = corr_fn(x[idx], y[idx])
         boot_ics[i] = ic_val if not math.isnan(ic_val) else 0.0
 
-    point_ic, _ = corr_fn(scores, returns)
+    point_ic, _ = corr_fn(x, y)
     point_ic = float(point_ic) if not math.isnan(point_ic) else 0.0
 
     alpha = (1.0 - ci) / 2.0
@@ -197,28 +214,25 @@ def bootstrap_ic_ci(
 
 def benjamini_hochberg_correction(p_values: list[float], fdr: float = 0.05) -> list[bool]:
     """
-    Benjamini-Hochberg false-discovery-rate correction (2026-08-24 full model
-    audit, Phase 2 follow-up) — flags which of a batch of p-values (e.g. the
-    ~15 IC reads a single backtest_engine.py run produces: pooled + 4 sectors
-    x 3 score fields each) remain significant after accounting for having run
-    that many tests at once. Chosen over a Bonferroni correction (divide alpha
-    by n_tests) as less conservative and the more standard choice for an
-    exploratory multi-test scan like this one — Bonferroni controls the
-    family-wise error rate (near-zero tolerance for ANY false positive across
-    the whole batch); BH controls the expected false-discovery RATE among
-    what's flagged significant, the more usual bar for "is this worth
-    investigating further" rather than "is this proven."
+    Benjamini-Hochberg false-discovery-rate correction — flags which of a batch
+    of p-values remain significant after accounting for having run that many
+    tests at once.
 
-    Returns a list of booleans, same order/length as p_values: True = still
-    significant after correction, False = does not survive it.
+    Chosen over Bonferroni as less conservative and the standard choice for an
+    exploratory multi-test scan: Bonferroni controls the family-wise error rate
+    (near-zero tolerance for any false positive in the batch); BH controls the
+    expected false-discovery rate among what is flagged, which is the right bar
+    for "is this worth investigating further" rather than "is this proven."
+
+    Returns booleans in the same order/length as p_values.
     """
     n = len(p_values)
     if n == 0:
         return []
     indexed = sorted(range(n), key=lambda i: p_values[i])
     significant = [False] * n
-    # Largest k such that the k-th smallest p-value <= (k/n) * fdr — standard
-    # BH step-up procedure. Every p-value at or below that rank is flagged.
+    # Largest k such that the k-th smallest p-value <= (k/n) * fdr — the
+    # standard BH step-up procedure. Everything at or below that rank is flagged.
     largest_k = 0
     for rank, idx in enumerate(indexed, start=1):
         if p_values[idx] <= (rank / n) * fdr:
@@ -229,55 +243,73 @@ def benjamini_hochberg_correction(p_values: list[float], fdr: float = 0.05) -> l
     return significant
 
 
-def bootstrap_expectancy_ci(
-    r_multiples: list[float],
+def bootstrap_mean_ci(
+    values: Sequence[float],
     n_bootstrap: int = 10000,
     ci: float = 0.95,
-    seed: Optional[int] = 42,
+    seed: int | None = 42,
 ) -> dict:
     """
-    Bootstrap confidence interval on mean per-trade R-expectancy.
+    Bootstrap confidence interval on a mean — per-period return, per-trade
+    R-multiple, whatever the caller is averaging.
 
-    Resamples r_multiples with replacement n_bootstrap times, computing the
-    mean each time, then reads off the (1-ci)/2 and 1-(1-ci)/2 percentiles as
-    the CI bounds. This answers "how confident can we be the true expectancy
-    is above zero (or some threshold)" — a flat win-rate/R:R pair alone can't,
-    since it says nothing about sample-size-driven uncertainty and can't be
-    satisfied by mutually offsetting numbers the way e.g. "80% win rate at a
-    1.8 average R:R" can look decisive while still resting on a small sample.
+    This answers "how confident can we be the true mean is above zero", which a
+    bare point estimate cannot: a flat average says nothing about sample-size
+    uncertainty, and can look decisive while resting on almost no data. V2's
+    entire go-live history is the cautionary case.
 
-    seed defaults to a fixed value (not None) so this function is deterministic
-    across repeated calls with the same input — this gates a real go-live
-    decision, and a pass/fail flipping between runs on the same data purely
-    from resampling noise would undermine trust in the gate itself. Pass
-    seed=None for a fresh random draw if ever needed for research purposes.
+    Fixed default seed, for the same determinism reason as bootstrap_ic_ci.
 
-    Returns {"mean_r": ..., "ci_lower": ..., "ci_upper": ..., "n_trades": ...}.
-    All fields are 0.0 (n_trades=0) when r_multiples is empty.
+    Returns {"mean", "ci_lower", "ci_upper", "n"}, all 0.0 when values is empty.
     """
-    if not r_multiples:
-        return {"mean_r": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n_trades": 0}
+    if len(values) == 0:
+        return {"mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": 0}
 
-    values = np.array(r_multiples, dtype=float)
+    arr = np.array(values, dtype=float)
+    arr = arr[~np.isnan(arr)]
+    if arr.size == 0:
+        return {"mean": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": 0}
+
     rng = np.random.default_rng(seed)
     boot_means = np.empty(n_bootstrap)
     for i in range(n_bootstrap):
-        sample = rng.choice(values, size=len(values), replace=True)
+        sample = rng.choice(arr, size=arr.size, replace=True)
         boot_means[i] = sample.mean()
 
     alpha = (1.0 - ci) / 2.0
     return {
-        "mean_r": float(values.mean()),
+        "mean": float(arr.mean()),
         "ci_lower": float(np.percentile(boot_means, alpha * 100)),
         "ci_upper": float(np.percentile(boot_means, (1.0 - alpha) * 100)),
-        "n_trades": len(r_multiples),
+        "n": int(arr.size),
     }
+
+
+# --------------------------------------------------------------------------
+# Risk and return
+# --------------------------------------------------------------------------
+
+def compute_cagr(equity_curve: pd.Series, periods_per_year: float = 252) -> float:
+    """
+    Compound annual growth rate implied by an equity curve. `periods_per_year`
+    must match what one step of the curve represents — 252 for daily, 12 for
+    monthly. Returns a fraction (0.11 for 11%/yr).
+    """
+    if equity_curve.empty or len(equity_curve) < 2:
+        return 0.0
+    start = float(equity_curve.iloc[0])
+    end = float(equity_curve.iloc[-1])
+    if start <= 0 or end <= 0:
+        return 0.0
+    years = (len(equity_curve) - 1) / periods_per_year
+    if years <= 0:
+        return 0.0
+    return float((end / start) ** (1.0 / years) - 1.0)
 
 
 def compute_max_drawdown(equity_curve: pd.Series) -> float:
     """
-    Peak-to-trough drawdown on the equity curve.
-    Returns drawdown as a positive fraction (e.g., 0.15 for 15% drawdown).
+    Peak-to-trough drawdown. Returns a positive fraction (0.15 for 15%).
     """
     if equity_curve.empty:
         return 0.0
@@ -288,13 +320,11 @@ def compute_max_drawdown(equity_curve: pd.Series) -> float:
 
 def compute_max_drawdown_duration(equity_curve: pd.Series) -> int:
     """
-    Longest stretch (in equity-curve steps — one per trade, since this
-    project's equity curves are trade-indexed, not calendar-indexed) from a
-    peak until a new equity high is reached. max_drawdown_pct alone doesn't
-    say how long capital sat underwater — a portfolio flat for 8 months even
-    at "only 12%" drawdown is a materially different risk profile than one
-    that recovers in 3 weeks, and the two are indistinguishable from
-    max_drawdown_pct alone.
+    Longest stretch, in equity-curve steps, from a peak until a new high is
+    made. max_drawdown alone doesn't say how long capital sat underwater — a
+    portfolio flat for 8 months at "only 12%" down is a materially different
+    experience to hold than one that recovers in 3 weeks, and the two are
+    indistinguishable from depth alone.
     """
     if equity_curve.empty:
         return 0
@@ -313,12 +343,9 @@ def compute_max_drawdown_duration(equity_curve: pd.Series) -> int:
 
 def compute_ulcer_index(equity_curve: pd.Series) -> float:
     """
-    Ulcer Index (Martin, 1987) — root-mean-square of percentage drawdown
-    across the whole equity curve, not just its single worst point. Combines
-    depth and duration into one number: a drawdown that's both deep and
-    long-lasting scores worse than one that's equally deep but brief, which
-    max_drawdown_pct alone can't distinguish (see compute_max_drawdown_duration
-    for the duration-only view). Returns a percentage (e.g. 8.2, not 0.082).
+    Ulcer Index (Martin, 1987) — root-mean-square percentage drawdown across
+    the whole curve, not just its worst point. Combines depth and duration into
+    one number. Returns a percentage (8.2, not 0.082).
     """
     if equity_curve.empty:
         return 0.0
@@ -327,14 +354,14 @@ def compute_ulcer_index(equity_curve: pd.Series) -> float:
     return float((drawdown_pct.pow(2).mean()) ** 0.5)
 
 
-def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.05, periods_per_year: float = 252) -> float:
+def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.04, periods_per_year: float = 252) -> float:
     """
-    Annualized Sharpe ratio. `periods_per_year` must match what one step in `returns`
-    represents: 252 for a true daily-returns series, or the actual observed trade
-    frequency when each step is one trade rather than one calendar day (a trade-level
-    equity curve stepped through sqrt(252) would overstate annualized Sharpe by
-    treating ~149 trades/multi-year backtest as if they were 252 independent
-    observations per year).
+    Annualized Sharpe ratio.
+
+    `periods_per_year` must match what one step in `returns` represents: 252 for
+    a daily series, 12 for monthly. Getting this wrong is not a rounding error —
+    V2 reported a Sharpe of 9.10 for weeks because a trade-indexed curve was
+    annualized as if each trade were a trading day.
     """
     if returns.empty or returns.std() == 0:
         return 0.0
@@ -343,18 +370,11 @@ def compute_sharpe(returns: pd.Series, risk_free_rate: float = 0.05, periods_per
     return float((excess.mean() / returns.std()) * math.sqrt(periods_per_year))
 
 
-def compute_sortino(returns: pd.Series, risk_free_rate: float = 0.05, periods_per_year: float = 252) -> float:
+def compute_sortino(returns: pd.Series, risk_free_rate: float = 0.04, periods_per_year: float = 252) -> float:
     """
-    Annualized Sortino ratio — Sharpe's downside-only counterpart. This
-    project's structures have deliberately asymmetric payoffs (long_strangle
-    convex, credit spreads concave — see options_math.py), so a Sharpe-style
-    denominator that penalizes upside variance exactly as much as downside
-    variance is the wrong lens: it dings a strategy for the very upside swings
-    that are the point of buying convexity. Sortino only penalizes returns
-    below the risk-free rate, matching what "risk" actually means for capital
-    at stake — the chance of losing it, not the chance of a bigger-than-usual win.
-
-    Same periods_per_year caveat as compute_sharpe applies here.
+    Annualized Sortino ratio — Sharpe's downside-only counterpart, penalizing
+    only returns below the risk-free rate. Same periods_per_year caveat as
+    compute_sharpe.
     """
     if returns.empty:
         return 0.0
@@ -378,44 +398,25 @@ def compute_deflated_sharpe_ratio(
 ) -> dict:
     """
     Deflated Sharpe Ratio (Bailey & Lopez de Prado, 2014). Answers: given that
-    `selected_sharpe` was picked as the best of `len(sharpe_ratios)` independent
-    trials (a sensitivity-analysis threshold sweep, an entry-filter variant
-    sweep, ...), how much of that Sharpe is genuine edge versus what you'd
-    expect from selection alone — trying N configurations and reporting the
-    winner inflates the reported Sharpe purely from having N chances, even if
-    every configuration has zero true edge.
+    `selected_sharpe` was picked as the best of `len(sharpe_ratios)` trials, how
+    much of it is genuine edge versus what selection alone would produce?
 
-    sharpe_ratios: the per-trial Sharpe estimate from every trial in the sweep
-      (used to estimate the sampling variance of the Sharpe estimator across
-      trials — a wide spread of Sharpes across otherwise-similar configs means
-      more of any single Sharpe is noise, not signal).
-    selected_sharpe: the Sharpe of the trial being reported (usually
-      max(sharpe_ratios), but passed explicitly since the caller may select on
-      a different criterion).
-    n_observations: number of trade-level return observations the selected
-      Sharpe was computed over — more observations means the same Sharpe is
-      more likely to be real.
-    skew / kurtosis: of the selected trial's per-trade return series. Default
-      to a normal distribution's own moments (0, 3) when the caller doesn't
-      have them handy — this makes the correction conservative-normal rather
-      than silently wrong, not an assumption that trade returns really are
-      normal (options-structure payoffs usually aren't — see the fix-5/6/7
-      EV-normalization work for where that distinction actually matters).
+    Report this whenever a parameter sweep preceded the headline number — which
+    in practice means almost always.
 
-    Returns:
-      expected_max_sharpe_under_null: the Sharpe you'd expect to see just from
-        taking the best of n_trials draws with zero true edge.
-      deflated_sharpe: selected_sharpe - expected_max_sharpe_under_null — the
-        edge left over after subtracting what pure trial-selection would give
-        you for free.
-      psr: P(true Sharpe > expected_max_sharpe_under_null) — the number to
-        actually act on. psr < 0.95 means the "winning" configuration's edge
-        over what this sweep would produce by chance isn't statistically
-        convincing at the 95% level, i.e. don't trust the pick yet.
-      n_trials, n_observations: echoed back for the caller to log/display.
+    sharpe_ratios: per-trial Sharpe from every trial in the sweep, used to
+      estimate the sampling variance of the Sharpe estimator. A wide spread
+      across similar configs means more of any single Sharpe is noise.
+    selected_sharpe: the Sharpe being reported (usually the max, but passed
+      explicitly since selection may use another criterion).
+    n_observations: number of return observations behind the selected Sharpe.
+    skew / kurtosis: of the selected trial's return series. Defaults are a
+      normal distribution's own moments, making the correction
+      conservative-normal rather than silently wrong.
 
-    All fields are 0.0 when there's nothing to compute from (no trials or
-    fewer than 2 observations).
+    Returns expected_max_sharpe_under_null, deflated_sharpe, psr, n_trials,
+    n_observations. Act on `psr`: below ~0.95, the winning configuration's edge
+    over chance is not convincing.
     """
     n_trials = len(sharpe_ratios)
     if n_trials == 0 or n_observations < 2:
@@ -427,12 +428,10 @@ def compute_deflated_sharpe_ratio(
             "n_observations": n_observations,
         }
 
-    # Sampling variance of the Sharpe-ratio estimator across trials. With only
-    # one trial there's no spread to estimate from, so fall back to the
-    # analytic asymptotic variance of a single Sharpe estimate (Bailey &
-    # Lopez de Prado, eq. 5) rather than a degenerate zero-variance case that
-    # would silently report expected_max_sharpe_under_null == 0 regardless of
-    # how many observations backed it.
+    # Sampling variance of the Sharpe estimator across trials. With one trial
+    # there is no spread to estimate from, so fall back to the analytic
+    # asymptotic variance of a single Sharpe estimate (B&LdP eq. 5) rather than
+    # a degenerate zero-variance case.
     if n_trials > 1:
         var_sr = float(np.var(sharpe_ratios, ddof=1))
     else:
@@ -441,19 +440,18 @@ def compute_deflated_sharpe_ratio(
     if var_sr <= 0 or n_trials <= 1:
         expected_max_sr = 0.0
     else:
-        # Expected maximum of n_trials iid standard normal draws (Bailey &
-        # Lopez de Prado, eq. 8), scaled by the estimated Sharpe std dev —
-        # this is "how good would the best of N noisy, edge-free trials look
-        # purely by luck."
+        # Expected maximum of n_trials iid standard normal draws (B&LdP eq. 8),
+        # scaled by the estimated Sharpe std dev — "how good would the best of
+        # N noisy, edge-free trials look purely by luck."
         euler_mascheroni = 0.5772156649
         expected_max_sr = math.sqrt(var_sr) * (
             (1 - euler_mascheroni) * norm.ppf(1.0 - 1.0 / n_trials)
             + euler_mascheroni * norm.ppf(1.0 - 1.0 / (n_trials * math.e))
         )
 
-    # Probabilistic Sharpe Ratio (Bailey & Lopez de Prado, eq. 1), benchmarked
-    # against expected_max_sr instead of 0 — the higher-moment terms correct
-    # for the selected trial's own return distribution not being normal.
+    # Probabilistic Sharpe Ratio (B&LdP eq. 1) benchmarked against
+    # expected_max_sr instead of 0; higher-moment terms correct for the selected
+    # trial's return distribution not being normal.
     denom = math.sqrt(max(
         1e-12,
         1 - skew * selected_sharpe + ((kurtosis - 1) / 4.0) * selected_sharpe ** 2,
@@ -471,315 +469,41 @@ def compute_deflated_sharpe_ratio(
     }
 
 
-def per_regime_metrics(outcomes: list[dict]) -> dict:
-    """
-    Split outcomes by regime and compute metrics for each.
-    Model must meet thresholds in all four regimes independently.
-    Returns dict: {regime -> {win_rate, avg_rr, trade_count}}
-    """
-    regimes = {}
-    for o in outcomes:
-        regime = o.get("regime", "unknown")
-        regimes.setdefault(regime, []).append(o)
+# --------------------------------------------------------------------------
+# Reporting
+# --------------------------------------------------------------------------
 
-    result = {}
-    for regime, regime_outcomes in regimes.items():
-        result[regime] = {
-            "win_rate": compute_win_rate(regime_outcomes),
-            "avg_rr": compute_avg_rr(regime_outcomes),
-            "trade_count": len(regime_outcomes),
+def summarize_returns(
+    returns: pd.Series,
+    periods_per_year: float = 252,
+    risk_free_rate: float = 0.04,
+) -> dict:
+    """
+    The standard bundle for any V3 strategy variant, computed from a periodic
+    returns series. Every research script reports this, so variants are always
+    compared on the same terms.
+    """
+    if returns.empty:
+        return {
+            "cagr": 0.0, "sharpe": 0.0, "sortino": 0.0, "max_drawdown": 0.0,
+            "max_drawdown_duration": 0, "ulcer_index": 0.0,
+            "volatility": 0.0, "n_periods": 0,
         }
-    return result
-
-
-def compute_consecutive_losses(outcomes: list[dict]) -> int:
-    """Return the maximum consecutive loss streak in the outcome list."""
-    max_consec = 0
-    current = 0
-    for o in outcomes:
-        if _is_win(o):
-            current = 0
-        else:
-            current += 1
-            max_consec = max(max_consec, current)
-    return max_consec
-
-
-def run_sensitivity_analysis(
-    outcomes: list[dict],
-    test_months: float = 1.0,
-    thresholds: Optional[list[int]] = None,
-    report_path: Optional[Path] = None,
-    config_path: str = "config/swing_config.yaml",
-) -> pd.DataFrame:
-    """
-    Run backtest across 5 confidence thresholds (Clarification 3).
-    For each threshold: qualifying trades, win rate, avg R:R, signal frequency, max consecutive losses.
-
-    report_path: where to save the CSV — defaults to the real
-    backtesting/reports/sensitivity_analysis.csv for real callers. Tests
-    exercising this function with synthetic outcomes must pass a tmp_path
-    override here — without one, a test run silently overwrote the real
-    report with synthetic data (confirmed live: the checked-in report file
-    matched test_no_deflated_sharpe_columns_when_nothing_qualifies' all-
-    below-threshold synthetic outcomes exactly, dated to a test run, not a
-    real backtest).
-
-    `outcomes` should be the full unfiltered out-of-sample signal set (see
-    backtest_engine._get_test_outcomes) — this function does the threshold
-    filtering itself, once per threshold, rather than expecting pre-filtered input.
-
-    Returns DataFrame with columns: threshold, qualifying_trades, win_rate, avg_rr,
-    sharpe_ratio, signals_per_month, max_consec_losses, plus (once at least one
-    threshold has a nonzero Sharpe) psr_best_threshold_vs_sweep and
-    deflated_sharpe_best_threshold — see compute_deflated_sharpe_ratio's
-    docstring. Saves to backtesting/reports/sensitivity_analysis.csv.
-    """
-    if thresholds is None:
-        # Explicit override, else config.confidence.sensitivity_thresholds
-        # (default [85, 87, 90, 92, 95]) — Tier B batch 2 (2026-08-19).
-        from swing_model.indicator_pipeline import load_config
-        thresholds = load_config(config_path).get("confidence", {}).get(
-            "sensitivity_thresholds", [85, 87, 90, 92, 95]
-        )
-    rows = []
-    for threshold in thresholds:
-        qualifying = [o for o in outcomes if float(o.get("confidence", 0)) >= threshold]
-
-        if not qualifying:
-            rows.append({
-                "threshold": threshold,
-                "qualifying_trades": 0,
-                "win_rate": 0.0,
-                "avg_rr": 0.0,
-                "sharpe_ratio": 0.0,
-                "signals_per_month": 0.0,
-                "max_consec_losses": 0,
-            })
-            continue
-
-        # Sharpe wasn't previously computed per threshold at all — this sweep
-        # only reported win_rate/avg_rr, which says nothing about volatility
-        # or path risk. Chronological order matters here for the same reason
-        # backtest_engine.run_backtest() sorts before building its equity
-        # curve: P&L realizes at exit, not at signal-generation order.
-        qualifying_chrono = sorted(qualifying, key=lambda o: o.get("exit_date") or o.get("signal_date") or "")
-        equity_curve = _build_equity_curve(qualifying_chrono)
-        trade_returns = equity_curve.pct_change().dropna()
-        sharpe = compute_sharpe(trade_returns, periods_per_year=_trades_per_year(qualifying_chrono))
-
-        rows.append({
-            "threshold": threshold,
-            "qualifying_trades": len(qualifying),
-            "win_rate": round(compute_win_rate(qualifying), 4),
-            "avg_rr": round(compute_avg_rr(qualifying), 2),
-            "sharpe_ratio": round(sharpe, 2),
-            "signals_per_month": round(len(qualifying) / max(test_months, 1.0), 2),
-            # qualifying_chrono, not qualifying — a streak is path-dependent
-            # (2026-08-19 fix; this was an unfixed sibling of that same bug,
-            # already correctly using qualifying_chrono for the equity curve/
-            # Sharpe two lines above but not for this stat).
-            "max_consec_losses": compute_consecutive_losses(qualifying_chrono),
-        })
-
-    df = pd.DataFrame(rows)
-
-    # Multiple-testing correction: this sweep tests len(thresholds) configurations
-    # and an analyst reading this table will naturally gravitate to whichever
-    # threshold has the best Sharpe — exactly the "best of N trials" selection
-    # compute_deflated_sharpe_ratio exists to discount. Attach that check right
-    # on the table instead of leaving it as a separate step someone has to
-    # remember to run.
-    if not df.empty and (df["sharpe_ratio"] != 0.0).any():
-        best_idx = df["sharpe_ratio"].idxmax()
-        best_row = df.loc[best_idx]
-        dsr = compute_deflated_sharpe_ratio(
-            sharpe_ratios=df["sharpe_ratio"].tolist(),
-            selected_sharpe=float(best_row["sharpe_ratio"]),
-            n_observations=int(best_row["qualifying_trades"]),
-        )
-        df["psr_best_threshold_vs_sweep"] = dsr["psr"]
-        df["deflated_sharpe_best_threshold"] = dsr["deflated_sharpe"]
-
-    out_path = report_path if report_path is not None else Path("backtesting/reports/sensitivity_analysis.csv")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(out_path, index=False)
-
-    return df
-
-
-def _trades_per_year(outcomes: list[dict]) -> float:
-    """
-    Actual trade frequency, for Sharpe annualization. An equity curve stepped one
-    point per trade is not a daily series — sqrt(252) would treat ~149 trades over
-    a multi-year backtest as if they were 252 independent observations every year.
-    Falls back to 252 (the old behavior) when there isn't enough date info to infer
-    a real trade frequency, rather than raising or silently returning 0.
-    """
-    dates = []
-    for o in outcomes:
-        try:
-            dates.append(pd.Timestamp(o.get("exit_date")))
-        except Exception:
-            continue
-    if len(dates) < 2:
-        return 252.0
-    span_years = (max(dates) - min(dates)).days / 365.25
-    if span_years <= 0:
-        return 252.0
-    return len(outcomes) / span_years
-
-
-# Round-trip (entry + exit) stock-level slippage estimate, in $/share — reuses
-# the exact $0.02/share convention already established in
-# shared/utils/options_math.py's adjust_ev_for_slippage default, rather than
-# inventing a new, uncalibrated number. trade_selector.py already applies
-# this same cost when ranking option structures; the backtest's simulated
-# P&L previously didn't apply anything at all, making its Sharpe/expectancy
-# numbers optimistic versus what real fills will actually produce. Default
-# only — real callers resolve this from config.backtesting.slippage_stock_per_share
-# (Tier B batch 2, 2026-08-19) via _round_trip_slippage_per_share() below.
-_ROUND_TRIP_SLIPPAGE_PER_SHARE = 0.02 * 2
-
-
-def _round_trip_slippage_per_share(config_path: str = "config/swing_config.yaml") -> float:
-    from swing_model.indicator_pipeline import load_config
-    per_share = load_config(config_path).get("backtesting", {}).get("slippage_stock_per_share")
-    if per_share is None:
-        return _ROUND_TRIP_SLIPPAGE_PER_SHARE
-    return float(per_share) * 2  # round-trip = entry + exit
-
-
-def _build_equity_curve(
-    outcomes: list[dict],
-    starting_equity: float = 15000.0,
-    include_slippage: bool = True,
-    config_path: str = "config/swing_config.yaml",
-) -> pd.Series:
-    """
-    Build equity curve from ordered trade outcomes.
-
-    include_slippage: when True (the default), subtracts a round-trip
-    per-share slippage estimate (config.backtesting.slippage_stock_per_share,
-    default $0.02/share each way) / entry_price from each trade's pnl_pct
-    before compounding it into the curve. Pass False to reproduce the old
-    frictionless behavior (e.g. to isolate some other change's effect in
-    isolation from this one).
-    """
-    equity = starting_equity
-    values = [equity]
-    round_trip_slippage_per_share = _round_trip_slippage_per_share(config_path)
-
-    for o in outcomes:
-        pnl_pct = float(o.get("pnl_pct", 0.0))
-        risk_pct = 0.01  # Fixed 1% risk per trade
-        risk_dollars = equity * risk_pct
-        entry = o.get("entry_price", 1.0) or 1.0
-        stop = o.get("stop", entry * 0.97) or entry * 0.97
-
-        if include_slippage and entry > 0:
-            pnl_pct -= round_trip_slippage_per_share / entry
-
-        # Normalize: pnl as fraction of risk
-        risk_dist = abs(float(entry) - float(stop)) / float(entry) if float(entry) > 0 else 0.03
-        dollar_pnl = risk_dollars * (pnl_pct / risk_dist) if risk_dist > 0 else risk_dollars * pnl_pct
-        equity += dollar_pnl
-        values.append(max(0.0, equity))
-
-    if not values:
-        return pd.Series([starting_equity])
-    return pd.Series(values)
-
-
-def build_portfolio_equity_curve(
-    outcomes: list[dict],
-    starting_equity: float = 15000.0,
-    risk_pct: float = 0.01,
-    include_slippage: bool = True,
-    config_path: str = "config/swing_config.yaml",
-) -> tuple[pd.Series, dict]:
-    """
-    Equity curve that accounts for concurrently open positions, unlike
-    _build_equity_curve's strictly one-trade-at-a-time stepping.
-
-    Why this matters: this project can hold several correlated same-sector
-    positions at once (e.g. 4 semiconductor names simultaneously) — real
-    portfolio drawdown when correlated bets go wrong together is worse than a
-    serial "close one before opening the next" curve can ever show, since
-    that curve structurally has at most one position's risk affecting it at
-    any point. This walks entry/exit events in true chronological order:
-    each position's risk_dollars is locked in at ITS OWN entry against
-    whatever equity existed at that moment (not equity that reflects trades
-    that hadn't closed yet), and multiple positions can have risk locked in
-    simultaneously against the same starting equity — exactly the concurrent-
-    exposure scenario a serial curve can't represent.
-
-    Requires each outcome to have signal_date (entry) and exit_date; falls
-    back to a same-day round trip (exit_date = signal_date) when exit_date
-    is missing, rather than dropping the trade.
-
-    Returns (equity_curve, stats) where stats has:
-      max_concurrent_positions: the most positions open at any single point.
-      max_concurrent_risk_pct: the largest fraction of starting equity ever
-        committed across simultaneously-open positions at once — how much
-        worse a single correlated adverse move could have been than the
-        1%-per-trade figure alone suggests.
-    """
-    if not outcomes:
-        return pd.Series([starting_equity]), {"max_concurrent_positions": 0, "max_concurrent_risk_pct": 0.0}
-
-    events = []
-    for o in outcomes:
-        entry_date = o.get("signal_date")
-        if entry_date is None:
-            continue
-        exit_date = o.get("exit_date") or entry_date
-        # sort_key second field: entries (0) before exits (1) on the same
-        # date, so a same-day round trip is sized before it's realized.
-        events.append((pd.Timestamp(entry_date), 0, id(o), o))
-        events.append((pd.Timestamp(exit_date), 1, id(o), o))
-    events.sort(key=lambda e: (e[0], e[1]))
-
-    equity = starting_equity
-    values = [equity]
-    committed_risk: dict[int, float] = {}
-    open_count = 0
-    max_concurrent_positions = 0
-    max_concurrent_risk_pct = 0.0
-    round_trip_slippage_per_share = _round_trip_slippage_per_share(config_path)
-
-    for _, _, obj_id, o in events:
-        # Distinguish entry vs exit event unambiguously: an entry event for
-        # this outcome hasn't been recorded in committed_risk yet.
-        if obj_id not in committed_risk:
-            risk_dollars = equity * risk_pct
-            committed_risk[obj_id] = risk_dollars
-            open_count += 1
-            max_concurrent_positions = max(max_concurrent_positions, open_count)
-            # Ratio against CURRENT equity at this point in time, not the
-            # account's original starting balance — over a multi-year
-            # compounding backtest, dividing a later peak's dollar figure by
-            # a years-old starting_equity would overstate concurrent risk
-            # purely from equity growth, not from anything about how many
-            # positions were actually open relative to capital at the time.
-            current_committed = sum(committed_risk.values())
-            current_ratio = current_committed / equity if equity > 0 else 0.0
-            max_concurrent_risk_pct = max(max_concurrent_risk_pct, current_ratio)
-        else:
-            risk_dollars = committed_risk.pop(obj_id)
-            open_count -= 1
-            pnl_pct = float(o.get("pnl_pct", 0.0))
-            entry = o.get("entry_price", 1.0) or 1.0
-            stop = o.get("stop", entry * 0.97) or entry * 0.97
-            if include_slippage and entry > 0:
-                pnl_pct -= round_trip_slippage_per_share / entry
-            risk_dist = abs(float(entry) - float(stop)) / float(entry) if float(entry) > 0 else 0.03
-            dollar_pnl = risk_dollars * (pnl_pct / risk_dist) if risk_dist > 0 else risk_dollars * pnl_pct
-            equity += dollar_pnl
-            values.append(max(0.0, equity))
-
-    stats = {
-        "max_concurrent_positions": max_concurrent_positions,
-        "max_concurrent_risk_pct": round(max_concurrent_risk_pct, 4),
+    equity = (1.0 + returns.fillna(0.0)).cumprod()
+    return {
+        "cagr": round(compute_cagr(equity, periods_per_year), 4),
+        "sharpe": round(compute_sharpe(returns, risk_free_rate, periods_per_year), 3),
+        "sortino": round(compute_sortino(returns, risk_free_rate, periods_per_year), 3),
+        "max_drawdown": round(compute_max_drawdown(equity), 4),
+        "max_drawdown_duration": compute_max_drawdown_duration(equity),
+        "ulcer_index": round(compute_ulcer_index(equity), 3),
+        "volatility": round(float(returns.std() * math.sqrt(periods_per_year)), 4),
+        "n_periods": int(len(returns)),
     }
-    return pd.Series(values), stats
+
+
+def _isnan(value) -> bool:
+    try:
+        return math.isnan(float(value))
+    except (TypeError, ValueError):
+        return False

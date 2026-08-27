@@ -13,7 +13,6 @@ logic would be a parity bug waiting to happen the first time either one
 changed; one shared function structurally can't drift from itself.
 """
 
-from typing import Optional
 
 import pandas as pd
 
@@ -29,7 +28,7 @@ def find_fill(
     entry_zone_upper: float,
     direction: str = "bullish",
     window_days: int = FILL_WINDOW_DAYS,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Walk bars chronologically looking for the first bar where price actually
     trades into the entry zone. Bullish zones sit at/above the price at
