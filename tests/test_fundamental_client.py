@@ -29,6 +29,14 @@ from shared.api_clients.fundamental_client import FundamentalClient
 def _keys(monkeypatch):
     monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "fake-av-key")
     monkeypatch.setenv("FINNHUB_API_KEY", "fake-finnhub-key")
+    # get_valuation_metrics / get_estimate_revisions now also reach the Finnhub
+    # and Seeking Alpha data clients (2026-08 API audit) — the real
+    # RAPIDAPI_KEY/FINNHUB_API_KEY are live in the session via .env, so stub
+    # those cross-client calls to empty by default. Tests that exercise them
+    # patch the specific function.
+    from shared.api_clients import finnhub_client, seeking_alpha_client
+    monkeypatch.setattr(finnhub_client, "get_metric", lambda t: {})
+    monkeypatch.setattr(seeking_alpha_client, "get_factor_grades", lambda t: {})
 
 
 def _mock_yf_info(target=250.0, current=200.0):
@@ -357,3 +365,55 @@ class TestWithBackoff:
         assert calls["n"] == 2  # first attempt, one retry after the 30s sleep, then capped out
         assert sleeps == [30]   # the 60s retry never happens — 30+60 would exceed the 40s cap
         mock_write.assert_called_once()
+
+
+class TestSaAndFinnhubEnrichment:
+    """2026-08 API audit: get_estimate_revisions also pulls the SA Quant Rating
+    + 30d/90d rating-count direction; get_valuation_metrics falls back to
+    Finnhub /stock/metric for fields yfinance's .info didn't supply."""
+
+    def test_estimate_revisions_carries_sa_rating_direction(self, monkeypatch):
+        from shared.api_clients import seeking_alpha_client
+        monkeypatch.setattr(seeking_alpha_client, "get_factor_grades", lambda t: {
+            "quant_rating": 4.1,
+            "buy_count_30d": 25, "hold_count_30d": 3, "sell_count_30d": 1,
+            "buy_count_90d": 15, "hold_count_90d": 8, "sell_count_90d": 4,
+        })
+        client = FundamentalClient()
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=_mock_yf_info()), \
+             patch.object(client, "_with_backoff", return_value=[{"strongBuy": 5}]):
+            out = client.get_estimate_revisions("NVDA")
+        assert out["sa_quant_rating"] == 4.1
+        assert out["sa_rating_revision"] == "up"   # 30d net (24/29) well above 90d net (11/27)
+
+    def test_valuation_falls_back_to_finnhub_metric(self, monkeypatch):
+        from shared.api_clients import finnhub_client
+        monkeypatch.setattr(finnhub_client, "get_metric",
+                            lambda t: {"peTTM": 33.9, "evToEbitdaTTM": 26.4, "evToRevenueTTM": 20.1})
+        client = FundamentalClient()
+        # yfinance .info supplies nothing
+        bare = MagicMock()
+        bare.info = {}
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=bare):
+            out = client.get_valuation_metrics("NVDA")
+        assert out["trailingPE"] == 33.9
+        assert out["enterpriseToEbitda"] == 26.4
+
+    def test_finnhub_fallback_not_used_when_yfinance_complete(self, monkeypatch):
+        from shared.api_clients import finnhub_client
+        called = []
+        monkeypatch.setattr(finnhub_client, "get_metric", lambda t: called.append(1) or {})
+        client = FundamentalClient()
+        full = MagicMock()
+        full.info = {"trailingPE": 30.0, "forwardPE": 24.0, "enterpriseToEbitda": 25.0}
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=full):
+            client.get_valuation_metrics("NVDA")
+        assert called == []
+
+
+def test_rating_revision_from_counts_helper():
+    from shared.api_clients.fundamental_client import _rating_revision_from_counts
+    up = {"buy_count_30d": 20, "hold_count_30d": 2, "sell_count_30d": 0,
+          "buy_count_90d": 10, "hold_count_90d": 8, "sell_count_90d": 4}
+    assert _rating_revision_from_counts(up) == "up"
+    assert _rating_revision_from_counts({}) is None

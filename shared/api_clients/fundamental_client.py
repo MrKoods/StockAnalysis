@@ -101,7 +101,7 @@ class FundamentalClient:
         except Exception as exc:
             logger.warning(f"{ticker}: yfinance info fetch failed — {exc}")
             write_validation_entry(ticker, "yfinance_info_error", str(exc))
-            return result
+            info = {}
 
         for field in fields:
             val = info.get(field)
@@ -112,6 +112,26 @@ class FundamentalClient:
             except (TypeError, ValueError):
                 continue
             result[field] = val
+
+        # Finnhub /stock/metric fallback for anything yfinance's .info didn't
+        # supply (2026-08 API audit) — reduces this layer's dependence on the
+        # single heaviest yfinance call. Finnhub has no EV/EBITDA for every
+        # name, so this fills gaps rather than replacing.
+        if any(result.get(f) is None for f in ("trailingPE", "forwardPE", "enterpriseToEbitda")):
+            try:
+                from shared.api_clients import finnhub_client
+                m = finnhub_client.get_metric(ticker)
+                _fill = {
+                    "trailingPE": m.get("peTTM") or m.get("peBasicExclExtraTTM"),
+                    "forwardPE": m.get("forwardPE"),
+                    "enterpriseToEbitda": m.get("evToEbitdaTTM"),
+                    "enterpriseToRevenue": m.get("evToRevenueTTM"),
+                }
+                for f, v in _fill.items():
+                    if result.get(f) is None and _safe_float(v) is not None:
+                        result[f] = _safe_float(v)
+            except Exception as exc:
+                logger.warning(f"{ticker}: Finnhub metric fallback failed — {exc}")
 
         # Flag suspect values
         suspect = []
@@ -380,6 +400,20 @@ class FundamentalClient:
             if latest.get(k) is not None
         } or None
 
+        # Seeking Alpha factor-grades: the Quant Rating plus 30-day vs 90-day
+        # analyst rating counts (2026-08 API audit). The 30/90-day split IS the
+        # rating-revision-direction signal `data_limitations` above says isn't
+        # available on any free tier — if the 30-day net buy score is stronger
+        # than the 90-day, analysts have been upgrading recently.
+        try:
+            from shared.api_clients import seeking_alpha_client
+            g = seeking_alpha_client.get_factor_grades(ticker)
+            if g:
+                result["sa_quant_rating"] = g.get("quant_rating")
+                result["sa_rating_revision"] = _rating_revision_from_counts(g)
+        except Exception as exc:
+            logger.warning(f"{ticker}: SA factor-grades fetch failed — {exc}")
+
         return result
 
     def get_all_fundamentals(self, ticker: str, fetch_eps_growth_trend: bool = True) -> dict:
@@ -494,6 +528,30 @@ class FundamentalClient:
             redact=self._redact,
             on_exhausted=_write_validation_entry,
         )
+
+
+def _rating_revision_from_counts(grades: dict) -> Optional[str]:
+    """
+    "up" / "down" / "flat" from a Seeking Alpha factor-grades dict's 30-day vs
+    90-day analyst buy/hold/sell counts. Net score per window = (buy - sell) /
+    total; "up" when the 30-day net is meaningfully above the 90-day (analysts
+    upgrading lately), "down" when below, "flat" otherwise. None if the counts
+    aren't present.
+    """
+    def _net(buy, hold, sell):
+        b, h, s = (grades.get(k) or 0 for k in (buy, hold, sell))
+        total = b + h + s
+        return (b - s) / total if total else None
+
+    n30 = _net("buy_count_30d", "hold_count_30d", "sell_count_30d")
+    n90 = _net("buy_count_90d", "hold_count_90d", "sell_count_90d")
+    if n30 is None or n90 is None:
+        return None
+    if n30 - n90 >= 0.10:
+        return "up"
+    if n30 - n90 <= -0.10:
+        return "down"
+    return "flat"
 
 
 def _safe_float(val) -> Optional[float]:

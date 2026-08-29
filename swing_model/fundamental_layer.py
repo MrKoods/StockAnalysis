@@ -315,7 +315,18 @@ class FundamentalScorer:
         prior_target = revisions.get("prior_analyst_target_price")
         data_limitations = revisions.get("data_limitations")
 
-        if target is not None and prior_target:
+        # First choice (2026-08 API audit): Seeking Alpha's 30-day vs 90-day
+        # analyst rating-count direction — a genuine revision-trend signal that
+        # needs no prior snapshot, unlike the target-price delta below.
+        sa_revision = revisions.get("sa_rating_revision")
+        if sa_revision in ("up", "down", "flat"):
+            estimate_revisions_score = {"up": 2, "flat": 0, "down": -2}[sa_revision]
+            breakdown["estimate_revisions"] = {
+                "sa_rating_revision": sa_revision,
+                "sa_quant_rating": revisions.get("sa_quant_rating"),
+                "note": "revision direction from Seeking Alpha 30d-vs-90d analyst rating counts",
+            }
+        elif target is not None and prior_target:
             target_change_pct = (target - prior_target) / abs(prior_target)
             if target_change_pct > self._TARGET_PRICE_REVISION_THRESHOLD:
                 estimate_revisions_score = 2
