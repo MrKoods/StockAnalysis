@@ -84,12 +84,12 @@ def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[s
     return updated
 
 
-def free_sources_flag_critical_event(
+def classify_free_source_critical(
     free_source_articles: list[dict],
     ticker: str,
     cfg: Optional[dict] = None,
     sector: Optional[str] = None,
-) -> bool:
+) -> Optional[tuple[str, str]]:
     """
     Cheap, local (no API cost) check for whether any already-fetched
     Yahoo/Finnhub/Seeking Alpha headline classifies as a critical event for
@@ -100,6 +100,15 @@ def free_sources_flag_critical_event(
     alike) fetches the three free sources first and only calls AV when one of
     them already flagged something critical, instead of spending a budgeted
     call on every ticker every day regardless of whether anything happened.
+
+    Returns (scope, trigger_match) for the first critical hit — scope is
+    SCOPE_SECTOR or SCOPE_TICKER — or None. The caller uses the scope to
+    de-duplicate: a SECTOR-scope critical (e.g. a market-wide tariff headline
+    that shows up in every semi's free-source feed) is the SAME event for all
+    11 tickers in the sector, so it only needs one AV cross-reference per scan,
+    not 11 — the per-ticker fetch there was exhausting the daily AV budget by
+    mid-morning on any day with active tariff/boycott news (v2.2.117).
+    TICKER-scope criticals stay per-ticker (they're specific and rare).
 
     Same classify_severity() rules compute_news_score() already applies to
     every article — this just runs them standalone, before AV is fetched,
@@ -113,10 +122,21 @@ def free_sources_flag_critical_event(
         if classified["severity"] != SEVERITY_CRITICAL:
             continue
         if classified["scope"] == SCOPE_SECTOR:
-            return True
+            return (SCOPE_SECTOR, classified["trigger_match"])
         if classified["scope"] == SCOPE_TICKER and is_ticker_relevant(title, ticker):
-            return True
-    return False
+            return (SCOPE_TICKER, classified["trigger_match"])
+    return None
+
+
+def free_sources_flag_critical_event(
+    free_source_articles: list[dict],
+    ticker: str,
+    cfg: Optional[dict] = None,
+    sector: Optional[str] = None,
+) -> bool:
+    """Bool wrapper over classify_free_source_critical() — kept for callers
+    that only need "was anything critical flagged" without the scope/trigger."""
+    return classify_free_source_critical(free_source_articles, ticker, cfg, sector=sector) is not None
 
 
 def _normalize_title(title: str) -> str:

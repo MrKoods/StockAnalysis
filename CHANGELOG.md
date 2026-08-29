@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.117 | 2026-08-29 | Bug Fix | The Alpha Vantage news budget (24 calls/day) was being exhausted by mid-morning on any day with active tariff or boycott news — 26–32 "budget exhausted, skipping news fetch" events on each of 2026-08-27/28, and the post-close scan (the one that actually picks trades) was the one left without. Cause: a market-wide headline like a new tariff shows up in *every* semiconductor stock's news feed, and the model was spending one AV call per stock to double-check the *same* event — ~11 calls for one piece of news, three times a day. Now a sector-wide event is cross-checked once per scan, not once per stock. Stock-specific critical news (a CEO resignation, a fraud charge) is unaffected. This can slightly change the news score for sector stocks on a big-news day; no weight or threshold moved |
 | v2.2.116 | 2026-08-29 | Infrastructure | Config housekeeping, no behaviour change. The two Alpha Vantage config blocks (`alpha_vantage` and a separate `alpha_vantage_budget` that carried its own, conflicting 25-vs-24 daily cap) are now one block — the per-scan call estimates the desktop UI shows before a scan moved under `alpha_vantage.per_scan_estimate`, and there is a single source of truth for the daily limit (24). Also removed the dead `POLYGON_API_KEY` line from `.env.example` (no code has referenced it since the price-source plan settled on the keys already held) and refreshed the key descriptions. No scoring weight, threshold, or data source changed |
 | v2.2.115 | 2026-08-29 | Bug Fix | Five bugs in the just-shipped API re-architecture (phases 1–3), found by verifying the first live scan and then testing the SEC path directly. Two were making the model read the *wrong* fundamentals: NVDA's gross margin came out at 2022's 65% instead of today's 75% because the code locked onto a data tag NVDA abandoned years ago, and year-over-year growth was comparing against the wrong quarter for any company that files an annual report instead of a Q4 quarterly (most of them). One was a performance bug: a normal "this company doesn't report that line item" response from the SEC triggered a 3½-minute retry storm per missing item. Plus the macro data cache never actually saved (silent write failure, re-fetched every scan) and a harmless log warning fired ~30×/scan. Backtest unchanged (live-only paths) |
 | v2.2.114 | 2026-08-29 | Data Source / Scoring Change | Phase 3 of the API re-architecture — the Fundamental layer's earnings and revenue history now comes from companies' own SEC filings (structured XBRL data) instead of two fragile Yahoo scrapes. The big win is regional banks: they have no "revenue" or "gross profit" line the old code understood, so this is the first time the model reads real bank fundamentals — net interest income, fee income, EPS history — straight from their 10-Qs. Foreign filers (TSM, ASML) that don't file US-style statements fall back to the old path. Backtest unchanged (the backtest reads a separate historical fundamentals archive, not this live path) |
@@ -196,6 +197,47 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.117] — 2026-08-29 — [Bug Fix] Sector-wide critical events were burning the Alpha Vantage budget per-ticker
+
+**Status:** Live. **Can change the news score** for sector stocks on a day with an active sector-wide
+critical event (they no longer each pick up a few extra Alpha Vantage articles about the same
+event) — no scoring weight, threshold, or formula changed. 1712 tests pass (7 new); ruff and all
+guardrail checkers pass.
+
+**The problem.** Alpha Vantage news is a confirmation-only source (v2.2.21): the scan fetches the
+three free sources (Yahoo, Finnhub, Seeking Alpha) for every ticker, and only spends an AV call when
+one of them has already flagged a **critical event** for that ticker, to cross-reference it against
+an independent source. `news_layer.classify_severity` splits critical events into two scopes —
+**ticker** (a CEO resignation, a fraud charge — specific to one company) and **sector** (a tariff, an
+export ban, a boycott — one event that hits every company in the sector).
+
+A sector-wide headline ("White House imposes new tariff on semiconductors") appears in the
+free-source news feed of **every** semiconductor ticker, on **every** scan. The old code called
+`free_sources_flag_critical_event` per ticker and fetched AV per ticker, so one tariff story cost
+~11 AV calls (one per semi) × 3 scans = ~33 calls against a 24/day budget — and consumer
+discretionary had its own ("boycott") on top. Result, verified in the logs: **26–32 "Alpha Vantage
+budget exhausted — skipping news fetch" events on 2026-08-27 and again on 2026-08-28**, and because
+the earliest scan spends the budget first, the reserved post-close share ran out too and the
+trade-picking scan lost AV news for a chunk of the watchlist.
+
+**The fix.** `classify_free_source_critical` now returns the `(scope, trigger)` of the first critical
+hit, and `run_swing_model._should_fetch_av_confirmation` de-dupes:
+
+- **ticker-scope critical** → fetch AV (unchanged — specific and rare).
+- **sector-scope critical** → fetch AV only for the *first* ticker to hit this `(sector, trigger)`
+  this scan, and only if there isn't already an active gate block for it. One AV cross-reference per
+  sector event per scan is all the confirmation adds — the sector block itself is created from the
+  free-source classification regardless of whether AV was called.
+
+Applied in both `run_swing_model.py` and `paper_trading/paper_runner.py` (identical loops). On a
+day with an active tariff + boycott, AV news usage drops from ~60+ attempted calls to ~2–6.
+
+**Backtest:** not re-run — the backtest scores against the `data/processed/fundamental_history/`
+archive and a fixed historical news set, not the live confirmation-only AV path, so this is
+live-only. No go-live gate input moved.
 
 ---
 

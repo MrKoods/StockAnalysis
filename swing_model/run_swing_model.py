@@ -44,7 +44,7 @@ from swing_model.cross_ticker_analysis import analyze_cross_ticker, get_cross_ti
 from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
-from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
+from swing_model.news_layer import compute_news_score, classify_free_source_critical
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
@@ -306,6 +306,12 @@ def _main_locked(scan_type: str = "post_close") -> None:
     # Step 8-9: Per-ticker scoring and signal evaluation
     tickers_processed = 0
     candidates = []
+    # A SECTOR-scope critical (market-wide tariff/boycott headline in every
+    # ticker's free-source feed) is one event, not one per ticker — cross-
+    # reference it with Alpha Vantage once per (sector, trigger) this scan, not
+    # once for all 11 sector members (which exhausted the AV budget by mid-
+    # morning on any active-tariff day — v2.2.117).
+    av_sector_confirmed: set[tuple[str, str]] = set()
     data_sources = {
         "yfinance": True, "StockTwits": False, "SeekingAlpha": False,
         "Alpha Vantage": True, "Finnhub": False, "SEC EDGAR": False,
@@ -396,8 +402,8 @@ def _main_locked(scan_type: str = "post_close") -> None:
             if sec_edgar_filings:
                 data_sources["SEC EDGAR"] = True
             free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
-            fetch_av_now = free_sources_flag_critical_event(
-                free_source_articles, ticker, cfg, sector=sector
+            fetch_av_now = _should_fetch_av_confirmation(
+                free_source_articles, ticker, cfg, sector, gate_state, av_sector_confirmed
             )
             av_articles = _fetch_av_news_safe(ticker, scan_type=scan_type, cfg=cfg) if fetch_av_now else []
             news = compute_news_score(
@@ -1514,6 +1520,43 @@ def _fetch_sa_engagement_safe(ticker: str) -> list[dict]:
     return _safe_fetch(
         "Seeking Alpha engagement", ticker, fetch_seeking_alpha_engagement, ticker, level="debug",
     )
+
+
+def _should_fetch_av_confirmation(
+    free_source_articles: list[dict],
+    ticker: str,
+    cfg: dict,
+    sector: Optional[str],
+    gate_state: dict,
+    av_sector_confirmed: set,
+) -> bool:
+    """
+    Decide whether to spend an Alpha Vantage call cross-referencing a critical
+    event a free source already flagged for `ticker`.
+
+    - No critical hit -> no fetch (unchanged).
+    - TICKER-scope critical -> fetch (specific and rare).
+    - SECTOR-scope critical -> fetch only for the FIRST ticker to hit this
+      (sector, trigger) pair this scan, and only if there isn't already an
+      active gate block for it. The same market-wide tariff/boycott headline
+      lands in every sector member's free-source feed on every scan, so the
+      per-ticker fetch was firing ~11x/sector/scan and exhausting the 24/day
+      AV budget before the post_close scan (the one that picks trades) ran.
+      One AV cross-reference per sector event per scan is all the confirmation
+      adds — the sector block itself is created from the free-source
+      classification regardless (v2.2.117).
+    """
+    hit = classify_free_source_critical(free_source_articles, ticker, cfg, sector=sector)
+    if hit is None:
+        return False
+    scope, trigger = hit
+    if scope != SCOPE_SECTOR:
+        return True
+    key = (sector or "", trigger)
+    if key in av_sector_confirmed or has_active_block_for_trigger(gate_state, trigger, SCOPE_SECTOR):
+        return False
+    av_sector_confirmed.add(key)
+    return True
 
 
 def _fetch_av_news_safe(

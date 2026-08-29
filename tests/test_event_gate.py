@@ -569,6 +569,67 @@ class TestFreeSourcesFlagCriticalEvent:
         assert free_sources_flag_critical_event(sa_articles, "AMD", cfg) is False
 
 
+class TestClassifyFreeSourceCritical:
+    """classify_free_source_critical() returns (scope, trigger) so the caller
+    can de-dupe a SECTOR-scope critical to one AV cross-reference per scan."""
+
+    def test_returns_sector_scope_and_trigger(self):
+        from swing_model.news_layer import classify_free_source_critical
+        arts = [{"title": "White House imposes new tariff on chip imports", "source": "seekingalpha.com"}]
+        assert classify_free_source_critical(arts, "NVDA", _gate_cfg(), sector="semiconductors") == (
+            SCOPE_SECTOR, "tariff",
+        )
+
+    def test_returns_ticker_scope_and_trigger(self):
+        from swing_model.news_layer import classify_free_source_critical
+        arts = [{"title": "AMD CEO resigns amid controversy", "source": "seekingalpha.com"}]
+        assert classify_free_source_critical(arts, "AMD", _gate_cfg()) == (SCOPE_TICKER, "CEO resigns")
+
+    def test_returns_none_on_normal_headline(self):
+        from swing_model.news_layer import classify_free_source_critical
+        arts = [{"title": "NVDA gains share on AI demand", "source": "seekingalpha.com"}]
+        assert classify_free_source_critical(arts, "NVDA", _gate_cfg()) is None
+
+
+class TestShouldFetchAvConfirmation:
+    """_should_fetch_av_confirmation() — a market-wide tariff/boycott headline
+    lands in every sector member's free-source feed on every scan, so the AV
+    cross-reference must fire once per (sector, trigger) per scan, not once per
+    ticker (which exhausted the 24/day AV budget — v2.2.117)."""
+
+    def _sector_tariff_article(self):
+        return [{"title": "White House imposes sweeping new tariff on semiconductors", "source": "seekingalpha.com"}]
+
+    def test_first_sector_ticker_fetches_rest_do_not(self):
+        from swing_model.run_swing_model import _should_fetch_av_confirmation
+        cfg, gate_state, seen = _gate_cfg(), {"blocks": []}, set()
+        arts = self._sector_tariff_article()
+        assert _should_fetch_av_confirmation(arts, "NVDA", cfg, "semiconductors", gate_state, seen) is True
+        assert _should_fetch_av_confirmation(arts, "AMD", cfg, "semiconductors", gate_state, seen) is False
+        assert _should_fetch_av_confirmation(arts, "AVGO", cfg, "semiconductors", gate_state, seen) is False
+        assert seen == {("semiconductors", "tariff")}
+
+    def test_skips_entirely_when_an_active_block_already_exists(self):
+        from swing_model.run_swing_model import _should_fetch_av_confirmation
+        gate_state = {"blocks": [{"trigger_match": "tariff", "scope": SCOPE_SECTOR, "expired": False}]}
+        assert _should_fetch_av_confirmation(
+            self._sector_tariff_article(), "NVDA", _gate_cfg(), "semiconductors", gate_state, set()
+        ) is False
+
+    def test_ticker_scope_critical_still_fetches_per_ticker(self):
+        from swing_model.run_swing_model import _should_fetch_av_confirmation
+        cfg, gate_state, seen = _gate_cfg(), {"blocks": []}, set()
+        amd = [{"title": "AMD CEO resigns amid controversy", "source": "seekingalpha.com"}]
+        nvda = [{"title": "NVDA CEO resigns amid controversy", "source": "seekingalpha.com"}]
+        assert _should_fetch_av_confirmation(amd, "AMD", cfg, "semiconductors", gate_state, seen) is True
+        assert _should_fetch_av_confirmation(nvda, "NVDA", cfg, "semiconductors", gate_state, seen) is True
+
+    def test_no_critical_no_fetch(self):
+        from swing_model.run_swing_model import _should_fetch_av_confirmation
+        arts = [{"title": "NVDA gains share on AI demand", "source": "seekingalpha.com"}]
+        assert _should_fetch_av_confirmation(arts, "NVDA", _gate_cfg(), "semiconductors", {"blocks": []}, set()) is False
+
+
 # ---------------------------------------------------------------------------
 # scoring.compute_confidence_score — advisory flag, not a score input
 # ---------------------------------------------------------------------------

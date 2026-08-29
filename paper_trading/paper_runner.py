@@ -34,7 +34,7 @@ except ImportError:
 from app_ui import db as app_db
 from swing_model.indicator_pipeline import run_pipeline, load_config
 from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
-from swing_model.news_layer import compute_news_score, free_sources_flag_critical_event
+from swing_model.news_layer import compute_news_score
 from swing_model.scoring import (
     compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction,
     TECHNICAL_MAX, SENTIMENT_MAX, NEWS_MAX,
@@ -85,6 +85,7 @@ from swing_model.run_swing_model import (
     _fetch_stocktwits_safe,
     _fetch_sa_engagement_safe,
     _fetch_av_news_safe,
+    _should_fetch_av_confirmation,
     _fetch_yahoo_news_safe,
     _fetch_finnhub_news_safe,
     _fetch_sec_edgar_safe,
@@ -761,6 +762,9 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
         cross_ticker.update(_compute_cross_ticker_safe(sector_indicators, sector_ohlcv, cfg))
 
     signals_logged = 0
+    # One AV cross-reference per (sector, trigger) per scan, not one per ticker
+    # — see run_swing_model._should_fetch_av_confirmation (v2.2.117).
+    av_sector_confirmed: set[tuple[str, str]] = set()
 
     for ticker in watchlist:
         # Reset every iteration, before the try block, so a failure on THIS
@@ -832,8 +836,8 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             finnhub_articles = _fetch_finnhub_news_safe(ticker)
             sec_edgar_filings = _fetch_sec_edgar_safe(ticker) + sector_context_filings.get(sector, [])
             free_source_articles = sa_news_articles + yahoo_articles + finnhub_articles + sec_edgar_filings
-            fetch_av_now = free_sources_flag_critical_event(
-                free_source_articles, ticker, cfg, sector=sector
+            fetch_av_now = _should_fetch_av_confirmation(
+                free_source_articles, ticker, cfg, sector, gate_state, av_sector_confirmed
             )
             av_articles = _fetch_av_news_safe(ticker, scan_type=scan_type, cfg=cfg) if fetch_av_now else []
             news = compute_news_score(
