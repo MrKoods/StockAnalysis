@@ -14,7 +14,7 @@ data/processed/positioning_state.json), same pattern as fundamental_client.py's
 weekly cache comparison.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 import pandas as pd
@@ -403,65 +403,77 @@ def fetch_short_interest(ticker: str, cfg: Optional[dict] = None) -> dict:
 
 def fetch_analyst_rating_trend(ticker: str, lookback_days: Optional[int] = None, cfg: Optional[dict] = None) -> dict:
     """
-    Fetch recent analyst rating *changes* (upgrades/downgrades) via yfinance
-    Ticker.upgrades_downgrades — distinct from the static recommendationMean
-    level already scored by the Fundamental layer's analyst_consensus_score.
+    Recent analyst rating *movement* (the trend, not the level — that's the
+    Fundamental layer's analyst_consensus_score) from Finnhub's
+    /stock/recommendation monthly breakdown.
 
-    lookback_days: explicit override, else read from
-    config.positioning.analyst_trend_lookback_days (default 30) — Tier B
-    batch 2 (2026-08-19).
+    Replaced yfinance Ticker.upgrades_downgrades (2026-08 API audit, MR-3):
+    that frame's Action strings were unstructured and the date filtering had a
+    tz-localize fallback path that quietly returned every row. Finnhub gives a
+    clean monthly {strongBuy, buy, hold, sell, strongSell} series going back
+    years; the movement is the change in a weighted bull-minus-bear score
+    between the latest month and ~lookback_days earlier.
 
-    Returns dict:
-      recent_upgrades   — count of upgrade actions in lookback window
-      recent_downgrades — count of downgrade actions in lookback window
-      net_action        — 'upgrade' | 'downgrade' | 'mixed' | 'none'
-      suspect_fields
+    lookback_days: how far back the comparison month sits, in days (config
+    positioning.analyst_trend_lookback_days, default 30 => compare to ~1 month
+    ago).
+
+    Returns {recent_upgrades, recent_downgrades, net_action ('upgrade' |
+    'downgrade' | 'mixed' | 'none'), suspect_fields}. The upgrade/downgrade
+    counts are now the number of rating notches the weighted score moved (kept
+    for the audit trail); net_action is what the scorer reads.
     """
     if lookback_days is None:
         lookback_days = int((cfg or {}).get("positioning", {}).get("analyst_trend_lookback_days", 30))
     result = {"recent_upgrades": 0, "recent_downgrades": 0, "net_action": "none", "suspect_fields": []}
 
-    def _fetch():
-        t = yf.Ticker(ticker)
-        df = getattr(t, "upgrades_downgrades", None)
-        return df
-
-    df = retry_with_backoff(_fetch, label=f"fetch_analyst_rating_trend({ticker})")
-    if df is None or df.empty:
-        result["suspect_fields"].append("upgrades_downgrades")
+    from shared.api_clients import finnhub_client
+    series = finnhub_client.get_recommendation_trend(ticker)
+    if not series or len(series) < 2:
+        result["suspect_fields"].append("recommendation_trend")
         return result
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
-    try:
-        idx = df.index
-        if not hasattr(idx, "tz") or idx.tz is None:
-            recent = df[idx.tz_localize("UTC") >= cutoff] if hasattr(idx, "tz_localize") else df
-        else:
-            recent = df[idx >= cutoff]
-    except Exception:
-        recent = df.head(20)  # fallback: most recent N rows if date filtering fails
+    # series is most-recent-first. Pick the comparison month ~lookback_days back
+    # (each row is ~1 month apart), clamped to what's available.
+    months_back = max(1, round(lookback_days / 30))
+    latest = series[0]
+    prior = series[min(months_back, len(series) - 1)]
 
-    upgrades = 0
-    downgrades = 0
-    for _, row in recent.iterrows():
-        action = str(row.get("Action", "")).lower()
-        if action == "up":
-            upgrades += 1
-        elif action == "down":
-            downgrades += 1
-
-    result["recent_upgrades"] = upgrades
-    result["recent_downgrades"] = downgrades
-    if upgrades > 0 and downgrades == 0:
+    delta = _weighted_rating_score(latest) - _weighted_rating_score(prior)
+    # ~0.15 of a notch on the -2..+2 weighted scale is a meaningful shift; below
+    # that is noise from one analyst reshuffling buy<->strongBuy.
+    if delta >= 0.15:
         result["net_action"] = "upgrade"
-    elif downgrades > 0 and upgrades == 0:
+        result["recent_upgrades"] = round(delta, 2)
+    elif delta <= -0.15:
         result["net_action"] = "downgrade"
-    elif upgrades > 0 and downgrades > 0:
-        result["net_action"] = "mixed"
+        result["recent_downgrades"] = round(-delta, 2)
     else:
-        result["net_action"] = "none"
+        # Flat weighted score but real churn underneath (buy count up AND sell
+        # count up) reads as "mixed"; a genuinely unchanged board reads "none".
+        churn = (
+            abs(int(latest.get("buy", 0) or 0) + int(latest.get("strongBuy", 0) or 0)
+                - int(prior.get("buy", 0) or 0) - int(prior.get("strongBuy", 0) or 0))
+            + abs(int(latest.get("sell", 0) or 0) + int(latest.get("strongSell", 0) or 0)
+                  - int(prior.get("sell", 0) or 0) - int(prior.get("strongSell", 0) or 0))
+        )
+        result["net_action"] = "mixed" if churn >= 3 else "none"
 
     return result
+
+
+def _weighted_rating_score(row: dict) -> float:
+    """A -2..+2 consensus score from a Finnhub recommendation row: strongBuy=+2,
+    buy=+1, hold=0, sell=-1, strongSell=-2, count-weighted."""
+    sb = int(row.get("strongBuy", 0) or 0)
+    b = int(row.get("buy", 0) or 0)
+    h = int(row.get("hold", 0) or 0)
+    s = int(row.get("sell", 0) or 0)
+    ss = int(row.get("strongSell", 0) or 0)
+    total = sb + b + h + s + ss
+    if total == 0:
+        return 0.0
+    return (2 * sb + b - s - 2 * ss) / total
 
 
 def fetch_all_positioning(

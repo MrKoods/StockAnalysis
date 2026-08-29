@@ -226,26 +226,45 @@ class TestFetchShortInterestConfigWiredThresholds:
         assert result["trend"] == "increasing"
 
 
-class TestFetchAnalystRatingTrendConfigWiredLookback:
-    """Tier B batch 2 (2026-08-19): lookback_days now defaults from config
-    (positioning.analyst_trend_lookback_days) instead of a hardcoded 30."""
+class TestFetchAnalystRatingTrend:
+    """MR-3 (2026-08 API audit): analyst-rating trend now comes from Finnhub
+    /stock/recommendation (a clean monthly strongBuy/buy/hold/sell/strongSell
+    series) instead of yfinance Ticker.upgrades_downgrades."""
 
-    def test_explicit_lookback_days_still_wins_over_config(self, monkeypatch):
-        captured = {}
+    @staticmethod
+    def _series(monkeypatch, rows):
+        from shared.api_clients import finnhub_client
+        monkeypatch.setattr(finnhub_client, "get_recommendation_trend", lambda t: rows)
 
-        def _fake_retry(fn, label=None):
-            captured["called"] = True
-            return None  # no data — just verifying which lookback value is live
+    def test_no_data_is_neutral(self, monkeypatch):
+        self._series(monkeypatch, [])
+        assert fetch_analyst_rating_trend("NVDA")["net_action"] == "none"
 
-        monkeypatch.setattr(positioning_client, "retry_with_backoff", _fake_retry)
-        result = fetch_analyst_rating_trend("NVDA", lookback_days=10, cfg={"positioning": {"analyst_trend_lookback_days": 60}})
-        assert captured["called"] is True
-        assert result["net_action"] == "none"  # no data returned, sanity check the call succeeded
+    def test_board_shifting_bullish_reads_as_upgrade(self, monkeypatch):
+        self._series(monkeypatch, [
+            {"period": "2026-08-01", "strongBuy": 20, "buy": 5, "hold": 2, "sell": 0, "strongSell": 0},
+            {"period": "2026-07-01", "strongBuy": 5, "buy": 15, "hold": 5, "sell": 2, "strongSell": 1},
+        ])
+        r = fetch_analyst_rating_trend("NVDA", lookback_days=30)
+        assert r["net_action"] == "upgrade" and r["recent_upgrades"] > 0
 
-    def test_config_default_used_when_no_explicit_override(self, monkeypatch):
-        # Purely confirms this doesn't raise / reads cfg without an explicit
-        # lookback_days override — the actual lookback value only affects
-        # which yfinance rows get filtered, not observable without real data.
-        monkeypatch.setattr(positioning_client, "retry_with_backoff", lambda fn, label=None: None)
-        result = fetch_analyst_rating_trend("NVDA", cfg={"positioning": {"analyst_trend_lookback_days": 60}})
-        assert result["net_action"] == "none"
+    def test_board_shifting_bearish_reads_as_downgrade(self, monkeypatch):
+        self._series(monkeypatch, [
+            {"period": "2026-08-01", "strongBuy": 2, "buy": 3, "hold": 8, "sell": 6, "strongSell": 4},
+            {"period": "2026-07-01", "strongBuy": 10, "buy": 8, "hold": 3, "sell": 1, "strongSell": 0},
+        ])
+        assert fetch_analyst_rating_trend("NVDA")["net_action"] == "downgrade"
+
+    def test_flat_board_reads_as_none(self, monkeypatch):
+        row = {"period": "x", "strongBuy": 10, "buy": 10, "hold": 5, "sell": 1, "strongSell": 0}
+        self._series(monkeypatch, [dict(row, period="2026-08-01"), dict(row, period="2026-07-01")])
+        assert fetch_analyst_rating_trend("NVDA")["net_action"] == "none"
+
+    def test_lookback_days_selects_comparison_month(self, monkeypatch):
+        # 3 months of data; lookback_days=90 should compare Aug to May.
+        self._series(monkeypatch, [
+            {"period": "2026-08-01", "strongBuy": 20, "buy": 2, "hold": 1, "sell": 0, "strongSell": 0},
+            {"period": "2026-07-01", "strongBuy": 19, "buy": 3, "hold": 1, "sell": 0, "strongSell": 0},
+            {"period": "2026-05-01", "strongBuy": 1, "buy": 5, "hold": 10, "sell": 5, "strongSell": 2},
+        ])
+        assert fetch_analyst_rating_trend("NVDA", lookback_days=90)["net_action"] == "upgrade"
