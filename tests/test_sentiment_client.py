@@ -195,6 +195,26 @@ class TestRapidapiGetCircuitBreaker:
         assert calls["n"] == 1  # fails fast, no retry burned
         assert sc._consecutive_failures.get("host-b", 0) == 0
 
+    def test_empty_non_json_body_fails_fast_no_retry(self):
+        """RapidAPI SA answers 'no data for this symbol' / soft rate-limit with
+        an empty 200 body — raise_for_status passes, resp.json() throws. That's
+        not transient; it must not burn the 30s->60s->120s ladder (~12 such
+        Seeking Alpha retries over 2 days pre-fix)."""
+        calls = {"n": 0}
+
+        def _side_effect(*a, **k):
+            calls["n"] += 1
+            resp = MagicMock()
+            resp.raise_for_status.return_value = None
+            resp.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
+            return resp
+
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=_side_effect):
+            result = sc._rapidapi_get("https://x.test", "host-empty", "key")
+        assert result is None
+        assert calls["n"] == 1
+        assert sc._consecutive_failures.get("host-empty", 0) == 0  # not counted as an outage
+
     def test_429_is_retried_through_full_schedule(self):
         calls = {"n": 0}
 

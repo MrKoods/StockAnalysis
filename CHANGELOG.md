@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.118 | 2026-08-29 | Bug Fix | Small reliability fix on the RapidAPI (StockTwits / Seeking Alpha) path: when the service answers "no data for this symbol" (or soft rate-limits) with an empty response body, the model was treating it as a temporary outage and retrying three times with 30/60/120-second waits — ~90 seconds wasted per occurrence, ~12 times over two days on the Seeking Alpha engagement feed. An empty body is now taken at face value as "no data" and skipped immediately. No scoring effect (the feed returned nothing either way — just faster) |
 | v2.2.117 | 2026-08-29 | Bug Fix | The Alpha Vantage news budget (24 calls/day) was being exhausted by mid-morning on any day with active tariff or boycott news — 26–32 "budget exhausted, skipping news fetch" events on each of 2026-08-27/28, and the post-close scan (the one that actually picks trades) was the one left without. Cause: a market-wide headline like a new tariff shows up in *every* semiconductor stock's news feed, and the model was spending one AV call per stock to double-check the *same* event — ~11 calls for one piece of news, three times a day. Now a sector-wide event is cross-checked once per scan, not once per stock. Stock-specific critical news (a CEO resignation, a fraud charge) is unaffected. This can slightly change the news score for sector stocks on a big-news day; no weight or threshold moved |
 | v2.2.116 | 2026-08-29 | Infrastructure | Config housekeeping, no behaviour change. The two Alpha Vantage config blocks (`alpha_vantage` and a separate `alpha_vantage_budget` that carried its own, conflicting 25-vs-24 daily cap) are now one block — the per-scan call estimates the desktop UI shows before a scan moved under `alpha_vantage.per_scan_estimate`, and there is a single source of truth for the daily limit (24). Also removed the dead `POLYGON_API_KEY` line from `.env.example` (no code has referenced it since the price-source plan settled on the keys already held) and refreshed the key descriptions. No scoring weight, threshold, or data source changed |
 | v2.2.115 | 2026-08-29 | Bug Fix | Five bugs in the just-shipped API re-architecture (phases 1–3), found by verifying the first live scan and then testing the SEC path directly. Two were making the model read the *wrong* fundamentals: NVDA's gross margin came out at 2022's 65% instead of today's 75% because the code locked onto a data tag NVDA abandoned years ago, and year-over-year growth was comparing against the wrong quarter for any company that files an annual report instead of a Q4 quarterly (most of them). One was a performance bug: a normal "this company doesn't report that line item" response from the SEC triggered a 3½-minute retry storm per missing item. Plus the macro data cache never actually saved (silent write failure, re-fetched every scan) and a harmless log warning fired ~30×/scan. Backtest unchanged (live-only paths) |
@@ -197,6 +198,24 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.118] — 2026-08-29 — [Bug Fix] Don't retry an empty RapidAPI body through the backoff ladder
+
+**Status:** Live. No scoring effect. 1713 tests pass (1 new); ruff and all guardrail checkers pass.
+
+`sentiment_client._rapidapi_get` (StockTwits + Seeking Alpha, via RapidAPI) retried on any exception
+except a non-429 4xx. But this host returns an **empty / non-JSON 200 body** for "no data for this
+symbol" and as a soft rate-limit — `resp.raise_for_status()` passes, `resp.json()` then raises
+`JSONDecodeError`, which isn't an `HTTPError`, so it ran the full 30s → 60s → 120s retry schedule.
+Observed: ~12 Seeking Alpha "Expecting value: line 1 column 1 (char 0)" retries over 2026-08-27/28,
+~90s wasted each, on a non-critical enrichment feed that has a cache fallback anyway.
+
+`_should_retry` now also stops on `ValueError` (the base class of both `json.JSONDecodeError` and
+`requests.exceptions.JSONDecodeError`; `resp.json()` is the only `ValueError` source in the GET
+closure). An empty body is treated as a definitive "no data" — not counted as an outage, so it
+doesn't trip the circuit breaker either.
 
 ---
 

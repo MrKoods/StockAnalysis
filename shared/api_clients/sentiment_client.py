@@ -288,6 +288,19 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
                 logger.warning(f"RapidAPI request rejected with HTTP {status} (no retry): {exc}")
                 rejected = True
                 return False
+        # An empty / non-JSON 200 body (raise_for_status passed, resp.json()
+        # then threw) is how this RapidAPI host answers "no data for this
+        # symbol" and how it soft-rate-limits — neither is transient, so
+        # burning the 30s->60s->120s ladder on it is pure waste (observed:
+        # ~12 Seeking Alpha "Expecting value: line 1 column 1" retries over
+        # 2 days, ~90s each). Treat it as a definitive empty result.
+        # (json.JSONDecodeError and requests.exceptions.JSONDecodeError both
+        # subclass ValueError; resp.json() is the only ValueError source in the
+        # GET closure.)
+        if isinstance(exc, ValueError):
+            logger.warning(f"RapidAPI {host}: empty/non-JSON body (no retry) — treating as no data")
+            rejected = True
+            return False
         return True
 
     label = f"RapidAPI {host}" + (" (circuit open, single probe)" if circuit_open else "")
