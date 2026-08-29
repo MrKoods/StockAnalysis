@@ -268,3 +268,40 @@ class TestFetchAnalystRatingTrend:
             {"period": "2026-05-01", "strongBuy": 1, "buy": 5, "hold": 10, "sell": 5, "strongSell": 2},
         ])
         assert fetch_analyst_rating_trend("NVDA", lookback_days=90)["net_action"] == "upgrade"
+
+
+class TestFetchAllPositioningNewFields:
+    """MSPR + SEC ownership filings are recorded on the positioning data (audit
+    trail / future scoring), not yet a scored sub-signal (2026-08 API audit)."""
+
+    def _stub_yf(self, monkeypatch):
+        # Every yfinance-backed sub-fetch degrades to empty/None quickly.
+        import shared.api_clients.positioning_client as pc
+        monkeypatch.setattr(pc, "fetch_option_chain_metrics", lambda *a, **k: {})
+        monkeypatch.setattr(pc, "fetch_institutional_ownership", lambda *a, **k: {})
+        monkeypatch.setattr(pc, "fetch_short_interest", lambda *a, **k: {})
+        monkeypatch.setattr(pc, "fetch_analyst_rating_trend", lambda *a, **k: {})
+        monkeypatch.setattr(pc, "fetch_insider_transactions", lambda *a, **k: [])
+
+    def test_mspr_and_ownership_filings_recorded(self, monkeypatch):
+        from shared.api_clients import positioning_client as pc, finnhub_client
+        from shared.api_clients import sec_edgar_client
+        self._stub_yf(monkeypatch)
+        monkeypatch.setattr(finnhub_client, "get_insider_mspr",
+                            lambda t: [{"year": 2026, "month": 8, "mspr": -42.0, "change": -1000}])
+        monkeypatch.setattr(sec_edgar_client, "fetch_recent_ownership_filings",
+                            lambda t, **k: {"activist_13d": [{"form": "SC 13D", "filingDate": "2026-08-01", "accessionNumber": "a"}],
+                                            "passive_13g": [], "institutional_13f": [], "insider_form4": []})
+        out = pc.fetch_all_positioning("NVDA")
+        assert out["insider_mspr"]["mspr"] == -42.0
+        assert len(out["ownership_filings"]["activist_13d"]) == 1
+
+    def test_new_field_fetch_failures_are_non_fatal(self, monkeypatch):
+        from shared.api_clients import positioning_client as pc, finnhub_client
+        from shared.api_clients import sec_edgar_client
+        self._stub_yf(monkeypatch)
+        monkeypatch.setattr(finnhub_client, "get_insider_mspr", lambda t: (_ for _ in ()).throw(RuntimeError("boom")))
+        monkeypatch.setattr(sec_edgar_client, "fetch_recent_ownership_filings", lambda t, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        out = pc.fetch_all_positioning("NVDA")
+        assert out["insider_mspr"] is None and out["ownership_filings"] is None
+        assert out["ticker"] == "NVDA"  # rest of the dict still intact

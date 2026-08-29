@@ -496,6 +496,14 @@ def fetch_all_positioning(
         "short_interest": None,
         "analyst_trend": None,
         "insider_transactions": None,
+        # Recorded for the audit trail / future scoring, not yet a scored
+        # sub-signal (2026-08 API audit): insider_mspr is Finnhub's aggregated
+        # monthly buy/sell pressure (-100..+100); ownership_filings surfaces
+        # activist (SC 13D) / passive (SC 13G) / institutional (13F) / insider
+        # (Form 4) filings from SEC's submissions feed — the 13D/13G activist
+        # signal the model has never had.
+        "insider_mspr": None,
+        "ownership_filings": None,
     }
 
     try:
@@ -527,5 +535,24 @@ def fetch_all_positioning(
     except Exception as exc:
         logger.error(f"{ticker}: fetch_insider_transactions failed — {exc}")
         write_validation_entry(ticker, "positioning_insider_error", str(exc))
+
+    try:
+        from shared.api_clients import finnhub_client
+        mspr = finnhub_client.get_insider_mspr(ticker)
+        result["insider_mspr"] = mspr[0] if mspr else None  # most recent month
+    except Exception as exc:
+        logger.warning(f"{ticker}: insider MSPR fetch failed — {exc}")
+
+    try:
+        from shared.api_clients.sec_edgar_client import fetch_recent_ownership_filings
+        of = fetch_recent_ownership_filings(ticker)
+        result["ownership_filings"] = of
+        if of.get("activist_13d"):
+            logger.info(
+                f"{ticker}: SEC 13D activist filing(s) in the last 120d — "
+                f"{[f['filingDate'] for f in of['activist_13d']]} (log-only signal, not scored yet)"
+            )
+    except Exception as exc:
+        logger.warning(f"{ticker}: ownership-filings fetch failed — {exc}")
 
     return result
