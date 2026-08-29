@@ -58,6 +58,14 @@ _TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
 _BROWSE_EDGAR_URL = "https://www.sec.gov/cgi-bin/browse-edgar"
 _ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
+# data.sec.gov JSON API — the fast structured feed (submissions history +
+# XBRL financial facts), distinct from the slow browse-edgar Atom endpoint the
+# news-filing path above uses. One submissions call returns a company's entire
+# recent filing list with form types; one companyconcept call returns a single
+# financial line item as a full time series.
+_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
+_COMPANY_CONCEPT_URL = "https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/{taxonomy}/{concept}.json"
+
 # Items where earnings/operational commentary (and so capex commentary)
 # actually shows up: 2.02 (results of operations), 7.01 (Reg FD — often an
 # investor-update press release), 8.01 (other events — catch-all, used for
@@ -470,3 +478,162 @@ def fetch_hyperscaler_capex_snippets(
 
     logger.info(f"SEC EDGAR: fetched {len(articles)} capex-context snippet(s) for {ticker}.")
     return articles
+
+
+# ===========================================================================
+# data.sec.gov JSON API — structured filing history + XBRL financial facts.
+# Used by the Fundamental layer (companyfacts) and Positioning (13F/13D-G/Form4
+# detection from the submissions feed). Free, uncapped, no key.
+# ===========================================================================
+
+
+def _get_json(url: str) -> Optional[dict]:
+    """GET a data.sec.gov JSON endpoint (via the paced _get_with_backoff). Returns the parsed dict or None."""
+    resp = _get_with_backoff(url)
+    if resp is None:
+        return None
+    try:
+        return resp.json()
+    except ValueError as exc:
+        logger.warning(f"[sec_edgar] {url}: response wasn't JSON ({exc})")
+        return None
+
+
+def fetch_submissions(ticker: str) -> Optional[dict]:
+    """
+    A company's recent filing history from data.sec.gov/submissions/CIK.json —
+    one call returns the last ~1000 filings with form type, date, and accession
+    number. Cached ~20h (cache.TTL["sec_submissions"]).
+
+    Returns the trimmed dict {cik, name, recent: [{form, filingDate,
+    accessionNumber, primaryDocument}, ...]} or None if the CIK can't be
+    resolved / the request fails.
+    """
+    cik = _load_ticker_cik_map().get(ticker.upper())
+    if not cik:
+        logger.warning(f"[sec_edgar] No CIK for {ticker} — cannot fetch submissions.")
+        return None
+
+    def _fetch():
+        data = _get_json(_SUBMISSIONS_URL.format(cik=cik))
+        if not data:
+            return None
+        recent = data.get("filings", {}).get("recent", {})
+        forms = recent.get("form", [])
+        dates = recent.get("filingDate", [])
+        accns = recent.get("accessionNumber", [])
+        docs = recent.get("primaryDocument", [])
+        rows = [
+            {
+                "form": forms[i],
+                "filingDate": dates[i] if i < len(dates) else None,
+                "accessionNumber": accns[i] if i < len(accns) else None,
+                "primaryDocument": docs[i] if i < len(docs) else None,
+            }
+            for i in range(len(forms))
+        ]
+        return {"cik": cik, "name": data.get("name", ""), "recent": rows}
+
+    return cache.cached_call("sec_submissions", f"subs_{ticker}", cache.TTL["sec_submissions"], _fetch)
+
+
+# Forms that signal informed-money positioning, checked against the submissions
+# feed. 13F-HR = institutional manager holdings (quarterly). SC 13D = an
+# activist / control-intent >5% stake. SC 13G = a passive >5% stake. 4 = an
+# insider (officer/director/10% holder) transaction. Suffixed variants (/A
+# amendments, 13F-HR/A, SC 13D/A) are matched by prefix.
+_POSITIONING_FORM_PREFIXES = ("SC 13D", "SC 13G", "13F-HR", "4")
+
+
+def fetch_recent_ownership_filings(ticker: str, lookback_days: int = 120) -> dict:
+    """
+    Pull recent ownership/positioning filings for `ticker` out of its
+    submissions feed: activist/passive >5% stakes (SC 13D/13G), institutional
+    holdings reports (13F-HR), and insider transactions (Form 4).
+
+    Returns {"activist_13d": [...], "passive_13g": [...], "institutional_13f":
+    [...], "insider_form4": [...]} where each list holds {form, filingDate,
+    accessionNumber} dicts inside the lookback window, most-recent-first.
+    Empty lists (never None) so callers can treat "no filing" as a real,
+    neutral signal. Cached via fetch_submissions.
+    """
+    out = {"activist_13d": [], "passive_13g": [], "institutional_13f": [], "insider_form4": []}
+    subs = fetch_submissions(ticker)
+    if not subs:
+        return out
+
+    cutoff = (datetime.now(timezone.utc).date()).toordinal() - lookback_days
+    bucket = {
+        "SC 13D": "activist_13d",
+        "SC 13G": "passive_13g",
+        "13F-HR": "institutional_13f",
+        "4": "insider_form4",
+    }
+    for row in subs["recent"]:
+        form = (row.get("form") or "").strip()
+        fdate = row.get("filingDate")
+        try:
+            if fdate and datetime.strptime(fdate, "%Y-%m-%d").date().toordinal() < cutoff:
+                continue
+        except ValueError:
+            continue
+        for prefix, key in bucket.items():
+            if form == prefix or form.startswith(prefix + "/"):
+                out[key].append({
+                    "form": form,
+                    "filingDate": fdate,
+                    "accessionNumber": row.get("accessionNumber"),
+                })
+                break
+    return out
+
+
+def fetch_financial_facts(ticker: str, concepts: list[str], taxonomy: str = "us-gaap") -> dict:
+    """
+    Fetch a set of XBRL financial line items for `ticker` from
+    data.sec.gov/api/xbrl/companyconcept — one HTTP call per concept, each
+    cached ~7 days (cache.TTL["sec_companyfacts"]).
+
+    concepts: GAAP concept names, e.g. ["Revenues", "GrossProfit",
+      "ResearchAndDevelopmentExpense"] for semis, or ["Deposits",
+      "InterestAndDividendIncomeOperating", "NetIncomeLoss"] for banks.
+
+    Returns {concept: [{"end": "YYYY-MM-DD", "val": float, "fy": int,
+    "fp": "Q1".."FY", "form": "10-Q"|"10-K"}, ...]} sorted oldest-first, with
+    only the most recent value per period end kept (later amendments win).
+    A concept with no data (the filer tags it differently, or doesn't report
+    it) is simply absent from the returned dict.
+    """
+    cik = _load_ticker_cik_map().get(ticker.upper())
+    if not cik:
+        return {}
+
+    result: dict = {}
+    for concept in concepts:
+        def _fetch(_c=concept):
+            data = _get_json(_COMPANY_CONCEPT_URL.format(cik=cik, taxonomy=taxonomy, concept=_c))
+            if not data:
+                return None
+            points: dict = {}
+            for unit_key, entries in (data.get("units") or {}).items():
+                for e in entries:
+                    end = e.get("end")
+                    if not end or e.get("val") is None:
+                        continue
+                    points[end] = {
+                        "end": end,
+                        "val": float(e["val"]),
+                        "fy": e.get("fy"),
+                        "fp": e.get("fp"),
+                        "form": e.get("form"),
+                        "unit": unit_key,
+                    }
+            return sorted(points.values(), key=lambda p: p["end"]) or None
+
+        series = cache.cached_call(
+            "sec_companyfacts", f"{ticker}_{taxonomy}_{concept}",
+            cache.TTL["sec_companyfacts"], _fetch,
+        )
+        if series:
+            result[concept] = series
+    return result
