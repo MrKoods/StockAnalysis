@@ -416,7 +416,9 @@ class FundamentalClient:
 
         return result
 
-    def get_all_fundamentals(self, ticker: str, fetch_eps_growth_trend: bool = True) -> dict:
+    def get_all_fundamentals(
+        self, ticker: str, fetch_eps_growth_trend: bool = True, sector: Optional[str] = None,
+    ) -> dict:
         """
         Orchestrate calls to all fundamental data sources.
 
@@ -461,25 +463,42 @@ class FundamentalClient:
             write_validation_entry(ticker, "fundamental_earnings_surprises_error", str(exc))
 
         if fetch_eps_growth_trend:
+            # SEC XBRL first (2026-08 API audit) — authoritative, deep history,
+            # and the first real fundamentals for the regional-banks sector.
+            # Falls back per-field to the yfinance scrapes below for anything
+            # SEC didn't supply (a foreign private issuer files 20-F, not
+            # 10-K/10-Q, so has no us-gaap companyconcept data).
+            sec_trend = {}
             try:
-                growth = self.get_eps_growth_trend(ticker)
-                if growth:
-                    earnings.update(growth)
+                from shared.api_clients.sec_edgar_client import fetch_fundamental_trend
+                sec_trend = fetch_fundamental_trend(ticker, sector=sector) or {}
+                earnings.update({k: v for k, v in sec_trend.items() if k != "_source"})
+                if sec_trend:
+                    earnings["_earnings_trend_source"] = "sec_xbrl"
             except Exception as exc:
-                logger.error(f"{ticker}: get_eps_growth_trend failed — {exc}")
-                write_validation_entry(ticker, "fundamental_eps_growth_error", str(exc))
+                logger.warning(f"{ticker}: SEC XBRL fundamental trend failed — {exc}")
+
+            if "eps_growth_trend" not in earnings:
+                try:
+                    growth = self.get_eps_growth_trend(ticker)
+                    if growth:
+                        earnings.update(growth)
+                except Exception as exc:
+                    logger.error(f"{ticker}: get_eps_growth_trend failed — {exc}")
+                    write_validation_entry(ticker, "fundamental_eps_growth_error", str(exc))
 
             # Same gating as eps_growth_trend — a routine rotation refresh
             # reuses the last known value (indicator_pipeline carries it
             # forward) instead of re-fetching a figure that can't change
             # between quarterly reports.
-            try:
-                revenue = self.get_revenue_and_margin_trend(ticker)
-                if revenue:
-                    earnings.update(revenue)
-            except Exception as exc:
-                logger.error(f"{ticker}: get_revenue_and_margin_trend failed — {exc}")
-                write_validation_entry(ticker, "fundamental_revenue_margin_error", str(exc))
+            if "revenue_yoy_growth" not in earnings:
+                try:
+                    revenue = self.get_revenue_and_margin_trend(ticker)
+                    if revenue:
+                        earnings.update({k: v for k, v in revenue.items() if k not in earnings})
+                except Exception as exc:
+                    logger.error(f"{ticker}: get_revenue_and_margin_trend failed — {exc}")
+                    write_validation_entry(ticker, "fundamental_revenue_margin_error", str(exc))
 
         result["earnings"] = earnings or None
 

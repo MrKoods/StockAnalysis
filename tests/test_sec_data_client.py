@@ -98,3 +98,61 @@ def test_financial_facts_absent_concept_is_omitted():
     with patch.object(sec, "_get_json", return_value=None):
         facts = sec.fetch_financial_facts("NVDA", ["Revenues", "NonexistentConcept"])
     assert facts == {}
+
+
+class TestFetchFundamentalTrend:
+    """SEC XBRL as the deep-history replacement for the yfinance earnings/
+    revenue scrapes, and the first real fundamentals for regional banks."""
+
+    def _quarterly(self, concept, vals, start_end_pairs):
+        return [
+            {"start": s, "end": e, "val": float(v), "fy": 2026, "fp": "Q1",
+             "form": "10-Q", "unit": "USD", "duration_days": _days(s, e)}
+            for v, (s, e) in zip(vals, start_end_pairs)
+        ]
+
+    def test_semis_eps_yoy_and_margin(self, monkeypatch):
+        pairs = [(f"2025-{m:02d}-01", f"2025-{m+2:02d}-28") for m in (1, 4, 7, 10)] + \
+                [(f"2026-{m:02d}-01", f"2026-{m+2:02d}-28") for m in (1, 4)]
+        facts = {
+            "EarningsPerShareDiluted": self._quarterly("eps", [1.0, 1.1, 1.2, 1.3, 1.5, 1.65], pairs),
+            "Revenues": self._quarterly("rev", [100, 110, 120, 130, 150, 165], pairs),
+            "GrossProfit": self._quarterly("gp", [60, 66, 72, 78, 95, 105], pairs),
+        }
+        monkeypatch.setattr(sec, "fetch_financial_facts", lambda t, c, **k: facts)
+        out = sec.fetch_fundamental_trend("NVDA", sector="semiconductors")
+        assert out["_source"] == "sec_xbrl"
+        assert out["eps_growth_trend"][0] == round((1.65 - 1.1) / 1.1, 4)   # Q2'26 vs Q2'25
+        assert out["revenue_yoy_growth"] == round((165 - 110) / 110, 4)
+        assert out["gross_margin_latest"] == round(105 / 165, 4)
+        assert out["gross_margin_prior"] == round(95 / 150, 4)
+
+    def test_bank_uses_nii_plus_noninterest_income_as_revenue(self, monkeypatch):
+        pairs = [(f"2025-{m:02d}-01", f"2025-{m+2:02d}-28") for m in (1, 4, 7, 10)] + \
+                [(f"2026-{m:02d}-01", f"2026-{m+2:02d}-28") for m in (1, 4)]
+        facts = {
+            "EarningsPerShareDiluted": self._quarterly("eps", [1.0]*4 + [1.2, 1.3], pairs),
+            "InterestIncomeExpenseNet": self._quarterly("nii", [50, 51, 52, 53, 55, 56], pairs),
+            "NoninterestIncome": self._quarterly("noni", [20, 21, 22, 23, 25, 26], pairs),
+        }
+        monkeypatch.setattr(sec, "fetch_financial_facts", lambda t, c, **k: facts)
+        out = sec.fetch_fundamental_trend("ZION", sector="regional_banks")
+        # revenue proxy latest = 56 + 26 = 82; year ago = 51 + 21 = 72
+        assert out["revenue_yoy_growth"] == round((82 - 72) / 72, 4)
+        assert "gross_margin_latest" not in out  # banks don't have it
+
+    def test_no_xbrl_data_returns_empty(self, monkeypatch):
+        monkeypatch.setattr(sec, "fetch_financial_facts", lambda t, c, **k: {})
+        assert sec.fetch_fundamental_trend("TSM", sector="semiconductors") == {}
+
+    def test_ytd_periods_filtered_out(self, monkeypatch):
+        # A 270-day YTD fact alongside real quarterly ones must be ignored.
+        q = [{"start": "2026-01-01", "end": "2026-03-31", "val": 100.0, "duration_days": 89, "form": "10-Q"}]
+        ytd = [{"start": "2026-01-01", "end": "2026-09-30", "val": 300.0, "duration_days": 272, "form": "10-Q"}]
+        from shared.api_clients.sec_edgar_client import _quarterly_series
+        assert [p["val"] for p in _quarterly_series(q + ytd)] == [100.0]
+
+
+def _days(s, e):
+    from datetime import datetime
+    return (datetime.strptime(e, "%Y-%m-%d") - datetime.strptime(s, "%Y-%m-%d")).days

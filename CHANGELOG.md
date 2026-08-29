@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.114 | 2026-08-29 | Data Source / Scoring Change | Phase 3 of the API re-architecture — the Fundamental layer's earnings and revenue history now comes from companies' own SEC filings (structured XBRL data) instead of two fragile Yahoo scrapes. The big win is regional banks: they have no "revenue" or "gross profit" line the old code understood, so this is the first time the model reads real bank fundamentals — net interest income, fee income, EPS history — straight from their 10-Qs. Foreign filers (TSM, ASML) that don't file US-style statements fall back to the old path. Backtest unchanged (the backtest reads a separate historical fundamentals archive, not this live path) |
 | v2.2.113 | 2026-08-28 | Data Source / Scoring Change | Phase 2 of the API re-architecture — three scoring layers now read better data. Analyst-rating trend comes from Finnhub's clean monthly breakdown instead of an unstructured yfinance frame. The macro overlay reads the actual 10-year Treasury yield and a real FX series from Alpha Vantage instead of two index proxies. The News layer finally uses Alpha Vantage's own per-article sentiment scores (previously fetched and thrown away) and no longer needs a headline to literally spell out the company name to count. The Fundamental layer gets a real analyst-revision-direction signal from Seeking Alpha's rating counts, filling a gap the layer's own code called "not available on any free tier". Fresh backtest: 61.5% win rate / 13 qualifying trades / still fails the go-live gate on sample size, unchanged in substance from before |
 | v2.2.112 | 2026-08-28 | Infrastructure | Phase 1 of the API re-architecture — plumbing only, no change to any score. Every external data source now shares one on-disk cache and one cross-process rate limiter, so the day's three scans stop re-fetching news, filings and earnings dates that haven't changed since the morning, and the Alpha Vantage daily budget stops being spent on the "slow down" error responses it gets when calls come too fast. Also: the SEC request timeout was too short and made every scan stall for minutes on retries (fixed), and a CI check now blocks any new code that calls an external API without going through the shared layer |
 | v2.2.111 | 2026-08-26 | Feature | Added a switch (OFF by default) that lets the model count news for less in sectors where news barely exists. Regional banks average 5 news articles per stock against 65 for chip makers, so news currently occupies 15 of the 100 scoring points for banks while telling us almost nothing. This is a free control to test real fixes against — it costs no API calls, and it is deliberately switched off until measured, because "banks have little news" does not automatically mean "bank news is less predictive" |
@@ -193,6 +194,52 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.114] — 2026-08-29 — [Data Source / Scoring Change] API re-architecture phase 3 — Fundamental earnings/revenue trend from SEC XBRL
+
+**Status:** Live. **Changes scoring output** for tickers where SEC's structured data differs from the
+old Yahoo scrapes — most of all for regional banks, which previously had almost no fundamental data
+at all. 1699 tests pass (6 new); ruff and all five guardrail checkers pass.
+
+**The problem.** `fundamental_layer.score_earnings_momentum` reads `eps_growth_trend` (a 4-quarter
+year-over-year EPS series), `revenue_yoy_growth`, and `gross_margin_latest/prior`. Those came from
+two yfinance calls: `get_earnings_dates()` (which scrapes Yahoo's earnings-calendar page via
+`pandas.read_html` + `lxml`) and `quarterly_income_stmt` (which the free tier caps at 4–6 quarters —
+not deep enough for a clean YoY series). And for **regional banks** the second call returns almost
+nothing usable: a bank's income statement has no "Total Revenue" or "Gross Profit" row, so
+`revenue_yoy_growth` and the gross-margin fields were simply absent, and that whole sector scored its
+earnings-momentum sub-signal on EPS growth alone (when even that was available).
+
+**What changed.** `get_all_fundamentals` now tries SEC XBRL first, per field, falling back to the
+yfinance scrapes for anything SEC doesn't supply.
+
+- New `sec_edgar_client.fetch_fundamental_trend(ticker, sector)` pulls the relevant GAAP concepts
+  from `data.sec.gov/api/xbrl/companyconcept` — one cached call per line item, ~7-day TTL. It filters
+  each concept's series to genuine single-quarter windows (an XBRL fact carries `start`/`end` dates;
+  year-to-date facts in a 10-Q span 180–270 days and are dropped), then computes the same YoY EPS
+  trend, YoY revenue growth, and gross-margin fields the layer already reads.
+
+- **Sector-aware concept sets.** Semiconductors / healthcare / consumer-discretionary use
+  `EarningsPerShareDiluted`, `Revenues` (with fallbacks for the several tags filers use), and
+  `GrossProfit`. **Regional banks** use `EarningsPerShareDiluted` and a revenue proxy of
+  `InterestIncomeExpenseNet` + `NoninterestIncome` — a bank's actual top line — and skip gross
+  margin, which isn't a meaningful concept for them. This is the first real fundamental data the
+  regional-banks sector has ever had.
+
+- **Foreign private issuers** (TSM, ASML) file 20-F, not 10-K/10-Q, so have no `us-gaap`
+  companyconcept data — `fetch_fundamental_trend` returns nothing for them and the yfinance path is
+  used as before.
+
+- `fetch_financial_facts` now also returns each fact's `start` date and `duration_days`, needed for
+  the quarterly filtering.
+
+**Backtest** (`python -m backtesting.run_backtest`): **61.5% win rate / 13 qualifying trades /
+Sharpe 0.59 — identical to v2.2.113.** The backtest scores historical bars against the point-in-time
+`data/processed/fundamental_history/` archive, not the live `get_all_fundamentals` path, so this
+change is live-only. Still fails the go-live gate on sample size; the honest read remains "this
+dataset can't validate the model either way".
 
 ---
 

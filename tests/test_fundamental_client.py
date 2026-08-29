@@ -34,9 +34,13 @@ def _keys(monkeypatch):
     # RAPIDAPI_KEY/FINNHUB_API_KEY are live in the session via .env, so stub
     # those cross-client calls to empty by default. Tests that exercise them
     # patch the specific function.
-    from shared.api_clients import finnhub_client, seeking_alpha_client
+    from shared.api_clients import finnhub_client, seeking_alpha_client, sec_edgar_client
     monkeypatch.setattr(finnhub_client, "get_metric", lambda t: {})
     monkeypatch.setattr(seeking_alpha_client, "get_factor_grades", lambda t: {})
+    # get_all_fundamentals now also tries SEC XBRL first for the earnings trend
+    # — stub it off by default (the real data.sec.gov is reachable via .env-less
+    # CIK map but the retry ladder on a slow response would hang the suite).
+    monkeypatch.setattr(sec_edgar_client, "fetch_fundamental_trend", lambda t, sector=None: {})
 
 
 def _mock_yf_info(target=250.0, current=200.0):
@@ -417,3 +421,43 @@ def test_rating_revision_from_counts_helper():
           "buy_count_90d": 10, "hold_count_90d": 8, "sell_count_90d": 4}
     assert _rating_revision_from_counts(up) == "up"
     assert _rating_revision_from_counts({}) is None
+
+
+class TestGetAllFundamentalsSecFirst:
+    """get_all_fundamentals tries SEC XBRL for the earnings trend before the
+    yfinance scrapes (2026-08 API audit), falling back per-field."""
+
+    def test_sec_trend_used_and_yfinance_not_called(self, monkeypatch):
+        from shared.api_clients import sec_edgar_client
+        monkeypatch.setattr(sec_edgar_client, "fetch_fundamental_trend",
+                            lambda t, sector=None: {
+                                "eps_growth_trend": [0.2, 0.15, 0.1, 0.05],
+                                "revenue_yoy_growth": 0.3,
+                                "gross_margin_latest": 0.64, "_source": "sec_xbrl",
+                            })
+        client = FundamentalClient()
+        eps_called = []
+        monkeypatch.setattr(client, "get_eps_growth_trend", lambda t: eps_called.append(1) or {})
+        monkeypatch.setattr(client, "get_revenue_and_margin_trend", lambda t: eps_called.append(1) or {})
+        monkeypatch.setattr(client, "get_earnings_surprises", lambda t: None)
+        monkeypatch.setattr(client, "get_valuation_metrics", lambda t: {})
+        monkeypatch.setattr(client, "get_estimate_revisions", lambda t: {})
+        out = client.get_all_fundamentals("NVDA", fetch_eps_growth_trend=True, sector="semiconductors")
+        assert out["earnings"]["eps_growth_trend"] == [0.2, 0.15, 0.1, 0.05]
+        assert out["earnings"]["revenue_yoy_growth"] == 0.3
+        assert out["earnings"]["_earnings_trend_source"] == "sec_xbrl"
+        assert eps_called == []  # yfinance scrapes skipped
+
+    def test_falls_back_to_yfinance_when_sec_empty(self, monkeypatch):
+        from shared.api_clients import sec_edgar_client
+        monkeypatch.setattr(sec_edgar_client, "fetch_fundamental_trend", lambda t, sector=None: {})
+        client = FundamentalClient()
+        monkeypatch.setattr(client, "get_eps_growth_trend", lambda t: {"eps_growth_trend": [0.1]})
+        monkeypatch.setattr(client, "get_revenue_and_margin_trend", lambda t: {"revenue_yoy_growth": 0.05})
+        monkeypatch.setattr(client, "get_earnings_surprises", lambda t: None)
+        monkeypatch.setattr(client, "get_valuation_metrics", lambda t: {})
+        monkeypatch.setattr(client, "get_estimate_revisions", lambda t: {})
+        out = client.get_all_fundamentals("TSM", fetch_eps_growth_trend=True, sector="semiconductors")
+        assert out["earnings"]["eps_growth_trend"] == [0.1]
+        assert out["earnings"]["revenue_yoy_growth"] == 0.05
+        assert "_earnings_trend_source" not in out["earnings"]

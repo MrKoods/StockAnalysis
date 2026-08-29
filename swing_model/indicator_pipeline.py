@@ -430,6 +430,10 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
     logger.info(f"Fetching fundamental data for: {to_fetch}")
     client = FundamentalClient()
     bootstrap_or_earnings = set(bootstrap) | set(earnings_priority)
+    # Per-ticker sector, so get_all_fundamentals can pick the SEC XBRL concept
+    # set (banks need net-interest-income line items, not "Revenues"/"GrossProfit").
+    from shared.utils.sector_config import get_ticker_sector_map
+    ticker_sectors = get_ticker_sector_map(cfg)
     # Save after every ticker, not just once at the end — a full refresh can take
     # several minutes (each sub-call retries on rate limits), and a mid-batch
     # interruption (manual Ctrl+C, crash, hitting the AV budget cap) must not
@@ -444,7 +448,9 @@ def fetch_fundamental_data(tickers: list[str], cfg: Optional[dict] = None) -> di
         fetch_growth = ticker in bootstrap_or_earnings
         old_record = state["tickers"].get(ticker) or {}
         try:
-            new_data = client.get_all_fundamentals(ticker, fetch_eps_growth_trend=fetch_growth)
+            new_data = client.get_all_fundamentals(
+                ticker, fetch_eps_growth_trend=fetch_growth, sector=ticker_sectors.get(ticker),
+            )
             if not fetch_growth:
                 old_earnings = old_record.get("earnings") or {}
                 if new_data.get("earnings") is None:

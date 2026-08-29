@@ -29,7 +29,7 @@ def _isolate_state_file(tmp_path, monkeypatch):
     monkeypatch.setattr(ip, "_get_last_reported_earnings_date", lambda ticker: None)
 
 
-def _fake_fundamentals(ticker, fetch_eps_growth_trend=True):
+def _fake_fundamentals(ticker, fetch_eps_growth_trend=True, sector=None):
     return {"ticker": ticker, "valuation": {}, "earnings": {}, "revisions": {}}
 
 
@@ -221,7 +221,7 @@ class TestRotationAndEarningsPriority:
         ticker = "NVDA"
         calls = []
 
-        def counting_fetch(self, t, fetch_eps_growth_trend=True):
+        def counting_fetch(self, t, fetch_eps_growth_trend=True, sector=None):
             calls.append(t)
             return _fake_fundamentals(t)
 
@@ -237,7 +237,7 @@ class TestEpsGrowthTrendGating:
     def test_bootstrap_and_earnings_priority_request_growth_trend(self):
         calls = {}
 
-        def recording_fetch(ticker, fetch_eps_growth_trend=True):
+        def recording_fetch(ticker, fetch_eps_growth_trend=True, sector=None):
             calls[ticker] = fetch_eps_growth_trend
             return _fake_fundamentals(ticker)
 
@@ -250,7 +250,7 @@ class TestEpsGrowthTrendGating:
     def test_plain_rotation_refresh_does_not_request_growth_trend(self):
         calls = {}
 
-        def recording_fetch(ticker, fetch_eps_growth_trend=True):
+        def recording_fetch(ticker, fetch_eps_growth_trend=True, sector=None):
             calls[ticker] = fetch_eps_growth_trend
             return _fake_fundamentals(ticker)
 
@@ -264,7 +264,7 @@ class TestEpsGrowthTrendGating:
         assert calls["NVDA"] is False  # the rotation-only refresh
 
     def test_old_eps_growth_trend_carried_forward_when_not_refetched(self):
-        def fetch_with_growth(ticker, fetch_eps_growth_trend=True):
+        def fetch_with_growth(ticker, fetch_eps_growth_trend=True, sector=None):
             earnings = {"earnings_surprises": [0.1], "consecutive_beats": 1}
             if fetch_eps_growth_trend:
                 earnings["eps_growth_trend"] = [0.42]
@@ -287,7 +287,7 @@ class TestEpsGrowthTrendGating:
         """revenue_yoy_growth/gross_margin_* are gated by the same fetch_growth
         flag as eps_growth_trend (same quarterly filing) — must carry forward
         the same way on a plain rotation refresh."""
-        def fetch_with_revenue(ticker, fetch_eps_growth_trend=True):
+        def fetch_with_revenue(ticker, fetch_eps_growth_trend=True, sector=None):
             earnings = {"earnings_surprises": [0.1], "consecutive_beats": 1}
             if fetch_eps_growth_trend:
                 earnings["eps_growth_trend"] = [0.42]
@@ -311,7 +311,7 @@ class TestEpsGrowthTrendGating:
 
 class TestPriorTargetPriceCarryForward:
     def test_prior_target_price_stashed_before_overwrite(self):
-        def fetch_with_target(ticker, fetch_eps_growth_trend=True, _call={"n": 0}):
+        def fetch_with_target(ticker, fetch_eps_growth_trend=True, sector=None, _call={"n": 0}):
             _call["n"] += 1
             target = 250.0 if _call["n"] == 1 else 275.0
             return {
@@ -348,7 +348,7 @@ class TestIncrementalSave:
         """
         call_order = []
 
-        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True, sector=None):
             call_order.append(ticker)
             if ticker == "AMD":
                 raise KeyboardInterrupt()
@@ -366,7 +366,7 @@ class TestIncrementalSave:
         assert "AVGO" not in call_order
 
     def test_interruption_leaves_ticker_unfetched_so_retry_happens(self):
-        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True, sector=None):
             if ticker == "AMD":
                 raise KeyboardInterrupt()
             return _fake_fundamentals(ticker)
@@ -380,7 +380,7 @@ class TestIncrementalSave:
         assert "AMD" not in on_disk["fetched_dates"]
 
     def test_caught_exception_on_one_ticker_does_not_abort_the_rest(self):
-        def fake_fetch(self, ticker, fetch_eps_growth_trend=True):
+        def fake_fetch(self, ticker, fetch_eps_growth_trend=True, sector=None):
             if ticker == "AMD":
                 raise ValueError("API error")
             return _fake_fundamentals(ticker)

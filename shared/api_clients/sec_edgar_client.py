@@ -598,9 +598,10 @@ def fetch_financial_facts(ticker: str, concepts: list[str], taxonomy: str = "us-
       "ResearchAndDevelopmentExpense"] for semis, or ["Deposits",
       "InterestAndDividendIncomeOperating", "NetIncomeLoss"] for banks.
 
-    Returns {concept: [{"end": "YYYY-MM-DD", "val": float, "fy": int,
-    "fp": "Q1".."FY", "form": "10-Q"|"10-K"}, ...]} sorted oldest-first, with
-    only the most recent value per period end kept (later amendments win).
+    Returns {concept: [{"start": "YYYY-MM-DD"|None, "end": "YYYY-MM-DD",
+    "val": float, "fy": int, "fp": "Q1".."FY", "form": "10-Q"|"10-K",
+    "duration_days": int|None}, ...]} sorted oldest-first, with only the most
+    recent filing's value per (start, end) window kept (later amendments win).
     A concept with no data (the filer tags it differently, or doesn't report
     it) is simply absent from the returned dict.
     """
@@ -620,15 +621,24 @@ def fetch_financial_facts(ticker: str, concepts: list[str], taxonomy: str = "us-
                     end = e.get("end")
                     if not end or e.get("val") is None:
                         continue
-                    points[end] = {
+                    start = e.get("start")
+                    dur = None
+                    if start:
+                        try:
+                            dur = (datetime.strptime(end, "%Y-%m-%d") - datetime.strptime(start, "%Y-%m-%d")).days
+                        except ValueError:
+                            dur = None
+                    points[(start, end)] = {
+                        "start": start,
                         "end": end,
                         "val": float(e["val"]),
                         "fy": e.get("fy"),
                         "fp": e.get("fp"),
                         "form": e.get("form"),
                         "unit": unit_key,
+                        "duration_days": dur,
                     }
-            return sorted(points.values(), key=lambda p: p["end"]) or None
+            return sorted(points.values(), key=lambda p: (p["end"], p["start"] or "")) or None
 
         series = cache.cached_call(
             "sec_companyfacts", f"{ticker}_{taxonomy}_{concept}",
@@ -637,3 +647,135 @@ def fetch_financial_facts(ticker: str, concepts: list[str], taxonomy: str = "us-
         if series:
             result[concept] = series
     return result
+
+
+# Per-sector XBRL concept sets for fetch_fundamental_trend. Each field lists
+# candidate GAAP tags in preference order — filers tag the same line item
+# differently and change tags between years, so the first tag with usable data
+# wins. Banks have no "revenue"/"gross profit" in the ordinary sense: their top
+# line is net interest income + noninterest income.
+_XBRL_TREND_CONCEPTS = {
+    "_default": {
+        "eps": ["EarningsPerShareDiluted", "EarningsPerShareBasic"],
+        "revenue": [
+            "RevenueFromContractWithCustomerExcludingAssessedTax",
+            "Revenues",
+            "RevenueFromContractWithCustomerIncludingAssessedTax",
+            "SalesRevenueNet",
+        ],
+        "gross_profit": ["GrossProfit"],
+    },
+    "regional_banks": {
+        "eps": ["EarningsPerShareDiluted", "EarningsPerShareBasic"],
+        "net_interest_income": [
+            "InterestIncomeExpenseNet",
+            "InterestIncomeExpenseAfterProvisionForLoanLoss",
+        ],
+        "noninterest_income": ["NoninterestIncome", "RevenuesNetOfInterestExpense"],
+    },
+}
+
+# A quarterly XBRL fact covers roughly one quarter; year-to-date facts in a
+# 10-Q cover 180/270 days. Keep only the ~one-quarter windows.
+_QUARTER_MIN_DAYS, _QUARTER_MAX_DAYS = 80, 100
+
+
+def _quarterly_series(points: list[dict]) -> list[dict]:
+    """Filter a fetch_financial_facts concept series to single-quarter windows, oldest-first."""
+    q = [p for p in points if p.get("duration_days") and _QUARTER_MIN_DAYS <= p["duration_days"] <= _QUARTER_MAX_DAYS]
+    # de-dupe by end date (keep the last, i.e. latest-filed after the sort)
+    by_end = {p["end"]: p for p in q}
+    return sorted(by_end.values(), key=lambda p: p["end"])
+
+
+def _first_with_data(facts: dict, candidates: list[str]) -> list[dict]:
+    for c in candidates:
+        if facts.get(c):
+            return facts[c]
+    return []
+
+
+def _yoy_growth(series: list[dict], n: int = 4) -> list:
+    """YoY growth of a quarterly value series (most-recent-first output), quarter i vs quarter i+4."""
+    vals = [p["val"] for p in reversed(series)]  # most-recent-first
+    out = []
+    for i in range(min(n, len(vals))):
+        if i + 4 < len(vals) and vals[i + 4]:
+            prior = vals[i + 4]
+            out.append(round((vals[i] - prior) / abs(prior), 4))
+        else:
+            out.append(None)
+    return out
+
+
+def fetch_fundamental_trend(ticker: str, sector: Optional[str] = None) -> dict:
+    """
+    Earnings/revenue trend for `ticker` from SEC XBRL — the authoritative,
+    deep-history replacement for the fragile yfinance get_earnings_dates
+    (read_html) and quarterly_income_stmt (4-6 quarter) scrapes, and the FIRST
+    real fundamental data for the regional-banks sector (2026-08 API audit).
+
+    sector: one of config's watchlist.sectors keys — picks the concept set
+    (banks vs. everything else). Defaults to the general set.
+
+    Returns the same keys fundamental_layer.py already reads, so it drops in
+    ahead of the yfinance path in get_all_fundamentals:
+      eps_growth_trend     — up to 4 YoY reported-EPS growth rates, most-recent-first
+      revenue_yoy_growth   — latest quarter's revenue vs. the same quarter a year
+                             earlier (banks: net interest income + noninterest income)
+      gross_margin_latest  — most recent quarter's gross profit / revenue (None for banks)
+      gross_margin_prior   — the quarter before that
+      _source              — "sec_xbrl"
+    Empty dict if the ticker's CIK can't be resolved or XBRL has no usable
+    quarterly data (e.g. a foreign private issuer filing 20-F, not 10-K/10-Q).
+    """
+    cset = _XBRL_TREND_CONCEPTS.get(sector or "", _XBRL_TREND_CONCEPTS["_default"])
+    all_concepts = [c for candidates in cset.values() for c in candidates]
+    facts = fetch_financial_facts(ticker, all_concepts)
+    if not facts:
+        return {}
+
+    out: dict = {}
+
+    eps_q = _quarterly_series(_first_with_data(facts, cset["eps"]))
+    if len(eps_q) >= 5:
+        trend = _yoy_growth(eps_q)
+        if any(v is not None for v in trend):
+            out["eps_growth_trend"] = trend
+
+    is_bank = sector == "regional_banks"
+    if is_bank:
+        nii_q = _quarterly_series(_first_with_data(facts, cset["net_interest_income"]))
+        noni_q = _quarterly_series(_first_with_data(facts, cset["noninterest_income"]))
+        rev_q = _combine_series(nii_q, noni_q)
+    else:
+        rev_q = _quarterly_series(_first_with_data(facts, cset["revenue"]))
+
+    if len(rev_q) >= 5:
+        latest, year_ago = rev_q[-1]["val"], rev_q[-5]["val"]
+        if year_ago:
+            out["revenue_yoy_growth"] = round((latest - year_ago) / abs(year_ago), 4)
+
+    if not is_bank:
+        gp_q = _quarterly_series(_first_with_data(facts, cset["gross_profit"]))
+        gp_by_end = {p["end"]: p["val"] for p in gp_q}
+        rev_by_end = {p["end"]: p["val"] for p in rev_q}
+        shared_ends = sorted(set(gp_by_end) & set(rev_by_end))
+        margins = [gp_by_end[e] / rev_by_end[e] for e in shared_ends if rev_by_end[e]]
+        if margins:
+            out["gross_margin_latest"] = round(margins[-1], 4)
+        if len(margins) >= 2:
+            out["gross_margin_prior"] = round(margins[-2], 4)
+
+    if out:
+        out["_source"] = "sec_xbrl"
+    return out
+
+
+def _combine_series(a: list[dict], b: list[dict]) -> list[dict]:
+    """Sum two quarterly series on their shared period-end dates."""
+    b_by_end = {p["end"]: p["val"] for p in b}
+    return [
+        {"end": p["end"], "val": p["val"] + b_by_end[p["end"]]}
+        for p in a if p["end"] in b_by_end
+    ]
