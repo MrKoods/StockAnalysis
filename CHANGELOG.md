@@ -66,11 +66,12 @@ scores or picks trades; MINOR = a new indicator, modifier, or scoring category; 
 threshold tweak, bug fix, or calibration update. **Rule:** no change to scoring weights,
 indicator settings, or thresholds goes live without a version bump and a fresh backtest result
 logged below it — enforced automatically by the code, no exceptions.
-
+7
 ## Quick reference
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.112 | 2026-08-28 | Infrastructure | Phase 1 of the API re-architecture — plumbing only, no change to any score. Every external data source now shares one on-disk cache and one cross-process rate limiter, so the day's three scans stop re-fetching news, filings and earnings dates that haven't changed since the morning, and the Alpha Vantage daily budget stops being spent on the "slow down" error responses it gets when calls come too fast. Also: the SEC request timeout was too short and made every scan stall for minutes on retries (fixed), and a CI check now blocks any new code that calls an external API without going through the shared layer |
 | v2.2.111 | 2026-08-26 | Feature | Added a switch (OFF by default) that lets the model count news for less in sectors where news barely exists. Regional banks average 5 news articles per stock against 65 for chip makers, so news currently occupies 15 of the 100 scoring points for banks while telling us almost nothing. This is a free control to test real fixes against — it costs no API calls, and it is deliberately switched off until measured, because "banks have little news" does not automatically mean "bank news is less predictive" |
 | v2.2.110 | 2026-08-26 | Bug Fix | The last of the "invented data treated as real" bugs. When a stock had no social-media posts on a given day, the model filled that day in with a neutral placeholder — then measured sentiment MOMENTUM against those placeholders, so a stock with 30 posts in six minutes registered maximum momentum from a jump that never happened, scoring HIGHER than a stock with genuine five-day history. Also split feed outages from code bugs in the data-fetching layer, so a broken function call can no longer look like "the vendor sent nothing" |
 | v2.2.109 | 2026-08-26 | Bug Fix | A failed request to the SEC filings service looked exactly like "this company announced nothing" — both returned an empty result. If SEC ever throttled or blocked us, the model would quietly lose one of its five news sources and all of its filing-based safety triggers while appearing perfectly healthy. Failures are now recorded separately so they can be seen |
@@ -191,6 +192,68 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.112] — 2026-08-28 — [Infrastructure] API re-architecture phase 1 — shared cache + rate limiter + Alpha Vantage throttle fix
+
+**Status:** Live. **No scoring behaviour change** — the scan produces the same scores. This is
+plumbing: it stops the model wasting API calls and stalling on timeouts. 1655 tests pass (35 new);
+ruff and all four guardrail checkers pass clean.
+
+**The problem.** Each of the three daily scans (pre-market / mid-session / post-close) runs as a
+separate process that shared nothing with the others. So news, SEC filings, and earnings dates were
+re-fetched from scratch three times a day even though almost none of it changes between 8:30am and
+4:30pm. There was no shared pacing either: Alpha Vantage's free tier answers "please slow down to 1
+request per second" with a normal-looking HTTP 200, and the old code (a) logged that as an
+unexpected response, (b) did not retry it, and (c) still counted it against the day's 25-call
+budget — so on any day with a sector-wide event gate (which fans an Alpha Vantage confirmation out
+to every ticker in that sector) the budget was gone by mid-session, entirely on error responses.
+Separately, the SEC request timeout was 15 seconds, which it routinely exceeded — each timeout then
+cost a 30-second backoff, and a scan could spend the better part of an hour on nothing but SEC
+retries.
+
+**What changed.**
+
+- **`shared/api_clients/rate_limiter.py`** — one persisted per-host record (`{last_call_ts, date,
+  count}`) guarded by the existing cross-process file lock, so pacing and daily caps are shared
+  across all three scan processes and the paper updater. `acquire(host)` sleeps just long enough to
+  honour a minimum interval and raises `BudgetExhausted` at the daily cap, which callers treat as
+  "skip this source, use the fallback". Limits reflect the real, verified budgets — Alpha Vantage
+  24/day at ~1.3s apart, Finnhub ~55/min, Seeking Alpha 400/day, StockTwits uncapped (its RapidAPI
+  plan is 500,000/month), SEC ~4/s, yfinance ~1/s.
+
+- **`shared/api_clients/cache.py`** — `cached_call(namespace, key, ttl, fetch_fn)` backed by
+  `data/cache/<namespace>/<key>.json` (`.pkl` for price frames), atomic writes, and a policy of not
+  pinning an empty result so a transient outage doesn't get cached for the whole TTL. Wired into the
+  Yahoo / Finnhub / SEC news fetchers (~4h), the SEC ticker→CIK map (30 days), and the earnings-date
+  lookups that used to be ~180 raw yfinance calls a day for data that changes once a quarter (now 7
+  days).
+
+- **Alpha Vantage throttle handling** (`news_client.py`) — a `{"Information"}` / `{"Note"}` /
+  `{"Error Message"}` body is now recognised as a throttle: logged as one, waited out, retried once,
+  then it returns nothing. The daily-call counter is incremented only after a response that actually
+  carried articles — never for a throttle or a retry.
+
+- **SEC timeout 15s → 30s**, and every SEC call now goes through the rate limiter.
+
+- **`scripts/check_no_raw_http.py`** + a CI step — fails the build if anything in `swing_model/`,
+  `paper_trading/`, `shared/utils/`, `shared/indicators/`, `monitoring/` or `app_ui/` calls
+  `requests` or `yfinance` directly instead of through `shared/api_clients/`. This is the guardrail
+  that keeps a future data source from silently sitting outside the cache + limiter — the same
+  recurrence shape the confidence-threshold and config-coverage checkers already guard against.
+
+- **Fixes found along the way:** `paper_updater`'s OHLCV download now returns cleanly for a signal
+  dated today or later (yfinance was logging "possibly delisted; no price data found" on every
+  fresh post-close signal, because a start date in the future makes its request's start later than
+  its end); `requirements.txt` pins yfinance's upper bound and adds `curl_cffi` explicitly (the
+  browser-impersonation dependency yfinance needs to get past Yahoo's bot detection, previously only
+  pulled in transitively).
+
+**Not in this version:** the scoring-layer re-routing (SEC structured financials into the
+Fundamental layer, Alpha Vantage's real per-article sentiment scores into the News layer, the actual
+Fed funds rate into the macro overlay, analyst-trend and insider signals off yfinance onto Finnhub).
+Those change scoring output and land under their own version with a fresh backtest.
 
 ---
 
