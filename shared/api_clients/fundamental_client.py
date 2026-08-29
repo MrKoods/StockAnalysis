@@ -44,6 +44,7 @@ import yfinance as yf
 
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients._http_backoff import retry_with_backoff
+from shared.api_clients import rate_limiter
 
 logger = get_logger(__name__)
 
@@ -152,6 +153,7 @@ class FundamentalClient:
             return None
 
         def _fetch_earnings():
+            rate_limiter.acquire("finnhub.io")
             params = {"symbol": ticker, "token": self._finnhub_key}
             resp = requests.get(f"{_FINNHUB_BASE_URL}/stock/earnings", params=params, timeout=30)
             resp.raise_for_status()
@@ -359,6 +361,7 @@ class FundamentalClient:
             return result
 
         def _fetch_recommendation():
+            rate_limiter.acquire("finnhub.io")
             params = {"symbol": ticker, "token": self._finnhub_key}
             resp = requests.get(f"{_FINNHUB_BASE_URL}/stock/recommendation", params=params, timeout=30)
             resp.raise_for_status()

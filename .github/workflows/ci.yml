@@ -47,6 +47,9 @@ jobs:
       - name: Enforce no duplicated confidence-threshold hardcoding
         run: python scripts/check_confidence_threshold_duplication.py
 
+      - name: Enforce all external fetches go through shared/api_clients/
+        run: python scripts/check_no_raw_http.py
+
       # No-ops in CI (rank_trades.csv is untracked); the real value is running
       # this against a live ledger, where the v2.2.100 over-logging bug was
       # invisible from the logs and only existed across runs, in the file.

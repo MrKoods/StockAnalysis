@@ -159,3 +159,83 @@ class TestAlphaVantageBudgetReservation:
     def test_reservation_larger_than_limit_does_not_go_negative(self, monkeypatch):
         nc = self._at(monkeypatch, 0)
         assert nc.check_av_budget(5, scan_type="pre_market", reserved_for_owner=99) is False
+
+
+class TestAlphaVantageThrottleHandling:
+    """
+    The free tier answers HTTP 200 with {"Information": "...1 request per
+    second..."} when called too fast. Before the 2026-08 API audit this was
+    logged as "unexpected response structure", NOT retried, and — because the
+    call counter incremented on every attempt via on_attempt — still burned one
+    of the day's 25. On days with a sector-wide event gate (which fans an AV
+    confirmation out to every ticker in the sector) the budget was gone by
+    mid-session, entirely on error responses.
+    """
+
+    def _fake_response(self, body: dict):
+        class _R:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return body
+
+        return lambda url, params=None, headers=None, timeout=None: _R()
+
+    def test_information_throttle_returns_empty_and_does_not_count(self, monkeypatch):
+        monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "K")
+        import shared.api_clients.news_client as nc
+        inc = []
+        monkeypatch.setattr(nc, "check_av_budget", lambda *a, **k: True)
+        monkeypatch.setattr(nc, "increment_av_call_count", lambda: inc.append(1))
+        monkeypatch.setattr("shared.api_clients.news_client.time.sleep", lambda *_: None)
+        with patch("shared.api_clients._http_backoff.requests.get",
+                   side_effect=self._fake_response({"Information": "Please slow down to 1 request per second"})):
+            result = fetch_news_alpha_vantage("NVDA")
+        assert result == []
+        assert inc == []  # throttle must not burn the reservation counter
+
+    def test_note_throttle_also_handled(self, monkeypatch):
+        monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "K")
+        import shared.api_clients.news_client as nc
+        monkeypatch.setattr(nc, "check_av_budget", lambda *a, **k: True)
+        monkeypatch.setattr(nc, "increment_av_call_count", lambda: (_ for _ in ()).throw(AssertionError("counted a throttle")))
+        monkeypatch.setattr("shared.api_clients.news_client.time.sleep", lambda *_: None)
+        with patch("shared.api_clients._http_backoff.requests.get",
+                   side_effect=self._fake_response({"Note": "5 calls per minute"})):
+            assert fetch_news_alpha_vantage("NVDA") == []
+
+    def test_real_feed_still_counts_and_parses(self, monkeypatch):
+        monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "K")
+        import shared.api_clients.news_client as nc
+        inc = []
+        monkeypatch.setattr(nc, "check_av_budget", lambda *a, **k: True)
+        monkeypatch.setattr(nc, "increment_av_call_count", lambda: inc.append(1))
+        body = {"feed": [{
+            "time_published": "20260827T120000", "title": "NVDA rallies", "url": "http://x",
+            "source": "Reuters", "overall_sentiment_score": 0.3, "overall_sentiment_label": "Bullish",
+            "ticker_sentiment": [{"ticker": "NVDA", "relevance_score": "0.9", "ticker_sentiment_score": "0.4"}],
+        }]}
+        with patch("shared.api_clients._http_backoff.requests.get", side_effect=self._fake_response(body)):
+            result = fetch_news_alpha_vantage("NVDA")
+        assert len(result) == 1 and result[0]["title"] == "NVDA rallies"
+        assert result[0]["ticker_sentiment"][0]["ticker"] == "NVDA"
+        assert inc == [1]  # a real fetch counts exactly once
+
+    def test_budget_exhausted_from_limiter_returns_empty(self, monkeypatch):
+        monkeypatch.setenv("ALPHA_VANTAGE_API_KEY", "K")
+        import shared.api_clients.news_client as nc
+        monkeypatch.setattr(nc, "check_av_budget", lambda *a, **k: True)
+        monkeypatch.setattr(nc.rate_limiter, "acquire",
+                            lambda *a, **k: (_ for _ in ()).throw(nc.rate_limiter.BudgetExhausted("cap")))
+        assert fetch_news_alpha_vantage("NVDA") == []
+
+    def test_is_av_throttle_response_helper(self):
+        from shared.api_clients.news_client import is_av_throttle_response
+        assert is_av_throttle_response({"Information": "x"}) is True
+        assert is_av_throttle_response({"Note": "x"}) is True
+        assert is_av_throttle_response({"Error Message": "x"}) is True
+        assert is_av_throttle_response({"feed": []}) is False
+        assert is_av_throttle_response(None) is False

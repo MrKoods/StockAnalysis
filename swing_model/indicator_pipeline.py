@@ -19,9 +19,11 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yaml
-import yfinance as yf
 
-from shared.api_clients.market_data_client import fetch_ohlcv, fetch_ohlcv_batch
+from shared.api_clients.market_data_client import (
+    fetch_ohlcv, fetch_ohlcv_batch,
+    fetch_upcoming_earnings_date, fetch_last_reported_earnings_date,
+)
 from shared.indicators.technical_common import compute_technical_indicators
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients.fundamental_client import FundamentalClient
@@ -279,73 +281,14 @@ def _rotation_weekday(ticker: str) -> int:
     return int(digest, 16) % 5
 
 
-def _get_upcoming_earnings_date(ticker: str):
-    """Free (yfinance) lookup of a ticker's next known earnings date, used only to
-    prioritize refresh timing — never consumes Alpha Vantage budget. Returns None
-    if unavailable rather than raising, since this is a scheduling hint, not a
-    required input.
-
-    Normalizes yfinance's calendar shape the same way
-    market_data_client.fetch_earnings_calendar already has to (it can return
-    a bare date, or — on newer yfinance versions — a dict with raw/fmt keys).
-    Previously this returned whatever `cal.get("Earnings Date")[0]` was
-    unmodified; when that was a dict rather than a date, the caller's
-    `abs((earnings_date - today_date).days)` raised an uncaught TypeError
-    that propagated out of fetch_fundamental_data's per-ticker loop and
-    zeroed out fundamental scoring for the ENTIRE batch that run, not just
-    this one ticker's odd calendar shape (Signal Integrity Audit finding
-    E.2). Returns a plain date (not datetime) to match the `date_obj -
-    today_date` arithmetic callers already do.
-    """
-    try:
-        cal = yf.Ticker(ticker).calendar or {}
-        dates = cal.get("Earnings Date") or []
-        if not dates:
-            return None
-        first = dates[0] if hasattr(dates, "__getitem__") else None
-        if first is None:
-            return None
-        if isinstance(first, dict):
-            raw = first.get("raw") or first.get("timestamp")
-            fmt = first.get("fmt") or first.get("date")
-            if raw:
-                return pd.Timestamp(raw, unit="s").date()
-            if fmt:
-                return pd.Timestamp(fmt).date()
-            return None
-        return pd.Timestamp(first).date()
-    except Exception:
-        return None
-
-
-def _get_last_reported_earnings_date(ticker: str):
-    """Free (yfinance) lookup of a ticker's most recently ACTUALLY reported
-    earnings date — deliberately separate from _get_upcoming_earnings_date's
-    forward-looking calendar value.
-
-    Confirmed live (2026-08-13): once a company reports, yfinance's calendar
-    flips to the NEXT quarter almost immediately — AMD's calendar already
-    showed Nov 3 the same week it reported on Aug 4. That means the
-    ±_FUNDAMENTAL_EARNINGS_LOOKAHEAD_DAYS window around "next earnings" can
-    only ever really fire BEFORE a report, not after, even though it reads as
-    symmetric. Without this second check, a report landing on a ticker's
-    routine rotation day (fetch_growth=False) leaves eps_growth_trend stuck on
-    the prior quarter until ~3 days before the NEXT report, since a plain
-    rotation refresh doesn't request it (see get_all_fundamentals's
-    fetch_eps_growth_trend gating below).
-
-    Returns None if unavailable rather than raising, since this is a
-    scheduling hint, not a required input."""
-    try:
-        df = yf.Ticker(ticker).get_earnings_dates(limit=4)
-    except Exception:
-        return None
-    if df is None or df.empty or "Reported EPS" not in df.columns:
-        return None
-    reported = df["Reported EPS"].dropna()
-    if reported.empty:
-        return None
-    return reported.sort_index(ascending=False).index[0].date()
+# Earnings-date lookups used only to schedule fundamental refreshes. Both moved
+# to shared/api_clients/market_data_client.py (2026-08 API audit) so they route
+# through the shared cache — this used to be one raw yfinance call per
+# not-yet-refreshed ticker on EVERY scan (~180/day) for data that changes once
+# a quarter. Kept as thin module-local aliases so the rest of this file (and
+# its tests, which patch these names) don't have to change.
+_get_upcoming_earnings_date = fetch_upcoming_earnings_date
+_get_last_reported_earnings_date = fetch_last_reported_earnings_date
 
 
 def _days_since(date_str: Optional[str], today) -> Optional[int]:

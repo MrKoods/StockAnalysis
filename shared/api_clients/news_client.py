@@ -9,6 +9,7 @@ All timestamps normalized to UTC. Implements exponential backoff.
 
 import os
 import json
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -18,6 +19,7 @@ import yfinance as yf
 from shared.utils.logger import get_logger
 from shared.utils.atomic_io import atomic_write_json, exclusive_lock
 from shared.api_clients._http_backoff import http_get_with_backoff
+from shared.api_clients import rate_limiter
 
 logger = get_logger(__name__)
 
@@ -65,6 +67,15 @@ def fetch_news_alpha_vantage(
         )
         return []
 
+    # Cross-process pacing + hard daily cap. AV's free tier throttles above
+    # ~1 req/s (HTTP 200 + {"Information": ...}) and allows 25/day; the limiter
+    # enforces both across the 3 daily scan processes.
+    try:
+        rate_limiter.acquire("alphavantage.co")
+    except rate_limiter.BudgetExhausted as exc:
+        logger.warning(f"AV news: {exc} — skipping news fetch for {ticker}.")
+        return []
+
     params = {
         "function": "NEWS_SENTIMENT",
         "tickers": ticker,
@@ -74,25 +85,17 @@ def fetch_news_alpha_vantage(
     if time_from:
         params["time_from"] = time_from
 
-    # on_attempt (not a single post-call increment) — a transient failure
-    # can make http_get_with_backoff retry up to 3 real HTTP requests
-    # against AV's own server, each a genuine hit against its server-side
-    # quota. Incrementing once per logical call here undercounted real
-    # usage on any retry, so the local budget tracker could report headroom
-    # that no longer existed against AV's real limit (Signal Integrity
-    # Audit finding E.3).
-    data = http_get_with_backoff(
-        _AV_BASE_URL, params=params,
-        redact=lambda text: _redact_secrets(text, params),
-        label="fetch_news_alpha_vantage",
-        on_attempt=increment_av_call_count,
-    )
-
+    data = _av_get_with_throttle_retry(params, ticker)
     if data is None:
         return []
-    if "feed" not in data:
-        logger.warning(f"AV news: unexpected response structure for {ticker}: {list(data.keys())}")
-        return []
+
+    # Only a call that actually returned articles counts against the per-scan
+    # reservation counter (av_call_count.json). A throttle response (handled in
+    # _av_get_with_throttle_retry) returns nothing and must not burn the
+    # post_close scan's reserved share — the previous on_attempt increment
+    # counted every attempt, throttled or not, which is exactly why gated days
+    # exhausted the budget on error responses (2026-08 API audit).
+    increment_av_call_count()
 
     articles = []
     for item in data.get("feed", []):
@@ -118,6 +121,58 @@ def fetch_news_alpha_vantage(
 
     logger.info(f"AV news: fetched {len(articles)} articles for {ticker}.")
     return articles
+
+
+# Keys Alpha Vantage puts a soft-failure message under, always with HTTP 200:
+#  - "Information": the free-tier "spread your requests out (1/sec)" throttle,
+#     and the "premium endpoint" upsell
+#  - "Note":        the older "5 calls/minute" throttle message
+#  - "Error Message": a genuine bad request (unknown function, bad symbol)
+_AV_SOFT_FAILURE_KEYS = ("Information", "Note", "Error Message")
+
+
+def is_av_throttle_response(data: Optional[dict]) -> bool:
+    """True if an Alpha Vantage JSON body is a throttle/soft-failure, not real data."""
+    return isinstance(data, dict) and any(k in data for k in _AV_SOFT_FAILURE_KEYS)
+
+
+def _av_get_with_throttle_retry(
+    params: dict, ticker: str, max_throttle_retries: int = 1,
+) -> Optional[dict]:
+    """
+    GET the AV query endpoint, treating a {"Information"|"Note"|"Error Message"}
+    body as a throttle rather than data: log it, wait, re-pace, retry once, then
+    give up returning None. A None here never counts against the daily budget.
+    """
+    for attempt in range(max_throttle_retries + 1):
+        data = http_get_with_backoff(
+            _AV_BASE_URL, params=params,
+            redact=lambda text: _redact_secrets(text, params),
+            label="fetch_news_alpha_vantage",
+        )
+        if data is None:
+            return None
+        if is_av_throttle_response(data):
+            msg = next((data[k] for k in _AV_SOFT_FAILURE_KEYS if k in data), "")
+            logger.warning(
+                f"AV: throttled/soft-failed for {ticker} "
+                f"({str(msg)[:110]}) — not counted against budget"
+            )
+            if attempt < max_throttle_retries:
+                time.sleep(2.5)
+                try:
+                    rate_limiter.acquire("alphavantage.co")
+                except rate_limiter.BudgetExhausted:
+                    return None
+                continue
+            return None
+        if "feed" not in data:
+            logger.warning(
+                f"AV news: unexpected response structure for {ticker}: {list(data.keys())}"
+            )
+            return None
+        return data
+    return None
 
 
 def _parse_yahoo_news_item(item: dict) -> dict:
@@ -171,21 +226,26 @@ def fetch_news_yahoo(ticker: str, limit: int = 10) -> list[dict]:
     Returns list of dicts:
     {article_id, timestamp_utc, title, link, publisher}
     No pre-computed sentiment scores — NER applied downstream.
+
+    Cached ~4h (cache.TTL["news"]) so the noon scan reuses the pre-market pull
+    and only pre-market + post-close actually hit yfinance for news.
     """
-    try:
-        info = yf.Ticker(ticker).news
-        if not info:
-            logger.info(f"Yahoo Finance: no news for {ticker}.")
+    def _fetch():
+        try:
+            rate_limiter.acquire("yfinance")
+            info = yf.Ticker(ticker).news
+            if not info:
+                logger.info(f"Yahoo Finance: no news for {ticker}.")
+                return []
+            articles = [_parse_yahoo_news_item(item) for item in info[:limit]]
+            logger.info(f"Yahoo Finance: fetched {len(articles)} articles for {ticker}.")
+            return articles
+        except Exception as exc:
+            logger.error(f"Yahoo Finance news fetch failed for {ticker}: {exc}")
             return []
 
-        articles = [_parse_yahoo_news_item(item) for item in info[:limit]]
-
-        logger.info(f"Yahoo Finance: fetched {len(articles)} articles for {ticker}.")
-        return articles
-
-    except Exception as exc:
-        logger.error(f"Yahoo Finance news fetch failed for {ticker}: {exc}")
-        return []
+    from shared.api_clients import cache
+    return cache.cached_call("news", f"yahoo_{ticker}_{limit}", cache.TTL["news"], _fetch)
 
 
 def fetch_news_finnhub(ticker: str, lookback_days: int = 7) -> list[dict]:
@@ -201,6 +261,15 @@ def fetch_news_finnhub(ticker: str, lookback_days: int = 7) -> list[dict]:
         logger.warning("FINNHUB_API_KEY not set — Finnhub news unavailable.")
         return []
 
+    from shared.api_clients import cache
+    parsed = cache.cached_call(
+        "news", f"finnhub_{ticker}_{lookback_days}", cache.TTL["news"],
+        lambda: _fetch_news_finnhub_uncached(ticker, lookback_days, api_key),
+    )
+    return parsed
+
+
+def _fetch_news_finnhub_uncached(ticker: str, lookback_days: int, api_key: str) -> list[dict]:
     to_date = datetime.now(timezone.utc).date()
     from_date = to_date - timedelta(days=lookback_days)
     params = {
@@ -210,6 +279,7 @@ def fetch_news_finnhub(ticker: str, lookback_days: int = 7) -> list[dict]:
         "token": api_key,
     }
 
+    rate_limiter.acquire("finnhub.io")
     data = http_get_with_backoff(
         f"{_FINNHUB_BASE_URL}/company-news", params=params,
         redact=lambda text: _redact_secrets(text, params),

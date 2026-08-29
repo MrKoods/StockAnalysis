@@ -53,8 +53,8 @@ except ImportError:
     pass
 
 import pandas as pd
-import yfinance as yf
 
+from shared.api_clients.market_data_client import fetch_ohlcv_since
 from shared.utils.logger import get_logger
 from shared.utils.discord_alerts import (
     send_paper_outcome_alert,
@@ -167,18 +167,12 @@ def _save_trades(trades: list[dict], csv_path: Optional[Path] = None, lock_path:
 
 
 def _download_ohlcv(ticker: str, start: str) -> Optional[pd.DataFrame]:
-    """Download daily OHLCV from yfinance for ticker starting at start (YYYY-MM-DD)."""
-    try:
-        df = yf.download(ticker, start=start, auto_adjust=True, progress=False)
-        if df.empty:
-            return None
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        df.index = pd.to_datetime(df.index)
-        return df[["Open", "High", "Low", "Close"]].dropna()
-    except Exception as exc:
-        logger.error(f"{ticker}: yfinance download failed — {exc}")
-        return None
+    """
+    Daily OHLC for `ticker` from `start` (YYYY-MM-DD) — via the shared
+    market_data_client wrapper (paced, and it returns None cleanly for a
+    start date that isn't in the past instead of logging "possibly delisted").
+    """
+    return fetch_ohlcv_since(ticker, start)
 
 
 def _fmt_dollars(x: float) -> str:

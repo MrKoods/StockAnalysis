@@ -4,7 +4,14 @@
 #   pip-compile requirements.txt --output-file=requirements.lock.txt --resolver=backtracking
 
 # Core data
-yfinance>=0.2.36
+# Upper bound pinned deliberately: yfinance chases Yahoo's shifting private
+# endpoints with frequent breaking releases, and it relies on curl_cffi for the
+# browser impersonation that gets past Yahoo's bot detection. Bump both together
+# after testing a new yfinance against a real scan. requirements.lock.txt is the
+# reproducible install; this ceiling stops an unpinned `pip install -U` pulling
+# a yfinance/curl_cffi combination that silently stops returning data.
+yfinance>=0.2.36,<2.0.0
+curl_cffi>=0.7.0
 pandas>=2.0.0
 numpy>=1.26.0
 scipy>=1.11.0

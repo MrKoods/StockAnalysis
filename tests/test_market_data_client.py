@@ -227,3 +227,57 @@ class TestFetchVixAndPctChange:
             latest, pct_change = fetch_vix_and_pct_change()
         assert latest == pytest.approx(15.0)
         assert pct_change is None
+
+
+class TestFetchOhlcvSince:
+    """fetch_ohlcv_since — used by paper_updater; must never fire a doomed
+    start >= today request (yfinance surfaces that as 'possibly delisted')."""
+
+    def test_future_start_returns_none_without_calling_yfinance(self):
+        from datetime import date, timedelta
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        tomorrow = (date.today() + timedelta(days=1)).isoformat()
+        with patch("shared.api_clients.market_data_client.yf.download") as mock_dl:
+            assert fetch_ohlcv_since("NVDA", tomorrow) is None
+            mock_dl.assert_not_called()
+
+    def test_today_start_returns_none(self):
+        from datetime import date
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        with patch("shared.api_clients.market_data_client.yf.download") as mock_dl:
+            assert fetch_ohlcv_since("NVDA", date.today().isoformat()) is None
+            mock_dl.assert_not_called()
+
+    def test_past_start_fetches_and_returns_ohlc(self):
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        df = pd.DataFrame(
+            {"Open": [1.0], "High": [2.0], "Low": [0.5], "Close": [1.5], "Volume": [100]},
+            index=pd.to_datetime(["2026-08-01"]),
+        )
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=df):
+            out = fetch_ohlcv_since("NVDA", "2026-08-01")
+        assert list(out.columns) == ["Open", "High", "Low", "Close"]
+        assert len(out) == 1
+
+    def test_unparseable_start_returns_none(self):
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        assert fetch_ohlcv_since("NVDA", "not-a-date") is None
+
+
+class TestEarningsDateCaching:
+    def test_upcoming_earnings_date_is_cached(self):
+        from shared.api_clients.market_data_client import fetch_upcoming_earnings_date
+        mock_t = MagicMock()
+        mock_t.calendar = {"Earnings Date": ["2026-11-05"]}
+        with patch("shared.api_clients.market_data_client.yf.Ticker", return_value=mock_t) as mk:
+            d1 = fetch_upcoming_earnings_date("NVDA")
+            d2 = fetch_upcoming_earnings_date("NVDA")
+        assert str(d1) == "2026-11-05" and d1 == d2
+        assert mk.call_count == 1  # second call served from cache
+
+    def test_upcoming_earnings_date_handles_dict_shape(self):
+        from shared.api_clients.market_data_client import fetch_upcoming_earnings_date
+        mock_t = MagicMock()
+        mock_t.calendar = {"Earnings Date": [{"fmt": "2026-12-01"}]}
+        with patch("shared.api_clients.market_data_client.yf.Ticker", return_value=mock_t):
+            assert str(fetch_upcoming_earnings_date("XYZ")) == "2026-12-01"

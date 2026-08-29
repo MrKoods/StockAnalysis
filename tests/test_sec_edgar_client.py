@@ -408,11 +408,22 @@ class TestForeignPrivateIssuer6KFallback:
         assert len(articles) == 2
         assert "8-K" in articles[0]["title"]
 
-    def test_discovered_form_type_is_cached(self, monkeypatch):
-        """A foreign issuer pays the extra request once per process, not per call."""
+    def test_result_is_cached_across_calls(self, monkeypatch):
+        """The cross-scan result cache means a repeat call makes zero requests."""
         from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
         tried = self._patch(monkeypatch, {"6-K": self._atom("6-K")})
         fetch_recent_8k_filings("TSM")
+        fetch_recent_8k_filings("TSM")
+        assert tried == ["8-K", "6-K"]  # second call served from cache.cached_call
+
+    def test_discovered_form_type_persists_when_result_cache_is_cold(self, monkeypatch):
+        """With the result cache cleared, a foreign issuer still only re-tries
+        6-K (form type discovered in-process), not 8-K then 6-K again."""
+        from shared.api_clients import cache
+        from shared.api_clients.sec_edgar_client import fetch_recent_8k_filings
+        tried = self._patch(monkeypatch, {"6-K": self._atom("6-K")})
+        fetch_recent_8k_filings("TSM")
+        cache.clear("news")
         fetch_recent_8k_filings("TSM")
         assert tried == ["8-K", "6-K", "6-K"]
 

@@ -25,6 +25,7 @@ import requests
 from shared.utils.atomic_io import atomic_write_json
 from shared.utils.logger import get_logger
 from shared.api_clients._http_backoff import http_get_with_backoff, DEFAULT_BACKOFF_DELAYS
+from shared.api_clients import rate_limiter
 
 logger = get_logger(__name__)
 
@@ -261,6 +262,15 @@ def _rapidapi_get(url: str, host: str, api_key: str, params: Optional[dict] = No
     circuit_open = _circuit_open(host)
     delays = () if circuit_open else DEFAULT_BACKOFF_DELAYS
     attempts = 1 if circuit_open else retries
+    # Shared limiter carries the cross-process daily cap (Seeking Alpha's ~400/
+    # day RapidAPI Pro budget); the local _wait_for_rate_limit keeps the
+    # per-host inter-call spacing that predates it. A BudgetExhausted here
+    # means "skip this source, fall back to cache" — same as any other failure.
+    try:
+        rate_limiter.acquire(host)
+    except rate_limiter.BudgetExhausted as exc:
+        logger.warning(f"RapidAPI {host}: {exc} — skipping")
+        return None
     _wait_for_rate_limit(host)
 
     # A definitive rejection (4xx that isn't 429) must NOT trip the circuit

@@ -50,6 +50,7 @@ from xml.etree import ElementTree as ET
 
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients._http_backoff import http_get_with_backoff
+from shared.api_clients import cache, rate_limiter
 
 logger = get_logger(__name__)
 
@@ -102,32 +103,40 @@ def _user_agent() -> str:
 
 def _get_with_backoff(url: str, params: Optional[dict] = None, retries: int = 3):
     """GET with exponential backoff (30s -> 60s -> 120s). Returns the raw Response or None."""
+    rate_limiter.acquire("www.sec.gov")
     return http_get_with_backoff(
         url, params=params, headers={"User-Agent": _user_agent()},
-        retries=retries, parse_json=False, label="sec_edgar",
+        retries=retries, parse_json=False, label="sec_edgar", timeout=30,
     )
 
 
 def _load_ticker_cik_map() -> dict:
     """
-    Fetch and cache SEC's ticker -> CIK mapping for the lifetime of this process.
-    Returns {ticker: 10-digit zero-padded CIK string}. Empty dict on failure.
+    SEC's ticker -> CIK mapping. Cached in-process AND on disk for 30 days
+    (cache.TTL["sec_cik_map"]) — it's an ~800KB download that changes rarely,
+    and each scan is a fresh process, so a process-only cache meant re-fetching
+    it 3x/day. Returns {ticker: 10-digit zero-padded CIK string}, {} on failure.
     """
     global _ticker_cik_cache
     if _ticker_cik_cache is not None:
         return _ticker_cik_cache
 
+    _ticker_cik_cache = cache.cached_call(
+        "news", "sec_cik_map", cache.TTL["sec_cik_map"], _fetch_ticker_cik_map,
+    ) or {}
+    return _ticker_cik_cache
+
+
+def _fetch_ticker_cik_map() -> dict:
     resp = _get_with_backoff(_TICKER_MAP_URL)
     if resp is None:
-        _ticker_cik_cache = {}
-        return _ticker_cik_cache
+        return {}
 
     try:
         raw = resp.json()
     except ValueError as exc:
         logger.error(f"[sec_edgar] Ticker map response wasn't JSON: {exc}")
-        _ticker_cik_cache = {}
-        return _ticker_cik_cache
+        return {}
 
     mapping = {}
     for entry in raw.values():
@@ -135,7 +144,6 @@ def _load_ticker_cik_map() -> dict:
         cik = entry.get("cik_str")
         if ticker and cik is not None:
             mapping[ticker] = str(cik).zfill(10)
-    _ticker_cik_cache = mapping
     return mapping
 
 
@@ -198,7 +206,18 @@ def fetch_recent_8k_filings(ticker: str, limit: int = 10) -> list[dict]:
     Deliberately discovery-based rather than a hardcoded ticker list: it works
     for any foreign issuer added to the watchlist later without anyone
     remembering this distinction exists.
+
+    Cross-scan result cached ~20h (cache.TTL["sec_submissions"]): a company's
+    own 8-K/6-K stream changes at most a couple of times a week, and the slow
+    browse-edgar endpoint was the dominant contributor to scan wall-time.
     """
+    return cache.cached_call(
+        "news", f"sec_{ticker}_{limit}", cache.TTL["sec_submissions"],
+        lambda: _fetch_recent_8k_filings_uncached(ticker, limit),
+    )
+
+
+def _fetch_recent_8k_filings_uncached(ticker: str, limit: int = 10) -> list[dict]:
     cik_map = _load_ticker_cik_map()
     cik = cik_map.get(ticker.upper())
     if not cik:

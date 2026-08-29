@@ -9,6 +9,8 @@ import requests
 
 import shared.utils.logger as logger_module
 import shared.utils.scan_lock as scan_lock_module
+import shared.api_clients.cache as api_cache_module
+import shared.api_clients.rate_limiter as rate_limiter_module
 import backtesting.backtest_engine as backtest_engine_module
 import swing_model.feedback_loop as feedback_loop_module
 import shared.utils.black_swan_detector as black_swan_detector_module
@@ -180,6 +182,21 @@ def _isolate_ohlcv_cache(monkeypatch):
     symbol instead of exercising its own mock.
     """
     monkeypatch.setattr(market_data_client_module, "_OHLCV_BATCH_CACHE", {})
+
+
+@pytest.fixture(autouse=True)
+def _isolate_api_cache_and_rate_limiter(tmp_path, monkeypatch):
+    """
+    shared/api_clients/cache.py and rate_limiter.py both persist state under
+    data/cache/ by default. Same blanket-autouse-default reasoning as every
+    fixture above: without this, any test that reaches a fetcher writes real
+    cache files and real rate-limiter counters into the working tree, and a
+    stale rate-limiter counter left behind could throttle or BudgetExhausted a
+    real scan. Also resets the rate limiter's fallback so a test tweaking
+    DEFAULT_LIMITS can't leak into the next test.
+    """
+    monkeypatch.setattr(api_cache_module, "_CACHE_DIR", tmp_path / "cache")
+    monkeypatch.setattr(rate_limiter_module, "_RATELIMIT_DIR", tmp_path / "cache" / "ratelimit")
 
 
 @pytest.fixture(autouse=True)

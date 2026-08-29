@@ -6,7 +6,7 @@ Implements exponential backoff (30s → 60s → 120s → fallback).
 """
 
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 import yfinance as yf
@@ -14,6 +14,7 @@ import pandas as pd
 
 from shared.utils.logger import get_logger
 from shared.api_clients._http_backoff import retry_with_backoff
+from shared.api_clients import rate_limiter
 
 logger = get_logger(__name__)
 
@@ -65,6 +66,42 @@ def fetch_ohlcv(
         return df
 
     return retry_with_backoff(_fetch, retries=retries, label=f"fetch_ohlcv({ticker})")
+
+
+def fetch_ohlcv_since(ticker: str, start: str) -> Optional[pd.DataFrame]:
+    """
+    Daily OHLC(V) for `ticker` from `start` (YYYY-MM-DD) to now, via yfinance.
+
+    Returns a DataFrame indexed by date with columns [Open, High, Low, Close],
+    or None if unavailable / start is not in the past.
+
+    Guards against start >= today: yfinance's `start=` with no `end=` sends the
+    request's "now" as endDate, so a start date that is today or tomorrow (a
+    post-close ET signal is already tomorrow in UTC) produces
+    "start date cannot be after end date", which yfinance surfaces as
+    "possibly delisted; no price data found" — a misleading log line on every
+    fresh signal (2026-08 API audit, YF-5). Callers get a clean None instead.
+    """
+    try:
+        start_date = datetime.strptime(start[:10], "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        logger.warning(f"fetch_ohlcv_since({ticker}): unparseable start {start!r}")
+        return None
+    if start_date >= date.today():
+        return None
+
+    def _fetch():
+        rate_limiter.acquire("yfinance")
+        df = yf.download(ticker, start=start, auto_adjust=True, progress=False)
+        if df is None or df.empty:
+            return None
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        df.index = pd.to_datetime(df.index)
+        cols = [c for c in ("Open", "High", "Low", "Close") if c in df.columns]
+        return df[cols].dropna()
+
+    return retry_with_backoff(_fetch, retries=3, label=f"fetch_ohlcv_since({ticker})")
 
 
 # Process-lifetime OHLCV cache, keyed by (ticker, interval) -> (df, days_covered).
@@ -177,6 +214,71 @@ def fetch_ohlcv_batch(
             result[ticker] = None
 
     return result
+
+
+def fetch_upcoming_earnings_date(ticker: str):
+    """
+    A ticker's next known earnings date (a plain ``date``), via yfinance's
+    calendar. Cached for 7 days — earnings dates move at most once a quarter,
+    and this used to be called once per not-yet-refreshed ticker on EVERY scan
+    (~180 raw yfinance calls/day) purely to schedule fundamental refreshes.
+
+    Normalises yfinance's shifting calendar shape (a bare date, or a dict with
+    raw/fmt keys on newer versions). Returns None if unavailable rather than
+    raising — this is a scheduling hint, not a required input.
+    """
+    def _fetch():
+        rate_limiter.acquire("yfinance")
+        cal = yf.Ticker(ticker).calendar or {}
+        dates = cal.get("Earnings Date") or []
+        if not dates:
+            return None
+        first = dates[0] if hasattr(dates, "__getitem__") else None
+        if first is None:
+            return None
+        if isinstance(first, dict):
+            raw = first.get("raw") or first.get("timestamp")
+            fmt = first.get("fmt") or first.get("date")
+            if raw:
+                return pd.Timestamp(raw, unit="s").date().isoformat()
+            if fmt:
+                return pd.Timestamp(fmt).date().isoformat()
+            return None
+        return pd.Timestamp(first).date().isoformat()
+
+    from shared.api_clients import cache
+    try:
+        iso = cache.cached_call("earnings_calendar", f"upcoming_{ticker}", cache.TTL["earnings_calendar"], _fetch)
+    except Exception:
+        iso = None
+    return datetime.strptime(iso, "%Y-%m-%d").date() if iso else None
+
+
+def fetch_last_reported_earnings_date(ticker: str):
+    """
+    A ticker's most recently ACTUALLY reported earnings date (a plain ``date``),
+    via yfinance's earnings-date history. Deliberately separate from
+    fetch_upcoming_earnings_date: once a company reports, yfinance's calendar
+    flips to the NEXT quarter almost immediately, so the forward-looking value
+    can't tell you a report just landed. Cached 7 days. Returns None if
+    unavailable.
+    """
+    def _fetch():
+        rate_limiter.acquire("yfinance")
+        df = yf.Ticker(ticker).get_earnings_dates(limit=4)
+        if df is None or df.empty or "Reported EPS" not in df.columns:
+            return None
+        reported = df["Reported EPS"].dropna()
+        if reported.empty:
+            return None
+        return reported.sort_index(ascending=False).index[0].date().isoformat()
+
+    from shared.api_clients import cache
+    try:
+        iso = cache.cached_call("earnings_calendar", f"last_reported_{ticker}", cache.TTL["earnings_calendar"], _fetch)
+    except Exception:
+        iso = None
+    return datetime.strptime(iso, "%Y-%m-%d").date() if iso else None
 
 
 def fetch_earnings_calendar(ticker: str) -> Optional[dict]:
