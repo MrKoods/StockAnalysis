@@ -106,3 +106,43 @@ class TestThemeAlignmentModifierBearishMirror:
     def test_memory_cycle_theme_neutral_for_non_mu_both_directions(self):
         assert theme_alignment_modifier("memory_cycle", "bullish", "NVDA") == 0.0
         assert theme_alignment_modifier("memory_cycle", "bearish", "NVDA") == 0.0
+
+
+class TestAvTickerSentimentMR1:
+    """MR-1/MR-2 (2026-08 API audit): when an Alpha Vantage article carries a
+    per-ticker sentiment_score + relevance_score, the News layer uses that
+    scored value instead of keyword-matching the headline — and the article
+    counts for the ticker even if the alias-keyword matcher misses it."""
+
+    def _av_article(self, ticker, score, relevance, title="Some macro headline"):
+        return {
+            "title": title, "timestamp_utc": "2026-08-27T12:00:00+00:00",
+            "source": "Reuters", "source_domain": "reuters.com",
+            "overall_sentiment_score": 0.0, "overall_sentiment_label": "Neutral",
+            "ticker_sentiment": [
+                {"ticker": ticker, "relevance_score": str(relevance),
+                 "ticker_sentiment_score": str(score), "ticker_sentiment_label": "x"}
+            ],
+        }
+
+    def test_av_sentiment_used_when_headline_has_no_ticker_name(self):
+        # Headline never says "Zions" — the keyword matcher would score this 0,
+        # but AV says it's relevant and bearish.
+        art = self._av_article("ZION", score=-0.4, relevance=0.6,
+                               title="Regional lenders slump on deposit-flight fears")
+        out = compute_news_score([art], [], "ZION", direction="bullish")
+        assert out["relevant_article_count"] == 1
+        assert out["data_quality"] == "complete"
+        # bearish AV sentiment opposes a bullish thesis -> low credibility score
+        assert out["credibility_weighted_score"] < 3.0
+
+    def test_low_relevance_av_article_is_excluded(self):
+        art = self._av_article("ZION", score=0.5, relevance=0.02)
+        out = compute_news_score([art], [], "ZION")
+        assert out["relevant_article_count"] == 0
+
+    def test_bullish_av_sentiment_scores_high_for_bullish_thesis(self):
+        art = self._av_article("NVDA", score=0.6, relevance=0.9,
+                               title="Nvidia demand outlook raised across the Street")
+        out = compute_news_score([art], [], "NVDA", direction="bullish")
+        assert out["credibility_weighted_score"] > 3.0

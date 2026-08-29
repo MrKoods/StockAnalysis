@@ -31,6 +31,31 @@ NEUTRAL_CREDIBILITY_SCORE = 3.0
 NEUTRAL_THEME_ALIGNMENT_SCORE = 2.0
 NEUTRAL_NEWS_SCORE_TOTAL = NEUTRAL_CREDIBILITY_SCORE + NEUTRAL_THEME_ALIGNMENT_SCORE  # 5.0 / 15
 
+# Alpha Vantage attaches a per-article, per-ticker relevance_score (0-1). At or
+# above this floor the article is treated as about this ticker even if the
+# headline-keyword matcher missed it (MR-1/MR-2, 2026-08 API audit).
+_AV_RELEVANCE_FLOOR = 0.1
+
+
+def _av_ticker_sentiment(art: dict, ticker: str) -> Optional[dict]:
+    """
+    Pull Alpha Vantage's own per-ticker sentiment for `ticker` out of an
+    article's ticker_sentiment array. Returns {"relevance": float, "score":
+    float, "label": "bullish"|"bearish"|"neutral"} or None if the article
+    carries no AV sentiment for this ticker.
+    """
+    for entry in art.get("ticker_sentiment") or []:
+        if str(entry.get("ticker", "")).upper() != ticker.upper():
+            continue
+        try:
+            relevance = float(entry.get("relevance_score", 0.0))
+            score = float(entry.get("ticker_sentiment_score", entry.get("sentiment_score", 0.0)))
+        except (TypeError, ValueError):
+            return None
+        label = "bullish" if score > 0.05 else "bearish" if score < -0.05 else "neutral"
+        return {"relevance": relevance, "score": score, "label": label}
+    return None
+
 
 
 def classify_severity(item: dict, cfg: Optional[dict] = None, sector: Optional[str] = None) -> dict:
@@ -236,14 +261,26 @@ def compute_news_score(
     ner_results = []
     for art in all_articles:
         title = art.get("title", "")
-        if is_ticker_relevant(title, ticker):
+        av_sent = _av_ticker_sentiment(art, ticker)
+        # An article counts for this ticker if the keyword/alias matcher says so
+        # OR Alpha Vantage attached a real per-ticker relevance score for it
+        # (2026-08 API audit, MR-1/MR-2): the alias dict has repeatedly missed
+        # newly-added tickers, and AV's own relevance judgement doesn't depend
+        # on a hand-maintained name list.
+        if is_ticker_relevant(title, ticker) or (av_sent and av_sent["relevance"] >= _AV_RELEVANCE_FLOOR):
             ts = _parse_ts(art.get("timestamp_utc", ""))
             decay = news_decay_weight(ts, now_utc=now, halflife_hours=decay_halflife_hours, zero_at_days=decay_zero_at_days)
             if decay <= 0.0:
                 continue  # Too old
 
-            ner = extract_ticker_sentiments(title, watchlist)
-            ticker_sentiment = ner.get(ticker)
+            # Prefer AV's scored per-ticker sentiment (a real model output) over
+            # the keyword match on the headline title; fall back to the keyword
+            # match for sources with no sentiment (Yahoo, Finnhub, SEC).
+            if av_sent:
+                ticker_sentiment = av_sent["label"]
+            else:
+                ner = extract_ticker_sentiments(title, watchlist)
+                ticker_sentiment = ner.get(ticker)
             outlet_cred = score_news_outlet(art.get("source_domain", "") or art.get("publisher", ""))
 
             article_record = {
@@ -252,6 +289,7 @@ def compute_news_score(
                 "_decay": decay,
                 "_credibility": outlet_cred,
                 "_ner_sentiment": ticker_sentiment,
+                "_av_relevance": av_sent["relevance"] if av_sent else None,
             }
             relevant.append(article_record)
             ner_results.append({"ticker": ticker, "sentiment": ticker_sentiment, "title": title})
@@ -524,6 +562,11 @@ def _score_credibility_weighted(articles: list[dict], ticker: str, direction: st
             cred = score_news_outlet(art.get("source_domain", "") or art.get("publisher", ""))
         decay = art.get("_decay", 1.0)
         w = cred * decay
+        # Down-weight an Alpha Vantage article whose per-ticker relevance is low
+        # (it mentions the ticker only in passing); leave non-AV articles as-is.
+        av_rel = art.get("_av_relevance")
+        if av_rel is not None:
+            w *= min(1.0, max(0.2, av_rel))
 
         sentiment = art.get("_ner_sentiment") or art.get("overall_sentiment_label", "Neutral")
         normalized = str(sentiment).lower()
