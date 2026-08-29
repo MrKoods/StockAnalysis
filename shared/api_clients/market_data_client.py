@@ -431,44 +431,11 @@ def fetch_vix_and_pct_change(period: str = "1mo", retries: int = 3) -> tuple[Opt
     return latest, pct_change
 
 
-def fetch_treasury_yield(period: str = "3mo") -> Optional[pd.DataFrame]:
-    """
-    Fetch 10-year US Treasury yield (^TNX) via yfinance.
-    Used by macro_overlay.py as a free proxy for Fed rate direction.
-    """
-    def _fetch():
-        df = yf.download("^TNX", period=period, interval="1d", progress=False, auto_adjust=True)
-        if df.empty:
-            raise ValueError("Empty TNX response")
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        if df.index.tz is None:
-            df.index = df.index.tz_localize("UTC")
-        else:
-            df.index = df.index.tz_convert("UTC")
-        return df[["Open", "High", "Low", "Close", "Volume"]].copy()
-
-    return retry_with_backoff(_fetch, retries=3, label="fetch_treasury_yield")
-
-
-def fetch_dxy(period: str = "3mo") -> Optional[pd.DataFrame]:
-    """
-    Fetch US Dollar Index (DX-Y.NYB) via yfinance.
-    Used by macro_overlay.py for USD strength signal.
-    """
-    def _fetch():
-        df = yf.download("DX-Y.NYB", period=period, interval="1d", progress=False, auto_adjust=True)
-        if df.empty:
-            raise ValueError("Empty DXY response")
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        if df.index.tz is None:
-            df.index = df.index.tz_localize("UTC")
-        else:
-            df.index = df.index.tz_convert("UTC")
-        return df[["Open", "High", "Low", "Close", "Volume"]].copy()
-
-    return retry_with_backoff(_fetch, retries=3, label="fetch_dxy")
+# fetch_treasury_yield / fetch_dxy (yfinance ^TNX / DX-Y.NYB) were removed
+# 2026-08 (API audit MR-4) — the live macro overlay now reads the actual
+# 10-yr Treasury yield and a USD/EUR strength series from Alpha Vantage's
+# economic-data endpoints (shared/api_clients/macro_data_client.py). The
+# backtest still uses its own cached TNX.csv / DXY.csv (backtesting/simulation.py).
 
 
 def fetch_insider_transactions(ticker: str) -> Optional[list[dict]]:

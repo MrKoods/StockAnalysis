@@ -19,9 +19,10 @@ from swing_model.portfolio_manager import (
     update_circuit_breaker, can_open_new_position,
 )
 from shared.api_clients.market_data_client import (
-    fetch_ohlcv_batch, fetch_vix_and_pct_change, fetch_treasury_yield, fetch_dxy,
+    fetch_ohlcv_batch, fetch_vix_and_pct_change,
     fetch_earnings_calendar,
 )
+from shared.api_clients.macro_data_client import fetch_treasury_yield_10y, fetch_usd_strength
 from shared.utils.black_swan_detector import build_black_swan_alert
 from swing_model.position_rescoring import rescore_open_positions
 from shared.api_clients.sentiment_client import fetch_stocktwits, fetch_seeking_alpha_engagement
@@ -1196,21 +1197,21 @@ def _fetch_market_context(cfg: dict) -> dict:
     except Exception as exc:
         logger.warning(f"VIX fetch failed — {exc}")
 
+    # MR-4: the actual 10-yr Treasury yield + a USD/EUR strength series from
+    # Alpha Vantage's economic-data endpoints (keyed, cached ~20h), instead of
+    # yf.download("^TNX") / yf.download("DX-Y.NYB"). compute_macro_state reads a
+    # 20-day trend off whatever Series it's handed.
     tnx_series: Optional[pd.Series] = None
     try:
-        tnx_df = fetch_treasury_yield(period="3mo")
-        if tnx_df is not None and not tnx_df.empty:
-            tnx_series = tnx_df["Close"]
+        tnx_series = fetch_treasury_yield_10y()
     except Exception as exc:
         logger.warning(f"TNX fetch failed — {exc}")
 
     dxy_series: Optional[pd.Series] = None
     try:
-        dxy_df = fetch_dxy(period="3mo")
-        if dxy_df is not None and not dxy_df.empty:
-            dxy_series = dxy_df["Close"]
+        dxy_series = fetch_usd_strength()
     except Exception as exc:
-        logger.warning(f"DXY fetch failed — {exc}")
+        logger.warning(f"USD-strength fetch failed — {exc}")
 
     ticker_ohlcv = {t: ohlcv_all[t] for t in watchlist if t in ohlcv_all}
 

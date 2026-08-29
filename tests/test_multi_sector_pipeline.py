@@ -103,8 +103,8 @@ class TestFetchMarketContextPerSector:
 
         with patch("swing_model.run_swing_model.fetch_ohlcv_batch", return_value=fake_ohlcv), \
              patch("swing_model.run_swing_model.fetch_vix_and_pct_change", return_value=(15.0, 0.0)), \
-             patch("swing_model.run_swing_model.fetch_treasury_yield", return_value=None), \
-             patch("swing_model.run_swing_model.fetch_dxy", return_value=None):
+             patch("swing_model.run_swing_model.fetch_treasury_yield_10y", return_value=None), \
+             patch("swing_model.run_swing_model.fetch_usd_strength", return_value=None):
             mkt = _fetch_market_context(cfg)
 
         assert set(mkt["sector_benchmark_dfs"].keys()) == {"semiconductors", "regional_banks"}
@@ -122,8 +122,8 @@ class TestFetchMarketContextPerSector:
 
         with patch("swing_model.run_swing_model.fetch_ohlcv_batch", return_value=fake_ohlcv), \
              patch("swing_model.run_swing_model.fetch_vix_and_pct_change", return_value=(15.0, 0.0)), \
-             patch("swing_model.run_swing_model.fetch_treasury_yield", return_value=None), \
-             patch("swing_model.run_swing_model.fetch_dxy", return_value=None):
+             patch("swing_model.run_swing_model.fetch_treasury_yield_10y", return_value=None), \
+             patch("swing_model.run_swing_model.fetch_usd_strength", return_value=None):
             mkt = _fetch_market_context(cfg)
 
         assert set(mkt["sector_benchmark_dfs"].keys()) == {"semiconductors"}
