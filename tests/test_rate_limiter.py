@@ -81,6 +81,23 @@ def test_cap_counter_resets_across_utc_day(monkeypatch):
     assert rl.usage("capped.test")["count"] == 1
 
 
+def test_note_remaining_only_warns_when_window_nearly_spent(caplog):
+    """Finnhub's X-Ratelimit-Remaining is a per-minute window that resets to 60
+    each minute, so a mid-range value is normal and must not warn (it fired
+    ~30x/scan before). Only a near-zero value is worth a line."""
+    import logging
+
+    with caplog.at_level(logging.WARNING):
+        rl.note_remaining("finnhub.io", 45)
+        rl.note_remaining("finnhub.io", 10)
+        rl.note_remaining("finnhub.io", None)
+    assert caplog.records == []
+
+    with caplog.at_level(logging.WARNING):
+        rl.note_remaining("finnhub.io", 1)
+    assert any("calls left in the current window" in r.message for r in caplog.records)
+
+
 def test_locking_failure_degrades_open(monkeypatch):
     """A broken lock must not block a scan — acquire logs and lets the call through."""
     import shared.api_clients.rate_limiter as mod

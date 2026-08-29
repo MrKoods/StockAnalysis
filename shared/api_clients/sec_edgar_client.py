@@ -48,6 +48,8 @@ from datetime import datetime, timezone
 from typing import Optional
 from xml.etree import ElementTree as ET
 
+import requests
+
 from shared.utils.logger import get_logger, write_validation_entry
 from shared.api_clients._http_backoff import http_get_with_backoff
 from shared.api_clients import cache, rate_limiter
@@ -109,12 +111,27 @@ def _user_agent() -> str:
     )
 
 
+def _should_retry_sec(exc: BaseException) -> bool:
+    """A 4xx (other than 429) from SEC is a definitive answer, not a transient
+    failure. companyconcept in particular returns 404 for any GAAP tag the
+    filer simply doesn't report — and fetch_financial_facts probes several
+    candidate tags per line item, so retrying each 404 through the 30s->60s
+    ladder added minutes per ticker for nothing. Stop immediately instead."""
+    if isinstance(exc, requests.exceptions.HTTPError):
+        status = exc.response.status_code if exc.response is not None else 0
+        if 400 <= status < 500 and status != 429:
+            return False
+    return True
+
+
 def _get_with_backoff(url: str, params: Optional[dict] = None, retries: int = 3):
-    """GET with exponential backoff (30s -> 60s -> 120s). Returns the raw Response or None."""
+    """GET with exponential backoff (30s -> 60s -> 120s). Returns the raw Response or None.
+    A non-429 4xx is returned as None without burning the backoff schedule."""
     rate_limiter.acquire("www.sec.gov")
     return http_get_with_backoff(
         url, params=params, headers={"User-Agent": _user_agent()},
         retries=retries, parse_json=False, label="sec_edgar", timeout=30,
+        should_retry=_should_retry_sec,
     )
 
 
@@ -688,21 +705,55 @@ def _quarterly_series(points: list[dict]) -> list[dict]:
     return sorted(by_end.values(), key=lambda p: p["end"])
 
 
-def _first_with_data(facts: dict, candidates: list[str]) -> list[dict]:
+def _best_concept(facts: dict, candidates: list[str]) -> list[dict]:
+    """Of the candidate tags, return the one whose quarterly data reaches
+    closest to today.
+
+    Filers switch GAAP tags between years (NVDA reported revenue under
+    RevenueFromContractWithCustomerExcludingAssessedTax through FY2022, then
+    moved to Revenues). The old "first candidate with any data" could lock
+    onto a tag the company abandoned years ago and score it on stale quarters
+    — e.g. NVDA's gross margin coming out at 2022's 65% instead of ~75%.
+    Ties (including exact) keep the earlier candidate, preserving preference
+    order (e.g. Diluted EPS over Basic)."""
+    best: list[dict] = []
+    best_end = ""
     for c in candidates:
-        if facts.get(c):
-            return facts[c]
-    return []
+        series = facts.get(c)
+        if not series:
+            continue
+        q = _quarterly_series(series)
+        if q and q[-1]["end"] > best_end:
+            best, best_end = series, q[-1]["end"]
+    return best
+
+
+def _yoy_pairs(series: list[dict]) -> list[tuple[dict, Optional[dict]]]:
+    """(current, year_ago) point pairs, most-recent-first, matched by CALENDAR
+    end-date (~365d earlier, +/-25d) rather than by list position.
+
+    Most filers don't file a Q4 10-Q — they go straight to the 10-K — so the
+    quarterly XBRL series has a hole every Q4 (verified: NVDA has Q1/Q2/Q3
+    only). Position-based "quarter i vs quarter i+4" then silently compares
+    against the wrong quarter (Q2 vs the prior Q1). Date-matching is immune."""
+    by_ord = [
+        (datetime.strptime(p["end"], "%Y-%m-%d").toordinal(), p) for p in series
+    ]
+    out: list[tuple[dict, Optional[dict]]] = []
+    for cur_ord, cur in reversed(by_ord):
+        target = cur_ord - 365
+        candidates = [bp for bp in by_ord if abs(bp[0] - target) <= 25]
+        match = min(candidates, key=lambda bp: abs(bp[0] - target), default=None)
+        out.append((cur, match[1] if match else None))
+    return out
 
 
 def _yoy_growth(series: list[dict], n: int = 4) -> list:
-    """YoY growth of a quarterly value series (most-recent-first output), quarter i vs quarter i+4."""
-    vals = [p["val"] for p in reversed(series)]  # most-recent-first
+    """Up to n YoY growth rates of a quarterly value series, most-recent-first."""
     out = []
-    for i in range(min(n, len(vals))):
-        if i + 4 < len(vals) and vals[i + 4]:
-            prior = vals[i + 4]
-            out.append(round((vals[i] - prior) / abs(prior), 4))
+    for cur, prior in _yoy_pairs(series)[:n]:
+        if prior and prior["val"]:
+            out.append(round((cur["val"] - prior["val"]) / abs(prior["val"]), 4))
         else:
             out.append(None)
     return out
@@ -737,7 +788,7 @@ def fetch_fundamental_trend(ticker: str, sector: Optional[str] = None) -> dict:
 
     out: dict = {}
 
-    eps_q = _quarterly_series(_first_with_data(facts, cset["eps"]))
+    eps_q = _quarterly_series(_best_concept(facts, cset["eps"]))
     if len(eps_q) >= 5:
         trend = _yoy_growth(eps_q)
         if any(v is not None for v in trend):
@@ -745,23 +796,31 @@ def fetch_fundamental_trend(ticker: str, sector: Optional[str] = None) -> dict:
 
     is_bank = sector == "regional_banks"
     if is_bank:
-        nii_q = _quarterly_series(_first_with_data(facts, cset["net_interest_income"]))
-        noni_q = _quarterly_series(_first_with_data(facts, cset["noninterest_income"]))
+        nii_q = _quarterly_series(_best_concept(facts, cset["net_interest_income"]))
+        noni_q = _quarterly_series(_best_concept(facts, cset["noninterest_income"]))
         rev_q = _combine_series(nii_q, noni_q)
     else:
-        rev_q = _quarterly_series(_first_with_data(facts, cset["revenue"]))
+        rev_q = _quarterly_series(_best_concept(facts, cset["revenue"]))
 
-    if len(rev_q) >= 5:
-        latest, year_ago = rev_q[-1]["val"], rev_q[-5]["val"]
-        if year_ago:
-            out["revenue_yoy_growth"] = round((latest - year_ago) / abs(year_ago), 4)
+    rev_pairs = _yoy_pairs(rev_q)
+    if rev_pairs and rev_pairs[0][1] and rev_pairs[0][1]["val"]:
+        cur, prior = rev_pairs[0]
+        out["revenue_yoy_growth"] = round((cur["val"] - prior["val"]) / abs(prior["val"]), 4)
 
     if not is_bank:
-        gp_q = _quarterly_series(_first_with_data(facts, cset["gross_profit"]))
+        gp_q = _quarterly_series(_best_concept(facts, cset["gross_profit"]))
         gp_by_end = {p["end"]: p["val"] for p in gp_q}
         rev_by_end = {p["end"]: p["val"] for p in rev_q}
         shared_ends = sorted(set(gp_by_end) & set(rev_by_end))
-        margins = [gp_by_end[e] / rev_by_end[e] for e in shared_ends if rev_by_end[e]]
+        # Gross margin is physically bounded. A value outside (0, 0.95) means
+        # the filer's own XBRL is inconsistent for that period (seen on MU's
+        # FY2026 10-Qs: a 90-day GrossProfit fact several times its matching
+        # revenue) — drop it rather than feed a nonsense margin downstream.
+        margins = [
+            gp_by_end[e] / rev_by_end[e]
+            for e in shared_ends
+            if rev_by_end[e] and 0.0 < gp_by_end[e] / rev_by_end[e] < 0.95
+        ]
         if margins:
             out["gross_margin_latest"] = round(margins[-1], 4)
         if len(margins) >= 2:

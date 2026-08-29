@@ -64,6 +64,23 @@ def _to_series(pairs: list[tuple[str, str]]) -> Optional[pd.Series]:
     return pd.Series(rows).sort_index()
 
 
+def _series_to_jsonable(s: Optional[pd.Series], n: int) -> Optional[dict]:
+    """Last n points as an ISO-date-keyed dict — JSON-serialisable for the
+    cache (a Timestamp key is not)."""
+    if s is None:
+        return None
+    return {pd.Timestamp(k).date().isoformat(): float(v) for k, v in s.tail(n).items()}
+
+
+def _series_from_jsonable(d: Optional[dict]) -> Optional[pd.Series]:
+    """Rebuild the datetime-indexed Series written by _series_to_jsonable."""
+    if not d:
+        return None
+    s = pd.Series(d)
+    s.index = pd.to_datetime(s.index)
+    return s.sort_index()
+
+
 def fetch_treasury_yield_10y() -> Optional[pd.Series]:
     """10-year Treasury constant-maturity yield (percent), daily. Cached ~20h."""
     def _fetch():
@@ -73,10 +90,10 @@ def fetch_treasury_yield_10y() -> Optional[pd.Series]:
         )
         pts = (data or {}).get("data") or []
         s = _to_series([(p.get("date"), p.get("value")) for p in pts])
-        return s.tail(120).to_dict() if s is not None else None
+        return _series_to_jsonable(s, 120)
 
     d = cache.cached_call("macro_series", "treasury_10y", cache.TTL["macro_series"], _fetch)
-    return pd.Series(d).sort_index() if d else None
+    return _series_from_jsonable(d)
 
 
 def fetch_usd_strength() -> Optional[pd.Series]:
@@ -91,10 +108,10 @@ def fetch_usd_strength() -> Optional[pd.Series]:
         )
         ts = (data or {}).get("Time Series FX (Daily)") or {}
         s = _to_series([(d, bar.get("4. close")) for d, bar in ts.items()])
-        return s.tail(120).to_dict() if s is not None else None
+        return _series_to_jsonable(s, 120)
 
     d = cache.cached_call("macro_series", "usd_eur", cache.TTL["macro_series"], _fetch)
-    return pd.Series(d).sort_index() if d else None
+    return _series_from_jsonable(d)
 
 
 def fetch_federal_funds_rate() -> Optional[pd.Series]:
@@ -105,10 +122,10 @@ def fetch_federal_funds_rate() -> Optional[pd.Series]:
         )
         pts = (data or {}).get("data") or []
         s = _to_series([(p.get("date"), p.get("value")) for p in pts])
-        return s.tail(36).to_dict() if s is not None else None
+        return _series_to_jsonable(s, 36)
 
     d = cache.cached_call("macro_series_slow", "fed_funds", cache.TTL["macro_series_slow"], _fetch)
-    return pd.Series(d).sort_index() if d else None
+    return _series_from_jsonable(d)
 
 
 def fetch_cpi() -> Optional[pd.Series]:
@@ -117,7 +134,7 @@ def fetch_cpi() -> Optional[pd.Series]:
         data = _av_series_call({"function": "CPI", "interval": "monthly"}, "CPI", "value")
         pts = (data or {}).get("data") or []
         s = _to_series([(p.get("date"), p.get("value")) for p in pts])
-        return s.tail(36).to_dict() if s is not None else None
+        return _series_to_jsonable(s, 36)
 
     d = cache.cached_call("macro_series_slow", "cpi", cache.TTL["macro_series_slow"], _fetch)
-    return pd.Series(d).sort_index() if d else None
+    return _series_from_jsonable(d)

@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.115 | 2026-08-29 | Bug Fix | Five bugs in the just-shipped API re-architecture (phases 1–3), found by verifying the first live scan and then testing the SEC path directly. Two were making the model read the *wrong* fundamentals: NVDA's gross margin came out at 2022's 65% instead of today's 75% because the code locked onto a data tag NVDA abandoned years ago, and year-over-year growth was comparing against the wrong quarter for any company that files an annual report instead of a Q4 quarterly (most of them). One was a performance bug: a normal "this company doesn't report that line item" response from the SEC triggered a 3½-minute retry storm per missing item. Plus the macro data cache never actually saved (silent write failure, re-fetched every scan) and a harmless log warning fired ~30×/scan. Backtest unchanged (live-only paths) |
 | v2.2.114 | 2026-08-29 | Data Source / Scoring Change | Phase 3 of the API re-architecture — the Fundamental layer's earnings and revenue history now comes from companies' own SEC filings (structured XBRL data) instead of two fragile Yahoo scrapes. The big win is regional banks: they have no "revenue" or "gross profit" line the old code understood, so this is the first time the model reads real bank fundamentals — net interest income, fee income, EPS history — straight from their 10-Qs. Foreign filers (TSM, ASML) that don't file US-style statements fall back to the old path. Backtest unchanged (the backtest reads a separate historical fundamentals archive, not this live path) |
 | v2.2.113 | 2026-08-28 | Data Source / Scoring Change | Phase 2 of the API re-architecture — three scoring layers now read better data. Analyst-rating trend comes from Finnhub's clean monthly breakdown instead of an unstructured yfinance frame. The macro overlay reads the actual 10-year Treasury yield and a real FX series from Alpha Vantage instead of two index proxies. The News layer finally uses Alpha Vantage's own per-article sentiment scores (previously fetched and thrown away) and no longer needs a headline to literally spell out the company name to count. The Fundamental layer gets a real analyst-revision-direction signal from Seeking Alpha's rating counts, filling a gap the layer's own code called "not available on any free tier". Fresh backtest: 61.5% win rate / 13 qualifying trades / still fails the go-live gate on sample size, unchanged in substance from before |
 | v2.2.112 | 2026-08-28 | Infrastructure | Phase 1 of the API re-architecture — plumbing only, no change to any score. Every external data source now shares one on-disk cache and one cross-process rate limiter, so the day's three scans stop re-fetching news, filings and earnings dates that haven't changed since the morning, and the Alpha Vantage daily budget stops being spent on the "slow down" error responses it gets when calls come too fast. Also: the SEC request timeout was too short and made every scan stall for minutes on retries (fixed), and a CI check now blocks any new code that calls an external API without going through the shared layer |
@@ -194,6 +195,56 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.115] — 2026-08-29 — [Bug Fix] Five fixes to the just-shipped API re-architecture
+
+**Status:** Live. **Corrects scoring output** for some tickers (it was reading wrong fundamentals for
+them before). 1705 tests pass (7 new); ruff and all guardrail checkers pass.
+
+After phases 1–3 shipped, the first live scan was checked line by line and the new SEC path was then
+exercised directly against `data.sec.gov` for one ticker per sector. That turned up five bugs:
+
+1. **Wrong data — stale GAAP tag.** `fetch_fundamental_trend` picked the *first* candidate XBRL tag
+   that had any data. Filers switch tags between years: NVDA reported revenue under
+   `RevenueFromContractWithCustomerExcludingAssessedTax` through FY2022, then moved to `Revenues`.
+   The old logic locked onto the abandoned tag and scored NVDA on 2022 quarters — gross margin came
+   out at **64.9%** (2022's number) instead of **~75%** (today's). Now picks the candidate whose
+   quarterly data reaches closest to today, preference order breaking ties.
+
+2. **Wrong data — year-over-year off by a quarter.** YoY growth was computed positionally (quarter
+   *i* vs quarter *i+4* in the list). Most companies file a 10-K, not a Q4 10-Q, so the quarterly
+   XBRL series has a hole every Q4 — position *i+4* then lands on the prior *Q1*, not the prior *Q2*.
+   NVDA's revenue YoY read **+118%** instead of the correct **+106%**. Now matched by calendar
+   end-date (~365 days back, ±25 days).
+
+3. **Performance — retry storm on a normal 404.** `data.sec.gov/api/xbrl/companyconcept` returns
+   HTTP 404 for any GAAP tag a filer simply doesn't use, and `fetch_financial_facts` probes several
+   candidate tags per line item. Each 404 was run through the full 30s → 60s → 120s backoff ladder —
+   ~3½ wasted minutes per missing tag, several per ticker. A non-429 4xx from SEC now short-circuits
+   immediately (it's a definitive answer, not a transient failure). Per-ticker SEC fetch dropped from
+   minutes to ~1–3 seconds.
+
+4. **Wrong data — impossible gross margin.** Micron's own FY2026 10-Q XBRL has a 90-day `GrossProfit`
+   fact several times its matching revenue (an inconsistency in the filing itself), producing an
+   85% gross margin for a memory maker. A derived margin outside 0–95% is now dropped rather than
+   surfaced.
+
+5. **Silent cache-write failure (macro series).** `macro_data_client` built its cache payload keyed
+   by `pandas.Timestamp`, which `json.dumps` rejects — every macro cache write failed silently and
+   the 10-year Treasury / FX / Fed-funds / CPI series were re-fetched from Alpha Vantage on every
+   scan (2–4 wasted calls against the 25/day budget). Payload is now ISO-date-keyed and reconstructed
+   on read.
+
+Also minor: `rate_limiter.note_remaining` warned whenever a vendor's remaining-call hint dropped
+below 50. Finnhub's `X-Ratelimit-Remaining` counts down inside a rolling **one-minute** window and
+resets to 60 each minute, so this fired ~30×/scan for nothing — the threshold is now 2 (window
+genuinely almost spent).
+
+**Backtest:** not re-run — every fix here is on a live-only path (the backtest scores against the
+`data/processed/fundamental_history/` archive, and the macro/rate-limiter code isn't in it). No
+scoring weight, threshold, or formula changed.
 
 ---
 

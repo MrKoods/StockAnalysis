@@ -171,12 +171,19 @@ def usage(host: str) -> dict:
 def note_remaining(host: str, remaining: Optional[int]) -> None:
     """
     Record a vendor-reported remaining-budget hint (e.g. Finnhub's
-    X-Ratelimit-Remaining header). Advisory only — logs a warning when the
-    hint is low so a shrinking budget is visible before it bites.
+    X-Ratelimit-Remaining header). Advisory only — logs a warning only when the
+    hint is near zero so an about-to-bite budget is visible.
+
+    Note: Finnhub's X-Ratelimit-Remaining counts down within a rolling ONE-MINUTE
+    window and resets to the per-minute limit (60) each minute — it is not a
+    daily budget. Our 1.1s pacing already caps throughput at ~54/min, so only a
+    genuinely tiny value (window nearly spent) is worth a line in the log.
     """
     if remaining is None:
         return
     if "://" in host:
         host = host_for_url(host)
-    if remaining < 50:
-        logger.warning(f"rate_limiter: {host}: vendor reports only {remaining} calls remaining")
+    if remaining <= 2:
+        logger.warning(
+            f"rate_limiter: {host}: vendor reports only {remaining} calls left in the current window"
+        )

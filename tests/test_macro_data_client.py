@@ -59,6 +59,23 @@ def test_fed_funds_and_cpi_parse():
     assert s.iloc[-1] == 320.1
 
 
+def test_series_survives_the_cache_round_trip():
+    """Regression: the cached payload was keyed by pd.Timestamp, which
+    json.dumps rejects — the cache write failed silently and every scan
+    re-fetched the series. It must now be ISO-string-keyed and cache."""
+    payload = {"data": [
+        {"date": "2026-08-25", "value": "4.64"},
+        {"date": "2026-08-24", "value": "4.70"},
+    ]}
+    with patch("shared.api_clients.macro_data_client.http_get_with_backoff", return_value=payload) as http:
+        first = md.fetch_treasury_yield_10y()
+        second = md.fetch_treasury_yield_10y()
+    assert http.call_count == 1  # second call served from cache, no re-fetch
+    assert isinstance(second, pd.Series)
+    assert second.equals(first)
+    assert second.index[-1] == pd.Timestamp("2026-08-25") and second.iloc[-1] == 4.64
+
+
 def test_budget_exhausted_returns_none(monkeypatch):
     monkeypatch.setattr(md.rate_limiter, "acquire",
                         lambda *a, **k: (_ for _ in ()).throw(md.rate_limiter.BudgetExhausted("cap")))
