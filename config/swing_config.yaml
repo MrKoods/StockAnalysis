@@ -535,7 +535,11 @@ portfolio:
 # critical_event). The budget is therefore consumed unevenly — a day with
 # several active event gates burns it fast.
 alpha_vantage:
-  daily_limit: 20                  # free tier allows 25/day; 20 leaves headroom
+  # 24/day: free tier allows 25, and shared/api_clients/rate_limiter.py's
+  # DEFAULT_LIMITS["alphavantage.co"]["daily_cap"] is also 24 (1 retry buffer) —
+  # the two must agree. news_client.check_av_budget reads this for the per-scan
+  # reservation; the rate limiter enforces the hard cross-process ceiling.
+  daily_limit: 24
   # Calls held back for the post_close scan. Without a reservation the budget
   # was first-come-first-served across the day's three scans, so the EARLIEST
   # scan — ranking on the least information — spent it and the most informed one

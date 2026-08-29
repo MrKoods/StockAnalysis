@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.113 | 2026-08-28 | Data Source / Scoring Change | Phase 2 of the API re-architecture — three scoring layers now read better data. Analyst-rating trend comes from Finnhub's clean monthly breakdown instead of an unstructured yfinance frame. The macro overlay reads the actual 10-year Treasury yield and a real FX series from Alpha Vantage instead of two index proxies. The News layer finally uses Alpha Vantage's own per-article sentiment scores (previously fetched and thrown away) and no longer needs a headline to literally spell out the company name to count. The Fundamental layer gets a real analyst-revision-direction signal from Seeking Alpha's rating counts, filling a gap the layer's own code called "not available on any free tier". Fresh backtest: 61.5% win rate / 13 qualifying trades / still fails the go-live gate on sample size, unchanged in substance from before |
 | v2.2.112 | 2026-08-28 | Infrastructure | Phase 1 of the API re-architecture — plumbing only, no change to any score. Every external data source now shares one on-disk cache and one cross-process rate limiter, so the day's three scans stop re-fetching news, filings and earnings dates that haven't changed since the morning, and the Alpha Vantage daily budget stops being spent on the "slow down" error responses it gets when calls come too fast. Also: the SEC request timeout was too short and made every scan stall for minutes on retries (fixed), and a CI check now blocks any new code that calls an external API without going through the shared layer |
 | v2.2.111 | 2026-08-26 | Feature | Added a switch (OFF by default) that lets the model count news for less in sectors where news barely exists. Regional banks average 5 news articles per stock against 65 for chip makers, so news currently occupies 15 of the 100 scoring points for banks while telling us almost nothing. This is a free control to test real fixes against — it costs no API calls, and it is deliberately switched off until measured, because "banks have little news" does not automatically mean "bank news is less predictive" |
 | v2.2.110 | 2026-08-26 | Bug Fix | The last of the "invented data treated as real" bugs. When a stock had no social-media posts on a given day, the model filled that day in with a neutral placeholder — then measured sentiment MOMENTUM against those placeholders, so a stock with 30 posts in six minutes registered maximum momentum from a jump that never happened, scoring HIGHER than a stock with genuine five-day history. Also split feed outages from code bugs in the data-fetching layer, so a broken function call can no longer look like "the vendor sent nothing" |
@@ -192,6 +193,75 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.113] — 2026-08-28 — [Data Source / Scoring Change] API re-architecture phase 2 — three layers re-routed to better sources
+
+**Status:** Live. **Changes scoring output** — see the backtest line below. 1693 tests pass (73 new
+across phases 1+2); ruff and all five guardrail checkers pass.
+
+**What this does.** Phase 1 (v2.2.112) was plumbing. Phase 2 points four scoring inputs at the source
+that actually measures them well, using only the three API keys already held.
+
+- **Analyst-rating trend (Positioning, ≤2 of 20 pts) → Finnhub `/stock/recommendation`.** The old
+  source was yfinance's `Ticker.upgrades_downgrades` frame — unstructured Action strings, and a
+  date-filter fallback that quietly returned every row. Finnhub gives a clean monthly
+  `strongBuy/buy/hold/sell/strongSell` breakdown going back years; the "trend" is now the change in
+  a count-weighted −2..+2 consensus score between the latest month and ~a month earlier.
+  `net_action` (upgrade / downgrade / mixed / none) is unchanged, so the scorer didn't move.
+
+- **Macro overlay → Alpha Vantage economic series.** `yf.download("^TNX")` (a "Fed rate direction
+  proxy") and `yf.download("DX-Y.NYB")` are replaced by the **actual** 10-year Treasury
+  constant-maturity yield and a USD/EUR daily series from AV's FRED-backed endpoints, cached ~20h.
+  `compute_macro_state` is untouched — it reads a 20-day trend off whatever series it's handed. AV's
+  actual Fed funds rate and CPI series are also wired up now but not yet read by scoring (a
+  follow-up adds them as real inputs the overlay has never had). The backtest keeps its own cached
+  `TNX.csv` / `DXY.csv`.
+
+- **News layer → Alpha Vantage's scored per-article sentiment (MR-1 / MR-2).** AV attaches a
+  per-ticker `sentiment_score` and `relevance_score` to every article; `news_client` stored them and
+  `news_layer` read neither, keyword-matching the headline title instead (via a hand-maintained
+  ticker→company-name dict that has repeatedly gone stale — regional banks and healthcare tickers
+  scored News = 0/15 for weeks after being added, because their headlines say "Zions Bancorporation"
+  and the dict only had "ZION"). Now: an AV article counts for a ticker when AV's own relevance
+  score for it is ≥ 0.1, regardless of the alias dict, and its scored sentiment is used directly.
+  Keyword matching still handles the sentiment-less sources (Yahoo, Finnhub, SEC). **Not included:**
+  the two-pass rationing that decides *which* tickers get an AV call each scan — a scan-loop
+  restructure, tracked as a follow-up; this works with whatever AV articles the current
+  confirmation-only trigger already fetches.
+
+- **Fundamental layer → Seeking Alpha rating-revision direction + Finnhub metric fallback.**
+  `estimate_revisions_score` (±2 of the 10 Fundamental points) now prefers Seeking Alpha's
+  30-day-vs-90-day analyst rating-count direction — a genuine revision signal that needs no prior
+  snapshot — before falling back to the target-price delta and the implied-upside proxy as before.
+  This is the signal `fundamental_layer.py`'s own docstring called "not available on any free tier".
+  Separately, valuation metrics fall back to Finnhub `/stock/metric` for any field yfinance's
+  `.info` didn't return, reducing this layer's dependence on the single heaviest yfinance call.
+
+- **New data recorded, not yet scored:** Finnhub's aggregated monthly insider buy/sell pressure
+  (MSPR) and SEC filing detection for activist / passive / institutional / insider stakes (SC 13D /
+  SC 13G / 13F-HR / Form 4) are now collected on the positioning data and logged — a fresh SC 13D
+  emits an INFO line. The 13D activist signal is deliberately observe-only for a paper-trading
+  window before it's weighted.
+
+**New standalone clients** (`shared/api_clients/`), each cached + rate-limited, none load-bearing:
+`seeking_alpha_client.py` (get-chart daily OHLCV with volume, get-factor-grades, get-fundamentals,
+get-analyst-price-target), `finnhub_client.py` (recommendation trend, MSPR, peers, profile, metric,
+quote), `macro_data_client.py` (AV Treasury / FX / Fed funds / CPI), and the `data.sec.gov` JSON
+functions in `sec_edgar_client.py` (submissions, companyfacts XBRL, ownership-filing buckets).
+
+**Config:** `alpha_vantage.daily_limit` corrected 20 → 24 to match the rate limiter's hard ceiling.
+
+**Backtest** (`python -m backtesting.run_backtest`, current `data/historical/` semiconductor set):
+**61.5% win rate, avg R:R 2.75, Sharpe 0.59, 13 qualifying trades, max DD 1.0%. Still FAILS the
+go-live gate** — 13 trades is far below the 100-trade minimum. Real-only composite IC = +0.003
+(p = 0.94, does not survive BH correction), unchanged from the prior "no robust evidence of edge in
+the non-proxy score" reading. The News-scoring change (MR-1) is the only phase-2 change the backtest
+exercises — the cached Q4-2025 AV articles carry `ticker_sentiment` arrays — and it moved the
+qualifying count from ~11 to 13 with no substantive change to the picture: this dataset still can't
+validate the model either way. The analyst-trend and macro changes are live-only (the backtest fakes
+Positioning and uses cached rate CSVs).
 
 ---
 
