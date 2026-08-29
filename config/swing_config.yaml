@@ -547,6 +547,18 @@ alpha_vantage:
   # TGT's news fetch was skipped entirely. Same failure shape as the rank-track
   # slot bug (v2.2.100). Set to 0 to restore unreserved behaviour.
   reserve_for_owner_scan: 8
+  # Rough per-scan-type call estimates for app_ui/scan_worker.py's pre-scan
+  # budget projection ONLY -- not a quota. Actual enforcement is
+  # news_client.check_av_budget's own daily counter (av_call_count.json).
+  # AV news is confirmation-only (v2.2.21): it fires only when Yahoo/Finnhub/
+  # Seeking Alpha already flagged a critical event, so real usage no longer
+  # scales with ticker count and these are display hints. (Merged in from the
+  # former standalone alpha_vantage_budget block, v2.2.116 -- one AV config
+  # block now, not two with a conflicting daily cap.)
+  per_scan_estimate:
+    post_close: 6
+    pre_market: 2
+    mid_session: 2
 
 rank_track:
   top_n_per_sector: 2
@@ -590,23 +602,6 @@ data_validation:
   # excluding a ticker over vendor rounding/consolidation noise of a few
   # cents (observed live: RF 2026-08-24, Open $30.47 vs Low $30.50).
   open_range_tolerance_pct: 0.003
-
-# Alpha Vantage call budget (used by app_ui/scan_worker.py's pre-scan budget
-# projection; actual enforcement is news_client.py's own daily counter).
-alpha_vantage_budget:
-  # AV news is now a confirmation-only call (v2.2.21) — it only fires when
-  # Yahoo/Finnhub/Seeking Alpha already flagged a critical event for a ticker,
-  # on any scan type, not a guaranteed 1-call-per-ticker post-close sweep like
-  # before. Real usage no longer scales directly with ticker count (23 across
-  # four sectors today), so these are rough estimates for the UI's budget
-  # projection, not a fixed per-scan quota. Fundamental/earnings calls no longer
-  # draw from this daily counter at all — eps_growth_trend moved to yfinance
-  # (see shared/api_clients/fundamental_client.py), so confirmation-only news
-  # is the sole remaining consumer of this budget.
-  post_close: 6
-  pre_market: 2
-  mid_session: 2
-  daily_limit: 25
 
 # Backtesting
 backtesting:

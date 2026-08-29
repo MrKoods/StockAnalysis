@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.116 | 2026-08-29 | Infrastructure | Config housekeeping, no behaviour change. The two Alpha Vantage config blocks (`alpha_vantage` and a separate `alpha_vantage_budget` that carried its own, conflicting 25-vs-24 daily cap) are now one block — the per-scan call estimates the desktop UI shows before a scan moved under `alpha_vantage.per_scan_estimate`, and there is a single source of truth for the daily limit (24). Also removed the dead `POLYGON_API_KEY` line from `.env.example` (no code has referenced it since the price-source plan settled on the keys already held) and refreshed the key descriptions. No scoring weight, threshold, or data source changed |
 | v2.2.115 | 2026-08-29 | Bug Fix | Five bugs in the just-shipped API re-architecture (phases 1–3), found by verifying the first live scan and then testing the SEC path directly. Two were making the model read the *wrong* fundamentals: NVDA's gross margin came out at 2022's 65% instead of today's 75% because the code locked onto a data tag NVDA abandoned years ago, and year-over-year growth was comparing against the wrong quarter for any company that files an annual report instead of a Q4 quarterly (most of them). One was a performance bug: a normal "this company doesn't report that line item" response from the SEC triggered a 3½-minute retry storm per missing item. Plus the macro data cache never actually saved (silent write failure, re-fetched every scan) and a harmless log warning fired ~30×/scan. Backtest unchanged (live-only paths) |
 | v2.2.114 | 2026-08-29 | Data Source / Scoring Change | Phase 3 of the API re-architecture — the Fundamental layer's earnings and revenue history now comes from companies' own SEC filings (structured XBRL data) instead of two fragile Yahoo scrapes. The big win is regional banks: they have no "revenue" or "gross profit" line the old code understood, so this is the first time the model reads real bank fundamentals — net interest income, fee income, EPS history — straight from their 10-Qs. Foreign filers (TSM, ASML) that don't file US-style statements fall back to the old path. Backtest unchanged (the backtest reads a separate historical fundamentals archive, not this live path) |
 | v2.2.113 | 2026-08-28 | Data Source / Scoring Change | Phase 2 of the API re-architecture — three scoring layers now read better data. Analyst-rating trend comes from Finnhub's clean monthly breakdown instead of an unstructured yfinance frame. The macro overlay reads the actual 10-year Treasury yield and a real FX series from Alpha Vantage instead of two index proxies. The News layer finally uses Alpha Vantage's own per-article sentiment scores (previously fetched and thrown away) and no longer needs a headline to literally spell out the company name to count. The Fundamental layer gets a real analyst-revision-direction signal from Seeking Alpha's rating counts, filling a gap the layer's own code called "not available on any free tier". Fresh backtest: 61.5% win rate / 13 qualifying trades / still fails the go-live gate on sample size, unchanged in substance from before |
@@ -198,7 +199,32 @@ logged below it — enforced automatically by the code, no exceptions.
 
 ---
 
-## [v2.2.115] — 2026-08-29 — [Bug Fix] Five fixes to the just-shipped API re-architecture
+## [v2.2.116] — 2026-08-29 — [Infrastructure] One Alpha Vantage config block; `.env.example` cleanup
+
+**Status:** Live. No behaviour change — no scoring weight, threshold, formula, or data source moved.
+1705 tests pass; ruff and all guardrail checkers pass. (Version bump is required by the CI gate
+because `config/swing_config.yaml` changed; there is no backtest to log because nothing scoring-
+relevant changed.)
+
+**What changed.**
+
+- **Two AV config blocks → one.** `config/swing_config.yaml` had both an `alpha_vantage` block
+  (`daily_limit: 24`, `reserve_for_owner_scan: 8` — the values `news_client.check_av_budget`
+  actually enforces) and a separate `alpha_vantage_budget` block (`daily_limit: 25` plus per-scan
+  estimates `post_close: 6 / pre_market: 2 / mid_session: 2`) read only by the desktop UI's
+  pre-scan budget projection. Two blocks, two different daily caps. The per-scan estimates are now
+  `alpha_vantage.per_scan_estimate`, `app_ui/scan_worker.py` reads the one block, and
+  `alpha_vantage_budget` is deleted. Config leaf-key count 166 → 165.
+
+- **`.env.example`.** Removed `POLYGON_API_KEY` — no code has referenced Polygon since the data-layer
+  plan settled on the three keys already held (Alpha Vantage / Finnhub / RapidAPI) plus keyless SEC
+  EDGAR. Refreshed the Alpha Vantage and Finnhub descriptions to say what each key is actually used
+  for now (AV: confirmation-only news + macro series; Finnhub: news + recommendation trend + insider
+  MSPR + valuation fallback).
+
+**Not touched:** the user's own `.env` still carries some unused keys (SMTP / Twilio / Reddit) from
+earlier notification experiments — that's a private file, left for the user to prune.
+
 
 **Status:** Live. **Corrects scoring output** for some tickers (it was reading wrong fundamentals for
 them before). 1705 tests pass (7 new); ruff and all guardrail checkers pass.

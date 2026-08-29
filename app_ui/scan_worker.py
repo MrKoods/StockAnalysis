@@ -30,10 +30,12 @@ def get_av_budget_status(scan_type: str, cfg: Optional[dict] = None) -> dict:
     }
     """
     cfg = cfg if cfg is not None else load_config()
-    budget_cfg = cfg.get("alpha_vantage_budget", {})
+    # Merged into the single `alpha_vantage` block in v2.2.116 (was a separate
+    # `alpha_vantage_budget` block with its own, conflicting daily_limit).
+    av_cfg = cfg.get("alpha_vantage", {})
     used = _read_av_call_count()
-    estimated = int(budget_cfg.get(scan_type, 0))
-    daily_limit = int(budget_cfg.get("daily_limit", 25))
+    estimated = int(av_cfg.get("per_scan_estimate", {}).get(scan_type, 0))
+    daily_limit = int(av_cfg.get("daily_limit", 24))
     projected = used + estimated
     return {
         "used": used,
