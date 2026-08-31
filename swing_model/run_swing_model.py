@@ -45,6 +45,7 @@ from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.risk_reward import compute_entry_zone, compute_stop_loss, compute_target, compute_rr_ratio
 from swing_model.sentiment_layer import compute_sentiment_score, classify_dominant_sentiment
 from swing_model.news_layer import compute_news_score, classify_free_source_critical
+from shared.utils.price_source_comparison import log_price_source_comparison
 from swing_model.scoring import compute_confidence_score, CONFIDENCE_THRESHOLD, determine_direction
 from swing_model.feedback_loop import load_live_weights_if_calibrated
 from swing_model.win_probability_calibration import load_calibration
@@ -163,6 +164,11 @@ def _main_locked(scan_type: str = "post_close") -> None:
     # Step 5: Fetch shared market context data (separate 3-month window for
     # modifiers) — one batch fetch covering every active sector's benchmark.
     mkt = _fetch_market_context(cfg)
+
+    # D3 diagnostic (no scoring effect): log yfinance-vs-Seeking-Alpha daily-bar
+    # differences so SA can be evaluated as a price co-source / failover for the
+    # single-point-of-failure yfinance feed. Gated by config; off = no-op.
+    log_price_source_comparison(mkt.get("ticker_ohlcv", {}), scan_type, cfg)
 
     # Black Swan check — advisory only (see black_swan_detector.py's module
     # docstring): flags an extreme benchmark-drop/VIX-spike condition with a

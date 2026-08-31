@@ -560,6 +560,16 @@ alpha_vantage:
     pre_market: 2
     mid_session: 2
 
+# D3 (2026-08 API re-architecture): each scan logs how far Seeking Alpha's
+# daily OHLCV bars diverge from the yfinance bars the pipeline actually uses,
+# to data/logs/price_source_comparison.csv. Purely a diagnostic — no effect on
+# any indicator, score, or signal. yfinance is the single point of failure for
+# Technical scoring; SA is the keyed backup, but its bars need a real accuracy
+# check (ideally spanning a split/special-dividend) before SA is promoted to a
+# co-source. Turn this off once the ~1-2 week evaluation window is done.
+price_source_comparison:
+  enabled: true
+
 rank_track:
   top_n_per_sector: 2
   # Which scan owns the day's per-sector slots. post_close is the most

@@ -51,6 +51,7 @@ from shared.utils.logger import get_logger, write_validation_entry
 from shared.utils.discord_alerts import send_paper_signal_alert, send_near_miss_alert
 from shared.utils.robust_stats import robust_z_score, DEFAULT_OUTLIER_THRESHOLD
 from shared.utils.scan_lock import acquire_scan_lock
+from shared.utils.price_source_comparison import log_price_source_comparison
 from shared.utils.atomic_io import exclusive_lock
 from swing_model.trade_selector import rank_trade_structures
 from swing_model.cross_ticker_analysis import get_cross_ticker_modifier_for_direction
@@ -641,6 +642,10 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     # --- Shared market context (one batch fetch covering every sector benchmark) ---
     mkt = _fetch_market_context(cfg)
     vix_val = float(mkt["vix"]) if mkt["vix"] is not None else 15.0
+
+    # D3 diagnostic (no scoring effect) — yfinance-vs-Seeking-Alpha daily-bar
+    # comparison, gated by config price_source_comparison.enabled.
+    log_price_source_comparison(mkt.get("ticker_ohlcv", {}), scan_type, cfg)
 
     # --- Black Swan check — advisory only, per sector (2026-08-23 full model
     # audit: this pipeline — the one actually running 3x/day — had NO crash

@@ -62,6 +62,9 @@ def _isolate_csv_logs(tmp_path, monkeypatch):
     monkeypatch.setattr(logger_module, "_VALIDATION_LOG_PATH", tmp_path / "validation_log.csv")
     monkeypatch.setattr(logger_module, "_OVERRIDE_LOG_PATH", tmp_path / "override_log.csv")
 
+    import shared.utils.price_source_comparison as psc_module
+    monkeypatch.setattr(psc_module, "_CSV_PATH", tmp_path / "price_source_comparison.csv")
+
 
 @pytest.fixture(autouse=True)
 def _isolate_paper_trading_csvs(tmp_path, monkeypatch):

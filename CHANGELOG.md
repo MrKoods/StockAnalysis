@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
 | v2.2.118 | 2026-08-29 | Bug Fix | Small reliability fix on the RapidAPI (StockTwits / Seeking Alpha) path: when the service answers "no data for this symbol" (or soft rate-limits) with an empty response body, the model was treating it as a temporary outage and retrying three times with 30/60/120-second waits — ~90 seconds wasted per occurrence, ~12 times over two days on the Seeking Alpha engagement feed. An empty body is now taken at face value as "no data" and skipped immediately. No scoring effect (the feed returned nothing either way — just faster) |
 | v2.2.117 | 2026-08-29 | Bug Fix | The Alpha Vantage news budget (24 calls/day) was being exhausted by mid-morning on any day with active tariff or boycott news — 26–32 "budget exhausted, skipping news fetch" events on each of 2026-08-27/28, and the post-close scan (the one that actually picks trades) was the one left without. Cause: a market-wide headline like a new tariff shows up in *every* semiconductor stock's news feed, and the model was spending one AV call per stock to double-check the *same* event — ~11 calls for one piece of news, three times a day. Now a sector-wide event is cross-checked once per scan, not once per stock. Stock-specific critical news (a CEO resignation, a fraud charge) is unaffected. This can slightly change the news score for sector stocks on a big-news day; no weight or threshold moved |
 | v2.2.116 | 2026-08-29 | Infrastructure | Config housekeeping, no behaviour change. The two Alpha Vantage config blocks (`alpha_vantage` and a separate `alpha_vantage_budget` that carried its own, conflicting 25-vs-24 daily cap) are now one block — the per-scan call estimates the desktop UI shows before a scan moved under `alpha_vantage.per_scan_estimate`, and there is a single source of truth for the daily limit (24). Also removed the dead `POLYGON_API_KEY` line from `.env.example` (no code has referenced it since the price-source plan settled on the keys already held) and refreshed the key descriptions. No scoring weight, threshold, or data source changed |
@@ -198,6 +199,42 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.119] — 2026-08-30 — [Research] yfinance-vs-Seeking-Alpha daily-bar comparison logging (D3)
+
+**Status:** Live, diagnostic only. **No effect on any indicator, score, or signal** — it reads the
+OHLCV the scan already fetched and appends a CSV. 1721 tests pass (8 new); ruff, the version-bump
+gate, and all guardrail checkers pass.
+
+**Why.** `_fetch_market_context` gets every watchlist ticker's daily bars from one yfinance batch
+call. yfinance is unofficial and unkeyed — if it starts returning garbage or gets blocked, every
+Technical sub-score silently degrades, and there is no second opinion. `seeking_alpha_client.get_
+daily_ohlcv` (a keyed feed on the RapidAPI Pro plan we already pay for, currently ~10% utilized) is
+the obvious backup, but decision D3 held that its bars need a real accuracy check first — ideally
+one that spans a stock split or special dividend, to see whether the two sources back-adjust history
+the same way.
+
+**What it does.** New `shared/utils/price_source_comparison.py::log_price_source_comparison`, called
+once per scan from both `run_swing_model.py` and `paper_runner.py` right after the market-context
+fetch. For each ticker it makes one (cached ~8h) SA `get-chart` call and appends a summary row to
+`data/logs/price_source_comparison.csv`: bar counts and date ranges for each source, how stale SA's
+latest bar is vs yfinance, and the last-day + max + mean percentage differences in close, adjusted
+close, OHLC, and volume over the overlapping window. Gated by `config price_source_comparison.enabled`
+(default true); set it false to stop once the window is evaluated.
+
+**First live readings** (NVDA, ZION, 64 overlapping days):
+
+- SA's `close` field tracks yfinance's adjusted close to **~0.007% mean / 0.12% max for NVDA**
+  (no dividend) and **~0.54% mean / 0.67% max for ZION** (quarterly dividend) — the dividend-payer
+  gap is the thing the window needs to explain.
+- SA's latest bar is same-day current (staleness 0).
+- SA's `adj` field is **not** an adjusted price (it comes back as ~1.0) — analysis should use
+  `close`. The CSV logs both so this is visible.
+
+**Next:** let it run ~1–2 weeks (watch for an ex-dividend date on a bank name), then decide: promote
+SA to a co-source/failover, or keep it as the fundamentals/ratings source only.
 
 ---
 
