@@ -48,10 +48,40 @@ _CONCEPTS = {
 
 
 def _pick(facts: dict, candidates: list[str]) -> list[dict]:
-    for tag in candidates:
-        if facts.get(tag):
-            return facts[tag]
-    return []
+    """
+    Merge every candidate tag that has data into one series, newest-tag-wins on
+    any (start, end) collision, older tags filling the gaps before it.
+
+    Filers migrate a line item between GAAP tags over the years (NVDA's revenue
+    moved from `Revenues` to `RevenueFromContractWithCustomerExcludingAssessedTax`);
+    taking the first tag with *any* data returned a series that stopped in 2020.
+    Ordering by each tag's most-recent point and letting the freshest win keeps
+    the series current while still using the retired tag for deep history.
+    """
+    with_data = [(t, facts[t]) for t in candidates if facts.get(t)]
+    if not with_data:
+        return []
+    with_data.sort(key=lambda kv: kv[1][-1].get("end", ""), reverse=True)
+    merged: dict = {}
+    for _tag, series in with_data:  # freshest tag first — setdefault keeps its value
+        for p in series:
+            merged.setdefault((p.get("start"), p.get("end")), p)
+    return sorted(merged.values(), key=lambda p: (p.get("end") or "", p.get("start") or ""))
+
+
+def _latest_end(*series_lists: list[dict]) -> Optional[str]:
+    ends = [s[-1]["end"] for s in series_lists if s and s[-1].get("end")]
+    return max(ends) if ends else None
+
+
+def _age_days(iso_date: Optional[str]) -> Optional[int]:
+    if not iso_date:
+        return None
+    try:
+        from datetime import date
+        return (date.today() - date.fromisoformat(iso_date[:10])).days
+    except (ValueError, TypeError):
+        return None
 
 
 def _windowed(points: list[dict], lo: int, hi: int) -> list[dict]:
@@ -67,13 +97,35 @@ def _annual(points: list[dict]) -> list[dict]:
 
 
 def _yoy(series: list[dict], n: int = 4) -> Optional[float]:
-    """Growth of the latest value vs the value `n` periods earlier."""
-    if len(series) < n + 1:
+    """
+    Growth of the latest value vs the same period a year earlier. Matches on the
+    `end` date closest to 365 days before the latest point (NVDA and others skip
+    a standalone Q4 10-Q, so a fixed n-back offset lands on the wrong quarter);
+    falls back to `n` periods earlier when no dated match is close enough.
+    """
+    if len(series) < 2:
         return None
-    cur, prior = series[-1]["val"], series[-1 - n]["val"]
-    if not prior:
+    from datetime import date
+
+    cur = series[-1]
+    cur_val = cur["val"]
+    try:
+        cur_end = date.fromisoformat(cur["end"][:10])
+        target = cur_end.replace(year=cur_end.year - 1)
+        prior = min(
+            (p for p in series[:-1] if p.get("end")),
+            key=lambda p: abs((date.fromisoformat(p["end"][:10]) - target).days),
+            default=None,
+        )
+        if prior and abs((date.fromisoformat(prior["end"][:10]) - target).days) <= 45:
+            if prior["val"]:
+                return round((cur_val - prior["val"]) / abs(prior["val"]), 4)
+    except (ValueError, TypeError):
+        pass
+
+    if len(series) < n + 1 or not series[-1 - n]["val"]:
         return None
-    return round((cur - prior) / abs(prior), 4)
+    return round((cur_val - series[-1 - n]["val"]) / abs(series[-1 - n]["val"]), 4)
 
 
 def _series_tail(series: list[dict], k: int = 8) -> list[dict]:
@@ -97,7 +149,12 @@ def _growth(facts: dict) -> dict:
     rev_a = _annual(_pick(facts, _CONCEPTS["revenue"]))
     eps_q = _quarterly(_pick(facts, _CONCEPTS["eps_diluted"]))
     ni_q = _quarterly(_pick(facts, _CONCEPTS["net_income"]))
+    as_of = _latest_end(rev_q, eps_q, ni_q)
+    age = _age_days(as_of)
     return {
+        "xbrl_as_of": as_of,
+        "xbrl_age_days": age,
+        "xbrl_stale": age is not None and age > 150,
         "revenue_quarterly": _series_tail(rev_q),
         "revenue_yoy_latest": _yoy(rev_q, 4),
         "revenue_yoy_prior": _yoy(rev_q[:-1], 4) if len(rev_q) > 5 else None,
@@ -254,24 +311,42 @@ def _ratings_and_targets(ticker: str, current_price: Optional[float]) -> dict:
 def _observations(d: dict) -> list[str]:
     obs: list[str] = []
     g = d.get("growth", {})
-    if g.get("revenue_yoy_latest") is not None:
-        line = f"Revenue grew {g['revenue_yoy_latest'] * 100:+.1f}% YoY last quarter"
+    q = d.get("valuation_quality", {}).get("quality", {})
+    stale = g.get("xbrl_stale")
+
+    # Current growth: prefer Finnhub TTM; use the SEC XBRL quarter only when it's fresh.
+    if q.get("revenue_growth_ttm_yoy") is not None:
+        obs.append(f"Revenue growth {q['revenue_growth_ttm_yoy']}% TTM YoY, EPS growth "
+                   f"{q.get('eps_growth_ttm_yoy')}% TTM YoY (Finnhub, trailing-twelve-month).")
+    if stale:
+        obs.append(f"NOTE: the SEC-XBRL quarterly/margin trend series below is stale — it ends "
+                   f"{g.get('xbrl_as_of')} ({g.get('xbrl_age_days')} days ago), so its 'latest quarter' "
+                   f"figures describe an old period, not the most recent report. Use the TTM figures above "
+                   f"for the current picture.")
+    elif g.get("revenue_yoy_latest") is not None:
+        line = f"SEC XBRL: revenue grew {g['revenue_yoy_latest'] * 100:+.1f}% YoY in the quarter ending {g.get('xbrl_as_of')}"
         if g.get("revenue_yoy_prior") is not None:
             line += f" (vs {g['revenue_yoy_prior'] * 100:+.1f}% the quarter before — " + (
                 "accelerating" if g["revenue_yoy_latest"] > g["revenue_yoy_prior"] else "decelerating") + ")"
         obs.append(line + ".")
-    if g.get("eps_yoy_latest") is not None:
-        obs.append(f"Diluted EPS {g['eps_yoy_latest'] * 100:+.1f}% YoY last quarter.")
+        if g.get("eps_yoy_latest") is not None:
+            obs.append(f"SEC XBRL: diluted EPS {g['eps_yoy_latest'] * 100:+.1f}% YoY that quarter.")
+
     p = d.get("profitability", {})
-    for name, key in (("Gross", "gross_margin_trend"), ("Operating", "operating_margin_trend"), ("Net", "net_margin_trend")):
-        tr = p.get(key) or []
-        if len(tr) >= 2:
-            obs.append(f"{name} margin {tr[-1]['margin'] * 100:.1f}% latest quarter vs "
-                       f"{tr[-2]['margin'] * 100:.1f}% prior ({'expanding' if tr[-1]['margin'] > tr[-2]['margin'] else 'compressing'}).")
+    if not stale:
+        for name, key in (("Gross", "gross_margin_trend"), ("Operating", "operating_margin_trend"), ("Net", "net_margin_trend")):
+            tr = p.get(key) or []
+            if len(tr) >= 2:
+                obs.append(f"{name} margin {tr[-1]['margin'] * 100:.1f}% (quarter ending {tr[-1]['end']}) vs "
+                           f"{tr[-2]['margin'] * 100:.1f}% prior "
+                           f"({'expanding' if tr[-1]['margin'] > tr[-2]['margin'] else 'compressing'}).")
+    if q.get("gross_margin_ttm") is not None:
+        obs.append(f"Margins (TTM): gross {q['gross_margin_ttm']}%, operating {q.get('operating_margin_ttm')}%, "
+                   f"net {q.get('net_margin_ttm')}%.")
     cf = d.get("cash_flow", {})
     fcf = cf.get("free_cash_flow_quarterly") or []
-    if fcf and "fcf_margin" in fcf[-1]:
-        obs.append(f"Latest quarter free cash flow margin {fcf[-1]['fcf_margin'] * 100:.1f}%.")
+    if fcf and "fcf_margin" in fcf[-1] and not stale:
+        obs.append(f"Free cash flow margin {fcf[-1]['fcf_margin'] * 100:.1f}% (quarter ending {fcf[-1]['end']}).")
     bs = d.get("balance_sheet", {})
     if bs.get("net_debt") is not None:
         obs.append(f"Net debt {bs['net_debt'] / 1e9:+.2f}B (debt/equity {bs.get('debt_to_equity')}), as of {bs.get('as_of')}.")
@@ -329,20 +404,25 @@ def analyze_fundamental(
     }
 
     g = detail["growth"]
+    qual = detail["valuation_quality"]["quality"]
     summary = {
         "industry": profile.get("industry"),
         "market_cap_m": profile.get("market_cap_m"),
-        "revenue_yoy_latest": g.get("revenue_yoy_latest"),
-        "eps_yoy_latest": g.get("eps_yoy_latest"),
+        "revenue_growth_ttm_yoy": qual.get("revenue_growth_ttm_yoy"),
+        "eps_growth_ttm_yoy": qual.get("eps_growth_ttm_yoy"),
+        "net_margin_ttm": qual.get("net_margin_ttm"),
         "pe_ttm": detail["valuation_quality"]["valuation"].get("pe_ttm"),
+        "pe_forward": detail["valuation_quality"]["valuation"].get("pe_forward"),
         "sa_quant_rating": detail["ratings_targets"].get("sa_quant_rating"),
         "analyst_target_implied_pct": detail["ratings_targets"].get("analyst_target_implied_pct"),
+        "xbrl_trend_as_of": g.get("xbrl_as_of"),
+        "xbrl_trend_stale": g.get("xbrl_stale", False),
         "balance_sheet_as_of": detail["balance_sheet"].get("as_of"),
     }
 
-    has_sec = bool(facts)
+    has_sec = bool(facts) and not g.get("xbrl_stale", False)
     has_ratios = detail["valuation_quality"]["valuation"].get("pe_ttm") is not None
-    dq = "complete" if (has_sec and has_ratios) else "partial" if (has_sec or has_ratios) else "unavailable"
+    dq = "complete" if (has_sec and has_ratios) else "partial" if (bool(facts) or has_ratios) else "unavailable"
 
     return {
         "summary": summary,

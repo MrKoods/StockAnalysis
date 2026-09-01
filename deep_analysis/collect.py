@@ -276,7 +276,7 @@ def collect_findings(
             "positioning": _safe("deep positioning", dq, analyze_positioning, ticker,
                                  current_price=current_price, cfg=cfg, default={}) or {},
             "macro": _safe("deep macro", dq, analyze_macro, ticker, sector,
-                           benchmark=benchmark, frames=frames, cfg=cfg, default={}) or {},
+                           benchmark=benchmark, frames=frames, cfg=cfg, rotation=rotation, default={}) or {},
         }
         deep_dq = {k: (v.get("data_quality") if isinstance(v, dict) else "unavailable")
                    for k, v in deep_view.items()}

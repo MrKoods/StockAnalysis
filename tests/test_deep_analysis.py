@@ -150,6 +150,77 @@ def test_analyze_technical_synthetic():
     assert len(res["observations"]) >= 5
 
 
+def test_fundamental_pick_stitches_by_recency():
+    from deep_analysis.layers.fundamental import _pick
+
+    facts = {
+        "Revenues": [  # retired tag — deep history, stops in 2020
+            {"start": "2019-01-01", "end": "2019-03-31", "val": 100.0, "duration_days": 89},
+            {"start": "2020-01-01", "end": "2020-03-31", "val": 110.0, "duration_days": 90},
+        ],
+        "RevenueFromContractWithCustomerExcludingAssessedTax": [  # current tag
+            {"start": "2025-01-01", "end": "2025-03-31", "val": 900.0, "duration_days": 89},
+            {"start": "2026-01-01", "end": "2026-03-31", "val": 1200.0, "duration_days": 89},
+        ],
+    }
+    merged = _pick(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues"])
+    assert merged[0]["end"] == "2019-03-31"   # old history kept
+    assert merged[-1]["end"] == "2026-03-31"  # current tag wins the tail
+    assert merged[-1]["val"] == 1200.0
+
+
+def test_fundamental_yoy_date_matched_across_gap():
+    from deep_analysis.layers.fundamental import _yoy
+
+    # Q4 stub missing between 2025-10 and 2026-04 — a fixed 4-back offset would
+    # compare the wrong quarters; date-matching lands on ~1 year earlier.
+    series = [
+        {"end": "2025-04-26", "val": 26.0},
+        {"end": "2025-07-27", "val": 30.0},
+        {"end": "2025-10-26", "val": 35.0},
+        {"end": "2026-04-26", "val": 44.0},
+        {"end": "2026-07-26", "val": 46.0},
+    ]
+    # latest 2026-07-26 vs ~2025-07-27 (val 30) -> (46-30)/30
+    assert _yoy(series) == pytest.approx((46 - 30) / 30, abs=1e-3)
+
+
+def test_positioning_insider_view_reconciles_sources():
+    from deep_analysis.layers.positioning import _insider_view
+
+    # yfinance empty, Finnhub MSPR strongly negative, 24 Form 4 filings
+    v = _insider_view([], [{"mspr": -100.0}], [{"form": "4"}] * 24)
+    assert v["transaction_rows"] == 0
+    assert v["net_value"] is None            # not a fake $0
+    assert v["mspr_latest"] == -100.0
+    assert v["form4_filings_120d"] == 24
+    assert "selling pressure" in v["read"]
+    assert v["note"] is not None
+
+
+def test_macro_uses_passed_in_rotation_state(monkeypatch):
+    import deep_analysis.layers.macro as macro_mod
+
+    for fn in ("fetch_treasury_yield_10y", "fetch_usd_strength", "fetch_federal_funds_rate", "fetch_cpi"):
+        monkeypatch.setattr(macro_mod, fn, lambda *a, **k: None)
+    monkeypatch.setattr(macro_mod, "fetch_vix_and_pct_change", lambda *a, **k: (14.0, 0.01))
+    monkeypatch.setattr(macro_mod, "get_seasonality_modifier", lambda **k: {"seasonality_state": "neutral", "confidence_modifier": 0.0})
+
+    import numpy as np
+    import pandas as pd
+    idx = pd.date_range("2024-01-01", periods=300, freq="B", tz="UTC")
+    bench = pd.DataFrame({"Open": 1, "High": np.arange(300) + 10.0, "Low": 1,
+                          "Close": np.arange(300) + 10.0, "Volume": 1}, index=idx)
+    frames = {"benchmark_daily": bench, "spy_daily": bench}
+
+    res = macro_mod.analyze_macro(
+        "NVDA", "semiconductors", benchmark="SMH", frames=frames,
+        rotation={"rotation_state": "outflow", "confidence_modifier": -5.0},
+    )
+    assert res["detail"]["sector"]["rotation_state"] == "outflow"
+    assert res["summary"]["rotation_state"] == "outflow"
+
+
 def test_analyze_technical_insufficient_history():
     import pandas as pd
 

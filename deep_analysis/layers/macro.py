@@ -60,9 +60,11 @@ def _rates() -> dict:
 
 
 def _dollar() -> dict:
+    # Alpha Vantage FX series (USD/EUR-ish rate near 1.0), NOT the DXY index —
+    # only its trend/direction is meaningful here, not the level.
     dxy = _safe(fetch_usd_strength)
     return {
-        "usd_index": last(dxy),
+        "usd_fx_proxy_level": last(dxy),
         "usd_20d_change_pct": _series_move(dxy, 20),
         "usd_trend": slope_sign(dxy, 20) if dxy is not None else None,
     }
@@ -81,7 +83,10 @@ def _volatility_regime() -> dict:
             "vix_band": band}
 
 
-def _sector(bench_df: Optional[pd.DataFrame], spy_df: Optional[pd.DataFrame], benchmark: str) -> dict:
+def _sector(
+    bench_df: Optional[pd.DataFrame], spy_df: Optional[pd.DataFrame], benchmark: str,
+    rotation: Optional[dict] = None,
+) -> dict:
     if bench_df is None or len(bench_df) < 60:
         return {"data_quality": "unavailable"}
     bc = bench_df["Close"]
@@ -100,12 +105,18 @@ def _sector(bench_df: Optional[pd.DataFrame], spy_df: Optional[pd.DataFrame], be
         b, s = bc.loc[idx], sc.loc[idx]
         for n, label in ((21, "1m"), (63, "3m"), (126, "6m")):
             if len(b) > n + 1:
-                out[f"rotation_vs_spy_{label}_pp"] = round(
+                out[f"benchmark_vs_spy_{label}_pp"] = round(
                     (float(b.iloc[-1] / b.iloc[-n - 1] - 1) - float(s.iloc[-1] / s.iloc[-n - 1] - 1)) * 100, 1)
-        out["rotation_state"] = (
-            "inflow" if out.get("rotation_vs_spy_3m_pp", 0) > 1
-            else "outflow" if out.get("rotation_vs_spy_3m_pp", 0) < -1 else "neutral"
-        )
+    # rotation_state comes from V2's compute_rotation_state (the one the composite
+    # score uses), not a second local rule that could disagree with it. The
+    # per-window spreads above are supplementary colour.
+    if rotation:
+        out["rotation_state"] = rotation.get("rotation_state")
+        out["rotation_modifier"] = rotation.get("confidence_modifier")
+        out["rotation_windows"] = {
+            k: rotation.get(k) for k in ("smh_vs_spy_5d", "smh_vs_spy_20d", "smh_vs_spy_60d")
+            if rotation.get(k) is not None
+        }
     return out
 
 
@@ -127,17 +138,20 @@ def _observations(d: dict, applies: bool, sector: Optional[str]) -> list[str]:
     if r.get("cpi_yoy") is not None:
         obs.append(f"CPI running {r['cpi_yoy'] * 100:.1f}% YoY.")
     dl = d["dollar"]
-    if dl.get("usd_index") is not None:
-        obs.append(f"US dollar index {dl['usd_index']:.1f} ({dl.get('usd_trend')}, "
-                   f"{(dl.get('usd_20d_change_pct') or 0) * 100:+.1f}% over 20 sessions).")
+    if dl.get("usd_trend") is not None:
+        obs.append(f"US dollar (AV FX proxy, direction only): {dl.get('usd_trend')}, "
+                   f"{(dl.get('usd_20d_change_pct') or 0) * 100:+.1f}% over 20 sessions.")
     v = d["volatility_regime"]
     if v.get("vix") is not None:
         obs.append(f"VIX {v['vix']} ({v['vix_band']}).")
     s = d["sector"]
     if s.get("benchmark_trend_50d"):
         obs.append(f"{s['benchmark']} 50-day trend {s['benchmark_trend_50d']}, "
-                   f"{(s.get('benchmark_pct_from_52w_high') or 0) * 100:.0f}% from its 52-week high; "
-                   f"rotation vs SPY (3m) {s.get('rotation_vs_spy_3m_pp')}pp — {s.get('rotation_state')}.")
+                   f"{(s.get('benchmark_pct_from_52w_high') or 0) * 100:.0f}% from its 52-week high. "
+                   f"{s['benchmark']} vs SPY: {s.get('benchmark_vs_spy_1m_pp')}pp (1m) / "
+                   f"{s.get('benchmark_vs_spy_3m_pp')}pp (3m) / {s.get('benchmark_vs_spy_6m_pp')}pp (6m). "
+                   f"Rotation state (from the model's own rule): {s.get('rotation_state')} "
+                   f"(modifier {s.get('rotation_modifier')}).")
     seas = d["seasonality"]
     if seas.get("rationale"):
         obs.append(f"Seasonality: {seas.get('seasonality_state')} — {seas['rationale']}")
@@ -155,13 +169,20 @@ def _observations(d: dict, applies: bool, sector: Optional[str]) -> list[str]:
 def analyze_macro(
     ticker: str, sector: Optional[str] = None, *,
     benchmark: str = "SMH", frames: Optional[dict] = None, cfg: Optional[dict] = None,
+    rotation: Optional[dict] = None,
 ) -> dict:
-    """Deep macro backdrop for `ticker`'s sector."""
+    """
+    Deep macro backdrop for `ticker`'s sector.
+
+    rotation: the V2 compute_rotation_state() result the composite score uses —
+    passed in so this layer reports the same rotation_state rather than a second
+    local rule that could disagree with it.
+    """
     frames = frames or {}
     rates = _rates()
     dollar = _dollar()
     vol_regime = _volatility_regime()
-    sector_view = _sector(frames.get("benchmark_daily"), frames.get("spy_daily"), benchmark)
+    sector_view = _sector(frames.get("benchmark_daily"), frames.get("spy_daily"), benchmark, rotation)
 
     seasonality = get_seasonality_modifier(cfg=cfg, sector=sector, direction="bullish")
 
@@ -185,7 +206,7 @@ def analyze_macro(
         "sector_rationale_applies": applies,
     }
 
-    have = sum(1 for x in (rates.get("treasury_10y"), dollar.get("usd_index"),
+    have = sum(1 for x in (rates.get("treasury_10y"), dollar.get("usd_fx_proxy_level"),
                            vol_regime.get("vix"), sector_view.get("benchmark_trend_50d")) if x is not None)
     dq = "complete" if have >= 3 else "partial" if have >= 1 else "unavailable"
 

@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v3.1.1 | 2026-08-31 | Bug Fix | Fixes three data bugs the first live NVDA briefing caught in its own inputs. (1) The fundamental layer was reading SEC filing data from a GAAP tag the company stopped using in 2020, so its "latest quarter" revenue and margins were describing fiscal 2020 — now it merges old and current tags and flags anything still stale. (2) The insider block showed three contradictory readings (0 trades / −100 pressure / 24 filings) as separate signals — now one reconciled view. (3) Two different "sector rotation" calculations could disagree — the deep layer now reports the same one the score uses. 4 new tests |
 | v3.1.0 | 2026-08-31 | Feature | Deepens all five V3 layers plus the macro backdrop from scoring output into real per-company analysis. New `deep_analysis/layers/` package: **Technical** — daily+weekly moving-average stack, RSI/MACD with divergence, ATR/Bollinger volatility percentiles, volume behavior, relative strength vs benchmark over 1/3/6/12 months, and support/resistance levels with distances. **Fundamental** — revenue/margin/free-cash-flow/balance-sheet trends straight from SEC XBRL filings, plus valuation and quality ratios with a peer comparison and analyst price targets. **News** — headlines filtered to the company and grouped by theme on a recency timeline, 8-K/6-K filings decoded by item type, Alpha Vantage per-ticker sentiment, cluster detection. **Positioning** — options skew, short interest and its trend, insider net buying/selling, institutional holders, recent 13D/13G/13F filings, analyst-rating movement. **Sentiment** — StockTwits lean/velocity, Seeking Alpha engagement, sentiment-vs-price divergence. **Macro** — rates/USD/CPI/VIX, the sector's own trend and rotation vs the market, seasonality. Each layer produces a `summary`, full `detail`, and a list of plain-language `observations` the briefing quotes from. Reuses existing data feeds (no new subscriptions); a licensing migration is still required before selling. Findings schema v2 |
 | v3.0.0 | 2026-08-31 | Feature | Starts V3 — a second, separate use of the model. V2 picks trades off a watchlist; V3 takes one stock and writes a deep research briefing about it (bull case, bear case, what's uncertain), with no buy/sell call. This version ships the "synthesis" part: a new `deep_analysis/` package that runs all five layers for a single ticker, gathers every sub-score plus the raw headlines/filings/data behind them, hands that to Claude, and returns a written briefing plus a quantitative appendix and a disclaimer. Additive — changes nothing in the trading pipeline. Run it with `python -m deep_analysis NVDA`. Making the layers themselves deeper (real per-company analysis instead of scoring) is a later phase and depends on data-licensing decisions. New dependency `anthropic`; new env var `ANTHROPIC_API_KEY` |
 | v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
@@ -201,6 +202,64 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v3.1.1] — 2026-08-31 — [Bug Fix] Three data bugs the first live briefing exposed
+
+**In short.** The first full V3 briefing (NVDA) was skeptical enough to catch three problems in
+its own inputs. All three are fixed; the layers now cross-check their sources instead of
+presenting contradictory ones side by side.
+
+1. **Fundamental — SEC XBRL trend series were years stale.** The concept-tag picker returned the
+   *first* GAAP tag with any data. Filers migrate a line item between tags over the years (NVDA's
+   revenue moved off `Revenues` to `RevenueFromContractWithCustomerExcludingAssessedTax`), so the
+   picker returned a retired tag whose data stopped in 2020 — the "latest quarter" figures were
+   describing fiscal 2020. Now every candidate tag is merged into one series, freshest-tag-wins on
+   overlap, older tags filling deep history. Added a staleness guard (series still ending >150
+   days ago → the layer says so and suppresses the misleading "latest quarter" lines), and YoY
+   growth now matches on the `end` date ~365 days back rather than a fixed 4-quarter offset
+   (companies skip a standalone Q4 10-Q, so the fixed offset compared the wrong quarters).
+   Observations lead with Finnhub TTM figures.
+2. **Positioning — the insider block contradicted itself.** yfinance transaction rows (0, no
+   values), Finnhub MSPR (−100), and SEC Form 4 filing count were shown as three independent
+   signals. Now reconciled into one `insider` view with a single `read`, an explicit note when
+   the read comes from MSPR because yfinance returned nothing, and no fabricated "$0 net".
+3. **Macro — two rotation calls disagreed.** The deep macro layer computed its own inflow/outflow
+   rule that could contradict the top-level `compute_rotation_state` the composite score uses. It
+   now reports the model's own `rotation_state`; the per-window benchmark-vs-SPY spreads stay as
+   labelled colour. Also relabelled the Alpha Vantage USD series as a direction-only FX proxy (it
+   is not the DXY index — the level was meaningless).
+
+4 new tests (16 total); ruff clean.
+
+---
+
+## [v3.1.0] — 2026-08-31 — [Feature] Deepens all five V3 layers plus the macro backdrop
+
+**In short.** Each layer went from a bounded score to a real analysis. New `deep_analysis/layers/`
+package, one module per layer, each returning `{summary, detail, observations, data_quality}`;
+`collect_findings(deep=True)` nests them under `findings["deep"]` and the synthesis prompt builds
+every section from there. Reuses existing data clients — no new feeds. Findings schema → v2.
+
+- **technical** — daily+weekly MA stack & alignment, RSI/MACD + divergence, ATR/Bollinger
+  volatility percentiles, volume behaviour, relative strength vs benchmark over 1/3/6/12m,
+  support/resistance with distances. Pure computation.
+- **fundamental** — revenue/margin/FCF/balance-sheet trends from SEC XBRL, Finnhub valuation &
+  quality ratios with a peer set, Seeking Alpha factor grades + analyst price target.
+- **news** — headlines filtered to the company (`ner_extractor.is_ticker_relevant`), grouped by
+  theme on a recency timeline, 8-K/6-K decoded by item type, AV per-ticker sentiment, cluster
+  detection.
+- **positioning** — wraps `positioning_client.fetch_all_positioning` + SEC ownership filings:
+  options skew, short interest + trend, insider direction, institutions, 13D/13G/13F, analyst
+  movement.
+- **sentiment** — StockTwits lean/velocity, SA engagement, sentiment-vs-price divergence (still
+  the thinnest — wants a licensed feed).
+- **macro** — rates/USD/CPI/VIX, sector trend + rotation vs SPY, seasonality, and whether the
+  macro rationale applies to the sector at all.
+
+12 tests; ruff clean. Validated end-to-end against live NVDA data (all six layers "complete").
+A data-licensing migration is still required before this can be sold.
 
 ---
 
