@@ -46,9 +46,19 @@ from shared.utils.seasonality import get_seasonality_modifier
 from shared.utils.earnings_calendar import get_earnings_modifier
 from shared.utils.sector_config import get_ticker_benchmark, get_ticker_sector_map
 
+from deep_analysis.layers import (
+    analyze_fundamental,
+    analyze_macro,
+    analyze_news,
+    analyze_positioning,
+    analyze_sentiment,
+    analyze_technical,
+)
+from deep_analysis.layers._prices import load_price_frames
+
 logger = get_logger(__name__)
 
-FINDINGS_SCHEMA_VERSION = 1
+FINDINGS_SCHEMA_VERSION = 2
 
 # Same split swing_model/run_swing_model.py's _safe_fetch draws: an expected
 # feed outage degrades to empty; a programming fault is re-raised so it can't
@@ -127,9 +137,14 @@ def collect_findings(
     sector: Optional[str] = None,
     cfg: Optional[dict] = None,
     scan_type: str = "post_close",
+    deep: bool = True,
 ) -> dict:
     """
     Run all five layers plus the macro backdrop for one ticker.
+
+    deep: also run the deep per-layer analysis (deep_analysis.layers) — the
+          rich multi-timeframe / multi-source view under findings["deep"].
+          Set False for a fast score-only snapshot.
 
     benchmark: relative-strength benchmark (SMH for semis, KRE for banks, ...).
                Defaults to the ticker's configured sector benchmark, else SMH.
@@ -243,6 +258,29 @@ def collect_findings(
         default={},
     ) or {}
 
+    # --- Deep per-layer analysis (the V3 depth work) --------------------------
+    deep_view: dict = {}
+    deep_dq: dict = {}
+    if deep:
+        frames = _safe("price frames", dq, load_price_frames, ticker, benchmark, default={}) or {}
+        price_5d = price_data.get("price_change_5d_pct")
+        current_price = indicators.get("close")
+        deep_view = {
+            "technical": _safe("deep technical", dq, analyze_technical, ticker, benchmark,
+                               frames=frames, default={}) or {},
+            "fundamental": _safe("deep fundamental", dq, analyze_fundamental, ticker, sector,
+                                 current_price=current_price, default={}) or {},
+            "sentiment": _safe("deep sentiment", dq, analyze_sentiment, ticker,
+                               price_change_5d_pct=price_5d, default={}) or {},
+            "news": _safe("deep news", dq, analyze_news, ticker, sector, default={}) or {},
+            "positioning": _safe("deep positioning", dq, analyze_positioning, ticker,
+                                 current_price=current_price, cfg=cfg, default={}) or {},
+            "macro": _safe("deep macro", dq, analyze_macro, ticker, sector,
+                           benchmark=benchmark, frames=frames, cfg=cfg, default={}) or {},
+        }
+        deep_dq = {k: (v.get("data_quality") if isinstance(v, dict) else "unavailable")
+                   for k, v in deep_view.items()}
+
     layer_ok = {
         "technical": bool(technical),
         "fundamental": fundamental.get("data_quality") not in (None, "unavailable"),
@@ -289,8 +327,10 @@ def collect_findings(
             **earnings,
         },
         "market_context": {"vix": mkt["vix"], "vix_pct_change": mkt["vix_pct_change"]},
+        "deep": deep_view,
         "data_quality": {
             "layers_on_real_data": layer_ok,
+            "deep_layer_quality": deep_dq,
             "degraded": dq.get("degraded", []),
             "errors": dq.get("errors", []),
         },

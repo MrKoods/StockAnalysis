@@ -82,7 +82,7 @@ class _FakeClient:
 # --------------------------------------------------------------------------- #
 
 def test_collect_findings_shape(patched_feeds):
-    f = collect_findings("nvda", benchmark="SMH", sector="semiconductors")
+    f = collect_findings("nvda", benchmark="SMH", sector="semiconductors", deep=False)
 
     assert f["ticker"] == "NVDA"
     assert f["direction"] in ("bullish", "bearish")
@@ -104,8 +104,61 @@ def test_collect_findings_records_feed_failure(patched_feeds, monkeypatch):
         raise OSError("connection reset")
 
     monkeypatch.setattr(collect_mod, "fetch_news_yahoo", _boom)
-    f = collect_findings("NVDA", benchmark="SMH", sector="semiconductors")
+    f = collect_findings("NVDA", benchmark="SMH", sector="semiconductors", deep=False)
     assert any("Yahoo news" in d for d in f["data_quality"]["degraded"])
+
+
+def test_collect_findings_deep_wiring(patched_feeds, monkeypatch):
+    """With deep=True, collect calls each analyze_* and nests the result."""
+    def _fake(name):
+        return lambda *a, **k: {"summary": {"n": name}, "detail": {}, "observations": [f"{name} obs"],
+                                "data_quality": "complete"}
+
+    monkeypatch.setattr(collect_mod, "load_price_frames", lambda *a, **k: {"ticker_daily": None})
+    for layer in ("technical", "fundamental", "sentiment", "news", "positioning", "macro"):
+        monkeypatch.setattr(collect_mod, f"analyze_{layer}", _fake(layer))
+
+    f = collect_findings("NVDA", benchmark="SMH", sector="semiconductors", deep=True)
+    assert set(f["deep"]) == {"technical", "fundamental", "sentiment", "news", "positioning", "macro"}
+    assert f["deep"]["technical"]["observations"] == ["technical obs"]
+    assert f["data_quality"]["deep_layer_quality"]["macro"] == "complete"
+
+
+def test_analyze_technical_synthetic():
+    import numpy as np
+    import pandas as pd
+
+    from deep_analysis.layers._prices import to_weekly
+    from deep_analysis.layers.technical import analyze_technical
+
+    idx = pd.date_range("2024-01-01", periods=400, freq="B", tz="UTC")
+    rng = np.random.default_rng(7)
+    close = np.abs(100 + np.cumsum(rng.normal(0.05, 1.0, len(idx)))) + 10
+    df = pd.DataFrame(
+        {"Open": close * 0.99, "High": close * 1.02, "Low": close * 0.98, "Close": close,
+         "Volume": rng.integers(1_000_000, 5_000_000, len(idx))},
+        index=idx,
+    )
+    bench = df.assign(Close=50 + np.cumsum(rng.normal(0.02, 0.5, len(idx))))
+    frames = {"ticker_daily": df, "ticker_weekly": to_weekly(df), "benchmark_daily": bench, "spy_daily": bench}
+
+    res = analyze_technical("TEST", "SMH", frames=frames)
+    assert res["data_quality"] in ("complete", "partial")
+    assert res["summary"]["rsi_14"] is not None
+    assert res["detail"]["ma_stack"]["alignment"] in ("bullish", "bearish", "mixed")
+    assert res["detail"]["structure"]["nearest_support"] is not None
+    assert len(res["observations"]) >= 5
+
+
+def test_analyze_technical_insufficient_history():
+    import pandas as pd
+
+    from deep_analysis.layers.technical import analyze_technical
+
+    idx = pd.date_range("2026-01-01", periods=10, freq="B", tz="UTC")
+    df = pd.DataFrame({"Open": 1, "High": 1, "Low": 1, "Close": 1, "Volume": 1}, index=idx)
+    res = analyze_technical("TEST", "SMH", frames={"ticker_daily": df})
+    assert res["data_quality"] == "unavailable"
 
 
 # --------------------------------------------------------------------------- #

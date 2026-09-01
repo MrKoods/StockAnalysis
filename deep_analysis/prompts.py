@@ -19,8 +19,16 @@ missing. Never tell the reader to buy, sell, or hold, and never predict a price.
 You are given the output of a five-layer analysis model plus a macro backdrop, \
 as structured JSON. Work ONLY from that data. Do not invent figures, catalysts, \
 or events that are not in the input. If a layer's data is thin or absent (check \
-`data_quality`), say so plainly and weight your discussion accordingly — a \
-confident-looking sub-score built on no data deserves a caveat, not an echo.
+`data_quality` and `data_quality.deep_layer_quality`), say so plainly and weight \
+your discussion accordingly — a confident-looking sub-score built on no data \
+deserves a caveat, not an echo.
+
+The richest material is under `deep` — one entry per layer, each with a \
+`summary`, a full `detail` breakdown, and an `observations` list of pre-computed \
+factual statements (multi-timeframe technicals, support/resistance, margin and \
+cash-flow trends from SEC filings, peer valuation, options/insider/institutional \
+positioning, themed news timeline, the macro backdrop). Build each section \
+primarily from `deep`; use the top-level `score` bundle as the summary rail.
 
 The model's composite score and trade direction are one input among many. Treat \
 them as a summary signal to explain and pressure-test, not as the conclusion. \
@@ -84,6 +92,20 @@ Key to the input:
   sectors they return neutral by design (`sector_scoped: true`).
 - `data_quality.layers_on_real_data`: per-layer bool — false means that layer \
   fell back to neutral/empty. `degraded` / `errors` list specific fetch failures.
+- `deep.<layer>`: the deep analysis for that layer — `summary` (headline \
+  numbers), `detail` (full breakdown), `observations` (plain-language facts \
+  ready to quote), `data_quality`. `deep.technical` covers the daily+weekly MA \
+  stack, momentum/RSI/MACD, RSI divergence, volatility (ATR/Bollinger \
+  percentiles), volume, relative strength vs benchmark over 1/3/6/12m, and \
+  support/resistance with distances. `deep.fundamental` covers SEC-XBRL revenue/ \
+  margin/FCF/balance-sheet trends, Finnhub valuation & quality ratios with a \
+  peer set, and SA ratings + analyst targets. `deep.news` groups headlines by \
+  theme with a recency timeline, AV per-ticker sentiment, 8-K item types, and \
+  cluster detection. `deep.positioning` covers options skew, short interest and \
+  trend, insider net direction, institutions, 13D/13G/13F filings, analyst \
+  movement. `deep.macro` covers rates/USD/CPI/VIX, the sector's trend and \
+  rotation vs SPY, seasonality, and whether the macro rationale applies to this \
+  sector at all.
 """
 
 
