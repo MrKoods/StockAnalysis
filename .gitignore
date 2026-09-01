@@ -65,3 +65,6 @@ stockanalysis_history.db
 
 # API-layer on-disk cache + rate-limiter state (shared/api_clients/cache.py, rate_limiter.py)
 data/cache/
+
+# V3 deep-analysis output (generated per run, not source)
+reports/

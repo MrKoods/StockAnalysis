@@ -1,556 +1,574 @@
 {
-  "last_updated": "2026-08-26T14:38:40.415930+00:00",
+  "last_updated": "2026-09-01T03:58:53.081257+00:00",
   "tickers": {
     "NVDA": {
       "ticker": "NVDA",
       "options": {
-        "put_call_ratio": 0.6427,
-        "avg_call_iv": 0.6387,
-        "avg_put_iv": 0.5643,
-        "iv_skew": -0.0744,
-        "expiration": "2026-08-31",
-        "dte": 5,
-        "atm_iv": 0.6015,
+        "put_call_ratio": 0.2542,
+        "avg_call_iv": 0.3716,
+        "avg_put_iv": 0.4113,
+        "iv_skew": 0.0397,
+        "expiration": "2026-09-09",
+        "dte": 8,
+        "atm_iv": 0.3914,
         "chain": [
           {
-            "strike": 170.0,
-            "option_type": "call",
-            "bid": 40.7,
-            "ask": 43.2,
-            "iv": 1.3017613037109372,
-            "open_interest": 22.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 175.0,
-            "option_type": "call",
-            "bid": 35.7,
-            "ask": 38.8,
-            "iv": 1.2294960400390624,
-            "open_interest": 44.0,
-            "expiration": "2026-08-31"
-          },
-          {
             "strike": 180.0,
             "option_type": "call",
-            "bid": 30.6,
-            "ask": 33.15,
-            "iv": 1.0166064794921876,
-            "open_interest": 23.0,
-            "expiration": "2026-08-31"
+            "bid": 37.2,
+            "ask": 43.7,
+            "iv": 1.237796779785156,
+            "open_interest": 10.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 185.0,
             "option_type": "call",
-            "bid": 25.95,
-            "ask": 27.9,
-            "iv": 0.893555751953125,
-            "open_interest": 89.0,
-            "expiration": "2026-08-31"
+            "bid": 31.85,
+            "ask": 39.0,
+            "iv": 1.158207333984375,
+            "open_interest": 16.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 187.5,
             "option_type": "call",
-            "bid": 24.1,
-            "ask": 24.45,
-            "iv": 0.7995625512695312,
-            "open_interest": 48.0,
-            "expiration": "2026-08-31"
+            "bid": 29.85,
+            "ask": 36.15,
+            "iv": 1.0542039477539062,
+            "open_interest": 25.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 190.0,
             "option_type": "call",
-            "bid": 21.55,
-            "ask": 21.95,
-            "iv": 0.729494892578125,
-            "open_interest": 317.0,
-            "expiration": "2026-08-31"
+            "bid": 29.45,
+            "ask": 33.2,
+            "iv": 0.6235389208984375,
+            "open_interest": 32.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 192.5,
             "option_type": "call",
-            "bid": 19.15,
-            "ask": 19.6,
-            "iv": 0.6840851904296876,
-            "open_interest": 31.0,
-            "expiration": "2026-08-31"
+            "bid": 25.05,
+            "ask": 32.3,
+            "iv": 0.5410202148437502,
+            "open_interest": 13.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 195.0,
             "option_type": "call",
-            "bid": 17.1,
-            "ask": 17.35,
-            "iv": 0.6682162084960939,
-            "open_interest": 487.0,
-            "expiration": "2026-08-31"
+            "bid": 21.9,
+            "ask": 29.15,
+            "iv": 0.9348151049804687,
+            "open_interest": 47.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 197.5,
             "option_type": "call",
-            "bid": 15.0,
-            "ask": 15.2,
-            "iv": 0.6459996337890624,
-            "open_interest": 113.0,
-            "expiration": "2026-08-31"
+            "bid": 19.95,
+            "ask": 26.45,
+            "iv": 0.852540537109375,
+            "open_interest": 52.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 200.0,
             "option_type": "call",
-            "bid": 13.1,
-            "ask": 13.2,
-            "iv": 0.6347692773437501,
-            "open_interest": 1293.0,
-            "expiration": "2026-08-31"
+            "bid": 19.55,
+            "ask": 22.95,
+            "iv": 0.6826203613281252,
+            "open_interest": 72.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 202.5,
             "option_type": "call",
-            "bid": 11.35,
-            "ask": 11.45,
-            "iv": 0.6333044482421876,
-            "open_interest": 366.0,
-            "expiration": "2026-08-31"
+            "bid": 17.2,
+            "ask": 19.45,
+            "iv": 0.5043994873046875,
+            "open_interest": 18.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 205.0,
             "option_type": "call",
-            "bid": 9.7,
-            "ask": 9.85,
-            "iv": 0.63086306640625,
-            "open_interest": 678.0,
-            "expiration": "2026-08-31"
+            "bid": 14.95,
+            "ask": 17.05,
+            "iv": 0.46680220703125,
+            "open_interest": 117.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 207.5,
             "option_type": "call",
-            "bid": 8.2,
-            "ask": 8.35,
-            "iv": 0.6267127172851563,
-            "open_interest": 796.0,
-            "expiration": "2026-08-31"
+            "bid": 12.55,
+            "ask": 14.7,
+            "iv": 0.4321345849609375,
+            "open_interest": 90.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 210.0,
             "option_type": "call",
-            "bid": 6.8,
-            "ask": 6.95,
-            "iv": 0.6184120190429689,
-            "open_interest": 2849.0,
-            "expiration": "2026-08-31"
+            "bid": 10.3,
+            "ask": 12.45,
+            "iv": 0.4035704174804688,
+            "open_interest": 425.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 212.5,
             "option_type": "call",
-            "bid": 5.7,
-            "ask": 5.8,
-            "iv": 0.6218299536132813,
-            "open_interest": 2517.0,
-            "expiration": "2026-08-31"
+            "bid": 8.3,
+            "ask": 11.2,
+            "iv": 0.45703667968750006,
+            "open_interest": 194.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 215.0,
             "option_type": "call",
-            "bid": 4.7,
-            "ask": 4.75,
-            "iv": 0.6212196081542969,
-            "open_interest": 10581.0,
-            "expiration": "2026-08-31"
+            "bid": 6.6,
+            "ask": 8.2,
+            "iv": 0.34888346435546874,
+            "open_interest": 746.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 217.5,
             "option_type": "call",
-            "bid": 3.85,
-            "ask": 3.9,
-            "iv": 0.624149266357422,
-            "open_interest": 2488.0,
-            "expiration": "2026-08-31"
+            "bid": 4.85,
+            "ask": 6.2,
+            "iv": 0.31799998413085934,
+            "open_interest": 544.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 220.0,
             "option_type": "call",
-            "bid": 3.1,
-            "ask": 3.15,
-            "iv": 0.6242713354492189,
-            "open_interest": 7954.0,
-            "expiration": "2026-08-31"
+            "bid": 4.2,
+            "ask": 4.6,
+            "iv": 0.30408410766601557,
+            "open_interest": 2695.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 222.5,
             "option_type": "call",
-            "bid": 2.46,
-            "ask": 2.49,
-            "iv": 0.6223182299804688,
-            "open_interest": 1388.0,
-            "expiration": "2026-08-31"
+            "bid": 2.75,
+            "ask": 3.5,
+            "iv": 0.3100654931640625,
+            "open_interest": 869.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 225.0,
             "option_type": "call",
-            "bid": 1.95,
-            "ask": 1.96,
-            "iv": 0.6228065063476562,
-            "open_interest": 5412.0,
-            "expiration": "2026-08-31"
+            "bid": 2.15,
+            "ask": 2.41,
+            "iv": 0.299811689453125,
+            "open_interest": 1517.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 227.5,
             "option_type": "call",
-            "bid": 1.52,
-            "ask": 1.57,
-            "iv": 0.6257361645507813,
-            "open_interest": 1934.0,
-            "expiration": "2026-08-31"
+            "bid": 1.31,
+            "ask": 1.98,
+            "iv": 0.3259344750976562,
+            "open_interest": 2536.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 230.0,
-            "option_type": "call",
-            "bid": 1.17,
-            "ask": 1.19,
-            "iv": 0.6235389208984375,
-            "open_interest": 6098.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 232.5,
             "option_type": "call",
             "bid": 0.91,
-            "ask": 0.94,
-            "iv": 0.6281775463867189,
-            "open_interest": 1931.0,
-            "expiration": "2026-08-31"
+            "ask": 1.09,
+            "iv": 0.295905478515625,
+            "open_interest": 10767.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 232.5,
+            "option_type": "call",
+            "bid": 0.49,
+            "ask": 0.75,
+            "iv": 0.301764794921875,
+            "open_interest": 2510.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 235.0,
             "option_type": "call",
-            "bid": 0.7,
-            "ask": 0.71,
-            "iv": 0.6289099609375001,
-            "open_interest": 4835.0,
-            "expiration": "2026-08-31"
+            "bid": 0.3,
+            "ask": 0.47,
+            "iv": 0.3012765185546875,
+            "open_interest": 4537.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 237.5,
             "option_type": "call",
-            "bid": 0.54,
-            "ask": 0.56,
-            "iv": 0.6347692773437501,
-            "open_interest": 724.0,
-            "expiration": "2026-08-31"
+            "bid": 0.22,
+            "ask": 0.35,
+            "iv": 0.3149482568359374,
+            "open_interest": 395.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 240.0,
             "option_type": "call",
-            "bid": 0.42,
-            "ask": 0.44,
-            "iv": 0.64062859375,
-            "open_interest": 4134.0,
-            "expiration": "2026-08-31"
+            "bid": 0.14,
+            "ask": 0.18,
+            "iv": 0.304694453125,
+            "open_interest": 78167.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 242.5,
             "option_type": "call",
-            "bid": 0.33,
-            "ask": 0.35,
-            "iv": 0.648441015625,
-            "open_interest": 672.0,
-            "expiration": "2026-08-31"
+            "bid": 0.01,
+            "ask": 0.13,
+            "iv": 0.31641308593749995,
+            "open_interest": 372.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 245.0,
             "option_type": "call",
-            "bid": 0.27,
-            "ask": 0.29,
-            "iv": 0.6611362011718751,
-            "open_interest": 8859.0,
-            "expiration": "2026-08-31"
+            "bid": 0.0,
+            "ask": 0.11,
+            "iv": 0.334967587890625,
+            "open_interest": 2327.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 247.5,
             "option_type": "call",
-            "bid": 0.21,
-            "ask": 0.24,
-            "iv": 0.6709017285156251,
-            "open_interest": 272.0,
-            "expiration": "2026-08-31"
+            "bid": 0.0,
+            "ask": 0.27,
+            "iv": 0.422857333984375,
+            "open_interest": 627.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 250.0,
             "option_type": "call",
-            "bid": 0.18,
-            "ask": 0.19,
-            "iv": 0.6816438085937502,
-            "open_interest": 3238.0,
-            "expiration": "2026-08-31"
+            "bid": 0.04,
+            "ask": 0.07,
+            "iv": 0.3632876171875,
+            "open_interest": 14082.0,
+            "expiration": "2026-09-09"
           },
           {
-            "strike": 170.0,
-            "option_type": "put",
-            "bid": 0.12,
-            "ask": 0.13,
-            "iv": 0.7929708203125,
-            "open_interest": 196.0,
-            "expiration": "2026-08-31"
+            "strike": 252.5,
+            "option_type": "call",
+            "bid": 0.01,
+            "ask": 0.04,
+            "iv": 0.36133451171875,
+            "open_interest": 8.0,
+            "expiration": "2026-09-09"
           },
           {
-            "strike": 175.0,
-            "option_type": "put",
-            "bid": 0.16,
-            "ask": 0.18,
-            "iv": 0.73437765625,
-            "open_interest": 464.0,
-            "expiration": "2026-08-31"
+            "strike": 255.0,
+            "option_type": "call",
+            "bid": 0.0,
+            "ask": 0.24,
+            "iv": 0.499028447265625,
+            "open_interest": 134.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 260.0,
+            "option_type": "call",
+            "bid": 0.0,
+            "ask": 0.04,
+            "iv": 0.42969320312500003,
+            "open_interest": 371.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 180.0,
             "option_type": "put",
-            "bid": 0.23,
-            "ask": 0.24,
-            "iv": 0.6738313867187502,
-            "open_interest": 522.0,
-            "expiration": "2026-08-31"
+            "bid": 0.06,
+            "ask": 0.09,
+            "iv": 0.57617611328125,
+            "open_interest": 321.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 182.5,
+            "option_type": "put",
+            "bid": 0.07,
+            "ask": 0.31,
+            "iv": 0.622074091796875,
+            "open_interest": 31.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 185.0,
             "option_type": "put",
-            "bid": 0.36,
-            "ask": 0.38,
-            "iv": 0.6289099609375001,
-            "open_interest": 1767.0,
-            "expiration": "2026-08-31"
+            "bid": 0.0,
+            "ask": 0.32,
+            "iv": 0.56836369140625,
+            "open_interest": 206.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 187.5,
             "option_type": "put",
-            "bid": 0.48,
-            "ask": 0.5,
-            "iv": 0.6127968408203126,
-            "open_interest": 606.0,
-            "expiration": "2026-08-31"
+            "bid": 0.11,
+            "ask": 0.15,
+            "iv": 0.5136767382812499,
+            "open_interest": 97.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 190.0,
             "option_type": "put",
-            "bid": 0.63,
-            "ask": 0.64,
-            "iv": 0.5944864770507813,
-            "open_interest": 7972.0,
-            "expiration": "2026-08-31"
+            "bid": 0.0,
+            "ask": 0.13,
+            "iv": 0.477544287109375,
+            "open_interest": 1196.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 192.5,
             "option_type": "put",
-            "bid": 0.86,
-            "ask": 0.89,
-            "iv": 0.5866740551757812,
-            "open_interest": 972.0,
-            "expiration": "2026-08-31"
+            "bid": 0.13,
+            "ask": 0.16,
+            "iv": 0.45703667968750006,
+            "open_interest": 31.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 195.0,
             "option_type": "put",
-            "bid": 1.16,
-            "ask": 1.19,
-            "iv": 0.5766643896484375,
-            "open_interest": 2836.0,
-            "expiration": "2026-08-31"
+            "bid": 0.15,
+            "ask": 0.3,
+            "iv": 0.4726615234375,
+            "open_interest": 280.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 197.5,
             "option_type": "put",
-            "bid": 1.59,
-            "ask": 1.62,
-            "iv": 0.5732464550781251,
-            "open_interest": 506.0,
-            "expiration": "2026-08-31"
+            "bid": 0.17,
+            "ask": 0.41,
+            "iv": 0.4624077197265626,
+            "open_interest": 53.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 200.0,
             "option_type": "put",
-            "bid": 2.12,
-            "ask": 2.16,
-            "iv": 0.56836369140625,
-            "open_interest": 7475.0,
-            "expiration": "2026-08-31"
+            "bid": 0.21,
+            "ask": 0.24,
+            "iv": 0.3754945263671875,
+            "open_interest": 677.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 202.5,
             "option_type": "put",
-            "bid": 2.81,
-            "ask": 2.85,
-            "iv": 0.5667767932128907,
-            "open_interest": 1614.0,
-            "expiration": "2026-08-31"
+            "bid": 0.11,
+            "ask": 0.48,
+            "iv": 0.393560751953125,
+            "open_interest": 314.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 205.0,
             "option_type": "put",
-            "bid": 3.65,
-            "ask": 3.75,
-            "iv": 0.56836369140625,
-            "open_interest": 2339.0,
-            "expiration": "2026-08-31"
+            "bid": 0.36,
+            "ask": 0.42,
+            "iv": 0.33887379882812496,
+            "open_interest": 588.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 207.5,
             "option_type": "put",
-            "bid": 4.7,
-            "ask": 4.8,
-            "iv": 0.5720257641601563,
-            "open_interest": 832.0,
-            "expiration": "2026-08-31"
+            "bid": 0.36,
+            "ask": 0.76,
+            "iv": 0.34961587890624996,
+            "open_interest": 1422.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 210.0,
             "option_type": "put",
-            "bid": 5.8,
-            "ask": 5.95,
-            "iv": 0.5671430004882813,
-            "open_interest": 2546.0,
-            "expiration": "2026-08-31"
+            "bid": 0.7,
+            "ask": 0.84,
+            "iv": 0.31153032226562494,
+            "open_interest": 1472.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 212.5,
             "option_type": "put",
-            "bid": 7.15,
-            "ask": 7.3,
-            "iv": 0.56836369140625,
-            "open_interest": 672.0,
-            "expiration": "2026-08-31"
+            "bid": 1.0,
+            "ask": 1.35,
+            "iv": 0.3149482568359374,
+            "open_interest": 635.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 215.0,
             "option_type": "put",
-            "bid": 8.7,
-            "ask": 8.8,
-            "iv": 0.5710492114257812,
-            "open_interest": 1351.0,
-            "expiration": "2026-08-31"
+            "bid": 1.63,
+            "ask": 1.94,
+            "iv": 0.30884480224609373,
+            "open_interest": 1489.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 217.5,
             "option_type": "put",
-            "bid": 10.2,
-            "ask": 10.4,
-            "iv": 0.5614057531738281,
-            "open_interest": 353.0,
-            "expiration": "2026-08-31"
+            "bid": 2.02,
+            "ask": 2.95,
+            "iv": 0.32031929687499994,
+            "open_interest": 489.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 220.0,
             "option_type": "put",
-            "bid": 12.0,
-            "ask": 12.15,
-            "iv": 0.559574716796875,
-            "open_interest": 1050.0,
-            "expiration": "2026-08-31"
+            "bid": 3.4,
+            "ask": 4.25,
+            "iv": 0.3353337951660156,
+            "open_interest": 686.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 222.5,
             "option_type": "put",
-            "bid": 13.95,
-            "ask": 14.1,
-            "iv": 0.5632367895507813,
-            "open_interest": 377.0,
-            "expiration": "2026-08-31"
+            "bid": 4.65,
+            "ask": 5.7,
+            "iv": 0.3450993225097656,
+            "open_interest": 282.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 225.0,
             "option_type": "put",
-            "bid": 15.85,
-            "ask": 16.0,
-            "iv": 0.5451705639648439,
-            "open_interest": 2327.0,
-            "expiration": "2026-08-31"
+            "bid": 5.15,
+            "ask": 7.5,
+            "iv": 0.36646141357421874,
+            "open_interest": 529.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 227.5,
             "option_type": "put",
-            "bid": 18.0,
-            "ask": 18.15,
-            "iv": 0.5461471166992189,
-            "open_interest": 59.0,
-            "expiration": "2026-08-31"
+            "bid": 7.55,
+            "ask": 9.35,
+            "iv": 0.37964487548828124,
+            "open_interest": 196.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 230.0,
             "option_type": "put",
-            "bid": 19.85,
-            "ask": 20.35,
-            "iv": 0.5039112109375,
-            "open_interest": 101.0,
-            "expiration": "2026-08-31"
+            "bid": 9.5,
+            "ask": 11.35,
+            "iv": 0.39453730468750003,
+            "open_interest": 210.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 232.5,
             "option_type": "put",
-            "bid": 21.95,
-            "ask": 22.7,
-            "iv": 0.5717816259765626,
-            "open_interest": 67.0,
-            "expiration": "2026-08-31"
+            "bid": 10.4,
+            "ask": 13.55,
+            "iv": 0.4184628466796875,
+            "open_interest": 14.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 235.0,
             "option_type": "put",
-            "bid": 24.1,
-            "ask": 24.8,
-            "iv": 0.5009815527343751,
-            "open_interest": 23.0,
-            "expiration": "2026-08-31"
+            "bid": 12.8,
+            "ask": 16.35,
+            "iv": 0.4963429272460938,
+            "open_interest": 6.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 237.5,
             "option_type": "put",
-            "bid": 26.4,
-            "ask": 27.2,
-            "iv": 0.49219257812500006,
-            "open_interest": 54.0,
-            "expiration": "2026-08-31"
+            "bid": 16.05,
+            "ask": 18.3,
+            "iv": 0.48608912353515626,
+            "open_interest": 60.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 240.0,
             "option_type": "put",
-            "bid": 29.0,
-            "ask": 29.8,
-            "iv": 0.57617611328125,
-            "open_interest": 124.0,
-            "expiration": "2026-08-31"
+            "bid": 16.65,
+            "ask": 22.0,
+            "iv": 0.6544224011230471,
+            "open_interest": 14.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 242.5,
             "option_type": "put",
-            "bid": 31.2,
-            "ask": 32.0,
-            "iv": 1.0000000000000003e-05,
-            "open_interest": 156.0,
-            "expiration": "2026-08-31"
+            "bid": 18.1,
+            "ask": 25.7,
+            "iv": 0.8138446350097657,
+            "open_interest": 4.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 245.0,
             "option_type": "put",
-            "bid": 32.5,
-            "ask": 36.0,
-            "iv": 0.9589847851562499,
-            "open_interest": 17.0,
-            "expiration": "2026-08-31"
+            "bid": 22.4,
+            "ask": 26.7,
+            "iv": 0.7137479797363282,
+            "open_interest": 20.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 247.5,
             "option_type": "put",
-            "bid": 35.1,
-            "ask": 38.85,
-            "iv": 1.066655057373047,
-            "open_interest": 16.0,
-            "expiration": "2026-08-31"
+            "bid": 22.15,
+            "ask": 30.7,
+            "iv": 0.9069833520507812,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 250.0,
             "option_type": "put",
-            "bid": 37.45,
-            "ask": 40.85,
-            "iv": 1.0170947583007814,
-            "open_interest": 62.0,
-            "expiration": "2026-08-31"
+            "bid": 25.65,
+            "ask": 33.2,
+            "iv": 0.9514165014648437,
+            "open_interest": 23.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 255.0,
+            "option_type": "put",
+            "bid": 29.65,
+            "ask": 38.45,
+            "iv": 1.0617722692871094,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 260.0,
+            "option_type": "put",
+            "bid": 34.65,
+            "ask": 43.5,
+            "iv": 1.1489300366210937,
+            "open_interest": NaN,
+            "expiration": "2026-09-09"
           }
         ],
         "suspect_fields": [],
@@ -562,42 +580,42 @@
         "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.71202004,
+        "held_percent_institutions": 0.71499,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
             "shares": 1941918386,
-            "pct_out": 0.0802,
+            "pct_out": 0.0806,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "Vanguard Capital Management LLC",
             "shares": 1540816358,
-            "pct_out": 0.0637,
+            "pct_out": 0.0639,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "FMR, LLC",
             "shares": 1026051548,
-            "pct_out": 0.0424,
+            "pct_out": 0.042600002,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "State Street Corporation",
             "shares": 1009783437,
-            "pct_out": 0.0417,
+            "pct_out": 0.0419,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "Geode Capital Management, LLC",
             "shares": 606216492,
-            "pct_out": 0.0251,
+            "pct_out": 0.0252,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "Vanguard Portfolio Management LLC",
             "shares": 517816949,
-            "pct_out": 0.0214,
+            "pct_out": 0.0215,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
@@ -615,17 +633,17 @@
           {
             "holder": "Morgan Stanley",
             "shares": 356420089,
-            "pct_out": 0.0147,
+            "pct_out": 0.0148,
             "date_reported": "2026-06-30 00:00:00"
           },
           {
             "holder": "Invesco Ltd.",
             "shares": 329593488,
-            "pct_out": 0.0136,
+            "pct_out": 0.0137,
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-26T14:37:09.587245+00:00"
+        "as_of_utc": "2026-09-01T03:02:36.739685+00:00"
       },
       "short_interest": {
         "shares_short": 285956804.0,
@@ -639,7 +657,9 @@
         "recent_upgrades": 0,
         "recent_downgrades": 0,
         "net_action": "none",
-        "suspect_fields": []
+        "suspect_fields": [
+          "recommendation_trend"
+        ]
       },
       "insider_transactions": [
         {
@@ -1842,981 +1862,976 @@
           "shares": 1000000,
           "value": 131263863
         }
-      ]
+      ],
+      "insider_mspr": null,
+      "ownership_filings": {
+        "activist_13d": [],
+        "passive_13g": [],
+        "institutional_13f": [
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-08-14",
+            "accessionNumber": "0001045810-26-000065"
+          },
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0001045810-26-000042"
+          }
+        ],
+        "insider_form4": [
+          {
+            "form": "4",
+            "filingDate": "2026-08-24",
+            "accessionNumber": "0001347842-26-000015"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-12",
+            "accessionNumber": "0001310264-26-000008"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-07",
+            "accessionNumber": "0001197647-26-000007"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-06",
+            "accessionNumber": "0001197647-26-000005"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001199039-26-000009"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001725292-26-000004"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001197652-26-000007"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001768670-26-000004"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001284116-26-000004"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001197650-26-000002"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001219888-26-000002"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001818224-26-000006"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-29",
+            "accessionNumber": "0001197647-26-000003"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001199039-26-000007"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001696841-26-000008"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001283854-26-000008"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001588670-26-000012"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001347842-26-000013"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-23",
+            "accessionNumber": "0001197649-26-000010"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-18",
+            "accessionNumber": "0001197649-26-000008"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-10",
+            "accessionNumber": "0001243821-26-000005"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-05",
+            "accessionNumber": "0001768670-26-000002"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-04",
+            "accessionNumber": "0001199039-26-000005"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-29",
+            "accessionNumber": "0001818224-26-000004"
+          }
+        ]
+      }
     },
     "AMD": {
       "ticker": "AMD",
       "options": {
-        "put_call_ratio": 0.872,
-        "avg_call_iv": 0.4687,
-        "avg_put_iv": 0.5287,
-        "iv_skew": 0.06,
-        "expiration": "2026-08-31",
-        "dte": 5,
-        "atm_iv": 0.4987,
+        "put_call_ratio": 0.7996,
+        "avg_call_iv": 0.5118,
+        "avg_put_iv": 0.5035,
+        "iv_skew": -0.0083,
+        "expiration": "2026-09-09",
+        "dte": 8,
+        "atm_iv": 0.5076,
         "chain": [
           {
-            "strike": 390.0,
+            "strike": 420.0,
             "option_type": "call",
-            "bid": 90.95,
-            "ask": 94.8,
-            "iv": 0.8500991552734375,
+            "bid": 50.6,
+            "ask": 54.7,
+            "iv": 0.5712933496093751,
             "open_interest": 1.0,
-            "expiration": "2026-08-31"
+            "expiration": "2026-09-09"
           },
           {
-            "strike": 400.0,
+            "strike": 430.0,
             "option_type": "call",
-            "bid": 81.65,
-            "ask": 84.75,
-            "iv": 0.7490259472656251,
-            "open_interest": 3.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 435.0,
-            "option_type": "call",
-            "bid": 45.9,
-            "ask": 50.3,
-            "iv": 0.5524947094726562,
-            "open_interest": 6.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 437.5,
-            "option_type": "call",
-            "bid": 43.55,
-            "ask": 47.95,
-            "iv": 0.5481002221679689,
-            "open_interest": 4.0,
-            "expiration": "2026-08-31"
+            "bid": 41.2,
+            "ask": 46.45,
+            "iv": 0.5592085095214845,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 440.0,
             "option_type": "call",
-            "bid": 42.9,
-            "ask": 45.6,
-            "iv": 0.541264353027344,
-            "open_interest": 14.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 445.0,
-            "option_type": "call",
-            "bid": 38.3,
-            "ask": 40.55,
-            "iv": 0.4870656762695313,
-            "open_interest": 1.0,
-            "expiration": "2026-08-31"
+            "bid": 32.35,
+            "ask": 36.75,
+            "iv": 0.6033975207519533,
+            "open_interest": 9.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 450.0,
             "option_type": "call",
-            "bid": 33.45,
-            "ask": 36.4,
-            "iv": 0.5120898400878906,
-            "open_interest": 28.0,
-            "expiration": "2026-08-31"
+            "bid": 24.35,
+            "ask": 28.7,
+            "iv": 0.5649457568359376,
+            "open_interest": 4.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 452.5,
             "option_type": "call",
-            "bid": 31.45,
-            "ask": 34.2,
-            "iv": 0.5070850073242188,
-            "open_interest": 5.0,
-            "expiration": "2026-08-31"
+            "bid": 22.5,
+            "ask": 26.8,
+            "iv": 0.5560957476806643,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 455.0,
             "option_type": "call",
-            "bid": 29.5,
-            "ask": 30.5,
-            "iv": 0.38355108642578123,
-            "open_interest": 45.0,
-            "expiration": "2026-08-31"
+            "bid": 20.75,
+            "ask": 25.0,
+            "iv": 0.5492598785400393,
+            "open_interest": 11.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 457.5,
             "option_type": "call",
-            "bid": 27.4,
-            "ask": 28.45,
-            "iv": 0.39624627197265627,
-            "open_interest": 64.0,
-            "expiration": "2026-08-31"
+            "bid": 19.1,
+            "ask": 23.25,
+            "iv": 0.5424240093994142,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 460.0,
             "option_type": "call",
-            "bid": 25.45,
-            "ask": 26.5,
-            "iv": 0.4085752502441406,
-            "open_interest": 49.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 462.5,
-            "option_type": "call",
-            "bid": 23.25,
-            "ask": 24.4,
-            "iv": 0.40515731567382807,
-            "open_interest": 6.0,
-            "expiration": "2026-08-31"
+            "bid": 17.5,
+            "ask": 21.55,
+            "iv": 0.5355271057128907,
+            "open_interest": 3.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 465.0,
             "option_type": "call",
-            "bid": 21.65,
-            "ask": 22.4,
-            "iv": 0.4039366247558594,
-            "open_interest": 168.0,
-            "expiration": "2026-08-31"
+            "bid": 14.6,
+            "ask": 17.45,
+            "iv": 0.491765336303711,
+            "open_interest": 7.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 467.5,
             "option_type": "call",
-            "bid": 20.0,
-            "ask": 21.2,
-            "iv": 0.4398249377441406,
-            "open_interest": 29.0,
-            "expiration": "2026-08-31"
+            "bid": 13.2,
+            "ask": 15.7,
+            "iv": 0.477544287109375,
+            "open_interest": 5.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 470.0,
             "option_type": "call",
-            "bid": 18.35,
-            "ask": 19.0,
-            "iv": 0.4195614685058594,
-            "open_interest": 98.0,
-            "expiration": "2026-08-31"
+            "bid": 11.85,
+            "ask": 14.5,
+            "iv": 0.47986359985351557,
+            "open_interest": 14.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 472.5,
             "option_type": "call",
-            "bid": 17.1,
-            "ask": 17.8,
-            "iv": 0.44287666503906253,
-            "open_interest": 84.0,
-            "expiration": "2026-08-31"
+            "bid": 10.7,
+            "ask": 14.4,
+            "iv": 0.5170946728515625,
+            "open_interest": 119.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 475.0,
             "option_type": "call",
-            "bid": 15.95,
-            "ask": 16.75,
-            "iv": 0.46674117248535163,
-            "open_interest": 409.0,
-            "expiration": "2026-08-31"
+            "bid": 9.9,
+            "ask": 13.25,
+            "iv": 0.5164843273925781,
+            "open_interest": 42.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 477.5,
             "option_type": "call",
-            "bid": 13.8,
-            "ask": 14.7,
-            "iv": 0.4437311486816406,
-            "open_interest": 99.0,
-            "expiration": "2026-08-31"
+            "bid": 8.5,
+            "ask": 11.75,
+            "iv": 0.5016529327392578,
+            "open_interest": 12.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 480.0,
             "option_type": "call",
-            "bid": 12.7,
-            "ask": 13.8,
-            "iv": 0.4652763433837891,
-            "open_interest": 231.0,
-            "expiration": "2026-08-31"
+            "bid": 7.95,
+            "ask": 10.0,
+            "iv": 0.47559118164062497,
+            "open_interest": 120.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 482.5,
             "option_type": "call",
-            "bid": 11.65,
-            "ask": 12.4,
-            "iv": 0.4624077197265626,
-            "open_interest": 72.0,
-            "expiration": "2026-08-31"
+            "bid": 6.6,
+            "ask": 10.2,
+            "iv": 0.5152026019287108,
+            "open_interest": 17.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 485.0,
             "option_type": "call",
-            "bid": 10.25,
-            "ask": 10.7,
-            "iv": 0.4439142523193359,
-            "open_interest": 146.0,
-            "expiration": "2026-08-31"
+            "bid": 5.75,
+            "ask": 9.3,
+            "iv": 0.514531221923828,
+            "open_interest": 42.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 487.5,
             "option_type": "call",
-            "bid": 9.35,
-            "ask": 10.0,
-            "iv": 0.46234668518066413,
-            "open_interest": 55.0,
-            "expiration": "2026-08-31"
+            "bid": 5.0,
+            "ask": 8.4,
+            "iv": 0.5117236328125,
+            "open_interest": 29.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 490.0,
             "option_type": "call",
-            "bid": 8.55,
-            "ask": 9.1,
-            "iv": 0.469304623413086,
-            "open_interest": 136.0,
-            "expiration": "2026-08-31"
+            "bid": 5.0,
+            "ask": 7.0,
+            "iv": 0.4876149871826172,
+            "open_interest": 40.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 492.5,
             "option_type": "call",
-            "bid": 7.7,
-            "ask": 8.1,
-            "iv": 0.4688773815917969,
-            "open_interest": 291.0,
-            "expiration": "2026-08-31"
+            "bid": 4.2,
+            "ask": 6.85,
+            "iv": 0.508793974609375,
+            "open_interest": 44.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 495.0,
             "option_type": "call",
-            "bid": 6.5,
-            "ask": 7.0,
-            "iv": 0.4607597869873047,
-            "open_interest": 142.0,
-            "expiration": "2026-08-31"
+            "bid": 3.6,
+            "ask": 5.0,
+            "iv": 0.4594780615234375,
+            "open_interest": 57.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 497.5,
             "option_type": "call",
-            "bid": 5.9,
-            "ask": 6.6,
-            "iv": 0.47949739257812496,
-            "open_interest": 61.0,
-            "expiration": "2026-08-31"
+            "bid": 2.64,
+            "ask": 5.2,
+            "iv": 0.49219257812500006,
+            "open_interest": 5.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 500.0,
             "option_type": "call",
-            "bid": 5.3,
-            "ask": 5.7,
-            "iv": 0.4733939379882813,
-            "open_interest": 814.0,
-            "expiration": "2026-08-31"
+            "bid": 3.3,
+            "ask": 3.95,
+            "iv": 0.45978323425292966,
+            "open_interest": 96.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 502.5,
             "option_type": "call",
-            "bid": 4.6,
-            "ask": 5.15,
-            "iv": 0.4801077380371094,
-            "open_interest": 25.0,
-            "expiration": "2026-08-31"
+            "bid": 1.79,
+            "ask": 4.9,
+            "iv": 0.5258226129150392,
+            "open_interest": 13.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 505.0,
             "option_type": "call",
-            "bid": 4.05,
-            "ask": 4.55,
-            "iv": 0.4815725671386719,
-            "open_interest": 2092.0,
-            "expiration": "2026-08-31"
+            "bid": 2.38,
+            "ask": 3.6,
+            "iv": 0.48633326171875,
+            "open_interest": 12.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 507.5,
             "option_type": "call",
-            "bid": 3.45,
-            "ask": 4.0,
-            "iv": 0.4826711889648438,
-            "open_interest": 33.0,
-            "expiration": "2026-08-31"
+            "bid": 1.52,
+            "ask": 3.35,
+            "iv": 0.4943898217773438,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 510.0,
             "option_type": "call",
-            "bid": 3.05,
-            "ask": 3.55,
-            "iv": 0.48608912353515626,
-            "open_interest": 292.0,
-            "expiration": "2026-08-31"
+            "bid": 1.64,
+            "ask": 2.63,
+            "iv": 0.4746756634521484,
+            "open_interest": 57.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 512.5,
             "option_type": "call",
-            "bid": 2.78,
-            "ask": 3.1,
-            "iv": 0.48682153808593753,
-            "open_interest": 84.0,
-            "expiration": "2026-08-31"
+            "bid": 1.45,
+            "ask": 3.55,
+            "iv": 0.5454147021484376,
+            "open_interest": 8.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 515.0,
             "option_type": "call",
-            "bid": 2.32,
-            "ask": 2.51,
-            "iv": 0.47546911254882807,
-            "open_interest": 84.0,
-            "expiration": "2026-08-31"
+            "bid": 1.45,
+            "ask": 2.04,
+            "iv": 0.47522497436523436,
+            "open_interest": 11.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 517.5,
             "option_type": "call",
-            "bid": 2.13,
-            "ask": 2.3,
-            "iv": 0.485356708984375,
-            "open_interest": 83.0,
-            "expiration": "2026-08-31"
+            "bid": 0.8,
+            "ask": 2.44,
+            "iv": 0.5194139855957032,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 520.0,
             "option_type": "call",
-            "bid": 1.86,
-            "ask": 2.02,
-            "iv": 0.4885305053710938,
-            "open_interest": 325.0,
-            "expiration": "2026-08-31"
+            "bid": 0.92,
+            "ask": 1.84,
+            "iv": 0.4963429272460938,
+            "open_interest": 106.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 522.5,
             "option_type": "call",
-            "bid": 1.62,
-            "ask": 1.79,
-            "iv": 0.4930470617675782,
-            "open_interest": 58.0,
-            "expiration": "2026-08-31"
+            "bid": 0.5,
+            "ask": 1.71,
+            "iv": 0.5035450036621094,
+            "open_interest": 95.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 525.0,
             "option_type": "call",
-            "bid": 1.36,
-            "ask": 1.55,
-            "iv": 0.4943898217773438,
-            "open_interest": 159.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 527.5,
-            "option_type": "call",
-            "bid": 1.11,
-            "ask": 1.31,
-            "iv": 0.4931691308593751,
-            "open_interest": 65.0,
-            "expiration": "2026-08-31"
+            "bid": 0.59,
+            "ask": 1.46,
+            "iv": 0.4997608618164063,
+            "open_interest": 29.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 530.0,
             "option_type": "call",
-            "bid": 0.98,
-            "ask": 1.2,
-            "iv": 0.5019581054687501,
-            "open_interest": 185.0,
-            "expiration": "2026-08-31"
+            "bid": 0.35,
+            "ask": 1.15,
+            "iv": 0.5029346582031251,
+            "open_interest": 120.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 532.5,
             "option_type": "call",
-            "bid": 0.84,
-            "ask": 1.02,
-            "iv": 0.5017139672851563,
-            "open_interest": 23.0,
-            "expiration": "2026-08-31"
+            "bid": 0.36,
+            "ask": 0.96,
+            "iv": 0.49805189453125004,
+            "open_interest": 4.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 535.0,
             "option_type": "call",
-            "bid": 0.72,
-            "ask": 0.9,
-            "iv": 0.5061084545898438,
-            "open_interest": 71.0,
-            "expiration": "2026-08-31"
+            "bid": 0.29,
+            "ask": 1.03,
+            "iv": 0.5202684692382812,
+            "open_interest": 9.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 537.5,
             "option_type": "call",
-            "bid": 0.6,
-            "ask": 0.8,
-            "iv": 0.5112353564453125,
-            "open_interest": 44.0,
-            "expiration": "2026-08-31"
+            "bid": 0.15,
+            "ask": 1.46,
+            "iv": 0.5083056982421875,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 540.0,
             "option_type": "call",
-            "bid": 0.51,
-            "ask": 0.78,
-            "iv": 0.5061084545898438,
-            "open_interest": 727.0,
-            "expiration": "2026-08-31"
+            "bid": 0.19,
+            "ask": 0.65,
+            "iv": 0.5012256909179689,
+            "open_interest": 4.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 542.5,
             "option_type": "call",
-            "bid": 0.43,
-            "ask": 0.47,
-            "iv": 0.49268085449218757,
-            "open_interest": 50.0,
-            "expiration": "2026-08-31"
+            "bid": 0.2,
+            "ask": 0.93,
+            "iv": 0.5014698291015626,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 545.0,
             "option_type": "call",
-            "bid": 0.34,
-            "ask": 0.65,
-            "iv": 0.5136767382812499,
-            "open_interest": 31.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 547.5,
-            "option_type": "call",
-            "bid": 0.31,
-            "ask": 0.71,
-            "iv": 0.5327195166015625,
-            "open_interest": 2.0,
-            "expiration": "2026-08-31"
+            "bid": 0.03,
+            "ask": 1.16,
+            "iv": 0.5195360546875,
+            "open_interest": 9.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 550.0,
             "option_type": "call",
-            "bid": 0.29,
+            "bid": 0.06,
             "ask": 0.5,
-            "iv": 0.524418818359375,
-            "open_interest": 423.0,
-            "expiration": "2026-08-31"
+            "iv": 0.5290574438476563,
+            "open_interest": 8.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 555.0,
             "option_type": "call",
-            "bid": 0.06,
-            "ask": 0.57,
-            "iv": 0.5351608984375,
-            "open_interest": 28.0,
-            "expiration": "2026-08-31"
+            "bid": 0.01,
+            "ask": 0.99,
+            "iv": 0.5542036767578126,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 560.0,
             "option_type": "call",
-            "bid": 0.11,
-            "ask": 0.52,
-            "iv": 0.5639692041015626,
-            "open_interest": 73.0,
-            "expiration": "2026-08-31"
+            "bid": 0.01,
+            "ask": 0.44,
+            "iv": 0.5117236328125,
+            "open_interest": 3.0,
+            "expiration": "2026-09-09"
           },
           {
-            "strike": 565.0,
-            "option_type": "call",
-            "bid": 0.08,
-            "ask": 0.43,
-            "iv": 0.5742230078125,
-            "open_interest": 6.0,
-            "expiration": "2026-08-31"
+            "strike": 380.0,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.69,
+            "iv": 0.6718782812500002,
+            "open_interest": 8.0,
+            "expiration": "2026-09-09"
           },
           {
-            "strike": 570.0,
-            "option_type": "call",
-            "bid": 0.07,
-            "ask": 0.39,
-            "iv": 0.5927775097656252,
-            "open_interest": 302.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 575.0,
-            "option_type": "call",
-            "bid": 0.05,
-            "ask": 0.2,
-            "iv": 0.5712933496093751,
-            "open_interest": 20.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 580.0,
-            "option_type": "call",
-            "bid": 0.03,
-            "ask": 0.32,
-            "iv": 0.622074091796875,
+            "strike": 385.0,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.59,
+            "iv": 0.6215858154296876,
             "open_interest": 4.0,
-            "expiration": "2026-08-31"
+            "expiration": "2026-09-09"
           },
           {
             "strike": 390.0,
             "option_type": "put",
-            "bid": 0.01,
-            "ask": 0.18,
-            "iv": 0.6953155468750001,
-            "open_interest": 10.0,
-            "expiration": "2026-08-31"
+            "bid": 0.04,
+            "ask": 0.67,
+            "iv": 0.6025430371093752,
+            "open_interest": 128.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 392.5,
             "option_type": "put",
-            "bid": 0.05,
-            "ask": 0.4,
-            "iv": 0.75586181640625,
-            "open_interest": 26.0,
-            "expiration": "2026-08-31"
+            "bid": 0.1,
+            "ask": 0.74,
+            "iv": 0.6010782080078126,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 395.0,
             "option_type": "put",
-            "bid": 0.01,
-            "ask": 0.41,
-            "iv": 0.729494892578125,
-            "open_interest": 17.0,
-            "expiration": "2026-08-31"
+            "bid": 0.04,
+            "ask": 0.62,
+            "iv": 0.5610395458984375,
+            "open_interest": 8.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 397.5,
             "option_type": "put",
-            "bid": 0.06,
-            "ask": 0.23,
-            "iv": 0.6748079394531252,
-            "open_interest": 45.0,
-            "expiration": "2026-08-31"
+            "bid": 0.15,
+            "ask": 0.8,
+            "iv": 0.5776409423828125,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 400.0,
             "option_type": "put",
-            "bid": 0.01,
-            "ask": 0.25,
-            "iv": 0.64648791015625,
-            "open_interest": 97.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 402.5,
-            "option_type": "put",
-            "bid": 0.01,
-            "ask": 0.47,
-            "iv": 0.6831086376953126,
-            "open_interest": 8.0,
-            "expiration": "2026-08-31"
+            "bid": 0.14,
+            "ask": 0.6,
+            "iv": 0.5361374511718751,
+            "open_interest": 58.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 405.0,
             "option_type": "put",
-            "bid": 0.03,
-            "ask": 0.3,
-            "iv": 0.6289099609375001,
-            "open_interest": 22.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 407.5,
-            "option_type": "put",
-            "bid": 0.01,
-            "ask": 0.32,
-            "iv": 0.6103554589843752,
-            "open_interest": 20.0,
-            "expiration": "2026-08-31"
+            "bid": 0.23,
+            "ask": 0.8,
+            "iv": 0.5310105493164063,
+            "open_interest": 33.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 410.0,
             "option_type": "put",
-            "bid": 0.07,
-            "ask": 0.37,
-            "iv": 0.6157264990234376,
-            "open_interest": 55.0,
-            "expiration": "2026-08-31"
+            "bid": 0.28,
+            "ask": 0.83,
+            "iv": 0.5017139672851563,
+            "open_interest": 19.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 412.5,
             "option_type": "put",
-            "bid": 0.11,
-            "ask": 0.4,
-            "iv": 0.6093789062500001,
-            "open_interest": 20.0,
-            "expiration": "2026-08-31"
+            "bid": 0.27,
+            "ask": 1.05,
+            "iv": 0.5507857421875001,
+            "open_interest": 5.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 415.0,
             "option_type": "put",
-            "bid": 0.18,
-            "ask": 0.33,
-            "iv": 0.5898478515625001,
-            "open_interest": 25.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 417.5,
-            "option_type": "put",
-            "bid": 0.17,
-            "ask": 0.45,
-            "iv": 0.58789474609375,
-            "open_interest": 20.0,
-            "expiration": "2026-08-31"
+            "bid": 0.57,
+            "ask": 1.13,
+            "iv": 0.506840869140625,
+            "open_interest": 18.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 420.0,
             "option_type": "put",
-            "bid": 0.29,
-            "ask": 0.53,
-            "iv": 0.594730615234375,
-            "open_interest": 161.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 422.5,
-            "option_type": "put",
-            "bid": 0.12,
-            "ask": 0.66,
-            "iv": 0.5688519677734375,
-            "open_interest": 29.0,
-            "expiration": "2026-08-31"
+            "bid": 0.5,
+            "ask": 1.39,
+            "iv": 0.5246629565429688,
+            "open_interest": 39.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 425.0,
             "option_type": "put",
-            "bid": 0.29,
-            "ask": 0.5,
-            "iv": 0.5493209130859377,
-            "open_interest": 267.0,
-            "expiration": "2026-08-31"
+            "bid": 0.9,
+            "ask": 1.62,
+            "iv": 0.5022022436523439,
+            "open_interest": 28.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 427.5,
             "option_type": "put",
-            "bid": 0.3,
-            "ask": 0.66,
-            "iv": 0.5476119458007813,
-            "open_interest": 45.0,
-            "expiration": "2026-08-31"
+            "bid": 0.91,
+            "ask": 2.0,
+            "iv": 0.5097705273437501,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 430.0,
             "option_type": "put",
-            "bid": 0.51,
-            "ask": 0.64,
-            "iv": 0.5446822875976562,
-            "open_interest": 121.0,
-            "expiration": "2026-08-31"
+            "bid": 1.1,
+            "ask": 2.1,
+            "iv": 0.4942677526855469,
+            "open_interest": 49.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 432.5,
             "option_type": "put",
-            "bid": 0.55,
-            "ask": 0.85,
-            "iv": 0.543949873046875,
-            "open_interest": 31.0,
-            "expiration": "2026-08-31"
+            "bid": 0.72,
+            "ask": 3.0,
+            "iv": 0.5285691674804689,
+            "open_interest": 5.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 435.0,
             "option_type": "put",
-            "bid": 0.73,
-            "ask": 0.88,
-            "iv": 0.5373581420898439,
-            "open_interest": 1434.0,
-            "expiration": "2026-08-31"
+            "bid": 0.72,
+            "ask": 3.4,
+            "iv": 0.5268602001953125,
+            "open_interest": 31.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 437.5,
             "option_type": "put",
-            "bid": 0.85,
-            "ask": 1.03,
-            "iv": 0.5324753784179688,
-            "open_interest": 36.0,
-            "expiration": "2026-08-31"
+            "bid": 0.98,
+            "ask": 3.8,
+            "iv": 0.5229539892578124,
+            "open_interest": 3.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 440.0,
             "option_type": "put",
-            "bid": 1.01,
-            "ask": 1.21,
-            "iv": 0.5295457202148439,
-            "open_interest": 2247.0,
-            "expiration": "2026-08-31"
+            "bid": 1.3,
+            "ask": 4.5,
+            "iv": 0.5317429638671876,
+            "open_interest": 33.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 442.5,
             "option_type": "put",
-            "bid": 1.2,
-            "ask": 1.37,
-            "iv": 0.5242967492675781,
-            "open_interest": 31.0,
-            "expiration": "2026-08-31"
+            "bid": 2.2,
+            "ask": 4.95,
+            "iv": 0.5257615783691407,
+            "open_interest": 3.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 445.0,
             "option_type": "put",
-            "bid": 1.32,
-            "ask": 1.56,
-            "iv": 0.5147753601074219,
-            "open_interest": 112.0,
-            "expiration": "2026-08-31"
+            "bid": 2.81,
+            "ask": 4.9,
+            "iv": 0.49561051269531253,
+            "open_interest": 36.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 447.5,
             "option_type": "put",
-            "bid": 1.7,
-            "ask": 1.85,
-            "iv": 0.5192919165039063,
-            "open_interest": 38.0,
-            "expiration": "2026-08-31"
+            "bid": 3.1,
+            "ask": 5.2,
+            "iv": 0.4805960144042969,
+            "open_interest": 20.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 450.0,
             "option_type": "put",
-            "bid": 1.92,
-            "ask": 2.14,
-            "iv": 0.5133105310058592,
-            "open_interest": 189.0,
-            "expiration": "2026-08-31"
+            "bid": 4.45,
+            "ask": 5.2,
+            "iv": 0.45166563964843753,
+            "open_interest": 105.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 452.5,
             "option_type": "put",
-            "bid": 2.32,
-            "ask": 2.5,
-            "iv": 0.5139208764648437,
-            "open_interest": 42.0,
-            "expiration": "2026-08-31"
+            "bid": 3.85,
+            "ask": 7.35,
+            "iv": 0.5084888018798828,
+            "open_interest": 7.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 455.0,
             "option_type": "put",
-            "bid": 2.71,
-            "ask": 2.98,
-            "iv": 0.5147753601074219,
-            "open_interest": 173.0,
-            "expiration": "2026-08-31"
+            "bid": 6.0,
+            "ask": 8.1,
+            "iv": 0.5050098327636718,
+            "open_interest": 110.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 457.5,
             "option_type": "put",
-            "bid": 2.98,
-            "ask": 3.2,
-            "iv": 0.5004932763671875,
-            "open_interest": 146.0,
-            "expiration": "2026-08-31"
+            "bid": 5.3,
+            "ask": 8.05,
+            "iv": 0.4697928997802735,
+            "open_interest": 28.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 460.0,
             "option_type": "put",
-            "bid": 3.5,
-            "ask": 3.85,
-            "iv": 0.5042774182128906,
-            "open_interest": 283.0,
-            "expiration": "2026-08-31"
+            "bid": 7.2,
+            "ask": 8.85,
+            "iv": 0.4646049633789063,
+            "open_interest": 40.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 462.5,
             "option_type": "put",
-            "bid": 3.9,
-            "ask": 4.4,
-            "iv": 0.5117236328125,
-            "open_interest": 50.0,
-            "expiration": "2026-08-31"
+            "bid": 6.85,
+            "ask": 10.8,
+            "iv": 0.49762465270996104,
+            "open_interest": 3.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 465.0,
             "option_type": "put",
-            "bid": 4.65,
-            "ask": 5.15,
-            "iv": 0.5036670727539063,
-            "open_interest": 493.0,
-            "expiration": "2026-08-31"
+            "bid": 7.85,
+            "ask": 11.15,
+            "iv": 0.47174600524902344,
+            "open_interest": 44.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 467.5,
             "option_type": "put",
-            "bid": 5.25,
-            "ask": 5.75,
-            "iv": 0.5098315618896485,
-            "open_interest": 31.0,
-            "expiration": "2026-08-31"
+            "bid": 10.4,
+            "ask": 13.05,
+            "iv": 0.49707534179687507,
+            "open_interest": 7.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 470.0,
             "option_type": "put",
-            "bid": 5.95,
-            "ask": 6.65,
-            "iv": 0.5144091528320311,
-            "open_interest": 193.0,
-            "expiration": "2026-08-31"
+            "bid": 12.0,
+            "ask": 13.0,
+            "iv": 0.4534356414794922,
+            "open_interest": 71.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 472.5,
             "option_type": "put",
-            "bid": 6.8,
-            "ask": 7.35,
-            "iv": 0.5067188000488281,
-            "open_interest": 10.0,
-            "expiration": "2026-08-31"
+            "bid": 12.35,
+            "ask": 15.45,
+            "iv": 0.4923756817626954,
+            "open_interest": 6.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 475.0,
             "option_type": "put",
-            "bid": 7.8,
-            "ask": 8.2,
-            "iv": 0.5025684509277344,
-            "open_interest": 76.0,
-            "expiration": "2026-08-31"
+            "bid": 12.65,
+            "ask": 16.85,
+            "iv": 0.49335223449707044,
+            "open_interest": 23.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 477.5,
             "option_type": "put",
-            "bid": 8.75,
-            "ask": 9.35,
-            "iv": 0.5079394909667969,
-            "open_interest": 39.0,
-            "expiration": "2026-08-31"
+            "bid": 14.05,
+            "ask": 18.3,
+            "iv": 0.49377947631835944,
+            "open_interest": 7.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 480.0,
             "option_type": "put",
-            "bid": 9.9,
-            "ask": 10.45,
-            "iv": 0.5077563873291016,
-            "open_interest": 579.0,
-            "expiration": "2026-08-31"
+            "bid": 15.45,
+            "ask": 19.85,
+            "iv": 0.4954274090576172,
+            "open_interest": 24.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 482.5,
             "option_type": "put",
-            "bid": 11.1,
-            "ask": 11.7,
-            "iv": 0.5105029418945313,
-            "open_interest": 502.0,
-            "expiration": "2026-08-31"
+            "bid": 17.0,
+            "ask": 21.5,
+            "iv": 0.49835706726074225,
+            "open_interest": 55.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 485.0,
             "option_type": "put",
-            "bid": 12.4,
-            "ask": 13.05,
-            "iv": 0.5008594836425782,
-            "open_interest": 156.0,
-            "expiration": "2026-08-31"
+            "bid": 18.65,
+            "ask": 23.15,
+            "iv": 0.4991505163574219,
+            "open_interest": 14.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 487.5,
             "option_type": "put",
-            "bid": 14.0,
-            "ask": 14.95,
-            "iv": 0.5173998455810547,
-            "open_interest": 870.0,
-            "expiration": "2026-08-31"
+            "bid": 20.3,
+            "ask": 24.95,
+            "iv": 0.5033008654785156,
+            "open_interest": 11.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 490.0,
             "option_type": "put",
-            "bid": 15.9,
-            "ask": 16.85,
-            "iv": 0.5371140039062501,
-            "open_interest": 34.0,
-            "expiration": "2026-08-31"
+            "bid": 21.95,
+            "ask": 26.85,
+            "iv": 0.5092822509765625,
+            "open_interest": 40.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 492.5,
             "option_type": "put",
-            "bid": 16.8,
-            "ask": 17.75,
-            "iv": 0.5128832891845703,
+            "bid": 23.8,
+            "ask": 28.8,
+            "iv": 0.5153857055664062,
             "open_interest": 5.0,
-            "expiration": "2026-08-31"
+            "expiration": "2026-09-09"
           },
           {
             "strike": 495.0,
             "option_type": "put",
-            "bid": 18.15,
-            "ask": 19.15,
-            "iv": 0.504765694580078,
-            "open_interest": 32.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 497.5,
-            "option_type": "put",
-            "bid": 20.25,
-            "ask": 20.95,
-            "iv": 0.5180101910400392,
-            "open_interest": 18.0,
-            "expiration": "2026-08-31"
+            "bid": 25.7,
+            "ask": 30.7,
+            "iv": 0.5178270874023438,
+            "open_interest": 44.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 500.0,
             "option_type": "put",
-            "bid": 22.8,
-            "ask": 23.5,
-            "iv": 0.5553633331298828,
-            "open_interest": 65.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 502.5,
-            "option_type": "put",
-            "bid": 24.5,
-            "ask": 25.3,
-            "iv": 0.5556685058593751,
-            "open_interest": 1.0,
-            "expiration": "2026-08-31"
+            "bid": 29.7,
+            "ask": 34.7,
+            "iv": 0.5255174401855469,
+            "open_interest": 47.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 505.0,
             "option_type": "put",
-            "bid": 26.6,
-            "ask": 27.4,
-            "iv": 0.5695843823242188,
-            "open_interest": 16.0,
-            "expiration": "2026-08-31"
+            "bid": 33.85,
+            "ask": 38.95,
+            "iv": 0.5378464184570313,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
+          },
+          {
+            "strike": 507.5,
+            "option_type": "put",
+            "bid": 36.0,
+            "ask": 41.15,
+            "iv": 0.5454147021484376,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 510.0,
             "option_type": "put",
-            "bid": 30.45,
-            "ask": 31.85,
-            "iv": 0.5896037133789063,
-            "open_interest": 28.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 515.0,
-            "option_type": "put",
-            "bid": 34.05,
-            "ask": 34.95,
-            "iv": 0.5582319567871095,
-            "open_interest": 26.0,
-            "expiration": "2026-08-31"
+            "bid": 38.2,
+            "ask": 43.35,
+            "iv": 0.5518843640136719,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 520.0,
             "option_type": "put",
-            "bid": 37.25,
-            "ask": 40.65,
-            "iv": 0.5766643896484375,
-            "open_interest": 6.0,
-            "expiration": "2026-08-31"
+            "bid": 47.35,
+            "ask": 52.4,
+            "iv": 0.5793499096679688,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 525.0,
             "option_type": "put",
-            "bid": 41.7,
-            "ask": 45.25,
-            "iv": 0.5937540625000001,
-            "open_interest": 13.0,
-            "expiration": "2026-08-31"
+            "bid": 52.05,
+            "ask": 57.1,
+            "iv": 0.5976602734375001,
+            "open_interest": 2.0,
+            "expiration": "2026-09-09"
           },
           {
             "strike": 530.0,
             "option_type": "put",
-            "bid": 46.5,
-            "ask": 49.75,
-            "iv": 0.6140175317382813,
-            "open_interest": 16.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 537.5,
-            "option_type": "put",
-            "bid": 53.4,
-            "ask": 56.85,
-            "iv": 0.637698935546875,
-            "open_interest": 2.0,
-            "expiration": "2026-08-31"
-          },
-          {
-            "strike": 550.0,
-            "option_type": "put",
-            "bid": 65.6,
-            "ask": 69.05,
-            "iv": 0.7072783178710937,
-            "open_interest": 0.0,
-            "expiration": "2026-08-31"
+            "bid": 56.9,
+            "ask": 61.75,
+            "iv": 0.609500975341797,
+            "open_interest": 1.0,
+            "expiration": "2026-09-09"
           }
         ],
         "suspect_fields": [],
@@ -2828,7 +2843,7 @@
         "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.75384,
+        "held_percent_institutions": 0.75394994,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -2891,7 +2906,7 @@
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-26T14:37:10.107396+00:00"
+        "as_of_utc": "2026-09-01T03:49:47.104941+00:00"
       },
       "short_interest": {
         "shares_short": 40065798.0,
@@ -2902,12 +2917,36 @@
         "suspect_fields": []
       },
       "analyst_trend": {
-        "recent_upgrades": 1,
+        "recent_upgrades": 0,
         "recent_downgrades": 0,
-        "net_action": "upgrade",
+        "net_action": "none",
         "suspect_fields": []
       },
       "insider_transactions": [
+        {
+          "date": "2026-08-25 00:00:00+00:00",
+          "insider_name": "HU JEAN X",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 15000,
+          "value": 7111160.0
+        },
+        {
+          "date": "2026-08-24 00:00:00+00:00",
+          "insider_name": "NORROD FORREST EUGENE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 17261,
+          "value": 7939159.0
+        },
+        {
+          "date": "2026-08-24 00:00:00+00:00",
+          "insider_name": "NORROD FORREST EUGENE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7261,
+          "value": 616096.0
+        },
         {
           "date": "2026-08-20 00:00:00+00:00",
           "insider_name": "PAPERMASTER MARK D",
@@ -2990,18 +3029,18 @@
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 396405,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-14 00:00:00+00:00",
           "insider_name": "HU JEAN X",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 101698,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-14 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 396405,
           "value": NaN
         },
         {
@@ -3070,18 +3109,18 @@
         },
         {
           "date": "2026-08-07 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 16221,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-07 00:00:00+00:00",
           "insider_name": "HU JEAN X",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 5893,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-07 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 16221,
           "value": NaN
         },
         {
@@ -3366,19 +3405,19 @@
         },
         {
           "date": "2026-02-11 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 125000,
-          "value": 26794875.0
-        },
-        {
-          "date": "2026-02-11 00:00:00+00:00",
           "insider_name": "NORROD FORREST EUGENE",
           "position": "Officer",
           "transaction_type": "",
           "shares": 19450,
           "value": 4216969.0
+        },
+        {
+          "date": "2026-02-11 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 125000,
+          "value": 26794875.0
         },
         {
           "date": "2026-02-11 00:00:00+00:00",
@@ -3590,6 +3629,14 @@
         },
         {
           "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "HUYNH JACK M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 2804,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-15 00:00:00+00:00",
           "insider_name": "NORROD FORREST EUGENE",
           "position": "Officer",
           "transaction_type": "",
@@ -3602,14 +3649,6 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 33659,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-15 00:00:00+00:00",
-          "insider_name": "HUYNH JACK M",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 2804,
           "value": NaN
         },
         {
@@ -3646,6 +3685,14 @@
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "HUYNH JACK M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5553,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
           "transaction_type": "",
@@ -3666,14 +3713,6 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 23258,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "HUYNH JACK M",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 5553,
           "value": NaN
         },
         {
@@ -4036,7 +4075,246 @@
           "shares": 80000,
           "value": 1528000.0
         }
-      ]
+      ],
+      "insider_mspr": {
+        "year": 2026,
+        "month": 8,
+        "mspr": -29.56026,
+        "change": -56675.0
+      },
+      "ownership_filings": {
+        "activist_13d": [],
+        "passive_13g": [],
+        "institutional_13f": [
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-08-14",
+            "accessionNumber": "0001193125-26-352454"
+          },
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-05-12",
+            "accessionNumber": "0001193125-26-219769"
+          }
+        ],
+        "insider_form4": [
+          {
+            "form": "4",
+            "filingDate": "2026-08-27",
+            "accessionNumber": "0001452385-26-000008"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-26",
+            "accessionNumber": "0000002488-26-000176"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-21",
+            "accessionNumber": "0000002488-26-000174"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-20",
+            "accessionNumber": "0000002488-26-000172"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-20",
+            "accessionNumber": "0000002488-26-000167"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-20",
+            "accessionNumber": "0000002488-26-000165"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000161"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000159"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000157"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000155"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000153"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000151"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000149"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000147"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-18",
+            "accessionNumber": "0000002488-26-000145"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-17",
+            "accessionNumber": "0000002488-26-000143"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-13",
+            "accessionNumber": "0000002488-26-000141"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000139"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000137"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000135"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000133"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000131"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000129"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000127"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000002488-26-000125"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-17",
+            "accessionNumber": "0000002488-26-000117"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-17",
+            "accessionNumber": "0000002488-26-000113"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-17",
+            "accessionNumber": "0000002488-26-000111"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-12",
+            "accessionNumber": "0000002488-26-000109"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-12",
+            "accessionNumber": "0000002488-26-000107"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-02",
+            "accessionNumber": "0000002488-26-000105"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-22",
+            "accessionNumber": "0000002488-26-000100"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-19",
+            "accessionNumber": "0000002488-26-000098"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000096"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000094"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000092"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000090"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000088"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000086"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000084"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-15",
+            "accessionNumber": "0000002488-26-000082"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-13",
+            "accessionNumber": "0000002488-26-000080"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-12",
+            "accessionNumber": "0000002488-26-000078"
+          }
+        ]
+      }
     },
     "AVGO": {
       "ticker": "AVGO",
@@ -11180,101 +11458,101 @@
     "ZION": {
       "ticker": "ZION",
       "options": {
-        "put_call_ratio": 0.3484,
-        "avg_call_iv": 0.2918,
-        "avg_put_iv": 0.3573,
-        "iv_skew": 0.0655,
+        "put_call_ratio": 0.5042,
+        "avg_call_iv": 0.3474,
+        "avg_put_iv": 0.3046,
+        "iv_skew": -0.0428,
         "expiration": "2026-09-18",
-        "dte": 23,
-        "atm_iv": 0.3246,
+        "dte": 17,
+        "atm_iv": 0.326,
         "chain": [
           {
             "strike": 55.0,
             "option_type": "call",
-            "bid": 12.4,
-            "ask": 14.0,
-            "iv": 0.6738313867187502,
+            "bid": 10.8,
+            "ask": 13.3,
+            "iv": 0.6459996337890624,
             "open_interest": 0.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 57.5,
             "option_type": "call",
-            "bid": 10.0,
-            "ask": 11.4,
-            "iv": 0.5356491748046875,
+            "bid": 9.1,
+            "ask": 10.5,
+            "iv": 0.6196327099609377,
             "open_interest": 0.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 60.0,
             "option_type": "call",
-            "bid": 7.7,
-            "ask": 9.0,
-            "iv": 0.46484910156250003,
-            "open_interest": 1.0,
+            "bid": 6.6,
+            "ask": 8.0,
+            "iv": 0.6679720703125002,
+            "open_interest": 3.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 62.5,
             "option_type": "call",
-            "bid": 5.6,
-            "ask": 6.6,
-            "iv": 0.3842835009765625,
+            "bid": 4.5,
+            "ask": 5.6,
+            "iv": 0.5351608984375,
             "open_interest": 30.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 65.0,
             "option_type": "call",
-            "bid": 3.7,
-            "ask": 4.4,
-            "iv": 0.32813171874999997,
-            "open_interest": 106.0,
+            "bid": 2.55,
+            "ask": 3.0,
+            "iv": 0.3505924316406249,
+            "open_interest": 199.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 67.5,
             "option_type": "call",
-            "bid": 2.0,
-            "ask": 2.5,
-            "iv": 0.2829661547851562,
-            "open_interest": 112.0,
+            "bid": 1.1,
+            "ask": 1.4,
+            "iv": 0.29883513671874995,
+            "open_interest": 105.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 70.0,
             "option_type": "call",
-            "bid": 1.0,
-            "ask": 1.2,
-            "iv": 0.26270268554687504,
-            "open_interest": 248.0,
+            "bid": 0.25,
+            "ask": 0.55,
+            "iv": 0.2846751220703124,
+            "open_interest": 316.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 72.5,
             "option_type": "call",
-            "bid": 0.1,
-            "ask": 0.45,
-            "iv": 0.24732197998046873,
-            "open_interest": 190.0,
+            "bid": 0.05,
+            "ask": 0.15,
+            "iv": 0.26758544921875,
+            "open_interest": 204.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 75.0,
             "option_type": "call",
-            "bid": 0.05,
-            "ask": 0.15,
-            "iv": 0.245124736328125,
-            "open_interest": 503.0,
+            "bid": 0.0,
+            "ask": 0.35,
+            "iv": 0.42774009765625004,
+            "open_interest": 509.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 77.5,
             "option_type": "call",
             "bid": 0.0,
-            "ask": 0.05,
-            "iv": 0.25196060546875,
+            "ask": 0.55,
+            "iv": 0.57812921875,
             "open_interest": 168.0,
             "expiration": "2026-09-18"
           },
@@ -11282,9 +11560,9 @@
             "strike": 80.0,
             "option_type": "call",
             "bid": 0.0,
-            "ask": 0.15,
-            "iv": 0.370123486328125,
-            "open_interest": 28.0,
+            "ask": 0.5,
+            "iv": 0.5419967675781252,
+            "open_interest": 27.0,
             "expiration": "2026-09-18"
           },
           {
@@ -11292,80 +11570,80 @@
             "option_type": "put",
             "bid": 0.0,
             "ask": 0.2,
-            "iv": 0.5371140039062501,
+            "iv": 0.5625043750000001,
             "open_interest": 122.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 57.5,
             "option_type": "put",
-            "bid": 0.05,
+            "bid": 0.0,
             "ask": 0.25,
-            "iv": 0.47070841796875,
+            "iv": 0.481450498046875,
             "open_interest": 47.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 60.0,
             "option_type": "put",
-            "bid": 0.1,
+            "bid": 0.05,
             "ask": 0.35,
-            "iv": 0.415044912109375,
+            "iv": 0.4101621484375,
             "open_interest": 37.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 62.5,
             "option_type": "put",
-            "bid": 0.2,
-            "ask": 0.55,
-            "iv": 0.36914693359375,
+            "bid": 0.25,
+            "ask": 0.5,
+            "iv": 0.33301448242187504,
             "open_interest": 707.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 65.0,
             "option_type": "put",
-            "bid": 0.55,
-            "ask": 0.9,
-            "iv": 0.3254461987304687,
-            "open_interest": 73.0,
+            "bid": 0.65,
+            "ask": 0.95,
+            "iv": 0.2846751220703124,
+            "open_interest": 354.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 67.5,
             "option_type": "put",
-            "bid": 1.15,
-            "ask": 1.4,
-            "iv": 0.2661206201171875,
-            "open_interest": 789.0,
+            "bid": 1.5,
+            "ask": 1.95,
+            "iv": 0.2541578491210938,
+            "open_interest": 796.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 70.0,
             "option_type": "put",
-            "bid": 2.35,
-            "ask": 2.9,
-            "iv": 0.29004616210937495,
-            "open_interest": 660.0,
+            "bid": 3.3,
+            "ask": 3.7,
+            "iv": 0.2475661181640625,
+            "open_interest": 666.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 72.5,
             "option_type": "put",
-            "bid": 4.1,
-            "ask": 5.4,
-            "iv": 0.41235939208984373,
+            "bid": 4.5,
+            "ask": 6.4,
+            "iv": 0.40381455566406255,
             "open_interest": 1.0,
             "expiration": "2026-09-18"
           },
           {
             "strike": 75.0,
             "option_type": "put",
-            "bid": 6.4,
-            "ask": 7.7,
-            "iv": 0.4809622216796875,
-            "open_interest": 1.0,
+            "bid": 6.8,
+            "ask": 8.7,
+            "iv": 0.4414118359375,
+            "open_interest": 0.0,
             "expiration": "2026-09-18"
           }
         ],
@@ -11378,7 +11656,7 @@
         "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.84845,
+        "held_percent_institutions": 0.84842,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -11441,7 +11719,7 @@
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-26T14:37:48.989412+00:00"
+        "as_of_utc": "2026-09-01T03:58:49.866598+00:00"
       },
       "short_interest": {
         "shares_short": 5486180.0,
@@ -11454,7 +11732,7 @@
       "analyst_trend": {
         "recent_upgrades": 0,
         "recent_downgrades": 0,
-        "net_action": "none",
+        "net_action": "mixed",
         "suspect_fields": []
       },
       "insider_transactions": [
@@ -11508,19 +11786,19 @@
         },
         {
           "date": "2026-07-28 00:00:00+00:00",
-          "insider_name": "MCLEAN SCOTT J",
-          "position": "President",
-          "transaction_type": "",
-          "shares": 6650,
-          "value": 0.0
-        },
-        {
-          "date": "2026-07-28 00:00:00+00:00",
           "insider_name": "STEWARD DEREK",
           "position": "Officer",
           "transaction_type": "",
           "shares": 894,
           "value": 62267.0
+        },
+        {
+          "date": "2026-07-28 00:00:00+00:00",
+          "insider_name": "MCLEAN SCOTT J",
+          "position": "President",
+          "transaction_type": "",
+          "shares": 6650,
+          "value": 0.0
         },
         {
           "date": "2026-07-28 00:00:00+00:00",
@@ -11556,7 +11834,7 @@
         },
         {
           "date": "2026-05-01 00:00:00+00:00",
-          "insider_name": "CONTRERAS-SWEET MARIA",
+          "insider_name": "MURPHY EDWARD F",
           "position": "Director",
           "transaction_type": "",
           "shares": 2055,
@@ -11564,7 +11842,7 @@
         },
         {
           "date": "2026-05-01 00:00:00+00:00",
-          "insider_name": "MURPHY EDWARD F",
+          "insider_name": "CONTRERAS-SWEET MARIA",
           "position": "Director",
           "transaction_type": "",
           "shares": 2055,
@@ -11599,16 +11877,16 @@
           "insider_name": "ARBUCKLE JASON D",
           "position": "Officer",
           "transaction_type": "",
-          "shares": 214,
-          "value": 0.0
+          "shares": 190,
+          "value": 11736.0
         },
         {
           "date": "2026-02-20 00:00:00+00:00",
           "insider_name": "ARBUCKLE JASON D",
           "position": "Officer",
           "transaction_type": "",
-          "shares": 190,
-          "value": 11736.0
+          "shares": 214,
+          "value": 0.0
         },
         {
           "date": "2026-02-18 00:00:00+00:00",
@@ -11855,16 +12133,16 @@
           "insider_name": "SMITH JENNIFER ANNE",
           "position": "Officer",
           "transaction_type": "",
-          "shares": 1878,
-          "value": 0.0
+          "shares": 2457,
+          "value": 130519.0
         },
         {
           "date": "2025-10-27 00:00:00+00:00",
           "insider_name": "SMITH JENNIFER ANNE",
           "position": "Officer",
           "transaction_type": "",
-          "shares": 2457,
-          "value": 130519.0
+          "shares": 1878,
+          "value": 0.0
         },
         {
           "date": "2025-08-22 00:00:00+00:00",
@@ -11908,7 +12186,7 @@
         },
         {
           "date": "2025-05-02 00:00:00+00:00",
-          "insider_name": "CONTRERAS-SWEET MARIA",
+          "insider_name": "MURPHY EDWARD F",
           "position": "Director",
           "transaction_type": "",
           "shares": 2789,
@@ -11916,7 +12194,7 @@
         },
         {
           "date": "2025-05-02 00:00:00+00:00",
-          "insider_name": "MURPHY EDWARD F",
+          "insider_name": "CONTRERAS-SWEET MARIA",
           "position": "Director",
           "transaction_type": "",
           "shares": 2789,
@@ -12060,19 +12338,19 @@
         },
         {
           "date": "2025-02-10 00:00:00+00:00",
-          "insider_name": "STEPHENS STEVEN DAN",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 6717,
-          "value": 376354.0
-        },
-        {
-          "date": "2025-02-10 00:00:00+00:00",
           "insider_name": "MCLEAN SCOTT J",
           "position": "President",
           "transaction_type": "",
           "shares": 16659,
           "value": 933404.0
+        },
+        {
+          "date": "2025-02-10 00:00:00+00:00",
+          "insider_name": "STEPHENS STEVEN DAN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 6717,
+          "value": 376354.0
         },
         {
           "date": "2025-02-10 00:00:00+00:00",
@@ -12108,19 +12386,19 @@
         },
         {
           "date": "2024-12-17 00:00:00+00:00",
-          "insider_name": "MILLER RENA A",
-          "position": "General Counsel",
-          "transaction_type": "",
-          "shares": 116,
-          "value": 6951.0
-        },
-        {
-          "date": "2024-12-17 00:00:00+00:00",
           "insider_name": "STEPHENS STEVEN DAN",
           "position": "Officer",
           "transaction_type": "",
           "shares": 388,
           "value": 23249.0
+        },
+        {
+          "date": "2024-12-17 00:00:00+00:00",
+          "insider_name": "MILLER RENA A",
+          "position": "General Counsel",
+          "transaction_type": "",
+          "shares": 116,
+          "value": 6951.0
         },
         {
           "date": "2024-11-26 00:00:00+00:00",
@@ -12210,7 +12488,151 @@
           "shares": 4385,
           "value": 234427.0
         }
-      ]
+      ],
+      "insider_mspr": {
+        "year": 2026,
+        "month": 8,
+        "mspr": -15.23706,
+        "change": -87893.0
+      },
+      "ownership_filings": {
+        "activist_13d": [],
+        "passive_13g": [],
+        "institutional_13f": [
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-07-31",
+            "accessionNumber": "0000109380-26-000106"
+          },
+          {
+            "form": "13F-HR",
+            "filingDate": "2026-05-08",
+            "accessionNumber": "0000109380-26-000085"
+          }
+        ],
+        "insider_form4": [
+          {
+            "form": "4",
+            "filingDate": "2026-08-11",
+            "accessionNumber": "0000109380-26-000112"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-05",
+            "accessionNumber": "0000109380-26-000109"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-05",
+            "accessionNumber": "0000109380-26-000108"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-08-04",
+            "accessionNumber": "0000109380-26-000107"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-29",
+            "accessionNumber": "0000109380-26-000105"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-29",
+            "accessionNumber": "0000109380-26-000104"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-01",
+            "accessionNumber": "0000109380-26-000100"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-01",
+            "accessionNumber": "0000109380-26-000099"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-01",
+            "accessionNumber": "0000109380-26-000098"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-07-01",
+            "accessionNumber": "0000109380-26-000097"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-04",
+            "accessionNumber": "0000109380-26-000093"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-06-03",
+            "accessionNumber": "0000109380-26-000089"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-11",
+            "accessionNumber": "0000109380-26-000086"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-07",
+            "accessionNumber": "0000109380-26-000084"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-06",
+            "accessionNumber": "0000109380-26-000081"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000075"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000074"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000073"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000072"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000071"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000070"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000069"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000068"
+          },
+          {
+            "form": "4",
+            "filingDate": "2026-05-04",
+            "accessionNumber": "0000109380-26-000067"
+          }
+        ]
+      }
     },
     "KEY": {
       "ticker": "KEY",
@@ -68613,32 +69035,570 @@
       ]
     }
   },
-  "previous_updated": "2026-08-26T14:38:18.314171+00:00",
+  "previous_updated": "2026-09-01T03:49:49.170049+00:00",
   "previous_tickers": {
     "NVDA": {
       "ticker": "NVDA",
       "options": {
-        "put_call_ratio": 0.3769,
-        "avg_call_iv": null,
-        "avg_put_iv": null,
-        "iv_skew": null,
+        "put_call_ratio": 0.6427,
+        "avg_call_iv": 0.6387,
+        "avg_put_iv": 0.5643,
+        "iv_skew": -0.0744,
         "expiration": "2026-08-31",
-        "dte": 6,
-        "atm_iv": null,
-        "chain": [],
-        "suspect_fields": [
-          "avg_call_iv",
-          "avg_put_iv"
+        "dte": 5,
+        "atm_iv": 0.6015,
+        "chain": [
+          {
+            "strike": 170.0,
+            "option_type": "call",
+            "bid": 40.7,
+            "ask": 43.2,
+            "iv": 1.3017613037109372,
+            "open_interest": 22.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 175.0,
+            "option_type": "call",
+            "bid": 35.7,
+            "ask": 38.8,
+            "iv": 1.2294960400390624,
+            "open_interest": 44.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 180.0,
+            "option_type": "call",
+            "bid": 30.6,
+            "ask": 33.15,
+            "iv": 1.0166064794921876,
+            "open_interest": 23.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 185.0,
+            "option_type": "call",
+            "bid": 25.95,
+            "ask": 27.9,
+            "iv": 0.893555751953125,
+            "open_interest": 89.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 187.5,
+            "option_type": "call",
+            "bid": 24.1,
+            "ask": 24.45,
+            "iv": 0.7995625512695312,
+            "open_interest": 48.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 190.0,
+            "option_type": "call",
+            "bid": 21.55,
+            "ask": 21.95,
+            "iv": 0.729494892578125,
+            "open_interest": 317.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 192.5,
+            "option_type": "call",
+            "bid": 19.15,
+            "ask": 19.6,
+            "iv": 0.6840851904296876,
+            "open_interest": 31.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 195.0,
+            "option_type": "call",
+            "bid": 17.1,
+            "ask": 17.35,
+            "iv": 0.6682162084960939,
+            "open_interest": 487.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 197.5,
+            "option_type": "call",
+            "bid": 15.0,
+            "ask": 15.2,
+            "iv": 0.6459996337890624,
+            "open_interest": 113.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 200.0,
+            "option_type": "call",
+            "bid": 13.1,
+            "ask": 13.2,
+            "iv": 0.6347692773437501,
+            "open_interest": 1293.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 202.5,
+            "option_type": "call",
+            "bid": 11.35,
+            "ask": 11.45,
+            "iv": 0.6333044482421876,
+            "open_interest": 366.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 205.0,
+            "option_type": "call",
+            "bid": 9.7,
+            "ask": 9.85,
+            "iv": 0.63086306640625,
+            "open_interest": 678.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 207.5,
+            "option_type": "call",
+            "bid": 8.2,
+            "ask": 8.35,
+            "iv": 0.6267127172851563,
+            "open_interest": 796.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 210.0,
+            "option_type": "call",
+            "bid": 6.8,
+            "ask": 6.95,
+            "iv": 0.6184120190429689,
+            "open_interest": 2849.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 212.5,
+            "option_type": "call",
+            "bid": 5.7,
+            "ask": 5.8,
+            "iv": 0.6218299536132813,
+            "open_interest": 2517.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 215.0,
+            "option_type": "call",
+            "bid": 4.7,
+            "ask": 4.75,
+            "iv": 0.6212196081542969,
+            "open_interest": 10581.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 217.5,
+            "option_type": "call",
+            "bid": 3.85,
+            "ask": 3.9,
+            "iv": 0.624149266357422,
+            "open_interest": 2488.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 220.0,
+            "option_type": "call",
+            "bid": 3.1,
+            "ask": 3.15,
+            "iv": 0.6242713354492189,
+            "open_interest": 7954.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 222.5,
+            "option_type": "call",
+            "bid": 2.46,
+            "ask": 2.49,
+            "iv": 0.6223182299804688,
+            "open_interest": 1388.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 225.0,
+            "option_type": "call",
+            "bid": 1.95,
+            "ask": 1.96,
+            "iv": 0.6228065063476562,
+            "open_interest": 5412.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 227.5,
+            "option_type": "call",
+            "bid": 1.52,
+            "ask": 1.57,
+            "iv": 0.6257361645507813,
+            "open_interest": 1934.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 230.0,
+            "option_type": "call",
+            "bid": 1.17,
+            "ask": 1.19,
+            "iv": 0.6235389208984375,
+            "open_interest": 6098.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 232.5,
+            "option_type": "call",
+            "bid": 0.91,
+            "ask": 0.94,
+            "iv": 0.6281775463867189,
+            "open_interest": 1931.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 235.0,
+            "option_type": "call",
+            "bid": 0.7,
+            "ask": 0.71,
+            "iv": 0.6289099609375001,
+            "open_interest": 4835.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 237.5,
+            "option_type": "call",
+            "bid": 0.54,
+            "ask": 0.56,
+            "iv": 0.6347692773437501,
+            "open_interest": 724.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 240.0,
+            "option_type": "call",
+            "bid": 0.42,
+            "ask": 0.44,
+            "iv": 0.64062859375,
+            "open_interest": 4134.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 242.5,
+            "option_type": "call",
+            "bid": 0.33,
+            "ask": 0.35,
+            "iv": 0.648441015625,
+            "open_interest": 672.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 245.0,
+            "option_type": "call",
+            "bid": 0.27,
+            "ask": 0.29,
+            "iv": 0.6611362011718751,
+            "open_interest": 8859.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 247.5,
+            "option_type": "call",
+            "bid": 0.21,
+            "ask": 0.24,
+            "iv": 0.6709017285156251,
+            "open_interest": 272.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 250.0,
+            "option_type": "call",
+            "bid": 0.18,
+            "ask": 0.19,
+            "iv": 0.6816438085937502,
+            "open_interest": 3238.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 170.0,
+            "option_type": "put",
+            "bid": 0.12,
+            "ask": 0.13,
+            "iv": 0.7929708203125,
+            "open_interest": 196.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 175.0,
+            "option_type": "put",
+            "bid": 0.16,
+            "ask": 0.18,
+            "iv": 0.73437765625,
+            "open_interest": 464.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 180.0,
+            "option_type": "put",
+            "bid": 0.23,
+            "ask": 0.24,
+            "iv": 0.6738313867187502,
+            "open_interest": 522.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 185.0,
+            "option_type": "put",
+            "bid": 0.36,
+            "ask": 0.38,
+            "iv": 0.6289099609375001,
+            "open_interest": 1767.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 187.5,
+            "option_type": "put",
+            "bid": 0.48,
+            "ask": 0.5,
+            "iv": 0.6127968408203126,
+            "open_interest": 606.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 190.0,
+            "option_type": "put",
+            "bid": 0.63,
+            "ask": 0.64,
+            "iv": 0.5944864770507813,
+            "open_interest": 7972.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 192.5,
+            "option_type": "put",
+            "bid": 0.86,
+            "ask": 0.89,
+            "iv": 0.5866740551757812,
+            "open_interest": 972.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 195.0,
+            "option_type": "put",
+            "bid": 1.16,
+            "ask": 1.19,
+            "iv": 0.5766643896484375,
+            "open_interest": 2836.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 197.5,
+            "option_type": "put",
+            "bid": 1.59,
+            "ask": 1.62,
+            "iv": 0.5732464550781251,
+            "open_interest": 506.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 200.0,
+            "option_type": "put",
+            "bid": 2.12,
+            "ask": 2.16,
+            "iv": 0.56836369140625,
+            "open_interest": 7475.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 202.5,
+            "option_type": "put",
+            "bid": 2.81,
+            "ask": 2.85,
+            "iv": 0.5667767932128907,
+            "open_interest": 1614.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 205.0,
+            "option_type": "put",
+            "bid": 3.65,
+            "ask": 3.75,
+            "iv": 0.56836369140625,
+            "open_interest": 2339.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 207.5,
+            "option_type": "put",
+            "bid": 4.7,
+            "ask": 4.8,
+            "iv": 0.5720257641601563,
+            "open_interest": 832.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 210.0,
+            "option_type": "put",
+            "bid": 5.8,
+            "ask": 5.95,
+            "iv": 0.5671430004882813,
+            "open_interest": 2546.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 212.5,
+            "option_type": "put",
+            "bid": 7.15,
+            "ask": 7.3,
+            "iv": 0.56836369140625,
+            "open_interest": 672.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 215.0,
+            "option_type": "put",
+            "bid": 8.7,
+            "ask": 8.8,
+            "iv": 0.5710492114257812,
+            "open_interest": 1351.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 217.5,
+            "option_type": "put",
+            "bid": 10.2,
+            "ask": 10.4,
+            "iv": 0.5614057531738281,
+            "open_interest": 353.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 220.0,
+            "option_type": "put",
+            "bid": 12.0,
+            "ask": 12.15,
+            "iv": 0.559574716796875,
+            "open_interest": 1050.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 222.5,
+            "option_type": "put",
+            "bid": 13.95,
+            "ask": 14.1,
+            "iv": 0.5632367895507813,
+            "open_interest": 377.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 225.0,
+            "option_type": "put",
+            "bid": 15.85,
+            "ask": 16.0,
+            "iv": 0.5451705639648439,
+            "open_interest": 2327.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 227.5,
+            "option_type": "put",
+            "bid": 18.0,
+            "ask": 18.15,
+            "iv": 0.5461471166992189,
+            "open_interest": 59.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 230.0,
+            "option_type": "put",
+            "bid": 19.85,
+            "ask": 20.35,
+            "iv": 0.5039112109375,
+            "open_interest": 101.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 232.5,
+            "option_type": "put",
+            "bid": 21.95,
+            "ask": 22.7,
+            "iv": 0.5717816259765626,
+            "open_interest": 67.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 235.0,
+            "option_type": "put",
+            "bid": 24.1,
+            "ask": 24.8,
+            "iv": 0.5009815527343751,
+            "open_interest": 23.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 237.5,
+            "option_type": "put",
+            "bid": 26.4,
+            "ask": 27.2,
+            "iv": 0.49219257812500006,
+            "open_interest": 54.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 240.0,
+            "option_type": "put",
+            "bid": 29.0,
+            "ask": 29.8,
+            "iv": 0.57617611328125,
+            "open_interest": 124.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 242.5,
+            "option_type": "put",
+            "bid": 31.2,
+            "ask": 32.0,
+            "iv": 1.0000000000000003e-05,
+            "open_interest": 156.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 245.0,
+            "option_type": "put",
+            "bid": 32.5,
+            "ask": 36.0,
+            "iv": 0.9589847851562499,
+            "open_interest": 17.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 247.5,
+            "option_type": "put",
+            "bid": 35.1,
+            "ask": 38.85,
+            "iv": 1.066655057373047,
+            "open_interest": 16.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 250.0,
+            "option_type": "put",
+            "bid": 37.45,
+            "ask": 40.85,
+            "iv": 1.0170947583007814,
+            "open_interest": 62.0,
+            "expiration": "2026-08-31"
+          }
         ],
+        "suspect_fields": [],
         "iv_percentile": 50.0,
-        "iv_percentile_data_quality": "unavailable",
+        "iv_percentile_data_quality": "insufficient_history",
         "put_call_ratio_percentile": 50.0,
         "put_call_ratio_percentile_data_quality": "insufficient_history",
         "iv_skew_percentile": 50.0,
-        "iv_skew_percentile_data_quality": "unavailable"
+        "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.71185,
+        "held_percent_institutions": 0.71202004,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -68701,13 +69661,13 @@
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-25T12:30:19.387588+00:00"
+        "as_of_utc": "2026-08-26T14:37:09.587245+00:00"
       },
       "short_interest": {
-        "shares_short": 292667375.0,
-        "shares_short_prior_month": 310126785.0,
-        "short_ratio": 2.23,
-        "short_percent_of_float": 0.0126,
+        "shares_short": 285956804.0,
+        "shares_short_prior_month": 324052767.0,
+        "short_ratio": 2.35,
+        "short_percent_of_float": 0.0123000005,
         "trend": "declining",
         "suspect_fields": []
       },
@@ -68744,6 +69704,14 @@
         },
         {
           "date": "2026-06-25 00:00:00+00:00",
+          "insider_name": "NEAL STEPHEN C.",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1211,
+          "value": 0
+        },
+        {
+          "date": "2026-06-25 00:00:00+00:00",
           "insider_name": "DABIRI JOHN O",
           "position": "Director",
           "transaction_type": "",
@@ -68760,15 +69728,7 @@
         },
         {
           "date": "2026-06-25 00:00:00+00:00",
-          "insider_name": "NEAL STEPHEN C.",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1211,
-          "value": 0
-        },
-        {
-          "date": "2026-06-25 00:00:00+00:00",
-          "insider_name": "HUDSON BEACH DAWN E",
+          "insider_name": "STEVENS MARK A",
           "position": "Director",
           "transaction_type": "",
           "shares": 1211,
@@ -68784,7 +69744,7 @@
         },
         {
           "date": "2026-06-25 00:00:00+00:00",
-          "insider_name": "STEVENS MARK A",
+          "insider_name": "SEAWELL A BROOKE",
           "position": "Director",
           "transaction_type": "",
           "shares": 1211,
@@ -68808,7 +69768,7 @@
         },
         {
           "date": "2026-06-25 00:00:00+00:00",
-          "insider_name": "SEAWELL A BROOKE",
+          "insider_name": "HUDSON BEACH DAWN E",
           "position": "Director",
           "transaction_type": "",
           "shares": 1211,
@@ -68872,6 +69832,14 @@
         },
         {
           "date": "2026-03-20 00:00:00+00:00",
+          "insider_name": "KRESS COLETTE M.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 62650,
+          "value": 10956706
+        },
+        {
+          "date": "2026-03-20 00:00:00+00:00",
           "insider_name": "ROBERTSON DONALD F JR",
           "position": "Officer",
           "transaction_type": "",
@@ -68885,14 +69853,6 @@
           "transaction_type": "",
           "shares": 221682,
           "value": 38502524
-        },
-        {
-          "date": "2026-03-20 00:00:00+00:00",
-          "insider_name": "KRESS COLETTE M.",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 62650,
-          "value": 10956706
         },
         {
           "date": "2026-03-19 00:00:00+00:00",
@@ -68944,6 +69904,22 @@
         },
         {
           "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "SHOQUIST DEBORA C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 47048,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
+          "insider_name": "PURI AJAY K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 47048,
+          "value": 0
+        },
+        {
+          "date": "2026-03-09 00:00:00+00:00",
           "insider_name": "KRESS COLETTE M.",
           "position": "Chief Financial Officer",
           "transaction_type": "",
@@ -68959,19 +69935,27 @@
           "value": 0
         },
         {
-          "date": "2026-03-09 00:00:00+00:00",
-          "insider_name": "PURI AJAY K",
-          "position": "Officer",
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "HUANG JEN-HSUN",
+          "position": "Chief Executive Officer",
           "transaction_type": "",
-          "shares": 47048,
+          "shares": 936771,
           "value": 0
         },
         {
-          "date": "2026-03-09 00:00:00+00:00",
+          "date": "2026-03-02 00:00:00+00:00",
           "insider_name": "SHOQUIST DEBORA C",
           "position": "Officer",
           "transaction_type": "",
-          "shares": 47048,
+          "shares": 98328,
+          "value": 0
+        },
+        {
+          "date": "2026-03-02 00:00:00+00:00",
+          "insider_name": "PURI AJAY K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 103278,
           "value": 0
         },
         {
@@ -68988,30 +69972,6 @@
           "position": "General Counsel",
           "transaction_type": "",
           "shares": 98328,
-          "value": 0
-        },
-        {
-          "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "PURI AJAY K",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 103278,
-          "value": 0
-        },
-        {
-          "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "SHOQUIST DEBORA C",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 98328,
-          "value": 0
-        },
-        {
-          "date": "2026-03-02 00:00:00+00:00",
-          "insider_name": "HUANG JEN-HSUN",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 936771,
           "value": 0
         },
         {
@@ -69080,18 +70040,18 @@
         },
         {
           "date": "2025-12-17 00:00:00+00:00",
-          "insider_name": "KRESS COLETTE M.",
-          "position": "Chief Financial Officer",
-          "transaction_type": "",
-          "shares": 113182,
-          "value": 0
-        },
-        {
-          "date": "2025-12-17 00:00:00+00:00",
           "insider_name": "HUANG JEN-HSUN",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 141488,
+          "value": 0
+        },
+        {
+          "date": "2025-12-17 00:00:00+00:00",
+          "insider_name": "KRESS COLETTE M.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 113182,
           "value": 0
         },
         {
@@ -69104,19 +70064,19 @@
         },
         {
           "date": "2025-12-12 00:00:00+00:00",
-          "insider_name": "SHOQUIST DEBORA C",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 229840,
-          "value": 41414515
-        },
-        {
-          "date": "2025-12-12 00:00:00+00:00",
           "insider_name": "KRESS COLETTE M.",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 50500,
           "value": 8994793
+        },
+        {
+          "date": "2025-12-12 00:00:00+00:00",
+          "insider_name": "SHOQUIST DEBORA C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 229840,
+          "value": 41414515
         },
         {
           "date": "2025-12-09 00:00:00+00:00",
@@ -69256,30 +70216,6 @@
         },
         {
           "date": "2025-09-19 00:00:00+00:00",
-          "insider_name": "HUANG JEN-HSUN",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 225000,
-          "value": 39181549
-        },
-        {
-          "date": "2025-09-19 00:00:00+00:00",
-          "insider_name": "ROBERTSON DONALD F JR",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 3500,
-          "value": 617298
-        },
-        {
-          "date": "2025-09-19 00:00:00+00:00",
-          "insider_name": "STEVENS MARK A",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 350000,
-          "value": 61737305
-        },
-        {
-          "date": "2025-09-19 00:00:00+00:00",
           "insider_name": "KRESS COLETTE M.",
           "position": "Chief Financial Officer",
           "transaction_type": "",
@@ -69293,6 +70229,30 @@
           "transaction_type": "",
           "shares": 40000,
           "value": 7106120
+        },
+        {
+          "date": "2025-09-19 00:00:00+00:00",
+          "insider_name": "ROBERTSON DONALD F JR",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 3500,
+          "value": 617298
+        },
+        {
+          "date": "2025-09-19 00:00:00+00:00",
+          "insider_name": "HUANG JEN-HSUN",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 225000,
+          "value": 39181549
+        },
+        {
+          "date": "2025-09-19 00:00:00+00:00",
+          "insider_name": "STEVENS MARK A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 350000,
+          "value": 61737305
         },
         {
           "date": "2025-09-18 00:00:00+00:00",
@@ -69320,19 +70280,19 @@
         },
         {
           "date": "2025-09-12 00:00:00+00:00",
-          "insider_name": "STEVENS MARK A",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 497797,
-          "value": 88558438
-        },
-        {
-          "date": "2025-09-12 00:00:00+00:00",
           "insider_name": "NEAL STEPHEN C.",
           "position": "Director",
           "transaction_type": "",
           "shares": 28000,
           "value": 4972344
+        },
+        {
+          "date": "2025-09-12 00:00:00+00:00",
+          "insider_name": "STEVENS MARK A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 497797,
+          "value": 88558438
         },
         {
           "date": "2025-09-11 00:00:00+00:00",
@@ -69376,10 +70336,10 @@
         },
         {
           "date": "2025-08-29 00:00:00+00:00",
-          "insider_name": "NEAL STEPHEN C.",
+          "insider_name": "SEAWELL A BROOKE",
           "position": "Director",
           "transaction_type": "",
-          "shares": 1700,
+          "shares": 1200000,
           "value": 0
         },
         {
@@ -69392,10 +70352,10 @@
         },
         {
           "date": "2025-08-29 00:00:00+00:00",
-          "insider_name": "SEAWELL A BROOKE",
+          "insider_name": "NEAL STEPHEN C.",
           "position": "Director",
           "transaction_type": "",
-          "shares": 1200000,
+          "shares": 1700,
           "value": 0
         },
         {
@@ -69472,19 +70432,19 @@
         },
         {
           "date": "2025-07-15 00:00:00+00:00",
-          "insider_name": "HUANG JEN-HSUN",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 225000,
-          "value": 37594046
-        },
-        {
-          "date": "2025-07-15 00:00:00+00:00",
           "insider_name": "KRESS COLETTE M.",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 47650,
           "value": 8142671
+        },
+        {
+          "date": "2025-07-15 00:00:00+00:00",
+          "insider_name": "HUANG JEN-HSUN",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 225000,
+          "value": 37594046
         },
         {
           "date": "2025-07-14 00:00:00+00:00",
@@ -69552,19 +70512,19 @@
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "DABIRI JOHN O",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1799,
-          "value": 0
-        },
-        {
-          "date": "2025-06-26 00:00:00+00:00",
           "insider_name": "HUANG JEN-HSUN",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 200000,
           "value": 30465420
+        },
+        {
+          "date": "2025-06-26 00:00:00+00:00",
+          "insider_name": "DABIRI JOHN O",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1799,
+          "value": 0
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
@@ -69584,31 +70544,7 @@
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "DRELL PERSIS S",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1799,
-          "value": 0
-        },
-        {
-          "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "OCHOA ELLEN",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1799,
-          "value": 0
-        },
-        {
-          "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "HUDSON BEACH DAWN E",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1799,
-          "value": 0
-        },
-        {
-          "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "JONES HARVEY C JR.",
+          "insider_name": "BURGESS ROBERT KENNETH",
           "position": "Director",
           "transaction_type": "",
           "shares": 1799,
@@ -69624,7 +70560,7 @@
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "LORA MELISSA",
+          "insider_name": "JONES HARVEY C JR.",
           "position": "Director",
           "transaction_type": "",
           "shares": 1799,
@@ -69648,7 +70584,31 @@
         },
         {
           "date": "2025-06-26 00:00:00+00:00",
-          "insider_name": "BURGESS ROBERT KENNETH",
+          "insider_name": "LORA MELISSA",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1799,
+          "value": 0
+        },
+        {
+          "date": "2025-06-26 00:00:00+00:00",
+          "insider_name": "HUDSON BEACH DAWN E",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1799,
+          "value": 0
+        },
+        {
+          "date": "2025-06-26 00:00:00+00:00",
+          "insider_name": "DRELL PERSIS S",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1799,
+          "value": 0
+        },
+        {
+          "date": "2025-06-26 00:00:00+00:00",
+          "insider_name": "OCHOA ELLEN",
           "position": "Director",
           "transaction_type": "",
           "shares": 1799,
@@ -69736,14 +70696,6 @@
         },
         {
           "date": "2025-05-30 00:00:00+00:00",
-          "insider_name": "BURGESS ROBERT KENNETH",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 50000,
-          "value": 6740820
-        },
-        {
-          "date": "2025-05-30 00:00:00+00:00",
           "insider_name": "DABIRI JOHN O",
           "position": "Director",
           "transaction_type": "",
@@ -69751,12 +70703,20 @@
           "value": 91608
         },
         {
-          "date": "2025-03-21 00:00:00+00:00",
-          "insider_name": "SHOQUIST DEBORA C",
-          "position": "Officer",
+          "date": "2025-05-30 00:00:00+00:00",
+          "insider_name": "BURGESS ROBERT KENNETH",
+          "position": "Director",
           "transaction_type": "",
-          "shares": 42000,
-          "value": 0
+          "shares": 50000,
+          "value": 6740820
+        },
+        {
+          "date": "2025-03-21 00:00:00+00:00",
+          "insider_name": "KRESS COLETTE M.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 66660,
+          "value": 7787993
         },
         {
           "date": "2025-03-21 00:00:00+00:00",
@@ -69768,11 +70728,11 @@
         },
         {
           "date": "2025-03-21 00:00:00+00:00",
-          "insider_name": "KRESS COLETTE M.",
-          "position": "Chief Financial Officer",
+          "insider_name": "SHOQUIST DEBORA C",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 66660,
-          "value": 7787993
+          "shares": 42000,
+          "value": 0
         },
         {
           "date": "2025-03-20 00:00:00+00:00",
@@ -69792,24 +70752,16 @@
         },
         {
           "date": "2025-03-10 00:00:00+00:00",
-          "insider_name": "KRESS COLETTE M.",
-          "position": "Chief Financial Officer",
+          "insider_name": "DABIRI JOHN O",
+          "position": "Director",
           "transaction_type": "",
-          "shares": 57106,
-          "value": 0
+          "shares": 2663,
+          "value": 292930
         },
         {
           "date": "2025-03-10 00:00:00+00:00",
-          "insider_name": "ROBERTSON DONALD F JR",
+          "insider_name": "SHOQUIST DEBORA C",
           "position": "Officer",
-          "transaction_type": "",
-          "shares": 8489,
-          "value": 0
-        },
-        {
-          "date": "2025-03-10 00:00:00+00:00",
-          "insider_name": "TETER TIMOTHY S",
-          "position": "General Counsel",
           "transaction_type": "",
           "shares": 57489,
           "value": 0
@@ -69824,19 +70776,51 @@
         },
         {
           "date": "2025-03-10 00:00:00+00:00",
-          "insider_name": "SHOQUIST DEBORA C",
+          "insider_name": "ROBERTSON DONALD F JR",
           "position": "Officer",
+          "transaction_type": "",
+          "shares": 8489,
+          "value": 0
+        },
+        {
+          "date": "2025-03-10 00:00:00+00:00",
+          "insider_name": "KRESS COLETTE M.",
+          "position": "Chief Financial Officer",
+          "transaction_type": "",
+          "shares": 57106,
+          "value": 0
+        },
+        {
+          "date": "2025-03-10 00:00:00+00:00",
+          "insider_name": "TETER TIMOTHY S",
+          "position": "General Counsel",
           "transaction_type": "",
           "shares": 57489,
           "value": 0
         },
         {
-          "date": "2025-03-10 00:00:00+00:00",
-          "insider_name": "DABIRI JOHN O",
-          "position": "Director",
+          "date": "2025-03-03 00:00:00+00:00",
+          "insider_name": "HUANG JEN-HSUN",
+          "position": "Chief Executive Officer",
           "transaction_type": "",
-          "shares": 2663,
-          "value": 292930
+          "shares": 956480,
+          "value": 0
+        },
+        {
+          "date": "2025-03-03 00:00:00+00:00",
+          "insider_name": "SHOQUIST DEBORA C",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 122220,
+          "value": 0
+        },
+        {
+          "date": "2025-03-03 00:00:00+00:00",
+          "insider_name": "PURI AJAY K",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 135240,
+          "value": 0
         },
         {
           "date": "2025-03-03 00:00:00+00:00",
@@ -69852,30 +70836,6 @@
           "position": "General Counsel",
           "transaction_type": "",
           "shares": 122220,
-          "value": 0
-        },
-        {
-          "date": "2025-03-03 00:00:00+00:00",
-          "insider_name": "PURI AJAY K",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 135240,
-          "value": 0
-        },
-        {
-          "date": "2025-03-03 00:00:00+00:00",
-          "insider_name": "SHOQUIST DEBORA C",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 122220,
-          "value": 0
-        },
-        {
-          "date": "2025-03-03 00:00:00+00:00",
-          "insider_name": "HUANG JEN-HSUN",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 956480,
           "value": 0
         },
         {
@@ -69923,27 +70883,988 @@
     "AMD": {
       "ticker": "AMD",
       "options": {
-        "put_call_ratio": 1.05,
-        "avg_call_iv": null,
-        "avg_put_iv": null,
-        "iv_skew": null,
+        "put_call_ratio": 0.872,
+        "avg_call_iv": 0.4687,
+        "avg_put_iv": 0.5287,
+        "iv_skew": 0.06,
         "expiration": "2026-08-31",
-        "dte": 6,
-        "atm_iv": null,
-        "chain": [],
-        "suspect_fields": [
-          "avg_call_iv",
-          "avg_put_iv"
+        "dte": 5,
+        "atm_iv": 0.4987,
+        "chain": [
+          {
+            "strike": 390.0,
+            "option_type": "call",
+            "bid": 90.95,
+            "ask": 94.8,
+            "iv": 0.8500991552734375,
+            "open_interest": 1.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 400.0,
+            "option_type": "call",
+            "bid": 81.65,
+            "ask": 84.75,
+            "iv": 0.7490259472656251,
+            "open_interest": 3.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 435.0,
+            "option_type": "call",
+            "bid": 45.9,
+            "ask": 50.3,
+            "iv": 0.5524947094726562,
+            "open_interest": 6.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 437.5,
+            "option_type": "call",
+            "bid": 43.55,
+            "ask": 47.95,
+            "iv": 0.5481002221679689,
+            "open_interest": 4.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 440.0,
+            "option_type": "call",
+            "bid": 42.9,
+            "ask": 45.6,
+            "iv": 0.541264353027344,
+            "open_interest": 14.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 445.0,
+            "option_type": "call",
+            "bid": 38.3,
+            "ask": 40.55,
+            "iv": 0.4870656762695313,
+            "open_interest": 1.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 450.0,
+            "option_type": "call",
+            "bid": 33.45,
+            "ask": 36.4,
+            "iv": 0.5120898400878906,
+            "open_interest": 28.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 452.5,
+            "option_type": "call",
+            "bid": 31.45,
+            "ask": 34.2,
+            "iv": 0.5070850073242188,
+            "open_interest": 5.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 455.0,
+            "option_type": "call",
+            "bid": 29.5,
+            "ask": 30.5,
+            "iv": 0.38355108642578123,
+            "open_interest": 45.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 457.5,
+            "option_type": "call",
+            "bid": 27.4,
+            "ask": 28.45,
+            "iv": 0.39624627197265627,
+            "open_interest": 64.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 460.0,
+            "option_type": "call",
+            "bid": 25.45,
+            "ask": 26.5,
+            "iv": 0.4085752502441406,
+            "open_interest": 49.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 462.5,
+            "option_type": "call",
+            "bid": 23.25,
+            "ask": 24.4,
+            "iv": 0.40515731567382807,
+            "open_interest": 6.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 465.0,
+            "option_type": "call",
+            "bid": 21.65,
+            "ask": 22.4,
+            "iv": 0.4039366247558594,
+            "open_interest": 168.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 467.5,
+            "option_type": "call",
+            "bid": 20.0,
+            "ask": 21.2,
+            "iv": 0.4398249377441406,
+            "open_interest": 29.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 470.0,
+            "option_type": "call",
+            "bid": 18.35,
+            "ask": 19.0,
+            "iv": 0.4195614685058594,
+            "open_interest": 98.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 472.5,
+            "option_type": "call",
+            "bid": 17.1,
+            "ask": 17.8,
+            "iv": 0.44287666503906253,
+            "open_interest": 84.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 475.0,
+            "option_type": "call",
+            "bid": 15.95,
+            "ask": 16.75,
+            "iv": 0.46674117248535163,
+            "open_interest": 409.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 477.5,
+            "option_type": "call",
+            "bid": 13.8,
+            "ask": 14.7,
+            "iv": 0.4437311486816406,
+            "open_interest": 99.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 480.0,
+            "option_type": "call",
+            "bid": 12.7,
+            "ask": 13.8,
+            "iv": 0.4652763433837891,
+            "open_interest": 231.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 482.5,
+            "option_type": "call",
+            "bid": 11.65,
+            "ask": 12.4,
+            "iv": 0.4624077197265626,
+            "open_interest": 72.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 485.0,
+            "option_type": "call",
+            "bid": 10.25,
+            "ask": 10.7,
+            "iv": 0.4439142523193359,
+            "open_interest": 146.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 487.5,
+            "option_type": "call",
+            "bid": 9.35,
+            "ask": 10.0,
+            "iv": 0.46234668518066413,
+            "open_interest": 55.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 490.0,
+            "option_type": "call",
+            "bid": 8.55,
+            "ask": 9.1,
+            "iv": 0.469304623413086,
+            "open_interest": 136.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 492.5,
+            "option_type": "call",
+            "bid": 7.7,
+            "ask": 8.1,
+            "iv": 0.4688773815917969,
+            "open_interest": 291.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 495.0,
+            "option_type": "call",
+            "bid": 6.5,
+            "ask": 7.0,
+            "iv": 0.4607597869873047,
+            "open_interest": 142.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 497.5,
+            "option_type": "call",
+            "bid": 5.9,
+            "ask": 6.6,
+            "iv": 0.47949739257812496,
+            "open_interest": 61.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 500.0,
+            "option_type": "call",
+            "bid": 5.3,
+            "ask": 5.7,
+            "iv": 0.4733939379882813,
+            "open_interest": 814.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 502.5,
+            "option_type": "call",
+            "bid": 4.6,
+            "ask": 5.15,
+            "iv": 0.4801077380371094,
+            "open_interest": 25.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 505.0,
+            "option_type": "call",
+            "bid": 4.05,
+            "ask": 4.55,
+            "iv": 0.4815725671386719,
+            "open_interest": 2092.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 507.5,
+            "option_type": "call",
+            "bid": 3.45,
+            "ask": 4.0,
+            "iv": 0.4826711889648438,
+            "open_interest": 33.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 510.0,
+            "option_type": "call",
+            "bid": 3.05,
+            "ask": 3.55,
+            "iv": 0.48608912353515626,
+            "open_interest": 292.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 512.5,
+            "option_type": "call",
+            "bid": 2.78,
+            "ask": 3.1,
+            "iv": 0.48682153808593753,
+            "open_interest": 84.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 515.0,
+            "option_type": "call",
+            "bid": 2.32,
+            "ask": 2.51,
+            "iv": 0.47546911254882807,
+            "open_interest": 84.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 517.5,
+            "option_type": "call",
+            "bid": 2.13,
+            "ask": 2.3,
+            "iv": 0.485356708984375,
+            "open_interest": 83.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 520.0,
+            "option_type": "call",
+            "bid": 1.86,
+            "ask": 2.02,
+            "iv": 0.4885305053710938,
+            "open_interest": 325.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 522.5,
+            "option_type": "call",
+            "bid": 1.62,
+            "ask": 1.79,
+            "iv": 0.4930470617675782,
+            "open_interest": 58.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 525.0,
+            "option_type": "call",
+            "bid": 1.36,
+            "ask": 1.55,
+            "iv": 0.4943898217773438,
+            "open_interest": 159.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 527.5,
+            "option_type": "call",
+            "bid": 1.11,
+            "ask": 1.31,
+            "iv": 0.4931691308593751,
+            "open_interest": 65.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 530.0,
+            "option_type": "call",
+            "bid": 0.98,
+            "ask": 1.2,
+            "iv": 0.5019581054687501,
+            "open_interest": 185.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 532.5,
+            "option_type": "call",
+            "bid": 0.84,
+            "ask": 1.02,
+            "iv": 0.5017139672851563,
+            "open_interest": 23.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 535.0,
+            "option_type": "call",
+            "bid": 0.72,
+            "ask": 0.9,
+            "iv": 0.5061084545898438,
+            "open_interest": 71.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 537.5,
+            "option_type": "call",
+            "bid": 0.6,
+            "ask": 0.8,
+            "iv": 0.5112353564453125,
+            "open_interest": 44.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 540.0,
+            "option_type": "call",
+            "bid": 0.51,
+            "ask": 0.78,
+            "iv": 0.5061084545898438,
+            "open_interest": 727.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 542.5,
+            "option_type": "call",
+            "bid": 0.43,
+            "ask": 0.47,
+            "iv": 0.49268085449218757,
+            "open_interest": 50.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 545.0,
+            "option_type": "call",
+            "bid": 0.34,
+            "ask": 0.65,
+            "iv": 0.5136767382812499,
+            "open_interest": 31.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 547.5,
+            "option_type": "call",
+            "bid": 0.31,
+            "ask": 0.71,
+            "iv": 0.5327195166015625,
+            "open_interest": 2.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 550.0,
+            "option_type": "call",
+            "bid": 0.29,
+            "ask": 0.5,
+            "iv": 0.524418818359375,
+            "open_interest": 423.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 555.0,
+            "option_type": "call",
+            "bid": 0.06,
+            "ask": 0.57,
+            "iv": 0.5351608984375,
+            "open_interest": 28.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 560.0,
+            "option_type": "call",
+            "bid": 0.11,
+            "ask": 0.52,
+            "iv": 0.5639692041015626,
+            "open_interest": 73.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 565.0,
+            "option_type": "call",
+            "bid": 0.08,
+            "ask": 0.43,
+            "iv": 0.5742230078125,
+            "open_interest": 6.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 570.0,
+            "option_type": "call",
+            "bid": 0.07,
+            "ask": 0.39,
+            "iv": 0.5927775097656252,
+            "open_interest": 302.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 575.0,
+            "option_type": "call",
+            "bid": 0.05,
+            "ask": 0.2,
+            "iv": 0.5712933496093751,
+            "open_interest": 20.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 580.0,
+            "option_type": "call",
+            "bid": 0.03,
+            "ask": 0.32,
+            "iv": 0.622074091796875,
+            "open_interest": 4.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 390.0,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.18,
+            "iv": 0.6953155468750001,
+            "open_interest": 10.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 392.5,
+            "option_type": "put",
+            "bid": 0.05,
+            "ask": 0.4,
+            "iv": 0.75586181640625,
+            "open_interest": 26.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 395.0,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.41,
+            "iv": 0.729494892578125,
+            "open_interest": 17.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 397.5,
+            "option_type": "put",
+            "bid": 0.06,
+            "ask": 0.23,
+            "iv": 0.6748079394531252,
+            "open_interest": 45.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 400.0,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.25,
+            "iv": 0.64648791015625,
+            "open_interest": 97.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 402.5,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.47,
+            "iv": 0.6831086376953126,
+            "open_interest": 8.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 405.0,
+            "option_type": "put",
+            "bid": 0.03,
+            "ask": 0.3,
+            "iv": 0.6289099609375001,
+            "open_interest": 22.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 407.5,
+            "option_type": "put",
+            "bid": 0.01,
+            "ask": 0.32,
+            "iv": 0.6103554589843752,
+            "open_interest": 20.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 410.0,
+            "option_type": "put",
+            "bid": 0.07,
+            "ask": 0.37,
+            "iv": 0.6157264990234376,
+            "open_interest": 55.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 412.5,
+            "option_type": "put",
+            "bid": 0.11,
+            "ask": 0.4,
+            "iv": 0.6093789062500001,
+            "open_interest": 20.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 415.0,
+            "option_type": "put",
+            "bid": 0.18,
+            "ask": 0.33,
+            "iv": 0.5898478515625001,
+            "open_interest": 25.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 417.5,
+            "option_type": "put",
+            "bid": 0.17,
+            "ask": 0.45,
+            "iv": 0.58789474609375,
+            "open_interest": 20.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 420.0,
+            "option_type": "put",
+            "bid": 0.29,
+            "ask": 0.53,
+            "iv": 0.594730615234375,
+            "open_interest": 161.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 422.5,
+            "option_type": "put",
+            "bid": 0.12,
+            "ask": 0.66,
+            "iv": 0.5688519677734375,
+            "open_interest": 29.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 425.0,
+            "option_type": "put",
+            "bid": 0.29,
+            "ask": 0.5,
+            "iv": 0.5493209130859377,
+            "open_interest": 267.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 427.5,
+            "option_type": "put",
+            "bid": 0.3,
+            "ask": 0.66,
+            "iv": 0.5476119458007813,
+            "open_interest": 45.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 430.0,
+            "option_type": "put",
+            "bid": 0.51,
+            "ask": 0.64,
+            "iv": 0.5446822875976562,
+            "open_interest": 121.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 432.5,
+            "option_type": "put",
+            "bid": 0.55,
+            "ask": 0.85,
+            "iv": 0.543949873046875,
+            "open_interest": 31.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 435.0,
+            "option_type": "put",
+            "bid": 0.73,
+            "ask": 0.88,
+            "iv": 0.5373581420898439,
+            "open_interest": 1434.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 437.5,
+            "option_type": "put",
+            "bid": 0.85,
+            "ask": 1.03,
+            "iv": 0.5324753784179688,
+            "open_interest": 36.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 440.0,
+            "option_type": "put",
+            "bid": 1.01,
+            "ask": 1.21,
+            "iv": 0.5295457202148439,
+            "open_interest": 2247.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 442.5,
+            "option_type": "put",
+            "bid": 1.2,
+            "ask": 1.37,
+            "iv": 0.5242967492675781,
+            "open_interest": 31.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 445.0,
+            "option_type": "put",
+            "bid": 1.32,
+            "ask": 1.56,
+            "iv": 0.5147753601074219,
+            "open_interest": 112.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 447.5,
+            "option_type": "put",
+            "bid": 1.7,
+            "ask": 1.85,
+            "iv": 0.5192919165039063,
+            "open_interest": 38.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 450.0,
+            "option_type": "put",
+            "bid": 1.92,
+            "ask": 2.14,
+            "iv": 0.5133105310058592,
+            "open_interest": 189.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 452.5,
+            "option_type": "put",
+            "bid": 2.32,
+            "ask": 2.5,
+            "iv": 0.5139208764648437,
+            "open_interest": 42.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 455.0,
+            "option_type": "put",
+            "bid": 2.71,
+            "ask": 2.98,
+            "iv": 0.5147753601074219,
+            "open_interest": 173.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 457.5,
+            "option_type": "put",
+            "bid": 2.98,
+            "ask": 3.2,
+            "iv": 0.5004932763671875,
+            "open_interest": 146.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 460.0,
+            "option_type": "put",
+            "bid": 3.5,
+            "ask": 3.85,
+            "iv": 0.5042774182128906,
+            "open_interest": 283.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 462.5,
+            "option_type": "put",
+            "bid": 3.9,
+            "ask": 4.4,
+            "iv": 0.5117236328125,
+            "open_interest": 50.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 465.0,
+            "option_type": "put",
+            "bid": 4.65,
+            "ask": 5.15,
+            "iv": 0.5036670727539063,
+            "open_interest": 493.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 467.5,
+            "option_type": "put",
+            "bid": 5.25,
+            "ask": 5.75,
+            "iv": 0.5098315618896485,
+            "open_interest": 31.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 470.0,
+            "option_type": "put",
+            "bid": 5.95,
+            "ask": 6.65,
+            "iv": 0.5144091528320311,
+            "open_interest": 193.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 472.5,
+            "option_type": "put",
+            "bid": 6.8,
+            "ask": 7.35,
+            "iv": 0.5067188000488281,
+            "open_interest": 10.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 475.0,
+            "option_type": "put",
+            "bid": 7.8,
+            "ask": 8.2,
+            "iv": 0.5025684509277344,
+            "open_interest": 76.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 477.5,
+            "option_type": "put",
+            "bid": 8.75,
+            "ask": 9.35,
+            "iv": 0.5079394909667969,
+            "open_interest": 39.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 480.0,
+            "option_type": "put",
+            "bid": 9.9,
+            "ask": 10.45,
+            "iv": 0.5077563873291016,
+            "open_interest": 579.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 482.5,
+            "option_type": "put",
+            "bid": 11.1,
+            "ask": 11.7,
+            "iv": 0.5105029418945313,
+            "open_interest": 502.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 485.0,
+            "option_type": "put",
+            "bid": 12.4,
+            "ask": 13.05,
+            "iv": 0.5008594836425782,
+            "open_interest": 156.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 487.5,
+            "option_type": "put",
+            "bid": 14.0,
+            "ask": 14.95,
+            "iv": 0.5173998455810547,
+            "open_interest": 870.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 490.0,
+            "option_type": "put",
+            "bid": 15.9,
+            "ask": 16.85,
+            "iv": 0.5371140039062501,
+            "open_interest": 34.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 492.5,
+            "option_type": "put",
+            "bid": 16.8,
+            "ask": 17.75,
+            "iv": 0.5128832891845703,
+            "open_interest": 5.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 495.0,
+            "option_type": "put",
+            "bid": 18.15,
+            "ask": 19.15,
+            "iv": 0.504765694580078,
+            "open_interest": 32.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 497.5,
+            "option_type": "put",
+            "bid": 20.25,
+            "ask": 20.95,
+            "iv": 0.5180101910400392,
+            "open_interest": 18.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 500.0,
+            "option_type": "put",
+            "bid": 22.8,
+            "ask": 23.5,
+            "iv": 0.5553633331298828,
+            "open_interest": 65.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 502.5,
+            "option_type": "put",
+            "bid": 24.5,
+            "ask": 25.3,
+            "iv": 0.5556685058593751,
+            "open_interest": 1.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 505.0,
+            "option_type": "put",
+            "bid": 26.6,
+            "ask": 27.4,
+            "iv": 0.5695843823242188,
+            "open_interest": 16.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 510.0,
+            "option_type": "put",
+            "bid": 30.45,
+            "ask": 31.85,
+            "iv": 0.5896037133789063,
+            "open_interest": 28.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 515.0,
+            "option_type": "put",
+            "bid": 34.05,
+            "ask": 34.95,
+            "iv": 0.5582319567871095,
+            "open_interest": 26.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 520.0,
+            "option_type": "put",
+            "bid": 37.25,
+            "ask": 40.65,
+            "iv": 0.5766643896484375,
+            "open_interest": 6.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 525.0,
+            "option_type": "put",
+            "bid": 41.7,
+            "ask": 45.25,
+            "iv": 0.5937540625000001,
+            "open_interest": 13.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 530.0,
+            "option_type": "put",
+            "bid": 46.5,
+            "ask": 49.75,
+            "iv": 0.6140175317382813,
+            "open_interest": 16.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 537.5,
+            "option_type": "put",
+            "bid": 53.4,
+            "ask": 56.85,
+            "iv": 0.637698935546875,
+            "open_interest": 2.0,
+            "expiration": "2026-08-31"
+          },
+          {
+            "strike": 550.0,
+            "option_type": "put",
+            "bid": 65.6,
+            "ask": 69.05,
+            "iv": 0.7072783178710937,
+            "open_interest": 0.0,
+            "expiration": "2026-08-31"
+          }
         ],
+        "suspect_fields": [],
         "iv_percentile": 50.0,
-        "iv_percentile_data_quality": "unavailable",
+        "iv_percentile_data_quality": "insufficient_history",
         "put_call_ratio_percentile": 50.0,
         "put_call_ratio_percentile_data_quality": "insufficient_history",
         "iv_skew_percentile": 50.0,
-        "iv_skew_percentile_data_quality": "unavailable"
+        "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.75365996,
+        "held_percent_institutions": 0.75384,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -70006,14 +71927,14 @@
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-25T12:30:19.916713+00:00"
+        "as_of_utc": "2026-08-26T14:37:10.107396+00:00"
       },
       "short_interest": {
-        "shares_short": 37752132.0,
-        "shares_short_prior_month": 41583210.0,
-        "short_ratio": 1.34,
-        "short_percent_of_float": 0.0232,
-        "trend": "declining",
+        "shares_short": 40065798.0,
+        "shares_short_prior_month": 39768152.0,
+        "short_ratio": 1.42,
+        "short_percent_of_float": 0.024600001,
+        "trend": "flat",
         "suspect_fields": []
       },
       "analyst_trend": {
@@ -70073,26 +71994,18 @@
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
-          "insider_name": "GUIDO PHILIP",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 81114,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-14 00:00:00+00:00",
-          "insider_name": "GRASBY PAUL DARREN",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 46185,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-14 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
           "shares": 54686,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-14 00:00:00+00:00",
+          "insider_name": "GUIDO PHILIP",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 81114,
           "value": NaN
         },
         {
@@ -70105,11 +72018,19 @@
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
+          "insider_name": "GRASBY PAUL DARREN",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 129345,
-          "value": 625260.0
+          "shares": 46185,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-14 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 396405,
+          "value": NaN
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
@@ -70121,11 +72042,11 @@
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 396405,
-          "value": NaN
+          "shares": 129345,
+          "value": 625260.0
         },
         {
           "date": "2026-08-14 00:00:00+00:00",
@@ -70153,26 +72074,18 @@
         },
         {
           "date": "2026-08-07 00:00:00+00:00",
-          "insider_name": "GUIDO PHILIP",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 4586,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-07 00:00:00+00:00",
-          "insider_name": "GRASBY PAUL DARREN",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 5640,
-          "value": NaN
-        },
-        {
-          "date": "2026-08-07 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
           "shares": 5554,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-07 00:00:00+00:00",
+          "insider_name": "GUIDO PHILIP",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 4586,
           "value": NaN
         },
         {
@@ -70185,10 +72098,18 @@
         },
         {
           "date": "2026-08-07 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
+          "insider_name": "GRASBY PAUL DARREN",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 12633,
+          "shares": 5640,
+          "value": NaN
+        },
+        {
+          "date": "2026-08-07 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 16221,
           "value": NaN
         },
         {
@@ -70201,10 +72122,10 @@
         },
         {
           "date": "2026-08-07 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 16221,
+          "shares": 12633,
           "value": NaN
         },
         {
@@ -70297,6 +72218,14 @@
         },
         {
           "date": "2026-05-14 00:00:00+00:00",
+          "insider_name": "VANDERSLICE ELIZABETH W",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 2613,
+          "value": NaN
+        },
+        {
+          "date": "2026-05-14 00:00:00+00:00",
           "insider_name": "DENZEL NORA M",
           "position": "Director",
           "transaction_type": "",
@@ -70306,14 +72235,6 @@
         {
           "date": "2026-05-14 00:00:00+00:00",
           "insider_name": "HOUSEHOLDER JOSEPH A",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 2613,
-          "value": NaN
-        },
-        {
-          "date": "2026-05-14 00:00:00+00:00",
-          "insider_name": "VANDERSLICE ELIZABETH W",
           "position": "Director",
           "transaction_type": "",
           "shares": 2613,
@@ -70441,14 +72362,6 @@
         },
         {
           "date": "2026-02-13 00:00:00+00:00",
-          "insider_name": "GRASBY PAUL DARREN",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 7084,
-          "value": NaN
-        },
-        {
-          "date": "2026-02-13 00:00:00+00:00",
           "insider_name": "HUYNH JACK M",
           "position": "Officer",
           "transaction_type": "",
@@ -70461,6 +72374,14 @@
           "position": "Officer",
           "transaction_type": "",
           "shares": 76966,
+          "value": NaN
+        },
+        {
+          "date": "2026-02-13 00:00:00+00:00",
+          "insider_name": "GRASBY PAUL DARREN",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 7084,
           "value": NaN
         },
         {
@@ -70481,19 +72402,19 @@
         },
         {
           "date": "2026-02-11 00:00:00+00:00",
-          "insider_name": "NORROD FORREST EUGENE",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 19450,
-          "value": 4216969.0
-        },
-        {
-          "date": "2026-02-11 00:00:00+00:00",
           "insider_name": "SU LISA T",
           "position": "Chief Executive Officer",
           "transaction_type": "",
           "shares": 125000,
           "value": 26794875.0
+        },
+        {
+          "date": "2026-02-11 00:00:00+00:00",
+          "insider_name": "NORROD FORREST EUGENE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 19450,
+          "value": 4216969.0
         },
         {
           "date": "2026-02-11 00:00:00+00:00",
@@ -70705,6 +72626,14 @@
         },
         {
           "date": "2025-08-15 00:00:00+00:00",
+          "insider_name": "NORROD FORREST EUGENE",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 26927,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-15 00:00:00+00:00",
           "insider_name": "GRASBY PAUL DARREN",
           "position": "Officer",
           "transaction_type": "",
@@ -70721,10 +72650,10 @@
         },
         {
           "date": "2025-08-15 00:00:00+00:00",
-          "insider_name": "NORROD FORREST EUGENE",
-          "position": "Officer",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
           "transaction_type": "",
-          "shares": 26927,
+          "shares": 125663,
           "value": NaN
         },
         {
@@ -70734,14 +72663,6 @@
           "transaction_type": "",
           "shares": 58875,
           "value": 574392.0
-        },
-        {
-          "date": "2025-08-15 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
-          "transaction_type": "",
-          "shares": 125663,
-          "value": NaN
         },
         {
           "date": "2025-08-13 00:00:00+00:00",
@@ -70761,22 +72682,6 @@
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "GRASBY PAUL DARREN",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 23258,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "HUYNH JACK M",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 5553,
-          "value": NaN
-        },
-        {
-          "date": "2025-08-08 00:00:00+00:00",
           "insider_name": "GUIDO PHILIP",
           "position": "Officer",
           "transaction_type": "",
@@ -70793,10 +72698,26 @@
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
+          "insider_name": "GRASBY PAUL DARREN",
+          "position": "Officer",
           "transaction_type": "",
-          "shares": 12633,
+          "shares": 23258,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "HUYNH JACK M",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 5553,
+          "value": NaN
+        },
+        {
+          "date": "2025-08-08 00:00:00+00:00",
+          "insider_name": "SU LISA T",
+          "position": "Chief Executive Officer",
+          "transaction_type": "",
+          "shares": 16221,
           "value": NaN
         },
         {
@@ -70809,10 +72730,10 @@
         },
         {
           "date": "2025-08-08 00:00:00+00:00",
-          "insider_name": "SU LISA T",
-          "position": "Chief Executive Officer",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
           "transaction_type": "",
-          "shares": 16221,
+          "shares": 12633,
           "value": NaN
         },
         {
@@ -70897,22 +72818,6 @@
         },
         {
           "date": "2025-05-08 00:00:00+00:00",
-          "insider_name": "DENZEL NORA M",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1547,
-          "value": NaN
-        },
-        {
-          "date": "2025-05-08 00:00:00+00:00",
-          "insider_name": "HOUSEHOLDER JOSEPH A",
-          "position": "Director",
-          "transaction_type": "",
-          "shares": 1547,
-          "value": NaN
-        },
-        {
-          "date": "2025-05-08 00:00:00+00:00",
           "insider_name": "VANDERSLICE ELIZABETH W",
           "position": "Director",
           "transaction_type": "",
@@ -70930,6 +72835,22 @@
         {
           "date": "2025-05-08 00:00:00+00:00",
           "insider_name": "OLSON JON A",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1547,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-08 00:00:00+00:00",
+          "insider_name": "DENZEL NORA M",
+          "position": "Director",
+          "transaction_type": "",
+          "shares": 1547,
+          "value": NaN
+        },
+        {
+          "date": "2025-05-08 00:00:00+00:00",
+          "insider_name": "HOUSEHOLDER JOSEPH A",
           "position": "Director",
           "transaction_type": "",
           "shares": 1547,
@@ -71009,19 +72930,19 @@
         },
         {
           "date": "2025-02-14 00:00:00+00:00",
-          "insider_name": "PAPERMASTER MARK D",
-          "position": "Chief Technology Officer",
-          "transaction_type": "",
-          "shares": 17500,
-          "value": 334250.0
-        },
-        {
-          "date": "2025-02-14 00:00:00+00:00",
           "insider_name": "HU JEAN X",
           "position": "Chief Financial Officer",
           "transaction_type": "",
           "shares": 30786,
           "value": NaN
+        },
+        {
+          "date": "2025-02-14 00:00:00+00:00",
+          "insider_name": "PAPERMASTER MARK D",
+          "position": "Chief Technology Officer",
+          "transaction_type": "",
+          "shares": 17500,
+          "value": 334250.0
         },
         {
           "date": "2025-02-14 00:00:00+00:00",
@@ -73553,27 +75474,205 @@
     "ZION": {
       "ticker": "ZION",
       "options": {
-        "put_call_ratio": 0.4,
-        "avg_call_iv": null,
-        "avg_put_iv": null,
-        "iv_skew": null,
+        "put_call_ratio": 0.3484,
+        "avg_call_iv": 0.2918,
+        "avg_put_iv": 0.3573,
+        "iv_skew": 0.0655,
         "expiration": "2026-09-18",
-        "dte": 24,
-        "atm_iv": null,
-        "chain": [],
-        "suspect_fields": [
-          "avg_call_iv",
-          "avg_put_iv"
+        "dte": 23,
+        "atm_iv": 0.3246,
+        "chain": [
+          {
+            "strike": 55.0,
+            "option_type": "call",
+            "bid": 12.4,
+            "ask": 14.0,
+            "iv": 0.6738313867187502,
+            "open_interest": 0.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 57.5,
+            "option_type": "call",
+            "bid": 10.0,
+            "ask": 11.4,
+            "iv": 0.5356491748046875,
+            "open_interest": 0.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 60.0,
+            "option_type": "call",
+            "bid": 7.7,
+            "ask": 9.0,
+            "iv": 0.46484910156250003,
+            "open_interest": 1.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 62.5,
+            "option_type": "call",
+            "bid": 5.6,
+            "ask": 6.6,
+            "iv": 0.3842835009765625,
+            "open_interest": 30.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 65.0,
+            "option_type": "call",
+            "bid": 3.7,
+            "ask": 4.4,
+            "iv": 0.32813171874999997,
+            "open_interest": 106.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 67.5,
+            "option_type": "call",
+            "bid": 2.0,
+            "ask": 2.5,
+            "iv": 0.2829661547851562,
+            "open_interest": 112.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 70.0,
+            "option_type": "call",
+            "bid": 1.0,
+            "ask": 1.2,
+            "iv": 0.26270268554687504,
+            "open_interest": 248.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 72.5,
+            "option_type": "call",
+            "bid": 0.1,
+            "ask": 0.45,
+            "iv": 0.24732197998046873,
+            "open_interest": 190.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 75.0,
+            "option_type": "call",
+            "bid": 0.05,
+            "ask": 0.15,
+            "iv": 0.245124736328125,
+            "open_interest": 503.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 77.5,
+            "option_type": "call",
+            "bid": 0.0,
+            "ask": 0.05,
+            "iv": 0.25196060546875,
+            "open_interest": 168.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 80.0,
+            "option_type": "call",
+            "bid": 0.0,
+            "ask": 0.15,
+            "iv": 0.370123486328125,
+            "open_interest": 28.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 55.0,
+            "option_type": "put",
+            "bid": 0.0,
+            "ask": 0.2,
+            "iv": 0.5371140039062501,
+            "open_interest": 122.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 57.5,
+            "option_type": "put",
+            "bid": 0.05,
+            "ask": 0.25,
+            "iv": 0.47070841796875,
+            "open_interest": 47.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 60.0,
+            "option_type": "put",
+            "bid": 0.1,
+            "ask": 0.35,
+            "iv": 0.415044912109375,
+            "open_interest": 37.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 62.5,
+            "option_type": "put",
+            "bid": 0.2,
+            "ask": 0.55,
+            "iv": 0.36914693359375,
+            "open_interest": 707.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 65.0,
+            "option_type": "put",
+            "bid": 0.55,
+            "ask": 0.9,
+            "iv": 0.3254461987304687,
+            "open_interest": 73.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 67.5,
+            "option_type": "put",
+            "bid": 1.15,
+            "ask": 1.4,
+            "iv": 0.2661206201171875,
+            "open_interest": 789.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 70.0,
+            "option_type": "put",
+            "bid": 2.35,
+            "ask": 2.9,
+            "iv": 0.29004616210937495,
+            "open_interest": 660.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 72.5,
+            "option_type": "put",
+            "bid": 4.1,
+            "ask": 5.4,
+            "iv": 0.41235939208984373,
+            "open_interest": 1.0,
+            "expiration": "2026-09-18"
+          },
+          {
+            "strike": 75.0,
+            "option_type": "put",
+            "bid": 6.4,
+            "ask": 7.7,
+            "iv": 0.4809622216796875,
+            "open_interest": 1.0,
+            "expiration": "2026-09-18"
+          }
         ],
+        "suspect_fields": [],
         "iv_percentile": 50.0,
-        "iv_percentile_data_quality": "unavailable",
+        "iv_percentile_data_quality": "insufficient_history",
         "put_call_ratio_percentile": 50.0,
         "put_call_ratio_percentile_data_quality": "insufficient_history",
         "iv_skew_percentile": 50.0,
-        "iv_skew_percentile_data_quality": "unavailable"
+        "iv_skew_percentile_data_quality": "insufficient_history"
       },
       "institutional": {
-        "held_percent_institutions": 0.84826,
+        "held_percent_institutions": 0.84845,
         "top_holders": [
           {
             "holder": "Blackrock Inc.",
@@ -73636,13 +75735,13 @@
             "date_reported": "2026-06-30 00:00:00"
           }
         ],
-        "as_of_utc": "2026-08-25T12:31:04.094041+00:00"
+        "as_of_utc": "2026-08-26T14:37:48.989412+00:00"
       },
       "short_interest": {
-        "shares_short": 5473018.0,
-        "shares_short_prior_month": 6523045.0,
-        "short_ratio": 3.19,
-        "short_percent_of_float": 0.044,
+        "shares_short": 5486180.0,
+        "shares_short_prior_month": 7005706.0,
+        "short_ratio": 3.4,
+        "short_percent_of_float": 0.044099998,
         "trend": "declining",
         "suspect_fields": []
       },
@@ -73999,19 +76098,19 @@
         },
         {
           "date": "2026-02-02 00:00:00+00:00",
-          "insider_name": "STEWARD DEREK",
-          "position": "Officer",
-          "transaction_type": "",
-          "shares": 769,
-          "value": 39350.0
-        },
-        {
-          "date": "2026-02-02 00:00:00+00:00",
           "insider_name": "ELLINGSEN ERIC",
           "position": "Officer",
           "transaction_type": "",
           "shares": 1519,
           "value": 77727.0
+        },
+        {
+          "date": "2026-02-02 00:00:00+00:00",
+          "insider_name": "STEWARD DEREK",
+          "position": "Officer",
+          "transaction_type": "",
+          "shares": 769,
+          "value": 39350.0
         },
         {
           "date": "2025-12-30 00:00:00+00:00",
@@ -113173,13 +115272,13 @@
     }
   },
   "fetched_dates": {
-    "NVDA": "2026-08-26",
-    "AMD": "2026-08-26",
+    "NVDA": "2026-08-31",
+    "AMD": "2026-08-31",
     "AVGO": "2026-08-26",
     "TSM": "2026-08-26",
     "MU": "2026-08-26",
     "ASML": "2026-08-26",
-    "ZION": "2026-08-26",
+    "ZION": "2026-08-31",
     "KEY": "2026-08-26",
     "HBAN": "2026-08-26",
     "RF": "2026-08-26",
@@ -113228,13 +115327,15 @@
       0.1462,
       0.4576,
       0.0379,
-      0.6015
+      0.6015,
+      0.3914
     ],
     "AMD": [
       0.2182,
       1.1025,
       0.0392,
-      0.4987
+      0.4987,
+      0.5076
     ],
     "AVGO": [
       0.1346,
@@ -113265,7 +115366,8 @@
       0.0915,
       0.365,
       0.0227,
-      0.3246
+      0.3246,
+      0.326
     ],
     "KEY": [
       0.2147,
@@ -113440,7 +115542,8 @@
       0.5038,
       0.2465,
       0.3769,
-      0.6427
+      0.6427,
+      0.2542
     ],
     "AMD": [
       0.559,
@@ -113450,7 +115553,8 @@
       0.7939,
       1.1619,
       1.05,
-      0.872
+      0.872,
+      0.7996
     ],
     "AVGO": [
       0.7895,
@@ -113503,7 +115607,8 @@
       0.1054,
       0.3125,
       0.4,
-      0.3484
+      0.3484,
+      0.5042
     ],
     "KEY": [
       0.0546,
@@ -113786,10 +115891,12 @@
   },
   "iv_skew_history": {
     "NVDA": [
-      -0.0744
+      -0.0744,
+      0.0397
     ],
     "AMD": [
-      0.06
+      0.06,
+      -0.0083
     ],
     "AVGO": [
       0.055
@@ -113804,7 +115911,8 @@
       0.0036
     ],
     "ZION": [
-      0.0655
+      0.0655,
+      -0.0428
     ],
     "KEY": [
       0.115

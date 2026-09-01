@@ -1,83 +1,95 @@
 {
   "NVDA": {
-    "fetched_at": "2026-08-26T21:03:04.045434+00:00",
+    "fetched_at": "2026-09-01T03:48:20.602533+00:00",
     "items": [
       {
-        "article_id": "4637219",
-        "timestamp_utc": "2026-08-26T16:39:02-04:00",
-        "title": "Earnings Snapshot: NVDA earnings, guidance exceed expectations",
-        "comment_count": 6
+        "article_id": "4638213",
+        "timestamp_utc": "2026-08-31T08:41:26-04:00",
+        "title": "Nvidia, MediaTek deepen AI collaboration with $3.5B investment",
+        "comment_count": 2
       },
       {
-        "article_id": "4637205",
-        "timestamp_utc": "2026-08-26T16:38:34-04:00",
-        "title": "Stocks to watch on Wednesday after hours: NVDA, HPQ, OKTA",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4636997",
-        "timestamp_utc": "2026-08-26T16:33:01-04:00",
-        "title": "Nvidia ticks up as Q2 results, guidance top estimates",
-        "comment_count": 33
-      },
-      {
-        "article_id": "4637204",
-        "timestamp_utc": "2026-08-26T16:21:45-04:00",
-        "title": "Nvidia Non-GAAP EPS of $2.22 beats by $0.13, revenue of $96.22B beats by $4.06B",
-        "comment_count": 87
-      },
-      {
-        "article_id": "4637150",
-        "timestamp_utc": "2026-08-26T15:08:18-04:00",
-        "title": "Nvidia earnings loom as a litmus test for a broader growth narrative",
+        "article_id": "4638155",
+        "timestamp_utc": "2026-08-31T07:24:49-04:00",
+        "title": "Mag 7\u2019s $700B+ CapEx bet: Investors reward AI spending selectively",
         "comment_count": 3
       },
       {
-        "article_id": "4637031",
-        "timestamp_utc": "2026-08-26T11:01:27-04:00",
-        "title": "OpenAI's Jalape\u00f1o, Nvidia networking among key takeaways at Hot Chips: BNP",
+        "article_id": "4638108",
+        "timestamp_utc": "2026-08-31T04:02:05-04:00",
+        "title": "European markets slip as hawkish Fed signals weigh on sentiment",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4638095",
+        "timestamp_utc": "2026-08-31T02:58:35-04:00",
+        "title": "Nvidia's Quant Rating upgraded to Strong Buy after upbeat outlook",
+        "comment_count": 9
+      },
+      {
+        "article_id": "4638048",
+        "timestamp_utc": "2026-08-30T02:51:54-04:00",
+        "title": "Trending stocks this week as big tech reports quarterly numbers",
+        "comment_count": 9
+      },
+      {
+        "article_id": "4638042",
+        "timestamp_utc": "2026-08-29T12:23:06-04:00",
+        "title": "Nvidia CEO excluded in TIME\u2019s 100 most influential people in AI",
+        "comment_count": 168
+      },
+      {
+        "article_id": "4637773",
+        "timestamp_utc": "2026-08-29T10:30:49-04:00",
+        "title": "Earnings Scoreboard: All 18 S&P 500 firms top EPS estimates as Y/Y growth holds",
+        "comment_count": 8
+      },
+      {
+        "article_id": "4638009",
+        "timestamp_utc": "2026-08-29T10:05:35-04:00",
+        "title": "Notable tech headlines for the week: Nvidia, Salesforce, Marvell in focus",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4637989",
+        "timestamp_utc": "2026-08-29T08:00:22-04:00",
+        "title": "Nvidia and SpaceX form heavenly relationship with plan to launch Vera into orbit",
+        "comment_count": 42
+      },
+      {
+        "article_id": "4637983",
+        "timestamp_utc": "2026-08-28T15:18:00-04:00",
+        "title": "SA analyst upgrades/downgrades: NVDA, ZM, SOFI, DLTR",
         "comment_count": 5
-      },
-      {
-        "article_id": "4636988",
-        "timestamp_utc": "2026-08-26T09:14:50-04:00",
-        "title": "What will Nvidia say after the bell in its latest earnings call?",
-        "comment_count": 18
-      },
-      {
-        "article_id": "4636980",
-        "timestamp_utc": "2026-08-26T08:48:55-04:00",
-        "title": "4 Stocks to watch on Wednesday: META, KHC, NVDA and ORCL",
-        "comment_count": 5
-      },
-      {
-        "article_id": "4636869",
-        "timestamp_utc": "2026-08-26T05:04:36-04:00",
-        "title": "Moonshot mulls revenue-sharing deals with Microsoft, Amazon, Google over Kimi K3 AI model: report",
-        "comment_count": 7
-      },
-      {
-        "article_id": "4636812",
-        "timestamp_utc": "2026-08-25T16:54:03-04:00",
-        "title": "NVIDIA edges higher by 2% ahead of earnings, breaking recent losing streak",
-        "comment_count": 10
       }
     ]
   },
   "AMD": {
-    "fetched_at": "2026-08-26T21:03:09.357552+00:00",
+    "fetched_at": "2026-09-01T03:51:51.629397+00:00",
     "items": [
       {
-        "article_id": "4637031",
-        "timestamp_utc": "2026-08-26T11:01:27-04:00",
-        "title": "OpenAI's Jalape\u00f1o, Nvidia networking among key takeaways at Hot Chips: BNP",
-        "comment_count": 5
+        "article_id": "4638179",
+        "timestamp_utc": "2026-08-31T07:31:34-04:00",
+        "title": "AMD, Cisco expand AI infrastructure in Saudi Arabia",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4638009",
+        "timestamp_utc": "2026-08-29T10:05:35-04:00",
+        "title": "Notable tech headlines for the week: Nvidia, Salesforce, Marvell in focus",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4637322",
+        "timestamp_utc": "2026-08-27T10:32:03-04:00",
+        "title": "Trump administration mulls new round of tariffs on chips: report",
+        "comment_count": 222
       },
       {
         "article_id": "4636593",
         "timestamp_utc": "2026-08-25T10:23:14-04:00",
         "title": "Multiple factors might send chip stocks lower but create buying opps: BofA",
-        "comment_count": 11
+        "comment_count": 12
       },
       {
         "article_id": "4636550",
@@ -114,18 +126,6 @@
         "timestamp_utc": "2026-08-21T10:18:40-04:00",
         "title": "Nvidia receives 'top pick' as BMO initiates coverage on array of semiconductor stocks",
         "comment_count": 9
-      },
-      {
-        "article_id": "4635168",
-        "timestamp_utc": "2026-08-19T16:55:19-04:00",
-        "title": "AMD shuffles board members",
-        "comment_count": 3
-      },
-      {
-        "article_id": "4634070",
-        "timestamp_utc": "2026-08-18T13:40:26-04:00",
-        "title": "AMD hedge funds show split picture in Q2: big buys, full exits",
-        "comment_count": 0
       }
     ]
   },
@@ -390,7 +390,7 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-08-26T21:05:35.687083+00:00",
+    "fetched_at": "2026-09-01T04:01:55.850162+00:00",
     "items": [
       {
         "article_id": "4622388",
