@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v3.0.0 | 2026-08-31 | Feature | Starts V3 — a second, separate use of the model. V2 picks trades off a watchlist; V3 takes one stock and writes a deep research briefing about it (bull case, bear case, what's uncertain), with no buy/sell call. This version ships the "synthesis" part: a new `deep_analysis/` package that runs all five layers for a single ticker, gathers every sub-score plus the raw headlines/filings/data behind them, hands that to Claude, and returns a written briefing plus a quantitative appendix and a disclaimer. Additive — changes nothing in the trading pipeline. Run it with `python -m deep_analysis NVDA`. Making the layers themselves deeper (real per-company analysis instead of scoring) is a later phase and depends on data-licensing decisions. New dependency `anthropic`; new env var `ANTHROPIC_API_KEY` |
 | v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
 | v2.2.118 | 2026-08-29 | Bug Fix | Small reliability fix on the RapidAPI (StockTwits / Seeking Alpha) path: when the service answers "no data for this symbol" (or soft rate-limits) with an empty response body, the model was treating it as a temporary outage and retrying three times with 30/60/120-second waits — ~90 seconds wasted per occurrence, ~12 times over two days on the Seeking Alpha engagement feed. An empty body is now taken at face value as "no data" and skipped immediately. No scoring effect (the feed returned nothing either way — just faster) |
 | v2.2.117 | 2026-08-29 | Bug Fix | The Alpha Vantage news budget (24 calls/day) was being exhausted by mid-morning on any day with active tariff or boycott news — 26–32 "budget exhausted, skipping news fetch" events on each of 2026-08-27/28, and the post-close scan (the one that actually picks trades) was the one left without. Cause: a market-wide headline like a new tariff shows up in *every* semiconductor stock's news feed, and the model was spending one AV call per stock to double-check the *same* event — ~11 calls for one piece of news, three times a day. Now a sector-wide event is cross-checked once per scan, not once per stock. Stock-specific critical news (a CEO resignation, a fraud charge) is unaffected. This can slightly change the news score for sector stocks on a big-news day; no weight or threshold moved |
@@ -199,6 +200,51 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v3.0.0] — 2026-08-31 — [Feature] V3 — deep single-ticker analysis, synthesis stage
+
+**In short.** V3 is a second, separate use of the same five-layer model. V2 (the `swing_model`
+package, still running on the `Version-1` branch) scans a watchlist and ranks trade candidates.
+V3 takes **one** ticker someone already cares about, runs every layer, and produces a written
+research briefing — a bull case, a bear case, and what's uncertain — with no buy/sell call. This
+first entry ships the **synthesis stage**: the part that turns the layers' numbers into the
+briefing. Deepening the layers themselves (real per-company explanation instead of scoring) is a
+later phase and depends on data-licensing decisions.
+
+**Status.** New `deep_analysis/` package, additive — touches nothing in `swing_model/`,
+`paper_trading/`, or the scan pipeline. 9 new tests pass; ruff clean.
+
+**What it does.**
+
+- `deep_analysis/collect.py` — `collect_findings(ticker)` runs the five layers plus the macro
+  backdrop for a single ticker and returns one structured bundle: every sub-score, the raw inputs
+  behind it (headlines, filings, StockTwits counts, fundamental breakdown), the composite score as
+  a rail, and a per-layer data-quality report. It reuses V2's layer functions unchanged; the
+  trade-selection machinery (position sizing, structure ranking, circuit breaker, Discord, event-
+  gate blocking) is not in the path. Every external fetch degrades to a neutral empty result on
+  failure and is recorded under `data_quality`.
+- `deep_analysis/synthesize.py` — `synthesize(findings)` hands the bundle to Claude (Opus 5,
+  adaptive thinking, streamed) and returns the briefing. The `anthropic` dependency is imported
+  lazily and the client is injectable, so `collect` / `render` and their tests need neither the
+  package nor an API key. Refusals and empty responses raise `SynthesisError`.
+- `deep_analysis/render.py` — assembles the final Markdown: header, the briefing, a quantitative
+  appendix (the score breakdown), a data-quality appendix, and an informational-use disclaimer.
+- `deep_analysis/prompts.py` — the analyst system prompt (11 fixed sections: per-layer deep dive →
+  cross-layer synthesis → bull/bear → risks → what would change the view) and the findings
+  serializer with an interpretation key.
+- `python -m deep_analysis NVDA` runs all three stages. `--findings-only` skips the model call;
+  `--dump-findings out.json` also writes the raw bundle; `--benchmark` / `--sector` override the
+  defaults for non-watchlist tickers.
+
+**New dependency.** `anthropic` (added to `requirements.txt`; regenerate `requirements.lock.txt`).
+New env var `ANTHROPIC_API_KEY` (see `.env.example`).
+
+**Not done yet.** The layers still produce V2's score-oriented output — depth per layer (multi-
+timeframe technical structure, DCF/segment fundamentals, options-implied sentiment) is the next
+phase. Data sourcing for a commercial offering is unresolved: most current feeds are non-commercial
+tiers or unofficial scrapers (SEC EDGAR is the only clean one).
 
 ---
 
