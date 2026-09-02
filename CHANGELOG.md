@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.120 | 2026-09-01 | Bug Fix | A sector-wide "critical event" warning (like a scary-sounding headline) used to get pinned on every single stock in that sector, even ones whose own outlook the news didn't actually argue against. Caught live: a headline about a different company's drug-trial deaths — actually good news for that company — put a caution flag on every stock in the whole healthcare watchlist. Now the flag only sticks to a stock if the news genuinely cuts against that stock's own current direction, the same rule single-stock warnings already followed |
 | v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
 | v2.2.118 | 2026-08-29 | Bug Fix | Small reliability fix on the RapidAPI (StockTwits / Seeking Alpha) path: when the service answers "no data for this symbol" (or soft rate-limits) with an empty response body, the model was treating it as a temporary outage and retrying three times with 30/60/120-second waits — ~90 seconds wasted per occurrence, ~12 times over two days on the Seeking Alpha engagement feed. An empty body is now taken at face value as "no data" and skipped immediately. No scoring effect (the feed returned nothing either way — just faster) |
 | v2.2.117 | 2026-08-29 | Bug Fix | The Alpha Vantage news budget (24 calls/day) was being exhausted by mid-morning on any day with active tariff or boycott news — 26–32 "budget exhausted, skipping news fetch" events on each of 2026-08-27/28, and the post-close scan (the one that actually picks trades) was the one left without. Cause: a market-wide headline like a new tariff shows up in *every* semiconductor stock's news feed, and the model was spending one AV call per stock to double-check the *same* event — ~11 calls for one piece of news, three times a day. Now a sector-wide event is cross-checked once per scan, not once per stock. Stock-specific critical news (a CEO resignation, a fraud charge) is unaffected. This can slightly change the news score for sector stocks on a big-news day; no weight or threshold moved |
@@ -199,6 +200,41 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.120] — 2026-09-01 — [Bug Fix] Sector-wide critical-event blocks now check trade direction
+
+**Status:** Live. No score/threshold change — this only affects which candidates get the
+advisory `event_gate_blocked` flag attached. 1723 tests pass (4 new); ruff and all guardrail
+checkers pass.
+
+**Problem.** A ticker-specific critical headline only blocks a candidate when the news actually
+opposes that candidate's own direction (`is_thesis_opposed` — bearish news opposes a bullish
+thesis, confirms a bearish one). A **sector-wide** critical headline never had this check: it
+flagged every ticker in the sector unconditionally, including ones whose own direction the news
+would, if anything, confirm rather than argue against.
+
+Found live 2026-09-01: a Yahoo headline about **Novartis** — not one of the 14 watchlisted
+healthcare tickers — reporting 3 patient deaths in a drug trial (framed as *good* news for
+Novartis, a competitor's setback) matched the `patient death` keyword and put an advisory block
+on the entire healthcare sector, including bullish-thesis tickers the story never argued against.
+
+**Fix.** `event_gate.add_block()` now takes an optional `ner_sentiment` and stores it on the
+block. `is_ticker_blocked()` takes an optional `direction` and, when both are present, only
+counts a block as covering that ticker if `is_thesis_opposed(block_sentiment, direction)` — same
+rule ticker-scope blocks already required before they were even created. `run_swing_model.py` and
+`paper_runner.py` both thread `direction` through their `is_ticker_blocked()` calls and gate the
+sector-scope branch's `event_gate_blocked` flag the same way. Backward compatible: omitting
+`direction`, or a block with no stored `ner_sentiment` (older state), falls back to the original
+unconditional-membership check — no existing caller's behavior changes.
+
+**Scope note.** This does not fix the underlying "is the headline even about a company in this
+sector" problem (real entity resolution, a bigger lift) — it only stops the gate from flagging a
+ticker whose own direction the news wouldn't actually argue against. A scary-sounding headline
+tagged bearish will still flag every bullish-thesis ticker in the sector regardless of subject;
+it now correctly leaves an already-bearish-thesis ticker alone instead of double-flagging news
+that confirms its own thesis.
 
 ---
 

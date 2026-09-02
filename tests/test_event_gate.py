@@ -210,6 +210,55 @@ class TestBlockState:
         state["blocks"][0]["expired"] = True
         assert is_ticker_blocked("NVDA", state) is None
 
+    def test_add_block_stores_ner_sentiment(self):
+        state = add_block(
+            {"blocks": []}, tickers=["NVDA"], scope=SCOPE_TICKER,
+            trigger_headline="x", trigger_match="fraud", source="Reuters",
+            event_timestamp_utc=datetime.now(timezone.utc).isoformat(),
+            ner_sentiment="bearish",
+        )
+        assert state["blocks"][0]["ner_sentiment"] == "bearish"
+
+    def test_sector_block_with_direction_only_flags_opposed_tickers(self):
+        """
+        2026-09 fix: a sector-wide block used to cover every ticker regardless
+        of that ticker's own direction. A bearish-flavored headline should
+        flag a bullish-thesis ticker (opposed) but NOT a bearish-thesis one
+        (the news confirms it, not opposes it).
+        """
+        state = {"blocks": []}
+        state = add_block(
+            state, tickers=list(WATCHLIST), scope=SCOPE_SECTOR,
+            trigger_headline="Sector-wide bad news", trigger_match="bad news",
+            source="Reuters", event_timestamp_utc=datetime.now(timezone.utc).isoformat(),
+            ner_sentiment="bearish",
+        )
+        assert is_ticker_blocked("NVDA", state, direction="bullish") is not None
+        assert is_ticker_blocked("NVDA", state, direction="bearish") is None
+
+    def test_sector_block_without_direction_arg_blocks_everyone(self):
+        """Backward compatible: omitting direction preserves the old unconditional check."""
+        state = {"blocks": []}
+        state = add_block(
+            state, tickers=list(WATCHLIST), scope=SCOPE_SECTOR,
+            trigger_headline="Sector-wide bad news", trigger_match="bad news",
+            source="Reuters", event_timestamp_utc=datetime.now(timezone.utc).isoformat(),
+            ner_sentiment="bearish",
+        )
+        assert is_ticker_blocked("NVDA", state) is not None
+
+    def test_sector_block_without_stored_ner_sentiment_blocks_everyone(self):
+        """A block with no ner_sentiment (older state, or never supplied) can't be
+        direction-checked — fails safe to the old unconditional-membership behavior."""
+        state = {"blocks": []}
+        state = add_block(
+            state, tickers=list(WATCHLIST), scope=SCOPE_SECTOR,
+            trigger_headline="Sector-wide bad news", trigger_match="bad news",
+            source="Reuters", event_timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        )
+        assert is_ticker_blocked("NVDA", state, direction="bullish") is not None
+        assert is_ticker_blocked("NVDA", state, direction="bearish") is not None
+
 
 # ---------------------------------------------------------------------------
 # expire_blocks — cooling-off window

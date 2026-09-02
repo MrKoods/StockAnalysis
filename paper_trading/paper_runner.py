@@ -877,7 +877,11 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
             # scan) before scoring. Full parity with run_swing_model.py: advisory
             # only, so the signal still surfaces on its own score merits, flagged
             # with event_gate_blocked/trigger for the paper trade log and alert.
-            existing_gate_block = is_ticker_blocked(ticker, gate_state)
+            # direction=direction: a sector-wide block only counts against THIS
+            # ticker if the news actually opposes its own thesis (see
+            # is_ticker_blocked's docstring) — a same-direction ticker isn't
+            # "opposed" by news that would, if anything, confirm it.
+            existing_gate_block = is_ticker_blocked(ticker, gate_state, direction=direction)
             event_gate_blocked = existing_gate_block is not None
             event_gate_trigger = existing_gate_block.get("trigger_match") if existing_gate_block else None
 
@@ -931,6 +935,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                             gate_state, tickers=get_sector_tickers(cfg, sector), scope=SCOPE_SECTOR,
                             trigger_headline=event["headline"], trigger_match=trigger,
                             source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                            ner_sentiment=event.get("ner_sentiment"),
                         )
                         new_block = gate_state["blocks"][-1]
                         blocks_created_this_scan.add(new_block["id"])
@@ -939,6 +944,15 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                             run_id, None, "event_gate_triggered", new_block, gate_discord_sent,
                         )
                         _write_event_gate_audit(new_block, model_version, scan_type, triggered=True)
+                    # The block above covers the whole sector unconditionally (future
+                    # scans re-check each ticker's own direction via
+                    # is_ticker_blocked) — but THIS ticker's own score was computed
+                    # before this loop ran, so it needs its own flag set here, and
+                    # only when the news actually opposes THIS ticker's own thesis
+                    # (2026-09 finding: a bearish-flavored sector headline was
+                    # flagging every ticker in the sector regardless of direction —
+                    # see event_gate.is_thesis_opposed).
+                    if is_thesis_opposed(event.get("ner_sentiment"), direction):
                         score["event_gate_blocked"] = True
                         score["event_gate_trigger"] = trigger
                 else:
@@ -948,6 +962,7 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
                             gate_state, tickers=[ticker], scope=event_scope,
                             trigger_headline=event["headline"], trigger_match=trigger,
                             source=event["source"], event_timestamp_utc=event["event_timestamp_utc"],
+                            ner_sentiment=event.get("ner_sentiment"),
                         )
                         new_block = gate_state["blocks"][-1]
                         blocks_created_this_scan.add(new_block["id"])

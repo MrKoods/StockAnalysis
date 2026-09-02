@@ -68,7 +68,7 @@ def test_run_paper_scan_persists_trade_and_near_miss_results(tmp_path, monkeypat
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: _fake_indicators())
@@ -180,7 +180,7 @@ def test_run_paper_scan_no_trade_when_structure_ranking_fails(tmp_path, monkeypa
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {
@@ -261,7 +261,7 @@ def test_run_paper_scan_flags_ev_outlier_against_structure_history(tmp_path, mon
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {
@@ -346,7 +346,7 @@ def _run_av_cadence_scan(tmp_path, monkeypatch, scan_type: str, cfg_extra: dict 
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda watchlist, benchmark=None, scan_type=None, cfg=None: {

@@ -193,7 +193,7 @@ def save_gate_state(state: dict) -> None:
     _STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
 
 
-def is_ticker_blocked(ticker: str, state: dict) -> Optional[dict]:
+def is_ticker_blocked(ticker: str, state: dict, direction: Optional[str] = None) -> Optional[dict]:
     """
     Return the active block dict covering `ticker` (sector-wide or ticker-specific), or None.
 
@@ -206,12 +206,34 @@ def is_ticker_blocked(ticker: str, state: dict) -> Optional[dict]:
     harmless with one sector (a sector-wide block always covered the whole,
     single-sector watchlist) but would incorrectly block every ticker in every
     sector once a second sector exists.
+
+    direction: the candidate's own current thesis direction ("bullish"/
+    "bearish"). When supplied and the block has a stored `ner_sentiment`
+    (added when the block was created — see add_block()), membership alone
+    isn't enough: the block only counts as blocking THIS ticker if the news
+    actually opposes ITS OWN direction (is_thesis_opposed), same rule
+    ticker-scope blocks already required before they were even created.
+    Sector-wide blocks previously skipped this check entirely — every ticker
+    in the sector was flagged regardless of its own direction, including one
+    whose thesis the news would, if anything, confirm rather than oppose
+    (2026-09 finding: a bearish-flavored sector headline flagged a bullish-
+    thesis ticker it never should have agreed with in the first place, and
+    would have flagged an already-bearish ticker for news that actually
+    supports it). None (the default) or a block with no stored ner_sentiment
+    (older state, or a ticker-scope caller doing a dedup check — see
+    run_swing_model.py/paper_runner.py's own is_ticker_blocked() call before
+    creating a new ticker-scope block) preserves the old unconditional-
+    membership behavior.
     """
     for block in state.get("blocks", []):
         if block.get("expired"):
             continue
-        if ticker in block.get("tickers", []):
-            return block
+        if ticker not in block.get("tickers", []):
+            continue
+        ner_sentiment = block.get("ner_sentiment")
+        if direction is not None and ner_sentiment is not None and not is_thesis_opposed(ner_sentiment, direction):
+            continue
+        return block
     return None
 
 
@@ -277,10 +299,19 @@ def add_block(
     trigger_match: str,
     source: str,
     event_timestamp_utc: str,
+    ner_sentiment: Optional[str] = None,
 ) -> dict:
     """
     Append a new active block to state (caller must save_gate_state()).
     Returns the updated state; the new block is state["blocks"][-1].
+
+    ner_sentiment: the triggering headline's NER-attributed sentiment
+    ("bullish"/"bearish"/None), stored so is_ticker_blocked() can later
+    re-check it against each covered ticker's OWN direction (see that
+    function's docstring) — mainly relevant for a SCOPE_SECTOR block, which
+    covers tickers that can each be scored in either direction. None (the
+    default) keeps every covered ticker unconditionally blocked, same as
+    before this parameter existed.
     """
     block = {
         "id": str(uuid.uuid4()),
@@ -290,6 +321,7 @@ def add_block(
         "trigger_match": trigger_match,
         "source": source,
         "event_timestamp_utc": event_timestamp_utc,
+        "ner_sentiment": ner_sentiment,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "expiry_condition": "next_post_close_scan",
         "expired": False,

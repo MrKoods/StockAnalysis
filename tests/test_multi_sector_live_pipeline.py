@@ -109,7 +109,7 @@ def test_two_sectors_flow_through_the_real_pipeline_and_tag_correctly(tmp_path, 
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     run_pipeline_calls = []
@@ -227,7 +227,7 @@ def test_open_position_critical_event_fires_immediate_alert(tmp_path, monkeypatc
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda tickers, benchmark=None, scan_type=None, cfg=None: {
@@ -320,7 +320,7 @@ def test_greeks_filter_status_round_trips_into_paper_trades_csv(tmp_path, monkey
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(pr, "run_pipeline", lambda tickers, benchmark=None, scan_type=None, cfg=None: {
@@ -419,7 +419,7 @@ def test_ticker_scan_error_is_visible_not_silent(tmp_path, monkeypatch):
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     monkeypatch.setattr(
@@ -538,7 +538,7 @@ def test_rank_track_picks_top_n_per_sector_regardless_of_threshold(tmp_path, mon
     monkeypatch.setattr(pr, "get_model_version", lambda: "v-test")
     monkeypatch.setattr(pr, "load_gate_state", lambda: {"blocks": []})
     monkeypatch.setattr(pr, "save_gate_state", lambda state: None)
-    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state: None)
+    monkeypatch.setattr(pr, "is_ticker_blocked", lambda ticker, state, direction=None: None)
     monkeypatch.setattr(pr, "expire_blocks", lambda *a, **k: [])
 
     def _low_score_indicators():
