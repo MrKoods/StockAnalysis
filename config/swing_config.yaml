@@ -797,6 +797,45 @@ event_severity_gate:
       - "product recall"
       - "boycott"
       - "labor strike"
+  # sector_triggers above are two different kinds of event. Systemic/macro
+  # ones (tariffs, trade wars, bank contagion, embargoes) describe no single
+  # company — every ticker in the sector is fairly reacting to the same
+  # policy/market event, so no company-name check applies. Idiosyncratic ones
+  # are one company's own event (an FDA rejection, a recall, a comp-sales
+  # miss, a capex cut) — a story about company X's own problem doesn't
+  # mechanically say anything about company Y's unrelated business. Any
+  # trigger phrase listed here (per sector) is only treated as sector-
+  # critical when the headline also names a company relevant to THIS sector
+  # (its own watchlist tickers, plus capex_context_tickers where a sector has
+  # them) — see event_gate.py's is_ticker_relevant-based check. A trigger not
+  # listed here keeps the old unconditional behavior.
+  #
+  # Found live 2026-09-01: a "patient death" headline about Novartis — not a
+  # watchlisted healthcare ticker — put an advisory block on the entire
+  # healthcare sector; Novartis was never the kind of company this sector's
+  # watchlist should react to. regional_banks has no idiosyncratic list —
+  # even a single bank's own failure is treated as sector-wide contagion risk
+  # by design (see event_gate.py's module docstring reasoning).
+  idiosyncratic_sector_triggers:
+    semiconductors:
+      - "reducing capital expenditures"
+      - "lower capex guidance"
+      - "cutting data center spending"
+      - "scaling back AI infrastructure"
+      - "pausing data center"
+    healthcare:
+      - "FDA rejection"
+      - "clinical trial failure"
+      - "clinical hold"
+      - "drug recall"
+      - "black box warning"
+      - "manufacturing violation"
+      - "safety signal"
+      - "patient death"
+    consumer_discretionary:
+      - "same-store sales miss"
+      - "holiday sales miss"
+      - "product recall"
   ticker_triggers:                     # match + NER ticker attribution => block that ticker (sector-agnostic)
     - "CEO resigns"
     - "CEO departure"

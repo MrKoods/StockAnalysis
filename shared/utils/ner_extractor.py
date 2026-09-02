@@ -88,6 +88,15 @@ _TICKER_TO_COMPANY: dict[str, list[str]] = {
     "TJX": ["TJX Companies", "TJ Maxx", "TJX"],
     "LOW": ["Lowe's", "Lowes"],  # bare "LOW" excluded — common English word, would false-match almost any headline
     "ORLY": ["O'Reilly Automotive", "O'Reilly Auto Parts", "ORLY"],
+    # Not on any watchlist sector — semiconductors' capex_context_tickers
+    # (config/swing_config.yaml), tracked as an AI-infrastructure-demand proxy,
+    # not a tradeable position. Needed so event_gate's idiosyncratic-sector-
+    # trigger relevance check (a hyperscaler capex-cut headline) can recognize
+    # these three the same way it already recognizes AMZN (which does have an
+    # entry above, via consumer_discretionary).
+    "MSFT": ["Microsoft", "MSFT"],
+    "GOOGL": ["Google", "Alphabet", "GOOGL"],
+    "META": ["Meta Platforms", "META"],  # bare "Meta" excluded — too generic (metaverse, "meta-analysis", etc.)
 }
 
 _BULLISH_KEYWORDS = [

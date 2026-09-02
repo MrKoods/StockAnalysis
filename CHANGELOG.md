@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.121 | 2026-09-02 | Bug Fix | Follow-up to v2.2.120's fix — this closes the harder half of the same problem. A sector-wide critical-event warning fires on a keyword match alone ("patient death," "product recall," etc.), with no check for whether the headline is even about a company this sector actually trades. Now, for warnings that describe one company's own event (not a broad policy/macro story like a tariff, which legitimately applies sector-wide with no company named), the system checks whether the headline actually names a company on that sector's watchlist before treating it as sector-critical. The exact case from yesterday — a headline about Novartis, a stock not even tracked here — no longer triggers a healthcare-wide warning |
 | v2.2.120 | 2026-09-01 | Bug Fix | A sector-wide "critical event" warning (like a scary-sounding headline) used to get pinned on every single stock in that sector, even ones whose own outlook the news didn't actually argue against. Caught live: a headline about a different company's drug-trial deaths — actually good news for that company — put a caution flag on every stock in the whole healthcare watchlist. Now the flag only sticks to a stock if the news genuinely cuts against that stock's own current direction, the same rule single-stock warnings already followed |
 | v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
 | v2.2.118 | 2026-08-29 | Bug Fix | Small reliability fix on the RapidAPI (StockTwits / Seeking Alpha) path: when the service answers "no data for this symbol" (or soft rate-limits) with an empty response body, the model was treating it as a temporary outage and retrying three times with 30/60/120-second waits — ~90 seconds wasted per occurrence, ~12 times over two days on the Seeking Alpha engagement feed. An empty body is now taken at face value as "no data" and skipped immediately. No scoring effect (the feed returned nothing either way — just faster) |
@@ -200,6 +201,54 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.121] — 2026-09-02 — [Bug Fix] Sector-wide critical-event blocks now check company relevance
+
+**Status:** Live. No score/threshold change — only affects which headlines are treated as
+sector-critical. 1728 tests pass (5 new); ruff and all guardrail checkers pass. Config coverage
+166 → 169 leaf keys (the new `idiosyncratic_sector_triggers` lists), all wired.
+
+**Problem — the harder half of v2.2.120.** That fix stopped a sector-wide block from flagging a
+same-direction ticker, but a sector-wide keyword match still fires with **no check at all for
+whether the headline is even about a company this sector trades**. `event_severity_gate.py`'s
+own docstring assumed sector triggers "describe macro/market events, not one company's own PR, so
+this ambiguity doesn't arise" — true for triggers like `tariff` or `banking crisis`, false for
+ones like `patient death`, `drug recall`, or `same-store sales miss`, which are inherently about
+one company's own event and just happened to be filed under a sector-wide list.
+
+Confirmed against the exact 2026-09-01 headline: *"Novartis Reports 3 Patient Deaths. Why the
+Stock Is Heading for Its Best Day Since 2023"* — Novartis isn't a watchlisted healthcare ticker,
+and the story is framed as *good* news for Novartis (a competitor's setback), not bad news for
+the sector. Keyword match alone still blocked all 14 healthcare names.
+
+**Fix.** New `event_severity_gate.idiosyncratic_sector_triggers` config: per sector, the subset of
+that sector's own `sector_triggers` phrases that describe one company's own event rather than a
+systemic/macro one. `event_gate._find_trigger_match()` now checks, for an idiosyncratic-listed
+trigger only, whether the headline names a company relevant to the sector — its own watchlist
+tickers, plus `capex_context_tickers` where a sector has them (semiconductors' hyperscaler capex
+signal tracks AMZN/MSFT/GOOGL/META without trading them) — via `ner_extractor.is_ticker_relevant`,
+the same alias-matching machinery already used to filter off-topic headlines elsewhere. No match →
+logged, not gated. A trigger not on the idiosyncratic list (tariffs, bank contagion, embargoes —
+`regional_banks` has no idiosyncratic list at all, by design: even one bank's own failure is
+treated as sector-wide contagion risk) keeps firing unconditionally, unchanged. Added MSFT/GOOGL/
+META to `ner_extractor._TICKER_TO_COMPANY` (not on any watchlist, but needed for the
+capex-relevance check — only AMZN, via consumer_discretionary, already had an entry).
+
+**Verified against 4 live scenarios:** the Novartis headline → no longer critical; the same
+headline reworded about Gilead (a real watchlist ticker) → still critical; a genuine tariff
+headline (no company named) → still critical unconditionally; a Microsoft capex-cut headline (not
+on any watchlist, only `capex_context_tickers`) → still critical.
+
+**Scope note.** This still isn't real entity resolution — it's alias/keyword matching, same as the
+rest of this module, just applied one level deeper (to the sector-trigger's subject, not only the
+ticker being scored). A headline naming a real watchlist company by a name/spelling not in
+`_TICKER_TO_COMPANY` would still be missed; a headline that happens to mention a watchlist ticker
+in passing while being substantively about someone else would still false-positive. Real NER was
+tried and deliberately removed from this codebase once already (2026-08-24, see
+`ner_extractor.py`'s docstring) for being unused dead weight — revisiting that trade-off is a
+bigger, separate decision, not bundled into this fix.
 
 ---
 

@@ -139,6 +139,90 @@ class TestClassifySeverity:
 
 
 # ---------------------------------------------------------------------------
+# idiosyncratic_sector_triggers — a sector-wide keyword match on ONE
+# company's own event (not macro/systemic) only counts as sector-critical
+# when the headline names a company relevant to this sector.
+# ---------------------------------------------------------------------------
+
+def _healthcare_gate_cfg() -> dict:
+    cfg = _gate_cfg()
+    cfg["event_severity_gate"]["sector_triggers"]["healthcare"] = ["patient death"]
+    cfg["event_severity_gate"]["idiosyncratic_sector_triggers"] = {
+        "healthcare": ["patient death"],
+    }
+    cfg["watchlist"] = {
+        "sectors": {
+            "healthcare": {"active": True, "benchmark": "XLV", "tickers": ["GILD", "PFE"]},
+        }
+    }
+    return cfg
+
+
+class TestIdiosyncraticSectorTriggers:
+    def test_off_watchlist_company_does_not_trigger_sector_block(self):
+        """2026-09-01 live finding: a Novartis headline (not watchlisted) blocked
+        the whole healthcare sector on a 'patient death' keyword match alone."""
+        result = classify_severity(
+            "Novartis Reports 3 Patient Deaths. Why the Stock Is Heading for Its Best Day Since 2023.",
+            source="finance.yahoo.com", cfg=_healthcare_gate_cfg(), sector="healthcare",
+        )
+        assert result["severity"] == SEVERITY_NORMAL
+        assert result["scope"] is None
+
+    def test_watchlisted_company_still_triggers_sector_block(self):
+        result = classify_severity(
+            "Gilead Sciences Reports 3 Patient Deaths in Late-Stage Trial",
+            source="finance.yahoo.com", cfg=_healthcare_gate_cfg(), sector="healthcare",
+        )
+        assert result["severity"] == SEVERITY_CRITICAL
+        assert result["scope"] == SCOPE_SECTOR
+        assert result["trigger_match"] == "patient death"
+
+    def test_systemic_trigger_unaffected_by_company_name_check(self):
+        """A trigger NOT listed in idiosyncratic_sector_triggers keeps firing
+        unconditionally — tariffs/bank-contagion/etc. name no single company."""
+        cfg = _gate_cfg()  # "tariff" is a semiconductors sector_trigger, not idiosyncratic
+        result = classify_severity(
+            "White House announces new tariffs on semiconductor imports",
+            source="White House", cfg=cfg, sector="semiconductors",
+        )
+        assert result["severity"] == SEVERITY_CRITICAL
+        assert result["scope"] == SCOPE_SECTOR
+
+    def test_capex_context_ticker_counts_as_relevant(self):
+        """Semiconductors' capex_context_tickers (hyperscalers, not on the
+        tradeable watchlist) still count as 'relevant to this sector'."""
+        cfg = _gate_cfg()
+        cfg["event_severity_gate"]["sector_triggers"]["semiconductors"].append("scaling back AI infrastructure")
+        cfg["event_severity_gate"]["idiosyncratic_sector_triggers"] = {
+            "semiconductors": ["scaling back AI infrastructure"],
+        }
+        cfg["watchlist"] = {
+            "sectors": {
+                "semiconductors": {
+                    "active": True, "benchmark": "SMH", "tickers": ["NVDA"],
+                    "capex_context_tickers": ["MSFT"],
+                },
+            }
+        }
+        result = classify_severity(
+            "Microsoft signals it is scaling back AI infrastructure spending next quarter",
+            source="Bloomberg", cfg=cfg, sector="semiconductors",
+        )
+        assert result["severity"] == SEVERITY_CRITICAL
+        assert result["scope"] == SCOPE_SECTOR
+
+    def test_sector_none_fallback_skips_company_check(self):
+        """No single sector to check relevance against — same defensive
+        fallback classify_severity already documents for sector=None."""
+        result = classify_severity(
+            "Novartis Reports 3 Patient Deaths. Why the Stock Is Heading for Its Best Day Since 2023.",
+            source="finance.yahoo.com", cfg=_healthcare_gate_cfg(),
+        )
+        assert result["severity"] == SEVERITY_CRITICAL
+
+
+# ---------------------------------------------------------------------------
 # is_thesis_opposed
 # ---------------------------------------------------------------------------
 

@@ -23,6 +23,8 @@ from pathlib import Path
 from typing import Optional
 
 from shared.utils.logger import get_logger
+from shared.utils.ner_extractor import is_ticker_relevant
+from shared.utils.sector_config import get_active_sectors, get_sector_tickers
 from shared.utils.source_credibility import score_news_outlet
 
 logger = get_logger(__name__)
@@ -73,7 +75,7 @@ def classify_severity(
         "principal_source": False,
     }
 
-    matched = _find_trigger_match(headline, gate_cfg, sector)
+    matched = _find_trigger_match(headline, cfg, sector)
     if not matched:
         return result
 
@@ -104,7 +106,19 @@ def classify_severity(
     return result
 
 
-def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = None) -> Optional[dict]:
+def _sector_relevant_tickers(cfg: dict, sector: str) -> list[str]:
+    """
+    Tickers a headline should name to count as "about this sector" for an
+    idiosyncratic trigger — the sector's own watchlist plus any
+    capex_context_tickers configured for it (semiconductors tracks AMZN/MSFT/
+    GOOGL/META's own capex as a demand proxy without trading them — see
+    run_swing_model.py's _compute_sector_context_filings).
+    """
+    sector_cfg = get_active_sectors(cfg).get(sector, {})
+    return get_sector_tickers(cfg, sector) + list(sector_cfg.get("capex_context_tickers", []))
+
+
+def _find_trigger_match(headline: str, cfg: dict, sector: Optional[str] = None) -> Optional[dict]:
     """
     Sector-wide triggers checked first — a sector-wide match always wins scope.
 
@@ -112,7 +126,22 @@ def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = N
     When `sector` is given, only that sector's trigger list is checked — a
     chip-ban headline must not match while scoring a bank ticker, and vice
     versa. When `sector` is None (unmigrated caller), every active sector's
-    list is unioned as a defensive fallback.
+    list is unioned as a defensive fallback, and the idiosyncratic-trigger
+    company-name check below is skipped (there's no single sector to check
+    "relevant to" — same reasoning as the union itself being a fallback).
+
+    Sector triggers split into two kinds via
+    `event_severity_gate.idiosyncratic_sector_triggers` (config-driven, see
+    swing_config.yaml's comment there): systemic/macro triggers (tariffs,
+    bank contagion, embargoes) name no single company and match unconditionally,
+    same as before this existed. Idiosyncratic triggers (an FDA rejection, a
+    capex cut, a comp-sales miss) are ONE company's own event — a story about
+    company X's problem doesn't say anything about unrelated company Y's — so
+    these only count as sector-critical when the headline also names a
+    company relevant to this sector (_sector_relevant_tickers). Found live
+    2026-09-01: a "patient death" headline about Novartis — not a watchlisted
+    healthcare ticker — matched and blocked the entire healthcare sector
+    despite never naming a company this sector's watchlist tracks.
 
     Ticker triggers only (not sector triggers — those describe macro/market
     events, not one company's own PR, so this ambiguity doesn't arise there):
@@ -131,15 +160,30 @@ def _find_trigger_match(headline: str, gate_cfg: dict, sector: Optional[str] = N
     UNH's "Lawsuit Alleges Medicare Fraud") contains none of these exclusion
     phrases and still matches normally.
     """
+    gate_cfg = (cfg or {}).get("event_severity_gate", {})
     headline_lower = (headline or "").lower()
     sector_triggers_cfg = gate_cfg.get("sector_triggers", {})
     if sector is not None:
         candidate_triggers = sector_triggers_cfg.get(sector, [])
     else:
         candidate_triggers = [t for triggers in sector_triggers_cfg.values() for t in triggers]
+
+    idiosyncratic_by_sector = gate_cfg.get("idiosyncratic_sector_triggers", {})
+    idiosyncratic_triggers = set(idiosyncratic_by_sector.get(sector, [])) if sector is not None else set()
+
     for trigger in candidate_triggers:
-        if trigger.lower() in headline_lower:
-            return {"scope": SCOPE_SECTOR, "trigger_match": trigger}
+        if trigger.lower() not in headline_lower:
+            continue
+        if trigger in idiosyncratic_triggers:
+            relevant = _sector_relevant_tickers(cfg, sector)
+            if not any(is_ticker_relevant(headline, t) for t in relevant):
+                logger.info(
+                    f"Sector trigger '{trigger}' ({sector}) matched but the headline names no "
+                    f"company relevant to this sector — not treated as sector-critical. "
+                    f"Headline: {(headline or '')[:160]}"
+                )
+                continue
+        return {"scope": SCOPE_SECTOR, "trigger_match": trigger}
 
     advisory_exclusions = [p.lower() for p in gate_cfg.get("advisory_context_exclusions", [])]
     for trigger in gate_cfg.get("ticker_triggers", []):
