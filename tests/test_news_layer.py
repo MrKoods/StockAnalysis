@@ -5,7 +5,7 @@ though both were fixed (Signal Integrity Audit findings B.3/B.4). Added while
 building the direction-parity registry/CI check (2026-08-19).
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import swing_model.news_layer as news_layer
@@ -115,8 +115,15 @@ class TestAvTickerSentimentMR1:
     counts for the ticker even if the alias-keyword matcher misses it."""
 
     def _av_article(self, ticker, score, relevance, title="Some macro headline"):
+        # Timestamp relative to "now", not a fixed literal — news_layer's decay
+        # weight zeroes out (and excludes) an article past decay_zero_at_days
+        # (5.0 by default), which a hardcoded past date silently drifts into as
+        # real calendar time passes (broke CI 2026-09-02: an article dated
+        # 2026-08-27 was still fresh when this test was written, and 6 days
+        # stale — fully decayed out — five days later, with no code change).
+        ts = (datetime.now(timezone.utc) - timedelta(hours=6)).isoformat()
         return {
-            "title": title, "timestamp_utc": "2026-08-27T12:00:00+00:00",
+            "title": title, "timestamp_utc": ts,
             "source": "Reuters", "source_domain": "reuters.com",
             "overall_sentiment_score": 0.0, "overall_sentiment_label": "Neutral",
             "ticker_sentiment": [

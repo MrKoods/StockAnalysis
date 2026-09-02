@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.122 | 2026-09-02 | Bug Fix | Fixes a CI failure from the v2.2.121 push. Two tests built a fake news article dated one specific fixed day and never updated it — harmless while that date was recent, but the model treats news older than 5 days as fully expired, so as real calendar days ticked by, the fake article aged past that cutoff and the tests started failing on their own, with no real code problem. The fake article's date now floats relative to "today" instead of being frozen, so this can't happen again |
 | v2.2.121 | 2026-09-02 | Bug Fix | Follow-up to v2.2.120's fix — this closes the harder half of the same problem. A sector-wide critical-event warning fires on a keyword match alone ("patient death," "product recall," etc.), with no check for whether the headline is even about a company this sector actually trades. Now, for warnings that describe one company's own event (not a broad policy/macro story like a tariff, which legitimately applies sector-wide with no company named), the system checks whether the headline actually names a company on that sector's watchlist before treating it as sector-critical. The exact case from yesterday — a headline about Novartis, a stock not even tracked here — no longer triggers a healthcare-wide warning |
 | v2.2.120 | 2026-09-01 | Bug Fix | A sector-wide "critical event" warning (like a scary-sounding headline) used to get pinned on every single stock in that sector, even ones whose own outlook the news didn't actually argue against. Caught live: a headline about a different company's drug-trial deaths — actually good news for that company — put a caution flag on every stock in the whole healthcare watchlist. Now the flag only sticks to a stock if the news genuinely cuts against that stock's own current direction, the same rule single-stock warnings already followed |
 | v2.2.119 | 2026-08-30 | Research | Starts a ~1–2 week data-quality check before deciding whether to use Seeking Alpha as a backup price source. yfinance is currently the only source of daily price bars — if it breaks, the whole Technical score breaks. Seeking Alpha has a keyed price feed we already pay for; each scan now logs how far its bars differ from yfinance's (per stock, per day) to `data/logs/price_source_comparison.csv`. No effect on any score or signal — it just reads the bars already fetched and writes a comparison row. First live rows: SA's close prices match yfinance to within ~0.01% for non-dividend stocks (NVDA exact on the latest day), ~0.5% for dividend payers (ZION) — the dividend-adjustment question is exactly what the window needs to settle. Turn off via config once decided |
@@ -201,6 +202,27 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.122] — 2026-09-02 — [Bug Fix] Fix a CI failure caused by a date-frozen test, not this code
+
+**Status:** Live. Test-only change, no production code touched. 1730 tests pass; ruff and all
+guardrail checkers pass.
+
+**Problem.** The v2.2.121 push's CI run failed on 2 tests in `TestAvTickerSentimentMR1`
+(`test_news_layer.py`) that were passing locally before the push and had nothing to do with
+that change. Both build a fake Alpha Vantage article via a shared `_av_article()` helper that
+hardcoded `timestamp_utc: "2026-08-27T12:00:00+00:00"` — a fixed literal, not relative to "now".
+`compute_news_score`'s recency decay treats any article older than `decay_zero_at_days` (5.0,
+config-default) as fully expired and excludes it. The hardcoded date was 4 days old when these
+tests were written (2026-08-31, still fresh) and 6 days old by this push (2026-09-02, past the
+cutoff) — the tests broke themselves purely by the calendar advancing, no code change required.
+Confirmed via `git stash`: both failed identically on the pre-v2.2.120 code too.
+
+**Fix.** `_av_article()`'s timestamp is now computed relative to `datetime.now(timezone.utc)` (6
+hours ago) instead of a frozen literal, so the fake article stays inside the fresh window no
+matter when the suite runs. No other test using this helper depended on the article being stale.
 
 ---
 
