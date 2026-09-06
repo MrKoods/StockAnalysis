@@ -403,16 +403,74 @@ class TestSaAndFinnhubEnrichment:
         assert out["trailingPE"] == 33.9
         assert out["enterpriseToEbitda"] == 26.4
 
-    def test_finnhub_fallback_not_used_when_yfinance_complete(self, monkeypatch):
+    def test_finnhub_not_used_to_override_complete_non_forward_fields(self, monkeypatch):
+        # trailingPE/enterpriseToEbitda/enterpriseToRevenue: Finnhub only fills
+        # gaps, never overrides a value yfinance already supplied.
         from shared.api_clients import finnhub_client
-        called = []
-        monkeypatch.setattr(finnhub_client, "get_metric", lambda t: called.append(1) or {})
+        monkeypatch.setattr(finnhub_client, "get_metric",
+                            lambda t: {"peTTM": 999.0, "evToEbitdaTTM": 999.0, "peForward": 24.0})
+        client = FundamentalClient()
+        full = MagicMock()
+        full.info = {
+            "trailingPE": 30.0, "forwardPE": 24.0,
+            "enterpriseToEbitda": 25.0, "enterpriseToRevenue": 8.0,
+        }
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=full):
+            out = client.get_valuation_metrics("NVDA")
+        assert out["trailingPE"] == 30.0
+        assert out["enterpriseToEbitda"] == 25.0
+        assert out["enterpriseToRevenue"] == 8.0
+
+
+class TestForwardPeReconciliation:
+    """
+    Bug found in the V3 report-content review (2026-09-05): the Finnhub
+    fallback read m.get("forwardPE"), a field Finnhub's /stock/metric doesn't
+    return (its field is peForward), so the fallback never actually filled
+    anything — and yfinance's own forwardPE (a separately-sourced number)
+    silently passed through as "the" forward P/E with nothing reconciling it
+    against Finnhub's, even when the two disagreed by ~40% for the same
+    ticker on the same day (43.81 vs 31.30). These assert the fix: Finnhub's
+    peForward is canonical when present, yfinance is the fallback, and a
+    large disagreement between the two is flagged rather than silently
+    dropped.
+    """
+
+    def test_finnhub_peforward_preferred_over_yfinance_when_both_present(self, monkeypatch):
+        from shared.api_clients import finnhub_client
+        monkeypatch.setattr(finnhub_client, "get_metric", lambda t: {"peForward": 43.81})
+        client = FundamentalClient()
+        full = MagicMock()
+        full.info = {"trailingPE": 123.27, "forwardPE": 31.30, "enterpriseToEbitda": 94.17}
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=full):
+            out = client.get_valuation_metrics("NVDA")
+        assert out["forwardPE"] == 43.81
+        assert out["forward_pe_finnhub"] == 43.81
+        assert out["forward_pe_yfinance"] == 31.30
+        assert "forwardPE_source_disagreement" in out["suspect_fields"]
+
+    def test_falls_back_to_yfinance_when_finnhub_has_no_forward_pe(self, monkeypatch):
+        from shared.api_clients import finnhub_client
+        monkeypatch.setattr(finnhub_client, "get_metric", lambda t: {})
         client = FundamentalClient()
         full = MagicMock()
         full.info = {"trailingPE": 30.0, "forwardPE": 24.0, "enterpriseToEbitda": 25.0}
         with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=full):
-            client.get_valuation_metrics("NVDA")
-        assert called == []
+            out = client.get_valuation_metrics("NVDA")
+        assert out["forwardPE"] == 24.0
+        assert out["forward_pe_finnhub"] is None
+        assert "forwardPE_source_disagreement" not in out["suspect_fields"]
+
+    def test_close_agreement_not_flagged_as_disagreement(self, monkeypatch):
+        from shared.api_clients import finnhub_client
+        monkeypatch.setattr(finnhub_client, "get_metric", lambda t: {"peForward": 24.5})
+        client = FundamentalClient()
+        full = MagicMock()
+        full.info = {"trailingPE": 30.0, "forwardPE": 24.0, "enterpriseToEbitda": 25.0}
+        with patch("shared.api_clients.fundamental_client.yf.Ticker", return_value=full):
+            out = client.get_valuation_metrics("NVDA")
+        assert out["forwardPE"] == 24.5
+        assert "forwardPE_source_disagreement" not in out["suspect_fields"]
 
 
 def test_rating_revision_from_counts_helper():

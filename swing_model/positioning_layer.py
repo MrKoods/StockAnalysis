@@ -99,7 +99,8 @@ def compute_positioning_score(
         positioning_data.get("short_interest"), direction=direction
     )
     insider_score, insider_dq = _score_insider(
-        positioning_data.get("insider_transactions"), direction=direction, cfg=cfg
+        positioning_data.get("insider_transactions"), direction=direction, cfg=cfg,
+        form4_parsed=positioning_data.get("insider_form4_parsed"),
     )
     analyst_score, analyst_dq = _score_analyst_trend(positioning_data.get("analyst_trend"), direction=direction)
 
@@ -290,11 +291,20 @@ def _score_short_interest(short_interest: Optional[dict], direction: str = "bull
 
 def _score_insider(
     transactions: Optional[list], direction: str = "bullish", cfg: Optional[dict] = None,
+    form4_parsed: Optional[dict] = None,
 ) -> tuple[float, str]:
     """
-    Score insider transactions by reusing insider_tracker.py's classification
-    logic (classify_transactions), rescaled to a 0-max sub-signal (midpoint =
-    max/2 = no signal, matching insider_tracker's 'neutral' classification).
+    Score insider transactions. Parsed SEC Form 4 data (`form4_parsed`, from
+    sec_edgar_client.fetch_form4_transactions) is authoritative whenever it
+    carries a real open-market buy/sell signal — yfinance's insider_transactions
+    feed (the `transactions` param) is frequently empty even when real Form 4
+    activity exists, which used to make this function return the neutral
+    midpoint for BOTH directions regardless of what actually happened (e.g. 44
+    open-market sells / 0 buys still scored 1.5/1.5 — bug found via the V3
+    deep-analysis report review, 2026-09-05; deep_analysis/layers/positioning.py's
+    _insider_view narrative already treated Form 4 as authoritative, this
+    scoring path just never saw it). Falls back to the yfinance-based
+    classify_transactions path only when Form 4 has no open-market signal.
 
     Bearish: mirrors the bullish ladder exactly (each pair sums to insider_max)
     — insider selling scores high instead of insider buying.
@@ -306,6 +316,51 @@ def _score_insider(
     midpoint = insider_max / 2.0
     quarter_credit = insider_max / 4.0  # single-buyer/seller partial credit
 
+    fp = form4_parsed or {}
+    fp_buys = fp.get("open_market_buys") or 0
+    fp_sells = fp.get("open_market_sells") or 0
+
+    if fp_buys + fp_sells > 0:
+        recent = fp.get("recent") or []
+        buy_owners = {r.get("owner") for r in recent if r.get("code") == "P" and r.get("owner")}
+        sell_owners = {r.get("owner") for r in recent if r.get("code") == "S" and r.get("owner")}
+        buy_val = fp.get("buy_value") or 0.0
+        sell_val = fp.get("sell_value") or 0.0
+
+        # "recent" caps at 8 rows (sec_edgar_client.py), so owner counts here
+        # can undercount a cluster spanning more than 8 signal transactions —
+        # acceptable: undercounting a cluster degrades to the single-trader
+        # branch below, never to "no signal".
+        if len(sell_owners) >= 2 and sell_val >= buy_val:
+            fp_signal = "selling_cluster"
+        elif len(buy_owners) >= 2 and buy_val >= sell_val:
+            fp_signal = "buying"
+        elif sell_val > buy_val:
+            fp_signal = "selling"
+        elif buy_val > sell_val:
+            fp_signal = "buying"
+        else:
+            fp_signal = "neutral"  # equal dollar value on both sides
+
+        if direction == "bearish":
+            if fp_signal == "selling_cluster":
+                return insider_max, "complete"
+            if fp_signal == "selling":
+                return insider_max - quarter_credit, "complete"
+            if fp_signal == "buying":
+                return (0.0 if len(buy_owners) >= 2 else insider_max - (midpoint + quarter_credit)), "complete"
+            return midpoint, "complete"
+
+        if fp_signal == "selling_cluster":
+            return 0.0, "complete"
+        if fp_signal == "selling":
+            return quarter_credit, "complete"
+        if fp_signal == "buying":
+            return (insider_max if len(buy_owners) >= 2 else midpoint + quarter_credit), "complete"
+        return midpoint, "complete"
+
+    # No open-market Form 4 signal — fall back to yfinance's transaction feed
+    # (module docstring: 1-2 business day delay, treat as confirmation only).
     if transactions is None:
         return 0.0, "unavailable"
     if len(transactions) == 0:

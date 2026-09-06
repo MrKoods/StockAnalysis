@@ -598,8 +598,18 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
                     "iv_skew_percentile_data_quality",
                 ))
             state["tickers"][ticker] = fresh
-            state["fetched_dates"][ticker] = today_str
-            logger.info(f"  {ticker}: positioning data fetched OK")
+            if options.get("quote_status") == "premarket_no_quotes":
+                # Don't let a pre-market snapshot (zero quotable option
+                # contracts because market makers haven't posted bid/ask yet)
+                # satisfy today's once-per-day cache — leave fetched_dates
+                # unset so the next scan today (mid-session/post-close)
+                # retries during regular hours instead of every same-day
+                # caller inheriting a permanently empty chain (V3
+                # report-content review, 2026-09-05).
+                logger.info(f"  {ticker}: positioning data fetched, options pre-market/no quotes yet — will retry")
+            else:
+                state["fetched_dates"][ticker] = today_str
+                logger.info(f"  {ticker}: positioning data fetched OK")
         except Exception as exc:
             logger.error(f"  {ticker}: positioning fetch failed — {exc}")
             write_validation_entry(ticker, "positioning_fetch_error", str(exc))

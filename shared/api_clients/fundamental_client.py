@@ -79,7 +79,14 @@ class FundamentalClient:
 
         Returns dict with keys:
           trailingPE, forwardPE, enterpriseToEbitda, enterpriseToRevenue,
-          recommendationMean, targetMeanPrice, suspect_fields
+          recommendationMean, targetMeanPrice, suspect_fields,
+          forward_pe_yfinance, forward_pe_finnhub
+
+        `forwardPE` is Finnhub's `peForward` when available (canonical),
+        falling back to yfinance's own forwardPE otherwise. Both raw values
+        are kept under forward_pe_yfinance/forward_pe_finnhub so a caller can
+        see the disagreement directly; "forwardPE_source_disagreement" is
+        added to suspect_fields when both are present and differ by >15%.
 
         Missing or None fields are returned as None — never raises on missing data.
         Extreme or negative values are flagged in 'suspect_fields' list.
@@ -117,21 +124,56 @@ class FundamentalClient:
         # supply (2026-08 API audit) — reduces this layer's dependence on the
         # single heaviest yfinance call. Finnhub has no EV/EBITDA for every
         # name, so this fills gaps rather than replacing.
-        if any(result.get(f) is None for f in ("trailingPE", "forwardPE", "enterpriseToEbitda")):
+        finnhub_metrics = None
+        if any(result.get(f) is None for f in ("trailingPE", "enterpriseToEbitda", "enterpriseToRevenue")):
             try:
                 from shared.api_clients import finnhub_client
-                m = finnhub_client.get_metric(ticker)
+                finnhub_metrics = finnhub_client.get_metric(ticker)
                 _fill = {
-                    "trailingPE": m.get("peTTM") or m.get("peBasicExclExtraTTM"),
-                    "forwardPE": m.get("forwardPE"),
-                    "enterpriseToEbitda": m.get("evToEbitdaTTM"),
-                    "enterpriseToRevenue": m.get("evToRevenueTTM"),
+                    "trailingPE": finnhub_metrics.get("peTTM") or finnhub_metrics.get("peBasicExclExtraTTM"),
+                    "enterpriseToEbitda": finnhub_metrics.get("evToEbitdaTTM"),
+                    "enterpriseToRevenue": finnhub_metrics.get("evToRevenueTTM"),
                 }
                 for f, v in _fill.items():
                     if result.get(f) is None and _safe_float(v) is not None:
                         result[f] = _safe_float(v)
             except Exception as exc:
                 logger.warning(f"{ticker}: Finnhub metric fallback failed — {exc}")
+
+        # Forward P/E: Finnhub's `peForward` is the canonical source — it's
+        # what deep_analysis/layers/fundamental.py (V3) already treats as
+        # authoritative. This used to fall back on `m.get("forwardPE")`, a
+        # field name Finnhub's /stock/metric doesn't actually return (its
+        # field is `peForward`), so the fallback never filled anything, and
+        # yfinance's own forwardPE (a completely separate forward-EPS
+        # consensus) silently reached callers as "the" forward P/E with
+        # nothing reconciling the two — confirmed live: 43.81 (Finnhub) vs
+        # 31.30 (yfinance) for the same ticker on the same day, a ~40%
+        # disagreement (V3 report-content review, 2026-09-05). Finnhub now
+        # wins when present; yfinance's value is kept only as a fallback and
+        # recorded alongside for anyone who wants to see the raw disagreement.
+        yfinance_forward_pe = result.get("forwardPE")
+        try:
+            if finnhub_metrics is None:
+                from shared.api_clients import finnhub_client
+                finnhub_metrics = finnhub_client.get_metric(ticker)
+            finnhub_forward_pe = _safe_float(finnhub_metrics.get("peForward"))
+        except Exception as exc:
+            logger.warning(f"{ticker}: Finnhub forward P/E fetch failed — {exc}")
+            finnhub_forward_pe = None
+
+        if finnhub_forward_pe is not None:
+            result["forwardPE"] = finnhub_forward_pe
+        elif yfinance_forward_pe is not None:
+            result["forwardPE"] = yfinance_forward_pe
+        result["forward_pe_yfinance"] = yfinance_forward_pe
+        result["forward_pe_finnhub"] = finnhub_forward_pe
+
+        forward_pe_disagreement = (
+            yfinance_forward_pe is not None and finnhub_forward_pe is not None
+            and yfinance_forward_pe > 0 and finnhub_forward_pe > 0
+            and abs(yfinance_forward_pe - finnhub_forward_pe) / max(yfinance_forward_pe, finnhub_forward_pe) > 0.15
+        )
 
         # Flag suspect values
         suspect = []
@@ -148,6 +190,8 @@ class FundamentalClient:
             v = result.get(ratio_field)
             if v is not None and (v < 0 or v > 1000):
                 suspect.append(ratio_field)
+        if forward_pe_disagreement:
+            suspect.append("forwardPE_source_disagreement")
 
         result["suspect_fields"] = suspect
         logger.debug(f"{ticker}: valuation_metrics fetched — suspect={suspect}")

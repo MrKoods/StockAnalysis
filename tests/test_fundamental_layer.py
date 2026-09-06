@@ -164,6 +164,40 @@ class TestScoreAllTickersMultiSectorScoping:
         assert len(results) == 3
 
 
+class TestSectorAverageSingleTickerPool:
+    """
+    Bug found in the V3 report-content review (2026-09-05): a single-ticker
+    call (e.g. paper_updater.py's post-close rescoring of one open trade, via
+    indicator_pipeline.run_pipeline([ticker], ...)) gives score_valuation_vs_peers
+    a pool of exactly one — itself — and its "full-pool average, self included"
+    degenerated to trivially equal that ticker's own value. The real
+    per-ticker score already used leave-one-out and degraded safely; only
+    this display aggregate was broken. Fix: require >=2 contributing tickers.
+    """
+
+    def test_single_ticker_pool_returns_none_not_self_average(self):
+        fundamentals = {
+            "AMD": {"valuation": {
+                "trailingPE": 123.27, "forwardPE": 43.81,
+                "enterpriseToEbitda": 94.17, "suspect_fields": [],
+            }}
+        }
+        result = FundamentalScorer().score_valuation_vs_peers(fundamentals)
+        assert result["sector_averages"]["pe"] is None
+        assert result["sector_averages"]["forward_pe"] is None
+        assert result["sector_averages"]["ev_ebitda"] is None
+        # The subject ticker must still get scored (as no_data, not crash).
+        assert result["ticker_scores"]["AMD"]["component_breakdown"]["pe_vs_sector"]["unavailable"] is True
+
+    def test_two_ticker_pool_still_computes_a_real_average(self):
+        fundamentals = {
+            "AMD": {"valuation": {"trailingPE": 123.27, "forwardPE": 43.81, "enterpriseToEbitda": 94.17, "suspect_fields": []}},
+            "AVGO": {"valuation": {"trailingPE": 68.4, "forwardPE": 30.0, "enterpriseToEbitda": 40.0, "suspect_fields": []}},
+        }
+        result = FundamentalScorer().score_valuation_vs_peers(fundamentals)
+        assert result["sector_averages"]["pe"] == pytest.approx((123.27 + 68.4) / 2, abs=0.01)
+
+
 class TestScorePremium:
     """
     The dead-bucket bug: the old code's "else" fallback for a mid-range

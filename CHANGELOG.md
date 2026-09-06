@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.123 | 2026-09-06 | Bug Fix | Three bugs in shared scoring/data code, found while reviewing a V3 (separate research-report product) briefing that narrates the same numbers this model scores on. (1) A stock's valuation-vs-peers comparison sometimes averaged a stock against itself, making it look exactly "in line with peers" by construction — happens whenever exactly one ticker is scored at a time, e.g. `paper_updater.py` rescoring one open trade after close. (2) Forward P/E came from two vendors that can disagree 40%+, with a broken fallback that meant the second vendor was never actually consulted — the better-supported vendor is now preferred and a large disagreement is flagged instead of silently picked. (3) A pre-market options-chain fetch (before market makers post real bid/ask) was being cached as a full trading day's data, so options info could read empty all day even though real quotes existed once the market opened — it now retries once trading opens. A fourth bug (the insider-trading sub-score never actually using the one real, itemized SEC filing feed for it) is fixed at the scoring-logic level but isn't live yet — it needs a new SEC-filing-parsing step this fix doesn't build (tracked separately) |
 | v2.2.122 | 2026-09-02 | Bug Fix | Fixes a CI failure from the v2.2.121 push. Two tests built a fake news article dated one specific fixed day and never updated it — harmless while that date was recent, but the model treats news older than 5 days as fully expired, so as real calendar days ticked by, the fake article aged past that cutoff and the tests started failing on their own, with no real code problem. The fake article's date now floats relative to "today" instead of being frozen, so this can't happen again |
 | v2.2.121 | 2026-09-02 | Bug Fix | Follow-up to v2.2.120's fix — this closes the harder half of the same problem. A sector-wide critical-event warning fires on a keyword match alone ("patient death," "product recall," etc.), with no check for whether the headline is even about a company this sector actually trades. Now, for warnings that describe one company's own event (not a broad policy/macro story like a tariff, which legitimately applies sector-wide with no company named), the system checks whether the headline actually names a company on that sector's watchlist before treating it as sector-critical. The exact case from yesterday — a headline about Novartis, a stock not even tracked here — no longer triggers a healthcare-wide warning |
 | v2.2.120 | 2026-09-01 | Bug Fix | A sector-wide "critical event" warning (like a scary-sounding headline) used to get pinned on every single stock in that sector, even ones whose own outlook the news didn't actually argue against. Caught live: a headline about a different company's drug-trial deaths — actually good news for that company — put a caution flag on every stock in the whole healthcare watchlist. Now the flag only sticks to a stock if the news genuinely cuts against that stock's own current direction, the same rule single-stock warnings already followed |
@@ -202,6 +203,64 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.123] — 2026-09-06 — [Bug Fix] Three shared scoring/data bugs found via the V3 report review
+
+**Status:** Live. No scoring weights or thresholds changed — these are correctness fixes to
+inputs several scores already depend on (`check_version_bump.py` confirms no scoring-relevant
+file was flagged). 1747 tests pass (17 new); ruff and all guardrail checkers pass.
+
+**Context.** V3 is a separate single-ticker deep-research product (not this swing model) that
+narrates the same underlying data this model scores, in plain English. Reviewing one of its
+generated reports surfaced four numbers that were visibly wrong or self-contradictory — all four
+trace back to bugs in `swing_model`/`shared/api_clients` code this live model also runs. Three
+are fixed here; the fourth needed new infrastructure this fix doesn't build (see below).
+
+**Bug 1 — self-referential sector P/E average.** `fundamental_layer.py::score_valuation_vs_peers`
+computed `sector_averages.pe` as a full-pool average *including the subject ticker itself*. With
+a normal multi-ticker watchlist scan this washes out, but `paper_updater.py`'s post-close
+rescoring of one open trade calls `run_pipeline([ticker], ...)` — a pool of exactly one — so the
+"average" was trivially that ticker's own P/E. The real per-ticker score already used
+leave-one-out and degraded safely; only this display-only aggregate was broken. **Fix:** require
+≥2 contributing tickers before computing `sector_pe`/`sector_fpe`/`sector_ev`; a smaller pool now
+correctly returns `None` instead of a self-average.
+
+**Bug 2 — forward P/E fallback used the wrong field name.** `fundamental_client.py::get_valuation_metrics`
+prefers yfinance's `forwardPE` and falls back to Finnhub's `/stock/metric` when yfinance has
+nothing — but the fallback read `m.get("forwardPE")`, a field Finnhub's API doesn't return under
+that name (its field is `peForward`), so the fallback never filled anything. Worse, nothing
+reconciled the two vendors' numbers even when both were present and disagreed — confirmed live,
+43.81 vs 31.30 for the same ticker on the same day, a ~40% gap with no code aware of it. **Fix:**
+Finnhub's `peForward` is now the canonical source (yfinance is the fallback, reversed from
+before); both raw values are kept (`forward_pe_yfinance`/`forward_pe_finnhub`), and a >15%
+disagreement between them is flagged in `suspect_fields` as `forwardPE_source_disagreement`
+instead of silently vanishing.
+
+**Bug 3 — a pre-market options fetch got cached as a full day's data.** `positioning_client.py`'s
+option-chain fetch legitimately returns zero quotable contracts (bid=ask=0.0 on every strike)
+before market makers post real quotes, pre-~9:30am ET — but `indicator_pipeline.py`'s
+once-per-calendar-day cache stamped that snapshot as "fetched today" regardless, so a scan running
+hours later during full market hours inherited a permanently empty chain for the rest of the day.
+**Fix:** `fetch_option_chain_metrics` now returns a `quote_status` (`"ok"` /
+`"premarket_no_quotes"` / `"no_quotes"` / `"fetch_failed"`); the daily cache no longer stamps a
+ticker as fetched when the result is `"premarket_no_quotes"`, so the next same-day scan retries
+during regular hours. A genuinely thin/illiquid chain fetched during market hours (`"no_quotes"`)
+is now distinguishable from this timing artifact rather than looking identical.
+
+**Bug 4 — insider score never sees the real SEC filing data (fixed at the logic level, not yet
+live).** `positioning_layer.py::_score_insider` only ever read yfinance's `insider_transactions`
+feed, which is frequently empty even when real insider activity exists — a ticker with 44
+open-market sells and 0 buys on real, itemized SEC Form 4 filings still scored the neutral
+midpoint on both the bullish and bearish side, because the scorer had no path to that filing data
+at all. `_score_insider` now accepts a `form4_parsed` argument (the shape a Form-4-XML-parsing
+fetch would produce: `open_market_buys`/`sells`, dollar values, and per-filing owner names) and
+treats it as authoritative whenever it carries a real open-market signal, falling back to the old
+yfinance-based path only when it doesn't. **This is not live yet** — nothing in this codebase
+fetches or parses actual Form 4 XML filings today, so `form4_parsed` is always `None` in
+production and every call falls through to the unchanged yfinance-only path. Building that fetch
+is tracked as a separate follow-up, not bundled into this fix.
 
 ---
 

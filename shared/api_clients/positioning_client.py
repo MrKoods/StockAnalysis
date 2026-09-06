@@ -16,6 +16,7 @@ weekly cache comparison.
 
 from datetime import datetime, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
@@ -39,6 +40,13 @@ __all__ = [
 ]
 
 _MIN_IV_HISTORY_SAMPLES = 10
+_ET = ZoneInfo("America/New_York")
+
+
+def _is_premarket_et() -> bool:
+    """True before regular session open (9:30am ET) plus a 5-minute settle."""
+    now = datetime.now(_ET)
+    return (now.hour, now.minute) < (9, 35)
 
 
 def _pick_expiration(expirations: tuple, min_dte: int) -> str:
@@ -89,6 +97,19 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
                          expiration} within +/-20% of current_price, real contracts
                          only (used for Greeks/leg selection, not scoring)
       suspect_fields
+      quote_status    — "ok" (real two-sided quotes found), "premarket_no_quotes"
+                         (fetched before ~9:35am ET with zero quotable contracts —
+                         market makers haven't posted bid/ask yet, see note below),
+                         "no_quotes" (zero quotable contracts fetched during/after
+                         regular hours — a genuinely thin/illiquid chain or a
+                         provider gap, not a timing artifact), or "fetch_failed"
+                         (the chain fetch itself errored/exhausted retries).
+                         Distinguishing these three matters because a caller that
+                         caches this once a day must not let a pre-market
+                         "premarket_no_quotes" snapshot stand in for the rest of
+                         the trading day (V3 report-content review, 2026-09-05:
+                         a ticker's options came back empty because the daily
+                         positioning fetch happened to run at 2:19am ET).
 
     avg_call_iv/avg_put_iv (and therefore iv_skew/atm_iv) are only computed from
     contracts with a real two-sided quote (bid>0 AND ask>0) — yfinance's free-tier
@@ -102,7 +123,7 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
     result = {
         "put_call_ratio": None, "avg_call_iv": None, "avg_put_iv": None,
         "iv_skew": None, "expiration": None, "dte": None, "atm_iv": None, "chain": [],
-        "suspect_fields": [],
+        "suspect_fields": [], "quote_status": "ok",
     }
 
     def _fetch():
@@ -117,6 +138,7 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
     fetched = retry_with_backoff(_fetch, label=f"fetch_option_chain_metrics({ticker})")
     if fetched is None:
         write_validation_entry(ticker, "positioning_options_error", "option chain unavailable")
+        result["quote_status"] = "fetch_failed"
         return result
 
     expiration, calls, puts = fetched
@@ -176,6 +198,13 @@ def fetch_option_chain_metrics(ticker: str, current_price: Optional[float] = Non
             result["atm_iv"] = result["avg_put_iv"]
 
         result["chain"] = _build_chain_list(calls, puts, current_price, str(expiration))
+
+        if not result["chain"] and result["atm_iv"] is None:
+            # Zero quotable contracts. Before ~9:35am ET this is expected —
+            # market makers haven't posted real bid/ask yet, and yfinance's
+            # free chain returns bid=ask=0.0 across every strike (see the
+            # docstring above) — so it's a timing artifact, not a data gap.
+            result["quote_status"] = "premarket_no_quotes" if _is_premarket_et() else "no_quotes"
     except Exception as exc:
         logger.warning(f"{ticker}: option chain metric computation failed — {exc}")
         write_validation_entry(ticker, "positioning_options_error", str(exc))

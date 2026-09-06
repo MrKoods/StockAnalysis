@@ -104,3 +104,57 @@ class TestIvHistoryAccumulation:
             with _frozen_now(datetime(2026, 7, 20, 9, 0)):
                 ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0}, cfg={"greeks_filter": {"min_dte": 7}})
         assert captured["min_dte"] == 7
+
+
+def _fake_positioning_with_quote_status(quote_status: str):
+    def _fetch(ticker, current_price=None, min_dte=5, cfg=None):
+        return {
+            "ticker": ticker,
+            "options": {
+                "put_call_ratio": None, "iv_skew": None, "atm_iv": None,
+                "chain": [], "dte": 6, "quote_status": quote_status,
+            },
+            "institutional": None, "short_interest": None, "analyst_trend": None, "insider_transactions": None,
+        }
+    return _fetch
+
+
+class TestPremarketOptionsCacheRetry:
+    """
+    A pre-market options fetch (market makers haven't posted real bid/ask yet)
+    must not satisfy the once-per-day cache, or a same-day scan later that day
+    inherits a permanently empty chain — the exact bug found in the V3
+    report-content review, 2026-09-05 (options fetched at 2:19am ET).
+    """
+
+    def test_premarket_no_quotes_does_not_stamp_fetched_dates(self):
+        with patch.object(ip, "fetch_all_positioning", side_effect=_fake_positioning_with_quote_status("premarket_no_quotes")):
+            with _frozen_now(datetime(2026, 7, 20, 6, 0)):
+                state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+        assert "NVDA" not in state["fetched_dates"]
+        # The degraded snapshot is still stored so callers have *something*.
+        assert state["tickers"]["NVDA"]["options"]["quote_status"] == "premarket_no_quotes"
+
+    def test_second_same_day_call_retries_after_premarket_miss(self):
+        calls = {"n": 0}
+
+        def _fetch(ticker, current_price=None, min_dte=5, cfg=None):
+            calls["n"] += 1
+            status = "premarket_no_quotes" if calls["n"] == 1 else "ok"
+            return _fake_positioning_with_quote_status(status)(ticker, current_price, min_dte, cfg)
+
+        with patch.object(ip, "fetch_all_positioning", side_effect=_fetch):
+            with _frozen_now(datetime(2026, 7, 20, 6, 0)):
+                ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+            with _frozen_now(datetime(2026, 7, 20, 10, 0)):
+                state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+
+        assert calls["n"] == 2  # second call actually re-fetched, not served from cache
+        assert state["fetched_dates"]["NVDA"] == "2026-07-20"
+        assert state["tickers"]["NVDA"]["options"]["quote_status"] == "ok"
+
+    def test_ok_quote_status_stamps_fetched_dates_normally(self):
+        with patch.object(ip, "fetch_all_positioning", side_effect=_fake_positioning_with_quote_status("ok")):
+            with _frozen_now(datetime(2026, 7, 20, 10, 0)):
+                state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+        assert state["fetched_dates"]["NVDA"] == "2026-07-20"

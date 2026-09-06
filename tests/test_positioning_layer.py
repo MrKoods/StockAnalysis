@@ -190,6 +190,86 @@ class TestInsiderScore:
         assert result["insider_score"] == 0.0
 
 
+class TestInsiderScoreForm4Authoritative:
+    """
+    Bug found in the V3 report-content review (2026-09-05): a ticker's
+    insider score came back 1.5/1.5 (neutral, both directions) despite 44
+    open-market sells / 0 buys, because scoring only ever looked at
+    yfinance's insider_transactions feed (frequently empty) and had no path
+    to a parsed SEC Form 4 signal at all. `_score_insider` now accepts
+    `form4_parsed` (the shape sec_edgar_client.fetch_form4_transactions
+    returns) and treats it as authoritative whenever it carries a real
+    open-market signal. NOTE: as of this fix, nothing in this repo's
+    indicator_pipeline.py actually populates `insider_form4_parsed` yet —
+    sec_edgar_client.py has no fetch_form4_transactions here (V1 lacks the
+    Form 4 XML-parsing infrastructure V3 briefly had) — so today `form4_parsed`
+    is always None in production and every call falls through to the
+    unchanged yfinance-based path below. These tests cover the scoring
+    function's own correctness given that data, ready for whenever the
+    fetch side is built.
+    """
+
+    def _form4(self, buys=0, sells=0, buy_value=0.0, sell_value=0.0, recent=None):
+        return {
+            "open_market_buys": buys, "open_market_sells": sells,
+            "buy_value": buy_value, "sell_value": sell_value,
+            "recent": recent or [],
+        }
+
+    def test_sell_only_form4_scores_bearish_not_neutral(self):
+        form4 = self._form4(
+            sells=44, sell_value=45_050_000.0,
+            recent=[{"owner": "Jean X. Hu", "code": "S"}] * 8,
+        )
+        bullish = compute_positioning_score(
+            "AMD", {"insider_transactions": [], "insider_form4_parsed": form4}, direction="bullish"
+        )
+        bearish = compute_positioning_score(
+            "AMD", {"insider_transactions": [], "insider_form4_parsed": form4}, direction="bearish"
+        )
+        assert bullish["insider_score"] != 1.5
+        assert bearish["insider_score"] != 1.5
+        assert bearish["insider_score"] > bullish["insider_score"]
+
+    def test_single_seller_scores_quarter_credit_not_cluster_max(self):
+        form4 = self._form4(
+            sells=44, sell_value=45_050_000.0,
+            recent=[{"owner": "Jean X. Hu", "code": "S"}] * 8,
+        )
+        result = compute_positioning_score(
+            "AMD", {"insider_transactions": [], "insider_form4_parsed": form4}, direction="bullish"
+        )
+        assert result["insider_score"] == 0.75  # quarter_credit = INSIDER_MAX/4 = 0.75
+
+    def test_two_distinct_sellers_scores_full_cluster(self):
+        form4 = self._form4(
+            sells=4, sell_value=1_000_000.0,
+            recent=[{"owner": "A", "code": "S"}, {"owner": "B", "code": "S"}],
+        )
+        result = compute_positioning_score(
+            "AMD", {"insider_transactions": [], "insider_form4_parsed": form4}, direction="bullish"
+        )
+        assert result["insider_score"] == 0.0  # max bearish confirmation -> 0 on bullish side
+
+    def test_form4_signal_overrides_conflicting_yfinance_feed(self):
+        yfinance_buys = [
+            {"insider": "X", "name": "X", "transaction": "Purchase",
+             "_parsed_date": datetime.now(timezone.utc)}
+        ]
+        form4 = self._form4(sells=2, sell_value=500_000.0, recent=[{"owner": "A", "code": "S"}, {"owner": "B", "code": "S"}])
+        result = compute_positioning_score(
+            "AMD", {"insider_transactions": yfinance_buys, "insider_form4_parsed": form4}, direction="bullish"
+        )
+        assert result["insider_score"] == 0.0  # selling_cluster read, not the buying read yfinance alone would give
+
+    def test_no_form4_signal_falls_back_to_yfinance_unchanged(self):
+        form4 = self._form4(buys=0, sells=0)
+        result = compute_positioning_score(
+            "AMD", {"insider_transactions": [], "insider_form4_parsed": form4}, direction="bullish"
+        )
+        assert result["insider_score"] == 1.5  # unchanged fallback midpoint
+
+
 class TestAnalystTrendScore:
     def test_upgrade_scores_max(self):
         data = {"analyst_trend": {"net_action": "upgrade"}}

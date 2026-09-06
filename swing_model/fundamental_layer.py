@@ -482,9 +482,23 @@ class FundamentalScorer:
         fpe_values_filtered = _exclude_outliers(list(fpe_by_ticker.values()))
         ev_values_filtered = _exclude_outliers(list(ev_by_ticker.values()))
 
-        sector_pe = sum(pe_values_filtered) / len(pe_values_filtered) if pe_values_filtered else None
-        sector_fpe = sum(fpe_values_filtered) / len(fpe_values_filtered) if fpe_values_filtered else None
-        sector_ev = sum(ev_values_filtered) / len(ev_values_filtered) if ev_values_filtered else None
+        # Require at least 2 contributing tickers — a pool of 1 (e.g.
+        # paper_updater.py's post-close rescoring of a single open trade,
+        # run_pipeline([ticker], ...)) made this "full-pool average" trivially
+        # equal to that ticker's own value, since the pool was just itself
+        # (V3 report-content review, 2026-09-05 — a ticker's sector_averages.pe
+        # came back identical to its own trailing P/E). The real per-ticker
+        # score below already degrades safely via leave-one-out; this was
+        # only the display-only aggregate misbehaving.
+        sector_pe = (
+            sum(pe_values_filtered) / len(pe_values_filtered) if len(pe_values_filtered) >= 2 else None
+        )
+        sector_fpe = (
+            sum(fpe_values_filtered) / len(fpe_values_filtered) if len(fpe_values_filtered) >= 2 else None
+        )
+        sector_ev = (
+            sum(ev_values_filtered) / len(ev_values_filtered) if len(ev_values_filtered) >= 2 else None
+        )
 
         sector_averages = {
             "pe": round(sector_pe, 2) if sector_pe else None,

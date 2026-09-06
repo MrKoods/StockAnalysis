@@ -8,6 +8,7 @@ live fetch), consistent with the rest of this project's test style.
 """
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -15,6 +16,7 @@ import shared.api_clients.positioning_client as positioning_client
 from shared.api_clients.positioning_client import (
     _pick_expiration,
     _build_chain_list,
+    _is_premarket_et,
     compute_iv_percentile,
     compute_put_call_ratio_percentile,
     compute_iv_skew_percentile,
@@ -25,6 +27,33 @@ from shared.api_clients.positioning_client import (
 
 def _exp_str(days_out: int) -> str:
     return (datetime.now(timezone.utc).date() + timedelta(days=days_out)).strftime("%Y-%m-%d")
+
+
+class TestIsPremarketEt:
+    """
+    Used by fetch_option_chain_metrics to distinguish a pre-market fetch
+    (zero quotable contracts is expected — market makers haven't posted real
+    bid/ask yet) from the same empty result during/after regular hours (a
+    genuine data gap). Bug found in the V3 report-content review, 2026-09-05:
+    a pre-market snapshot was being cached as a permanent daily result.
+    """
+
+    def _at(self, hour, minute):
+        with patch.object(positioning_client, "datetime") as mock_dt:
+            mock_dt.now.side_effect = lambda tz=None: datetime(2026, 7, 20, hour, minute, tzinfo=tz)
+            return _is_premarket_et()
+
+    def test_before_930_is_premarket(self):
+        assert self._at(6, 0) is True
+
+    def test_at_930_still_within_settle_window(self):
+        assert self._at(9, 30) is True
+
+    def test_after_935_is_not_premarket(self):
+        assert self._at(9, 36) is False
+
+    def test_mid_session_is_not_premarket(self):
+        assert self._at(13, 0) is False
 
 
 class TestPickExpiration:
