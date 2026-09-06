@@ -516,6 +516,12 @@ def _get_json(url: str) -> Optional[dict]:
         return None
 
 
+def _get_text(url: str) -> Optional[str]:
+    """GET a raw text/XML document from sec.gov (via the paced _get_with_backoff). Returns the body text or None."""
+    resp = _get_with_backoff(url)
+    return resp.text if resp is not None else None
+
+
 def fetch_submissions(ticker: str) -> Optional[dict]:
     """
     A company's recent filing history from data.sec.gov/submissions/CIK.json —
@@ -568,16 +574,17 @@ def fetch_recent_ownership_filings(ticker: str, lookback_days: int = 120) -> dic
     submissions feed: activist/passive >5% stakes (SC 13D/13G), institutional
     holdings reports (13F-HR), and insider transactions (Form 4).
 
-    Returns {"activist_13d": [...], "passive_13g": [...], "institutional_13f":
-    [...], "insider_form4": [...]} where each list holds {form, filingDate,
-    accessionNumber} dicts inside the lookback window, most-recent-first.
-    Empty lists (never None) so callers can treat "no filing" as a real,
-    neutral signal. Cached via fetch_submissions.
+    Returns {"cik": str|None, "activist_13d": [...], "passive_13g": [...],
+    "institutional_13f": [...], "insider_form4": [...]} where each list holds
+    {form, filingDate, accessionNumber, primaryDocument} dicts inside the
+    lookback window, most-recent-first. Empty lists (never None) so callers
+    can treat "no filing" as a real, neutral signal. Cached via fetch_submissions.
     """
-    out = {"activist_13d": [], "passive_13g": [], "institutional_13f": [], "insider_form4": []}
+    out = {"cik": None, "activist_13d": [], "passive_13g": [], "institutional_13f": [], "insider_form4": []}
     subs = fetch_submissions(ticker)
     if not subs:
         return out
+    out["cik"] = subs.get("cik")
 
     cutoff = (datetime.now(timezone.utc).date()).toordinal() - lookback_days
     bucket = {
@@ -600,8 +607,198 @@ def fetch_recent_ownership_filings(ticker: str, lookback_days: int = 120) -> dic
                     "form": form,
                     "filingDate": fdate,
                     "accessionNumber": row.get("accessionNumber"),
+                    "primaryDocument": row.get("primaryDocument"),
                 })
                 break
+    return out
+
+
+# Transaction codes that represent a real open-market (or comparable
+# arm's-length) buy/sell — the only ones that should count as "insider
+# bought/sold stock" for scoring. Everything else (grants, option exercises,
+# tax withholding, gifts, conversions...) is tracked separately as
+# `other_activity`, not folded into buy/sell dollar totals.
+_FORM4_SIGNAL_CODES = {"P", "S"}
+
+_FORM4_CODE_MEANINGS = {
+    "P": "Open market purchase", "S": "Open market sale",
+    "A": "Grant/award", "M": "Option exercise", "F": "Tax withholding (shares)",
+    "G": "Gift", "C": "Conversion of derivative", "D": "Disposition to issuer",
+    "X": "In-the-money option exercise", "I": "Discretionary transaction",
+}
+
+
+def _form4_xml_url(cik: str, accession_number: Optional[str], primary_document: Optional[str]) -> Optional[str]:
+    """
+    Build the URL to a Form 4's RAW XML — not the same as `primary_document`
+    itself. SEC's submissions feed reports `primaryDocument` as the
+    XSL-rendered viewer path (e.g. "xslF345X06/wk-form4_123.xml"), which
+    despite the ".xml" name serves rendered HTML when fetched directly
+    (confirmed live 2026-09-06). The actual machine-readable XML sits as a
+    sibling file in the accession root under the same basename, discoverable
+    via that accession's index.json — verified live against a real AMD Form 4
+    (CIK 2488, accession 0001452385-26-000008): primaryDocument
+    "xslF345X06/wk-form4_1787864688.xml" renders as HTML, while
+    "wk-form4_1787864688.xml" (same basename, accession root, no xslF345X06/
+    prefix) is the raw <ownershipDocument> XML this function needs.
+    """
+    if not accession_number or not primary_document:
+        return None
+    accn_clean = accession_number.replace("-", "")
+    try:
+        cik_clean = str(int(cik))
+    except (TypeError, ValueError):
+        cik_clean = str(cik).lstrip("0") or "0"
+    doc_name = primary_document.rsplit("/", 1)[-1]
+    return f"https://www.sec.gov/Archives/edgar/data/{cik_clean}/{accn_clean}/{doc_name}"
+
+
+def _find_text(elem: ET.Element, path: str) -> Optional[str]:
+    node = elem.find(path)
+    if node is None or node.text is None:
+        return None
+    text = node.text.strip()
+    return text or None
+
+
+def _find_float(elem: ET.Element, path: str) -> Optional[float]:
+    text = _find_text(elem, path)
+    if text is None:
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def _parse_form4_xml(xml_text: str) -> Optional[dict]:
+    """
+    Parse one Form 4's raw <ownershipDocument> XML into
+    {owner, owner_title, period, transactions: [{code, shares, price, value,
+    meaning}, ...]}. Covers both nonDerivativeTable and derivativeTable —
+    schema is confirmed identical for the transactionCoding/transactionAmounts
+    blocks in both (verified live: a real option-exercise "M" transaction
+    lives in derivativeTable with the same shape). No XML namespace is used
+    by this document type (unlike the Atom feeds elsewhere in this module).
+    Returns None on any parse failure — never raises.
+    """
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError as exc:
+        logger.warning(f"[sec_edgar] Form 4 XML parse failed — {exc}")
+        return None
+
+    owner = _find_text(root, ".//reportingOwner/reportingOwnerId/rptOwnerName")
+    owner_title = _find_text(root, ".//reportingOwner/reportingOwnerRelationship/officerTitle")
+    period = _find_text(root, "periodOfReport")
+
+    transactions = []
+    for table_tag, txn_tag in (
+        ("nonDerivativeTable", "nonDerivativeTransaction"),
+        ("derivativeTable", "derivativeTransaction"),
+    ):
+        table = root.find(table_tag)
+        if table is None:
+            continue
+        for txn in table.findall(txn_tag):
+            code = _find_text(txn, "transactionCoding/transactionCode")
+            if not code:
+                continue
+            shares = _find_float(txn, "transactionAmounts/transactionShares/value")
+            price = _find_float(txn, "transactionAmounts/transactionPricePerShare/value")
+            value = shares * price if (shares is not None and price is not None) else None
+            transactions.append({
+                "code": code, "shares": shares, "price": price, "value": value,
+                "meaning": _FORM4_CODE_MEANINGS.get(code, code),
+            })
+
+    return {"owner": owner, "owner_title": owner_title, "period": period, "transactions": transactions}
+
+
+def fetch_form4_transactions(ticker: str, lookback_days: int = 120, max_filings: int = 12) -> dict:
+    """
+    Fetch and parse the individual Form 4 filings the submissions feed only
+    counts — turning "N filings, direction unknown" into an actual net
+    open-market buy/sell tally. This is the authoritative insider signal
+    swing_model/positioning_layer.py's _score_insider prefers over yfinance's
+    frequently-empty insider_transactions feed (see that function's docstring).
+
+    Fetches at most `max_filings` of the most recent Form 4s in the window (2
+    HTTP calls each — one for the raw XML, both paced by the SEC rate
+    limiter). Returns:
+      {"filings_seen": int, "filings_parsed": int,
+       "open_market_buys": int, "open_market_sells": int,
+       "buy_value": float, "sell_value": float, "net_value": float|None,
+       "other_activity": {code: count},          # grants, exercises, tax, gifts
+       "recent": [{owner, title, date, code, meaning, shares, value}, ...],
+       "read": "net buying" | "net selling" | "grants / exercises only"
+               | "balanced" | "no usable insider data"}
+    Never raises — a degraded/empty result on any failure.
+    """
+    out = {
+        "filings_seen": 0, "filings_parsed": 0,
+        "open_market_buys": 0, "open_market_sells": 0,
+        "buy_value": 0.0, "sell_value": 0.0, "net_value": None,
+        "other_activity": {}, "recent": [], "read": "no usable insider data",
+    }
+    try:
+        owned = fetch_recent_ownership_filings(ticker, lookback_days=lookback_days)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[sec_edgar] {ticker}: ownership filings for Form 4 parse failed — {exc}")
+        return out
+
+    cik = owned.get("cik")
+    form4s = owned.get("insider_form4") or []
+    out["filings_seen"] = len(form4s)
+    if not cik or not form4s:
+        return out
+
+    buy_val = sell_val = 0.0
+    for row in form4s[:max_filings]:
+        url = _form4_xml_url(cik, row.get("accessionNumber"), row.get("primaryDocument"))
+        if not url:
+            continue
+        xml_text = _get_text(url)
+        if not xml_text:
+            continue
+        parsed = _parse_form4_xml(xml_text)
+        if not parsed:
+            continue
+        out["filings_parsed"] += 1
+        for txn in parsed["transactions"]:
+            code = txn.get("code")
+            if code == "P":
+                out["open_market_buys"] += 1
+                buy_val += txn.get("value") or 0.0
+            elif code == "S":
+                out["open_market_sells"] += 1
+                sell_val += txn.get("value") or 0.0
+            else:
+                out["other_activity"][code] = out["other_activity"].get(code, 0) + 1
+            if code in _FORM4_SIGNAL_CODES and len(out["recent"]) < 8:
+                out["recent"].append({
+                    "owner": parsed.get("owner"),
+                    "title": parsed.get("owner_title"),
+                    "date": parsed.get("period") or row.get("filingDate"),
+                    "code": code,
+                    "meaning": txn.get("meaning"),
+                    "shares": txn.get("shares"),
+                    "value": txn.get("value"),
+                })
+
+    out["buy_value"] = round(buy_val, 2)
+    out["sell_value"] = round(sell_val, 2)
+    signal_txns = out["open_market_buys"] + out["open_market_sells"]
+    if signal_txns:
+        out["net_value"] = round(buy_val - sell_val, 2)
+        if buy_val > sell_val:
+            out["read"] = "net buying"
+        elif sell_val > buy_val:
+            out["read"] = "net selling"
+        else:
+            out["read"] = "balanced"
+    elif out["filings_parsed"]:
+        out["read"] = "grants / exercises only"
     return out
 
 

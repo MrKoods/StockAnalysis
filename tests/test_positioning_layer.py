@@ -199,14 +199,10 @@ class TestInsiderScoreForm4Authoritative:
     to a parsed SEC Form 4 signal at all. `_score_insider` now accepts
     `form4_parsed` (the shape sec_edgar_client.fetch_form4_transactions
     returns) and treats it as authoritative whenever it carries a real
-    open-market signal. NOTE: as of this fix, nothing in this repo's
-    indicator_pipeline.py actually populates `insider_form4_parsed` yet —
-    sec_edgar_client.py has no fetch_form4_transactions here (V1 lacks the
-    Form 4 XML-parsing infrastructure V3 briefly had) — so today `form4_parsed`
-    is always None in production and every call falls through to the
-    unchanged yfinance-based path below. These tests cover the scoring
-    function's own correctness given that data, ready for whenever the
-    fetch side is built.
+    open-market signal, with sec_edgar_client.fetch_form4_transactions now
+    wired into indicator_pipeline.py's daily positioning fetch (see
+    test_indicator_pipeline_positioning_refresh.py's TestInsiderForm4Wiring)
+    — this is live, not just scoring-logic-correct-but-inert.
     """
 
     def _form4(self, buys=0, sells=0, buy_value=0.0, sell_value=0.0, recent=None):

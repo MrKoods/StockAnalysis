@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.124 | 2026-09-06 | Feature | Closes the 4th bug from v2.2.123: the insider-trading score can now actually see real insider trades. Previously the only insider-activity feed the model read (via a third-party library) was frequently empty even when insiders were actively trading — the model would show "no signal" when a real, itemized SEC filing said otherwise. This adds a direct reader for that SEC filing type (Form 4), turning "43 filings, direction unknown" into an actual count of real buy/sell dollar amounts. Verified against a real, already-public filing: parsed 44 sales worth $45,045,752.81 with zero purchases — an exact match to the real-world figures. No effect on any other score; this only feeds the one sub-signal that was previously blind |
 | v2.2.123 | 2026-09-06 | Bug Fix | Three bugs in shared scoring/data code, found while reviewing a V3 (separate research-report product) briefing that narrates the same numbers this model scores on. (1) A stock's valuation-vs-peers comparison sometimes averaged a stock against itself, making it look exactly "in line with peers" by construction — happens whenever exactly one ticker is scored at a time, e.g. `paper_updater.py` rescoring one open trade after close. (2) Forward P/E came from two vendors that can disagree 40%+, with a broken fallback that meant the second vendor was never actually consulted — the better-supported vendor is now preferred and a large disagreement is flagged instead of silently picked. (3) A pre-market options-chain fetch (before market makers post real bid/ask) was being cached as a full trading day's data, so options info could read empty all day even though real quotes existed once the market opened — it now retries once trading opens. A fourth bug (the insider-trading sub-score never actually using the one real, itemized SEC filing feed for it) is fixed at the scoring-logic level but isn't live yet — it needs a new SEC-filing-parsing step this fix doesn't build (tracked separately) |
 | v2.2.122 | 2026-09-02 | Bug Fix | Fixes a CI failure from the v2.2.121 push. Two tests built a fake news article dated one specific fixed day and never updated it — harmless while that date was recent, but the model treats news older than 5 days as fully expired, so as real calendar days ticked by, the fake article aged past that cutoff and the tests started failing on their own, with no real code problem. The fake article's date now floats relative to "today" instead of being frozen, so this can't happen again |
 | v2.2.121 | 2026-09-02 | Bug Fix | Follow-up to v2.2.120's fix — this closes the harder half of the same problem. A sector-wide critical-event warning fires on a keyword match alone ("patient death," "product recall," etc.), with no check for whether the headline is even about a company this sector actually trades. Now, for warnings that describe one company's own event (not a broad policy/macro story like a tariff, which legitimately applies sector-wide with no company named), the system checks whether the headline actually names a company on that sector's watchlist before treating it as sector-critical. The exact case from yesterday — a headline about Novartis, a stock not even tracked here — no longer triggers a healthcare-wide warning |
@@ -203,6 +204,44 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.124] — 2026-09-06 — [Feature] Real SEC Form 4 parsing — closes the insider-score bug for real
+
+**Status:** Live. No scoring weights or thresholds changed — this feeds real data into an
+existing sub-signal that was previously always neutral in practice. 1759 tests pass (12 new);
+ruff and all guardrail checkers pass.
+
+**Context.** v2.2.123 fixed `_score_insider`'s logic (it now treats parsed SEC Form 4 data as
+authoritative over yfinance's near-always-empty feed) but left it inert — nothing in this
+codebase actually fetched or parsed Form 4 filings. This builds that fetch for real.
+
+**What it does.** `sec_edgar_client.fetch_form4_transactions(ticker)` pulls a ticker's recent
+Form 4 filings (via the existing `fetch_recent_ownership_filings`), fetches each one's raw XML,
+and parses every reported transaction into an open-market buy/sell tally with real dollar values
+— distinguishing genuine open-market trades (codes P/S) from grants, option exercises, tax
+withholding, and gifts (codes A/M/F/G/...), which are tracked separately and never counted as
+buy/sell activity. Wired into `indicator_pipeline.py`'s daily positioning fetch, so
+`positioning_layer._score_insider` now sees it automatically.
+
+**A real gotcha found along the way.** SEC's submissions feed reports each Form 4's
+`primaryDocument` as the path to an XSL-rendered *HTML* view (e.g.
+`xslF345X06/wk-form4_123.xml`) — despite the `.xml` extension, fetching that path directly
+returns rendered HTML, not machine-readable XML (confirmed live). The actual XML sits as a
+sibling file in the same accession folder under the same basename, one directory up. Verified
+against a real, already-public AMD filing (CIK 2488, accession 0001452385-26-000008) before
+writing the parser, and again end-to-end afterward: **44 open-market sales, $45,045,752.81, 0
+buys, sole seller "Hu Jean X., EVP, CFO and Treasurer"** — an exact match to the real-world
+numbers, not just a plausible-looking result.
+
+**Fix.** Added `_form4_xml_url()` (strips the XSL-render path down to the raw XML sibling),
+`_parse_form4_xml()` (extracts owner/title/period and every transaction — code, shares, price,
+computed dollar value — from both `nonDerivativeTable` and `derivativeTable`, which share the
+same transaction shape), and `fetch_form4_transactions()` (orchestrates the fetch + parse +
+aggregate, capped at 12 most-recent filings). `fetch_recent_ownership_filings` now also returns
+`cik` and each filing's `primaryDocument` (both silently missing before — the first meant the
+new function couldn't even build a fetch URL until fixed).
 
 ---
 

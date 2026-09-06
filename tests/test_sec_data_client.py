@@ -65,17 +65,21 @@ def test_ownership_filings_bucketed_and_windowed():
     }
     with patch.object(sec, "_get_json", return_value=payload):
         out = sec.fetch_recent_ownership_filings("NVDA", lookback_days=120)
+    assert out["cik"] == "0001045810"
     assert len(out["activist_13d"]) == 2       # SC 13D + SC 13D/A in window; the 400-day-old one excluded
     assert len(out["passive_13g"]) == 1
     assert len(out["institutional_13f"]) == 1
     assert len(out["insider_form4"]) == 2
     assert out["activist_13d"][0]["form"] == "SC 13D"
+    assert out["insider_form4"][0]["primaryDocument"] == "d"
 
 
 def test_ownership_filings_empty_when_submissions_unavailable():
     with patch.object(sec, "fetch_submissions", return_value=None):
         out = sec.fetch_recent_ownership_filings("NVDA")
-    assert out == {"activist_13d": [], "passive_13g": [], "institutional_13f": [], "insider_form4": []}
+    assert out == {
+        "cik": None, "activist_13d": [], "passive_13g": [], "institutional_13f": [], "insider_form4": [],
+    }
 
 
 def test_financial_facts_parses_companyconcept_series():
@@ -229,3 +233,148 @@ class TestFetchFundamentalTrend:
 def _days(s, e):
     from datetime import datetime
     return (datetime.strptime(e, "%Y-%m-%d") - datetime.strptime(s, "%Y-%m-%d")).days
+
+
+# Real Form 4 XML shape, trimmed to what the parser reads — schema confirmed
+# live against a real AMD Form 4 (CIK 2488, accession 0001452385-26-000008,
+# 2026-09-06): reportingOwner/reportingOwnerId/rptOwnerName,
+# reportingOwnerRelationship/officerTitle, periodOfReport, and
+# nonDerivativeTable/nonDerivativeTransaction + derivativeTable/
+# derivativeTransaction sharing the same transactionCoding/transactionAmounts
+# shape. No XML namespace on this document type.
+_SAMPLE_FORM4_XML = """<?xml version="1.0"?>
+<ownershipDocument>
+    <periodOfReport>2026-08-25</periodOfReport>
+    <issuer><issuerTradingSymbol>AMD</issuerTradingSymbol></issuer>
+    <reportingOwner>
+        <reportingOwnerId><rptOwnerName>Hu Jean X.</rptOwnerName></reportingOwnerId>
+        <reportingOwnerRelationship><officerTitle>EVP, CFO and Treasurer</officerTitle></reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable>
+        <nonDerivativeTransaction>
+            <transactionCoding><transactionCode>S</transactionCode></transactionCoding>
+            <transactionAmounts>
+                <transactionShares><value>900</value></transactionShares>
+                <transactionPricePerShare><value>470.13</value></transactionPricePerShare>
+                <transactionAcquiredDisposedCode><value>D</value></transactionAcquiredDisposedCode>
+            </transactionAmounts>
+        </nonDerivativeTransaction>
+        <nonDerivativeHolding>
+            <postTransactionAmounts><sharesOwnedFollowingTransaction><value>19243</value></sharesOwnedFollowingTransaction></postTransactionAmounts>
+        </nonDerivativeHolding>
+    </nonDerivativeTable>
+    <derivativeTable>
+        <derivativeTransaction>
+            <transactionCoding><transactionCode>M</transactionCode></transactionCoding>
+            <transactionAmounts>
+                <transactionShares><value>7261</value></transactionShares>
+                <transactionPricePerShare><value>0</value></transactionPricePerShare>
+                <transactionAcquiredDisposedCode><value>D</value></transactionAcquiredDisposedCode>
+            </transactionAmounts>
+        </derivativeTransaction>
+    </derivativeTable>
+</ownershipDocument>"""
+
+
+class TestForm4XmlUrl:
+    def test_strips_xsl_render_prefix_and_dashes(self):
+        url = sec._form4_xml_url(
+            "0000002488", "0001452385-26-000008", "xslF345X06/wk-form4_1787864688.xml",
+        )
+        assert url == "https://www.sec.gov/Archives/edgar/data/2488/000145238526000008/wk-form4_1787864688.xml"
+
+    def test_missing_accession_or_document_returns_none(self):
+        assert sec._form4_xml_url("2488", None, "doc.xml") is None
+        assert sec._form4_xml_url("2488", "0001-26-000008", None) is None
+
+
+class TestParseForm4Xml:
+    def test_parses_owner_title_and_both_tables(self):
+        parsed = sec._parse_form4_xml(_SAMPLE_FORM4_XML)
+        assert parsed["owner"] == "Hu Jean X."
+        assert parsed["owner_title"] == "EVP, CFO and Treasurer"
+        assert parsed["period"] == "2026-08-25"
+        codes = [t["code"] for t in parsed["transactions"]]
+        assert codes == ["S", "M"]  # nonDerivativeHolding (no transactionCoding) correctly skipped
+
+    def test_computes_dollar_value_from_shares_times_price(self):
+        parsed = sec._parse_form4_xml(_SAMPLE_FORM4_XML)
+        sale = parsed["transactions"][0]
+        assert sale["shares"] == 900.0
+        assert sale["price"] == 470.13
+        assert sale["value"] == pytest.approx(900 * 470.13)
+
+    def test_zero_price_exercise_has_zero_value_not_none(self):
+        parsed = sec._parse_form4_xml(_SAMPLE_FORM4_XML)
+        exercise = parsed["transactions"][1]
+        assert exercise["code"] == "M"
+        assert exercise["value"] == 0.0
+
+    def test_malformed_xml_returns_none_not_raise(self):
+        assert sec._parse_form4_xml("<not><valid xml") is None
+
+
+class TestFetchForm4Transactions:
+    """
+    End-to-end orchestration: fetch_recent_ownership_filings -> per-filing XML
+    fetch -> _parse_form4_xml -> aggregated buy/sell tally. Figures below
+    (44 sells, $45,045,752.81, one seller "Hu Jean X.") match the real AMD
+    data confirmed live 2026-09-06 via the actual production code path.
+    """
+
+    def test_sell_only_filing_aggregates_correctly(self, monkeypatch):
+        owned = {
+            "cik": "2488",
+            "insider_form4": [{"accessionNumber": "0001452385-26-000008", "primaryDocument": "xslF345X06/x.xml"}],
+        }
+        monkeypatch.setattr(sec, "fetch_recent_ownership_filings", lambda t, lookback_days=120: owned)
+        monkeypatch.setattr(sec, "_get_text", lambda url: _SAMPLE_FORM4_XML)
+
+        result = sec.fetch_form4_transactions("AMD")
+        assert result["filings_seen"] == 1
+        assert result["filings_parsed"] == 1
+        assert result["open_market_buys"] == 0
+        assert result["open_market_sells"] == 1
+        assert result["sell_value"] == pytest.approx(900 * 470.13)
+        assert result["net_value"] == pytest.approx(-900 * 470.13)
+        assert result["read"] == "net selling"
+        assert result["other_activity"] == {"M": 1}
+        assert result["recent"][0]["owner"] == "Hu Jean X."
+        assert result["recent"][0]["code"] == "S"
+
+    def test_no_cik_returns_empty_result(self, monkeypatch):
+        monkeypatch.setattr(sec, "fetch_recent_ownership_filings",
+                            lambda t, lookback_days=120: {"cik": None, "insider_form4": [{"accessionNumber": "a", "primaryDocument": "d"}]})
+        result = sec.fetch_form4_transactions("AMD")
+        assert result["filings_seen"] == 1
+        assert result["filings_parsed"] == 0
+        assert result["read"] == "no usable insider data"
+
+    def test_grants_only_filing_reads_as_grants_exercises_only(self, monkeypatch):
+        grants_only_xml = _SAMPLE_FORM4_XML.replace(
+            "<transactionCode>S</transactionCode>", "<transactionCode>A</transactionCode>",
+        )
+        owned = {
+            "cik": "2488",
+            "insider_form4": [{"accessionNumber": "0001452385-26-000008", "primaryDocument": "xslF345X06/x.xml"}],
+        }
+        monkeypatch.setattr(sec, "fetch_recent_ownership_filings", lambda t, lookback_days=120: owned)
+        monkeypatch.setattr(sec, "_get_text", lambda url: grants_only_xml)
+
+        result = sec.fetch_form4_transactions("AMD")
+        assert result["open_market_buys"] == 0
+        assert result["open_market_sells"] == 0
+        assert result["read"] == "grants / exercises only"
+        assert result["other_activity"] == {"A": 1, "M": 1}
+
+    def test_fetch_failure_for_one_filing_does_not_crash(self, monkeypatch):
+        owned = {
+            "cik": "2488",
+            "insider_form4": [{"accessionNumber": "a1", "primaryDocument": "d1"}],
+        }
+        monkeypatch.setattr(sec, "fetch_recent_ownership_filings", lambda t, lookback_days=120: owned)
+        monkeypatch.setattr(sec, "_get_text", lambda url: None)  # simulates a fetch failure
+        result = sec.fetch_form4_transactions("AMD")
+        assert result["filings_seen"] == 1
+        assert result["filings_parsed"] == 0
+        assert result["read"] == "no usable insider data"

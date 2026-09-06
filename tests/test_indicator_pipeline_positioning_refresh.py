@@ -22,6 +22,14 @@ def _isolate_state_file(tmp_path, monkeypatch):
     monkeypatch.setattr(ip, "_POSITIONING_STATE_PATH", tmp_path / "positioning_state.json")
 
 
+@pytest.fixture(autouse=True)
+def _stub_form4(monkeypatch):
+    # fetch_positioning_data now also pulls the SEC Form 4 parse (see
+    # TestInsiderForm4Wiring below) — stub it to an empty result by default so
+    # the rest of this suite doesn't make a real network call per test.
+    monkeypatch.setattr(ip, "fetch_form4_transactions", lambda ticker: {})
+
+
 @contextlib.contextmanager
 def _frozen_now(dt):
     """Same technique as test_indicator_pipeline_fundamental_refresh.py's
@@ -158,3 +166,29 @@ class TestPremarketOptionsCacheRetry:
             with _frozen_now(datetime(2026, 7, 20, 10, 0)):
                 state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
         assert state["fetched_dates"]["NVDA"] == "2026-07-20"
+
+
+class TestInsiderForm4Wiring:
+    """
+    fetch_positioning_data must attach the SEC Form 4 parse alongside the rest
+    of a ticker's positioning snapshot so positioning_layer._score_insider can
+    use it as the authoritative insider signal (see test_positioning_layer.py's
+    TestInsiderScoreForm4Authoritative for the scoring side of this fix).
+    """
+
+    def test_form4_parse_attached_to_ticker_snapshot(self, monkeypatch):
+        fake_form4 = {"open_market_buys": 0, "open_market_sells": 44, "recent": []}
+        monkeypatch.setattr(ip, "fetch_form4_transactions", lambda ticker: fake_form4)
+        with patch.object(ip, "fetch_all_positioning", side_effect=_fake_positioning(0.30)):
+            with _frozen_now(datetime(2026, 7, 20, 10, 0)):
+                state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+        assert state["tickers"]["NVDA"]["insider_form4_parsed"] == fake_form4
+
+    def test_form4_fetch_failure_degrades_to_empty_dict(self, monkeypatch):
+        def _raise(ticker):
+            raise RuntimeError("SEC EDGAR unavailable")
+        monkeypatch.setattr(ip, "fetch_form4_transactions", _raise)
+        with patch.object(ip, "fetch_all_positioning", side_effect=_fake_positioning(0.30)):
+            with _frozen_now(datetime(2026, 7, 20, 10, 0)):
+                state = ip.fetch_positioning_data(["NVDA"], {"NVDA": 100.0})
+        assert state["tickers"]["NVDA"]["insider_form4_parsed"] == {}

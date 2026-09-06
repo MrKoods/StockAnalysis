@@ -32,6 +32,7 @@ from shared.api_clients.positioning_client import (
     fetch_all_positioning, compute_iv_percentile,
     compute_put_call_ratio_percentile, compute_iv_skew_percentile,
 )
+from shared.api_clients.sec_edgar_client import fetch_form4_transactions
 from swing_model.positioning_layer import compute_positioning_score
 from shared.utils.data_validator import validate_ohlcv, validate_positioning_data
 
@@ -597,6 +598,16 @@ def fetch_positioning_data(tickers: list[str], current_prices: dict, cfg: Option
                     iv_skew_history, ticker, options.get("iv_skew"), compute_iv_skew_percentile,
                     "iv_skew_percentile_data_quality",
                 ))
+            # SEC Form 4 parse — authoritative insider signal (see
+            # positioning_layer._score_insider), fetched here so the daily
+            # cache carries it alongside the rest of positioning data instead
+            # of every downstream consumer re-fetching it independently.
+            try:
+                fresh["insider_form4_parsed"] = fetch_form4_transactions(ticker)
+            except Exception as exc:
+                logger.warning(f"{ticker}: Form 4 transaction parse failed — {exc}")
+                fresh["insider_form4_parsed"] = {}
+
             state["tickers"][ticker] = fresh
             if options.get("quote_status") == "premarket_no_quotes":
                 # Don't let a pre-market snapshot (zero quotable option
