@@ -44,6 +44,7 @@ TTL = {
     "av_news_sentiment":  4 * _H,
     "stocktwits":         2 * _H,
     "sec_submissions":    20 * _H,
+    "sec_form4_xml":      30 * 24 * _H,   # an individual filing's XML never changes once filed
     "sec_companyfacts":   7 * 24 * _H,
     "sec_cik_map":        30 * 24 * _H,
     "fundamental_overview": 10 * 24 * _H,

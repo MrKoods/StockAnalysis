@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.125 | 2026-09-07 | Infrastructure | Follow-up cleanup on v2.2.124's new insider-filing reader, from a quick API check. (1) It was re-downloading the same SEC filings every morning even though their contents never change — those documents are now saved and reused for 30 days, cutting hundreds of needless downloads per day. (2) It guessed one filing-document web address and silently got a web page instead of data when the guess was wrong — now it looks up the real address if the guess fails. (3) It only recorded the first insider named on a filing and often showed a blank job title — now it keeps all names and falls back to a role label like "Director". Also restored a missing setting that tells the SEC who is making the requests (it had been sending a placeholder). No effect on any score |
 | v2.2.124 | 2026-09-06 | Feature | Closes the 4th bug from v2.2.123: the insider-trading score can now actually see real insider trades. Previously the only insider-activity feed the model read (via a third-party library) was frequently empty even when insiders were actively trading — the model would show "no signal" when a real, itemized SEC filing said otherwise. This adds a direct reader for that SEC filing type (Form 4), turning "43 filings, direction unknown" into an actual count of real buy/sell dollar amounts. Verified against a real, already-public filing: parsed 44 sales worth $45,045,752.81 with zero purchases — an exact match to the real-world figures. No effect on any other score; this only feeds the one sub-signal that was previously blind |
 | v2.2.123 | 2026-09-06 | Bug Fix | Three bugs in shared scoring/data code, found while reviewing a V3 (separate research-report product) briefing that narrates the same numbers this model scores on. (1) A stock's valuation-vs-peers comparison sometimes averaged a stock against itself, making it look exactly "in line with peers" by construction — happens whenever exactly one ticker is scored at a time, e.g. `paper_updater.py` rescoring one open trade after close. (2) Forward P/E came from two vendors that can disagree 40%+, with a broken fallback that meant the second vendor was never actually consulted — the better-supported vendor is now preferred and a large disagreement is flagged instead of silently picked. (3) A pre-market options-chain fetch (before market makers post real bid/ask) was being cached as a full trading day's data, so options info could read empty all day even though real quotes existed once the market opened — it now retries once trading opens. A fourth bug (the insider-trading sub-score never actually using the one real, itemized SEC filing feed for it) is fixed at the scoring-logic level but isn't live yet — it needs a new SEC-filing-parsing step this fix doesn't build (tracked separately) |
 | v2.2.122 | 2026-09-02 | Bug Fix | Fixes a CI failure from the v2.2.121 push. Two tests built a fake news article dated one specific fixed day and never updated it — harmless while that date was recent, but the model treats news older than 5 days as fully expired, so as real calendar days ticked by, the fake article aged past that cutoff and the tests started failing on their own, with no real code problem. The fake article's date now floats relative to "today" instead of being frozen, so this can't happen again |
@@ -204,6 +205,43 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.125] — 2026-09-07 — [Infrastructure] Cache Form 4 filings, harden the fetch, restore the SEC contact
+
+**Status:** Live. No scoring weights or thresholds changed — this is a performance +
+robustness follow-up to v2.2.124. All existing behaviour is preserved; the parser only *adds*
+fields. Tests pass; ruff and all guardrail checkers pass.
+
+**Context.** A quick API audit of v2.2.124's new Form 4 reader turned up three things worth
+tightening now that it's live.
+
+**Fix 1 — stop re-downloading immutable filings.** `fetch_form4_transactions` fetched up to 12
+raw Form 4 XML documents per ticker every time the daily positioning refresh ran — i.e. the
+first scan of every day pulled hundreds of SEC documents whose contents never change once
+filed, and the same filings stay inside the 120-day window for months. The XML body is now
+cached on disk for 30 days, keyed by accession number (globally unique). The submissions list
+around it was already cached; this caches the documents themselves.
+
+**Fix 2 — don't guess the XML URL blindly.** v2.2.124 derived the raw-XML path by stripping the
+`xslF345X06/` render prefix off `primaryDocument` and assuming the basename matched. When it
+doesn't, the fetch silently returned the XSL-rendered HTML page instead. There's now a fallback:
+if the guessed path doesn't return real `<ownershipDocument>` XML, ask that accession's
+`index.json` for the actual document name and fetch that instead.
+
+**Fix 3 — parser gaps.** `_parse_form4_xml` read only the first `reportingOwner` on a filing
+(some Form 4s report several insiders together) and only filled `owner_title` from
+`officerTitle` (directors and 10%-holders routinely leave that blank, surfacing as a `None`
+title in the narrative rows). It now returns an `owners` list alongside the unchanged primary
+`owner` field, and falls back to a role label ("Director", "10% owner", "Officer") from the
+relationship flags. Scoring never reads the title and still builds its distinct-trader sets
+from the single `owner` field, so this is narrative-only.
+
+**Also — restored `SEC_EDGAR_USER_AGENT`.** The `.env` value SEC's fair-access policy asks for
+had gone missing, so every SEC request was going out under a placeholder identifier with a fake
+contact address. Put back with a real contact string. (`.env` is gitignored — this is a local
+config fix, not a code change.)
 
 ---
 

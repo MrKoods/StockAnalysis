@@ -313,6 +313,67 @@ class TestParseForm4Xml:
     def test_malformed_xml_returns_none_not_raise(self):
         assert sec._parse_form4_xml("<not><valid xml") is None
 
+    def test_multiple_reporting_owners_kept_as_list_owner_is_first(self):
+        xml = _SAMPLE_FORM4_XML.replace(
+            "</reportingOwner>",
+            "</reportingOwner>\n    <reportingOwner>"
+            "<reportingOwnerId><rptOwnerName>Su Lisa T.</rptOwnerName></reportingOwnerId>"
+            "<reportingOwnerRelationship><officerTitle>CEO</officerTitle></reportingOwnerRelationship>"
+            "</reportingOwner>",
+            1,
+        )
+        parsed = sec._parse_form4_xml(xml)
+        assert parsed["owner"] == "Hu Jean X."  # unchanged — scoring builds sets from this
+        assert parsed["owners"] == ["Hu Jean X.", "Su Lisa T."]
+
+    def test_director_with_no_officer_title_gets_role_label(self):
+        xml = _SAMPLE_FORM4_XML.replace(
+            "<reportingOwnerRelationship><officerTitle>EVP, CFO and Treasurer</officerTitle></reportingOwnerRelationship>",
+            "<reportingOwnerRelationship><isDirector>1</isDirector><isTenPercentOwner>true</isTenPercentOwner></reportingOwnerRelationship>",
+        )
+        parsed = sec._parse_form4_xml(xml)
+        assert parsed["owner_title"] == "Director, 10% owner"
+
+
+class TestForm4XmlFetchFallbackAndCache:
+    _INDEX_JSON = (
+        '{"directory": {"item": ['
+        '{"name": "xslF345X06/wf-form4.xml"}, '
+        '{"name": "wf-form4_real.xml"}, '
+        '{"name": "0001452385-26-000008-index.htm"}]}}'
+    )
+
+    def test_falls_back_to_accession_index_when_guessed_path_serves_html(self, monkeypatch):
+        calls = []
+
+        def fake_get_text(url):
+            calls.append(url)
+            if url.endswith("/index.json"):
+                return self._INDEX_JSON
+            if url.endswith("wf-form4_real.xml"):
+                return _SAMPLE_FORM4_XML
+            return "<html>XSL-rendered viewer, not the raw XML</html>"
+
+        monkeypatch.setattr(sec, "_get_text", fake_get_text)
+        text = sec._form4_xml_text("2488", {"accessionNumber": "0001452385-26-000008",
+                                            "primaryDocument": "xslF345X06/wf-form4.xml"})
+        assert "<ownershipDocument" in text
+        assert any(u.endswith("/index.json") for u in calls)
+
+    def test_fetch_form4_caches_xml_body_across_calls(self, monkeypatch):
+        owned = {
+            "cik": "2488",
+            "insider_form4": [{"accessionNumber": "0001452385-26-000008", "primaryDocument": "xslF345X06/x.xml"}],
+        }
+        monkeypatch.setattr(sec, "fetch_recent_ownership_filings", lambda t, lookback_days=120: owned)
+        hits = []
+        monkeypatch.setattr(sec, "_get_text", lambda url: hits.append(url) or _SAMPLE_FORM4_XML)
+
+        first = sec.fetch_form4_transactions("AMD")
+        second = sec.fetch_form4_transactions("AMD")
+        assert first == second
+        assert len(hits) == 1  # second call served from cache, no re-fetch
+
 
 class TestFetchForm4Transactions:
     """

@@ -653,6 +653,54 @@ def _form4_xml_url(cik: str, accession_number: Optional[str], primary_document: 
     return f"https://www.sec.gov/Archives/edgar/data/{cik_clean}/{accn_clean}/{doc_name}"
 
 
+def _accession_dir_url(cik: str, accession_number: str) -> str:
+    try:
+        cik_clean = str(int(cik))
+    except (TypeError, ValueError):
+        cik_clean = str(cik).lstrip("0") or "0"
+    return f"https://www.sec.gov/Archives/edgar/data/{cik_clean}/{accession_number.replace('-', '')}"
+
+
+def _form4_index_xml(cik: str, accession_number: Optional[str]) -> Optional[str]:
+    """
+    Fallback when the guessed sibling path (`_form4_xml_url`) doesn't serve the
+    machine-readable XML — ask the accession's index.json for the real document
+    name instead of assuming it matches `primaryDocument`'s basename. The XSL
+    viewer copies live under an `xsl*` subdirectory and so never appear in the
+    top-level item list; the raw ownership XML is the lone top-level `.xml`.
+    Routed through `_get_text` (not `_get_json`) so the same fetch stub covers it.
+    """
+    if not accession_number:
+        return None
+    base = _accession_dir_url(cik, accession_number)
+    raw = _get_text(f"{base}/index.json")
+    if not raw:
+        return None
+    try:
+        import json
+        items = (json.loads(raw).get("directory") or {}).get("item") or []
+    except ValueError:
+        return None
+    for item in items:
+        name = str(item.get("name", ""))
+        if name.lower().endswith(".xml") and not name.lower().startswith("xsl"):
+            text = _get_text(f"{base}/{name}")
+            if text and "<ownershipDocument" in text:
+                return text
+    return None
+
+
+def _form4_xml_text(cik: str, row: dict) -> Optional[str]:
+    """Fetch one Form 4's raw <ownershipDocument> XML: try the guessed sibling
+    path first, fall back to the accession index. Returns None on failure."""
+    url = _form4_xml_url(cik, row.get("accessionNumber"), row.get("primaryDocument"))
+    if url:
+        text = _get_text(url)
+        if text and "<ownershipDocument" in text:
+            return text
+    return _form4_index_xml(cik, row.get("accessionNumber"))
+
+
 def _find_text(elem: ET.Element, path: str) -> Optional[str]:
     node = elem.find(path)
     if node is None or node.text is None:
@@ -671,16 +719,39 @@ def _find_float(elem: ET.Element, path: str) -> Optional[float]:
         return None
 
 
+def _relationship_title(rel: Optional[ET.Element]) -> Optional[str]:
+    """A role label for an insider who filed with no explicit officerTitle —
+    Form 4s from directors and 10% holders very often leave officerTitle blank,
+    which used to surface as `owner_title=None` in the narrative rows. Reads the
+    boolean relationship flags instead. Narrative/logging only; scoring never
+    reads the title."""
+    if rel is None:
+        return None
+    truthy = {"1", "true"}
+    roles = []
+    if (_find_text(rel, "isDirector") or "").lower() in truthy:
+        roles.append("Director")
+    if (_find_text(rel, "isOfficer") or "").lower() in truthy:
+        roles.append("Officer")
+    if (_find_text(rel, "isTenPercentOwner") or "").lower() in truthy:
+        roles.append("10% owner")
+    return ", ".join(roles) or None
+
+
 def _parse_form4_xml(xml_text: str) -> Optional[dict]:
     """
     Parse one Form 4's raw <ownershipDocument> XML into
-    {owner, owner_title, period, transactions: [{code, shares, price, value,
-    meaning}, ...]}. Covers both nonDerivativeTable and derivativeTable —
-    schema is confirmed identical for the transactionCoding/transactionAmounts
-    blocks in both (verified live: a real option-exercise "M" transaction
-    lives in derivativeTable with the same shape). No XML namespace is used
-    by this document type (unlike the Atom feeds elsewhere in this module).
-    Returns None on any parse failure — never raises.
+    {owner, owners, owner_title, period, transactions: [{code, shares, price,
+    value, meaning}, ...]}. `owner` is the primary (first) reporting owner —
+    kept as a single name because positioning_layer._score_insider builds its
+    distinct-trader sets from it; `owners` is the full list for filings where
+    several insiders report together. Covers both nonDerivativeTable and
+    derivativeTable — schema is confirmed identical for the
+    transactionCoding/transactionAmounts blocks in both (verified live: a real
+    option-exercise "M" transaction lives in derivativeTable with the same
+    shape). No XML namespace is used by this document type (unlike the Atom
+    feeds elsewhere in this module). Returns None on any parse failure — never
+    raises.
     """
     try:
         root = ET.fromstring(xml_text)
@@ -688,8 +759,17 @@ def _parse_form4_xml(xml_text: str) -> Optional[dict]:
         logger.warning(f"[sec_edgar] Form 4 XML parse failed — {exc}")
         return None
 
-    owner = _find_text(root, ".//reportingOwner/reportingOwnerId/rptOwnerName")
-    owner_title = _find_text(root, ".//reportingOwner/reportingOwnerRelationship/officerTitle")
+    owners = [
+        n for n in (
+            _find_text(o, "reportingOwnerId/rptOwnerName")
+            for o in root.findall(".//reportingOwner")
+        ) if n
+    ]
+    owner = owners[0] if owners else None
+    owner_title = (
+        _find_text(root, ".//reportingOwner/reportingOwnerRelationship/officerTitle")
+        or _relationship_title(root.find(".//reportingOwner/reportingOwnerRelationship"))
+    )
     period = _find_text(root, "periodOfReport")
 
     transactions = []
@@ -712,7 +792,10 @@ def _parse_form4_xml(xml_text: str) -> Optional[dict]:
                 "meaning": _FORM4_CODE_MEANINGS.get(code, code),
             })
 
-    return {"owner": owner, "owner_title": owner_title, "period": period, "transactions": transactions}
+    return {
+        "owner": owner, "owners": owners, "owner_title": owner_title,
+        "period": period, "transactions": transactions,
+    }
 
 
 def fetch_form4_transactions(ticker: str, lookback_days: int = 120, max_filings: int = 12) -> dict:
@@ -755,10 +838,18 @@ def fetch_form4_transactions(ticker: str, lookback_days: int = 120, max_filings:
 
     buy_val = sell_val = 0.0
     for row in form4s[:max_filings]:
-        url = _form4_xml_url(cik, row.get("accessionNumber"), row.get("primaryDocument"))
-        if not url:
+        accn = (row.get("accessionNumber") or "").replace("-", "")
+        if not accn:
             continue
-        xml_text = _get_text(url)
+        # An accession's Form 4 XML is immutable once filed and the same filing
+        # stays inside the 120-day window for months — so cache the document
+        # body itself (30d), not just the submissions list around it. Without
+        # this, the first scan of every day re-fetched up to `max_filings` XML
+        # docs per ticker (~hundreds of SEC calls) for bytes that never change.
+        xml_text = cache.cached_call(
+            "sec_form4_xml", accn, cache.TTL["sec_form4_xml"],
+            lambda r=row: _form4_xml_text(cik, r),
+        )
         if not xml_text:
             continue
         parsed = _parse_form4_xml(xml_text)
