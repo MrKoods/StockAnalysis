@@ -26,3 +26,22 @@ timestamp_utc,ticker,failure_type,detail
 2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_1.51
 2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_100.43
 2026-08-26T23:23:19.761822+00:00,TEST,positioning,positioning_held_percent_institutions_out_of_bounds_-0.1
+2026-08-27T16:00:10.730439+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-08-27 00:00:00+00:00
+2026-08-27T16:00:25.955853+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-08-27 04:00:00+00:00
+2026-08-27T20:30:11.750758+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-08-27 00:00:00+00:00
+2026-08-27T20:30:26.960774+00:00,CFR,ohlcv,ohlcv_negative_low_2026-02-27 05:00:00+00:00
+2026-08-28T16:15:10.457587+00:00,SYK,sec_edgar,sec_edgar_request_failed_8-K
+2026-09-03T16:00:03.098710+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 00:00:00+00:00
+2026-09-03T16:00:18.218890+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 04:00:00+00:00
+2026-09-03T20:30:03.416474+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 00:00:00+00:00
+2026-09-03T20:30:18.559196+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 04:00:00+00:00
+2026-09-03T21:19:04.217190+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 00:00:00+00:00
+2026-09-03T21:19:19.361050+00:00,RF,ohlcv,ohlcv_open_out_of_range_2026-09-03 04:00:00+00:00
+2026-09-04T16:00:03.114471+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-09-04 00:00:00+00:00
+2026-09-04T16:00:18.261176+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-09-04 04:00:00+00:00
+2026-09-04T20:30:03.300309+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-09-04 00:00:00+00:00
+2026-09-04T20:30:18.443588+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-09-04 04:00:00+00:00
+2026-09-09T16:00:09.200097+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-09-09 00:00:00+00:00
+2026-09-09T16:00:24.437578+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-09-09 04:00:00+00:00
+2026-09-09T20:30:04.009324+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-09-09 00:00:00+00:00
+2026-09-09T20:30:19.142754+00:00,CFR,ohlcv,ohlcv_open_out_of_range_2026-09-09 04:00:00+00:00

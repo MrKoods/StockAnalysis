@@ -89,3 +89,84 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-08-26T21:12:39.670868+00:00,v2.2.102,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
 2026-08-26T21:12:40.177363+00:00,v2.2.102,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-08-26T21:12:40.584438+00:00,v2.2.102,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='clinical hold',False,clinical hold
+2026-08-27T12:34:20.621396+00:00,v2.2.111,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='The Globe and Mail',True,tariff
+2026-08-27T12:35:00.578218+00:00,v2.2.111,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T12:40:52.429183+00:00,v2.2.111,pre_market,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='clinical hold' source='finance.yahoo.com',True,clinical hold
+2026-08-27T12:40:52.868572+00:00,v2.2.111,critical,ABBV,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='clinical hold',False,clinical hold
+2026-08-27T12:43:35.387396+00:00,v2.2.111,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-08-27T16:02:12.193076+00:00,v2.2.111,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T16:02:12.672124+00:00,v2.2.111,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T16:02:13.113483+00:00,v2.2.111,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T16:02:13.750418+00:00,v2.2.111,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T16:02:46.464116+00:00,v2.2.111,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T20:31:21.590409+00:00,v2.2.111,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T20:32:39.435445+00:00,v2.2.111,critical,QCOM,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-27T20:43:05.527757+00:00,v2.2.111,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-27T20:43:06.087415+00:00,v2.2.111,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='clinical hold',False,clinical hold
+2026-08-27T20:43:06.562775+00:00,v2.2.111,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-08-28T12:32:06.695613+00:00,v2.2.111,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='benzinga.com',True,tariff
+2026-08-28T12:44:59.671304+00:00,v2.2.111,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-08-28T16:01:45.963679+00:00,v2.2.111,critical,TSM,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-28T16:01:46.387310+00:00,v2.2.111,critical,TSM,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-28T20:44:04.345153+00:00,v2.2.111,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-28T20:44:04.894094+00:00,v2.2.111,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-08-29T07:36:59.502021+00:00,v2.2.114,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='The Globe and Mail',True,tariff
+2026-08-29T07:43:47.632389+00:00,v2.2.114,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='Stocktwits',True,boycott
+2026-08-31T12:45:18.332578+00:00,v2.2.119,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-08-31T20:37:58.554105+00:00,v2.2.119,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-08-31T20:37:59.144958+00:00,v2.2.119,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-01T12:37:29.742297+00:00,v2.2.119,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='seekingalpha.com',True,tariff
+2026-09-01T12:46:16.444022+00:00,v2.2.119,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='finance.yahoo.com',True,guidance cut
+2026-09-01T12:46:31.145948+00:00,v2.2.119,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-09-01T20:32:24.605740+00:00,v2.2.119,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='patient death' source='finance.yahoo.com',True,patient death
+2026-09-01T20:32:25.057396+00:00,v2.2.119,critical,MRK,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='patient death',False,patient death
+2026-09-01T20:32:25.522467+00:00,v2.2.119,critical,MRK,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='patient death',False,patient death
+2026-09-01T20:32:51.682940+00:00,v2.2.119,critical,BMY,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='patient death',False,patient death
+2026-09-01T20:33:58.266555+00:00,v2.2.119,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-01T20:33:58.744920+00:00,v2.2.119,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-01T20:33:59.312578+00:00,v2.2.119,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-02T12:42:05.959255+00:00,v2.2.122,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='finance.yahoo.com',True,guidance cut
+2026-09-02T12:42:11.182317+00:00,v2.2.122,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-09-02T20:32:06.770786+00:00,v2.2.122,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='cnbc.com',True,tariff
+2026-09-02T20:32:07.175419+00:00,v2.2.122,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-09-02T20:39:48.766112+00:00,v2.2.122,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='patient death',False,patient death
+2026-09-02T20:39:49.358868+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-02T20:39:49.891702+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-03T12:43:29.709463+00:00,v2.2.122,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='finance.yahoo.com',True,guidance cut
+2026-09-03T12:43:35.452836+00:00,v2.2.122,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-09-03T20:34:53.403336+00:00,v2.2.122,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-03T20:34:53.996114+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-03T20:34:54.402170+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-03T21:24:21.181529+00:00,v2.2.122,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='cnbc.com',True,tariff
+2026-09-03T21:26:20.702067+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
+2026-09-03T21:26:24.281863+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='finance.yahoo.com',True,boycott
+2026-09-04T20:34:10.930925+00:00,v2.2.122,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-04T20:34:11.609682+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-04T20:34:12.135233+00:00,v2.2.122,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-07T12:40:47.339196+00:00,v2.2.125,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-09-07T12:40:47.780147+00:00,v2.2.125,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-09-07T12:48:50.634013+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
+2026-09-07T12:49:08.620899+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='Truthout',True,boycott
+2026-09-07T20:33:43.859045+00:00,v2.2.125,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-07T20:33:44.310657+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-07T20:33:44.779482+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-08T12:34:33.205929+00:00,v2.2.125,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-09-08T12:39:06.322107+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='Yahoo Finance',True,guidance cut
+2026-09-08T12:39:12.099275+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='Truthout',True,boycott
+2026-09-08T20:30:49.787451+00:00,v2.2.125,critical,TSM,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-09-08T20:30:50.388218+00:00,v2.2.125,critical,TSM,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-09-08T20:33:50.559018+00:00,v2.2.125,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-08T20:33:50.985168+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-09-08T20:33:53.032398+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-09T12:36:12.477621+00:00,v2.2.125,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='seekingalpha.com',True,tariff
+2026-09-09T12:43:31.512551+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='Truthout',True,boycott
+2026-09-09T20:34:34.238486+00:00,v2.2.125,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-09T20:34:34.698057+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
+2026-09-10T12:35:52.681559+00:00,v2.2.125,pre_market,NVDA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='DOJ investigation' source='finance.yahoo.com',True,DOJ investigation
+2026-09-10T12:35:53.074104+00:00,v2.2.125,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='DOJ investigation',False,DOJ investigation
+2026-09-10T12:36:18.934865+00:00,v2.2.125,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='seekingalpha.com',True,tariff
+2026-09-10T12:42:37.032659+00:00,v2.2.125,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='boycott' source='Truthout',True,boycott
+2026-09-10T20:30:35.379449+00:00,v2.2.125,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-09-10T20:34:41.591202+00:00,v2.2.125,post_close,NVDA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='DOJ investigation',False,DOJ investigation
+2026-09-10T20:34:42.107278+00:00,v2.2.125,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-09-10T20:34:42.793567+00:00,v2.2.125,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='boycott',False,boycott
