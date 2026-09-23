@@ -234,14 +234,18 @@ _CSV_COLUMNS = [
     "mark_price", "mark_date", "unrealized_rr", "unrealized_pnl_dollars",
     # Outcome fields — blank until paper_updater.py fills them in
     "outcome", "exit_date", "exit_price", "pnl_pct", "achieved_rr", "holding_days", "pnl_dollars",
-    # Entry-zone opportunity cost — expired (never-filled) rows only. Simulates
-    # the trade as if it had filled immediately at the signal-time entry_price
-    # instead of waiting for the breakout/breakdown trigger, walked against the
-    # same stop/target/time-stop rules real trades use (paper_updater.py's
-    # _resolve_outcome). Answers "was requiring the breakout the mistake,"
-    # independent of win-rate — which stays correctly scoped to trades that
-    # actually resolved. "pending" until the hypothetical position itself
-    # hits stop/target/time-stop; blank for every non-expired row.
+    # Opportunity cost for never-filled rows — expired (entry zone never
+    # reached) AND superseded (cancelled for a newer signal on the same
+    # ticker) both get this. Simulates the trade as if it had filled
+    # immediately at the signal-time entry_price instead of waiting for the
+    # breakout/breakdown trigger, walked against the same stop/target/
+    # time-stop rules real trades use (paper_updater.py's _resolve_outcome).
+    # Answers "was requiring the breakout the mistake" (expired) or "was
+    # replacing this signal the mistake" (superseded), independent of
+    # win-rate — which stays correctly scoped to trades that actually
+    # resolved. "pending" until the hypothetical position itself hits
+    # stop/target/time-stop; blank for every row with a real fill (fill_date
+    # set) or still open with no terminal outcome yet.
     "hypothetical_outcome", "hypothetical_exit_date", "hypothetical_exit_price",
     "hypothetical_pnl_pct", "hypothetical_achieved_rr", "hypothetical_holding_days",
     "hypothetical_pnl_dollars",

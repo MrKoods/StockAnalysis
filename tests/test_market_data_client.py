@@ -259,6 +259,38 @@ class TestFetchOhlcvSince:
         assert list(out.columns) == ["Open", "High", "Low", "Close"]
         assert len(out) == 1
 
+    def test_drops_todays_still_forming_row_even_when_close_is_not_nan(self):
+        # yf.download can carry a real (non-NaN) intraday snapshot for today
+        # while the session is active — unlike yf.Ticker().history(), dropna()
+        # alone won't catch this, so fetch_ohlcv_since must trim it by date.
+        from datetime import date
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        df = pd.DataFrame(
+            {"Open": [1.0, 5.0], "High": [2.0, 6.0], "Low": [0.5, 4.5], "Close": [1.5, 5.5], "Volume": [100, 50]},
+            index=pd.to_datetime(["2026-08-01", date.today().isoformat()]),
+        )
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=df):
+            out = fetch_ohlcv_since("NVDA", "2026-08-01")
+        assert len(out) == 1
+        assert out.index[0] == pd.Timestamp("2026-08-01")
+
+    def test_keeps_a_genuinely_finished_todays_row_gone_by_next_call(self):
+        # Sanity check the trim only ever removes the LAST row, not anything
+        # historical, regardless of how many complete rows precede it.
+        from datetime import date
+        from shared.api_clients.market_data_client import fetch_ohlcv_since
+        df = pd.DataFrame(
+            {
+                "Open": [1.0, 2.0, 5.0], "High": [1.5, 2.5, 6.0],
+                "Low": [0.5, 1.5, 4.5], "Close": [1.2, 2.2, 5.5], "Volume": [100, 110, 50],
+            },
+            index=pd.to_datetime(["2026-08-01", "2026-08-02", date.today().isoformat()]),
+        )
+        with patch("shared.api_clients.market_data_client.yf.download", return_value=df):
+            out = fetch_ohlcv_since("NVDA", "2026-08-01")
+        assert len(out) == 2
+        assert list(out.index) == [pd.Timestamp("2026-08-01"), pd.Timestamp("2026-08-02")]
+
     def test_unparseable_start_returns_none(self):
         from shared.api_clients.market_data_client import fetch_ohlcv_since
         assert fetch_ohlcv_since("NVDA", "not-a-date") is None

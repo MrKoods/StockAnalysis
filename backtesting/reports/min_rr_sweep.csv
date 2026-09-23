@@ -1,0 +1,31 @@
+variant,sector,n_trades,win_rate,avg_rr,sharpe,expectancy_mean_r,expectancy_ci_lower,expectancy_ci_upper
+baseline_3.0R,semiconductors,31,0.5484,1.59,-1.11,0.558,0.046,1.104
+baseline_3.0R,regional_banks,0,,,,,,
+baseline_3.0R,healthcare,0,,,,,,
+baseline_3.0R,consumer_discretionary,4,0.5,0.64,-12.31,0.037,-0.641,0.642
+baseline_3.0R,ALL (pooled),35,0.5429,1.49,-2.57,0.498,0.042,0.993
+target_2.5R,semiconductors,31,0.5484,1.41,-1.39,0.455,0.002,0.935
+target_2.5R,regional_banks,0,,,,,,
+target_2.5R,healthcare,0,,,,,,
+target_2.5R,consumer_discretionary,4,0.5,0.64,-12.31,0.037,-0.641,0.642
+target_2.5R,ALL (pooled),35,0.5429,1.32,-2.98,0.407,-0.006,0.843
+target_2.0R,semiconductors,31,0.5484,1.22,-1.76,0.356,-0.038,0.769
+target_2.0R,regional_banks,0,,,,,,
+target_2.0R,healthcare,0,,,,,,
+target_2.0R,consumer_discretionary,4,0.5,0.27,-15.61,-0.151,-0.702,0.267
+target_2.0R,ALL (pooled),35,0.5429,1.12,-3.53,0.298,-0.064,0.671
+target_1.5R,semiconductors,31,0.6452,1.1,-1.86,0.435,0.065,0.793
+target_1.5R,regional_banks,0,,,,,,
+target_1.5R,healthcare,0,,,,,,
+target_1.5R,consumer_discretionary,4,0.75,0.45,-12.83,0.085,-0.664,0.652
+target_1.5R,ALL (pooled),35,0.6571,1.01,-3.87,0.395,0.06,0.722
+target_1.2R,semiconductors,31,0.6452,0.91,-2.37,0.318,-0.006,0.627
+target_1.2R,regional_banks,0,,,,,,
+target_1.2R,healthcare,0,,,,,,
+target_1.2R,consumer_discretionary,4,0.75,0.78,-9.63,0.334,-0.603,1.216
+target_1.2R,ALL (pooled),35,0.6571,0.89,-4.37,0.32,0.02,0.614
+target_1.0R,semiconductors,31,0.6774,0.75,-2.81,0.259,-0.03,0.533
+target_1.0R,regional_banks,0,,,,,,
+target_1.0R,healthcare,0,,,,,,
+target_1.0R,consumer_discretionary,4,0.75,0.82,-9.94,0.368,-0.609,1.195
+target_1.0R,ALL (pooled),35,0.6857,0.76,-4.93,0.271,-0.003,0.537

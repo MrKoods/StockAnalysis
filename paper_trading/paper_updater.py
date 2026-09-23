@@ -270,14 +270,19 @@ def _resolve_hypothetical_outcome(
     trade: dict, time_stop_day: int, min_progress_pct: float,
 ) -> bool:
     """
-    Entry-zone opportunity cost for an expired (never-filled) signal —
-    simulates the trade as if it had been entered immediately at the
-    signal-time entry_price instead of waiting for the breakout/breakdown
-    trigger, walked against the same stop/target/time-stop rules real trades
-    use (_resolve_outcome above). Answers "was requiring the breakout the
-    mistake," independent of win-rate, which stays correctly scoped to
-    trades that actually resolved for real (see paper_trade_metrics.py's
-    compute_signal_accuracy docstring).
+    Opportunity cost for a never-filled signal — expired (entry zone never
+    reached) or superseded (a newer signal on the same ticker cancelled this
+    still-pending order first). Simulates the trade as if it had been
+    entered immediately at the signal-time entry_price instead of waiting
+    for the breakout/breakdown trigger, walked against the same
+    stop/target/time-stop rules real trades use (_resolve_outcome above).
+    For an expired row this answers "was requiring the breakout the
+    mistake"; for a superseded row it answers "was replacing this signal
+    the mistake" — same simulation, different question depending on the
+    caller (see paper_trade_metrics.py's compute_expired_signal_opportunity_cost
+    vs compute_superseded_signal_opportunity_cost). Independent of win-rate,
+    which stays correctly scoped to trades that actually resolved for real
+    (see paper_trade_metrics.py's compute_signal_accuracy docstring).
 
     Mutates trade's hypothetical_* fields in place. Returns True once a
     terminal outcome is recorded, False if still unresolved (leaves
@@ -351,15 +356,16 @@ def _resolve_hypothetical_outcome(
 def _update_hypothetical_outcomes(trades: list[dict], time_stop_day: int, min_progress_pct: float) -> int:
     """
     Resolve (or re-check) the hypothetical opportunity-cost simulation for
-    every expired trade that hasn't reached a terminal hypothetical outcome
-    yet. Separate from the main open_trades loop above — expired rows are
-    excluded from that loop's open_trades filter since their real outcome is
-    already final, but the hypothetical needs its own independent tracking
-    until IT resolves. Returns count newly resolved this run.
+    every expired or superseded trade that hasn't reached a terminal
+    hypothetical outcome yet. Separate from the main open_trades loop above
+    — these rows are excluded from that loop's open_trades filter since
+    their real outcome is already final, but the hypothetical needs its own
+    independent tracking until IT resolves. Returns count newly resolved
+    this run.
     """
     pending = [
         t for t in trades
-        if t.get("outcome") == "expired"
+        if t.get("outcome") in (OUTCOME_EXPIRED, OUTCOME_SUPERSEDED)
         and (t.get("hypothetical_outcome") or "") in ("", "pending")
     ]
     resolved_count = 0
@@ -946,7 +952,7 @@ def update_paper_trades(
 
     hypothetical_resolved = _update_hypothetical_outcomes(trades, _time_stop_day, _min_progress_pct)
     if hypothetical_resolved:
-        logger.info(f"{hypothetical_resolved} hypothetical (entry-zone opportunity cost) outcome(s) resolved")
+        logger.info(f"{hypothetical_resolved} hypothetical (never-filled opportunity cost) outcome(s) resolved")
 
     _save_trades(trades, csv_path=csv_path, lock_path=lock_path)
     logger.info(f"Paper updater complete — {closed_count} trade(s) closed")

@@ -267,6 +267,7 @@ def _simulate_test_signals(
     require_confirmation_bar: bool = False,
     benchmark_ticker: str = "SMH",
     min_rr_bearish: "float | None" = None,
+    min_rr_bullish: "float | None" = None,
     stop_atr_multiplier_bearish: "float | None" = None,
     bearish_entry_style: str = "continuation",
     bounce_fade_lookback: int = 10,
@@ -357,6 +358,17 @@ def _simulate_test_signals(
     downside move actually delivers in this holding window, not with the
     entry filter being wrong. Overridable per-call for exactly this research,
     same pattern as rsi_min/rsi_max.
+
+    min_rr_bullish: bullish counterpart to min_rr_bearish, added 2026-09-23
+    for backtesting/min_rr_sweep.py — a live-paper-trading review (33 real
+    resolved trades, both directions, both tracks) found the same oversized-
+    target symptom bearish already had, but on the bullish side too: real
+    max-favorable-excursion averaged 1.3x ATR (median 0.78x) against a fixed
+    3R fallback target sitting around 6x ATR, and — critically — stop width
+    and realized excursion were uncorrelated (r=0.04), ruling out "the stop
+    is too wide" (compute_target's own documented reasoning for leaving the
+    min_rr fallback branch uncapped) as the explanation. None by default,
+    falling back to rr_cfg's min_rr_ratio exactly like today.
 
     bearish_entry_style: "continuation" (default, unchanged behavior) shorts
     the breakdown bar itself, mirroring the bullish breakout entry exactly.
@@ -885,8 +897,8 @@ def _simulate_test_signals(
                     else rr_cfg.get("stop_atr_multiplier", 2.0)
                 )
                 effective_min_rr = (
-                    min_rr_bearish
-                    if (is_bearish and min_rr_bearish is not None)
+                    min_rr_bearish if (is_bearish and min_rr_bearish is not None)
+                    else min_rr_bullish if (not is_bearish and min_rr_bullish is not None)
                     else rr_cfg.get("min_rr_ratio", 3.0)
                 )
                 entry_lower, entry_upper = compute_entry_zone(

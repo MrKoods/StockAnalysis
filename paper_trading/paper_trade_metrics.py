@@ -30,7 +30,7 @@ from typing import Optional
 import pandas as pd
 
 from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples, compute_win_rate
-from shared.utils.trade_outcomes import OUTCOME_EXPIRED, is_funded, is_performance_row, is_scored
+from shared.utils.trade_outcomes import OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored
 
 _PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 
@@ -270,36 +270,33 @@ def compute_signal_accuracy(csv_path: Optional[Path] = None) -> dict:
     }
 
 
-def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> dict:
+def _compute_opportunity_cost(rows: list[dict], outcome_value: str, total_key: str) -> dict:
     """
-    Entry-zone opportunity cost view: for every expired (never-filled) signal,
-    compares what actually happened (nothing — no capital was ever at risk) to
-    the hypothetical of having filled immediately at the signal-time
-    entry_price instead of waiting for the breakout/breakdown trigger
-    (populated by paper_updater.py's _resolve_hypothetical_outcome).
+    Shared aggregation behind compute_expired_signal_opportunity_cost and
+    compute_superseded_signal_opportunity_cost: for every never-filled row
+    with the given terminal `outcome_value`, compares what actually happened
+    (nothing — no capital was ever at risk) to the hypothetical of having
+    filled immediately at the signal-time entry_price instead of waiting for
+    the breakout/breakdown trigger (populated by paper_updater.py's
+    _resolve_hypothetical_outcome).
 
-    Deliberately separate from compute_signal_accuracy/win_rate — those stay
-    scoped to trades that actually resolved for real. This answers a
-    different question: is the entry-zone rule itself filtering out trades
-    the model would otherwise have gotten right? A hypothetical_win_rate here
-    that's meaningfully higher than the real win_rate_funded is evidence the
-    breakout requirement is costing more than it protects.
+    Kept as two separate callers rather than one merged UNFUNDED_OUTCOMES
+    view deliberately: pooling expired and superseded hypotheticals into one
+    win-rate number would double-count some underlying moves (a superseded
+    row's hypothetical and the newer signal that replaced it, funded or not,
+    can cover the same ticker's move over overlapping dates), and the two
+    populations answer different questions — "was requiring the breakout the
+    mistake" vs "was replacing this signal the mistake."
 
-    Returns {total_expired, resolved_count, pending_count,
-    hypothetical_win_rate, avg_hypothetical_r} — pending_count is signals
-    whose hypothetical position hasn't hit stop/target/time-stop yet against
-    available bars; hypothetical_win_rate/avg_hypothetical_r are computed
-    over resolved_count only (pending rows have no outcome yet to score).
+    Returns {<total_key>, resolved_count, pending_count, hypothetical_win_rate,
+    avg_hypothetical_r} — pending_count is signals whose hypothetical
+    position hasn't hit stop/target/time-stop yet against available bars;
+    hypothetical_win_rate/avg_hypothetical_r are computed over resolved_count
+    only (pending rows have no outcome yet to score).
     """
-    rows, _ = _load_paper_trades_rows(csv_path)
-    # Deliberately OUTCOME_EXPIRED only, not UNFUNDED_OUTCOMES: this metric asks
-    # "the market never came to our entry order — would entering at signal price
-    # have paid?". A superseded row was cancelled because a NEWER signal replaced
-    # it on the same ticker, so its hypothetical would double-count the same
-    # underlying move the replacement already tracks.
-    expired = [r for r in rows if r.get("outcome") == OUTCOME_EXPIRED]
-    resolved = [r for r in expired if (r.get("hypothetical_outcome") or "") not in ("", "pending")]
-    pending = [r for r in expired if (r.get("hypothetical_outcome") or "") in ("", "pending")]
+    matching = [r for r in rows if r.get("outcome") == outcome_value]
+    resolved = [r for r in matching if (r.get("hypothetical_outcome") or "") not in ("", "pending")]
+    pending = [r for r in matching if (r.get("hypothetical_outcome") or "") in ("", "pending")]
 
     # Map hypothetical_* fields onto the plain outcome/pnl_pct/achieved_rr
     # keys compute_win_rate expects, same pattern feedback_loop.py's
@@ -316,12 +313,50 @@ def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> 
     rr_values = [float(m["achieved_rr"]) for m in mapped if m.get("achieved_rr")]
 
     return {
-        "total_expired": len(expired),
+        total_key: len(matching),
         "resolved_count": len(resolved),
         "pending_count": len(pending),
         "hypothetical_win_rate": round(compute_win_rate(mapped), 4) if mapped else 0.0,
         "avg_hypothetical_r": round(sum(rr_values) / len(rr_values), 3) if rr_values else 0.0,
     }
+
+
+def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> dict:
+    """
+    Entry-zone opportunity cost view: is the breakout/breakdown entry-zone
+    rule itself filtering out trades the model would otherwise have gotten
+    right? A hypothetical_win_rate here that's meaningfully higher than the
+    real win_rate_funded is evidence the breakout requirement is costing
+    more than it protects. Deliberately separate from
+    compute_signal_accuracy/win_rate — those stay scoped to trades that
+    actually resolved for real. See _compute_opportunity_cost for why this
+    is scoped to OUTCOME_EXPIRED only, not superseded rows too.
+
+    Returns {total_expired, resolved_count, pending_count,
+    hypothetical_win_rate, avg_hypothetical_r}.
+    """
+    rows, _ = _load_paper_trades_rows(csv_path)
+    return _compute_opportunity_cost(rows, OUTCOME_EXPIRED, "total_expired")
+
+
+def compute_superseded_signal_opportunity_cost(csv_path: Optional[Path] = None) -> dict:
+    """
+    Rank-replacement opportunity cost view: when a still-pending, unfilled
+    signal gets cancelled because a newer, better-ranked signal on the same
+    ticker arrived first, was cancelling it the right call? A
+    hypothetical_win_rate here that's meaningfully higher than the real
+    win_rate_funded is evidence the supersede-and-replace mechanism is
+    discarding setups that would have paid off — this is the majority
+    outcome for rank-track signals (most never fill before being replaced),
+    so it's worth watching on its own rather than folding into the expired
+    view. See _compute_opportunity_cost for why it's kept separate from
+    that one rather than merged.
+
+    Returns {total_superseded, resolved_count, pending_count,
+    hypothetical_win_rate, avg_hypothetical_r}.
+    """
+    rows, _ = _load_paper_trades_rows(csv_path)
+    return _compute_opportunity_cost(rows, OUTCOME_SUPERSEDED, "total_superseded")
 
 
 def compute_forward_ev_accuracy(
@@ -427,8 +462,11 @@ def generate_daily_summary(csv_path: Optional[Path] = None, as_of: Optional[str]
     lifetime_win_rate = compute_win_rate(scored_closed) if scored_closed else 0.0
 
     opportunity_cost = compute_expired_signal_opportunity_cost(csv_path)
+    opportunity_cost_superseded = compute_superseded_signal_opportunity_cost(csv_path)
 
-    takeaways = _build_daily_takeaways(open_positions, pending_orders, closed_today, opportunity_cost)
+    takeaways = _build_daily_takeaways(
+        open_positions, pending_orders, closed_today, opportunity_cost, opportunity_cost_superseded,
+    )
 
     return {
         "as_of_date": as_of_date,
@@ -441,6 +479,7 @@ def generate_daily_summary(csv_path: Optional[Path] = None, as_of: Optional[str]
         "lifetime_closed_count": len(scored_closed),
         "lifetime_win_rate": round(lifetime_win_rate, 4),
         "opportunity_cost": opportunity_cost,
+        "opportunity_cost_superseded": opportunity_cost_superseded,
         "takeaways": takeaways,
     }
 
@@ -450,6 +489,7 @@ def _build_daily_takeaways(
     pending_orders: list[dict],
     closed_today: list[dict],
     opportunity_cost: dict,
+    opportunity_cost_superseded: Optional[dict] = None,
 ) -> list[str]:
     """
     Short, rule-based observations for generate_daily_summary()'s Discord
@@ -498,6 +538,14 @@ def _build_daily_takeaways(
             f"Entry-zone opportunity cost: {opportunity_cost['resolved_count']} expired signal(s) resolved, "
             f"hypothetical win rate {opportunity_cost['hypothetical_win_rate']:.0%}, "
             f"avg {opportunity_cost['avg_hypothetical_r']:+.2f}R if filled immediately at signal time"
+        )
+
+    if opportunity_cost_superseded and opportunity_cost_superseded["resolved_count"]:
+        takeaways.append(
+            f"Rank-replacement opportunity cost: {opportunity_cost_superseded['resolved_count']} superseded "
+            f"signal(s) resolved, hypothetical win rate {opportunity_cost_superseded['hypothetical_win_rate']:.0%}, "
+            f"avg {opportunity_cost_superseded['avg_hypothetical_r']:+.2f}R if filled immediately instead of "
+            f"cancelled for the replacement"
         )
 
     if not takeaways:

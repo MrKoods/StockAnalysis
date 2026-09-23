@@ -99,7 +99,23 @@ def fetch_ohlcv_since(ticker: str, start: str) -> Optional[pd.DataFrame]:
             df.columns = df.columns.get_level_values(0)
         df.index = pd.to_datetime(df.index)
         cols = [c for c in ("Open", "High", "Low", "Close") if c in df.columns]
-        return df[cols].dropna()
+        df = df[cols].dropna()
+        # yf.download's row for the current calendar day can carry a REAL
+        # (non-NaN) but still-forming intraday snapshot while the session is
+        # active — unlike yf.Ticker().history() (see _trim_incomplete_last_bar
+        # above), a NaN-close check alone doesn't catch this: dropna() only
+        # clears it once the row goes fully empty, which was observed to
+        # happen well after close, not mid-session. Every caller here
+        # (paper_updater.py's stop/target/time-stop resolution walk) assumes
+        # each row is a finished trading day, so drop today's row outright
+        # rather than trust dropna() already caught it. Caught live
+        # (2026-09-22): a trade's day-15 time-stop resolved against a
+        # same-day partial close of $188.59 that the finalized bar, fetched
+        # the next day, showed as $194.23 — high enough to have cleared the
+        # trade's target intrabar, which the partial snapshot missed.
+        if not df.empty and df.index[-1].date() >= date.today():
+            df = df.iloc[:-1]
+        return df
 
     return retry_with_backoff(_fetch, retries=3, label=f"fetch_ohlcv_since({ticker})")
 

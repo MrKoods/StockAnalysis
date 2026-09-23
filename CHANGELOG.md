@@ -71,6 +71,9 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.128 | 2026-09-23 | Backtest Methodology | Built a research tool to test whether the model's fixed 3:1 reward:risk target is oversized for this stock universe (see v2.2.127's same live-data review). Swept the target smaller across both trade directions at once against 13.5 years of history: win rate rises cleanly as the target shrinks (54% to 69%), but no tested value clears the real go-live bar, and the ranking isn't even consistent as the target changes — a sign the only available sample (35 trades total; two of four sectors still have zero) is too small to say which value is actually best. No config change made — this adds the ability to test the question, it doesn't answer it yet. Live behavior unchanged (research-only, opt-in parameter, unused by default) |
+| v2.2.127 | 2026-09-22 | Bug Fix | Fixes a real, live-caught bug where paper trading's daily stop/target/time-stop check could evaluate a trade's final day against a still-forming, not-yet-final price instead of that day's real range. Caught while investigating why real target hits were rare: one trade's day-15 exit was logged using a same-day snapshot of $188.59, but that day's actual finalized close (checked the next day) was $194.23 — high enough to have crossed its target, which the partial snapshot never saw. The data-fetch function paper trading uses now drops today's not-yet-finished price row the same way a sibling function already did, so every check now always uses a fully completed trading day. No scoring change |
+| v2.2.126 | 2026-09-22 | Feature | Extends the "what would have happened if this signal had filled anyway" tracking (previously only built for signals that expired unfilled) to also cover signals cancelled because a newer, better-ranked signal replaced them — 60% of all logged signals, and until now the single biggest population with no opportunity-cost data at all. Reports it as its own separate number from the expired-signal one (not merged, to avoid double-counting the same stock move twice), surfaced in the daily summary alert alongside the existing expired-signal readout. No effect on any score or the real win-rate/P&L numbers |
 | v2.2.125 | 2026-09-07 | Infrastructure | Follow-up cleanup on v2.2.124's new insider-filing reader, from a quick API check. (1) It was re-downloading the same SEC filings every morning even though their contents never change — those documents are now saved and reused for 30 days, cutting hundreds of needless downloads per day. (2) It guessed one filing-document web address and silently got a web page instead of data when the guess was wrong — now it looks up the real address if the guess fails. (3) It only recorded the first insider named on a filing and often showed a blank job title — now it keeps all names and falls back to a role label like "Director". Also restored a missing setting that tells the SEC who is making the requests (it had been sending a placeholder). No effect on any score |
 | v2.2.124 | 2026-09-06 | Feature | Closes the 4th bug from v2.2.123: the insider-trading score can now actually see real insider trades. Previously the only insider-activity feed the model read (via a third-party library) was frequently empty even when insiders were actively trading — the model would show "no signal" when a real, itemized SEC filing said otherwise. This adds a direct reader for that SEC filing type (Form 4), turning "43 filings, direction unknown" into an actual count of real buy/sell dollar amounts. Verified against a real, already-public filing: parsed 44 sales worth $45,045,752.81 with zero purchases — an exact match to the real-world figures. No effect on any other score; this only feeds the one sub-signal that was previously blind |
 | v2.2.123 | 2026-09-06 | Bug Fix | Three bugs in shared scoring/data code, found while reviewing a V3 (separate research-report product) briefing that narrates the same numbers this model scores on. (1) A stock's valuation-vs-peers comparison sometimes averaged a stock against itself, making it look exactly "in line with peers" by construction — happens whenever exactly one ticker is scored at a time, e.g. `paper_updater.py` rescoring one open trade after close. (2) Forward P/E came from two vendors that can disagree 40%+, with a broken fallback that meant the second vendor was never actually consulted — the better-supported vendor is now preferred and a large disagreement is flagged instead of silently picked. (3) A pre-market options-chain fetch (before market makers post real bid/ask) was being cached as a full trading day's data, so options info could read empty all day even though real quotes existed once the market opened — it now retries once trading opens. A fourth bug (the insider-trading sub-score never actually using the one real, itemized SEC filing feed for it) is fixed at the scoring-logic level but isn't live yet — it needs a new SEC-filing-parsing step this fix doesn't build (tracked separately) |
@@ -205,6 +208,114 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.128] — 2026-09-23 — [Backtest Methodology] min_rr sweep tool — directional support for a smaller target, not yet conclusive
+
+**Status:** Live-inert. Adds `min_rr_bullish` to `_simulate_test_signals` (backtesting/simulation.py),
+mirroring the existing `min_rr_bearish` research override — None by default, falls back to config's
+`min_rr_ratio` exactly as before. No config value changed. Tests pass; ruff and all guardrail
+checkers pass; `scripts/check_version_bump.py` confirms no scoring-relevant file changed.
+
+**Context.** v2.2.127's live-data review found the fixed 3R fallback target (the branch every one
+of 33 real resolved trades actually used) looks oversized for this universe: real realized
+favorable moves averaged 1.3x ATR against a ~6x-ATR target, and — the key tell — stop width and
+realized move were uncorrelated (r=0.04), which rules out "the stop is too wide" (the reasoning
+`compute_target`'s own docstring gives for never capping this branch) as the explanation. This adds
+the tool to actually test a smaller target against history, rather than changing the live config on
+a 33-trade live sample alone.
+
+**What it does.** `backtesting/min_rr_sweep.py`, modeled on the existing `bearish_exit_sizing_sweep.py`,
+sweeps `min_rr` symmetrically across both directions (via the new `min_rr_bullish`, alongside the
+existing `min_rr_bearish`) from the current 3.0 down to 1.0, walk-forward-pooled across all 4 sector
+datasets, reporting win rate, avg R:R, Sharpe, and the bootstrapped expectancy CI lower bound — the
+actual go-live metric, not just a flat win-rate/R:R pair.
+
+**Result.** Win rate rises cleanly as the target shrinks: 54.3% at 3.0R up to 68.6% at 1.0R, exactly
+matching the live-data symptom. But the expectancy CI lower bound — the number that actually gates
+a go-live decision — never clears the required 0.3 at any tested value (best: 1.5R at 0.060), and
+its ranking across variants isn't even monotonic (worse at 2.0-2.5R than at either the loose 3.0R
+baseline or the tight 1.0-1.5R end), which is the signature of a sample too small to resolve which
+value is really best. Pooled n=35 trades across all sectors (semiconductors 31, consumer_discretionary
+4, regional_banks and healthcare still 0 each) — the same structural scarcity this project has hit
+in every prior backtest review this year. Full table: `backtesting/reports/min_rr_sweep.csv`.
+
+**Decision.** Discussed with the user: leave `min_rr_ratio` unchanged in the live config for now.
+1.5R is the best-supported candidate in this sample, but not confidently better than the status quo
+at n=35 — re-run this sweep as live paper-trading data accumulates rather than act on it now.
+
+---
+
+## [v2.2.127] — 2026-09-22 — [Bug Fix] Same-day resolution could check a trade against an unfinished price bar
+
+**Status:** Live. No scoring weights or thresholds changed. Tests pass (2 new); ruff and all
+guardrail checkers pass.
+
+**Context.** Digging into why 33 real resolved paper trades across both tracks have never once
+hit their target (see today's live-data review), pulled fresh price history for every resolved
+trade to check how close each one actually got. One (QCOM, 2026-08-29 signal) stood out: its
+day-15 time-stop exit was logged at $188.59, but the finalized bar for that same date — fetched
+fresh, after the fact — shows a close of $194.23 and a high of $195.31, both above its $192.46
+target. The trade almost certainly should have closed as a real win.
+
+**Root cause.** `paper_updater.py`'s `_download_ohlcv` calls `market_data_client.fetch_ohlcv_since`
+directly. Unlike its sibling `fetch_ohlcv` (which explicitly trims a trailing in-progress bar via
+`_trim_incomplete_last_bar`, since yfinance's `Ticker.history()` path returns a NaN close for a
+still-forming session), `fetch_ohlcv_since` only ever called a plain `.dropna()` — and yfinance's
+other API (`yf.download`, the one this function uses) can return a REAL, non-NaN, continuously-
+updating intraday snapshot for today's row while the session is active, not NaN. `dropna()` never
+caught that row, so any resolution check that happened to land on "today" (paper_updater.py runs
+once a day, mid-session per its own task log) was checked against a partial day instead of the
+finished one.
+
+**Fix.** `fetch_ohlcv_since` now drops the last row outright whenever its date is today or later,
+regardless of whether it's NaN — the same "never trust today's row" rule `fetch_ohlcv` already
+enforces by a different mechanism. Every caller (the real stop/target/time-stop resolution loop,
+and the hypothetical opportunity-cost tracking added in v2.2.126) now only ever evaluates complete
+trading days.
+
+**Scope.** This affects real trade resolution going forward, not the 33 already-closed trades
+analyzed above — those aren't being retroactively rewritten. It's a narrow, mechanical fix; it
+does not explain the broader pattern found in the same review (most resolved trades never get
+anywhere close to their 3R target, median 12% of the distance) — that looks like a target/stop
+calibration question, separate from this bug, and remains open.
+
+---
+
+## [v2.2.126] — 2026-09-22 — [Feature] Hypothetical-outcome tracking now covers superseded signals, not just expired ones
+
+**Status:** Live. No scoring weights or thresholds changed, and no effect on any real win-rate
+or P&L figure — this only adds a new counterfactual diagnostic. Tests pass (5 new); ruff and all
+guardrail checkers pass.
+
+**Context.** A live-data review of `paper_trades.csv`/`rank_trades.csv` (33 real resolved trades
+across both tracks as of today) found that 60% of all logged signals (139 of 233) never became a
+real trade because they were cancelled as `superseded` — a newer, better-ranked signal for the
+same ticker arrived before the original order ever filled. `paper_updater.py` already had a
+mechanism built for exactly this kind of question (`_resolve_hypothetical_outcome`, added for
+`expired` signals: "what would have happened if we'd entered immediately at signal price instead
+of waiting for the breakout trigger?") but it only ever ran on `expired` rows — the code had a
+comment explicitly scoping it away from `superseded` rows to avoid double-counting a stock's move
+against both the original superseded signal and its replacement.
+
+**What changed.** `_update_hypothetical_outcomes` (paper_updater.py) now resolves the same
+immediate-fill simulation for `superseded` rows too, using the existing `OUTCOME_SUPERSEDED`
+constant from `shared/utils/trade_outcomes.py` (already defined there, just never wired into this
+loop). The double-counting concern from the original comment is real but only applies to pooling
+the two into one win-rate number — it doesn't apply to computing and reporting them separately.
+`paper_trade_metrics.py` now has `compute_superseded_signal_opportunity_cost`, structurally
+parallel to `compute_expired_signal_opportunity_cost` (both now call a shared
+`_compute_opportunity_cost` helper), reporting its own `hypothetical_win_rate`/`avg_hypothetical_r`
+answering "was cancelling this signal for the replacement the right call?" — kept as a separate
+number from the expired-signal one, not merged. `generate_daily_summary` surfaces both readouts
+side by side in its takeaways list (and therefore in the daily Discord summary alert).
+
+**Why this matters going forward.** Rank-track signals get superseded far more often than they
+fill (109 of 168 rank-track rows as of today) — this was the largest population of signals with
+zero counterfactual data. Once enough rows resolve, this will show whether the supersede-and-
+replace mechanism is net helpful (replaced signals really were worse) or net harmful (some
+replaced signals would have paid off, and the model changed its mind too early).
 
 ---
 
@@ -546,7 +657,7 @@ live-only. No go-live gate input moved.
 1705 tests pass; ruff and all guardrail checkers pass. (Version bump is required by the CI gate
 because `config/swing_config.yaml` changed; there is no backtest to log because nothing scoring-
 relevant changed.)
-
+11
 **What changed.**
 
 - **Two AV config blocks → one.** `config/swing_config.yaml` had both an `alpha_vantage` block
