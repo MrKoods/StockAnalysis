@@ -9,3 +9,13 @@ Performance summary — status: no_trades
 
 Go-live gate: overall_pass=False  data_status=insufficient_trades
   Failures: insufficient_trade_data_7_below_30, only_21_trading_days_need_60
+
+Performance summary — status: no_trades
+
+Go-live gate: overall_pass=False  data_status=insufficient_trades
+  Failures: insufficient_trade_data_10_below_30, only_26_trading_days_need_60
+
+Performance summary — status: no_trades
+
+Go-live gate: overall_pass=False  data_status=insufficient_trades
+  Failures: insufficient_trade_data_14_below_30, only_31_trading_days_need_60

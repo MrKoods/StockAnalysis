@@ -7,6 +7,6 @@
   "consecutive_losses": 0,
   "black_swan_mode": false,
   "black_swan_normal_days": 0,
-  "last_scan_timestamp_utc": null,
+  "last_scan_timestamp_utc": "2026-09-16T10:28:40.930890+00:00",
   "model_version": "v1.0.0"
 }
