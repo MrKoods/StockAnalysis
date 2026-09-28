@@ -17218,3 +17218,308 @@ Done — 0 paper signal(s) logged.
 2026-09-24 09:05:15,294 [__main__] INFO — Rank track: skipped for scan_type=mid_session — rank_track.scan_type is 'post_close'
 2026-09-24 09:05:15,295 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
 Done — 0 paper signal(s) logged.
+2026-09-25 09:00:01,951 [swing_model.indicator_pipeline] INFO — [mid_session] Fetching OHLCV for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'TXN', 'ADI', 'AMAT', 'QCOM', 'KLAC', 'SMH']
+2026-09-25 09:00:02,397 [swing_model.indicator_pipeline] INFO — NVDA: indicators computed (close=225.17, rsi=55.4, atr=5.86)
+2026-09-25 09:00:02,411 [swing_model.indicator_pipeline] INFO — AMD: indicators computed (close=628.84, rsi=72.7, atr=24.71)
+2026-09-25 09:00:02,423 [swing_model.indicator_pipeline] INFO — AVGO: indicators computed (close=352.56, rsi=43.9, atr=10.93)
+2026-09-25 09:00:02,432 [swing_model.indicator_pipeline] INFO — TSM: indicators computed (close=451.08, rsi=62.8, atr=10.53)
+2026-09-25 09:00:02,442 [swing_model.indicator_pipeline] INFO — MU: indicators computed (close=1077.29, rsi=62.5, atr=47.98)
+2026-09-25 09:00:02,454 [swing_model.indicator_pipeline] INFO — ASML: indicators computed (close=1740.01, rsi=54.2, atr=52.31)
+2026-09-25 09:00:02,465 [swing_model.indicator_pipeline] INFO — TXN: indicators computed (close=276.66, rsi=59.1, atr=8.31)
+2026-09-25 09:00:02,474 [swing_model.indicator_pipeline] INFO — ADI: indicators computed (close=393.65, rsi=62.6, atr=11.36)
+2026-09-25 09:00:02,483 [swing_model.indicator_pipeline] INFO — AMAT: indicators computed (close=481.28, rsi=54.7, atr=20.01)
+2026-09-25 09:00:02,493 [swing_model.indicator_pipeline] INFO — QCOM: indicators computed (close=204.50, rsi=69.2, atr=8.61)
+2026-09-25 09:00:02,504 [swing_model.indicator_pipeline] INFO — KLAC: indicators computed (close=187.14, rsi=53.5, atr=7.89)
+2026-09-25 09:00:02,512 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-09-25T12:30:59.623982+00:00)
+2026-09-25 09:00:02,537 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['NVDA', 'AMD', 'AVGO', 'TSM', 'MU', 'ASML', 'TXN', 'ADI', 'AMAT', 'QCOM', 'KLAC']
+2026-09-25 09:00:03,116 [swing_model.indicator_pipeline] INFO —   NVDA: positioning data fetched OK
+2026-09-25 09:00:03,797 [swing_model.indicator_pipeline] INFO —   AMD: positioning data fetched OK
+2026-09-25 09:00:04,294 [swing_model.indicator_pipeline] INFO —   AVGO: positioning data fetched OK
+2026-09-25 09:00:04,881 [swing_model.indicator_pipeline] INFO —   TSM: positioning data fetched OK
+2026-09-25 09:00:05,633 [swing_model.indicator_pipeline] INFO —   MU: positioning data fetched OK
+2026-09-25 09:00:06,668 [swing_model.indicator_pipeline] INFO —   ASML: positioning data fetched OK
+2026-09-25 09:00:07,329 [swing_model.indicator_pipeline] INFO —   TXN: positioning data fetched OK
+2026-09-25 09:00:07,912 [swing_model.indicator_pipeline] INFO —   ADI: positioning data fetched OK
+2026-09-25 09:00:08,620 [swing_model.indicator_pipeline] INFO —   AMAT: positioning data fetched OK
+2026-09-25 09:00:09,303 [swing_model.indicator_pipeline] INFO —   QCOM: positioning data fetched OK
+2026-09-25 09:00:09,930 [swing_model.indicator_pipeline] INFO —   KLAC: positioning data fetched OK
+2026-09-25 09:00:10,049 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-09-25 09:00:10,049 [swing_model.indicator_pipeline] INFO — Pipeline complete: 11/11 tickers processed successfully.
+2026-09-25 09:00:10,051 [swing_model.indicator_pipeline] INFO — [mid_session] Fetching OHLCV for: ['ZION', 'KEY', 'HBAN', 'RF', 'FITB', 'CFG', 'TFC', 'MTB', 'CFR', 'PNFP', 'ONB', 'UMBF', 'KRE']
+2026-09-25 09:00:10,346 [swing_model.indicator_pipeline] INFO — ZION: indicators computed (close=63.64, rsi=34.2, atr=1.39)
+2026-09-25 09:00:10,357 [swing_model.indicator_pipeline] INFO — KEY: indicators computed (close=20.51, rsi=35.6, atr=0.42)
+2026-09-25 09:00:10,368 [swing_model.indicator_pipeline] INFO — HBAN: indicators computed (close=15.60, rsi=36.5, atr=0.36)
+2026-09-25 09:00:10,377 [swing_model.indicator_pipeline] INFO — RF: indicators computed (close=27.53, rsi=27.9, atr=0.57)
+2026-09-25 09:00:10,386 [swing_model.indicator_pipeline] INFO — FITB: indicators computed (close=51.97, rsi=36.8, atr=1.08)
+2026-09-25 09:00:10,398 [swing_model.indicator_pipeline] INFO — CFG: indicators computed (close=65.18, rsi=33.3, atr=1.48)
+2026-09-25 09:00:10,410 [swing_model.indicator_pipeline] INFO — TFC: indicators computed (close=47.44, rsi=34.8, atr=1.03)
+2026-09-25 09:00:10,419 [swing_model.indicator_pipeline] INFO — MTB: indicators computed (close=220.57, rsi=29.3, atr=4.31)
+2026-09-25 09:00:10,428 [swing_model.indicator_pipeline] INFO — CFR: indicators computed (close=157.15, rsi=40.8, atr=2.95)
+2026-09-25 09:00:10,437 [swing_model.indicator_pipeline] INFO — PNFP: indicators computed (close=95.08, rsi=37.5, atr=2.32)
+2026-09-25 09:00:10,447 [swing_model.indicator_pipeline] INFO — ONB: indicators computed (close=25.36, rsi=46.8, atr=0.45)
+2026-09-25 09:00:10,458 [swing_model.indicator_pipeline] INFO — UMBF: indicators computed (close=136.45, rsi=42.5, atr=2.75)
+2026-09-25 09:00:10,466 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-09-25T12:30:59.623982+00:00)
+2026-09-25 09:00:10,487 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['KEY', 'HBAN', 'RF', 'FITB', 'TFC', 'PNFP', 'ONB', 'UMBF']
+2026-09-25 09:00:11,166 [swing_model.indicator_pipeline] INFO —   KEY: positioning data fetched OK
+2026-09-25 09:00:11,616 [swing_model.indicator_pipeline] INFO —   HBAN: positioning data fetched OK
+2026-09-25 09:00:12,207 [swing_model.indicator_pipeline] INFO —   RF: positioning data fetched OK
+2026-09-25 09:00:12,707 [swing_model.indicator_pipeline] INFO —   FITB: positioning data fetched OK
+2026-09-25 09:00:13,170 [swing_model.indicator_pipeline] INFO —   TFC: positioning data fetched OK
+2026-09-25 09:00:13,690 [swing_model.indicator_pipeline] INFO —   PNFP: positioning data fetched OK
+2026-09-25 09:00:14,326 [swing_model.indicator_pipeline] INFO —   ONB: positioning data fetched OK
+2026-09-25 09:00:14,788 [swing_model.indicator_pipeline] INFO —   UMBF: positioning data fetched OK
+2026-09-25 09:00:14,919 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-09-25 09:00:14,920 [swing_model.indicator_pipeline] INFO — Pipeline complete: 12/12 tickers processed successfully.
+2026-09-25 09:00:14,925 [swing_model.indicator_pipeline] INFO — [mid_session] Fetching OHLCV for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ', 'AMGN', 'GILD', 'BMY', 'VRTX', 'TMO', 'ABT', 'ISRG', 'SYK', 'XLV']
+2026-09-25 09:00:15,202 [swing_model.indicator_pipeline] INFO — LLY: indicators computed (close=1163.76, rsi=50.2, atr=32.44)
+2026-09-25 09:00:15,212 [swing_model.indicator_pipeline] INFO — PFE: indicators computed (close=28.28, rsi=60.6, atr=0.49)
+2026-09-25 09:00:15,221 [swing_model.indicator_pipeline] INFO — MRK: indicators computed (close=147.70, rsi=55.8, atr=3.54)
+2026-09-25 09:00:15,230 [swing_model.indicator_pipeline] INFO — ABBV: indicators computed (close=263.14, rsi=56.1, atr=5.22)
+2026-09-25 09:00:15,239 [swing_model.indicator_pipeline] INFO — UNH: indicators computed (close=378.28, rsi=43.1, atr=8.86)
+2026-09-25 09:00:15,248 [swing_model.indicator_pipeline] INFO — JNJ: indicators computed (close=269.53, rsi=53.8, atr=5.16)
+2026-09-25 09:00:15,262 [swing_model.indicator_pipeline] INFO — AMGN: indicators computed (close=408.51, rsi=53.5, atr=10.26)
+2026-09-25 09:00:15,273 [swing_model.indicator_pipeline] INFO — GILD: indicators computed (close=148.82, rsi=56.0, atr=3.50)
+2026-09-25 09:00:15,288 [swing_model.indicator_pipeline] INFO — BMY: indicators computed (close=61.83, rsi=37.8, atr=1.30)
+2026-09-25 09:00:15,302 [swing_model.indicator_pipeline] INFO — VRTX: indicators computed (close=519.79, rsi=49.1, atr=12.32)
+2026-09-25 09:00:15,314 [swing_model.indicator_pipeline] INFO — TMO: indicators computed (close=670.82, rsi=69.8, atr=15.80)
+2026-09-25 09:00:15,324 [swing_model.indicator_pipeline] INFO — ABT: indicators computed (close=101.33, rsi=36.3, atr=2.34)
+2026-09-25 09:00:15,335 [swing_model.indicator_pipeline] INFO — ISRG: indicators computed (close=401.58, rsi=63.7, atr=11.20)
+2026-09-25 09:00:15,345 [swing_model.indicator_pipeline] INFO — SYK: indicators computed (close=274.62, rsi=34.5, atr=8.53)
+2026-09-25 09:00:15,354 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-09-25T12:30:59.623982+00:00)
+2026-09-25 09:00:15,392 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['LLY', 'PFE', 'MRK', 'ABBV', 'UNH', 'JNJ', 'AMGN', 'GILD', 'BMY', 'VRTX', 'TMO', 'ABT', 'ISRG', 'SYK']
+2026-09-25 09:00:16,112 [swing_model.indicator_pipeline] INFO —   LLY: positioning data fetched OK
+2026-09-25 09:00:16,663 [swing_model.indicator_pipeline] INFO —   PFE: positioning data fetched OK
+2026-09-25 09:00:17,129 [swing_model.indicator_pipeline] INFO —   MRK: positioning data fetched OK
+2026-09-25 09:00:17,675 [swing_model.indicator_pipeline] INFO —   ABBV: positioning data fetched OK
+2026-09-25 09:00:18,169 [swing_model.indicator_pipeline] INFO —   UNH: positioning data fetched OK
+2026-09-25 09:00:18,670 [swing_model.indicator_pipeline] INFO —   JNJ: positioning data fetched OK
+2026-09-25 09:00:19,142 [swing_model.indicator_pipeline] INFO —   AMGN: positioning data fetched OK
+2026-09-25 09:00:19,613 [swing_model.indicator_pipeline] INFO —   GILD: positioning data fetched OK
+2026-09-25 09:00:20,159 [swing_model.indicator_pipeline] INFO —   BMY: positioning data fetched OK
+2026-09-25 09:00:20,729 [swing_model.indicator_pipeline] INFO —   VRTX: positioning data fetched OK
+2026-09-25 09:00:21,276 [swing_model.indicator_pipeline] INFO —   TMO: positioning data fetched OK
+2026-09-25 09:00:21,798 [swing_model.indicator_pipeline] INFO —   ABT: positioning data fetched OK
+2026-09-25 09:00:22,282 [swing_model.indicator_pipeline] INFO —   ISRG: positioning data fetched OK
+2026-09-25 09:00:22,862 [swing_model.indicator_pipeline] INFO —   SYK: positioning data fetched OK
+2026-09-25 09:00:22,982 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-09-25 09:00:22,982 [swing_model.indicator_pipeline] INFO — Pipeline complete: 14/14 tickers processed successfully.
+2026-09-25 09:00:22,986 [swing_model.indicator_pipeline] INFO — [mid_session] Fetching OHLCV for: ['AMZN', 'TSLA', 'HD', 'NKE', 'SBUX', 'TGT', 'MCD', 'BKNG', 'TJX', 'LOW', 'ORLY', 'XLY']
+2026-09-25 09:00:23,241 [swing_model.indicator_pipeline] INFO — AMZN: indicators computed (close=249.64, rsi=44.5, atr=5.76)
+2026-09-25 09:00:23,251 [swing_model.indicator_pipeline] INFO — TSLA: indicators computed (close=373.05, rsi=55.9, atr=12.73)
+2026-09-25 09:00:23,261 [swing_model.indicator_pipeline] INFO — HD: indicators computed (close=293.83, rsi=32.7, atr=6.74)
+2026-09-25 09:00:23,272 [swing_model.indicator_pipeline] INFO — NKE: indicators computed (close=35.92, rsi=36.5, atr=0.96)
+2026-09-25 09:00:23,283 [swing_model.indicator_pipeline] INFO — SBUX: indicators computed (close=93.64, rsi=25.5, atr=2.20)
+2026-09-25 09:00:23,292 [swing_model.indicator_pipeline] INFO — TGT: indicators computed (close=157.14, rsi=50.2, atr=3.88)
+2026-09-25 09:00:23,302 [swing_model.indicator_pipeline] INFO — MCD: indicators computed (close=236.45, rsi=24.9, atr=4.95)
+2026-09-25 09:00:23,311 [swing_model.indicator_pipeline] INFO — BKNG: indicators computed (close=162.32, rsi=31.6, atr=6.49)
+2026-09-25 09:00:23,321 [swing_model.indicator_pipeline] INFO — TJX: indicators computed (close=130.32, rsi=41.2, atr=2.89)
+2026-09-25 09:00:23,332 [swing_model.indicator_pipeline] INFO — LOW: indicators computed (close=188.24, rsi=31.8, atr=4.47)
+2026-09-25 09:00:23,344 [swing_model.indicator_pipeline] INFO — ORLY: indicators computed (close=85.89, rsi=46.7, atr=1.92)
+2026-09-25 09:00:23,351 [swing_model.indicator_pipeline] INFO — Loading cached fundamental data (last_updated: 2026-09-25T12:30:59.623982+00:00)
+2026-09-25 09:00:23,373 [swing_model.indicator_pipeline] INFO — Fetching positioning data for: ['AMZN', 'TSLA', 'HD', 'NKE', 'SBUX', 'TGT', 'MCD', 'BKNG', 'TJX', 'LOW', 'ORLY']
+2026-09-25 09:00:24,021 [swing_model.indicator_pipeline] INFO —   AMZN: positioning data fetched OK
+2026-09-25 09:00:24,659 [swing_model.indicator_pipeline] INFO —   TSLA: positioning data fetched OK
+2026-09-25 09:00:25,142 [swing_model.indicator_pipeline] INFO —   HD: positioning data fetched OK
+2026-09-25 09:00:25,617 [swing_model.indicator_pipeline] INFO —   NKE: positioning data fetched OK
+2026-09-25 09:00:26,097 [swing_model.indicator_pipeline] INFO —   SBUX: positioning data fetched OK
+2026-09-25 09:00:26,731 [swing_model.indicator_pipeline] INFO —   TGT: positioning data fetched OK
+2026-09-25 09:00:27,255 [swing_model.indicator_pipeline] INFO —   MCD: positioning data fetched OK
+2026-09-25 09:00:27,707 [swing_model.indicator_pipeline] INFO —   BKNG: positioning data fetched OK
+2026-09-25 09:00:28,178 [swing_model.indicator_pipeline] INFO —   TJX: positioning data fetched OK
+2026-09-25 09:00:28,649 [swing_model.indicator_pipeline] INFO —   LOW: positioning data fetched OK
+2026-09-25 09:00:29,081 [swing_model.indicator_pipeline] INFO —   ORLY: positioning data fetched OK
+2026-09-25 09:00:29,197 [swing_model.indicator_pipeline] INFO — positioning_state.json updated.
+2026-09-25 09:00:29,198 [swing_model.indicator_pipeline] INFO — Pipeline complete: 11/11 tickers processed successfully.
+2026-09-25 09:00:29,478 [shared.utils.price_source_comparison] INFO — price_source_comparison: logged 48 ticker row(s) (mid_session)
+2026-09-25 09:00:41,146 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 3 capex-context snippet(s) for AMZN.
+2026-09-25 09:01:11,425 [shared.api_clients._http_backoff] WARNING — [sec_edgar] Attempt 1 failed: HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=30). Retrying in 30s.
+2026-09-25 09:01:59,788 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 3 capex-context snippet(s) for MSFT.
+2026-09-25 09:02:30,014 [shared.api_clients._http_backoff] WARNING — [sec_edgar] Attempt 1 failed: HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=30). Retrying in 30s.
+2026-09-25 09:03:10,907 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 4 capex-context snippet(s) for GOOGL.
+2026-09-25 09:03:13,193 [shared.api_clients.sec_edgar_client] INFO — SEC EDGAR: fetched 0 capex-context snippet(s) for META.
+2026-09-25 09:03:14,250 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NVDA.
+2026-09-25 09:03:18,175 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for NVDA.
+2026-09-25 09:03:18,522 [__main__] INFO — NVDA: SCORE 54.2/100 (technical=26.9/42, positioning=7.8/20, sentiment=8.2/18, news=6.2/10, fundamental=8.0/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:19,095 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMD.
+2026-09-25 09:03:21,614 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMD.
+2026-09-25 09:03:21,747 [__main__] INFO — AMD: SCORE 55.5/100 (technical=25.9/42, positioning=7.2/20, sentiment=15.0/18, news=7.0/10, fundamental=3.3/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:22,311 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AVGO.
+2026-09-25 09:03:24,157 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AVGO.
+2026-09-25 09:03:24,256 [__main__] INFO — AVGO: SCORE 48.2/100 (technical=31.6/42, positioning=11.6/20, sentiment=10.4/18, news=4.0/10, fundamental=-5.3/10 as_of=2026-09-25) modifiers(regime=-5.0, macro=+3.0, sector_rotation=-0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-2.0, total=-4.0) direction=bearish qualifies=no
+2026-09-25 09:03:24,863 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSM.
+2026-09-25 09:03:31,353 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TSM.
+2026-09-25 09:03:31,940 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TSM.
+2026-09-25 09:03:32,015 [__main__] INFO — TSM: Geopolitical risk ticker (-5 confidence penalty applied)
+2026-09-25 09:03:32,015 [__main__] INFO — TSM: SCORE 55.8/100 (technical=24.0/42, positioning=11.7/20, sentiment=11.8/18, news=7.6/10, fundamental=8.7/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:32,606 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MU.
+2026-09-25 09:03:35,035 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MU.
+2026-09-25 09:03:35,178 [__main__] INFO — MU: SCORE 45.9/100 (technical=28.6/42, positioning=11.3/20, sentiment=13.2/18, news=7.1/10, fundamental=8.7/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=-20.0, cross_ticker=+0.0, seasonality=+2.0, total=-23.0) direction=bullish qualifies=no
+2026-09-25 09:03:35,695 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ASML.
+2026-09-25 09:03:40,338 [shared.api_clients.sentiment_client] WARNING — RapidAPI seeking-alpha.p.rapidapi.com: empty/non-JSON body (no retry) — treating as no data
+2026-09-25 09:03:40,338 [shared.api_clients._http_backoff] WARNING — [RapidAPI seeking-alpha.p.rapidapi.com] Request rejected, not retrying: Expecting value: line 1 column 1 (char 0)
+2026-09-25 09:03:40,339 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for ASML — using cached engagement data from 19.5h ago.
+2026-09-25 09:03:40,418 [__main__] INFO — ASML: Geopolitical risk ticker (-5 confidence penalty applied)
+2026-09-25 09:03:40,418 [__main__] INFO — ASML: SCORE 45.9/100 (technical=21.8/42, positioning=7.3/20, sentiment=14.0/18, news=6.8/10, fundamental=4.0/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:40,951 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TXN.
+2026-09-25 09:03:46,068 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TXN.
+2026-09-25 09:03:46,146 [__main__] INFO — TXN: SCORE 52.5/100 (technical=26.1/42, positioning=9.2/20, sentiment=9.3/18, news=5.5/10, fundamental=5.3/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:46,837 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ADI.
+2026-09-25 09:03:49,135 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ADI.
+2026-09-25 09:03:49,212 [__main__] INFO — ADI: SCORE 51.5/100 (technical=22.2/42, positioning=5.6/20, sentiment=14.6/18, news=5.5/10, fundamental=6.7/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:49,773 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMAT.
+2026-09-25 09:03:52,696 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMAT.
+2026-09-25 09:03:52,784 [__main__] INFO — AMAT: SCORE 48.4/100 (technical=22.9/42, positioning=6.9/20, sentiment=9.9/18, news=6.4/10, fundamental=5.3/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:53,335 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for QCOM.
+2026-09-25 09:03:55,400 [shared.api_clients.sentiment_client] WARNING — RapidAPI seeking-alpha.p.rapidapi.com: empty/non-JSON body (no retry) — treating as no data
+2026-09-25 09:03:55,401 [shared.api_clients._http_backoff] WARNING — [RapidAPI seeking-alpha.p.rapidapi.com] Request rejected, not retrying: Expecting value: line 1 column 1 (char 0)
+2026-09-25 09:03:55,401 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for QCOM — using cached engagement data from 3.5h ago.
+2026-09-25 09:03:55,500 [__main__] INFO — QCOM: SCORE 60.2/100 (technical=32.1/42, positioning=6.3/20, sentiment=12.8/18, news=7.3/10, fundamental=4.7/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:03:56,127 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for KLAC.
+2026-09-25 09:04:00,776 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for KLAC.
+2026-09-25 09:04:00,852 [__main__] INFO — KLAC: SCORE 46.9/100 (technical=23.9/42, positioning=9.0/20, sentiment=7.7/18, news=6.1/10, fundamental=3.2/10 as_of=2026-09-21) modifiers(regime=+5.0, macro=-10.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+2.0, total=-3.0) direction=bullish qualifies=no
+2026-09-25 09:04:01,524 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ZION.
+2026-09-25 09:04:05,204 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ZION.
+2026-09-25 09:04:05,281 [__main__] INFO — ZION: SCORE 64.5/100 (technical=32.0/42, positioning=16.1/20, sentiment=10.5/18, news=3.5/10, fundamental=-2.7/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:05,281 [__main__] INFO — ZION: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:05,283 [__main__] INFO — ZION: NOTE — long_butterfly_call's ev_per_dollar_per_day (0.28302) is a statistical outlier vs. this structure's own history (z=+239.85, threshold=3.5) — worth checking the underlying inputs (ATR/price ratio, IV, dte) before trusting this ranking
+2026-09-25 09:04:05,932 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for KEY.
+2026-09-25 09:04:08,124 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for KEY.
+2026-09-25 09:04:08,195 [__main__] INFO — KEY: SCORE 52.1/100 (technical=28.6/42, positioning=13.1/20, sentiment=7.0/18, news=4.4/10, fundamental=-6.0/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:08,195 [__main__] INFO — KEY: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:08,814 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HBAN.
+2026-09-25 09:04:12,165 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for HBAN.
+2026-09-25 09:04:12,264 [__main__] INFO — HBAN: SCORE 54.7/100 (technical=30.6/42, positioning=12.9/20, sentiment=8.2/18, news=2.7/10, fundamental=-4.7/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:12,264 [__main__] INFO — HBAN: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:12,879 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for RF.
+2026-09-25 09:04:14,741 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for RF.
+2026-09-25 09:04:14,814 [__main__] INFO — RF: SCORE 55.2/100 (technical=26.8/42, positioning=15.4/20, sentiment=8.5/18, news=2.9/10, fundamental=-3.3/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:14,815 [__main__] INFO — RF: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:15,424 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for FITB.
+2026-09-25 09:04:21,496 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for FITB.
+2026-09-25 09:04:21,578 [__main__] INFO — FITB: SCORE 56.5/100 (technical=30.8/42, positioning=8.3/20, sentiment=10.5/18, news=2.6/10, fundamental=-0.7/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:21,578 [__main__] INFO — FITB: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:22,170 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for CFG.
+2026-09-25 09:04:24,597 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for CFG.
+2026-09-25 09:04:24,667 [__main__] INFO — CFG: SCORE 48.5/100 (technical=31.2/42, positioning=9.0/20, sentiment=7.0/18, news=2.3/10, fundamental=-6.0/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:24,667 [__main__] INFO — CFG: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:25,244 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TFC.
+2026-09-25 09:04:27,222 [shared.api_clients.sentiment_client] WARNING — RapidAPI seeking-alpha.p.rapidapi.com: empty/non-JSON body (no retry) — treating as no data
+2026-09-25 09:04:27,222 [shared.api_clients._http_backoff] WARNING — [RapidAPI seeking-alpha.p.rapidapi.com] Request rejected, not retrying: Expecting value: line 1 column 1 (char 0)
+2026-09-25 09:04:27,223 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for TFC — using cached engagement data from 3.5h ago.
+2026-09-25 09:04:27,359 [__main__] INFO — TFC: SCORE 53.0/100 (technical=31.6/42, positioning=14.0/20, sentiment=7.0/18, news=1.3/10, fundamental=-6.0/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:27,359 [__main__] INFO — TFC: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:28,068 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MTB.
+2026-09-25 09:04:32,097 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MTB.
+2026-09-25 09:04:32,241 [__main__] INFO — MTB: SCORE 50.3/100 (technical=27.7/42, positioning=11.0/20, sentiment=10.5/18, news=2.2/10, fundamental=-6.0/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:32,241 [__main__] INFO — MTB: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:33,172 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for CFR.
+2026-09-25 09:04:34,957 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for CFR.
+2026-09-25 09:04:35,095 [__main__] INFO — CFR: SCORE 57.6/100 (technical=32.8/42, positioning=11.2/20, sentiment=8.8/18, news=3.1/10, fundamental=-3.2/10 as_of=2026-09-21) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:35,095 [__main__] INFO — CFR: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:35,669 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 0 messages for PNFP.
+2026-09-25 09:04:38,469 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for PNFP.
+2026-09-25 09:04:38,550 [__main__] INFO — PNFP: SCORE 57.1/100 (technical=33.4/42, positioning=10.7/20, sentiment=10.5/18, news=2.2/10, fundamental=-4.7/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:38,550 [__main__] INFO — PNFP: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:39,419 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ONB.
+2026-09-25 09:04:41,410 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ONB.
+2026-09-25 09:04:41,484 [__main__] INFO — ONB: SCORE 48.9/100 (technical=27.1/42, positioning=11.6/20, sentiment=8.8/18, news=2.5/10, fundamental=-6.0/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:41,484 [__main__] INFO — ONB: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:42,159 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for UMBF.
+2026-09-25 09:04:44,754 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for UMBF.
+2026-09-25 09:04:44,837 [__main__] INFO — UMBF: SCORE 52.8/100 (technical=31.5/42, positioning=12.6/20, sentiment=8.8/18, news=2.3/10, fundamental=-7.3/10 as_of=2026-09-25) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:04:44,837 [__main__] INFO — UMBF: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:04:45,437 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for LLY.
+2026-09-25 09:04:53,837 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for LLY.
+2026-09-25 09:04:53,938 [__main__] INFO — LLY: SCORE 56.4/100 (technical=25.2/42, positioning=9.1/20, sentiment=10.7/18, news=8.0/10, fundamental=5.3/10 as_of=2026-09-24) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:04:54,481 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for PFE.
+2026-09-25 09:04:56,551 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for PFE.
+2026-09-25 09:04:56,643 [__main__] INFO — PFE: SCORE 66.3/100 (technical=28.7/42, positioning=9.4/20, sentiment=14.6/18, news=9.0/10, fundamental=6.7/10 as_of=2026-09-23) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:04:56,645 [__main__] INFO — PFE: already logged to the threshold track today — no second threshold signal (still ranked for the rank track)
+2026-09-25 09:04:57,197 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MRK.
+2026-09-25 09:04:59,344 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MRK.
+2026-09-25 09:04:59,436 [__main__] INFO — MRK: SCORE 54.5/100 (technical=27.3/42, positioning=6.6/20, sentiment=14.0/18, news=6.6/10, fundamental=2.0/10 as_of=2026-09-22) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:04:59,983 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ABBV.
+2026-09-25 09:05:02,114 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ABBV.
+2026-09-25 09:05:02,204 [__main__] INFO — ABBV: SCORE 52.1/100 (technical=23.4/42, positioning=9.7/20, sentiment=9.9/18, news=6.4/10, fundamental=4.7/10 as_of=2026-09-23) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:02,745 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for UNH.
+2026-09-25 09:05:04,775 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for UNH.
+2026-09-25 09:05:04,857 [__main__] INFO — UNH: SCORE 32.3/100 (technical=29.3/42, positioning=8.2/20, sentiment=2.5/18, news=3.3/10, fundamental=-4.0/10 as_of=2026-09-22) modifiers(regime=-2.0, macro=-0.0, sector_rotation=-0.0, earnings=-5.0, cross_ticker=+0.0, seasonality=-0.0, total=-7.0) direction=bearish qualifies=no
+2026-09-25 09:05:05,417 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for JNJ.
+2026-09-25 09:05:08,167 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for JNJ.
+2026-09-25 09:05:08,251 [__main__] INFO — JNJ: SCORE 61.0/100 (technical=29.7/42, positioning=9.6/20, sentiment=16.3/18, news=7.3/10, fundamental=5.1/10 as_of=2026-09-21) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=-5.0, cross_ticker=+0.0, seasonality=+0.0, total=-7.0) direction=bullish qualifies=no
+2026-09-25 09:05:08,949 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMGN.
+2026-09-25 09:05:10,601 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMGN.
+2026-09-25 09:05:10,703 [__main__] INFO — AMGN: SCORE 53.2/100 (technical=24.6/42, positioning=7.5/20, sentiment=10.1/18, news=6.4/10, fundamental=6.7/10 as_of=2026-09-24) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:11,251 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for GILD.
+2026-09-25 09:05:15,080 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for GILD.
+2026-09-25 09:05:15,176 [__main__] INFO — GILD: SCORE 40.4/100 (technical=23.8/42, positioning=8.5/20, sentiment=4.0/18, news=4.2/10, fundamental=2.0/10 as_of=2026-09-23) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:15,786 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for BMY.
+2026-09-25 09:05:17,937 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for BMY.
+2026-09-25 09:05:18,006 [__main__] INFO — BMY: SCORE 31.0/100 (technical=7.6/42, positioning=7.5/20, sentiment=7.9/18, news=3.2/10, fundamental=6.7/10 as_of=2026-09-24) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:18,580 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for VRTX.
+2026-09-25 09:05:22,860 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for VRTX.
+2026-09-25 09:05:22,935 [__main__] INFO — VRTX: SCORE 40.0/100 (technical=23.6/42, positioning=7.4/20, sentiment=2.9/18, news=2.7/10, fundamental=5.3/10 as_of=2026-09-22) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:23,616 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TMO.
+2026-09-25 09:05:25,788 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TMO.
+2026-09-25 09:05:25,873 [__main__] INFO — TMO: SCORE 57.5/100 (technical=27.6/42, positioning=7.2/20, sentiment=12.5/18, news=7.4/10, fundamental=4.7/10 as_of=2026-09-24) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:26,534 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ABT.
+2026-09-25 09:05:28,466 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ABT.
+2026-09-25 09:05:28,543 [__main__] INFO — ABT: SCORE 49.5/100 (technical=35.6/42, positioning=11.5/20, sentiment=8.6/18, news=2.3/10, fundamental=-6.7/10 as_of=2026-09-23) modifiers(regime=-2.0, macro=-0.0, sector_rotation=-0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=-2.0) direction=bearish qualifies=no
+2026-09-25 09:05:29,178 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ISRG.
+2026-09-25 09:05:33,132 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ISRG.
+2026-09-25 09:05:33,206 [__main__] INFO — ISRG: SCORE 59.0/100 (technical=35.3/42, positioning=7.5/20, sentiment=7.6/18, news=6.6/10, fundamental=4.0/10 as_of=2026-09-23) modifiers(regime=-2.0, macro=+0.0, sector_rotation=+0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-2.0) direction=bullish qualifies=no
+2026-09-25 09:05:33,786 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for SYK.
+2026-09-25 09:05:37,187 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for SYK.
+2026-09-25 09:05:37,271 [__main__] INFO — SYK: SCORE 48.7/100 (technical=34.0/42, positioning=14.0/20, sentiment=8.1/18, news=1.9/10, fundamental=-7.3/10 as_of=2026-09-24) modifiers(regime=-2.0, macro=-0.0, sector_rotation=-0.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=-2.0) direction=bearish qualifies=no
+2026-09-25 09:05:37,840 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for AMZN.
+2026-09-25 09:05:41,016 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for AMZN.
+2026-09-25 09:05:41,132 [__main__] INFO — AMZN: SCORE 34.2/100 (technical=16.0/42, positioning=9.8/20, sentiment=12.1/18, news=6.8/10, fundamental=4.5/10 as_of=2026-09-21) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:05:41,132 [__main__] INFO — AMZN: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:05:41,754 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TSLA.
+2026-09-25 09:05:47,631 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TSLA.
+2026-09-25 09:05:47,756 [__main__] INFO — TSLA: SCORE 43.9/100 (technical=34.8/42, positioning=7.4/20, sentiment=11.5/18, news=7.2/10, fundamental=-2.0/10 as_of=2026-09-25) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:05:47,756 [__main__] INFO — TSLA: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:05:48,386 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for HD.
+2026-09-25 09:05:50,748 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for HD.
+2026-09-25 09:05:50,824 [__main__] INFO — HD: SCORE 26.6/100 (technical=6.8/42, positioning=6.9/20, sentiment=16.5/18, news=6.1/10, fundamental=5.3/10 as_of=2026-09-25) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:05:50,824 [__main__] INFO — HD: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:05:51,385 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for NKE.
+2026-09-25 09:05:54,038 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for NKE.
+2026-09-25 09:05:54,125 [__main__] INFO — NKE: SCORE 49.9/100 (technical=27.6/42, positioning=16.0/20, sentiment=8.6/18, news=3.7/10, fundamental=-6.0/10 as_of=2026-09-24) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=-5.0, cross_ticker=+0.0, seasonality=-0.0, total=+0.0) direction=bearish qualifies=no
+2026-09-25 09:05:54,125 [__main__] INFO — NKE: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:05:54,733 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for SBUX.
+2026-09-25 09:05:56,573 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for SBUX.
+2026-09-25 09:05:56,736 [__main__] INFO — SBUX: SCORE 10.5/100 (technical=4.0/42, positioning=6.2/20, sentiment=7.8/18, news=5.6/10, fundamental=1.9/10 as_of=2026-09-21) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:05:56,736 [__main__] INFO — SBUX: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:05:57,403 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TGT.
+2026-09-25 09:06:00,540 [shared.api_clients.sentiment_client] WARNING — RapidAPI seeking-alpha.p.rapidapi.com: empty/non-JSON body (no retry) — treating as no data
+2026-09-25 09:06:00,541 [shared.api_clients._http_backoff] WARNING — [RapidAPI seeking-alpha.p.rapidapi.com] Request rejected, not retrying: Expecting value: line 1 column 1 (char 0)
+2026-09-25 09:06:00,541 [shared.api_clients.sentiment_client] WARNING — Seeking Alpha: live fetch unavailable for TGT — using cached engagement data from 3.4h ago.
+2026-09-25 09:06:01,078 [shared.api_clients.news_client] INFO — AV news: fetched 50 articles for TGT.
+2026-09-25 09:06:01,151 [__main__] INFO — TGT: SCORE 43.6/100 (technical=24.3/42, positioning=6.4/20, sentiment=12.5/18, news=9.7/10, fundamental=5.8/10 as_of=2026-09-21) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:06:01,151 [__main__] INFO — TGT: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:01,709 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for MCD.
+2026-09-25 09:06:04,525 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for MCD.
+2026-09-25 09:06:04,630 [__main__] INFO — MCD: SCORE 28.9/100 (technical=8.6/42, positioning=6.3/20, sentiment=17.1/18, news=6.0/10, fundamental=6.0/10 as_of=2026-09-23) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:06:04,630 [__main__] INFO — MCD: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:05,195 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for BKNG.
+2026-09-25 09:06:08,464 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for BKNG.
+2026-09-25 09:06:08,540 [__main__] INFO — BKNG: SCORE 31.0/100 (technical=5.5/42, positioning=9.7/20, sentiment=16.9/18, news=5.9/10, fundamental=8.0/10 as_of=2026-09-22) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:06:08,540 [__main__] INFO — BKNG: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:09,181 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for TJX.
+2026-09-25 09:06:11,209 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for TJX.
+2026-09-25 09:06:11,358 [__main__] INFO — TJX: SCORE 55.2/100 (technical=25.8/42, positioning=9.8/20, sentiment=13.4/18, news=5.8/10, fundamental=-4.7/10 as_of=2026-09-22) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:06:11,358 [__main__] INFO — TJX: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:11,917 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for LOW.
+2026-09-25 09:06:15,712 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for LOW.
+2026-09-25 09:06:15,790 [__main__] INFO — LOW: SCORE 27.3/100 (technical=5.8/42, positioning=7.9/20, sentiment=14.0/18, news=6.6/10, fundamental=8.0/10 as_of=2026-09-24) modifiers(regime=-5.0, macro=+0.0, sector_rotation=-15.0, earnings=+0.0, cross_ticker=+0.0, seasonality=+0.0, total=-15.0) direction=bullish qualifies=no
+2026-09-25 09:06:15,790 [__main__] INFO — LOW: NOTE — regime (-5.0) and sector_rotation (-15.0) both reflect the same SMH move; deduped to -15.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:16,460 [shared.api_clients.sentiment_client] INFO — StockTwits: fetched 30 messages for ORLY.
+2026-09-25 09:06:20,803 [shared.api_clients.sentiment_client] INFO — Seeking Alpha: fetched 10 engagement items for ORLY.
+2026-09-25 09:06:20,812 [shared.utils.event_gate] INFO — Sector trigger 'same-store sales miss' (consumer_discretionary) matched but the headline names no company relevant to this sector — not treated as sector-critical. Headline: AutoZone Beats Earnings Estimates but Same-Store Sales Miss. The Stock Trades Higher.
+2026-09-25 09:06:20,813 [shared.utils.event_gate] INFO — Sector trigger 'same-store sales miss' (consumer_discretionary) matched but the headline names no company relevant to this sector — not treated as sector-critical. Headline: AutoZone Beats Earnings Estimates but Same-Store Sales Miss. The Stock Trades Higher.
+2026-09-25 09:06:20,877 [__main__] INFO — ORLY: SCORE 55.8/100 (technical=27.6/42, positioning=13.1/20, sentiment=12.0/18, news=2.1/10, fundamental=-4.0/10 as_of=2026-09-23) modifiers(regime=+5.0, macro=-0.0, sector_rotation=+5.0, earnings=+0.0, cross_ticker=+0.0, seasonality=-0.0, total=+5.0) direction=bearish qualifies=no
+2026-09-25 09:06:20,877 [__main__] INFO — ORLY: NOTE — regime (+5.0) and sector_rotation (+5.0) both reflect the same SMH move; deduped to +5.0 in total_modifier (larger magnitude used, not summed)
+2026-09-25 09:06:20,927 [__main__] INFO — Rank track: skipped for scan_type=mid_session — rank_track.scan_type is 'post_close'
+2026-09-25 09:06:20,928 [__main__] INFO — Paper scan complete — 0 new signals logged to paper_trading\paper_trades.csv
+Done — 0 paper signal(s) logged.

@@ -1,7 +1,43 @@
 {
   "NVDA": {
-    "fetched_at": "2026-09-24T20:31:12.677824+00:00",
+    "fetched_at": "2026-09-25T20:31:13.435831+00:00",
     "items": [
+      {
+        "article_id": "4647293",
+        "timestamp_utc": "2026-09-25T16:10:28-04:00",
+        "title": "Bill Gates warns AI is 'powerful enough' to cause a billion deaths",
+        "comment_count": 18
+      },
+      {
+        "article_id": "4647286",
+        "timestamp_utc": "2026-09-25T15:58:15-04:00",
+        "title": "SCHMID surges after Nvidia, AMD, Intel consider using glass substrates in chips",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4647180",
+        "timestamp_utc": "2026-09-25T15:00:05-04:00",
+        "title": "Catalyst Watch: Jobs report, Trump AI talks, and ticking fee time for Paramount",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4647166",
+        "timestamp_utc": "2026-09-25T10:41:44-04:00",
+        "title": "Trump, Johnson plan meeting with tech execs to discuss AI safety",
+        "comment_count": 29
+      },
+      {
+        "article_id": "4647050",
+        "timestamp_utc": "2026-09-25T08:23:34-04:00",
+        "title": "Hyperscaler CDS spreads widen, with Oracle hitting record high",
+        "comment_count": 41
+      },
+      {
+        "article_id": "4646971",
+        "timestamp_utc": "2026-09-25T03:40:07-04:00",
+        "title": "Elon Musk eyes doubling xAI's Colossus 2 Nvidia AI chips by year-end",
+        "comment_count": 14
+      },
       {
         "article_id": "4646409",
         "timestamp_utc": "2026-09-24T01:37:33-04:00",
@@ -18,65 +54,29 @@
         "article_id": "4646218",
         "timestamp_utc": "2026-09-23T14:01:17-04:00",
         "title": "Nvidia on track to snap six straight sessions of gains, down 2%",
-        "comment_count": 18
+        "comment_count": 19
       },
       {
         "article_id": "4645839",
         "timestamp_utc": "2026-09-23T05:04:46-04:00",
         "title": "Nvidia-backed Firmus plans to raise $10B before Australian listing - report",
         "comment_count": 3
-      },
-      {
-        "article_id": "4645799",
-        "timestamp_utc": "2026-09-23T02:11:57-04:00",
-        "title": "Nvidia director Mark Stevens sells another $300M in shares",
-        "comment_count": 8
-      },
-      {
-        "article_id": "4645797",
-        "timestamp_utc": "2026-09-23T00:53:22-04:00",
-        "title": "Trump July disclosure: 1,156 trades, Microsoft and Amazon among largest sales",
-        "comment_count": 220
-      },
-      {
-        "article_id": "4645635",
-        "timestamp_utc": "2026-09-22T14:35:37-04:00",
-        "title": "Meta's Muse brings agentic AI to consumers; could prompt 'massive inference demand': analysts",
-        "comment_count": 44
-      },
-      {
-        "article_id": "4645222",
-        "timestamp_utc": "2026-09-22T00:44:50-04:00",
-        "title": "Nvidia-backed AI drugmaker Iambic Therapeutics seeks U.S. listing",
-        "comment_count": 9
-      },
-      {
-        "article_id": "4644761",
-        "timestamp_utc": "2026-09-21T09:35:21-04:00",
-        "title": "Nvidia CEO says 'What, me worry?' over AI's potential to destroy civilization",
-        "comment_count": 58
-      },
-      {
-        "article_id": "4644666",
-        "timestamp_utc": "2026-09-21T06:45:10-04:00",
-        "title": "Einride shares surge on Nvidia collaboration for autonomous freight",
-        "comment_count": 1
       }
     ]
   },
   "AMD": {
-    "fetched_at": "2026-09-24T20:31:17.053618+00:00",
+    "fetched_at": "2026-09-25T20:31:19.098753+00:00",
     "items": [
+      {
+        "article_id": "4647286",
+        "timestamp_utc": "2026-09-25T15:58:15-04:00",
+        "title": "SCHMID surges after Nvidia, AMD, Intel consider using glass substrates in chips",
+        "comment_count": 2
+      },
       {
         "article_id": "4646779",
         "timestamp_utc": "2026-09-24T11:55:52-04:00",
         "title": "SA analyst upgrades/downgrades: TSLA, AMD, AMAT, SPCX",
-        "comment_count": 2
-      },
-      {
-        "article_id": "4646781",
-        "timestamp_utc": "2026-09-24T11:55:04-04:00",
-        "title": "AMD, Dell, HPE lead tech stocks with top momentum scores",
         "comment_count": 3
       },
       {
@@ -95,7 +95,7 @@
         "article_id": "4645635",
         "timestamp_utc": "2026-09-22T14:35:37-04:00",
         "title": "Meta's Muse brings agentic AI to consumers; could prompt 'massive inference demand': analysts",
-        "comment_count": 44
+        "comment_count": 46
       },
       {
         "article_id": "4645196",
@@ -130,13 +130,13 @@
     ]
   },
   "AVGO": {
-    "fetched_at": "2026-09-24T20:31:20.919459+00:00",
+    "fetched_at": "2026-09-25T16:03:24.158706+00:00",
     "items": [
       {
         "article_id": "4645635",
         "timestamp_utc": "2026-09-22T14:35:37-04:00",
         "title": "Meta's Muse brings agentic AI to consumers; could prompt 'massive inference demand': analysts",
-        "comment_count": 44
+        "comment_count": 46
       },
       {
         "article_id": "4645448",
@@ -195,7 +195,7 @@
     ]
   },
   "TSM": {
-    "fetched_at": "2026-09-24T20:31:24.100080+00:00",
+    "fetched_at": "2026-09-25T20:31:28.539056+00:00",
     "items": [
       {
         "article_id": "4646267",
@@ -260,19 +260,19 @@
     ]
   },
   "MU": {
-    "fetched_at": "2026-09-24T20:31:26.906962+00:00",
+    "fetched_at": "2026-09-25T20:31:33.545126+00:00",
     "items": [
       {
-        "article_id": "4646781",
-        "timestamp_utc": "2026-09-24T11:55:04-04:00",
-        "title": "AMD, Dell, HPE lead tech stocks with top momentum scores",
-        "comment_count": 3
+        "article_id": "4647180",
+        "timestamp_utc": "2026-09-25T15:00:05-04:00",
+        "title": "Catalyst Watch: Jobs report, Trump AI talks, and ticking fee time for Paramount",
+        "comment_count": 2
       },
       {
         "article_id": "4645988",
         "timestamp_utc": "2026-09-23T09:03:20-04:00",
         "title": "Micron in focus as Citi ups estimates on better-than-expected DRAM pricing",
-        "comment_count": 12
+        "comment_count": 16
       },
       {
         "article_id": "4645798",
@@ -284,7 +284,7 @@
         "article_id": "4645635",
         "timestamp_utc": "2026-09-22T14:35:37-04:00",
         "title": "Meta's Muse brings agentic AI to consumers; could prompt 'massive inference demand': analysts",
-        "comment_count": 44
+        "comment_count": 46
       },
       {
         "article_id": "4645448",
@@ -325,7 +325,7 @@
     ]
   },
   "ASML": {
-    "fetched_at": "2026-09-24T20:31:31.848260+00:00",
+    "fetched_at": "2026-09-25T20:31:37.868503+00:00",
     "items": [
       {
         "article_id": "4640871",
@@ -390,8 +390,14 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-09-24T20:31:57.514902+00:00",
+    "fetched_at": "2026-09-25T20:32:03.879521+00:00",
     "items": [
+      {
+        "article_id": "4647048",
+        "timestamp_utc": "2026-09-25T08:06:41-04:00",
+        "title": "Fed plans to boost thresholds for bank oversight - report",
+        "comment_count": 2
+      },
       {
         "article_id": "4622388",
         "timestamp_utc": "2026-07-30T23:58:23-04:00",
@@ -445,17 +451,11 @@
         "timestamp_utc": "2026-05-04T00:22:42-04:00",
         "title": "Zions Bancorporation declares $0.45 dividend",
         "comment_count": 0
-      },
-      {
-        "article_id": "4576956",
-        "timestamp_utc": "2026-04-21T02:24:50-04:00",
-        "title": "Zions forecasts 7% to 8% net interest income growth under a no-rate-change path while advancing Basis agency lending deal",
-        "comment_count": 0
       }
     ]
   },
   "KEY": {
-    "fetched_at": "2026-09-24T20:32:01.998854+00:00",
+    "fetched_at": "2026-09-25T20:32:14.816335+00:00",
     "items": [
       {
         "article_id": "4642470",
@@ -520,7 +520,7 @@
     ]
   },
   "HBAN": {
-    "fetched_at": "2026-09-24T20:32:06.421706+00:00",
+    "fetched_at": "2026-09-25T20:32:17.738376+00:00",
     "items": [
       {
         "article_id": "4643288",
@@ -585,7 +585,7 @@
     ]
   },
   "RF": {
-    "fetched_at": "2026-09-24T20:32:57.018785+00:00",
+    "fetched_at": "2026-09-25T20:32:20.856509+00:00",
     "items": [
       {
         "article_id": "4637532",
@@ -650,7 +650,7 @@
     ]
   },
   "FITB": {
-    "fetched_at": "2026-09-24T20:33:01.231803+00:00",
+    "fetched_at": "2026-09-25T20:32:24.434402+00:00",
     "items": [
       {
         "article_id": "4646656",
@@ -715,25 +715,37 @@
     ]
   },
   "LLY": {
-    "fetched_at": "2026-09-24T16:03:45.789585+00:00",
+    "fetched_at": "2026-09-25T20:32:57.875246+00:00",
     "items": [
+      {
+        "article_id": "4647169",
+        "timestamp_utc": "2026-09-25T14:13:17-04:00",
+        "title": "Beyond GLP-1 injectables, who wins the next phase for obesity drugs?",
+        "comment_count": 11
+      },
+      {
+        "article_id": "4647045",
+        "timestamp_utc": "2026-09-25T07:26:18-04:00",
+        "title": "Nektar gains 5% as jury awards $90M plus interest in Lilly trial",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4646854",
+        "timestamp_utc": "2026-09-24T15:36:11-04:00",
+        "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
+        "comment_count": 32
+      },
       {
         "article_id": "4646525",
         "timestamp_utc": "2026-09-24T07:07:58-04:00",
         "title": "Lilly wins FDA nod for once-weekly insulin product, Onswik",
-        "comment_count": 3
+        "comment_count": 4
       },
       {
         "article_id": "4646416",
         "timestamp_utc": "2026-09-24T00:35:44-04:00",
         "title": "InnoCare inks licensing deal with Eli Lilly worth up to $3.35B",
         "comment_count": 0
-      },
-      {
-        "article_id": "4646184",
-        "timestamp_utc": "2026-09-23T12:19:25-04:00",
-        "title": "Veeva Systems gains new top 20 biopharma win for Vault CRM",
-        "comment_count": 1
       },
       {
         "article_id": "4645656",
@@ -763,25 +775,25 @@
         "article_id": "4644426",
         "timestamp_utc": "2026-09-18T11:11:54-04:00",
         "title": "Trump announces MFN pricing for Medicaid in all states",
-        "comment_count": 52
-      },
-      {
-        "article_id": "4644250",
-        "timestamp_utc": "2026-09-18T07:08:47-04:00",
-        "title": "Trump administration is said to weigh allowing most pharma licensing deals with China",
-        "comment_count": 26
-      },
-      {
-        "article_id": "4643386",
-        "timestamp_utc": "2026-09-16T10:36:34-04:00",
-        "title": "Twist Bio, and Ginkgo rise after agreements with Lilly TuneLab",
-        "comment_count": 1
+        "comment_count": 55
       }
     ]
   },
   "PFE": {
-    "fetched_at": "2026-09-24T16:03:48.768140+00:00",
+    "fetched_at": "2026-09-25T20:33:01.776873+00:00",
     "items": [
+      {
+        "article_id": "4647294",
+        "timestamp_utc": "2026-09-25T15:58:02-04:00",
+        "title": "Pfizer shares rose for seven consecutive sessions",
+        "comment_count": 4
+      },
+      {
+        "article_id": "4646854",
+        "timestamp_utc": "2026-09-24T15:36:11-04:00",
+        "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
+        "comment_count": 32
+      },
       {
         "article_id": "4645954",
         "timestamp_utc": "2026-09-23T08:25:16-04:00",
@@ -798,7 +810,7 @@
         "article_id": "4644534",
         "timestamp_utc": "2026-09-18T16:56:04-04:00",
         "title": "RFK Jr. replaces federal autism panel chair: report",
-        "comment_count": 28
+        "comment_count": 29
       },
       {
         "article_id": "4644512",
@@ -810,7 +822,7 @@
         "article_id": "4644426",
         "timestamp_utc": "2026-09-18T11:11:54-04:00",
         "title": "Trump announces MFN pricing for Medicaid in all states",
-        "comment_count": 52
+        "comment_count": 55
       },
       {
         "article_id": "4644250",
@@ -829,24 +841,24 @@
         "timestamp_utc": "2026-09-15T11:26:56-04:00",
         "title": "FDA launches pilot program that aims to speed the time to first-in-human drug trials",
         "comment_count": 4
-      },
-      {
-        "article_id": "4640545",
-        "timestamp_utc": "2026-09-07T02:24:09-04:00",
-        "title": "Novartis India inks $132M asset purchase deal with Pfizer for Minipress brands",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4640298",
-        "timestamp_utc": "2026-09-04T07:36:37-04:00",
-        "title": "RFK Jr. is probing if U.S. troops died of COVID shots: report",
-        "comment_count": 81
       }
     ]
   },
   "MRK": {
-    "fetched_at": "2026-09-24T12:44:35.428846+00:00",
+    "fetched_at": "2026-09-25T16:04:59.345473+00:00",
     "items": [
+      {
+        "article_id": "4646905",
+        "timestamp_utc": "2026-09-24T16:32:12-04:00",
+        "title": "Merck Welireg, Eisai Lenvima combo approved for kidney cancer",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4646854",
+        "timestamp_utc": "2026-09-24T15:36:11-04:00",
+        "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
+        "comment_count": 32
+      },
       {
         "article_id": "4646541",
         "timestamp_utc": "2026-09-24T07:38:00-04:00",
@@ -857,7 +869,7 @@
         "article_id": "4646211",
         "timestamp_utc": "2026-09-23T13:46:32-04:00",
         "title": "CDC acknowledges one Pennsylvania measles death",
-        "comment_count": 17
+        "comment_count": 20
       },
       {
         "article_id": "4645325",
@@ -875,42 +887,30 @@
         "article_id": "4644534",
         "timestamp_utc": "2026-09-18T16:56:04-04:00",
         "title": "RFK Jr. replaces federal autism panel chair: report",
-        "comment_count": 28
+        "comment_count": 29
       },
       {
         "article_id": "4644512",
         "timestamp_utc": "2026-09-18T16:29:08-04:00",
         "title": "Trump to 'demand' vaccine makers make smaller doses for kids to address autism",
-        "comment_count": 128
+        "comment_count": 131
       },
       {
         "article_id": "4644426",
         "timestamp_utc": "2026-09-18T11:11:54-04:00",
         "title": "Trump announces MFN pricing for Medicaid in all states",
-        "comment_count": 48
+        "comment_count": 52
       },
       {
         "article_id": "4644371",
         "timestamp_utc": "2026-09-18T09:50:17-04:00",
         "title": "Merck, Astra, Roche and Corcept among winners of EU drug recommendations this week",
         "comment_count": 1
-      },
-      {
-        "article_id": "4644250",
-        "timestamp_utc": "2026-09-18T07:08:47-04:00",
-        "title": "Trump administration is said to weigh allowing most pharma licensing deals with China",
-        "comment_count": 26
-      },
-      {
-        "article_id": "4643890",
-        "timestamp_utc": "2026-09-17T12:18:20-04:00",
-        "title": "Pennsylvania calls on CDC to recognize measles deaths, asks for emergency assistance",
-        "comment_count": 28
       }
     ]
   },
   "ABBV": {
-    "fetched_at": "2026-09-24T20:33:44.203392+00:00",
+    "fetched_at": "2026-09-25T20:33:11.071219+00:00",
     "items": [
       {
         "article_id": "4645238",
@@ -928,7 +928,7 @@
         "article_id": "4644426",
         "timestamp_utc": "2026-09-18T11:11:54-04:00",
         "title": "Trump announces MFN pricing for Medicaid in all states",
-        "comment_count": 52
+        "comment_count": 55
       },
       {
         "article_id": "4641895",
@@ -975,7 +975,7 @@
     ]
   },
   "UNH": {
-    "fetched_at": "2026-09-24T20:33:47.216968+00:00",
+    "fetched_at": "2026-09-25T20:33:16.641930+00:00",
     "items": [
       {
         "article_id": "4644343",
@@ -1040,8 +1040,14 @@
     ]
   },
   "JNJ": {
-    "fetched_at": "2026-09-24T16:04:03.750297+00:00",
+    "fetched_at": "2026-09-25T20:33:19.841019+00:00",
     "items": [
+      {
+        "article_id": "4646854",
+        "timestamp_utc": "2026-09-24T15:36:11-04:00",
+        "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
+        "comment_count": 32
+      },
       {
         "article_id": "4646051",
         "timestamp_utc": "2026-09-23T10:20:13-04:00",
@@ -1058,7 +1064,7 @@
         "article_id": "4644426",
         "timestamp_utc": "2026-09-18T11:11:54-04:00",
         "title": "Trump announces MFN pricing for Medicaid in all states",
-        "comment_count": 52
+        "comment_count": 55
       },
       {
         "article_id": "4644250",
@@ -1095,12 +1101,6 @@
         "timestamp_utc": "2026-09-10T09:01:51-04:00",
         "title": "Johnson & Johnson wins CE mark as new ACUVUE contact lens nears Europe launch",
         "comment_count": 0
-      },
-      {
-        "article_id": "4641012",
-        "timestamp_utc": "2026-09-08T20:25:59-04:00",
-        "title": "FDA names acting heads of drug and vaccine units to permanent roles",
-        "comment_count": 25
       }
     ]
   },
@@ -1170,13 +1170,31 @@
     ]
   },
   "AMZN": {
-    "fetched_at": "2026-09-24T16:04:35.349365+00:00",
+    "fetched_at": "2026-09-25T20:33:54.305769+00:00",
     "items": [
+      {
+        "article_id": "4647050",
+        "timestamp_utc": "2026-09-25T08:23:34-04:00",
+        "title": "Hyperscaler CDS spreads widen, with Oracle hitting record high",
+        "comment_count": 41
+      },
+      {
+        "article_id": "4646984",
+        "timestamp_utc": "2026-09-25T04:09:59-04:00",
+        "title": "Burry warns of write-offs by hyperscalers as AI spending surges",
+        "comment_count": 90
+      },
+      {
+        "article_id": "4646968",
+        "timestamp_utc": "2026-09-25T01:20:53-04:00",
+        "title": "Goldman Sachs underweight hyperscalers amid debt flood",
+        "comment_count": 6
+      },
       {
         "article_id": "4646657",
         "timestamp_utc": "2026-09-24T09:38:53-04:00",
         "title": "Amazon plans $100M Indiana manufacturing hub, 300 jobs",
-        "comment_count": 5
+        "comment_count": 10
       },
       {
         "article_id": "4646475",
@@ -1194,7 +1212,7 @@
         "article_id": "4645797",
         "timestamp_utc": "2026-09-23T00:53:22-04:00",
         "title": "Trump July disclosure: 1,156 trades, Microsoft and Amazon among largest sales",
-        "comment_count": 215
+        "comment_count": 224
       },
       {
         "article_id": "4645583",
@@ -1212,48 +1230,54 @@
         "article_id": "4645292",
         "timestamp_utc": "2026-09-22T07:43:30-04:00",
         "title": "Shopify partners with Meta's Muse as Amazon blocks it",
-        "comment_count": 17
-      },
-      {
-        "article_id": "4645328",
-        "timestamp_utc": "2026-09-22T07:42:02-04:00",
-        "title": "Rivals on high alert as Paramount Skydance claims Warner Bros.",
-        "comment_count": 26
-      },
-      {
-        "article_id": "4645220",
-        "timestamp_utc": "2026-09-22T00:03:11-04:00",
-        "title": "Robinhood reports service recovery after AWS EC2 disruption",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4644921",
-        "timestamp_utc": "2026-09-21T12:22:05-04:00",
-        "title": "Amazon blocks Meta's Muse from retail site",
-        "comment_count": 75
+        "comment_count": 15
       }
     ]
   },
   "TSLA": {
-    "fetched_at": "2026-09-24T20:34:29.844784+00:00",
+    "fetched_at": "2026-09-25T20:34:42.856824+00:00",
     "items": [
+      {
+        "article_id": "4647180",
+        "timestamp_utc": "2026-09-25T15:00:05-04:00",
+        "title": "Catalyst Watch: Jobs report, Trump AI talks, and ticking fee time for Paramount",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4647039",
+        "timestamp_utc": "2026-09-25T06:56:03-04:00",
+        "title": "Tesla's Roadster reveal: Rocket science or reality check?",
+        "comment_count": 26
+      },
+      {
+        "article_id": "4646971",
+        "timestamp_utc": "2026-09-25T03:40:07-04:00",
+        "title": "Elon Musk eyes doubling xAI's Colossus 2 Nvidia AI chips by year-end",
+        "comment_count": 14
+      },
+      {
+        "article_id": "4646952",
+        "timestamp_utc": "2026-09-25T00:25:54-04:00",
+        "title": "Tesla commences semi-truck deliveries, reaffirms 50,000 annual output target",
+        "comment_count": 81
+      },
       {
         "article_id": "4646779",
         "timestamp_utc": "2026-09-24T11:55:52-04:00",
         "title": "SA analyst upgrades/downgrades: TSLA, AMD, AMAT, SPCX",
-        "comment_count": 2
+        "comment_count": 3
       },
       {
         "article_id": "4646413",
         "timestamp_utc": "2026-09-24T03:30:22-04:00",
         "title": "Tesla FSD misread speed limits in Belgium tests, road-safety group finds",
-        "comment_count": 38
+        "comment_count": 47
       },
       {
         "article_id": "4646411",
         "timestamp_utc": "2026-09-24T02:44:11-04:00",
         "title": "EU car market grows in August, with BEVs taking 21.7% share",
-        "comment_count": 4
+        "comment_count": 5
       },
       {
         "article_id": "4644800",
@@ -1265,42 +1289,18 @@
         "article_id": "4644590",
         "timestamp_utc": "2026-09-20T14:40:01-04:00",
         "title": "Musk says Boring Company is planning 200-mph Texas hyperloop",
-        "comment_count": 349
+        "comment_count": 361
       },
       {
         "article_id": "4643722",
         "timestamp_utc": "2026-09-17T08:04:53-04:00",
         "title": "Tesla partners with Forum Mobility on California truck charging sites",
         "comment_count": 25
-      },
-      {
-        "article_id": "4643145",
-        "timestamp_utc": "2026-09-15T16:17:22-04:00",
-        "title": "NHTSA compels Tesla to answer questions about Cybercab",
-        "comment_count": 104
-      },
-      {
-        "article_id": "4642311",
-        "timestamp_utc": "2026-09-14T06:50:31-04:00",
-        "title": "Tesla plans for a next-gen Roadster reveal on October 1",
-        "comment_count": 65
-      },
-      {
-        "article_id": "4642329",
-        "timestamp_utc": "2026-09-14T03:11:56-04:00",
-        "title": "Tesla sets up Vietnam unit to tap fast-growing EV market - report",
-        "comment_count": 3
-      },
-      {
-        "article_id": "4642309",
-        "timestamp_utc": "2026-09-13T16:13:50-04:00",
-        "title": "Tesla regains majority of U.S. EV market as rivals retreat: WSJ",
-        "comment_count": 132
       }
     ]
   },
   "HD": {
-    "fetched_at": "2026-09-24T20:34:34.306328+00:00",
+    "fetched_at": "2026-09-25T20:34:46.109567+00:00",
     "items": [
       {
         "article_id": "4639847",
@@ -1365,13 +1365,31 @@
     ]
   },
   "NKE": {
-    "fetched_at": "2026-09-24T20:34:37.216131+00:00",
+    "fetched_at": "2026-09-25T20:34:49.645066+00:00",
     "items": [
+      {
+        "article_id": "4647180",
+        "timestamp_utc": "2026-09-25T15:00:05-04:00",
+        "title": "Catalyst Watch: Jobs report, Trump AI talks, and ticking fee time for Paramount",
+        "comment_count": 2
+      },
+      {
+        "article_id": "4647107",
+        "timestamp_utc": "2026-09-25T09:00:50-04:00",
+        "title": "4 stocks to watch on Friday: LION, NKE, TWLO, NVO",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4647047",
+        "timestamp_utc": "2026-09-25T07:56:07-04:00",
+        "title": "BofA downgrades Nike to Underperform, cuts PT to $30",
+        "comment_count": 14
+      },
       {
         "article_id": "4644596",
         "timestamp_utc": "2026-09-20T17:10:31-04:00",
         "title": "Converse reviews ad approvals after campaign draws racism backlash",
-        "comment_count": 65
+        "comment_count": 69
       },
       {
         "article_id": "4643964",
@@ -1408,35 +1426,17 @@
         "timestamp_utc": "2026-09-10T11:09:18-04:00",
         "title": "SA analyst upgrades/downgrades: TSLA, DIS, NKE, MSFT",
         "comment_count": 28
-      },
-      {
-        "article_id": "4640534",
-        "timestamp_utc": "2026-09-07T00:33:48-04:00",
-        "title": "Nike booted from S&P 100 after nearly 18-year run",
-        "comment_count": 122
-      },
-      {
-        "article_id": "4640512",
-        "timestamp_utc": "2026-09-06T09:15:00-04:00",
-        "title": "The Trade Desk to leave S&P 500 as Bloom Energy, Everpure, Illumina join index",
-        "comment_count": 23
-      },
-      {
-        "article_id": "4639595",
-        "timestamp_utc": "2026-09-02T13:46:45-04:00",
-        "title": "Carlos Alcaraz leads US Open men\u2019s singles winner odds at 37%: Kalshi",
-        "comment_count": 11
       }
     ]
   },
   "SBUX": {
-    "fetched_at": "2026-09-24T20:34:42.430968+00:00",
+    "fetched_at": "2026-09-25T20:34:52.996565+00:00",
     "items": [
       {
         "article_id": "4646528",
         "timestamp_utc": "2026-09-24T07:20:59-04:00",
         "title": "Starbucks to close 250 stores in a minor tweak to the North American portfolio",
-        "comment_count": 3
+        "comment_count": 5
       },
       {
         "article_id": "4644758",
@@ -1495,8 +1495,20 @@
     ]
   },
   "TGT": {
-    "fetched_at": "2026-09-24T20:34:45.705220+00:00",
+    "fetched_at": "2026-09-25T20:34:57.123744+00:00",
     "items": [
+      {
+        "article_id": "4647280",
+        "timestamp_utc": "2026-09-25T14:09:13-04:00",
+        "title": "Target is winning back more customers with value offerings, organized stores",
+        "comment_count": 4
+      },
+      {
+        "article_id": "4647058",
+        "timestamp_utc": "2026-09-25T08:24:50-04:00",
+        "title": "Dividend Roundup: AT&T, Delta Air Lines, Philip Morris, Target, and more",
+        "comment_count": 1
+      },
       {
         "article_id": "4645930",
         "timestamp_utc": "2026-09-23T07:53:56-04:00",
@@ -1537,30 +1549,18 @@
         "article_id": "4636908",
         "timestamp_utc": "2026-08-26T06:44:42-04:00",
         "title": "Target launches beauty studio concept",
-        "comment_count": 0
+        "comment_count": 1
       },
       {
         "article_id": "4636862",
         "timestamp_utc": "2026-08-26T03:35:05-04:00",
         "title": "Target stock drops after controversial Halloween costume recall sparks boycott calls",
         "comment_count": 17
-      },
-      {
-        "article_id": "4635742",
-        "timestamp_utc": "2026-08-22T09:35:27-04:00",
-        "title": "Earnings Scoreboard: All 12 key S&P 500 reporting firms top EPS estimates; 11 deliver Y/Y growth",
-        "comment_count": 7
-      },
-      {
-        "article_id": "4635195",
-        "timestamp_utc": "2026-08-19T19:32:38-04:00",
-        "title": "Target projects around 5% FY2026 net sales growth as EPS guidance moves to $9.90-$10.90",
-        "comment_count": 3
       }
     ]
   },
   "TXN": {
-    "fetched_at": "2026-09-24T20:31:34.813728+00:00",
+    "fetched_at": "2026-09-25T20:31:42.394770+00:00",
     "items": [
       {
         "article_id": "4644081",
@@ -1625,7 +1625,7 @@
     ]
   },
   "ADI": {
-    "fetched_at": "2026-09-24T20:31:38.831724+00:00",
+    "fetched_at": "2026-09-25T16:03:49.136203+00:00",
     "items": [
       {
         "article_id": "4642920",
@@ -1690,13 +1690,19 @@
     ]
   },
   "AMAT": {
-    "fetched_at": "2026-09-24T16:02:54.293703+00:00",
+    "fetched_at": "2026-09-25T20:31:48.628385+00:00",
     "items": [
+      {
+        "article_id": "4647061",
+        "timestamp_utc": "2026-09-25T08:46:07-04:00",
+        "title": "Applied Materials, KLA, GlobalFoundries expand Singapore semiconductor ties",
+        "comment_count": 0
+      },
       {
         "article_id": "4646779",
         "timestamp_utc": "2026-09-24T11:55:52-04:00",
         "title": "SA analyst upgrades/downgrades: TSLA, AMD, AMAT, SPCX",
-        "comment_count": 0
+        "comment_count": 3
       },
       {
         "article_id": "4646266",
@@ -1720,7 +1726,7 @@
         "article_id": "4642241",
         "timestamp_utc": "2026-09-12T11:03:26-04:00",
         "title": "Insider trades: Nvidia, Tesla, Uber among notable names",
-        "comment_count": 31
+        "comment_count": 32
       },
       {
         "article_id": "4641911",
@@ -1745,29 +1751,17 @@
         "timestamp_utc": "2026-08-17T11:14:15-04:00",
         "title": "Quant ratings on Coatue Management's top holdings: TSM, LRCX, MU, SPCX, AMAT",
         "comment_count": 3
-      },
-      {
-        "article_id": "4633029",
-        "timestamp_utc": "2026-08-15T09:30:12-04:00",
-        "title": "Earnings Scoreboard: 9 of 10 key S&P 500 reporting firms top EPS estimates and deliver Y/Y growth",
-        "comment_count": 2
       }
     ]
   },
   "QCOM": {
-    "fetched_at": "2026-09-24T20:31:47.474567+00:00",
+    "fetched_at": "2026-09-25T20:31:54.264445+00:00",
     "items": [
-      {
-        "article_id": "4646573",
-        "timestamp_utc": "2026-09-24T09:05:43-04:00",
-        "title": "4 stocks to watch on Thursday: LOW, QCOM, BA, and BB",
-        "comment_count": 0
-      },
       {
         "article_id": "4646542",
         "timestamp_utc": "2026-09-24T07:40:16-04:00",
         "title": "Qualcomm slips even as it renews patent license agreement with Apple",
-        "comment_count": 6
+        "comment_count": 10
       },
       {
         "article_id": "4646282",
@@ -1816,12 +1810,24 @@
         "timestamp_utc": "2026-09-12T10:10:31-04:00",
         "title": "Notable tech headlines for the week: Apple, Nvidia, Oracle in focus",
         "comment_count": 3
+      },
+      {
+        "article_id": "4641672",
+        "timestamp_utc": "2026-09-10T14:12:31-04:00",
+        "title": "Piper Sandler initiates semi stocks with high ratings as market is 'starving for compute'",
+        "comment_count": 14
       }
     ]
   },
   "KLAC": {
-    "fetched_at": "2026-09-24T16:03:02.082710+00:00",
+    "fetched_at": "2026-09-25T20:32:00.045924+00:00",
     "items": [
+      {
+        "article_id": "4647061",
+        "timestamp_utc": "2026-09-25T08:46:07-04:00",
+        "title": "Applied Materials, KLA, GlobalFoundries expand Singapore semiconductor ties",
+        "comment_count": 0
+      },
       {
         "article_id": "4646266",
         "timestamp_utc": "2026-09-23T15:56:38-04:00",
@@ -1875,17 +1881,11 @@
         "timestamp_utc": "2026-07-28T16:11:28-04:00",
         "title": "KLA Corporation Non-GAAP EPS of $1.05 beats by $0.05, revenue of $3.66B beats by $60M",
         "comment_count": 19
-      },
-      {
-        "article_id": "4614621",
-        "timestamp_utc": "2026-07-16T13:55:18-04:00",
-        "title": "Taiwan Semi's boosted capex plans positive for chip equipment makers: analysts",
-        "comment_count": 6
       }
     ]
   },
   "CFG": {
-    "fetched_at": "2026-09-24T20:33:04.897829+00:00",
+    "fetched_at": "2026-09-25T20:32:29.608989+00:00",
     "items": [
       {
         "article_id": "4614999",
@@ -1950,8 +1950,14 @@
     ]
   },
   "TFC": {
-    "fetched_at": "2026-09-24T20:33:08.898780+00:00",
+    "fetched_at": "2026-09-25T20:32:34.949110+00:00",
     "items": [
+      {
+        "article_id": "4647048",
+        "timestamp_utc": "2026-09-25T08:06:41-04:00",
+        "title": "Fed plans to boost thresholds for bank oversight - report",
+        "comment_count": 2
+      },
       {
         "article_id": "4642817",
         "timestamp_utc": "2026-09-15T07:29:22-04:00",
@@ -2005,17 +2011,11 @@
         "timestamp_utc": "2026-07-12T09:33:02-04:00",
         "title": "Earnings week ahead: JPM, C, BAC, WFC, MS, UNH, JNJ, ABT, UAL, GS, TSM, and more",
         "comment_count": 6
-      },
-      {
-        "article_id": "4612648",
-        "timestamp_utc": "2026-07-12T09:30:43-04:00",
-        "title": "Which companies reporting earnings this week show the strongest bullish signals?",
-        "comment_count": 9
       }
     ]
   },
   "MTB": {
-    "fetched_at": "2026-09-24T16:03:29.953860+00:00",
+    "fetched_at": "2026-09-25T20:32:38.909241+00:00",
     "items": [
       {
         "article_id": "4640794",
@@ -2080,7 +2080,7 @@
     ]
   },
   "CFR": {
-    "fetched_at": "2026-09-24T20:33:15.286782+00:00",
+    "fetched_at": "2026-09-25T20:32:43.644866+00:00",
     "items": [
       {
         "article_id": "4621713",
@@ -2145,8 +2145,14 @@
     ]
   },
   "PNFP": {
-    "fetched_at": "2026-09-24T20:33:20.357567+00:00",
+    "fetched_at": "2026-09-25T20:32:47.531378+00:00",
     "items": [
+      {
+        "article_id": "4647048",
+        "timestamp_utc": "2026-09-25T08:06:41-04:00",
+        "title": "Fed plans to boost thresholds for bank oversight - report",
+        "comment_count": 2
+      },
       {
         "article_id": "4619272",
         "timestamp_utc": "2026-07-28T07:28:12-04:00",
@@ -2200,17 +2206,11 @@
         "timestamp_utc": "2026-01-22T17:05:36-05:00",
         "title": "Pinnacle Financial targets 9%\u201311% loan growth and $5\u20135.2B revenue in 2026 as Synovus merger integration accelerates",
         "comment_count": 0
-      },
-      {
-        "article_id": "4541328",
-        "timestamp_utc": "2026-01-21T16:53:50-05:00",
-        "title": "Pinnacle Financial Partners Non-GAAP EPS of $2.24 misses by $0.02, revenue of $542.2M misses by $10.43M",
-        "comment_count": 1
       }
     ]
   },
   "ONB": {
-    "fetched_at": "2026-09-24T20:33:24.948276+00:00",
+    "fetched_at": "2026-09-25T20:32:51.958265+00:00",
     "items": [
       {
         "article_id": "4643815",
@@ -2275,7 +2275,7 @@
     ]
   },
   "UMBF": {
-    "fetched_at": "2026-09-24T20:33:29.530186+00:00",
+    "fetched_at": "2026-09-25T20:32:54.722364+00:00",
     "items": [
       {
         "article_id": "4621012",
@@ -2340,13 +2340,13 @@
     ]
   },
   "AMGN": {
-    "fetched_at": "2026-09-24T20:33:56.887003+00:00",
+    "fetched_at": "2026-09-25T20:33:23.345124+00:00",
     "items": [
       {
         "article_id": "4646854",
         "timestamp_utc": "2026-09-24T15:36:11-04:00",
         "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
-        "comment_count": 7
+        "comment_count": 32
       },
       {
         "article_id": "4645415",
@@ -2405,7 +2405,7 @@
     ]
   },
   "GILD": {
-    "fetched_at": "2026-09-24T20:34:01.966054+00:00",
+    "fetched_at": "2026-09-25T20:33:27.572059+00:00",
     "items": [
       {
         "article_id": "4643372",
@@ -2470,13 +2470,13 @@
     ]
   },
   "BMY": {
-    "fetched_at": "2026-09-24T20:34:05.283127+00:00",
+    "fetched_at": "2026-09-25T20:33:30.872207+00:00",
     "items": [
       {
         "article_id": "4646854",
         "timestamp_utc": "2026-09-24T15:36:11-04:00",
         "title": "FDA commissioner nominee Overton rebuffs questions about Trump medical claims",
-        "comment_count": 7
+        "comment_count": 32
       },
       {
         "article_id": "4643301",
@@ -2535,7 +2535,7 @@
     ]
   },
   "VRTX": {
-    "fetched_at": "2026-09-24T20:34:09.003508+00:00",
+    "fetched_at": "2026-09-25T20:33:34.995590+00:00",
     "items": [
       {
         "article_id": "4645495",
@@ -2600,7 +2600,7 @@
     ]
   },
   "TMO": {
-    "fetched_at": "2026-09-24T20:34:12.720038+00:00",
+    "fetched_at": "2026-09-25T20:33:38.078920+00:00",
     "items": [
       {
         "article_id": "4617668",
@@ -2665,7 +2665,7 @@
     ]
   },
   "ABT": {
-    "fetched_at": "2026-09-24T20:34:16.617349+00:00",
+    "fetched_at": "2026-09-25T20:33:41.104265+00:00",
     "items": [
       {
         "article_id": "4646073",
@@ -2730,7 +2730,7 @@
     ]
   },
   "ISRG": {
-    "fetched_at": "2026-09-24T20:34:20.331680+00:00",
+    "fetched_at": "2026-09-25T20:33:44.737372+00:00",
     "items": [
       {
         "article_id": "4643695",
@@ -2795,7 +2795,7 @@
     ]
   },
   "SYK": {
-    "fetched_at": "2026-09-24T20:34:23.816475+00:00",
+    "fetched_at": "2026-09-25T20:33:49.739305+00:00",
     "items": [
       {
         "article_id": "4643695",
@@ -2860,19 +2860,19 @@
     ]
   },
   "MCD": {
-    "fetched_at": "2026-09-24T20:34:49.617926+00:00",
+    "fetched_at": "2026-09-25T20:35:02.357215+00:00",
     "items": [
       {
         "article_id": "4646574",
         "timestamp_utc": "2026-09-24T11:23:12-04:00",
         "title": "McDonald's NEXT initiative leaves Wall Street questioning near-term success",
-        "comment_count": 27
+        "comment_count": 31
       },
       {
         "article_id": "4645944",
         "timestamp_utc": "2026-09-23T08:43:50-04:00",
         "title": "McDonald's puts $8.5B behind its next big comeback -- updated",
-        "comment_count": 233
+        "comment_count": 247
       },
       {
         "article_id": "4645193",
@@ -2925,13 +2925,13 @@
     ]
   },
   "BKNG": {
-    "fetched_at": "2026-09-24T20:34:53.065503+00:00",
+    "fetched_at": "2026-09-25T20:35:06.541810+00:00",
     "items": [
       {
         "article_id": "4646885",
         "timestamp_utc": "2026-09-24T16:08:34-04:00",
         "title": "BTIG thinks AI agent fears with Booking Holdings are overdone",
-        "comment_count": 0
+        "comment_count": 3
       },
       {
         "article_id": "4643337",
@@ -2990,7 +2990,7 @@
     ]
   },
   "TJX": {
-    "fetched_at": "2026-09-24T20:34:55.958161+00:00",
+    "fetched_at": "2026-09-25T20:35:12.835538+00:00",
     "items": [
       {
         "article_id": "4643964",
@@ -3055,14 +3055,8 @@
     ]
   },
   "LOW": {
-    "fetched_at": "2026-09-24T20:35:00.460604+00:00",
+    "fetched_at": "2026-09-25T20:35:16.390929+00:00",
     "items": [
-      {
-        "article_id": "4646573",
-        "timestamp_utc": "2026-09-24T09:05:43-04:00",
-        "title": "4 stocks to watch on Thursday: LOW, QCOM, BA, and BB",
-        "comment_count": 0
-      },
       {
         "article_id": "4646562",
         "timestamp_utc": "2026-09-24T08:19:22-04:00",
@@ -3116,11 +3110,17 @@
         "timestamp_utc": "2026-08-18T06:47:31-04:00",
         "title": "Retail earnings will reveal consumer health with spending under pressure",
         "comment_count": 0
+      },
+      {
+        "article_id": "4607811",
+        "timestamp_utc": "2026-06-26T13:07:21-04:00",
+        "title": "SA analyst upgrades/downgrades: MU, LOW, FDX, SPOT",
+        "comment_count": 6
       }
     ]
   },
   "ORLY": {
-    "fetched_at": "2026-09-24T20:35:49.057988+00:00",
+    "fetched_at": "2026-09-25T20:35:19.698463+00:00",
     "items": [
       {
         "article_id": "4622003",
