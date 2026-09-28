@@ -71,6 +71,8 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.130 | 2026-09-28 | Feature | The rank-based paper-trading track (the one that always takes the top 2 stocks per sector per day, to build a data sample faster) was spending more than half its daily picks on signals that almost never turned into real trades — the price that triggers the trade sat far from where the stock was actually trading, so the order expired or got replaced before it ever filled. It now skips any pick whose trigger is more than 1.5 "typical daily moves" (ATR) away and gives the slot to the next-ranked stock in that sector. Replayed on the real track's own history: never-filled picks drop from 40 to 9 and real trades go from 43 to 61 over the same days, with no sign of worse trade quality. Also re-tested whether a smaller profit target would help (on real trades and the 13.5-year backtest): it wouldn't — the current 3:1 target stays |
+| v2.2.129 | 2026-09-28 | Bug Fix | Fixes the "what would have happened if this never-filled signal had been entered right away" estimate, which was pretending to buy at a price the stock often never traded. For far-off triggers the stop-loss was already past the market, so almost every estimate booked an instant loss — 104 of 115 cancelled signals showed as losses, which would have wrongly suggested cancelling them was saving money. The estimate now buys at the next day's real opening price, and marks a signal "no entry possible" (instead of a loss) when even that opening price was already past the stop. All past estimates recomputed. No effect on any score, real trade, or real win rate |
 | v2.2.128 | 2026-09-23 | Backtest Methodology | Built a research tool to test whether the model's fixed 3:1 reward:risk target is oversized for this stock universe (see v2.2.127's same live-data review). Swept the target smaller across both trade directions at once against 13.5 years of history: win rate rises cleanly as the target shrinks (54% to 69%), but no tested value clears the real go-live bar, and the ranking isn't even consistent as the target changes — a sign the only available sample (35 trades total; two of four sectors still have zero) is too small to say which value is actually best. No config change made — this adds the ability to test the question, it doesn't answer it yet. Live behavior unchanged (research-only, opt-in parameter, unused by default) |
 | v2.2.127 | 2026-09-22 | Bug Fix | Fixes a real, live-caught bug where paper trading's daily stop/target/time-stop check could evaluate a trade's final day against a still-forming, not-yet-final price instead of that day's real range. Caught while investigating why real target hits were rare: one trade's day-15 exit was logged using a same-day snapshot of $188.59, but that day's actual finalized close (checked the next day) was $194.23 — high enough to have crossed its target, which the partial snapshot never saw. The data-fetch function paper trading uses now drops today's not-yet-finished price row the same way a sibling function already did, so every check now always uses a fully completed trading day. No scoring change |
 | v2.2.126 | 2026-09-22 | Feature | Extends the "what would have happened if this signal had filled anyway" tracking (previously only built for signals that expired unfilled) to also cover signals cancelled because a newer, better-ranked signal replaced them — 60% of all logged signals, and until now the single biggest population with no opportunity-cost data at all. Reports it as its own separate number from the expired-signal one (not merged, to avoid double-counting the same stock move twice), surfaced in the daily summary alert alongside the existing expired-signal readout. No effect on any score or the real win-rate/P&L numbers |
@@ -208,6 +210,97 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.130] — 2026-09-28 — [Feature] Rank track skips entry triggers too far from the market to fill
+
+**Status:** Live from the next post-close scan. New config key
+`rank_track.max_entry_distance_atr: 1.5` (0 disables), read by `paper_runner._run_rank_track` via
+the new `_entry_distance_atr` helper. Threshold track (the ≥70 track) unchanged. Scoring unchanged.
+
+**Problem.** Entry anchors on the prior 20-day high (bullish) / low (bearish) —
+`max(close, rolling_high_20)` — so a name that has pulled back gets a trigger far above the
+market. Across all 265 signals logged on both tracks through 2026-09-25: 54% sat more than 1 ATR
+from the close, and fill rate falls off a cliff with distance — 49% within 0.25 ATR, 39% at
+0.25-0.5, 25% at 0.5-1, **5.7% at 1-2, 3.7% beyond 2** (87% of those had the stop itself on the far
+side of the market, e.g. AMZN 2026-08-26 bullish trigger 287.20 / stop 271.85 with the stock at
+~260, re-logged near-identically for two weeks). The rank track's whole purpose is a steady flow of
+real trades, and its budget is 2 slots per sector per day — a slot spent on a trigger that doesn't
+fill is a slot spent on nothing, and the replacement it cost is never tried.
+
+**Fix.** A rank-track candidate whose entry midpoint is more than `max_entry_distance_atr` ATR_14
+from the close is skipped and the slot passes down the sector's ranking. The check runs *before*
+the supersede step, so a skipped candidate never cancels a still-pending order it isn't replacing
+(tested).
+
+**Validation (real data, not a backtest).** Replayed every real rank-track day 2026-08-26..09-18:
+actual picks vs. picks with the gate, replacements taken from that day's real post-close ranking in
+`stockanalysis_history.db`, entry/stop/target rebuilt from real bars (ATR-based stop, 3R target),
+filled with the shared `find_fill` and resolved with the live `_resolve_outcome`:
+
+| Gate | Never filled | Real fills | Resolved | Mean R (90% CI) |
+|---|---|---|---|---|
+| none (before) | 40 | 43 | 13 | -0.21 (-0.62, +0.23) |
+| 0.5 ATR | 1 | 40 | 16 | -0.29 (-0.64, +0.08) |
+| 1.0 ATR | 2 | 57 | 19 | -0.11 (-0.46, +0.24) |
+| **1.5 ATR** | 9 | **61** | 19 | +0.01 (-0.34, +0.36) |
+
+The robust effect is fill count (+42%); the expectancy differences are all well inside noise, which
+is the point — the gate buys more real samples without evidence of worse ones. 1.5 over 1.0: nearly
+the same fills while displacing fewer genuinely top-ranked names. Filled real trades show no
+outcome gradient by entry distance either (the far ones that did fill averaged -0.17R vs -0.18R for
+the nearest bucket), so the gate isn't filtering out a hidden edge. Caveat: replacement directions
+come from each ticker's nearest logged signal (±7 days) and stops ignore the volume-profile
+refinement, so the replay is an approximation of the live row builder, not a byte-exact rerun.
+
+**Also re-tested this session and deliberately NOT changed — exit rules.** Replayed all 53 real
+fills (both tracks) against real bars under 13 alternative exit policies (1.0-2.5R targets,
+breakeven stop after +1R, 1R trailing stop, no day-10 time stop). Unpaired, a 1.5R target looked
+better (-0.01R vs -0.12R) — but that was a sample-composition artifact (shorter targets resolve
+more of the still-open trades early). **Paired on the same 33 trades, every shorter target is worse
+than 3R** (1.5R: -0.10R/trade, P(better)=0.25; 1.0R: -0.18R), because it clips the few big winners
+that carry the book (QCOM +3.4R, MRK +2.4R, HD +2.3R, RF +4.0R). Breakeven-after-1R: +0.03R,
+P(better)=0.64 — noise. Re-ran `backtesting/min_rr_sweep.py`: identical to v2.2.128, and the 3.0R
+baseline actually has the highest mean expectancy (0.498R vs 0.395R at 1.5R). Two independent
+sources now agree: keep `min_rr_ratio: 3.0`. This supersedes v2.2.128's "1.5R is the
+best-supported candidate."
+
+**Live-data readout, 2026-09-28** (34 resolved real trades, both tracks): 1 target hit (RF
++4.04R), 16 stops (avg -1.13R — gaps through the stop), 16 time stops (avg +0.64R), combined
+-0.13R/trade (was -0.224R at the 2026-09-22 review). Entry confidence vs. realized R: r=-0.02 — the
+composite score still shows no live predictive power. Bearish (all rank track, 48-65 confidence)
++0.17R n=12 vs bullish -0.30R n=22 — noted, not acted on at this n.
+
+---
+
+## [v2.2.129] — 2026-09-28 — [Bug Fix] Never-filled-signal opportunity cost entered at a price that never traded
+
+**Status:** Live. Measurement-only — no score, real trade, real win rate or P&L affected.
+`paper_updater._resolve_hypothetical_outcome`, `paper_trade_metrics._compute_opportunity_cost`,
+new `shared/utils/trade_outcomes.HYPOTHETICAL_NO_ENTRY`. All 153 existing expired/superseded
+hypotheticals on both ledgers recomputed in place.
+
+**Problem.** The "what if this never-filled signal had been entered immediately" simulation
+(v2.2.126 extended it to superseded rows) filled at the signal-time `entry_price` — the breakout
+trigger, which for most never-filled rows sits well away from the market (median ~1.1 ATR). For a
+far trigger the stop was on the far side of the market too, so the first bar's Open was already
+"through" the stop and the row booked an instant loss at the open. Result before the fix: 104 of
+115 resolved superseded hypotheticals were losses (avg -0.99R) and 25 of 26 expired — against ~50%
+for real fills. That would have read as "cancelling these signals saved us from -1R trades," the
+exact decision v2.2.126 built the metric to inform.
+
+**Fix.** Hypothetical entry = the first post-signal bar's Open (the first price actually
+available); R measured from it. If that Open is already at/through the stop, no immediate entry
+with that stop was possible: recorded as terminal `hypothetical_outcome="no_entry"`, reported as
+`no_entry_count`, excluded from `hypothetical_win_rate`/`avg_hypothetical_r`.
+
+**Result after recompute.** Rank track superseded: 39 of 130 no_entry; the rest 9.4% win /
+-0.63R (was 4.0% / -1.02R). Paper track superseded: 20.0% / +0.10R (was 12.5% / -0.67R). Expired:
+21 of 26 no_entry. The remaining negative R is a real reading now: entering without waiting for
+the breakout would mostly have lost — support for keeping the breakout-trigger rule. Caveat: R off
+an Open that lands just above the stop has a tiny denominator, so individual rows can be extreme
+(QCOM 2026-08-28 +9.9R); read the aggregate, not single rows.
 
 ---
 

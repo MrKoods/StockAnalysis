@@ -579,6 +579,19 @@ rank_track:
   # the LEAST information of the three. Set to "any" to let every scan
   # compete for the day's slots (the per-(day, sector) budget still applies).
   scan_type: post_close
+  # Skip (don't spend a slot on) a candidate whose entry trigger sits more
+  # than this many ATR_14 from the current close — the next-ranked candidate
+  # in the sector takes the slot instead. Entry anchors on the prior 20-day
+  # high/low, so a pulled-back name gets a trigger far from the market that
+  # almost never fills inside the 5-day window. Measured on all 265 logged
+  # signals through 2026-09-25: fill rate 49% within 0.25 ATR, 25% at
+  # 0.5-1 ATR, 5.7% at 1-2 ATR, 3.7% beyond 2 ATR; 54% of all signals were
+  # >1 ATR out. Replayed on the real rank-track days 2026-08-26..09-18
+  # (next-ranked replacements from the history DB, real bars): never-filled
+  # picks 40 -> 9, real fills 43 -> 61, resolved expectancy unchanged within
+  # noise. 1.5 rather than 1.0: nearly as many fills (57 at 1.0) while
+  # displacing fewer of the genuinely top-ranked names. 0 disables.
+  max_entry_distance_atr: 1.5
 
 # PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
 # `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking

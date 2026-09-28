@@ -38,6 +38,15 @@ OUTCOME_SUPERSEDED = "superseded"
 UNFUNDED_OUTCOMES = frozenset({OUTCOME_EXPIRED, OUTCOME_SUPERSEDED})
 
 
+# hypothetical_outcome value (never a real `outcome`) for a never-filled
+# row whose "what if it had been entered immediately" simulation could not
+# enter at all: the first post-signal Open was already at/through the stop,
+# so there was no immediate entry with that stop to simulate. Terminal (not
+# re-checked), and excluded from opportunity-cost win rate / average R — it
+# is neither a win nor a loss. See paper_updater._resolve_hypothetical_outcome.
+HYPOTHETICAL_NO_ENTRY = "no_entry"
+
+
 def is_unfunded(outcome) -> bool:
     """True for a terminal outcome that never had capital at risk."""
     return (outcome or "") in UNFUNDED_OUTCOMES

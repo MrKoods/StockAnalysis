@@ -30,7 +30,9 @@ from typing import Optional
 import pandas as pd
 
 from backtesting.metrics import bootstrap_expectancy_ci, compute_r_multiples, compute_win_rate
-from shared.utils.trade_outcomes import OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored
+from shared.utils.trade_outcomes import (
+    HYPOTHETICAL_NO_ENTRY, OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
+)
 
 _PAPER_TRADES_CSV = Path("paper_trading/paper_trades.csv")
 
@@ -276,7 +278,7 @@ def _compute_opportunity_cost(rows: list[dict], outcome_value: str, total_key: s
     compute_superseded_signal_opportunity_cost: for every never-filled row
     with the given terminal `outcome_value`, compares what actually happened
     (nothing — no capital was ever at risk) to the hypothetical of having
-    filled immediately at the signal-time entry_price instead of waiting for
+    entered immediately at the next session's Open instead of waiting for
     the breakout/breakdown trigger (populated by paper_updater.py's
     _resolve_hypothetical_outcome).
 
@@ -288,14 +290,20 @@ def _compute_opportunity_cost(rows: list[dict], outcome_value: str, total_key: s
     populations answer different questions — "was requiring the breakout the
     mistake" vs "was replacing this signal the mistake."
 
-    Returns {<total_key>, resolved_count, pending_count, hypothetical_win_rate,
-    avg_hypothetical_r} — pending_count is signals whose hypothetical
-    position hasn't hit stop/target/time-stop yet against available bars;
-    hypothetical_win_rate/avg_hypothetical_r are computed over resolved_count
-    only (pending rows have no outcome yet to score).
+    Returns {<total_key>, resolved_count, pending_count, no_entry_count,
+    hypothetical_win_rate, avg_hypothetical_r} — pending_count is signals
+    whose hypothetical position hasn't hit stop/target/time-stop yet against
+    available bars; no_entry_count is signals where no immediate entry was
+    possible at all (first post-signal Open already through the stop — see
+    HYPOTHETICAL_NO_ENTRY); hypothetical_win_rate/avg_hypothetical_r are
+    computed over resolved_count only, which excludes both.
     """
     matching = [r for r in rows if r.get("outcome") == outcome_value]
-    resolved = [r for r in matching if (r.get("hypothetical_outcome") or "") not in ("", "pending")]
+    no_entry = [r for r in matching if r.get("hypothetical_outcome") == HYPOTHETICAL_NO_ENTRY]
+    resolved = [
+        r for r in matching
+        if (r.get("hypothetical_outcome") or "") not in ("", "pending", HYPOTHETICAL_NO_ENTRY)
+    ]
     pending = [r for r in matching if (r.get("hypothetical_outcome") or "") in ("", "pending")]
 
     # Map hypothetical_* fields onto the plain outcome/pnl_pct/achieved_rr
@@ -316,6 +324,7 @@ def _compute_opportunity_cost(rows: list[dict], outcome_value: str, total_key: s
         total_key: len(matching),
         "resolved_count": len(resolved),
         "pending_count": len(pending),
+        "no_entry_count": len(no_entry),
         "hypothetical_win_rate": round(compute_win_rate(mapped), 4) if mapped else 0.0,
         "avg_hypothetical_r": round(sum(rr_values) / len(rr_values), 3) if rr_values else 0.0,
     }
@@ -332,7 +341,7 @@ def compute_expired_signal_opportunity_cost(csv_path: Optional[Path] = None) -> 
     actually resolved for real. See _compute_opportunity_cost for why this
     is scoped to OUTCOME_EXPIRED only, not superseded rows too.
 
-    Returns {total_expired, resolved_count, pending_count,
+    Returns {total_expired, resolved_count, pending_count, no_entry_count,
     hypothetical_win_rate, avg_hypothetical_r}.
     """
     rows, _ = _load_paper_trades_rows(csv_path)
@@ -352,7 +361,7 @@ def compute_superseded_signal_opportunity_cost(csv_path: Optional[Path] = None) 
     view. See _compute_opportunity_cost for why it's kept separate from
     that one rather than merged.
 
-    Returns {total_superseded, resolved_count, pending_count,
+    Returns {total_superseded, resolved_count, pending_count, no_entry_count,
     hypothetical_win_rate, avg_hypothetical_r}.
     """
     rows, _ = _load_paper_trades_rows(csv_path)

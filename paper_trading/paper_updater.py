@@ -85,7 +85,7 @@ from shared.utils.sector_config import get_active_sectors
 # modules being hand-kept in sync.
 from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE
 from shared.utils.trade_outcomes import (
-    OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
+    HYPOTHETICAL_NO_ENTRY, OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
 )
 from paper_trading.paper_trade_metrics import compute_expired_signal_opportunity_cost, generate_daily_summary
 
@@ -273,8 +273,10 @@ def _resolve_hypothetical_outcome(
     Opportunity cost for a never-filled signal — expired (entry zone never
     reached) or superseded (a newer signal on the same ticker cancelled this
     still-pending order first). Simulates the trade as if it had been
-    entered immediately at the signal-time entry_price instead of waiting
-    for the breakout/breakdown trigger, walked against the same
+    entered immediately at the next session's Open instead of waiting for
+    the breakout/breakdown trigger (2026-09-28: previously at the
+    signal-time entry_price — a price the stock often never traded; see the
+    comment in the body), walked against the same
     stop/target/time-stop rules real trades use (_resolve_outcome above).
     For an expired row this answers "was requiring the breakout the
     mistake"; for a superseded row it answers "was replacing this signal
@@ -311,8 +313,36 @@ def _resolve_hypothetical_outcome(
     if df_after.empty:
         return False
 
+    # Enter at the first post-signal bar's Open — the first price actually
+    # available — not the signal-time entry_price. entry_price is the
+    # breakout/breakdown trigger, which for most never-filled rows sits well
+    # away from the market (median ~1.1 ATR, up to ~5 ATR live): "filling"
+    # there books a fill at a price the stock never traded. Worse, for a
+    # trigger far enough out the stop itself sits on the far side of the
+    # market (e.g. AMZN 2026-08-26: bullish entry 287.20 / stop 271.85 with
+    # the stock at ~260), so the first bar's Open was already "through" the
+    # stop and every such row booked an instant -1R-or-worse loss. Measured
+    # 2026-09-28: 104 of 115 resolved superseded hypotheticals were losses
+    # (avg -0.99R) vs ~50% for real fills — an artifact, not a finding.
+    # If the Open is already at/through the stop, no immediate entry with
+    # this stop was possible at all: recorded as a terminal
+    # HYPOTHETICAL_NO_ENTRY, which the opportunity-cost metrics exclude.
+    hyp_entry = float(df_after["Open"].iloc[0])
+    if (hyp_entry >= stop_loss) if bearish else (hyp_entry <= stop_loss):
+        trade["hypothetical_outcome"] = HYPOTHETICAL_NO_ENTRY
+        for field in (
+            "hypothetical_exit_date", "hypothetical_exit_price", "hypothetical_pnl_pct",
+            "hypothetical_achieved_rr", "hypothetical_holding_days", "hypothetical_pnl_dollars",
+        ):
+            trade[field] = ""
+        logger.info(
+            f"{ticker} {signal_date}: hypothetical immediate entry impossible — first open "
+            f"${hyp_entry:.2f} already through the ${stop_loss:.2f} stop"
+        )
+        return True
+
     result = _resolve_outcome(
-        df_after, entry_price, stop_loss, target, direction=direction,
+        df_after, hyp_entry, stop_loss, target, direction=direction,
         time_stop_day=time_stop_day, min_progress_pct=min_progress_pct,
     )
     trade["hypothetical_outcome"] = "pending"
@@ -320,9 +350,9 @@ def _resolve_hypothetical_outcome(
         return False
 
     exit_px = float(result["exit_price"])
-    price_change = (entry_price - exit_px) if bearish else (exit_px - entry_price)
-    risk_per_r = abs(entry_price - stop_loss)
-    pnl_pct = price_change / entry_price
+    price_change = (hyp_entry - exit_px) if bearish else (exit_px - hyp_entry)
+    risk_per_r = abs(hyp_entry - stop_loss)
+    pnl_pct = price_change / hyp_entry
     achieved_rr = price_change / risk_per_r if risk_per_r > 0 else 0.0
 
     # Same actual_dollar_risk basis a real fill would have used — sizing is

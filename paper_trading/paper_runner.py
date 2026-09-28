@@ -1702,6 +1702,27 @@ _TIME_STOP_DAY_DEFAULT = 10
 _RANK_TRACK_RISK_PCT = 0.0333
 
 
+def _entry_distance_atr(candidate: dict) -> Optional[float]:
+    """
+    How far this candidate's entry trigger sits from the current close, in
+    ATR_14 — the same anchor _build_rank_track_row's compute_entry_zone uses
+    (max(close, rolling_high_20) bullish / min(close, rolling_low_20)
+    bearish), so this is exactly the entry-zone midpoint's distance. None
+    when there's no real close/ATR to measure against (the row builder will
+    reject that candidate on its own).
+    """
+    indicators = candidate.get("indicators") or {}
+    close_px = float(indicators.get("close", 0.0) or 0.0)
+    atr = float(indicators.get("atr_14", 0.0) or 0.0)
+    if close_px <= 0 or atr <= 0:
+        return None
+    if candidate.get("direction") == "bearish":
+        anchor = min(close_px, float(indicators.get("rolling_low_20", close_px)))
+        return (close_px - anchor) / atr
+    anchor = max(close_px, float(indicators.get("rolling_high_20", close_px)))
+    return (anchor - close_px) / atr
+
+
 def _run_rank_track(
     candidates: list[dict],
     cfg: dict,
@@ -1756,6 +1777,9 @@ def _run_rank_track(
     """
     rank_cfg = cfg.get("rank_track", {})
     top_n = int(rank_cfg.get("top_n_per_sector", 2))
+    # See config's rank_track.max_entry_distance_atr — a trigger this far from
+    # the market almost never fills, so it would spend a slot on nothing.
+    max_entry_distance_atr = float(rank_cfg.get("max_entry_distance_atr", 0.0) or 0.0)
 
     # One scan owns the day's slots (rank_track.scan_type, default post_close).
     # Before this gate the slots went to whichever scan ran first — pre_market,
@@ -1848,6 +1872,17 @@ def _run_rank_track(
             ticker = c["ticker"]
             if (today_str, ticker) in already_logged:
                 continue
+            # Before the supersede step below: a skipped candidate must not
+            # cancel a still-pending order it isn't going to replace.
+            if max_entry_distance_atr > 0:
+                dist = _entry_distance_atr(c)
+                if dist is not None and dist > max_entry_distance_atr:
+                    logger.info(
+                        f"{ticker}: rank-track pick skipped — entry trigger {dist:.2f} ATR from "
+                        f"the close (> {max_entry_distance_atr:g}), unlikely to fill; "
+                        f"slot passes to the next-ranked {sector} candidate"
+                    )
+                    continue
             # Same pending-vs-filled split as the threshold track's guard —
             # a never-filled entry order is a stale opinion this scan's newer
             # ranking supersedes; a filled one is real exposure.
