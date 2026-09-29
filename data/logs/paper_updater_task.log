@@ -2563,3 +2563,1953 @@ PAPER TRADING SUMMARY  (18 closed, 25 open, 16 expired, 125 superseded)
 ==================================================
 
 [rank] Closed 3 trade(s) this run.
+2026-09-28 09:06:40,180 [__main__] INFO — 8 open paper trade(s) to check
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 596, in update_paper_trades
+    logger.info(f"{len(open_trades)} open paper trade(s) to check")
+Message: '8 open paper trade(s) to check'
+Arguments: ()
+2026-09-28 09:06:40,695 [__main__] INFO — TXN 2026-09-21: still open after 4 trading days | mark=278.07 | $+222.54 (+0.78R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TXN 2026-09-21: still open after 4 trading days | mark=278.07 | $+222.54 (+0.78R)'
+Arguments: ()
+2026-09-28 09:06:41,359 [__main__] INFO — AMD 2026-09-23: still open after 2 trading days | mark=630.63 | $+198.98 (+0.41R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'AMD 2026-09-23: still open after 2 trading days | mark=630.63 | $+198.98 (+0.41R)'
+Arguments: ()
+2026-09-28 09:06:42,316 [__main__] INFO — TSM 2026-09-23: still open after 2 trading days | mark=450.61 | $+257.99 (+0.75R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TSM 2026-09-23: still open after 2 trading days | mark=450.61 | $+257.99 (+0.75R)'
+Arguments: ()
+2026-09-28 09:06:43,380 [__main__] INFO — MU 2026-09-23: still open after 2 trading days | mark=1082.28 | $+132.03 (+0.48R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'MU 2026-09-23: still open after 2 trading days | mark=1082.28 | $+132.03 (+0.48R)'
+Arguments: ()
+2026-09-28 09:06:44,306 [__main__] INFO — ADI 2026-09-23: still open after 2 trading days | mark=393.60 | $+289.24 (+0.98R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ADI 2026-09-23: still open after 2 trading days | mark=393.60 | $+289.24 (+0.98R)'
+Arguments: ()
+2026-09-28 09:06:45,320 [__main__] INFO — QCOM 2026-09-23: still open after 2 trading days | mark=201.97 | $+178.95 (+0.40R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'QCOM 2026-09-23: still open after 2 trading days | mark=201.97 | $+178.95 (+0.40R)'
+Arguments: ()
+2026-09-28 09:06:46,413 [__main__] WARNING — PFE: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'PFE: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:06:46,414 [__main__] INFO — NVDA: signal is from today — no bars possible yet, skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 638, in update_paper_trades
+    logger.info(f"{ticker}: signal is from today — no bars possible yet, skipping")
+Message: 'NVDA: signal is from today — no bars possible yet, skipping'
+Arguments: ()
+2026-09-28 09:07:01,378 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 988, in update_paper_trades
+    logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
+Message: 'Paper updater complete — 0 trade(s) closed'
+Arguments: ()
+2026-09-28 09:07:01,850 [__main__] INFO — 28 open paper trade(s) to check
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 596, in update_paper_trades
+    logger.info(f"{len(open_trades)} open paper trade(s) to check")
+Message: '28 open paper trade(s) to check'
+Arguments: ()
+2026-09-28 09:07:02,355 [__main__] INFO — HBAN 2026-09-08: still open after 13 trading days | mark=15.64 | $+708.77 (+1.45R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'HBAN 2026-09-08: still open after 13 trading days | mark=15.64 | $+708.77 (+1.45R)'
+Arguments: ()
+2026-09-28 09:07:03,305 [__main__] INFO — AMD 2026-09-09: still open after 12 trading days | mark=630.63 | $+840.46 (+2.48R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'AMD 2026-09-09: still open after 12 trading days | mark=630.63 | $+840.46 (+2.48R)'
+Arguments: ()
+2026-09-28 09:07:04,338 [__main__] INFO — TMO 2026-09-09: still open after 12 trading days | mark=675.00 | $+326.26 (+1.01R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TMO 2026-09-09: still open after 12 trading days | mark=675.00 | $+326.26 (+1.01R)'
+Arguments: ()
+2026-09-28 09:07:05,409 [__main__] INFO — BKNG 2026-09-09: time_stop | exit=163.95 | pnl=+4.47% | +0.43R | $+186.09 | 12d
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 961, in update_paper_trades
+    logger.info(
+Message: 'BKNG 2026-09-09: time_stop | exit=163.95 | pnl=+4.47% | +0.43R | $+186.09 | 12d'
+Arguments: ()
+2026-09-28 09:07:06,336 [__main__] INFO — UMBF 2026-09-11: still open after 10 trading days | mark=135.82 | $+333.80 (+0.69R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'UMBF 2026-09-11: still open after 10 trading days | mark=135.82 | $+333.80 (+0.69R)'
+Arguments: ()
+2026-09-28 09:07:07,326 [__main__] INFO — SBUX 2026-09-11: still open after 10 trading days | mark=94.86 | $+375.00 (+1.05R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'SBUX 2026-09-11: still open after 10 trading days | mark=94.86 | $+375.00 (+1.05R)'
+Arguments: ()
+2026-09-28 09:07:08,345 [__main__] INFO — ZION 2026-09-16: still open after 7 trading days | mark=63.83 | $+535.58 (+1.09R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ZION 2026-09-16: still open after 7 trading days | mark=63.83 | $+535.58 (+1.09R)'
+Arguments: ()
+2026-09-28 09:07:09,419 [__main__] INFO — NKE 2026-09-16: still open after 7 trading days | mark=35.75 | $+68.38 (+0.14R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'NKE 2026-09-16: still open after 7 trading days | mark=35.75 | $+68.38 (+0.14R)'
+Arguments: ()
+2026-09-28 09:07:10,316 [__main__] INFO — ABBV 2026-09-17: still open after 6 trading days | mark=264.34 | $-52.88 (-0.11R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ABBV 2026-09-17: still open after 6 trading days | mark=264.34 | $-52.88 (-0.11R)'
+Arguments: ()
+2026-09-28 09:07:11,317 [__main__] INFO — TSM 2026-09-18: still open after 5 trading days | mark=450.61 | $+385.70 (+0.87R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TSM 2026-09-18: still open after 5 trading days | mark=450.61 | $+385.70 (+0.87R)'
+Arguments: ()
+2026-09-28 09:07:12,316 [__main__] INFO — ADI 2026-09-18: still open after 5 trading days | mark=393.60 | $+446.53 (+1.11R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ADI 2026-09-18: still open after 5 trading days | mark=393.60 | $+446.53 (+1.11R)'
+Arguments: ()
+2026-09-28 09:07:13,305 [__main__] INFO — GILD 2026-09-18: still open after 5 trading days | mark=150.93 | $+7.14 (+0.02R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'GILD 2026-09-18: still open after 5 trading days | mark=150.93 | $+7.14 (+0.02R)'
+Arguments: ()
+2026-09-28 09:07:14,614 [__main__] INFO — LLY 2026-09-21: entry zone ($1263.73-$1278.71) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'LLY 2026-09-21: entry zone ($1263.73-$1278.71) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:07:15,309 [__main__] INFO — AMZN 2026-09-21: entry zone ($266.05-$269.07) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'AMZN 2026-09-21: entry zone ($266.05-$269.07) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:07:16,338 [__main__] INFO — MTB 2026-09-22: still open after 3 trading days | mark=221.19 | $+16.08 (+0.04R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'MTB 2026-09-22: still open after 3 trading days | mark=221.19 | $+16.08 (+0.04R)'
+Arguments: ()
+2026-09-28 09:07:17,296 [__main__] INFO — TSLA 2026-09-23: loss | exit=368.30 | pnl=-3.31% | -1.00R | $-280.69 | 2d
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 961, in update_paper_trades
+    logger.info(
+Message: 'TSLA 2026-09-23: loss | exit=368.30 | pnl=-3.31% | -1.00R | $-280.69 | 2d'
+Arguments: ()
+2026-09-28 09:07:19,075 [__main__] INFO — MU 2026-09-24: earnings inside force-defined-risk window (0-5 days out) for an undefined-risk shares position — flattening early at $1082.28 instead of holding through the print
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 903, in update_paper_trades
+    logger.info(
+Message: 'MU 2026-09-24: earnings inside force-defined-risk window (0-5 days out) for an undefined-risk shares position — flattening early at $1082.28 instead of holding through the print'
+Arguments: ()
+2026-09-28 09:07:19,076 [__main__] INFO — MU 2026-09-24: earnings_exit | exit=1082.28 | pnl=-1.24% | -0.14R | $-54.20 | 1d
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 961, in update_paper_trades
+    logger.info(
+Message: 'MU 2026-09-24: earnings_exit | exit=1082.28 | pnl=-1.24% | -0.14R | $-54.20 | 1d'
+Arguments: ()
+2026-09-28 09:07:20,205 [__main__] INFO — FITB 2026-09-24: still open after 1 trading days | mark=52.10 | $-119.76 (-0.24R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'FITB 2026-09-24: still open after 1 trading days | mark=52.10 | $-119.76 (-0.24R)'
+Arguments: ()
+2026-09-28 09:07:20,722 [__main__] INFO — JNJ 2026-09-24: entry zone ($279.74-$282.40) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'JNJ 2026-09-24: entry zone ($279.74-$282.40) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:07:21,695 [__main__] INFO — TGT 2026-09-24: entry zone ($166.13-$168.13) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'TGT 2026-09-24: entry zone ($166.13-$168.13) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:07:22,691 [__main__] WARNING — QCOM: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'QCOM: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:23,662 [__main__] WARNING — NVDA: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'NVDA: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:24,733 [__main__] WARNING — CFR: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'CFR: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:25,692 [__main__] WARNING — RF: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'RF: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:26,723 [__main__] WARNING — AMGN: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'AMGN: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:27,692 [__main__] WARNING — PFE: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'PFE: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:28,785 [__main__] WARNING — TJX: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'TJX: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:29,970 [__main__] WARNING — ORLY: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'ORLY: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:07:56,708 [__main__] INFO — Paper updater complete — 3 trade(s) closed
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 988, in update_paper_trades
+    logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
+Message: 'Paper updater complete — 3 trade(s) closed'
+Arguments: ()
+
+==================================================
+PAPER TRADING SUMMARY  (15 closed, 8 open, 10 expired, 39 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 40.0%
+  Target hits:        0
+  Stops:              7
+  Time stops:         7  (+6 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 10
+  Superseded (pending, replaced by a newer signal): 39  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        8
+  Open unrealized P&L: $+1279.73  (6 marked position(s))
+==================================================
+
+[threshold] Closed 0 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (21 closed, 25 open, 16 expired, 130 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 33.3%
+  Target hits:        1
+  Stops:              10
+  Time stops:         9  (+6 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    4.04R
+  Expired (never filled): 16
+  Superseded (pending, replaced by a newer signal): 130  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY)
+    -> entry-zone opportunity cost: 3 resolved (0 still pending), hypothetical win rate 33.3%, avg -0.48R if filled immediately at signal time
+  Open trades:        25
+  Open unrealized P&L: $+3871.06  (13 marked position(s))
+==================================================
+
+[rank] Closed 3 trade(s) this run.
+2026-09-28 09:11:37,778 [__main__] INFO — 8 open paper trade(s) to check
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 596, in update_paper_trades
+    logger.info(f"{len(open_trades)} open paper trade(s) to check")
+Message: '8 open paper trade(s) to check'
+Arguments: ()
+2026-09-28 09:11:38,134 [__main__] INFO — TXN 2026-09-21: still open after 4 trading days | mark=278.07 | $+222.54 (+0.78R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TXN 2026-09-21: still open after 4 trading days | mark=278.07 | $+222.54 (+0.78R)'
+Arguments: ()
+2026-09-28 09:11:38,913 [__main__] INFO — AMD 2026-09-23: still open after 2 trading days | mark=630.63 | $+198.98 (+0.41R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'AMD 2026-09-23: still open after 2 trading days | mark=630.63 | $+198.98 (+0.41R)'
+Arguments: ()
+2026-09-28 09:11:39,925 [__main__] INFO — TSM 2026-09-23: still open after 2 trading days | mark=450.61 | $+257.99 (+0.75R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TSM 2026-09-23: still open after 2 trading days | mark=450.61 | $+257.99 (+0.75R)'
+Arguments: ()
+2026-09-28 09:11:40,926 [__main__] INFO — MU 2026-09-23: still open after 2 trading days | mark=1082.28 | $+132.03 (+0.48R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'MU 2026-09-23: still open after 2 trading days | mark=1082.28 | $+132.03 (+0.48R)'
+Arguments: ()
+2026-09-28 09:11:41,915 [__main__] INFO — ADI 2026-09-23: still open after 2 trading days | mark=393.60 | $+289.24 (+0.98R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ADI 2026-09-23: still open after 2 trading days | mark=393.60 | $+289.24 (+0.98R)'
+Arguments: ()
+2026-09-28 09:11:42,915 [__main__] INFO — QCOM 2026-09-23: still open after 2 trading days | mark=201.97 | $+178.95 (+0.40R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'QCOM 2026-09-23: still open after 2 trading days | mark=201.97 | $+178.95 (+0.40R)'
+Arguments: ()
+2026-09-28 09:11:43,954 [__main__] WARNING — PFE: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'PFE: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:11:43,955 [__main__] INFO — NVDA: signal is from today — no bars possible yet, skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 638, in update_paper_trades
+    logger.info(f"{ticker}: signal is from today — no bars possible yet, skipping")
+Message: 'NVDA: signal is from today — no bars possible yet, skipping'
+Arguments: ()
+2026-09-28 09:11:58,947 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1212, in <module>
+    _run_daily_cycle(PAPER_TRADES_CSV, PAPER_TRADES_LOCK_FILE, "threshold", run_calibration=True)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 988, in update_paper_trades
+    logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
+Message: 'Paper updater complete — 0 trade(s) closed'
+Arguments: ()
+2026-09-28 09:11:59,349 [__main__] INFO — 25 open paper trade(s) to check
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 596, in update_paper_trades
+    logger.info(f"{len(open_trades)} open paper trade(s) to check")
+Message: '25 open paper trade(s) to check'
+Arguments: ()
+2026-09-28 09:12:00,037 [__main__] INFO — HBAN 2026-09-08: still open after 13 trading days | mark=15.64 | $+708.77 (+1.45R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'HBAN 2026-09-08: still open after 13 trading days | mark=15.64 | $+708.77 (+1.45R)'
+Arguments: ()
+2026-09-28 09:12:00,899 [__main__] INFO — AMD 2026-09-09: still open after 12 trading days | mark=630.63 | $+840.46 (+2.48R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'AMD 2026-09-09: still open after 12 trading days | mark=630.63 | $+840.46 (+2.48R)'
+Arguments: ()
+2026-09-28 09:12:01,954 [__main__] INFO — TMO 2026-09-09: still open after 12 trading days | mark=675.00 | $+326.26 (+1.01R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TMO 2026-09-09: still open after 12 trading days | mark=675.00 | $+326.26 (+1.01R)'
+Arguments: ()
+2026-09-28 09:12:02,994 [__main__] INFO — UMBF 2026-09-11: still open after 10 trading days | mark=135.82 | $+333.80 (+0.69R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'UMBF 2026-09-11: still open after 10 trading days | mark=135.82 | $+333.80 (+0.69R)'
+Arguments: ()
+2026-09-28 09:12:03,912 [__main__] INFO — SBUX 2026-09-11: still open after 10 trading days | mark=94.86 | $+375.00 (+1.05R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'SBUX 2026-09-11: still open after 10 trading days | mark=94.86 | $+375.00 (+1.05R)'
+Arguments: ()
+2026-09-28 09:12:04,984 [__main__] INFO — ZION 2026-09-16: still open after 7 trading days | mark=63.83 | $+535.58 (+1.09R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ZION 2026-09-16: still open after 7 trading days | mark=63.83 | $+535.58 (+1.09R)'
+Arguments: ()
+2026-09-28 09:12:05,995 [__main__] INFO — NKE 2026-09-16: still open after 7 trading days | mark=35.75 | $+68.38 (+0.14R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'NKE 2026-09-16: still open after 7 trading days | mark=35.75 | $+68.38 (+0.14R)'
+Arguments: ()
+2026-09-28 09:12:06,974 [__main__] INFO — ABBV 2026-09-17: still open after 6 trading days | mark=264.34 | $-52.88 (-0.11R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ABBV 2026-09-17: still open after 6 trading days | mark=264.34 | $-52.88 (-0.11R)'
+Arguments: ()
+2026-09-28 09:12:07,913 [__main__] INFO — TSM 2026-09-18: still open after 5 trading days | mark=450.61 | $+385.70 (+0.87R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'TSM 2026-09-18: still open after 5 trading days | mark=450.61 | $+385.70 (+0.87R)'
+Arguments: ()
+2026-09-28 09:12:08,925 [__main__] INFO — ADI 2026-09-18: still open after 5 trading days | mark=393.60 | $+446.53 (+1.11R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'ADI 2026-09-18: still open after 5 trading days | mark=393.60 | $+446.53 (+1.11R)'
+Arguments: ()
+2026-09-28 09:12:09,908 [__main__] INFO — GILD 2026-09-18: still open after 5 trading days | mark=150.93 | $+7.14 (+0.02R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'GILD 2026-09-18: still open after 5 trading days | mark=150.93 | $+7.14 (+0.02R)'
+Arguments: ()
+2026-09-28 09:12:11,189 [__main__] INFO — LLY 2026-09-21: entry zone ($1263.73-$1278.71) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'LLY 2026-09-21: entry zone ($1263.73-$1278.71) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:12:11,968 [__main__] INFO — AMZN 2026-09-21: entry zone ($266.05-$269.07) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'AMZN 2026-09-21: entry zone ($266.05-$269.07) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:12:12,934 [__main__] INFO — MTB 2026-09-22: still open after 3 trading days | mark=221.19 | $+16.08 (+0.04R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'MTB 2026-09-22: still open after 3 trading days | mark=221.19 | $+16.08 (+0.04R)'
+Arguments: ()
+2026-09-28 09:12:13,934 [__main__] INFO — FITB 2026-09-24: still open after 1 trading days | mark=52.10 | $-119.76 (-0.24R)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 900, in update_paper_trades
+    logger.info(f"{ticker} {signal_date}: still open after {len(df_after)} trading days{mark_note}")
+Message: 'FITB 2026-09-24: still open after 1 trading days | mark=52.10 | $-119.76 (-0.24R)'
+Arguments: ()
+2026-09-28 09:12:14,976 [__main__] INFO — JNJ 2026-09-24: entry zone ($279.74-$282.40) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'JNJ 2026-09-24: entry zone ($279.74-$282.40) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:12:15,946 [__main__] INFO — TGT 2026-09-24: entry zone ($166.13-$168.13) not reached yet — order still pending
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 709, in update_paper_trades
+    logger.info(
+Message: 'TGT 2026-09-24: entry zone ($166.13-$168.13) not reached yet — order still pending'
+Arguments: ()
+2026-09-28 09:12:16,926 [__main__] WARNING — QCOM: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'QCOM: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:17,937 [__main__] WARNING — NVDA: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'NVDA: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:18,946 [__main__] WARNING — CFR: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'CFR: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:19,950 [__main__] WARNING — RF: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'RF: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:20,980 [__main__] WARNING — AMGN: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'AMGN: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:21,951 [__main__] WARNING — PFE: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'PFE: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:22,943 [__main__] WARNING — TJX: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'TJX: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:23,907 [__main__] WARNING — ORLY: no price data since 2026-09-26 — skipping
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 643, in update_paper_trades
+    logger.warning(f"{ticker}: no price data since {fetch_from} — skipping")
+Message: 'ORLY: no price data since 2026-09-26 — skipping'
+Arguments: ()
+2026-09-28 09:12:50,967 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Python\pythoncore-3.14-64\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log' -> 'C:\\Users\\user\\Documents\\Git\\StockAnalysis\\data\\logs\\app.log.1'
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1216, in <module>
+    _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 1188, in _run_daily_cycle
+    count = update_paper_trades(csv_path=csv_path, lock_path=lock_path, track=track, run_calibration=run_calibration)
+  File "C:\Users\user\Documents\Git\StockAnalysis\paper_trading\paper_updater.py", line 988, in update_paper_trades
+    logger.info(f"Paper updater complete — {closed_count} trade(s) closed")
+Message: 'Paper updater complete — 0 trade(s) closed'
+Arguments: ()
+
+==================================================
+PAPER TRADING SUMMARY  (15 closed, 8 open, 10 expired, 39 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 40.0%
+  Target hits:        0
+  Stops:              7
+  Time stops:         7  (+6 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    0.00R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 10
+  Superseded (pending, replaced by a newer signal): 39  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        8
+  Open unrealized P&L: $+1279.73  (6 marked position(s))
+==================================================
+
+[threshold] Closed 0 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (21 closed, 25 open, 16 expired, 130 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 33.3%
+  Target hits:        1
+  Stops:              10
+  Time stops:         9  (+6 profitable)
+  Earnings exits:     1  (+0 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    4.04R
+  Expired (never filled): 16
+  Superseded (pending, replaced by a newer signal): 130  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY)
+    -> entry-zone opportunity cost: 3 resolved (0 still pending), hypothetical win rate 33.3%, avg -0.48R if filled immediately at signal time
+  Open trades:        25
+  Open unrealized P&L: $+3871.06  (13 marked position(s))
+==================================================
+
+[rank] Closed 0 trade(s) this run.
