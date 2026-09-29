@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.131 | 2026-09-29 | Infrastructure | Closes the month-long check of whether Seeking Alpha's price data could back up yfinance (the model's only price source): it can't, as-is — every time the two disagreed on the latest day's closing price (23 times), Seeking Alpha was the one that was wrong, and its price history isn't adjusted for dividends. yfinance stays the only source and the comparison logging is switched off. Also fixes the main app.log file, which had silently stopped recording anything once it filled up and was filling the scan logs with error tracebacks instead. No effect on any score, signal, or trade |
 | v2.2.130 | 2026-09-28 | Feature | The rank-based paper-trading track (the one that always takes the top 2 stocks per sector per day, to build a data sample faster) was spending more than half its daily picks on signals that almost never turned into real trades — the price that triggers the trade sat far from where the stock was actually trading, so the order expired or got replaced before it ever filled. It now skips any pick whose trigger is more than 1.5 "typical daily moves" (ATR) away and gives the slot to the next-ranked stock in that sector. Replayed on the real track's own history: never-filled picks drop from 40 to 9 and real trades go from 43 to 61 over the same days, with no sign of worse trade quality. Also re-tested whether a smaller profit target would help (on real trades and the 13.5-year backtest): it wouldn't — the current 3:1 target stays |
 | v2.2.129 | 2026-09-28 | Bug Fix | Fixes the "what would have happened if this never-filled signal had been entered right away" estimate, which was pretending to buy at a price the stock often never traded. For far-off triggers the stop-loss was already past the market, so almost every estimate booked an instant loss — 104 of 115 cancelled signals showed as losses, which would have wrongly suggested cancelling them was saving money. The estimate now buys at the next day's real opening price, and marks a signal "no entry possible" (instead of a loss) when even that opening price was already past the stop. All past estimates recomputed. No effect on any score, real trade, or real win rate |
 | v2.2.128 | 2026-09-23 | Backtest Methodology | Built a research tool to test whether the model's fixed 3:1 reward:risk target is oversized for this stock universe (see v2.2.127's same live-data review). Swept the target smaller across both trade directions at once against 13.5 years of history: win rate rises cleanly as the target shrinks (54% to 69%), but no tested value clears the real go-live bar, and the ranking isn't even consistent as the target changes — a sign the only available sample (35 trades total; two of four sectors still have zero) is too small to say which value is actually best. No config change made — this adds the ability to test the question, it doesn't answer it yet. Live behavior unchanged (research-only, opt-in parameter, unused by default) |
@@ -210,6 +211,43 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.131] — 2026-09-29 — [Infrastructure] Price-source review closed (SA not a failover); app.log rotation fixed
+
+**Status:** Live. No effect on any score, signal, or trade. `price_source_comparison.enabled` →
+false; `shared/utils/logger.py` now shares one `_SafeRotatingFileHandler` per log file per process.
+3 new tests (`tests/test_logger_rotation.py`).
+
+**1. D3 price-source review (from v2.2.119, overdue since ~09-13).** 3,216 rows, 67 scans, all 48
+tickers, 2026-08-31..09-28.
+- Latest-day close matches yfinance exactly in >90% of rows. The 23 distinct stock-days that
+  differed by 0.1-1.6% were each checked against the settled official close: **yfinance right 23/23,
+  Seeking Alpha 0/23** — mostly SA's previous-day bar as read by the next pre-market scan, typically
+  0.5-1% low (NKE -1.05%, RF -1.00%, KEY -0.95%). That is the bar every entry/stop/target is built on.
+- SA history is not dividend-adjusted (yfinance is): non-payers match exactly (AMZN, AMD, TSLA,
+  ISRG, ORLY), payers differ 0.5% mean / up to 3.3% max (PFE) — enough to move SMAs and 20-day
+  highs if the two were spliced.
+- SA same-day volume is incomplete (median 37% off); settled volume matches within 0.03%.
+- One scan returned no SA data at all (2026-09-16). No split occurred in the window, so split
+  handling is untested.
+
+**Decision:** yfinance stays the sole price source; SA is not promoted to co-source/failover.
+Logging turned off (it cost ~48 SA calls per scan for no further information). Using SA as a
+failover later would need, at minimum, dropping its latest bar and dividend-adjusting its history —
+only worth building if yfinance actually starts failing.
+
+**2. app.log had stopped recording anything.** `get_logger` attached a *new* RotatingFileHandler to
+every named logger, so one process held ~20 open handles on the same `app.log`. Once the file
+reached `maxBytes` the rollover rename could never succeed on Windows (the process's own other
+handles held it), so every record after that was dropped with a `--- Logging error ---` traceback
+— app.log froze at 5,001,013 bytes on 2026-09-28 05:54 and the task logs accumulated ~1,300 of
+those blocks. Nothing was lost operationally (the task logs capture console output), but app.log
+was dead. Fix: one shared handler per log file per process, and a rollover that, if the rename is
+blocked by another process, keeps appending and retries no sooner than 60s later instead of
+dropping the record. Verified on the real 5 MB file under both Python 3.11 and the scheduled
+tasks' 3.14: 21 loggers → 1 handler, rotated cleanly to `app.log.1`.
 
 ---
 

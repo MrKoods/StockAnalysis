@@ -567,8 +567,11 @@ alpha_vantage:
 # Technical scoring; SA is the keyed backup, but its bars need a real accuracy
 # check (ideally spanning a split/special-dividend) before SA is promoted to a
 # co-source. Turn this off once the ~1-2 week evaluation window is done.
+# Evaluated 2026-09-29 (v2.2.131, 3,216 rows / 67 scans): SA is NOT fit as a
+# drop-in failover — its latest bar was the wrong one in all 23 last-day close
+# mismatches, and its history isn't dividend-adjusted. Off; see CHANGELOG.
 price_source_comparison:
-  enabled: true
+  enabled: false
 
 rank_track:
   top_n_per_sector: 2

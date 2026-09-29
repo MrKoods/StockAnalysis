@@ -35,12 +35,63 @@ _FMT = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s — %(message)s")
 _LOG_DIR = Path("data/logs")
 
 
+class _SafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
+    """
+    RotatingFileHandler whose rollover can't take logging down with it.
+
+    On Windows a file can't be renamed while any other handle has it open —
+    e.g. a second scan process (paper_updater runs inside paper_runner's
+    window, and a manual run can overlap a scheduled one). Stock
+    RotatingFileHandler then raises PermissionError from inside emit(), so the
+    record is dropped, a "--- Logging error ---" traceback goes to stderr, and
+    the same thing repeats on EVERY later record, since the file stays over
+    maxBytes. Here a failed rename just keeps appending to the current file
+    and retries no sooner than _RETRY_SECONDS later.
+    """
+
+    _RETRY_SECONDS = 60.0
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._next_rollover_attempt = 0.0
+
+    def shouldRollover(self, record) -> bool:
+        import time
+        if time.monotonic() < self._next_rollover_attempt:
+            return False
+        return bool(super().shouldRollover(record))
+
+    def doRollover(self) -> None:
+        import time
+        try:
+            super().doRollover()
+        except PermissionError:
+            self._next_rollover_attempt = time.monotonic() + self._RETRY_SECONDS
+            # super() closed the stream before the rename failed — reopen it
+            # so this record (and the ones after it) still land in the file.
+            if self.stream is None:
+                self.stream = self._open()
+
+
+# One handler per log file per process, shared by every named logger.
+# Previously get_logger() built a NEW RotatingFileHandler for each module's
+# logger — dozens of open handles on the same app.log in one process — so
+# once the file reached maxBytes the rename in doRollover could never
+# succeed (the process's own other handles held the file), every record
+# after that was dropped with a traceback, and app.log silently stopped
+# growing at 5,001,013 bytes on 2026-09-28 05:54 while the task logs filled
+# with ~1,300 "--- Logging error ---" blocks.
+_FILE_HANDLERS: dict[Path, logging.handlers.RotatingFileHandler] = {}
+
+
 def _make_file_handler(log_dir: Path) -> logging.handlers.RotatingFileHandler:
-    log_dir.mkdir(parents=True, exist_ok=True)
-    fh = logging.handlers.RotatingFileHandler(
-        log_dir / "app.log", maxBytes=5_000_000, backupCount=3, encoding="utf-8"
-    )
-    fh.setFormatter(_FMT)
+    log_path = (log_dir / "app.log").resolve()
+    fh = _FILE_HANDLERS.get(log_path)
+    if fh is None:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        fh = _SafeRotatingFileHandler(log_path, maxBytes=5_000_000, backupCount=3, encoding="utf-8")
+        fh.setFormatter(_FMT)
+        _FILE_HANDLERS[log_path] = fh
     return fh
 
 
