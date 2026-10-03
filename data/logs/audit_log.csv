@@ -246,3 +246,7 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-09-30T12:34:44.563610+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
 2026-09-30T20:34:38.897186+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
 2026-09-30T20:34:39.293765+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-01T12:37:00.291210+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='benzinga.com',True,export restriction
+2026-10-01T20:37:22.077546+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
+2026-10-02T12:32:56.681770+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='benzinga.com',True,export restriction
+2026-10-02T20:33:54.203770+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
