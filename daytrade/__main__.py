@@ -31,9 +31,11 @@ def main():
     if args.cmd == "forward":
         from . import forward
         from .data import fetch_hourly
-        print("hourly bars updated for", fetch_hourly(forward.g2_tickers()), "tickers")
+        hourly = sorted(set(forward.g2_tickers()) | set(forward.index_tickers("sp600")))
+        print("hourly bars updated for", fetch_hourly(hourly), "tickers")
         print("C6", json.dumps(forward.update(), default=str))
         print("G2", json.dumps(forward.update_g2(), default=str))
+        print("ON1 (secondary)", json.dumps(forward.update_on1(), default=str))
         return
 
     df = backtest.run()

@@ -90,3 +90,17 @@ Artifact check: entering at the official opening-auction price instead of the fi
 print gives the same result (+0.0383 vs +0.0380 ATR) on S&P 500 days where both exist.
 Costs are the main risk: breakeven ~4 cents or ~4-5 bps per side on S&P 500 names.
 G2 forward test started (forward.py; pass bar fixed in code, >= 40 sessions, t >= 2.0).
+
+## Round 1 of "3 more models" (PROTOCOL5, 2026-10-06 night)
+Five families, 595 strategies x 8 filters = 4,723 configs on S&P 500 search data.
+- XS cross-sectional morning, PER time-of-day periodicity, MR idiosyncratic mean reversion,
+  NR narrow-day breakout: typical config ~ -4 bps = exactly the 2+2 bps cost -> zero gross edge.
+  Their best configs were flat/negative on the holdout. Dead.
+- ON overnight: coherent positive region (PBO 0.01). Best: buy the worst 5% last-hour losers
+  at the close, sell next open (ON1). Holdout +11.1 bps t 2.24 (< 2.6) -> Stage 3 fail; no model
+  selected under PROTOCOL5.
+- Flaw found: "raw" vs "minus-market" signals give identical ranks, so the shortlist rule picked
+  exact duplicates. Fix next round: dedupe candidates with identical trades.
+Separate pre-registered test (SHORTLIST6, declared as a deviation): ON1 on midcaps +7.2 bps t 1.89,
+small caps +9.0 bps t 2.38 -> FAIL (midcap t below 2.0), though positive in every slice and year.
+ON1 added to the forward test as a SECONDARY candidate, labelled as not passing.

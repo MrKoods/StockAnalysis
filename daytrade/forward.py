@@ -99,5 +99,46 @@ def update_g2() -> dict:
     return s
 
 
+# ---------------- ON1: overnight last-hour reversal (SECONDARY: did NOT pass its confirmation) ----------------
+# Each day buy the 5% of stocks with the worst last-hour return (13:30 bar close -> 16:00 close) at the
+# close; sell at the next open. Long only. Ranked within each index (S&P 500 / 400 / 600), pooled.
+# Evidence: S&P 500 search +9.9 bps t 2.07; holdout +11.1 bps t 2.24 (< 2.6 bar); midcaps +7.2 bps
+# t 1.89 (< 2.0 bar, FAIL); small caps +9.0 bps t 2.38. Tracked because every slice was positive.
+# Forward PASS bar, fixed before any forward data: >= 40 forward sessions, mean net bps > 0 (2 bps/side)
+# with day-clustered t >= 2.0; FAIL if mean < 0.
+ON1_LEDGER = ROOT / "data" / "forward" / "on1_forward_trades.csv"
+INDEX_FILES = {"sp500": "sp500_new.csv", "sp400": "sp400.csv", "sp600": "sp600.csv"}
+
+
+def index_tickers(name: str) -> list[str]:
+    base = UNIVERSE if name == "sp500" else []
+    f = ROOT / "daytrade" / INDEX_FILES[name]
+    return base + (pd.read_csv(f)["ticker"].tolist() if f.exists() else [])
+
+
+def update_on1() -> dict:
+    from .research.families2 import Cfg2, build, run as run2
+    cfg = Cfg2("ON", ("lasthour", "raw", 0.05, "rev"))
+    parts = []
+    for name in INDEX_FILES:
+        X = build(index_tickers(name))
+        d = run2(X, cfg)
+        m = (d["sign"] > 0) & ~np.isnan(d["bps"]) & (d["day"] >= FORWARD_START)
+        parts.append(pd.DataFrame({"day": d["day"][m], "index": name, "bps": d["bps"][m]}))
+    tr = pd.concat(parts, ignore_index=True)
+    ON1_LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    tr.to_csv(ON1_LEDGER, index=False)
+    sessions = tr["day"].nunique()
+    s = {"n": len(tr), "sessions": int(sessions)}
+    if len(tr):
+        per_day = tr.groupby("day")["bps"].sum()
+        sd = per_day.std(ddof=1)
+        s["mean_bps"] = float(tr["bps"].mean())
+        s["t_day"] = float(per_day.mean() / (sd / np.sqrt(len(per_day)))) if len(per_day) > 1 and sd > 0 else float("nan")
+    s["verdict"] = (("PASS" if s["mean_bps"] > 0 and s["t_day"] >= 2.0 else "FAIL" if s["mean_bps"] < 0
+                     else "keep collecting") if sessions >= 40 else f"collecting ({sessions}/40 sessions)")
+    return s
+
+
 def as_table(tr: pd.DataFrame) -> pd.DataFrame:
     return tr[["day", "ticker", "direction", "level", "reason", "r_net"]]

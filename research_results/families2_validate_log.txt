@@ -1,0 +1,76 @@
+=== Stage 1: search summary per family ===
+XS {"configs": 384, "median_bps": -4.0, "best_t": 0.572, "luck_p": 1.0, "pbo": 0.286, "IS_best_pos_OOS": 0.179}
+                       params        filter     n  mean_bps     t
+('am', 'raw', 0.05, 'rev', 6) against_trend  9495     2.357 0.572
+('am', 'mkt', 0.05, 'rev', 6) against_trend  9495     2.357 0.572
+('am', 'mkt', 0.05, 'rev', 4) against_trend  9495     1.948 0.532
+('am', 'raw', 0.05, 'rev', 4) against_trend  9495     1.948 0.532
+ ('am', 'raw', 0.1, 'rev', 6) against_trend 19200     1.642 0.458
+PER {"configs": 1344, "median_bps": -4.0, "best_t": 0.447, "luck_p": 1.0, "pbo": 0.115, "IS_best_pos_OOS": 0.04}
+              params        filter     n  mean_bps     t
+(0, 20, 0.05, 'mom') against_trend  3249     1.615 0.447
+ (0, 40, 0.1, 'mom')      high_vol 20456     1.350 0.446
+ (0, 10, 0.2, 'mom')      high_vol 37260     0.528 0.232
+ (0, 20, 0.1, 'mom')         short 18243     0.765 0.212
+ (0, 10, 0.1, 'mom')    with_trend 30503     0.369 0.168
+ON {"configs": 295, "median_bps": -3.576, "best_t": 2.074, "luck_p": 0.443, "pbo": 0.012, "IS_best_pos_OOS": 0.782}
+                          params filter     n  mean_bps     t
+('lasthour', 'mkt', 0.05, 'rev')   long  9370     9.889 2.074
+('lasthour', 'raw', 0.05, 'rev')   long  9370     9.889 2.074
+ ('lasthour', 'raw', 0.1, 'rev')   long 19034     7.421 1.802
+ ('lasthour', 'mkt', 0.1, 'rev')   long 19034     7.421 1.802
+('intraday', 'mkt', 0.05, 'rev')   long  9373     7.045 1.422
+MR {"configs": 2268, "median_bps": -6.016, "best_t": 0.768, "luck_p": 0.987, "pbo": 0.607, "IS_best_pos_OOS": 0.071}
+                                params   filter    n  mean_bps     t
+(3, 'raw', 1.5, 'rev', 4, 'none', 1.0) high_vol 1063    26.277 0.768
+(3, 'raw', 1.5, 'rev', 4, 'open', 1.0) high_vol 1063    26.277 0.768
+(3, 'raw', 1.5, 'rev', 4, 'open', 0.0) high_vol 1063    26.555 0.756
+(3, 'raw', 1.5, 'rev', 4, 'none', 0.0) high_vol 1063    26.555 0.756
+(3, 'raw', 1.5, 'mom', 4, 'none', 0.0) high_vol 1063    26.555 0.756
+NR {"configs": 432, "median_bps": -3.275, "best_t": 0.576, "luck_p": 0.87, "pbo": 0.655, "IS_best_pos_OOS": 0.127}
+                        params        filter    n  mean_bps     t
+   ('inside', 'mid', '2.0', 5)      high_vol 6057     4.147 0.576
+  ('inside', 'mid', 'none', 5)      high_vol 6057     4.325 0.568
+ ('inside', 'other', '1.0', 5)      high_vol 6058     4.221 0.535
+('inside', 'other', 'none', 5)      high_vol 6058     4.362 0.523
+ ('inside', 'other', '1.0', 5) against_trend 7534     2.635 0.520
+
+=== Stage 2: shortlist (top by t, n >= 2000, + next-best with different core params) ===
+family                                 params        filter     n  mean_bps     t
+    XS          ('am', 'raw', 0.05, 'rev', 6) against_trend  9495     2.357 0.572
+    XS          ('am', 'mkt', 0.05, 'rev', 6) against_trend  9495     2.357 0.572
+   PER                   (0, 20, 0.05, 'mom') against_trend  3249     1.615 0.447
+   PER                    (0, 40, 0.1, 'mom')      high_vol 20456     1.350 0.446
+    ON       ('lasthour', 'mkt', 0.05, 'rev')          long  9370     9.889 2.074
+    ON       ('lasthour', 'raw', 0.05, 'rev')          long  9370     9.889 2.074
+    MR (0, 'raw', 0.5, 'mom', 4, 'none', 1.0)      high_vol 11781     4.861 0.722
+    MR (0, 'raw', 0.5, 'rev', 4, 'open', 0.0)      high_vol 11780     4.671 0.708
+    NR            ('inside', 'mid', '2.0', 5)      high_vol  6057     4.147 0.576
+    NR           ('inside', 'mid', 'none', 5)      high_vol  6057     4.325 0.568
+
+=== Stage 3: S&P 500 holdout (once) ===
+{'family': 'XS', 'params': "('am', 'raw', 0.05, 'rev', 6)", 'filter': 'against_trend', 'search_t': 0.57, 'ho_n': 8028, 'ho_mean_bps': -4.218, 'ho_t': -1.474, 'ho_long': -4.407, 'ho_short': -4.07, 'ho_2025H2': np.float64(-4.699), 'ho_2026': np.float64(-3.899), 'stage3': 'fail', 'cfg_i': 25}
+{'family': 'XS', 'params': "('am', 'mkt', 0.05, 'rev', 6)", 'filter': 'against_trend', 'search_t': 0.57, 'ho_n': 8028, 'ho_mean_bps': -4.218, 'ho_t': -1.474, 'ho_long': -4.407, 'ho_short': -4.07, 'ho_2025H2': np.float64(-4.699), 'ho_2026': np.float64(-3.899), 'stage3': 'fail', 'cfg_i': 37}
+{'family': 'PER', 'params': "(0, 20, 0.05, 'mom')", 'filter': 'against_trend', 'search_t': 0.45, 'ho_n': 2887, 'ho_mean_bps': -2.345, 'ho_t': -0.369, 'ho_long': 1.233, 'ho_short': -4.917, 'ho_2025H2': np.float64(-3.415), 'ho_2026': np.float64(-1.793), 'stage3': 'fail', 'cfg_i': 60}
+{'family': 'PER', 'params': "(0, 40, 0.1, 'mom')", 'filter': 'high_vol', 'search_t': 0.45, 'ho_n': 23802, 'ho_mean_bps': -2.627, 'ho_t': -0.905, 'ho_long': 1.802, 'ho_short': -6.988, 'ho_2025H2': np.float64(-1.671), 'ho_2026': np.float64(-3.075), 'stage3': 'fail', 'cfg_i': 68}
+{'family': 'ON', 'params': "('lasthour', 'mkt', 0.05, 'rev')", 'filter': 'long', 'search_t': 2.07, 'ho_n': 7841, 'ho_mean_bps': 11.071, 'ho_t': 2.235, 'ho_long': 11.071, 'ho_short': nan, 'ho_2025H2': np.float64(18.334), 'ho_2026': np.float64(6.271), 'stage3': 'fail', 'cfg_i': 235}
+{'family': 'ON', 'params': "('lasthour', 'raw', 0.05, 'rev')", 'filter': 'long', 'search_t': 2.07, 'ho_n': 7841, 'ho_mean_bps': 11.071, 'ho_t': 2.235, 'ho_long': 11.071, 'ho_short': nan, 'ho_2025H2': np.float64(18.334), 'ho_2026': np.float64(6.271), 'stage3': 'fail', 'cfg_i': 229}
+{'family': 'MR', 'params': "(0, 'raw', 0.5, 'mom', 4, 'none', 1.0)", 'filter': 'high_vol', 'search_t': 0.72, 'ho_n': 17279, 'ho_mean_bps': 0.092, 'ho_t': 0.022, 'ho_long': -0.32, 'ho_short': 0.544, 'ho_2025H2': np.float64(2.962), 'ho_2026': np.float64(-0.935), 'stage3': 'fail', 'cfg_i': 262}
+{'family': 'MR', 'params': "(0, 'raw', 0.5, 'rev', 4, 'open', 0.0)", 'filter': 'high_vol', 'search_t': 0.71, 'ho_n': 17278, 'ho_mean_bps': -0.442, 'ho_t': -0.107, 'ho_long': 0.056, 'ho_short': -0.895, 'ho_2025H2': np.float64(2.449), 'ho_2026': np.float64(-1.476), 'stage3': 'fail', 'cfg_i': 255}
+{'family': 'NR', 'params': "('inside', 'mid', '2.0', 5)", 'filter': 'high_vol', 'search_t': 0.58, 'ho_n': 5962, 'ho_mean_bps': -2.907, 'ho_t': -0.954, 'ho_long': -7.363, 'ho_short': 1.508, 'ho_2025H2': np.float64(-5.324), 'ho_2026': np.float64(-1.694), 'stage3': 'fail', 'cfg_i': 586}
+{'family': 'NR', 'params': "('inside', 'mid', 'none', 5)", 'filter': 'high_vol', 'search_t': 0.57, 'ho_n': 5962, 'ho_mean_bps': -3.137, 'ho_t': -1.011, 'ho_long': -7.411, 'ho_short': 1.097, 'ho_2025H2': np.float64(-5.232), 'ho_2026': np.float64(-2.086), 'stage3': 'fail', 'cfg_i': 588}
+
+=== Stage 4: confirmation on S&P 400 and S&P 600 (once each) ===
+family                                 params        filter  search_t  ho_n  ho_mean_bps   ho_t  ho_long  ho_short  ho_2025H2  ho_2026 stage3  t400  t600  bps400  bps600 stage4  conf_min_t  selected
+    XS          ('am', 'raw', 0.05, 'rev', 6) against_trend      0.57  8028       -4.218 -1.474   -4.407    -4.070     -4.699   -3.899   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    XS          ('am', 'mkt', 0.05, 'rev', 6) against_trend      0.57  8028       -4.218 -1.474   -4.407    -4.070     -4.699   -3.899   fail   NaN   NaN     NaN     NaN      -         NaN     False
+   PER                   (0, 20, 0.05, 'mom') against_trend      0.45  2887       -2.345 -0.369    1.233    -4.917     -3.415   -1.793   fail   NaN   NaN     NaN     NaN      -         NaN     False
+   PER                    (0, 40, 0.1, 'mom')      high_vol      0.45 23802       -2.627 -0.905    1.802    -6.988     -1.671   -3.075   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    ON       ('lasthour', 'mkt', 0.05, 'rev')          long      2.07  7841       11.071  2.235   11.071       NaN     18.334    6.271   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    ON       ('lasthour', 'raw', 0.05, 'rev')          long      2.07  7841       11.071  2.235   11.071       NaN     18.334    6.271   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    MR (0, 'raw', 0.5, 'mom', 4, 'none', 1.0)      high_vol      0.72 17279        0.092  0.022   -0.320     0.544      2.962   -0.935   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    MR (0, 'raw', 0.5, 'rev', 4, 'open', 0.0)      high_vol      0.71 17278       -0.442 -0.107    0.056    -0.895      2.449   -1.476   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    NR            ('inside', 'mid', '2.0', 5)      high_vol      0.58  5962       -2.907 -0.954   -7.363     1.508     -5.324   -1.694   fail   NaN   NaN     NaN     NaN      -         NaN     False
+    NR           ('inside', 'mid', 'none', 5)      high_vol      0.57  5962       -3.137 -1.011   -7.411     1.097     -5.232   -2.086   fail   NaN   NaN     NaN     NaN      -         NaN     False
+
+SELECTED: []
