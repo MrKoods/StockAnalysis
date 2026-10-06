@@ -57,6 +57,7 @@ class Panel:
     trend: np.ndarray     # sign(prev close - SMA20 of closes), known before the open
     gap: np.ndarray       # (open - prev close) / ATR
     pc: np.ndarray | None = None   # previous session close
+    V: np.ndarray | None = None    # [day x slot] volume
 
 
 def load_panel(t: str) -> Panel | None:
@@ -69,7 +70,7 @@ def load_panel(t: str) -> Panel | None:
     slot = (df.index.hour * 60 + df.index.minute - 570) // 60
     df = df[(slot >= 0) & (slot < SLOTS)].assign(slot=slot[(slot >= 0) & (slot < SLOTS)], day=lambda x: x.index.date)
     piv = {k: df.pivot_table(index="day", columns="slot", values=k, aggfunc="first").reindex(columns=range(SLOTS))
-           for k in ("open", "high", "low", "close")}
+           for k in ("open", "high", "low", "close", "volume")}
     full = piv["close"].notna().all(axis=1) & piv["open"].notna().all(axis=1)
     piv = {k: v[full] for k, v in piv.items()}
     if len(piv["close"]) < 60:
@@ -86,7 +87,8 @@ def load_panel(t: str) -> Panel | None:
                  piv["open"][ok].to_numpy(float), piv["high"][ok].to_numpy(float),
                  piv["low"][ok].to_numpy(float), piv["close"][ok].to_numpy(float),
                  f(atr), f(hi.shift()), f(lo.shift()), f(hi.rolling(2).max().shift()),
-                 f(lo.rolling(2).min().shift()), np.sign(f(pc - sma)), f((op - pc) / atr), f(pc))
+                 f(lo.rolling(2).min().shift()), np.sign(f(pc - sma)), f((op - pc) / atr), f(pc),
+                 piv["volume"][ok].to_numpy(float))
 
 
 @dataclass(frozen=True)

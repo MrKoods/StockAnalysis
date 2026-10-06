@@ -1,16 +1,25 @@
-"""python -m daytrade.research.families2_validate -> Stages 2-4 of PROTOCOL5, applied mechanically."""
+"""python -m daytrade.research.families2_validate [families2|families3] -> Stages 2-4, applied mechanically.
 
+families2 = PROTOCOL5; families3 = PROTOCOL7 (adds: skip candidates whose search trades duplicate an
+earlier pick)."""
+
+import importlib
 import json
 import pickle
+import sys
 from datetime import date
 
 import numpy as np
 import pandas as pd
 
 from ..config import OUTPUT_DIR, ROOT
-from .families2 import FILTERS, build, run
+from .families2 import FILTERS, build
 from .hourly import HOLDOUT_START, tickers
 from .mass import pbo_cscv
+
+MOD = sys.argv[1] if len(sys.argv) > 1 else "families2"
+run = importlib.import_module(f"daytrade.research.{MOD}").run
+DEDUPE = MOD != "families2"
 
 RES = ROOT / "research_results"
 
@@ -50,9 +59,9 @@ def evaluate(X, cfg, fname, lo=None, hi=None):
 
 def main():
     out = OUTPUT_DIR / "research"
-    M = np.load(out / "families2_search.npz")["M"].astype(float)
-    meta = pd.read_csv(out / "families2_meta.csv")
-    cfgs = pickle.load(open(out / "families2_grid.pkl", "rb"))["cfgs"]
+    M = np.load(out / f"{MOD}_search.npz")["M"].astype(float)
+    meta = pd.read_csv(out / f"{MOD}_meta.csv")
+    cfgs = pickle.load(open(out / f"{MOD}_grid.pkl", "rb"))["cfgs"]
     T = M.shape[1]
     mu, sd = M.mean(1), M.std(1, ddof=1)
     meta["t"] = mu / (sd / np.sqrt(T))
@@ -76,6 +85,12 @@ def main():
         m = meta[(meta.family == fam) & (meta.n >= 2000)].sort_values("t", ascending=False)
         if m.empty:
             continue
+        if DEDUPE:
+            seen = {(int(x.n), round(float(x.mean_bps), 6)) for x in short}
+            m = m[[(int(a), round(float(b), 6)) not in seen for a, b in zip(m.n, m.mean_bps)]]
+            m = m.drop_duplicates(subset=["n", "mean_bps"])
+            if m.empty:
+                continue
         first = m.iloc[0]
         short.append(first)
         nxt = m[m.params != first.params]
@@ -121,8 +136,8 @@ def main():
     sel = (st[st.stage4 == "PASS"].sort_values("conf_min_t", ascending=False)
            .drop_duplicates("family").head(3))
     st["selected"] = st.index.isin(sel.index)
-    st.to_csv(RES / "families2_validation.csv", index=False)
-    json.dump(fam_stats, open(RES / "families2_search_summary.json", "w"), indent=2)
+    st.to_csv(RES / f"{MOD}_validation.csv", index=False)
+    json.dump(fam_stats, open(RES / f"{MOD}_search_summary.json", "w"), indent=2)
     print(st.drop(columns=["cfg_i"]).to_string(index=False))
     print("\nSELECTED:", sel[["family", "params", "filter"]].to_dict("records"))
 

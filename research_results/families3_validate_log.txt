@@ -1,0 +1,50 @@
+=== Stage 1: search summary per family ===
+SIP {"configs": 1120, "median_bps": -1.508, "best_t": 2.024, "luck_p": 0.607, "pbo": 0.115, "IS_best_pos_OOS": 0.69}
+                           params   filter    n  mean_bps     t
+ ('top10', 'rev', 'fh', '1.0', 6)    short 1805     5.296 2.024
+('ge2', 'mom', 'atr05', '1.0', 6) high_vol 4839    20.291 1.810
+('ge2', 'mom', 'atr05', '1.0', 4) high_vol 4839    19.741 1.771
+('ge2', 'rev', 'atr05', '1.0', 6) high_vol 4839    20.369 1.757
+('ge2', 'rev', 'atr05', '2.0', 4) high_vol 4839    21.190 1.737
+GAPV {"configs": 696, "median_bps": -7.353, "best_t": 1.762, "luck_p": 0.73, "pbo": 0.369, "IS_best_pos_OOS": 0.44}
+                                     params        filter     n  mean_bps     t
+  (0.25, 'low', 'prevday', 'fade', 'pc', 2)          long 17613     8.383 1.762
+(0.25, 'ge2', 'firsthour', 'fade', 'pc', 2) against_trend  4665    12.841 1.713
+(0.25, 'ge2', 'firsthour', 'fade', 'pc', 2)      high_vol  3221    19.594 1.707
+ (0.5, 'ge2', 'firsthour', 'fade', 'pc', 2) against_trend  3448    15.719 1.662
+ (0.5, 'ge2', 'firsthour', 'fade', 'pc', 2)      high_vol  2484    22.080 1.594
+ONV {"configs": 134, "median_bps": -4.0, "best_t": 2.271, "luck_p": 0.377, "pbo": 0.139, "IS_best_pos_OOS": 0.643}
+              params     filter     n  mean_bps     t
+ ('ge2', 0.2, 'rev') with_trend  1382    34.080 2.271
+('any', 0.05, 'rev')       long  9370     9.889 2.074
+ ('ge2', 0.1, 'rev') with_trend   698    35.523 1.875
+ ('any', 0.1, 'rev')       long 19034     7.421 1.802
+ ('ge2', 0.2, 'rev')  price>=50  2319     9.892 1.568
+
+=== Stage 2: shortlist (top by t, n >= 2000, + next-best with different core params) ===
+family                                      params        filter     n  mean_bps     t
+   SIP           ('ge2', 'mom', 'atr05', '1.0', 6)      high_vol  4839    20.291 1.810
+   SIP           ('ge2', 'mom', 'atr05', '1.0', 4)      high_vol  4839    19.741 1.771
+  GAPV   (0.25, 'low', 'prevday', 'fade', 'pc', 2)          long 17613     8.383 1.762
+  GAPV (0.25, 'ge2', 'firsthour', 'fade', 'pc', 2) against_trend  4665    12.841 1.713
+   ONV                        ('any', 0.05, 'rev')          long  9370     9.889 2.074
+   ONV                         ('any', 0.1, 'rev')          long 19034     7.421 1.802
+
+=== Stage 3: S&P 500 holdout (once) ===
+{'family': 'SIP', 'params': "('ge2', 'mom', 'atr05', '1.0', 6)", 'filter': 'high_vol', 'search_t': 1.81, 'ho_n': 4983, 'ho_mean_bps': -4.642, 'ho_t': -1.231, 'ho_long': -7.661, 'ho_short': -1.59, 'ho_2025H2': np.float64(-1.699), 'ho_2026': np.float64(-5.797), 'stage3': 'fail', 'cfg_i': 95}
+{'family': 'SIP', 'params': "('ge2', 'mom', 'atr05', '1.0', 4)", 'filter': 'high_vol', 'search_t': 1.77, 'ho_n': 4983, 'ho_mean_bps': -2.662, 'ho_t': -0.719, 'ho_long': -5.747, 'ho_short': 0.457, 'ho_2025H2': np.float64(-0.085), 'ho_2026': np.float64(-3.672), 'stage3': 'fail', 'cfg_i': 94}
+{'family': 'GAPV', 'params': "(0.25, 'low', 'prevday', 'fade', 'pc', 2)", 'filter': 'long', 'search_t': 1.76, 'ho_n': 14598, 'ho_mean_bps': 6.274, 'ho_t': 1.32, 'ho_long': 6.274, 'ho_short': nan, 'ho_2025H2': np.float64(2.959), 'ho_2026': np.float64(7.771), 'stage3': 'fail', 'cfg_i': 154}
+{'family': 'GAPV', 'params': "(0.25, 'ge2', 'firsthour', 'fade', 'pc', 2)", 'filter': 'against_trend', 'search_t': 1.71, 'ho_n': 3000, 'ho_mean_bps': -2.776, 'ho_t': -0.596, 'ho_long': 3.246, 'ho_short': -7.289, 'ho_2025H2': np.float64(-0.157), 'ho_2026': np.float64(-4.224), 'stage3': 'fail', 'cfg_i': 148}
+{'family': 'ONV', 'params': "('any', 0.05, 'rev')", 'filter': 'long', 'search_t': 2.07, 'ho_n': 7841, 'ho_mean_bps': 11.071, 'ho_t': 2.235, 'ho_long': 11.071, 'ho_short': nan, 'ho_2025H2': np.float64(18.334), 'ho_2026': np.float64(6.271), 'stage3': 'fail', 'cfg_i': 260}
+{'family': 'ONV', 'params': "('any', 0.1, 'rev')", 'filter': 'long', 'search_t': 1.8, 'ho_n': 15690, 'ho_mean_bps': 8.241, 'ho_t': 2.17, 'ho_long': 8.241, 'ho_short': nan, 'ho_2025H2': np.float64(13.658), 'ho_2026': np.float64(4.661), 'stage3': 'fail', 'cfg_i': 262}
+
+=== Stage 4: confirmation on S&P 400 and S&P 600 (once each) ===
+family                                      params        filter  search_t  ho_n  ho_mean_bps   ho_t  ho_long  ho_short  ho_2025H2  ho_2026 stage3  t400  t600  bps400  bps600 stage4  conf_min_t  selected
+   SIP           ('ge2', 'mom', 'atr05', '1.0', 6)      high_vol      1.81  4983       -4.642 -1.231   -7.661    -1.590     -1.699   -5.797   fail   NaN   NaN     NaN     NaN      -         NaN     False
+   SIP           ('ge2', 'mom', 'atr05', '1.0', 4)      high_vol      1.77  4983       -2.662 -0.719   -5.747     0.457     -0.085   -3.672   fail   NaN   NaN     NaN     NaN      -         NaN     False
+  GAPV   (0.25, 'low', 'prevday', 'fade', 'pc', 2)          long      1.76 14598        6.274  1.320    6.274       NaN      2.959    7.771   fail   NaN   NaN     NaN     NaN      -         NaN     False
+  GAPV (0.25, 'ge2', 'firsthour', 'fade', 'pc', 2) against_trend      1.71  3000       -2.776 -0.596    3.246    -7.289     -0.157   -4.224   fail   NaN   NaN     NaN     NaN      -         NaN     False
+   ONV                        ('any', 0.05, 'rev')          long      2.07  7841       11.071  2.235   11.071       NaN     18.334    6.271   fail   NaN   NaN     NaN     NaN      -         NaN     False
+   ONV                         ('any', 0.1, 'rev')          long      1.80 15690        8.241  2.170    8.241       NaN     13.658    4.661   fail   NaN   NaN     NaN     NaN      -         NaN     False
+
+SELECTED: []

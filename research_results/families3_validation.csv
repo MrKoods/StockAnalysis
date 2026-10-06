@@ -1,0 +1,7 @@
+family,params,filter,search_t,ho_n,ho_mean_bps,ho_t,ho_long,ho_short,ho_2025H2,ho_2026,stage3,cfg_i,t400,t600,bps400,bps600,stage4,conf_min_t,selected
+SIP,"('ge2', 'mom', 'atr05', '1.0', 6)",high_vol,1.81,4983,-4.642,-1.231,-7.661,-1.59,-1.699,-5.797,fail,95,,,,,-,,False
+SIP,"('ge2', 'mom', 'atr05', '1.0', 4)",high_vol,1.77,4983,-2.662,-0.719,-5.747,0.457,-0.085,-3.672,fail,94,,,,,-,,False
+GAPV,"(0.25, 'low', 'prevday', 'fade', 'pc', 2)",long,1.76,14598,6.274,1.32,6.274,,2.959,7.771,fail,154,,,,,-,,False
+GAPV,"(0.25, 'ge2', 'firsthour', 'fade', 'pc', 2)",against_trend,1.71,3000,-2.776,-0.596,3.246,-7.289,-0.157,-4.224,fail,148,,,,,-,,False
+ONV,"('any', 0.05, 'rev')",long,2.07,7841,11.071,2.235,11.071,,18.334,6.271,fail,260,,,,,-,,False
+ONV,"('any', 0.1, 'rev')",long,1.8,15690,8.241,2.17,8.241,,13.658,4.661,fail,262,,,,,-,,False

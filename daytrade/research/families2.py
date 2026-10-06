@@ -31,6 +31,7 @@ class XPanel:
     pc: np.ndarray
     trend: np.ndarray
     panels: list
+    V: np.ndarray | None = None
 
 
 def build(tickers: list[str]) -> XPanel:
@@ -39,13 +40,15 @@ def build(tickers: list[str]) -> XPanel:
     d_ix = {d: i for i, d in enumerate(days)}
     nT, nD = len(panels), len(days)
     shp3, shp2 = (nT, nD, SLOTS), (nT, nD)
-    O, H, L, C = (np.full(shp3, np.nan) for _ in range(4))
+    O, H, L, C, V = (np.full(shp3, np.nan) for _ in range(5))
     atr, pc, trend = (np.full(shp2, np.nan) for _ in range(3))
     for i, p in enumerate(panels):
         j = np.array([d_ix[d] for d in p.days])
         O[i, j], H[i, j], L[i, j], C[i, j] = p.O, p.H, p.L, p.C
+        if p.V is not None:
+            V[i, j] = p.V
         atr[i, j], pc[i, j], trend[i, j] = p.atr, p.pc, p.trend
-    return XPanel([p.ticker for p in panels], days, O, H, L, C, atr, pc, trend, panels)
+    return XPanel([p.ticker for p in panels], days, O, H, L, C, atr, pc, trend, panels, V)
 
 
 def _pct_rank(sig: np.ndarray) -> np.ndarray:

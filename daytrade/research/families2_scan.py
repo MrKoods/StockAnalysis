@@ -1,17 +1,22 @@
-"""python -m daytrade.research.families2_scan -> Stage 1 (search) for PROTOCOL5."""
+"""python -m daytrade.research.families2_scan [families2|families3] -> Stage 1 (search)."""
 
+import importlib
 import pickle
+import sys
 import time
 
 import numpy as np
 import pandas as pd
 
 from ..config import OUTPUT_DIR
-from .families2 import FILTERS, build, grid, run
+from .families2 import FILTERS, build
 from .hourly import HOLDOUT_START, tickers
 
 
 def main():
+    mod = sys.argv[1] if len(sys.argv) > 1 else "families2"
+    fam = importlib.import_module(f"daytrade.research.{mod}")
+    grid, run = fam.grid, fam.run
     t0 = time.time()
     X = build(tickers())
     sessions = [d for d in X.days if d < HOLDOUT_START]
@@ -37,10 +42,10 @@ def main():
         if ci % 40 == 0:
             print(f"cfg {ci + 1}/{len(cfgs)} configs={len(metas)} {time.time() - t0:.0f}s", flush=True)
     out = OUTPUT_DIR / "research"
-    np.savez_compressed(out / "families2_search.npz", M=np.vstack(sums))
-    pd.DataFrame(metas).to_csv(out / "families2_meta.csv", index=False)
-    pickle.dump({"cfgs": cfgs, "sessions": sessions}, open(out / "families2_grid.pkl", "wb"))
-    print("FAMILIES2 DONE", len(cfgs), "strategies", len(metas), "configs", flush=True)
+    np.savez_compressed(out / f"{mod}_search.npz", M=np.vstack(sums))
+    pd.DataFrame(metas).to_csv(out / f"{mod}_meta.csv", index=False)
+    pickle.dump({"cfgs": cfgs, "sessions": sessions}, open(out / f"{mod}_grid.pkl", "wb"))
+    print(f"{mod.upper()} DONE", len(cfgs), "strategies", len(metas), "configs", flush=True)
 
 
 if __name__ == "__main__":

@@ -104,3 +104,14 @@ Five families, 595 strategies x 8 filters = 4,723 configs on S&P 500 search data
 Separate pre-registered test (SHORTLIST6, declared as a deviation): ON1 on midcaps +7.2 bps t 1.89,
 small caps +9.0 bps t 2.38 -> FAIL (midcap t below 2.0), though positive in every slice and year.
 ON1 added to the forward test as a SECONDARY candidate, labelled as not passing.
+
+## Round 2: volume / stocks-in-play families (PROTOCOL7, 2026-10-06 night)
+266 strategies x 8 filters = 1,950 configs. Nothing passed Stage 3.
+- SIP (first-hour high-RVOL names, with/against the first-hour move): best search t 1.8-2.0,
+  holdout negative (-2.7 to -4.6 bps). Dead.
+- GAPV (gaps split by volume): best = low-volume gap fade, long only (a G2 neighbour): holdout
+  +6.3 bps t 1.32 -> fail. High-volume gap continuation ("news gaps go") did not show up.
+- ONV (overnight + last-hour volume): volume conditioning added nothing; the top configs are ON1
+  itself (holdout t 2.24) and its 10% version (t 2.17) -> fail.
+Cumulative: ~6,700 configs over 8 non-sweep families; G2 remains the only confirmed model,
+ON1 the only secondary.
