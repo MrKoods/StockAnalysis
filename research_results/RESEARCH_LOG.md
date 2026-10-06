@@ -53,3 +53,20 @@ consistent marginal effect across both timeframes except "short only", which is 
 C6 sits at the 95th percentile of the 5m distribution, exactly where a lucky draw would sit.
 Conclusion: no evidence that any variant of this strategy has an edge on this data.
 C6's forward test continues unchanged as the only clean test.
+
+## Fresh-ticker test + hourly 2-year search (2026-10-06, afternoon)
+**Fresh tickers** (pre-registered in SHORTLIST2_fresh_tickers.md before download): 463 S&P 500
+stocks never used in any search. All 42 candidates FAIL (C0, C6, top-20 1m, top-20 5m mass-scan
+winners). Average mean across candidates: -0.03R. C6: -0.020R over 4,418 trades.
+Search winners at t ~3.5 on the old 50 tickers became t ~ -1 to -3 on new tickers.
+
+**Hourly version** (core idea: sweep of PDH/PDL or 2-day H/L, reclaim, intraday reversal), 509
+tickers x 387 search sessions (Nov 2023 - Jun 2025; Jul 2025+ locked, never scored):
+21,168 configs, typically 1,000-15,000 trades each. Median config -0.013R; 95% of configs in
+[-0.037, +0.014]. Best +0.044R (t 2.1) = luck (best-of-N p 0.80, PBO 0.39).
+No holdout shortlist was made: nothing beat the luck baseline, so there is nothing to confirm.
+
+## Verdict on the strategy family
+Across ~331,000 variants, three timeframes, 513 tickers and 2 years: no evidence of an edge.
+The true effect of a sweep-reversal trade on liquid US stocks is about 0R before costs, slightly
+negative after. More variants of this family would only produce more false positives.
