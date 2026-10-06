@@ -1,0 +1,17 @@
+{
+  "pbo": {
+    "pbo": 0.4166666666666667,
+    "n_splits": 252,
+    "median_oos_rank_logit": 0.33567197766071816,
+    "mean_oos_daily_R_of_IS_best": -0.20908109946730769,
+    "share_IS_best_positive_OOS": 0.44841269841269843
+  },
+  "null": {
+    "observed_best_daily_R": 3.4101903037168086,
+    "null_best_p50": 4.749913692474365,
+    "null_best_p95": 8.298333168029785,
+    "p_value": 0.82
+  },
+  "n_configs": 162906,
+  "n_eligible": 135576
+}

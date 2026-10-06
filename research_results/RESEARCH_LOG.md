@@ -33,3 +33,23 @@ Post-hoc robustness (not evidence): 1.5-3R targets all +0.07 to +0.12R; both dir
 C6 = UNPROVEN candidate. A forward test runs daily on sessions from 2026-10-06 on
 (`python -m daytrade forward`, ledger `data/forward/c6_forward_trades.csv`). Pass bar fixed in
 `daytrade/forward.py` before any forward data existed.
+
+## Mass search (2026-10-06, same day)
+User asked for thousands of variants. 309,744 configs scanned (1m: 162,906 over 20 sessions;
+5m: 146,838 over 59 sessions) = 126 detection variants x 96 exits x 14 filters per timeframe.
+Vectorized exits verified identical to the reference simulator (tests/test_mass.py).
+
+| | 1m | 5m |
+|---|---|---|
+| eligible configs (enough trades) | 135,576 (n>=60) | 69,114 (n>=150) |
+| median mean R/trade | -0.042 | -0.003 |
+| best-of-N luck test p | 0.82 | 0.35 |
+| PBO (CSCV) | 0.42 | 0.69 |
+| out-of-sample daily R of the in-sample best | -0.21 | -0.16 |
+
+The best configs (t ~3-3.7) are no better than the best of the same number of zero-edge
+configs. Picking the in-sample winner loses money out of sample on average. No setting has a
+consistent marginal effect across both timeframes except "short only", which is market direction.
+C6 sits at the 95th percentile of the 5m distribution, exactly where a lucky draw would sit.
+Conclusion: no evidence that any variant of this strategy has an edge on this data.
+C6's forward test continues unchanged as the only clean test.
