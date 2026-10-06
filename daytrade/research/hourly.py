@@ -56,6 +56,7 @@ class Panel:
     l2: np.ndarray
     trend: np.ndarray     # sign(prev close - SMA20 of closes), known before the open
     gap: np.ndarray       # (open - prev close) / ATR
+    pc: np.ndarray | None = None   # previous session close
 
 
 def load_panel(t: str) -> Panel | None:
@@ -85,7 +86,7 @@ def load_panel(t: str) -> Panel | None:
                  piv["open"][ok].to_numpy(float), piv["high"][ok].to_numpy(float),
                  piv["low"][ok].to_numpy(float), piv["close"][ok].to_numpy(float),
                  f(atr), f(hi.shift()), f(lo.shift()), f(hi.rolling(2).max().shift()),
-                 f(lo.rolling(2).min().shift()), np.sign(f(pc - sma)), f((op - pc) / atr))
+                 f(lo.rolling(2).min().shift()), np.sign(f(pc - sma)), f((op - pc) / atr), f(pc))
 
 
 @dataclass(frozen=True)

@@ -70,3 +70,23 @@ No holdout shortlist was made: nothing beat the luck baseline, so there is nothi
 Across ~331,000 variants, three timeframes, 513 tickers and 2 years: no evidence of an edge.
 The true effect of a sweep-reversal trade on liquid US stocks is about 0R before costs, slightly
 negative after. More variants of this family would only produce more false positives.
+
+## Other strategy families (2026-10-06, evening) — FIRST REAL CANDIDATE: G2 gap fade
+Families on hourly bars, 509 S&P 500 + core tickers, search Nov 2023 - Jun 2025 (9,768 configs):
+- MOM (intraday momentum/reversal): best = luck (p 0.997). Rejected.
+- ORB (first-hour breakout): every config negative. Rejected.
+- GAP: one coherent region (fade the opening gap toward the previous close, only when that
+  direction agrees with the 20-day trend, exit around midday) was positive across many
+  neighbouring configs. CSCV PBO 0.08, in-sample best positive out of sample in 89% of splits.
+  Pre-registered luck test: p 0.40 (t-standardized version, informational: p 0.19) -> not a
+  family pass; the top 2 configs went to the holdout under rule 2 of SHORTLIST3.
+Holdout (Jul 2025 - Oct 2026, opened once): both positive, both directions, both halves, but
+t 1.87 / 2.37 < the pre-registered 2.6 -> formally FAIL.
+Independent confirmation (SHORTLIST4, pre-registered before download): G2 =
+GAP(0.25 ATR, fade, open, target prev close, no stop, exit 12:30 bar close, with 20d trend)
+on 396 untouched S&P 400 midcaps: +0.045 ATR (~+0.17% of price) per trade, n 50,497,
+t 4.70, longs +0.049 / shorts +0.041, both years positive, holds at 2 bps/side -> PASS.
+Artifact check: entering at the official opening-auction price instead of the first hourly
+print gives the same result (+0.0383 vs +0.0380 ATR) on S&P 500 days where both exist.
+Costs are the main risk: breakeven ~4 cents or ~4-5 bps per side on S&P 500 names.
+G2 forward test started (forward.py; pass bar fixed in code, >= 40 sessions, t >= 2.0).

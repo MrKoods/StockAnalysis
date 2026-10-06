@@ -1,0 +1,3 @@
+[lint]
+# O/H/L/C are the conventional names for open/high/low/close price arrays
+ignore = ["E741"]

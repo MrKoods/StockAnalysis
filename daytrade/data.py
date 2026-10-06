@@ -127,6 +127,27 @@ def fetch_daily(tickers: list[str] | None = None) -> None:
         _merge_into_archive(t, "1d", df)
 
 
+def fetch_hourly(tickers: list[str]) -> int:
+    """Merge the last month of hourly bars into the 1h archive (Yahoo keeps ~730 days)."""
+    saved = 0
+    for i in range(0, len(tickers), 50):
+        batch = tickers[i:i + 50]
+        raw = _download(batch, interval="1h", period="1mo")
+        if not len(raw):
+            continue
+        for t in batch:
+            if isinstance(raw.columns, pd.MultiIndex) and t not in raw.columns.get_level_values(0):
+                continue
+            df = (raw[t] if isinstance(raw.columns, pd.MultiIndex) else raw).rename(columns=str.lower)
+            df = df[COLS].dropna(subset=["close"])
+            if not len(df):
+                continue
+            df.index = pd.DatetimeIndex(df.index).tz_convert(TZ)
+            _merge_into_archive(t, "1h", _drop_incomplete_today(df))
+            saved += 1
+    return saved
+
+
 def load(ticker: str, interval: str) -> pd.DataFrame:
     path = _path(ticker, interval)
     if not path.exists():

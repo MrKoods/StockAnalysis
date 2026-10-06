@@ -19,10 +19,14 @@ from __future__ import annotations
 
 from datetime import date
 
+import numpy as np
 import pandas as pd
 
-from .config import ROOT
+from .config import ROOT, UNIVERSE
 from .research.engine import Det, Exit, Universe, detect, run, stats
+from .research.families import FILTERS as FAM_FILTERS
+from .research.families import Cfg, run_cfg
+from .research.hourly import load_panel
 
 FORWARD_START = date(2026, 10, 6)   # first session after the search data ended
 C6_DET = Det(base="5m", trigger="close_out")
@@ -44,6 +48,54 @@ def update() -> dict:
                         else "FAIL" if s["mean"] < 0 else "keep collecting")
     else:
         s["verdict"] = f"collecting ({sessions}/30 sessions)"
+    return s
+
+
+# ---------------- G2: gap fade (added 2026-10-06 after the family search) ----------------
+# Exact config: fade an opening gap >= 0.25 daily ATR (open vs prev close) at the 09:30 open,
+# target = previous close, no stop, exit at the close of the 12:30 hourly bar (~13:30 ET), only
+# when the trade direction agrees with the 20-day trend. Universe: S&P 500 + S&P 400 + the core 50.
+# Evidence before forward: S&P 500 search t 3.1, S&P 500 holdout +0.028 ATR (t 2.37, short of the
+# 2.6 bar), S&P 400 midcaps (untouched, pre-registered) +0.045 ATR, t 4.7, PASS.
+# Forward PASS bar, fixed before any forward data: after >= 40 forward sessions, mean net R > 0
+# (ATR units, 1c/side) with day-clustered t >= 2.0; FAIL if mean < 0.
+G2 = Cfg("GAP", (0.25, "fade", "open", "pc", 0.0, 2))
+G2_LEDGER = ROOT / "data" / "forward" / "g2_forward_trades.csv"
+
+
+def g2_tickers() -> list[str]:
+    extra = [ROOT / "daytrade" / f for f in ("sp500_new.csv", "sp400.csv")]
+    return UNIVERSE + [t for f in extra if f.exists() for t in pd.read_csv(f)["ticker"]]
+
+
+def update_g2() -> dict:
+    rows = []
+    for t in g2_tickers():
+        P = load_panel(t)
+        if P is None:
+            continue
+        x = run_cfg(P, G2)
+        if x is None:
+            continue
+        m = FAM_FILTERS["with_trend"](x) & ~np.isnan(x["r"]) & (x["day"] >= FORWARD_START)
+        for i in np.flatnonzero(m):
+            rows.append({"day": x["day"][i], "ticker": t, "direction": "long" if x["sign"][i] > 0 else "short",
+                         "r_atr": float(x["r"][i])})
+    tr = pd.DataFrame(rows, columns=["day", "ticker", "direction", "r_atr"])
+    G2_LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    tr.to_csv(G2_LEDGER, index=False)
+    sessions = tr["day"].nunique()
+    s = {"n": len(tr), "sessions": int(sessions)}
+    if len(tr):
+        per_day = tr.groupby("day")["r_atr"].sum()
+        sd = per_day.std(ddof=1)
+        s["mean_atr"] = float(tr["r_atr"].mean())
+        s["t_day"] = float(per_day.mean() / (sd / np.sqrt(len(per_day)))) if len(per_day) > 1 and sd > 0 else float("nan")
+    if sessions >= 40:
+        s["verdict"] = ("PASS" if s["mean_atr"] > 0 and s["t_day"] >= 2.0
+                        else "FAIL" if s["mean_atr"] < 0 else "keep collecting")
+    else:
+        s["verdict"] = f"collecting ({sessions}/40 sessions)"
     return s
 
 
