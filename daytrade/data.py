@@ -99,6 +99,7 @@ def fetch(tickers: list[str] | None = None) -> dict[str, dict[str, int]]:
         log.info("1m %s -> %s: %d tickers", start, end, len(got))
         start = end
 
+    fetch_daily(tickers)
     raw = _download(tickers, interval="5m", period="60d")
     for t, df in _split(raw, tickers).items():
         frames[t]["5m"].append(df)
@@ -114,10 +115,23 @@ def fetch(tickers: list[str] | None = None) -> dict[str, dict[str, int]]:
     return summary
 
 
+def fetch_daily(tickers: list[str] | None = None) -> None:
+    """2 years of daily bars (for ATR / trend context; Yahoo keeps these indefinitely)."""
+    tickers = tickers or UNIVERSE
+    raw = _download(tickers, interval="1d", period="2y")
+    for t in tickers:
+        if t not in raw.columns.get_level_values(0):
+            continue
+        df = raw[t].rename(columns=str.lower)[COLS].dropna(subset=["close"])
+        df.index = pd.DatetimeIndex(df.index).tz_localize(None)
+        _merge_into_archive(t, "1d", df)
+
+
 def load(ticker: str, interval: str) -> pd.DataFrame:
     path = _path(ticker, interval)
     if not path.exists():
         return pd.DataFrame(columns=COLS)
     df = pd.read_parquet(path)
-    df.index = pd.DatetimeIndex(df.index).tz_convert(TZ)
+    if interval != "1d":
+        df.index = pd.DatetimeIndex(df.index).tz_convert(TZ)
     return df

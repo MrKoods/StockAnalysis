@@ -15,6 +15,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("fetch", help="download available 1m/5m bars into the archive")
     sub.add_parser("backtest", help="run the strategy and print the summary")
+    sub.add_parser("forward", help="update the C6 forward-test ledger from the archive")
     c = sub.add_parser("charts", help="chart a sample of setups for visual checking")
     c.add_argument("-n", type=int, default=12)
     c.add_argument("--seed", type=int, default=1)
@@ -25,6 +26,11 @@ def main():
         summary = data.fetch()
         days = {t: v.get("1m", 0) // 390 for t, v in summary.items()}
         print(f"archived {len(summary)} tickers; ~1m sessions per ticker: {sorted(set(days.values()))}")
+        return
+
+    if args.cmd == "forward":
+        from . import forward
+        print(json.dumps(forward.update(), default=str))
         return
 
     df = backtest.run()

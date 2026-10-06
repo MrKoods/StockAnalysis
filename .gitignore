@@ -72,3 +72,4 @@ reports/
 # V3 day-trading: intraday bar archive + run output
 data/intraday/
 output/
+data/logs/
