@@ -68,3 +68,7 @@ data/cache/
 
 # V3 deep-analysis output (generated per run, not source)
 reports/
+
+# V3 day-trading: intraday bar archive + run output
+data/intraday/
+output/
