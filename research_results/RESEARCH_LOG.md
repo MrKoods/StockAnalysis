@@ -137,3 +137,17 @@ S&P 400 +6.0 bps (t 3.51; since Jul 2025 +7.8, t 2.57); positive for longs and s
 fade held to the close: strongly positive 2000-2017, ~0 hedged since 2018. G2's forward pass bar is
 unchanged (pre-registered, raw); the hedged figure will be reported alongside and should be
 treated as the more honest one.
+
+## Round 4: 10,000 multi-signal combination models + 8 ridge models (PROTOCOL9, 2026-10-07)
+Blends of 2-4 of 14 pre-entry signals (random weights), 8 entry/exit windows, market-hedged,
+2 bps/side; look-ahead test (random per-value perturbation of all post-entry data) passes for
+every window before the run.
+- Typical random model: -4.0 bps/trade = exactly the cost (zero gross edge); 95% within
+  [-8.7, +0.6] bps. Best search t 3.63 vs luck p95 4.15 (p 0.29) -> no better than chance.
+- The top models were almost all "fade the gap in the first hour" blends (G2's mechanism).
+- Holdout (S&P 500, Jul 2025+): all 18 candidates FAIL; most turned negative (top random model
+  +7.4 -> -5.1 bps; ridge open->10:30 +6.2 -> -1.4 bps). No candidate reached Stage 4.
+- CSCV PBO came out 0.0 here because it only resamples within the search period; it cannot see a
+  change of regime after it. The out-of-time holdout is what caught the failure.
+Cumulative: ~22,000 non-sweep variants across 15 families + combinations + ML; G2 remains the only
+confirmed model (thin, ~+4-6 bps hedged), ON1 secondary.

@@ -1,0 +1,14 @@
+{
+  "luck": {
+    "best_t": 3.6258209462090107,
+    "null_p95": 4.152521741764649,
+    "p": 0.29
+  },
+  "pbo": {
+    "pbo": 0.0,
+    "n_splits": 252,
+    "median_oos_rank_logit": 3.7806187083680407,
+    "mean_oos_daily_R_of_IS_best": 82.92524716238233,
+    "share_IS_best_positive_OOS": 0.7579365079365079
+  }
+}
