@@ -151,3 +151,17 @@ every window before the run.
   change of regime after it. The out-of-time holdout is what caught the failure.
 Cumulative: ~22,000 non-sweep variants across 15 families + combinations + ML; G2 remains the only
 confirmed model (thin, ~+4-6 bps hedged), ON1 secondary.
+
+## Round 5: MINUTE-level families on free Dukascopy data (PROTOCOL10, 2026-10-07)
+Data: SPY 2,167 / QQQ 2,176 sessions of 1-minute bars (2018-01 .. 2026-10-06); 4-5 sessions per
+symbol still missing after retries (throttling) - noted, not material. Search 2018-2022, holdout 2023+.
+Stage 1 (331 configs): nothing showed even in-sample strength. Best search t: IMOM 1.42, ORB 0.70,
+NB 1.31, GAPM 2.02 (n=92). Medians: IMOM -0.8, ORB -1.1, NB +1.4, GAPM -4.5 bps.
+Stage 3: all 8 shortlisted + both locked LSR variants FAIL; none reached t >= 2.8.
+  Best holdout: G2-style gap fade 0.5 ATR, exit 11:00: +5.0 bps t 1.38 (2025-26 +9.0).
+  User's LSR (locked 1m rules), 8 years: search -5.4 bps/trade (t -2.67), holdout -1.3 bps (t -0.66).
+  C6 (5m variant): search +0.7 bps (t 0.29), holdout +0.1 bps (t 0.04).
+No Stage-3 passer -> Stage 4 (DIA + stocks) has nothing to confirm.
+Conclusion: on SPY/QQQ minute data the classic intraday edges (intraday momentum, ORB, noise-boundary
+momentum) are absent after costs in 2018-2026, and the sweep-reversal strategy is now tested on
+~4,300 sessions with the same answer as before: no edge.
