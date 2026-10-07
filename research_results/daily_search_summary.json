@@ -1,0 +1,50 @@
+{
+  "REV": {
+    "configs": 2160,
+    "median_bps": -4.0,
+    "best_t_nw": 6.5983454893376985,
+    "luck_p": 0.0,
+    "pbo": 0.0,
+    "IS_best_pos_OOS": 0.996031746031746
+  },
+  "MRV": {
+    "configs": 1224,
+    "median_bps": 4.364965095719304,
+    "best_t_nw": 10.510347171807153,
+    "luck_p": 0.0,
+    "pbo": 0.0,
+    "IS_best_pos_OOS": 1.0
+  },
+  "ONX": {
+    "configs": 116,
+    "median_bps": -4.000000000000008,
+    "best_t_nw": 9.877623890056029,
+    "luck_p": 0.0,
+    "pbo": 0.0,
+    "IS_best_pos_OOS": 0.9761904761904762
+  },
+  "GAPD": {
+    "configs": 624,
+    "median_bps": 13.95615721184263,
+    "best_t_nw": 23.62284858305392,
+    "luck_p": 0.0,
+    "pbo": 0.0,
+    "IS_best_pos_OOS": 1.0
+  },
+  "BRK": {
+    "configs": 576,
+    "median_bps": -4.000000000000001,
+    "best_t_nw": 7.537818877058617,
+    "luck_p": 0.0,
+    "pbo": 0.0,
+    "IS_best_pos_OOS": 1.0
+  },
+  "CAL": {
+    "configs": 104,
+    "median_bps": 5.126121609768395,
+    "best_t_nw": 2.2878716921724163,
+    "luck_p": 0.81,
+    "pbo": 0.6428571428571429,
+    "IS_best_pos_OOS": 0.4801587301587302
+  }
+}

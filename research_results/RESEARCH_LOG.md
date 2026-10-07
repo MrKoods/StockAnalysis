@@ -115,3 +115,25 @@ ON1 added to the forward test as a SECONDARY candidate, labelled as not passing.
   itself (holdout t 2.24) and its 10% version (t 2.17) -> fail.
 Cumulative: ~6,700 configs over 8 non-sweep families; G2 remains the only confirmed model,
 ON1 the only secondary.
+
+## Route 2: short-horizon DAILY families (PROTOCOL8, 2026-10-07)
+Data: yfinance daily since 1999 (S&P 500/400/600 current constituents + 15 ETFs). Market-hedged
+metric, Newey-West t. 559 strategies, 4,860 configs searched on S&P 500 2000-2017.
+
+**Look-ahead bug caught before reporting:** the first run computed filter features from the entry
+session's close for open-entry trades (search t up to 33, "with_trend" everywhere). Fixed, regression
+test added, Stages 1-4 rerun unchanged (logged in the protocol; buggy log kept for the record).
+
+Corrected result: NO config passes the 2018-2026 S&P 500 holdout. Classic effects were strong in
+2000-2017 and decayed after: short-term reversal t 6.6 -> 1.7; IBS mean reversion t 10.5 -> 1.6;
+breakout fade t 7.5 -> 1.96; daily gap fade (open -> close) t 23.6 -> -1.35; overnight reversal
+t 9.9 -> negative; turn-of-month = luck.
+
+## G2 re-check, market-hedged (diagnostic, 2026-10-07)
+G2's earlier tests were not market-hedged. Hedged against the equal-weight universe over the same
+open -> 13:30 window (~1 bp/side): S&P 500 +4.3 bps/trade (t 2.57; since Jul 2025 +2.6, t 0.91),
+S&P 400 +6.0 bps (t 3.51; since Jul 2025 +7.8, t 2.57); positive for longs and shorts. Raw was
++9.6 / +15.2 bps -> roughly half of the apparent edge was market drift. The daily-bar G2-like gap
+fade held to the close: strongly positive 2000-2017, ~0 hedged since 2018. G2's forward pass bar is
+unchanged (pre-registered, raw); the hedged figure will be reported alongside and should be
+treated as the more honest one.

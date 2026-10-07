@@ -1,0 +1,151 @@
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:48: RuntimeWarning: Mean of empty slice
+  r_on = np.nanmean(O / prevC - 1, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:48: RuntimeWarning: Mean of empty slice
+  r_on = np.nanmean(O / prevC - 1, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+=== Stage 1: search summary per family (hedged net bps) ===
+REV {"configs": 2160, "median_bps": -4.0, "best_t_nw": 12.236, "luck_p": 0.0, "pbo": 0.0, "IS_best_pos_OOS": 1.0}
+                     params     filter      n  mean_bps  raw_bps  t_nw
+ (2, 0.1, 'rev', 1, 'open') with_trend 153426     14.62    18.66 12.24
+ (5, 0.2, 'rev', 1, 'open') with_trend 294427     10.81    15.37 12.23
+(10, 0.2, 'rev', 1, 'open') with_trend 264258     10.85    16.07 12.19
+ (2, 0.2, 'rev', 1, 'open') with_trend 321042     10.69    14.96 12.09
+ (3, 0.2, 'rev', 1, 'open') with_trend 310858     10.20    14.63 11.87
+MRV {"configs": 1260, "median_bps": 4.238, "best_t_nw": 16.453, "luck_p": 0.0, "pbo": 0.0, "IS_best_pos_OOS": 1.0}
+                           params     filter      n  mean_bps  raw_bps  t_nw
+('rsi2', 10, 'none', '1', 'open') with_trend 164010     13.77    22.23 16.45
+('rsi2', 20, 'none', '1', 'open') with_trend 330468      9.97    17.19 15.35
+ ('rsi2', 5, 'none', '1', 'open') with_trend  77277     17.64    27.84 15.16
+ ('down', 3, 'none', '1', 'open') with_trend 158344     11.42    18.99 14.70
+ ('down', 4, 'none', '1', 'open') with_trend  66687     14.41    23.86 13.57
+ONX {"configs": 116, "median_bps": -4.0, "best_t_nw": 9.878, "luck_p": 0.0, "pbo": 0.0, "IS_best_pos_OOS": 0.976}
+                   params   filter      n  mean_bps  raw_bps  t_nw
+('intraday', 0.05, 'rev')     long  91222      8.62    11.33  9.88
+('intraday', 0.05, 'rev') illiquid  92198      5.77     5.81  8.62
+ ('intraday', 0.1, 'rev')     long 185127      4.88     7.59  8.46
+ ('intraday', 0.1, 'rev') illiquid 183147      3.34     3.59  7.47
+      ('cc', 0.05, 'rev')     long  91221      5.47     8.18  6.31
+GAPD {"configs": 644, "median_bps": 11.704, "best_t_nw": 32.928, "luck_p": 0.0, "pbo": 0.0, "IS_best_pos_OOS": 1.0}
+                                 params     filter      n  mean_bps  raw_bps  t_nw
+   (0.25, 'fade', 'none', 'c0', 'none') with_trend 272350     23.46    19.66 32.93
+(0.25, 'fade', 'with200', 'c0', 'none') with_trend 268902     20.65    15.66 29.87
+ (0.25, 'fade', 'with20', 'c0', 'none') with_trend 187392     21.85    17.45 28.46
+    (0.5, 'fade', 'none', 'c0', 'none') with_trend  81155     37.52    33.95 26.69
+ (0.5, 'fade', 'with200', 'c0', 'none') with_trend  80466     34.89    30.42 25.56
+BRK {"configs": 576, "median_bps": -4.0, "best_t_nw": 19.099, "luck_p": 0.0, "pbo": 0.0, "IS_best_pos_OOS": 1.0}
+                 params     filter      n  mean_bps  raw_bps  t_nw
+(20, 'fade', 1, 'open') with_trend 107594     19.63    28.91 19.10
+(55, 'fade', 1, 'open') with_trend  24216     41.48    58.17 18.91
+(10, 'fade', 1, 'open') with_trend 200690     13.35    21.51 16.87
+ (5, 'fade', 1, 'open') with_trend 334991      9.74    16.02 15.18
+(55, 'fade', 3, 'open') with_trend  24216     48.38    76.09 11.51
+CAL {"configs": 104, "median_bps": 5.126, "best_t_nw": 2.288, "luck_p": 0.81, "pbo": 0.643, "IS_best_pos_OOS": 0.48}
+       params filter    n  mean_bps  raw_bps  t_nw
+('tom', 4, 2) sector 1944     26.02    43.70  2.29
+('tom', 4, 1) sector 1944     21.97    36.18  2.09
+('tom', 4, 2)   none 3146     21.32    38.48  2.04
+('tom', 4, 1)   none 3146     18.74    32.54  1.89
+('tom', 4, 3) sector 1944     23.28    44.37  1.69
+
+=== Stage 2: shortlist ===
+family                                  params     filter      n  mean_bps  t_nw
+   REV              (2, 0.1, 'rev', 1, 'open') with_trend 153426     14.62 12.24
+   REV              (5, 0.2, 'rev', 1, 'open') with_trend 294427     10.81 12.23
+   MRV       ('rsi2', 10, 'none', '1', 'open') with_trend 164010     13.77 16.45
+   MRV       ('rsi2', 20, 'none', '1', 'open') with_trend 330468      9.97 15.35
+   ONX               ('intraday', 0.05, 'rev')       long  91222      8.62  9.88
+   ONX                ('intraday', 0.1, 'rev')       long 185127      4.88  8.46
+  GAPD    (0.25, 'fade', 'none', 'c0', 'none') with_trend 272350     23.46 32.93
+  GAPD (0.25, 'fade', 'with200', 'c0', 'none') with_trend 268902     20.65 29.87
+   BRK                 (20, 'fade', 1, 'open') with_trend 107594     19.63 19.10
+   BRK                 (55, 'fade', 1, 'open') with_trend  24216     41.48 18.91
+   CAL                           ('tom', 4, 2)     sector   1944     26.02  2.29
+   CAL                           ('tom', 4, 1)     sector   1944     21.97  2.09
+
+=== Stage 3: S&P 500 holdout 2018-2026 (once) ===
+{'family': 'REV', 'params': "(2, 0.1, 'rev', 1, 'open')", 'filter': 'with_trend', 'search_t': 12.24, 'ho_n': 87154, 'ho_mean': 11.82, 'ho_raw': 13.29, 'ho_t': 6.83, 'ho_early': 12.61, 'ho_late': 11.17, 'ho_long': 10.22, 'ho_short': 14.49, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 65}
+{'family': 'REV', 'params': "(5, 0.2, 'rev', 1, 'open')", 'filter': 'with_trend', 'search_t': 12.23, 'ho_n': 164609, 'ho_mean': 10.74, 'ho_raw': 13.22, 'ho_t': 7.95, 'ho_early': 11.17, 'ho_late': 10.37, 'ho_long': 7.81, 'ho_short': 16.28, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 177}
+{'family': 'MRV', 'params': "('rsi2', 10, 'none', '1', 'open')", 'filter': 'with_trend', 'search_t': 16.45, 'ho_n': 98146, 'ho_mean': 11.34, 'ho_raw': 16.37, 'ho_t': 8.52, 'ho_early': 13.63, 'ho_late': 9.57, 'ho_long': 8.54, 'ho_short': 15.64, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 250}
+{'family': 'MRV', 'params': "('rsi2', 20, 'none', '1', 'open')", 'filter': 'with_trend', 'search_t': 15.35, 'ho_n': 194551, 'ho_mean': 9.17, 'ho_raw': 12.84, 'ho_t': 8.86, 'ho_early': 10.58, 'ho_late': 8.08, 'ho_long': 6.97, 'ho_short': 12.63, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 251}
+{'family': 'ONX', 'params': "('intraday', 0.05, 'rev')", 'filter': 'long', 'search_t': 9.88, 'ho_n': 52894, 'ho_mean': -2.38, 'ho_raw': 2.74, 'ho_t': -1.77, 'ho_early': -5.46, 'ho_late': 0.14, 'ho_long': -2.38, 'ho_short': nan, 'twin_mean': nan, 'stage3': 'fail', 'cfg_i': 385}
+{'family': 'ONX', 'params': "('intraday', 0.1, 'rev')", 'filter': 'long', 'search_t': 8.46, 'ho_n': 107094, 'ho_mean': -3.18, 'ho_raw': 1.94, 'ho_t': -3.2, 'ho_early': -5.73, 'ho_late': -1.08, 'ho_long': -3.18, 'ho_short': nan, 'twin_mean': nan, 'stage3': 'fail', 'cfg_i': 387}
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: divide by zero encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: invalid value encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+{'family': 'GAPD', 'params': "(0.25, 'fade', 'none', 'c0', 'none')", 'filter': 'with_trend', 'search_t': 32.93, 'ho_n': 176802, 'ho_mean': 11.49, 'ho_raw': 14.11, 'ho_t': 9.7, 'ho_early': 9.79, 'ho_late': 12.76, 'ho_long': 10.16, 'ho_short': 13.42, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 398}
+{'family': 'GAPD', 'params': "(0.25, 'fade', 'with200', 'c0', 'none')", 'filter': 'with_trend', 'search_t': 29.87, 'ho_n': 174516, 'ho_mean': 8.95, 'ho_raw': 10.28, 'ho_t': 7.62, 'ho_early': 7.31, 'ho_late': 10.18, 'ho_long': 8.31, 'ho_short': 9.89, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 406}
+{'family': 'BRK', 'params': "(20, 'fade', 1, 'open')", 'filter': 'with_trend', 'search_t': 19.1, 'ho_n': 65724, 'ho_mean': 15.84, 'ho_raw': 20.92, 'ho_t': 10.09, 'ho_early': 19.04, 'ho_late': 13.46, 'ho_long': 13.09, 'ho_short': 19.85, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 510}
+{'family': 'BRK', 'params': "(55, 'fade', 1, 'open')", 'filter': 'with_trend', 'search_t': 18.91, 'ho_n': 14520, 'ho_mean': 35.86, 'ho_raw': 50.29, 'ho_t': 11.96, 'ho_early': 38.85, 'ho_late': 33.65, 'ho_long': 34.82, 'ho_short': 37.37, 'twin_mean': nan, 'stage3': 'PASS', 'cfg_i': 526}
+{'family': 'CAL', 'params': "('tom', 4, 2)", 'filter': 'sector', 'search_t': 2.29, 'ho_n': 945, 'ho_mean': 1.22, 'ho_raw': 25.82, 'ho_t': 0.07, 'ho_early': -21.57, 'ho_late': 20.41, 'ho_long': 1.22, 'ho_short': nan, 'twin_mean': nan, 'stage3': 'fail', 'cfg_i': 549}
+{'family': 'CAL', 'params': "('tom', 4, 1)", 'filter': 'sector', 'search_t': 2.09, 'ho_n': 945, 'ho_mean': -10.2, 'ho_raw': 9.52, 'ho_t': -0.56, 'ho_early': -35.7, 'ho_late': 11.28, 'ho_long': -10.2, 'ho_short': nan, 'twin_mean': nan, 'stage3': 'fail', 'cfg_i': 548}
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:48: RuntimeWarning: Mean of empty slice
+  r_on = np.nanmean(O / prevC - 1, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:48: RuntimeWarning: Mean of empty slice
+  r_on = np.nanmean(O / prevC - 1, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: divide by zero encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: invalid value encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: divide by zero encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: invalid value encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: divide by zero encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: invalid value encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: divide by zero encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:211: RuntimeWarning: invalid value encountered in divide
+  g = (P.O - P.prevC) / atr_prev
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\daily.py:108: RuntimeWarning: All-NaN slice encountered
+  med = np.nanmedian(P.dvol20, axis=0)
+
+=== Stage 4: S&P 400 / S&P 600, 2018-2026 (once each) ===
+family                                  params     filter  search_t   ho_n  ho_mean  ho_raw  ho_t  ho_early  ho_late  ho_long  ho_short  twin_mean stage3  t400  t600  bps400  bps600 stage4  rank_t  selected
+   REV              (2, 0.1, 'rev', 1, 'open') with_trend     12.24  87154    11.82   13.29  6.83     12.61    11.17    10.22     14.49        NaN   PASS  7.59 10.35   14.32   19.69   PASS    7.59     False
+   REV              (5, 0.2, 'rev', 1, 'open') with_trend     12.23 164609    10.74   13.22  7.95     11.17    10.37     7.81     16.28        NaN   PASS 10.19 11.86   15.09   18.27   PASS   10.19     False
+   MRV       ('rsi2', 10, 'none', '1', 'open') with_trend     16.45  98146    11.34   16.37  8.52     13.63     9.57     8.54     15.64        NaN   PASS  9.92 12.55   13.66   17.55   PASS    9.92     False
+   MRV       ('rsi2', 20, 'none', '1', 'open') with_trend     15.35 194551     9.17   12.84  8.86     10.58     8.08     6.97     12.63        NaN   PASS 10.54 13.87   11.29   14.22   PASS   10.54      True
+   ONX               ('intraday', 0.05, 'rev')       long      9.88  52894    -2.38    2.74 -1.77     -5.46     0.14    -2.38       NaN        NaN   fail   NaN   NaN     NaN     NaN      -     NaN     False
+   ONX                ('intraday', 0.1, 'rev')       long      8.46 107094    -3.18    1.94 -3.20     -5.73    -1.08    -3.18       NaN        NaN   fail   NaN   NaN     NaN     NaN      -     NaN     False
+  GAPD    (0.25, 'fade', 'none', 'c0', 'none') with_trend     32.93 176802    11.49   14.11  9.70      9.79    12.76    10.16     13.42        NaN   PASS 13.26 18.36   16.12   22.67   PASS   13.26      True
+  GAPD (0.25, 'fade', 'with200', 'c0', 'none') with_trend     29.87 174516     8.95   10.28  7.62      7.31    10.18     8.31      9.89        NaN   PASS 10.75 15.24   12.86   18.40   PASS   10.75     False
+   BRK                 (20, 'fade', 1, 'open') with_trend     19.10  65724    15.84   20.92 10.09     19.04    13.46    13.09     19.85        NaN   PASS 11.73 14.98   18.11   23.71   PASS   11.73     False
+   BRK                 (55, 'fade', 1, 'open') with_trend     18.91  14520    35.86   50.29 11.96     38.85    33.65    34.82     37.37        NaN   PASS 13.85 14.18   42.40   51.66   PASS   13.85      True
+   CAL                           ('tom', 4, 2)     sector      2.29    945     1.22   25.82  0.07    -21.57    20.41     1.22       NaN        NaN   fail   NaN   NaN     NaN     NaN      -    0.07     False
+   CAL                           ('tom', 4, 1)     sector      2.09    945   -10.20    9.52 -0.56    -35.70    11.28   -10.20       NaN        NaN   fail   NaN   NaN     NaN     NaN      -   -0.56     False
+
+SELECTED: [{'family': 'BRK', 'params': "(55, 'fade', 1, 'open')", 'filter': 'with_trend'}, {'family': 'GAPD', 'params': "(0.25, 'fade', 'none', 'c0', 'none')", 'filter': 'with_trend'}, {'family': 'MRV', 'params': "('rsi2', 20, 'none', '1', 'open')", 'filter': 'with_trend'}]
