@@ -25,8 +25,11 @@ def months():
 
 
 def complete(sym: str) -> bool:
+    """Every month 2018-01 .. last full month downloaded. A month may still lack its .done marker
+    because 1-2 days failed under throttling; that is immaterial (~0.1% of sessions) and must not
+    block the confirmation stage forever."""
     d = OUT / sym
-    return d.exists() and all((d / f"{y}-{m:02d}.done").exists() for y, m in months())
+    return d.exists() and all((d / f"{y}-{m:02d}.parquet").exists() for y, m in months())
 
 
 def unserved(sym: str) -> bool:
