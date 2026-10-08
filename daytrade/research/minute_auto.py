@@ -43,7 +43,18 @@ def run(stage: str):
                        stdout=f, stderr=subprocess.STDOUT, check=False)
 
 
+def run_library(stage: str):
+    with open(LOG, "a") as f:
+        f.write(f"
+=== {date.today()} library {stage} ===
+")
+        f.flush()
+        subprocess.run([sys.executable, "-m", "daytrade.research.library_run", stage], cwd=ROOT,
+                       stdout=f, stderr=subprocess.STDOUT, check=False)
+
+
 if __name__ == "__main__":
+    from .library_run import CONFIRM_SYMS
     from .minute_run import CONFIRM
     if not (RES / "minute_stage3.csv").exists():
         if complete("SPY") and complete("QQQ"):
@@ -51,3 +62,7 @@ if __name__ == "__main__":
     elif not (RES / "minute_stage4.csv").exists():
         if all(complete(s) or unserved(s) for s in CONFIRM):
             run("confirm")
+    # PROTOCOL11 Stage 4 (day-trader library) once every confirmation symbol is in
+    if (RES / "library_stage3.csv").exists() and not (RES / "library_stage4.csv").exists():
+        if all(complete(s) or unserved(s) for s in CONFIRM_SYMS):
+            run_library("confirm")
