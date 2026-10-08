@@ -45,9 +45,7 @@ def run(stage: str):
 
 def run_library(stage: str):
     with open(LOG, "a") as f:
-        f.write(f"
-=== {date.today()} library {stage} ===
-")
+        f.write(f"\n=== {date.today()} library {stage} ===\n")
         f.flush()
         subprocess.run([sys.executable, "-m", "daytrade.research.library_run", stage], cwd=ROOT,
                        stdout=f, stderr=subprocess.STDOUT, check=False)

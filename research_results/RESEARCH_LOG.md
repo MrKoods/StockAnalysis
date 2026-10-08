@@ -165,3 +165,19 @@ No Stage-3 passer -> Stage 4 (DIA + stocks) has nothing to confirm.
 Conclusion: on SPY/QQQ minute data the classic intraday edges (intraday momentum, ORB, noise-boundary
 momentum) are absent after costs in 2018-2026, and the sweep-reversal strategy is now tested on
 ~4,300 sessions with the same answer as before: no edge.
+
+## Round 6: the day-trader strategy library (PROTOCOL11, 2026-10-07 night)
+17 families (ORB, failed-ORB, gap-and-go, gap fill, pullback, drive fade, HOD/LOD, PDH/PDL breakout,
+break-and-retest, session-mean reversion, RSI/Bollinger, EMA crossovers, relative strength, power hour,
+lunch, narrow-range, sweep variants) x exits x 11 filters = 26,492 configs scored on SPY QQQ AAPL MSFT
+NVDA AMZN 2018-2022 (1-minute Dukascopy). Mirror, entry look-ahead and filter look-ahead tests pass.
+Two look-ahead bugs caught before any result was used: NR15 picked the first NR bar rather than the
+earliest breakout; the or30 filter read 09:30-09:59 for entries before 10:00 (ORB t 11.5). Both fixed
+with regression tests (the filter test proven to fail on the buggy code); Stages 1-3 rerun.
+Corrected Stage 3 (holdout 2023+, same six, t >= 3.1): ONE pass -
+  ORBF (15-min range; break above then close back inside within 5 min -> short to range middle,
+  stop above the extreme, flat at close): holdout +3.1 bps/trade, t 4.58, 6/6 instruments, both
+  halves (search was weak: +0.75 bps, t 1.0).
+Near misses: SWEEP of the previous close, short, 1R (holdout t 2.74 / 2.86 / 2.36); ORB 60-min short
+1R (t 2.82). Every other family failed, most flat or negative.
+Stage 4 (14 unseen symbols) runs automatically (minute_auto) once their download completes.
