@@ -250,3 +250,13 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-10-01T20:37:22.077546+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
 2026-10-02T12:32:56.681770+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='benzinga.com',True,export restriction
 2026-10-02T20:33:54.203770+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
+2026-10-06T20:31:12.413053+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-10-06T20:31:13.227209+00:00,v2.2.131,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-10-07T20:30:53.611636+00:00,v2.2.131,critical,AMD,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-10-07T20:31:05.389803+00:00,v2.2.131,critical,MU,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-10-07T20:31:29.581415+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='entity list' source='yahoo.com',True,entity list
+2026-10-07T20:35:03.103708+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-08T12:34:55.964083+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-10-08T12:34:56.384871+00:00,v2.2.131,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
+2026-10-08T20:34:17.743880+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='entity list',False,entity list
+2026-10-08T20:34:18.146464+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff

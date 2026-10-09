@@ -1752,13 +1752,90 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-10-02T20:33:53.776715+00:00"
+    },
+    {
+      "id": "855f41a5-be01-4555-95cc-6fc6ef303269",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Becton Dickinson to Invest $19 Billion in U.S. in Exchange for Tariff Relief",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-10-06T12:35:00+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-10-06T20:31:11.994740+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-10-07T20:35:02.342879+00:00"
+    },
+    {
+      "id": "1ca87315-cff5-4732-bcec-21818b487a98",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Why Investors Are Celebrating Qualcomm Striking a Licensing Deal with Huawei \u2014 Which Is Still on the Entity List",
+      "trigger_match": "entity list",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-10-07T13:00:58+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-10-07T20:31:29.078669+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-10-08T20:34:17.313832+00:00"
+    },
+    {
+      "id": "5f6a8ee3-7881-4c65-873c-6bd1162e8dd3",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Donald Trump Threatened 300% Tariffs on Countries That Don't Invest in the U.S., Just Days After a Trump-Xi Summit Offered Only Limited Trade Relief. Here's Why That Threat Keeps Markets on Edge.",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-10-07T21:10:38+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-10-08T12:34:55.532918+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-10-08T20:34:17.313841+00:00"
     }
   ],
   "critical_alerts_sent": {
-    "NVDA|tariff|2026-09-25T19:07:01+00:00": "2026-09-25T20:31:16.102188+00:00",
-    "NVDA|tariff|2026-09-26T10:07:25+00:00": "2026-09-28T12:36:12.768656+00:00",
-    "QCOM|tariff|2026-09-26T10:07:25+00:00": "2026-09-28T12:42:11.458645+00:00",
-    "NVDA|export restriction|2026-09-29T09:18:44+00:00": "2026-09-29T20:31:23.297085+00:00",
-    "AMD|export restriction|2026-09-29T09:18:44+00:00": "2026-09-29T20:31:28.200100+00:00"
+    "MU|tariff|2026-10-06T12:35:00+00:00": "2026-10-06T20:31:13.227377+00:00",
+    "AMD|tariff|2026-10-06T13:44:19+00:00": "2026-10-07T20:30:53.612027+00:00",
+    "MU|tariff|2026-10-07T14:35:19+00:00": "2026-10-07T20:31:05.389965+00:00",
+    "NVDA|tariff|2026-10-07T21:10:38+00:00": "2026-10-08T12:34:56.385023+00:00"
   }
 }
