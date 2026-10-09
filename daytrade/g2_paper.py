@@ -180,8 +180,27 @@ def evaluate(dry: bool = False) -> None:
     for r in new.itertuples():
         lines.append(f"{r.side:5s} {r.ticker:6s} {r.bps_at_0932_entry:+7.1f} bps")
     lines += ["```", f"Today: {d_mean:+.1f} bps/trade | Running: {all_mean:+.1f} bps/trade over "
-              f"{len(led)} trades, {days} day(s). Backtest expectation ~ +9.9 bps (likely optimistic on costs)."]
+              f"{len(led)} trades, {days} day(s). Backtest expectation ~ +9.9 bps (likely optimistic on costs).",
+              verdict(led)]
     post("\n".join(lines), dry)
+
+
+def verdict(led: pd.DataFrame) -> str:
+    """Pass/fail rule, fixed 2026-10-09 BEFORE any live paper trade (9:32 entry, net of costs):
+    after >= 20 trading days: PASS if mean >= +5 bps/trade and day-clustered t >= 2; FAIL if mean < 0;
+    otherwise keep collecting until 40 days, where the same PASS test applies and anything else FAILS."""
+    x = led.dropna(subset=["bps_at_0932_entry"])
+    days = x["day"].nunique()
+    if days < 20:
+        return f"Verdict: collecting ({days}/20 trading days)."
+    per_day = x.groupby("day")["bps_at_0932_entry"].mean()
+    t = per_day.mean() / (per_day.std(ddof=1) / np.sqrt(len(per_day))) if per_day.std(ddof=1) > 0 else 0.0
+    m = x["bps_at_0932_entry"].mean()
+    if m >= 5 and t >= 2:
+        return f"Verdict: PASS ({m:+.1f} bps/trade, t {t:.2f}, {days} days) - worth considering small real size."
+    if m < 0 or days >= 40:
+        return f"Verdict: FAIL ({m:+.1f} bps/trade, t {t:.2f}, {days} days) - G2 is not tradeable; shelve it."
+    return f"Verdict: inconclusive ({m:+.1f} bps/trade, t {t:.2f}, {days}/40 days) - keep collecting."
 
 
 if __name__ == "__main__":
