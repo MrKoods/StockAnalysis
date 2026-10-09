@@ -113,9 +113,41 @@ def load(sym: str) -> pd.DataFrame:
     return df[[d in live for d in df.index.date]]
 
 
+def _pid_alive(pid: int) -> bool:
+    """Read-only liveness check. NOTE: os.kill(pid, 0) is NOT safe here - on Windows it terminates
+    the process. Use OpenProcess + GetExitCodeProcess instead."""
+    import ctypes
+    k32 = ctypes.windll.kernel32
+    h = k32.OpenProcess(0x1000, False, pid)          # PROCESS_QUERY_LIMITED_INFORMATION
+    if not h:
+        return False
+    code = ctypes.c_ulong()
+    ok = k32.GetExitCodeProcess(h, ctypes.byref(code))
+    k32.CloseHandle(h)
+    return bool(ok) and code.value == 259            # STILL_ACTIVE
+
+
+def _other_instance_running() -> bool:
+    """True if another downloader (per the PID lock file) is still alive; otherwise take the lock."""
+    import os
+    lock = DATA_DIR / "duka.lock"
+    if lock.exists():
+        try:
+            pid = int(lock.read_text().strip())
+            if pid != os.getpid() and _pid_alive(pid):
+                return True
+        except ValueError:
+            pass
+    lock.write_text(str(os.getpid()))
+    return False
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s",
                         handlers=[logging.FileHandler(DATA_DIR / "duka_download.log"), logging.StreamHandler()])
+    if _other_instance_running():
+        log.info("another downloader is running; exiting")
+        sys.exit(0)
     log.info("start %s", datetime.now())
     for sym in sys.argv[1:]:
         download(sym)
