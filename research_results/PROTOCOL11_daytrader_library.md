@@ -58,3 +58,22 @@ holdout t 11.8 - impossible). Fixed (the feature is undefined for entries before
 regression test now perturbs each trade's post-entry data and requires every filter feature to be
 unchanged (proven to fail on the buggy code: 9 families). Stages 1-3 rerun with identical rules;
 the first run's numbers are kept as library_search_BUGGY.log and were not used for any choice.
+
+Amendment (2026-10-08 18:35 PDT, BEFORE any Stage 4 evaluation; user asked to speed up):
+1. Confirmation set = the 12 symbols fully downloaded now: DIA GOOGL TSLA AMD NFLX XOM IWM JPM GLD
+   TLT XLF XLE. BAC and INTC (still downloading) are dropped and will not be used for this stage.
+2. Besides the single Stage-3 passer (ORBF short), the three Stage-3 near misses are evaluated on the
+   same set with the same Stage-4 bar, labelled SECONDARY (did not pass Stage 3):
+   SWEEP ('pc', 15, False, 'ext', '1R') short; SWEEP ('pc', 5, False, 'ext', '1R') short;
+   ORB (60, 'touch', 'atr', '1R', 'close', (14, 0)) short.
+   A secondary that passes Stage 4 may be paper traded but is reported as weaker evidence.
+
+Bug fix + amendment (2026-10-08 ~19:00, BEFORE the rerun):
+- The drift adjustment used the PLANNED holding time (entry -> session end) instead of the ACTUAL
+  one. Stopped-out trades were credited with a whole day of drift, inflating short-side excess by
+  ~5-8 bps/trade (raw P&L of the four Stage-4 candidates was +0.3 / -3.5 / -3.6 / -3.7 bps).
+  Fixed (simulate returns the exit minute; regression test added). Stages 1-4 rerun unchanged.
+- Added for the paper-trade recommendation (not for Stages 1-4): RAW net P&L per trade (no drift
+  adjustment, what an account would actually earn after costs) must also be > 0 on the
+  confirmation set.
+(The same planned-hold issue exists in minute.py / PROTOCOL10; that round had no passers.)

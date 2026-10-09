@@ -112,3 +112,18 @@ def test_filter_features_do_not_depend_on_the_future(spy, family):
             f1 = features(J, ev)
             for k in f0:
                 assert np.allclose(np.asarray(f0[k][i], float), np.asarray(f1[k][i], float), equal_nan=True), (cfg, k)
+
+
+def test_holding_minutes_are_actual_not_planned(spy):
+    """Regression (2026-10-08): drift adjustment must use the actual exit minute."""
+    from daytrade.research.library import run
+    I = copy.deepcopy(spy)
+    r = 5
+    I.O[r, :], I.H[r, :], I.L[r, :], I.C[r, :] = 100.0, 100.05, 99.95, 100.0
+    I.H[r, 100] = 101.0                                     # stop for a short entered earlier is hit here
+    ret, xk = simulate(I, np.array([r]), np.array([-1.0]), np.array([40]), np.array([389]),
+                       np.array([100.5]), np.array([-np.inf]), np.array([np.nan]), return_exit=True)
+    assert xk[0] == 100
+    t = run(I, LCfg("ORB", (60, "touch", "atr", "1R", "close", (14, 0))))
+    if t is not None:
+        assert np.all(t["minutes"] <= 390) and np.all(t["minutes"] >= 1)

@@ -72,10 +72,10 @@ def load(sym: str) -> Inst | None:
 
 
 # ---------------- shared simulator ----------------
-def simulate(I: Inst, rows, sign, e, x, stop, tp, fill):
+def simulate(I: Inst, rows, sign, e, x, stop, tp, fill, return_exit=False):
     n = len(rows)
     if n == 0:
-        return np.array([])
+        return (np.array([]), np.array([], int)) if return_exit else np.array([])
     s = sign[:, None]
     O, C = I.O[rows] * s, I.C[rows] * s
     Hm = np.where(s > 0, I.H[rows], -I.L[rows])
@@ -84,6 +84,7 @@ def simulate(I: Inst, rows, sign, e, x, stop, tp, fill):
     has_fill = ~np.isnan(fill)
     entry = np.where(has_fill, fill * sign, O[np.arange(n), e])
     pnl = np.full(n, np.nan)
+    xk = np.full(n, -1)
     done = (entry <= st) | (entry >= tg)                 # already beyond stop/target: invalid trade
     for k in range(int(e.min()), N):
         act = ~done & (e <= k) & (k <= x)
@@ -95,14 +96,14 @@ def simulate(I: Inst, rows, sign, e, x, stop, tp, fill):
         hit_s = act & (Lm[:, k] <= st)
         px_s = np.where(first, st, np.minimum(O[:, k], st))
         pnl = np.where(hit_s, px_s - entry, pnl)
-        done |= hit_s
         hit_t = act & ~hit_s & ~first & (Hm[:, k] >= tg)
         pnl = np.where(hit_t, tg - entry, pnl)
-        done |= hit_t
-        fin = act & ~done & (k == x)
+        fin = act & ~hit_s & ~hit_t & (k == x)
         pnl = np.where(fin, C[:, k] - entry, pnl)
-        done |= fin
-    return pnl / np.abs(entry)
+        xk = np.where(hit_s | hit_t | fin, k, xk)
+        done |= hit_s | hit_t | fin
+    ret = pnl / np.abs(entry)
+    return (ret, xk) if return_exit else ret
 
 
 def _first(mask: np.ndarray, start: int = 0, end: int = N):
@@ -623,11 +624,14 @@ def run(I: Inst, cfg: LCfg, spy: Inst | None = None):
     ev = {k: v[keep] for k, v in ev.items()}
     if not len(ev["rows"]):
         return None
-    ret = simulate(I, ev["rows"], ev["sign"], ev["e"], ev["x"], ev["stop"], ev["tp"], ev["fill"])
+    ret, xk = simulate(I, ev["rows"], ev["sign"], ev["e"], ev["x"], ev["stop"], ev["tp"], ev["fill"],
+                       return_exit=True)
     ok = ~np.isnan(ret)
     f = features(I, ev)
+    # ACTUAL holding minutes (exit minute - entry minute + 1). Using the planned exit here was a bug
+    # (2026-10-08): the drift adjustment credited stopped-out shorts with a full day of drift.
     out = {"day": I.days[ev["rows"]][ok], "sym": np.full(ok.sum(), I.sym), "sign": ev["sign"][ok],
-           "ret": ret[ok], "minutes": (ev["x"] - ev["e"] + 1)[ok].astype(float),
+           "ret": ret[ok], "minutes": (xk - ev["e"] + 1)[ok].astype(float),
            "cost": np.full(ok.sum(), I.cost_bps)}
     out.update({k: v[ok] for k, v in f.items()})
     return out

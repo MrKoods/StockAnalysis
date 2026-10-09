@@ -24,7 +24,13 @@ from .mass import pbo_cscv
 RES = ROOT / "research_results"
 OUT = OUTPUT_DIR / "research"
 SEARCH_SYMS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN"]
-CONFIRM_SYMS = ["DIA", "GOOGL", "TSLA", "AMD", "NFLX", "XOM", "IWM", "JPM", "BAC", "INTC", "GLD", "TLT", "XLF", "XLE"]
+CONFIRM_SYMS = ["DIA", "GOOGL", "TSLA", "AMD", "NFLX", "XOM", "IWM", "JPM", "GLD", "TLT", "XLF", "XLE"]
+# BAC and INTC dropped by the 2026-10-08 amendment (not downloaded in time; never used for Stage 4)
+SECONDARY = [  # Stage-3 near misses, confirmed on the same set but labelled weaker evidence
+    ("SWEEP", "('pc', 15, False, 'ext', '1R')", "short"),
+    ("SWEEP", "('pc', 5, False, 'ext', '1R')", "short"),
+    ("ORB", "(60, 'touch', 'atr', '1R', 'close', (14, 0))", "short"),
+]
 SEARCH = (date(2018, 1, 1), date(2023, 1, 1))
 HOLD = (date(2023, 1, 1), date(2100, 1, 1))
 FULL = (date(2018, 1, 1), date(2100, 1, 1))
@@ -190,7 +196,9 @@ def confirm():
     have = [s for s in CONFIRM_SYMS if s in _INST]
     print("confirmation instruments:", have, flush=True)
     rows = []
-    for r in st[st.stage3 == "PASS"].itertuples():
+    sec = st[[(f, p, flt) in SECONDARY for f, p, flt in zip(st.family, st.params, st["filter"])]]
+    todo = pd.concat([st[st.stage3 == "PASS"].assign(role="PRIMARY"), sec.assign(role="SECONDARY")])
+    for r in todo.itertuples():
         cfg = cfgs[int(r.cfg_i)]
         t = trades_for(cfg, have)
         res = {}
@@ -202,17 +210,20 @@ def confirm():
         day, bps, sym = res[1.0]
         per = pd.Series(bps).groupby(sym).mean()
         tt = tstat(day, bps)
+        raw = (t["ret"] * 1e4 - 2 * t["cost"])[FILTERS[r.filter]({k: t[k] for k in ("trend", "gap", "or30", "inside")}, t["sign"])]
         ok = bps.mean() > 0 and tt >= 2.0 and (per > 0).mean() >= 0.6 and res[2.0][1].mean() > 0
         months = (pd.Series(pd.to_datetime(pd.Series(day))).dt.to_period("M").nunique())
-        rows.append({"family": r.family, "params": r.params, "filter": r.filter, "n": len(bps),
-                     "bps": round(float(bps.mean()), 2), "bps_2x_cost": round(float(res[2.0][1].mean()), 2),
+        rows.append({"role": r.role, "family": r.family, "params": r.params, "filter": r.filter, "n": len(bps),
+                     "bps": round(float(bps.mean()), 2), "raw_bps": round(float(raw.mean()), 2), "bps_2x_cost": round(float(res[2.0][1].mean()), 2),
                      "t": round(tt, 2), "insts_pos_share": round(float((per > 0).mean()), 2),
                      "trades_per_month_per_inst": round(len(bps) / max(months, 1) / max(len(have), 1), 2),
+                     **{f"bps_{k}": round(float(v), 1) for k, v in per.items()},
                      "stage4": "PASS" if ok else "fail"})
         print(rows[-1], flush=True)
     out = pd.DataFrame(rows)
     if len(out):
-        sel = out[out.stage4 == "PASS"].sort_values("t", ascending=False).drop_duplicates("family")
+        sel = (out[(out.stage4 == "PASS") & (out.raw_bps > 0)].sort_values("t", ascending=False)
+               .drop_duplicates("family"))
         out["paper_trade"] = out.index.isin(sel.index)
     out.to_csv(RES / "library_stage4.csv", index=False)
     print(json.dumps(out.to_dict("records"), indent=1, default=str))

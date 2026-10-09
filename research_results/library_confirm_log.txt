@@ -1,0 +1,2 @@
+confirmation instruments: ['DIA', 'GOOGL', 'TSLA', 'AMD', 'NFLX', 'XOM', 'IWM', 'JPM', 'GLD', 'TLT', 'XLF', 'XLE']
+[]

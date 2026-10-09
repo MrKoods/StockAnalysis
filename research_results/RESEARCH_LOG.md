@@ -181,3 +181,16 @@ Corrected Stage 3 (holdout 2023+, same six, t >= 3.1): ONE pass -
 Near misses: SWEEP of the previous close, short, 1R (holdout t 2.74 / 2.86 / 2.36); ORB 60-min short
 1R (t 2.82). Every other family failed, most flat or negative.
 Stage 4 (14 unseen symbols) runs automatically (minute_auto) once their download completes.
+
+## Round 6 correction (2026-10-08 evening): the "passes" were a scoring bug
+Stage 4 on 12 unseen symbols first showed passes (ORB-60 short +6.7 bps t 7.0; previous-close-sweep
+shorts +5.1/+5.4 bps t 8.8/9.4). A raw-P&L check before reporting showed the real after-cost P&L was
++0.3 / -3.5 / -3.6 / -3.7 bps/trade. Cause: the drift adjustment used the PLANNED holding time
+(to the close) instead of the ACTUAL one, crediting stopped-out shorts with a full day of drift
+(~5-8 bps). Fixed (actual exit minute; regression test), raw-P&L requirement added for any paper-trade
+recommendation, Stages 1-4 rerun with identical rules.
+Corrected result: NO Stage-3 passer (26,510 configs). Shortlisted configs average -2.8 bps on the
+holdout (9 of 51 positive, best holdout t 1.37). SWEEP family best search t 1.52, ORBF 0.17 - the
+earlier "failed breakout short" theme was an artifact of the bug. Best (non-passing) holdout:
+long-only gap fill to half the gap, exit 14:00 (G2's mechanism): +10.9 bps, t 1.25.
+Buggy outputs kept as *_BUGGY2_plannedhold* for the record.
