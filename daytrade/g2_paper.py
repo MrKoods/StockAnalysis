@@ -88,7 +88,12 @@ def _minutes(tickers: list[str], day: date) -> dict[str, pd.DataFrame]:
 
 
 def signals(dry: bool = False) -> None:
-    today = pd.Timestamp.now(tz=TZ).date()
+    now = pd.Timestamp.now(tz=TZ)
+    today = now.date()
+    if not dry and not (time(9, 31) <= now.time() <= time(10, 0)):
+        # the PC was asleep at the scheduled time: a late "enter now" alert would be stale
+        log.info("skipping signals at %s ET (outside 09:31-10:00)", now.time())
+        return
     tick = sorted(set(g2_tickers()))
     daily = _daily(tick)
     rows = []
