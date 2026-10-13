@@ -260,3 +260,13 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-10-08T12:34:56.384871+00:00,v2.2.131,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='tariff',False,tariff
 2026-10-08T20:34:17.743880+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='entity list',False,entity list
 2026-10-08T20:34:18.146464+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-09T12:34:59.922845+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='benzinga.com',True,tariff
+2026-10-09T12:36:58.123235+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='entity list' source='yahoo.com',True,entity list
+2026-10-09T20:34:12.723697+00:00,v2.2.131,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='safety signal' source='benzinga.com',True,safety signal
+2026-10-09T20:35:46.707958+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-09T20:35:47.158091+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='entity list',False,entity list
+2026-10-12T12:38:03.292760+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-10-12T12:38:34.228759+00:00,v2.2.131,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='entity list' source='yahoo.com',True,entity list
+2026-10-12T20:35:06.085400+00:00,v2.2.131,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='safety signal',False,safety signal
+2026-10-12T20:35:06.514525+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-12T20:35:06.895212+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='entity list',False,entity list
