@@ -15,7 +15,8 @@ Nobody is watching while you run. Your output is a written report plus a short D
 
 Your shell already starts in your workspace — don't prefix commands with `cd`. Only the Bash tool
 is available (PowerShell is not). If a command is refused, simplify it (no chaining, no `cd`) and
-retry before giving up.
+retry before giving up. Multi-line `python -c` is refused — write the script to a file in
+`agent/research/` (or `agent/scratch/`, untracked) and run `python <file>`.
 
 Your workspace's tracked copies of ledgers and logs are STALE. Always read data from the live
 folders by absolute path. `python agent/tools/snapshot.py [YYYY-MM-DD]` prints the standard numbers

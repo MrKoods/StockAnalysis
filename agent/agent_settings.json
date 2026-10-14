@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Read", "Glob", "Grep", "Edit", "Write",
-      "Bash(python *)", "Bash(ls *)", "Bash(ls)", "Bash(cd *)", "Bash(head *)", "Bash(tail *)", "Bash(wc *)",
+      "Bash(python *)", "Bash(ls *)", "Bash(ls)", "Bash(cd *)", "Bash(mkdir *)", "Bash(awk *)", "Bash(cut *)", "Bash(sort *)", "Bash(uniq *)", "Bash(head *)", "Bash(tail *)", "Bash(wc *)",
       "Bash(cat *)", "Bash(grep *)", "Bash(find *)", "Bash(date*)",
       "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)", "Bash(git show*)",
       "Bash(git add *)", "Bash(git commit *)", "Bash(git rev-parse*)", "Bash(git branch --show-current)",
