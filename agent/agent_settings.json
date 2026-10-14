@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Glob", "Grep", "Edit", "Write",
+      "Bash(python *)", "Bash(ls *)", "Bash(ls)", "Bash(head *)", "Bash(tail *)", "Bash(wc *)",
+      "Bash(cat *)", "Bash(grep *)", "Bash(find *)", "Bash(date*)",
+      "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)", "Bash(git show*)",
+      "Bash(git add *)", "Bash(git commit *)", "Bash(git rev-parse*)", "Bash(git branch --show-current)",
+      "WebSearch", "WebFetch"
+    ],
+    "deny": [
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis/**)",
+      "Write(//c/Users/user/Documents/Git/StockAnalysis/**)",
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis-V3/**)",
+      "Write(//c/Users/user/Documents/Git/StockAnalysis-V3/**)",
+      "Bash(git push*)", "Bash(git merge*)", "Bash(git rebase*)", "Bash(git reset*)",
+      "Bash(git checkout*)", "Bash(git switch*)", "Bash(git -C*)", "Bash(git worktree*)",
+      "Bash(python -m paper_trading.paper_runner*)", "Bash(python -m paper_trading.paper_updater*)",
+      "Bash(python -m paper_trading.options_pricer*)", "Bash(python -m daytrade*)",
+      "Bash(rm *)", "Bash(mv *)", "Bash(cp *)", "Bash(cd *)", "Bash(schtasks*)", "Bash(powershell*)"
+    ]
+  }
+}
