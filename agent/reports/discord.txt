@@ -1,13 +1,15 @@
-✅ Daily review 2026-10-13: all systems normal
+✅ Daily review 2026-10-14: all systems normal
 
-All V2 + V3 scheduled tasks completed successfully (result 0).
+All V2 and V3 tasks ran cleanly (result 0, zero error lines).
 
-V2: 0 new threshold signals. 7 new rank signals logged (ADI, FITB, ZION, PFE, AMGN, AMZN, TSLA — all options, expected: today is the last options-regime scan; shares_only kicks in tomorrow).
+TRANSITION CONFIRMED: First shares-only post-close scan produced 6 rank + 2 threshold signals, all position_type=shares. No options-era rows appeared.
 
-V3: G2 paper +102.7 bps today (3 days, mean +33.4 bps, t=0.63 — too early). ON1 paper first signals logged (74 picks); no bps yet, first evaluate tomorrow 06:45.
+Random control first run: 7 signals, all shares. QCOM correctly blocked by event gate (export restriction).
 
-Forward tests all still collecting (C6 6/30, G2 5/40, ON1 4/40 sessions). All too early for conclusions.
+ON1 paper first evaluate ran at 06:45 — 74 trades, −34.1 bps day 1. Pipeline confirmed working; too early to read.
 
-One transient SA API error in pre-market (empty body, already retried). Not actionable.
+G2 paper day 4: −90.8 bps (NTAP/ON/TOST gap-fades failed). 4-day mean barely positive at +1.5 bps — noise.
 
-Watch tomorrow: confirm rank signals are 'shares', random_trades.csv appears, ON1 paper bps fills.
+Forward tests all collecting: C6 7/30 mean −0.25R t=−0.95, G2 6/40 mean +0.024 ATR t=+0.25, ON1 5/40 mean −2.7 bps t=−0.08. Data lags (G2 through yesterday, ON1 through Monday) are expected and will catch up after tonight's Dukascopy download.
+
+V2 rank go/no-go: 44/100 closed, mean R after costs +0.132 (need ≥0.15), t=−0.63. Collecting.
