@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.134 | 2026-10-13 | Bug Fix | Safety net only — has no effect while the model is set to shares only (v2.2.133). If options are ever switched back on, the model will no longer recommend "diagonal" options trades: as built they bet against the very move the model predicts (ADI made +2.2R as a stock trade but would have lost $3,894 as the recommended diagonal) and understated their own risk about 10x |
 | v2.2.133 | 2026-10-13 | Feature | The model now trades shares only — every trade is a plain buy (long) or short-sale (short) of the stock itself, and options are no longer recommended anywhere. How stocks are scored and picked is unchanged, including the options-market data that feeds the scores; only the type of trade changed. Why: pricing the options the model had been recommending (v2.2.132) showed they would have given back most of the profit the same picks made as stock trades. Applies to every paper track and the live scan. Short sales are now allowed on the $15,000 account (they were blocked before as unlimited-risk); each one has a stop-loss like a long, is closed before earnings like any stock position, and needs a margin account to do for real. One config switch (`shares_only`) turns options back on. Replaces the separate "shares track" briefly added earlier the same day, which this makes redundant |
 | v2.2.132 | 2026-10-13 | Feature | Three tools for deciding whether the rank track (the only paper strategy currently in profit) is good enough for real money. (1) A go/no-go rule, written down before the data it will judge: after 100 closed trades it needs +0.15R per trade after costs, a strong-enough statistical result, and a better result than its own sector ETF — today it's at 43 of 100 and not close on the statistics. (2) A random-pick comparison track: every day it picks stocks and long/short direction at random from the same sectors and trades them with identical rules, so we can see whether the model's picks actually beat chance. (3) Real dollar pricing for the options trades the model recommends — until now the paper results quietly assumed stock-like returns. Estimated on past trades, the options would have turned the rank track's +$5,851 into about +$556, and the threshold track's +$1,231 into about −$4,136. Also found the model's "diagonal" options trades are built to lose money when the stock moves the way the model predicts. No score or trade decision changed |
 | v2.2.131 | 2026-09-29 | Infrastructure | Closes the month-long check of whether Seeking Alpha's price data could back up yfinance (the model's only price source): it can't, as-is — every time the two disagreed on the latest day's closing price (23 times), Seeking Alpha was the one that was wrong, and its price history isn't adjusted for dividends. yfinance stays the only source and the comparison logging is switched off. Also fixes the main app.log file, which had silently stopped recording anything once it filled up and was filling the scan logs with error tracebacks instead. No effect on any score, signal, or trade |
@@ -213,6 +214,24 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.134] — 2026-10-13 — [Bug Fix] Diagonal options structures excluded (modeled short the predicted move)
+
+**Status:** Moot while `shares_only: true` (v2.2.133 — options structures aren't evaluated at
+all); kept as a safety net if that switch is ever turned off. `swing_model/trade_selector.py`
+Filter 9 excludes `_MISMODELED_STRUCTURES = {diagonal_call, diagonal_put}` (reason
+`structure_mismodeled`). 1 new test in `tests/test_phase7_trade_math.py`.
+
+`resolve_structure_economics` builds a diagonal as short the near ATM option + long a 6% OTM later
+one — short the predicted move, usually for a net credit that `_MIN_PREMIUM_FLOOR_FRACTION` turns
+into a small debit, so both EV and max loss are wrong (v2.2.132 pricing: ADI +2.2R stock -> -$3,894
+diagonal; KEY 46 contracts, ~$5,000 worst case vs $499 planned). Excluded rather than rebuilt.
+
+Also still open if options return: the chain is the first expiry >= `positioning.min_dte` (5) days
+out while trades hold up to 15 trading days, so most options would expire before the move they
+target. That chain also feeds Positioning scores, so changing it is a scoring decision.
 
 ---
 
