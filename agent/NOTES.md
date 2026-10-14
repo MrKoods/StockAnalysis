@@ -17,3 +17,12 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 (none yet)
 
 ## Log
+
+### 2026-10-13 daily review
+- All tasks OK (result 0). First agent run.
+- Pre-market: 1 transient SA /symbols/get-factor-grades empty-body error; scan completed fine.
+- V2 rank: 7 new options signals (last options-regime scan). shares_only takes effect 2026-10-14.
+  Snapshot "!! not shares" warning is a known false positive on transition day.
+- V3 G2 paper: +102.7 bps today; 3 sessions, mean +33.4 bps, t 0.63 (too early).
+- V3 ON1 paper: 74 signals logged, bps column unfilled; first evaluate 2026-10-14 06:45.
+- No bugs found. No fixes proposed.

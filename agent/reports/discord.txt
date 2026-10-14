@@ -1,0 +1,13 @@
+✅ Daily review 2026-10-13: all systems normal
+
+All V2 + V3 scheduled tasks completed successfully (result 0).
+
+V2: 0 new threshold signals. 7 new rank signals logged (ADI, FITB, ZION, PFE, AMGN, AMZN, TSLA — all options, expected: today is the last options-regime scan; shares_only kicks in tomorrow).
+
+V3: G2 paper +102.7 bps today (3 days, mean +33.4 bps, t=0.63 — too early). ON1 paper first signals logged (74 picks); no bps yet, first evaluate tomorrow 06:45.
+
+Forward tests all still collecting (C6 6/30, G2 5/40, ON1 4/40 sessions). All too early for conclusions.
+
+One transient SA API error in pre-market (empty body, already retried). Not actionable.
+
+Watch tomorrow: confirm rank signals are 'shares', random_trades.csv appears, ON1 paper bps fills.
