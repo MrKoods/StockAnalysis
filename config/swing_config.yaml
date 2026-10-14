@@ -595,6 +595,25 @@ rank_track:
   # noise. 1.5 rather than 1.0: nearly as many fills (57 at 1.0) while
   # displacing fewer of the genuinely top-ranked names. 0 disables.
   max_entry_distance_atr: 1.5
+  # Go / no-go rule for trading the rank track with real money — fixed
+  # 2026-10-13, BEFORE the data it will judge, so the bar can't drift to fit
+  # the results (paper_trading/rank_verdict.py applies it; the daily updater
+  # prints it). Judged on closed rank-track trades once there are
+  # min_closed_trades of them:
+  #   GO (small real size): mean R after costs >= min_mean_r, week-clustered
+  #     t >= min_week_t, AND the trades beat their own sector ETF on average
+  #     (same side, same days) — a profit that's only the sector moving
+  #     isn't the model's.
+  #   NO-GO (shelve): mean R after costs < 0.
+  #   Anything else: keep collecting.
+  # cost_per_side is a fraction of price (0.001 = 0.1%), turned into R per
+  # trade via each trade's own stop distance. The random-pick control track
+  # (random_trades.csv) is reported alongside as context, not as a condition.
+  go_no_go:
+    min_closed_trades: 100
+    min_mean_r: 0.15
+    min_week_t: 2.0
+    cost_per_side: 0.001
 
 # PDT (Pattern Day Trader) config removed 2026-08-19 (Tier B strip) — the
 # `pdt.max_day_trades_per_5_days` key was never read; real day-trade tracking

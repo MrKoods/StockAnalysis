@@ -19,6 +19,7 @@ Usage:
 
 import argparse
 import csv
+import random
 import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -118,6 +119,15 @@ PAPER_TRADES_LOCK_FILE = Path("paper_trading/paper_trades.csv.lock")
 # reasonable timeframe.
 RANK_TRADES_CSV = Path("paper_trading/rank_trades.csv")
 RANK_TRADES_LOCK_FILE = Path("paper_trading/rank_trades.csv.lock")
+# Random-pick control track (2026-10-13) — the rank track's yardstick. Same
+# scan, same sectors, same per-day slot budget, same entry/stop/target/sizing
+# code (_build_rank_track_row), but the ticker AND direction are drawn at
+# random instead of from the model's ranking. If the rank track can't beat
+# this over the same period, the scoring isn't what makes its money. Own
+# ledger + lock, same _CSV_COLUMNS schema; no Discord alerts (see
+# paper_updater.SILENT_TRACKS).
+RANDOM_TRADES_CSV = Path("paper_trading/random_trades.csv")
+RANDOM_TRADES_LOCK_FILE = Path("paper_trading/random_trades.csv.lock")
 CONFIG_PATH = Path("config/swing_config.yaml")
 # CONFIDENCE_THRESHOLD imported from swing_model.scoring above — used to be its
 # own separate literal here (both at 90), which is exactly the kind of drift
@@ -1669,6 +1679,15 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
     except Exception as exc:
         logger.error(f"Rank track pass failed — {exc}")
 
+    try:
+        random_logged = _run_random_control(
+            rank_track_candidates, cfg, rr_cfg, today_str, win_probability_calibration, scan_type=scan_type,
+        )
+        if random_logged:
+            logger.info(f"Random control: {random_logged} new signal(s) logged to {RANDOM_TRADES_CSV}")
+    except Exception as exc:
+        logger.error(f"Random control pass failed — {exc}")
+
     # Event Severity Gate — expire blocks whose cooling-off condition is met,
     # same rule as run_swing_model.py: a post_close scan completing after the
     # block's event timestamp, excluding blocks created earlier in this run.
@@ -1943,6 +1962,86 @@ def _run_rank_track(
                 logger.warning(f"{ticker}: rank-track Discord alert failed — {exc}")
 
     return signals_logged
+
+
+def _run_random_control(
+    candidates: list[dict],
+    cfg: dict,
+    rr_cfg: dict,
+    today_str: str,
+    win_probability_calibration,
+    scan_type: str = "post_close",
+) -> int:
+    """
+    Random-pick control track (2026-10-13) — see RANDOM_TRADES_CSV. Mirrors
+    _run_rank_track's mechanics exactly (owning scan, per-(day, sector) slot
+    budget, entry-distance gate, pending-supersede / filled-skip guard, row
+    builder) and changes only the choice: candidates are shuffled and each
+    one's direction is a coin flip, both seeded by (date, sector) so a re-run
+    of the same day draws the same picks. A drawn candidate that fails the
+    entry-distance gate or already holds a filled control position is passed
+    over for the next draw, the same way the rank track passes a slot down
+    its ranking. No Discord alert — a control, not a trade idea.
+    """
+    rank_cfg = cfg.get("rank_track", {})
+    top_n = int(rank_cfg.get("top_n_per_sector", 2))
+    max_entry_distance_atr = float(rank_cfg.get("max_entry_distance_atr", 0.0) or 0.0)
+    owning_scan = str(rank_cfg.get("scan_type", "post_close"))
+    if owning_scan != "any" and scan_type != owning_scan:
+        return 0
+
+    already_logged = _load_logged_keys(RANDOM_TRADES_CSV)
+    open_positions = _load_open_positions(RANDOM_TRADES_CSV)
+    pending_positions = _load_pending_positions(RANDOM_TRADES_CSV)
+    ticker_sector_map = dict(get_ticker_sector_map(cfg))
+    ticker_sector_map.update({c["ticker"]: c["sector"] for c in candidates})
+    slots_used_today: dict[str, int] = {}
+    for logged_date, logged_ticker in already_logged:
+        if logged_date == today_str and ticker_sector_map.get(logged_ticker):
+            sector = ticker_sector_map[logged_ticker]
+            slots_used_today[sector] = slots_used_today.get(sector, 0) + 1
+
+    by_sector: dict[str, list[dict]] = {}
+    for c in candidates:
+        by_sector.setdefault(c["sector"], []).append(c)
+
+    logged = 0
+    for sector, sector_candidates in sorted(by_sector.items()):
+        picks = slots_used_today.get(sector, 0)
+        rng = random.Random(f"{today_str}|{sector}")
+        draws = sorted(sector_candidates, key=lambda c: c["ticker"])
+        rng.shuffle(draws)
+        for c in draws:
+            if picks >= top_n:
+                break
+            ticker = c["ticker"]
+            # Draw the direction for every candidate (even ones skipped below)
+            # so one skip never shifts the coin flips of the draws after it.
+            c = {**c, "direction": "bullish" if rng.random() < 0.5 else "bearish"}
+            if (today_str, ticker) in already_logged:
+                continue
+            if max_entry_distance_atr > 0:
+                dist = _entry_distance_atr(c)
+                if dist is not None and dist > max_entry_distance_atr:
+                    continue
+            if ticker in open_positions:
+                if ticker in pending_positions and _supersede_pending_signals(
+                    ticker, today_str, c["final_score"],
+                    csv_path=RANDOM_TRADES_CSV, lock_path=RANDOM_TRADES_LOCK_FILE,
+                ):
+                    pending_positions.discard(ticker)
+                    open_positions.discard(ticker)
+                else:
+                    continue
+            row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration)
+            if row is None:
+                continue
+            row["sizing_note"] = "random control — ticker and direction drawn at random; " + row["sizing_note"]
+            _append_row(row, csv_path=RANDOM_TRADES_CSV, lock_path=RANDOM_TRADES_LOCK_FILE)
+            logged += 1
+            picks += 1
+            logger.info(f"{ticker}: RANDOM-CONTROL signal logged — {c['direction']} in {sector} (slot {picks}/{top_n})")
+    return logged
 
 
 def _build_rank_track_row(

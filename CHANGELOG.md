@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.132 | 2026-10-13 | Feature | Three tools for deciding whether the rank track (the only paper strategy currently in profit) is good enough for real money. (1) A go/no-go rule, written down before the data it will judge: after 100 closed trades it needs +0.15R per trade after costs, a strong-enough statistical result, and a better result than its own sector ETF — today it's at 43 of 100 and not close on the statistics. (2) A random-pick comparison track: every day it picks stocks and long/short direction at random from the same sectors and trades them with identical rules, so we can see whether the model's picks actually beat chance. (3) Real dollar pricing for the options trades the model recommends — until now the paper results quietly assumed stock-like returns. Estimated on past trades, the options would have turned the rank track's +$5,851 into about +$556, and the threshold track's +$1,231 into about −$4,136. Also found the model's "diagonal" options trades are built to lose money when the stock moves the way the model predicts. No score or trade decision changed |
 | v2.2.131 | 2026-09-29 | Infrastructure | Closes the month-long check of whether Seeking Alpha's price data could back up yfinance (the model's only price source): it can't, as-is — every time the two disagreed on the latest day's closing price (23 times), Seeking Alpha was the one that was wrong, and its price history isn't adjusted for dividends. yfinance stays the only source and the comparison logging is switched off. Also fixes the main app.log file, which had silently stopped recording anything once it filled up and was filling the scan logs with error tracebacks instead. No effect on any score, signal, or trade |
 | v2.2.130 | 2026-09-28 | Feature | The rank-based paper-trading track (the one that always takes the top 2 stocks per sector per day, to build a data sample faster) was spending more than half its daily picks on signals that almost never turned into real trades — the price that triggers the trade sat far from where the stock was actually trading, so the order expired or got replaced before it ever filled. It now skips any pick whose trigger is more than 1.5 "typical daily moves" (ATR) away and gives the slot to the next-ranked stock in that sector. Replayed on the real track's own history: never-filled picks drop from 40 to 9 and real trades go from 43 to 61 over the same days, with no sign of worse trade quality. Also re-tested whether a smaller profit target would help (on real trades and the 13.5-year backtest): it wouldn't — the current 3:1 target stays |
 | v2.2.129 | 2026-09-28 | Bug Fix | Fixes the "what would have happened if this never-filled signal had been entered right away" estimate, which was pretending to buy at a price the stock often never traded. For far-off triggers the stop-loss was already past the market, so almost every estimate booked an instant loss — 104 of 115 cancelled signals showed as losses, which would have wrongly suggested cancelling them was saving money. The estimate now buys at the next day's real opening price, and marks a signal "no entry possible" (instead of a loss) when even that opening price was already past the stop. All past estimates recomputed. No effect on any score, real trade, or real win rate |
@@ -211,6 +212,71 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.132] — 2026-10-13 — [Feature] Rank-track go/no-go rule, random-pick control track, real options pricing
+
+**Status:** Live from the next scan/update. No scoring, signal, sizing or trade-decision change.
+New: `paper_trading/rank_verdict.py`, `paper_trading/options_pricer.py`,
+`shared/api_clients/option_quotes_client.py`, `paper_trading/random_trades.csv` (created by the
+first post-close scan), `paper_trading/options_positions.csv` (created by the first update run).
+New config block `rank_track.go_no_go`. 33 new tests (`tests/test_random_control_track.py`,
+`tests/test_rank_verdict.py`, `tests/test_options_pricer.py`).
+
+**Why.** A stress test of the rank track's 43 closed trades (+0.22R/trade, +$5,411 in the ledger)
+found the edge is not established: trades opened in the same week move together, and counted per
+week the result is indistinguishable from zero (t 0.04 over 7 weeks); removing the best 3 trades
+turns the average negative; the picks beat their own sector ETF by only +0.25%/trade (t 0.5) — the
+bank-short profits came from regional banks falling, not from picking the right banks. Trading
+costs (0.03-0.05R/trade) are not the problem. At this mean and spread ~200 trades are needed.
+
+**1. Go/no-go rule (`rank_track.go_no_go`, applied by `rank_verdict.py`, printed by every daily
+update).** Fixed before the data it judges. At 100 closed rank-track trades: **GO** (small real
+size) if mean R after costs >= +0.15, week-clustered t >= 2, and the trades beat their sector ETF on
+average; **NO-GO** if mean R after costs < 0; otherwise keep collecting. Costs: 0.1%/side, converted
+to R through each trade's own stop distance. Today: COLLECTING, 43/100, +0.161R, t -0.14, +0.25% vs
+ETF.
+
+**2. Random-pick control track (`random_trades.csv`).** Same post-close scan, same sectors, same
+2-per-sector daily budget, same entry-distance gate, same pending/filled guards and the same
+entry/stop/target/sizing code as the rank track — only the stock and the long/short direction are
+drawn at random (seeded by date+sector, so a re-run draws the same picks). Resolved by the same
+daily updater cycle; never posts to Discord (`paper_updater.SILENT_TRACKS` — an unknown track name
+would otherwise post with the threshold track's branding). Reported next to the verdict as context,
+not as a condition (it starts ~7 weeks behind).
+
+**3. Options priced for real (`options_pricer.py`).** The ledgers' `pnl_dollars` is the stock
+trade's R x planned dollar risk — 40 of the 43 closed rank trades were recommended as options and
+none were ever priced. Legs now follow the model's own conventions exactly (verified by a test that
+every structure prices to the same premium `resolve_structure_economics` uses).
+- *Live, real quotes:* trades filled from 2026-10-14 on are opened at yfinance quotes on the first
+  update run after the fill, marked each run, and closed on the first run after the stock trade
+  closes; legs that expired first settle at intrinsic value. P&L at mid and at natural prices
+  (pay the ask, hit the bid). Ledger `options_positions.csv`.
+- *Past trades, estimate only:* no held key has historical option prices (Alpha Vantage's is
+  premium-only), so trades filled earlier are repriced with Black-Scholes using the median of each
+  ticker's own stored ATM IV readings, no spread charged. `python -m paper_trading.options_pricer
+  estimate rank threshold`.
+
+| Closed trades | Stock-equivalent (ledger) | Options, estimated | Options expired before the trade ended |
+|---|---|---|---|
+| Rank (40) | +$5,851 | **+$556** | 19/40 |
+| Threshold (14) | +$1,231 | **-$4,136** | 11/14 |
+
+Long strangles (the most common pick) lost in both tracks (rank -$2,354 vs +$1,436 as stock;
+threshold -$5,090 vs -$119). Real fills would be worse than this estimate (no bid/ask spread).
+
+**Two model findings, not fixed here (they change trade decisions):**
+- **Expiry vs holding period.** The model buys the first expiration >= 5 days out (`positioning.
+  min_dte`) but holds up to 15 trading days, and the 15-day time stop is where nearly all of the
+  rank track's profit comes from — so the options often expire before the move they were meant to
+  capture.
+- **Diagonals are inverted.** `diagonal_call`/`diagonal_put` sell the near ATM option and buy a 6%
+  OTM later one: short the move the trade predicts, usually for a net credit (which
+  `resolve_structure_economics` floors at 0.5% of price, so the model's EV/risk treat it as a small
+  debit). ADI +2.2R as stock was -$3,894 as the model's diagonal; KEY's 46-contract diagonal had a
+  worst case near $5,000 against $499 planned risk.
 
 ---
 

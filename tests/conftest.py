@@ -18,6 +18,7 @@ import monitoring.performance_dashboard as performance_dashboard_module
 import shared.api_clients.market_data_client as market_data_client_module
 import paper_trading.paper_runner as paper_runner_module
 import paper_trading.paper_updater as paper_updater_module
+import paper_trading.options_pricer as options_pricer_module
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -103,6 +104,18 @@ def _isolate_paper_trading_csvs(tmp_path, monkeypatch):
     monkeypatch.setattr(paper_updater_module, "PAPER_TRADES_LOCK_FILE", tmp_path / "paper_trades.csv.lock")
     monkeypatch.setattr(paper_updater_module, "RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
     monkeypatch.setattr(paper_updater_module, "RANK_TRADES_LOCK_FILE", tmp_path / "rank_trades.csv.lock")
+    # Same gap again, 2026-10-13: the random-pick control track (v2.2.132)
+    # made run_paper_scan() write a third ledger, and the full suite wrote 4
+    # real-looking rows into paper_trading/random_trades.csv before this.
+    monkeypatch.setattr(paper_runner_module, "RANDOM_TRADES_CSV", tmp_path / "random_trades.csv")
+    monkeypatch.setattr(paper_runner_module, "RANDOM_TRADES_LOCK_FILE", tmp_path / "random_trades.csv.lock")
+    monkeypatch.setattr(paper_updater_module, "RANDOM_TRADES_CSV", tmp_path / "random_trades.csv")
+    monkeypatch.setattr(paper_updater_module, "RANDOM_TRADES_LOCK_FILE", tmp_path / "random_trades.csv.lock")
+    monkeypatch.setattr(options_pricer_module, "POSITIONS_CSV", tmp_path / "options_positions.csv")
+    monkeypatch.setattr(options_pricer_module, "POSITIONS_LOCK", tmp_path / "options_positions.csv.lock")
+    for _track, _name in (("threshold", "paper_trades"), ("rank", "rank_trades"), ("random", "random_trades")):
+        monkeypatch.setitem(options_pricer_module.TRACKS, _track,
+                            (tmp_path / f"{_name}.csv", tmp_path / f"{_name}.csv.lock"))
 
 
 @pytest.fixture(autouse=True)

@@ -83,7 +83,9 @@ from shared.utils.sector_config import get_active_sectors
 # whole CSV and drop those columns from every row, not just the closed one.
 # One shared list closes that gap structurally instead of relying on the two
 # modules being hand-kept in sync.
-from paper_trading.paper_runner import _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE
+from paper_trading.paper_runner import (
+    _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANDOM_TRADES_CSV, RANDOM_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE,
+)
 from shared.utils.trade_outcomes import (
     HYPOTHETICAL_NO_ENTRY, OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
 )
@@ -106,6 +108,12 @@ FILL_WINDOW_DAYS = 5
 # of earnings; a capped-loss options structure's max loss is already known
 # and bounded, so there's nothing extra to protect against a gap.
 EARNINGS_EXIT_POSITION_TYPES = {"shares"}
+
+# Tracks resolved by the same daily cycle but never posted to Discord. An
+# unknown track name falls back to the threshold track's branding in
+# discord_alerts._brand_payload, so a control ledger would otherwise post as
+# if it were the real model.
+SILENT_TRACKS = {"random"}
 
 
 def _load_trades(csv_path: Optional[Path] = None) -> list[dict]:
@@ -730,7 +738,8 @@ def update_paper_trades(
                             f"never reached within {FILL_WINDOW_DAYS} trading days — expired, no capital ever at risk"
                         )
                         try:
-                            send_paper_expired_alert(trade, track=track)
+                            if track not in SILENT_TRACKS:
+                                send_paper_expired_alert(trade, track=track)
                         except Exception as exc:
                             logger.warning(f"{ticker}: paper expired alert failed — {exc}")
 
@@ -824,7 +833,8 @@ def update_paper_trades(
                     )
 
                 try:
-                    send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"], track=track)
+                    if track not in SILENT_TRACKS:
+                        send_paper_fill_alert(trade, pnl_entry_price, trade["fill_date"], track=track)
                 except Exception as exc:
                     logger.warning(f"{ticker}: paper fill alert failed — {exc}")
 
@@ -967,14 +977,15 @@ def update_paper_trades(
 
             # Discord alert for this closed trade
             try:
-                send_paper_outcome_alert({
-                    **trade,
-                    "entry_price": entry_price,
-                    "exit_price": exit_px,
-                    "pnl_pct": pnl_pct,
-                    "achieved_rr": achieved_rr,
-                    "holding_days": result["holding_days"],
-                }, track=track)
+                if track not in SILENT_TRACKS:
+                    send_paper_outcome_alert({
+                        **trade,
+                        "entry_price": entry_price,
+                        "exit_price": exit_px,
+                        "pnl_pct": pnl_pct,
+                        "achieved_rr": achieved_rr,
+                        "holding_days": result["holding_days"],
+                    }, track=track)
             except Exception as exc:
                 logger.warning(f"{ticker}: paper outcome Discord alert failed — {exc}")
 
@@ -1047,6 +1058,8 @@ def _try_send_daily_summary(csv_path: Optional[Path] = None, track: str = "thres
     default to PAPER_TRADES_CSV/"threshold" (today's exact behavior) — pass
     RANK_TRADES_CSV/"rank" for the rank track's own daily summary instead.
     """
+    if track in SILENT_TRACKS:
+        return
     try:
         summary = generate_daily_summary(csv_path=csv_path)
         send_daily_summary_alert(summary, track=track)
@@ -1216,4 +1229,22 @@ if __name__ == "__main__":
             _run_daily_cycle(RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE, "rank", run_calibration=False)
         except Exception as exc:
             logger.error(f"Rank track daily cycle failed — {exc}")
+        try:
+            _run_daily_cycle(RANDOM_TRADES_CSV, RANDOM_TRADES_LOCK_FILE, "random", run_calibration=False)
+        except Exception as exc:
+            logger.error(f"Random control daily cycle failed — {exc}")
+        try:
+            from paper_trading.rank_verdict import compute_verdict
+            print(compute_verdict()["text"])
+        except Exception as exc:
+            logger.error(f"Rank-track go/no-go verdict failed — {exc}")
+        # Real-quote options pricing (paper_trading/options_pricer.py) — after
+        # every track's outcome walk, so a trade closed this run has its
+        # options legs closed at this run's quotes too.
+        from paper_trading.options_pricer import update_live
+        for _track in ("threshold", "rank", "random"):
+            try:
+                print(f"[{_track}] options pricing: {update_live(_track)}")
+            except Exception as exc:
+                logger.error(f"{_track}: options pricing failed — {exc}")
     sys.exit(0)
