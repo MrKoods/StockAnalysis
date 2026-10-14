@@ -85,7 +85,6 @@ from shared.utils.sector_config import get_active_sectors
 # modules being hand-kept in sync.
 from paper_trading.paper_runner import (
     _CSV_COLUMNS, PAPER_TRADES_LOCK_FILE, RANDOM_TRADES_CSV, RANDOM_TRADES_LOCK_FILE, RANK_TRADES_CSV, RANK_TRADES_LOCK_FILE,
-    SHARES_TRADES_CSV, SHARES_TRADES_LOCK_FILE,
 )
 from shared.utils.trade_outcomes import (
     HYPOTHETICAL_NO_ENTRY, OUTCOME_EXPIRED, OUTCOME_SUPERSEDED, is_funded, is_performance_row, is_scored,
@@ -1061,8 +1060,6 @@ def _try_send_daily_summary(csv_path: Optional[Path] = None, track: str = "thres
     """
     if track in SILENT_TRACKS:
         return
-    if csv_path is not None and not Path(csv_path).exists():
-        return  # a track that hasn't logged its first signal yet has nothing to report
     try:
         summary = generate_daily_summary(csv_path=csv_path)
         send_daily_summary_alert(summary, track=track)
@@ -1217,7 +1214,6 @@ if __name__ == "__main__":
     if args.summary:
         print_summary()
         print_summary(csv_path=RANK_TRADES_CSV)
-        print_summary(csv_path=SHARES_TRADES_CSV)
     else:
         # Threshold track first (as before, and the only one allowed to feed
         # calibration); rank track second, with run_calibration=False — see
@@ -1234,17 +1230,12 @@ if __name__ == "__main__":
         except Exception as exc:
             logger.error(f"Rank track daily cycle failed — {exc}")
         try:
-            _run_daily_cycle(SHARES_TRADES_CSV, SHARES_TRADES_LOCK_FILE, "shares", run_calibration=False)
-        except Exception as exc:
-            logger.error(f"Shares track daily cycle failed — {exc}")
-        try:
             _run_daily_cycle(RANDOM_TRADES_CSV, RANDOM_TRADES_LOCK_FILE, "random", run_calibration=False)
         except Exception as exc:
             logger.error(f"Random control daily cycle failed — {exc}")
         try:
             from paper_trading.rank_verdict import compute_verdict
             print(compute_verdict()["text"])
-            print(compute_verdict(rank_csv=SHARES_TRADES_CSV, label="Shares-track")["text"])
         except Exception as exc:
             logger.error(f"Rank-track go/no-go verdict failed — {exc}")
         # Real-quote options pricing (paper_trading/options_pricer.py) — after

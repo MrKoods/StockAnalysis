@@ -128,13 +128,6 @@ RANK_TRADES_LOCK_FILE = Path("paper_trading/rank_trades.csv.lock")
 # paper_updater.SILENT_TRACKS).
 RANDOM_TRADES_CSV = Path("paper_trading/random_trades.csv")
 RANDOM_TRADES_LOCK_FILE = Path("paper_trading/random_trades.csv.lock")
-# Shares-only track (2026-10-13, v2.2.133) — the rank track's exact ranking,
-# budget and guards (_run_rank_track with shares_only=True), but every row is
-# a plain long/short stock position sized off the stop distance: no options
-# structure is ever ranked or recommended. Own ledger, lock and Discord
-# identity (track="shares").
-SHARES_TRADES_CSV = Path("paper_trading/shares_trades.csv")
-SHARES_TRADES_LOCK_FILE = Path("paper_trading/shares_trades.csv.lock")
 CONFIG_PATH = Path("config/swing_config.yaml")
 # CONFIDENCE_THRESHOLD imported from swing_model.scoring above — used to be its
 # own separate literal here (both at 90), which is exactly the kind of drift
@@ -1687,17 +1680,6 @@ def _run_paper_scan_locked(scan_type: str = "post_close") -> int:
         logger.error(f"Rank track pass failed — {exc}")
 
     try:
-        shares_logged = _run_rank_track(
-            rank_track_candidates, cfg, rr_cfg, model_version, today_str, win_probability_calibration,
-            scan_type=scan_type, csv_path=SHARES_TRADES_CSV, lock_path=SHARES_TRADES_LOCK_FILE,
-            track="shares", shares_only=True,
-        )
-        if shares_logged:
-            logger.info(f"Shares track: {shares_logged} new signal(s) logged to {SHARES_TRADES_CSV}")
-    except Exception as exc:
-        logger.error(f"Shares track pass failed — {exc}")
-
-    try:
         random_logged = _run_random_control(
             rank_track_candidates, cfg, rr_cfg, today_str, win_probability_calibration, scan_type=scan_type,
         )
@@ -1768,10 +1750,6 @@ def _run_rank_track(
     today_str: str,
     win_probability_calibration,
     scan_type: str = "post_close",
-    csv_path: Optional[Path] = None,
-    lock_path: Optional[Path] = None,
-    track: str = "rank",
-    shares_only: bool = False,
 ) -> int:
     """
     Rank-based parallel paper-trading track (2026-08-24 full model audit
@@ -1814,19 +1792,8 @@ def _run_rank_track(
     main loop already fetched this scan (StockTwits/Seeking Alpha/news are
     NOT re-fetched here).
 
-    csv_path/lock_path/track/shares_only (2026-10-13, v2.2.133): the same
-    ranking, budget and guards run a second time for the shares-only track
-    (SHARES_TRADES_CSV, track="shares", shares_only=True) — every row there
-    is a plain long/short stock position, never an options structure. Each
-    ledger keeps its own open/pending guards, so the two can diverge only
-    when their positions do (e.g. a shares position flattened before
-    earnings while the options row rides on). None means the rank track's
-    own ledger, resolved at call time so tests can patch the module paths.
-
     Returns count of new rank-track signals logged this run.
     """
-    csv_path = csv_path if csv_path is not None else RANK_TRADES_CSV
-    lock_path = lock_path if lock_path is not None else RANK_TRADES_LOCK_FILE
     rank_cfg = cfg.get("rank_track", {})
     top_n = int(rank_cfg.get("top_n_per_sector", 2))
     # See config's rank_track.max_entry_distance_atr — a trigger this far from
@@ -1851,9 +1818,9 @@ def _run_rank_track(
         )
         return 0
 
-    already_logged = _load_logged_keys(csv_path)
-    open_positions = _load_open_positions(csv_path)
-    pending_positions = _load_pending_positions(csv_path)
+    already_logged = _load_logged_keys(RANK_TRADES_CSV)
+    open_positions = _load_open_positions(RANK_TRADES_CSV)
+    pending_positions = _load_pending_positions(RANK_TRADES_CSV)
 
     # Slots already consumed today, per sector — the day's budget is top_n per
     # sector across ALL of the day's scans, not top_n per scan.
@@ -1941,7 +1908,7 @@ def _run_rank_track(
             if ticker in open_positions:
                 if ticker in pending_positions and _supersede_pending_signals(
                     ticker, today_str, c["final_score"],
-                    csv_path=csv_path, lock_path=lock_path,
+                    csv_path=RANK_TRADES_CSV, lock_path=RANK_TRADES_LOCK_FILE,
                 ):
                     logger.info(
                         f"{ticker}: rank-track pick with a pending (unfilled) signal — "
@@ -1956,10 +1923,7 @@ def _run_rank_track(
                     )
                     continue
 
-            if shares_only:
-                row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration, shares_only=True)
-            else:
-                row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration)
+            row = _build_rank_track_row(c, cfg, rr_cfg, today_str, win_probability_calibration)
             if row is None:
                 # No valid entry/stop/target could be computed (e.g. no real
                 # close price) — skip this candidate, don't leave the
@@ -1967,11 +1931,11 @@ def _run_rank_track(
                 # ranked candidate without incrementing `picks`.
                 continue
 
-            _append_row(row, csv_path=csv_path, lock_path=lock_path)
+            _append_row(row, csv_path=RANK_TRADES_CSV, lock_path=RANK_TRADES_LOCK_FILE)
             signals_logged += 1
             picks += 1
             logger.info(
-                f"{ticker}: {track.upper()}-TRACK signal logged — rank #{rank_in_sector} in {sector} "
+                f"{ticker}: RANK-TRACK signal logged — rank #{rank_in_sector} in {sector} "
                 f"(slot {picks}/{top_n} for {today_str}), score {c['final_score']:.1f}"
             )
 
@@ -1993,9 +1957,9 @@ def _run_rank_track(
                 "greeks_filter_status": row.get("greeks_filter_status"),
             }
             try:
-                send_paper_signal_alert(rank_alert_payload, model_version=model_version, track=track)
+                send_paper_signal_alert(rank_alert_payload, model_version=model_version, track="rank")
             except Exception as exc:
-                logger.warning(f"{ticker}: {track}-track Discord alert failed — {exc}")
+                logger.warning(f"{ticker}: rank-track Discord alert failed — {exc}")
 
     return signals_logged
 
@@ -2082,7 +2046,6 @@ def _run_random_control(
 
 def _build_rank_track_row(
     candidate: dict, cfg: dict, rr_cfg: dict, today_str: str, win_probability_calibration,
-    shares_only: bool = False,
 ) -> Optional[dict]:
     """
     Compute entry/stop/target/structure/sizing fresh for one rank-track pick
@@ -2097,10 +2060,6 @@ def _build_rank_track_row(
     _fits_tier_budget always fails, falling through to the diagnostic-only
     path). This track needs a structure picked against its own real flat
     3.33% budget instead, which only risk_pct_override provides.
-
-    shares_only (v2.2.133, shares track): skip structure ranking entirely —
-    the row is a long_stock/short_stock position sized off the stop distance
-    (derive_sizing_inputs' shares fallback), same flat risk budget.
 
     Returns None if there's no real close price to anchor an entry/stop/
     target to (should be rare — the main loop already required
@@ -2148,41 +2107,35 @@ def _build_rank_track_row(
     capital_required = None
     position_type = None
     greeks_filter_status = None
-    if shares_only:
-        # Shares track: no structure ranking — a plain stock position, sized
-        # below off the stop distance (derive_sizing_inputs' shares fallback).
-        structure_recommended = "short_stock" if direction == "bearish" else "long_stock"
-        position_type = "shares"
-    else:
-        try:
-            force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
-            options_raw = positioning.get("_options_raw") or {}
-            trade_result = rank_trade_structures(
-                {
-                    "ticker": ticker, "direction": direction, "confidence": final_score,
-                    "entry": entry_mid, "entry_mid": entry_mid, "stop_loss": stop_loss,
-                    "target": target_px, "atr_14": atr, "force_defined_risk": force_defined_risk,
-                },
-                account_equity=float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0)),
-                options_approval_level=int(cfg.get("options_approval_level", 2)),
-                iv_percentile=options_raw.get("iv_percentile", 50.0),
-                option_chain=options_raw.get("chain"),
-                dte=options_raw.get("dte"),
-                atm_iv=options_raw.get("atm_iv"),
-                cfg=cfg,
-                win_probability_calibration=win_probability_calibration,
-                risk_pct_override=_RANK_TRACK_RISK_PCT,
-            )
-            ranked = trade_result.get("ranked_structures", [])
-            greeks_filter_status = trade_result.get("greeks_filter_status")
-            if ranked:
-                best = next((s for s in ranked if s.get("recommended")), ranked[0])
-                structure_recommended = best.get("name", "")
-                capital_required = best.get("capital_required")
-                position_type = best.get("position_type")
-                ev_per_dollar = f"{best.get('ev_per_dollar_per_day', 0.0):.5f}"
-        except Exception as exc:
-            logger.warning(f"{ticker}: rank-track structure ranking failed — {exc}")
+    try:
+        force_defined_risk = earnings_result.get("force_defined_risk", False) or (regime == REGIME_HIGH_VOL)
+        options_raw = positioning.get("_options_raw") or {}
+        trade_result = rank_trade_structures(
+            {
+                "ticker": ticker, "direction": direction, "confidence": final_score,
+                "entry": entry_mid, "entry_mid": entry_mid, "stop_loss": stop_loss,
+                "target": target_px, "atr_14": atr, "force_defined_risk": force_defined_risk,
+            },
+            account_equity=float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0)),
+            options_approval_level=int(cfg.get("options_approval_level", 2)),
+            iv_percentile=options_raw.get("iv_percentile", 50.0),
+            option_chain=options_raw.get("chain"),
+            dte=options_raw.get("dte"),
+            atm_iv=options_raw.get("atm_iv"),
+            cfg=cfg,
+            win_probability_calibration=win_probability_calibration,
+            risk_pct_override=_RANK_TRACK_RISK_PCT,
+        )
+        ranked = trade_result.get("ranked_structures", [])
+        greeks_filter_status = trade_result.get("greeks_filter_status")
+        if ranked:
+            best = next((s for s in ranked if s.get("recommended")), ranked[0])
+            structure_recommended = best.get("name", "")
+            capital_required = best.get("capital_required")
+            position_type = best.get("position_type")
+            ev_per_dollar = f"{best.get('ev_per_dollar_per_day', 0.0):.5f}"
+    except Exception as exc:
+        logger.warning(f"{ticker}: rank-track structure ranking failed — {exc}")
 
     account_equity = float(cfg.get("position_sizing", {}).get("starting_capital", 15000.0))
     max_capital_pct = float(cfg.get("position_sizing", {}).get("max_capital_pct", 5000 / 15000))
@@ -2197,8 +2150,7 @@ def _build_rank_track_row(
         risk_pct_override=_RANK_TRACK_RISK_PCT,
     )
 
-    track_label = "shares track (stock only, no options)" if shares_only else "rank track"
-    sizing_note = f"{track_label} — flat {_RANK_TRACK_RISK_PCT:.2%} risk regardless of score ({final_score:.1f}/100)"
+    sizing_note = f"rank track — flat {_RANK_TRACK_RISK_PCT:.2%} risk regardless of score ({final_score:.1f}/100)"
     if sizing["contracts_or_shares"] == 0:
         sizing_note += " — sizes to 0 at this account size, not practically tradeable"
 

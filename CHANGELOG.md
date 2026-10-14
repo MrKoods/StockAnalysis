@@ -71,7 +71,6 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
-| v2.2.133 | 2026-10-13 | Feature | Adds a shares-only version of the rank track — a separate paper model that judges and picks stocks exactly the same way (same scores, same top-2-per-sector picks, same entry, stop, target and 15-day exit) but only ever buys or short-sells the stock itself, never options. It sizes each trade in real shares (risking about 3.3% of a $15,000 account, capped at $5,000 per position), keeps its own trade ledger, posts to Discord under its own "Shares Track" name, sells ahead of earnings like any stock position, and is judged by the same go/no-go rule as the rank track. Starts with the next end-of-day scan. No change to how anything is scored |
 | v2.2.132 | 2026-10-13 | Feature | Three tools for deciding whether the rank track (the only paper strategy currently in profit) is good enough for real money. (1) A go/no-go rule, written down before the data it will judge: after 100 closed trades it needs +0.15R per trade after costs, a strong-enough statistical result, and a better result than its own sector ETF — today it's at 43 of 100 and not close on the statistics. (2) A random-pick comparison track: every day it picks stocks and long/short direction at random from the same sectors and trades them with identical rules, so we can see whether the model's picks actually beat chance. (3) Real dollar pricing for the options trades the model recommends — until now the paper results quietly assumed stock-like returns. Estimated on past trades, the options would have turned the rank track's +$5,851 into about +$556, and the threshold track's +$1,231 into about −$4,136. Also found the model's "diagonal" options trades are built to lose money when the stock moves the way the model predicts. No score or trade decision changed |
 | v2.2.131 | 2026-09-29 | Infrastructure | Closes the month-long check of whether Seeking Alpha's price data could back up yfinance (the model's only price source): it can't, as-is — every time the two disagreed on the latest day's closing price (23 times), Seeking Alpha was the one that was wrong, and its price history isn't adjusted for dividends. yfinance stays the only source and the comparison logging is switched off. Also fixes the main app.log file, which had silently stopped recording anything once it filled up and was filling the scan logs with error tracebacks instead. No effect on any score, signal, or trade |
 | v2.2.130 | 2026-09-28 | Feature | The rank-based paper-trading track (the one that always takes the top 2 stocks per sector per day, to build a data sample faster) was spending more than half its daily picks on signals that almost never turned into real trades — the price that triggers the trade sat far from where the stock was actually trading, so the order expired or got replaced before it ever filled. It now skips any pick whose trigger is more than 1.5 "typical daily moves" (ATR) away and gives the slot to the next-ranked stock in that sector. Replayed on the real track's own history: never-filled picks drop from 40 to 9 and real trades go from 43 to 61 over the same days, with no sign of worse trade quality. Also re-tested whether a smaller profit target would help (on real trades and the 13.5-year backtest): it wouldn't — the current 3:1 target stays |
@@ -213,37 +212,6 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
-
----
-
-## [v2.2.133] — 2026-10-13 — [Feature] Shares-only track: the rank track's picks as plain stock trades
-
-**Status:** Live from the next post-close scan (first rows 2026-10-14). No scoring change.
-New ledger `paper_trading/shares_trades.csv`; `_run_rank_track` gained
-`csv_path`/`lock_path`/`track`/`shares_only` and runs a second time per post-close scan;
-`_build_rank_track_row(shares_only=True)` skips `rank_trade_structures` entirely. New Discord
-identity `track="shares"`. 9 new tests (`tests/test_shares_track.py`, one more in
-`tests/test_check_rank_track_slot_budget.py`).
-
-**Why.** v2.2.132 priced the rank track's recommended options and found they would have given up
-most of its stock-equivalent profit (+$5,851 → ~+$556 on 40 closed trades), with two structural
-problems (expiry shorter than the hold; inverted diagonals). This track keeps everything about how
-stocks are judged and picked and removes the options layer.
-
-**What it does.** Same post-close ranking, same 2-per-sector daily budget, same 1.5-ATR
-entry-distance gate, same pending-supersede / filled-skip guards (against its own ledger), same
-entry/stop/target and 15-day / day-10 time stops via the same daily updater. Every row is
-`long_stock` (bullish) or `short_stock` (bearish), sized off the stop distance at the rank track's
-flat 3.33% risk, capped by `position_sizing.max_capital_pct` ($5,000 at $15k) — so on wide stops the
-cap binds and the real dollar risk is below $500. Shares positions are flattened 0-5 days before
-earnings (`EARNINGS_EXIT_POSITION_TYPES`), which the options rows aren't, so the two ledgers can
-diverge on those trades; each keeps its own guards from then on. Judged by the same go/no-go rule
-(`rank_verdict.compute_verdict(rank_csv=SHARES_TRADES_CSV)`, printed daily). The CI slot-budget
-check now covers the shares and random ledgers too; the test suite's ledger isolation covers both.
-A track with no ledger yet sends no daily Discord summary.
-
-Note: the rank track's existing R results are already stock-equivalent, so its 43 closed trades
-are a fair preview of this track; this track's own count starts at 0.
 
 ---
 

@@ -84,12 +84,8 @@ def _vs_sector_etf(d: pd.DataFrame, cfg: dict) -> Optional[float]:
     return float(sum(excess) / len(excess)) if excess else None
 
 
-def compute_verdict(cfg: Optional[dict] = None, rank_csv: Optional[Path] = None,
-                    random_csv: Optional[Path] = None, label: str = "Rank-track") -> dict:
-    """Apply the go/no-go rule to `rank_csv` (default: the rank ledger). The
-    shares track is judged by the same rule — pass SHARES_TRADES_CSV and a label."""
-    rank_csv = rank_csv if rank_csv is not None else RANK_TRADES_CSV
-    random_csv = random_csv if random_csv is not None else RANDOM_TRADES_CSV
+def compute_verdict(cfg: Optional[dict] = None,
+                    rank_csv: Path = RANK_TRADES_CSV, random_csv: Path = RANDOM_TRADES_CSV) -> dict:
     cfg = cfg if cfg is not None else load_config()
     rule = cfg.get("rank_track", {}).get("go_no_go", {})
     min_n = int(rule.get("min_closed_trades", 100))
@@ -101,7 +97,7 @@ def compute_verdict(cfg: Optional[dict] = None, rank_csv: Optional[Path] = None,
     out: dict = {"n": len(d), "min_n": min_n}
     if d.empty:
         out["verdict"] = "COLLECTING"
-        out["text"] = f"{label} go/no-go: collecting (0/{min_n} closed trades)."
+        out["text"] = f"Rank-track go/no-go: collecting (0/{min_n} closed trades)."
         return out
 
     net = _net_r(d, cost)
@@ -126,7 +122,7 @@ def compute_verdict(cfg: Optional[dict] = None, rank_csv: Optional[Path] = None,
     t_txt = f"{week_t:.2f}" if week_t is not None else "n/a"
     etf_txt = f"{vs_etf:+.2%}" if vs_etf is not None else "n/a"
     lines = [
-        f"{label} go/no-go: {out['verdict']} ({len(d)}/{min_n} closed trades)",
+        f"Rank-track go/no-go: {out['verdict']} ({len(d)}/{min_n} closed trades)",
         f"  mean R after costs {out['mean_r_net']:+.3f} (need >= {min_r:+.2f}) | "
         f"week-clustered t {t_txt} over {weeks} weeks (need >= {min_t:g}) | "
         f"vs sector ETF {etf_txt}/trade (need > 0)",

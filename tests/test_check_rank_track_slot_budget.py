@@ -52,8 +52,6 @@ def checker(tmp_path, monkeypatch):
     config_path.write_text(CONFIG_YAML, encoding="utf-8")
     monkeypatch.setattr(module, "_CONFIG_PATH", config_path)
     monkeypatch.setattr(module, "_RANK_TRADES_CSV", tmp_path / "rank_trades.csv")
-    monkeypatch.setattr(module, "_SHARES_TRADES_CSV", tmp_path / "shares_trades.csv")
-    monkeypatch.setattr(module, "_RANDOM_TRADES_CSV", tmp_path / "random_trades.csv")
     return module
 
 
@@ -132,14 +130,3 @@ class TestUnmappedTickers:
         _write(checker, [("2026-08-25", "DELISTED")])
         checker.main()
         assert "could hide among" in capsys.readouterr().out
-
-
-def test_shares_ledger_is_held_to_the_same_budget(checker):
-    """v2.2.133: the shares-only track spends the same per-(day, sector) budget."""
-    with open(checker._SHARES_TRADES_CSV, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=_COLUMNS)
-        writer.writeheader()
-        for ticker in ("NVDA", "AMD", "MU"):
-            writer.writerow({"signal_date": "2026-10-14", "ticker": ticker, "confidence": "50.0",
-                             "direction": "bullish", "outcome": ""})
-    assert checker.main() == 1
