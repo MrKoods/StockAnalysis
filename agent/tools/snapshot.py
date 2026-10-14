@@ -103,15 +103,15 @@ def log_section() -> None:
                 print(f"  {name}: missing")
                 continue
             tail = p.read_text(encoding="utf-8", errors="replace").splitlines()[-4000:]
-            dated = any(re.match(r"\d{4}-\d{2}-\d{2} ", l) for l in tail)
+            dated = any(re.match(r"\d{4}-\d{2}-\d{2} ", line) for line in tail)
             if dated:
-                scope = [l for l in tail if l.startswith(DAY)]
+                scope = [line for line in tail if line.startswith(DAY)]
                 where = f"{len(scope)} lines today"
             else:  # V3 logs carry no timestamps: judge by write time + the last lines
                 scope = tail[-60:]
                 mtime = pd.Timestamp(p.stat().st_mtime, unit="s", tz="UTC").tz_convert("America/Los_Angeles")
                 where = f"last written {mtime:%Y-%m-%d %H:%M} PT"
-            bad = [l for l in scope if pat.search(l)]
+            bad = [line for line in scope if pat.search(line)]
             print(f"  {name}: {where}, {len(bad)} error lines" + (f" | e.g. {bad[-1][:160]}" if bad else ""))
 
 

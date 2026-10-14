@@ -68,7 +68,7 @@ def test_open_mark_close_lifecycle(market):
     assert op.update_live("rank", date(2026, 10, 15), CFG)["opened"] == 1
     p = _positions()[0]
     legs = json.loads(p["legs"])
-    assert [(l["type"], l["qty"], l["strike"], l["expiry"]) for l in legs] == [("call", 1, 100.0, "2026-10-23")]
+    assert [(leg["type"], leg["qty"], leg["strike"], leg["expiry"]) for leg in legs] == [("call", 1, 100.0, "2026-10-23")]
     assert float(p["open_mid"]) == pytest.approx(3.00) and float(p["open_natural"]) == pytest.approx(3.05)
 
     market.call_mid[("2026-10-23", 100.0, "call")] = 4.00
