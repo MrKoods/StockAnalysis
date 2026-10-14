@@ -29,6 +29,11 @@ function Post-Discord([string]$Text) {
 # 1. Bring the agent branch up to date with the live branch. Proposed fixes on `agent` are replayed
 #    on top; a conflict leaves the branch as it was and is reported instead of guessed at.
 Push-Location $Work
+# A previous run that died before committing would leave the tree dirty and block the rebase.
+if (git status --porcelain) {
+    git add -A agent 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8
+    git commit -q -m "agent: leftovers from an unfinished earlier run" 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8
+}
 git rebase Version-1 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8
 if ($LASTEXITCODE -ne 0) { git rebase --abort 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8; $RebaseNote = 'agent branch could NOT be rebased onto Version-1 (conflict) - working on the previous base' }
 else { $RebaseNote = 'agent branch rebased onto Version-1 cleanly' }

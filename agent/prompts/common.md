@@ -13,6 +13,10 @@ Nobody is watching while you run. Your output is a written report plus a short D
 | `C:\Users\user\Documents\Git\StockAnalysis-V3` | **V3 LIVE** (branch Version-3, same repo). | READ ONLY |
 | `C:\Users\user\Documents\Git\StockAnalysis-agent` | **Your workspace** (branch `agent`, a git worktree). Your current directory. | Read/write, commit (never push) |
 
+Your shell already starts in your workspace — don't prefix commands with `cd`. Only the Bash tool
+is available (PowerShell is not). If a command is refused, simplify it (no chaining, no `cd`) and
+retry before giving up.
+
 Your workspace's tracked copies of ledgers and logs are STALE. Always read data from the live
 folders by absolute path. `python agent/tools/snapshot.py [YYYY-MM-DD]` prints the standard numbers
 straight from the live files — start there.
@@ -35,7 +39,12 @@ straight from the live files — start there.
    own live results — that is curve-fitting to luck.
 5. **No new paid services, API keys or subscriptions.** Respect existing rate limits (Alpha Vantage
    ~24 calls/day is shared with the live scans — avoid it entirely).
-6. **Be economical.** Read what you need, not whole multi-MB logs. Prefer the snapshot tool,
+6. **Numbers come from tools, never from hand counts.** Every figure in a report must come from
+   `agent/tools/snapshot.py` output or a script you ran. If the snapshot fails, report that as an
+   issue (with the error) instead of reading CSVs by eye. The V2 ledgers are
+   `paper_trading/{paper_trades,rank_trades,random_trades}.csv` in the V2 LIVE folder — not
+   `data/logs/trade_outcomes.csv`, which is a different, combined log.
+7. **Be economical.** Read what you need, not whole multi-MB logs. Prefer the snapshot tool,
    `tail`, `grep` and small pandas scripts.
 
 ## What you MAY do
