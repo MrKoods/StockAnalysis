@@ -1436,3 +1436,13 @@ class TestTargetFeasibilityCeiling:
         from shared.utils.risk_reward import reachable_move
         assert reachable_move(2.0, 100, 1.0) == pytest.approx(20.0)
         assert reachable_move(2.0, 25, 1.0) == pytest.approx(10.0)
+
+
+def test_diagonals_are_never_eligible():
+    """v2.2.134: diagonal_call/put are modeled short the predicted move — excluded by Filter 9."""
+    from swing_model.trade_selector import _apply_filters
+    for name, direction in (("diagonal_call", "bullish"), ("diagonal_put", "bearish")):
+        ok, reasons = _apply_filters(name, {}, {"direction": direction}, 15000, 2, False, rr=3.0, min_rr=3.0)
+        assert not ok and "structure_mismodeled" in reasons
+    ok, _ = _apply_filters("bull_call_spread", {}, {"direction": "bullish"}, 15000, 2, False, rr=3.0, min_rr=3.0)
+    assert ok

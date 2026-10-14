@@ -87,6 +87,8 @@ _NEUTRAL_STRUCTURES = {
     "condor_spread", "long_straddle", "long_strangle", "short_straddle", "short_strangle",
     "calendar_call", "calendar_put", "covered_strangle", "call_ratio_spread", "put_ratio_spread",
 }
+# Excluded outright until their payoff model is rebuilt — see Filter 9.
+_MISMODELED_STRUCTURES = {"diagonal_call", "diagonal_put"}
 _UNDEFINED_RISK_STRUCTURES = {
     "naked_short_call", "naked_short_put", "short_straddle", "short_strangle",
     "synthetic_long", "synthetic_short", "risk_reversal", "short_stock",
@@ -301,6 +303,8 @@ def rank_trade_structures(
     """
     if cfg is None:
         cfg = {}
+    if cfg.get("shares_only"):
+        return _shares_only_result(candidate)
     # Copied, not aliased — real spreads resolved from option_chain below get
     # written into this dict, and a caller-supplied dict shouldn't be mutated
     # as a side effect of calling this function.
@@ -614,6 +618,63 @@ def rank_trade_structures(
     }
 
 
+def _shares_only_result(candidate: dict) -> dict:
+    """
+    config `shares_only: true` (v2.2.133): every trade is the stock itself —
+    long_stock for a bullish signal, short_stock for a bearish one — and no
+    options structure is evaluated. Returned in rank_trade_structures' own
+    shape so every caller (paper threshold/rank/random tracks, run_swing_model)
+    keeps working unchanged. capital_required is the per-share risk (stop
+    distance), which is what derive_sizing_inputs expects for position_type
+    "shares".
+
+    Deliberately bypasses the 42-structure filters: Filter 1 excludes
+    short_stock under a $50k account as "undefined risk", which would make
+    every bearish signal untradeable. A short here is bounded by its stop like
+    a long — gap risk is real for both directions and is why shares positions
+    are flattened before earnings (paper_updater.EARNINGS_EXIT_POSITION_TYPES).
+    Shorting needs a margin account.
+    """
+    direction = candidate.get("direction", "bullish")
+    entry = float(candidate.get("entry", candidate.get("entry_mid", 0.0)))
+    stop = float(candidate.get("stop_loss", candidate.get("stop", 0.0)))
+    target = float(candidate.get("target", 0.0))
+    name = "short_stock" if direction == "bearish" else "long_stock"
+    risk = abs(entry - stop)
+    structure = {
+        "name": name,
+        "ev_per_dollar_risked": 0.0,
+        "ev_per_dollar_per_day": 0.0,
+        "effective_days": None,
+        "ev": 0.0,
+        "capital_required": round(risk, 4),
+        "rr_ratio": compute_rr_ratio(entry, stop, target, direction=direction) if risk > 0 and target else 0.0,
+        "legs": 1,
+        "greeks": None,
+        "filter_notes": [],
+        "position_type": "shares",
+        "max_loss_dollars": None,
+        "max_gain_dollars": None,
+        "strikes": {},
+        "strike_source": None,
+        "rank": 1,
+        "recommended": True,
+    }
+    return {
+        "ticker": candidate.get("ticker", ""),
+        "direction": direction,
+        "confidence": float(candidate.get("confidence", 0.0)),
+        "structures_evaluated": 1,
+        "structures_eligible_after_filters": 1,
+        "ranked_structures": [structure],
+        "exclusion_summary": "shares_only: options structures not evaluated",
+        "greeks_filter_status": "not_applicable_shares_only",
+        "structures_greeks_evaluated": 0,
+        "win_prob_used": None,
+        "win_prob_calibrated": False,
+    }
+
+
 def _apply_filters(
     structure_name: str,
     structure: dict,
@@ -672,6 +733,16 @@ def _apply_filters(
     # (0DTE structures not in the 42 by name, but flag any that might slip in)
     if "0dte" in structure_name.lower():
         reasons.append("0dte_excluded")
+
+    # Filter 9: structures modeled backwards (v2.2.134). As built in
+    # options_math.resolve_structure_economics, diagonal_call/diagonal_put
+    # SELL the near at-the-money option and buy a 6% OTM later one — short
+    # the very move the trade predicts, usually for a net credit that the
+    # model floors to a small debit, so EV and max loss are both wrong.
+    # v2.2.132's options pricing: ADI +2.2R as stock was -$3,894 as this
+    # diagonal; KEY's 46-contract diagonal risked ~$5,000 against $499 planned.
+    if structure_name in _MISMODELED_STRUCTURES:
+        reasons.append("structure_mismodeled")
 
     return len(reasons) == 0, reasons
 
