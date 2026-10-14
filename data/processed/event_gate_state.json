@@ -1963,12 +1963,68 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-10-12T20:35:05.650259+00:00"
+    },
+    {
+      "id": "1941d6df-42e7-474a-b1c6-8950c7d2b09b",
+      "tickers": [
+        "LLY",
+        "PFE",
+        "MRK",
+        "ABBV",
+        "UNH",
+        "JNJ",
+        "AMGN",
+        "GILD",
+        "BMY",
+        "VRTX",
+        "TMO",
+        "ABT",
+        "ISRG",
+        "SYK"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Johnson & Johnson Announces New Two-year Results From Its Phase 3 ICONIC-LEAD Study Evaluating ICOTYDE In Adults With Moderate-To-Severe Plaque Psoriasis; Data Demonstrated Consistently High Levels Of Skin Clearance And Patient-Reported Symptom Improvement At Week 112, With No New Safety Signals",
+      "trigger_match": "safety signal",
+      "source": "benzinga.com",
+      "event_timestamp_utc": "2026-10-09T07:09:56+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-10-13T12:40:13.967009+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-10-13T20:35:46.506501+00:00"
+    },
+    {
+      "id": "5c29fd19-79a3-4a15-8e4d-ef62d0e3b179",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "U.S. Export Restrictions Drive Nvidia China AI Chip Market Share Down to 34%",
+      "trigger_match": "export restriction",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-10-13T12:43:25+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-10-13T20:30:38.247679+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": false,
+      "expired_at_utc": null
     }
   ],
   "critical_alerts_sent": {
     "MU|tariff|2026-10-06T12:35:00+00:00": "2026-10-06T20:31:13.227377+00:00",
     "AMD|tariff|2026-10-06T13:44:19+00:00": "2026-10-07T20:30:53.612027+00:00",
     "MU|tariff|2026-10-07T14:35:19+00:00": "2026-10-07T20:31:05.389965+00:00",
-    "NVDA|tariff|2026-10-07T21:10:38+00:00": "2026-10-08T12:34:56.385023+00:00"
+    "NVDA|tariff|2026-10-07T21:10:38+00:00": "2026-10-08T12:34:56.385023+00:00",
+    "NVDA|export restriction|2026-10-13T12:43:25+00:00": "2026-10-13T20:30:39.597990+00:00"
   }
 }

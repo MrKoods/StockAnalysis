@@ -6,10 +6,10 @@
       "dxy_trend": "rising",
       "china_tension_level": "normal",
       "tnx_20d_pct": 0.05454545454545446,
-      "dxy_20d_pct": 0.03573500406079597,
+      "dxy_20d_pct": 0.03534711793923988,
       "adverse_signal_count": 2,
       "confidence_modifier": -10.0,
-      "computed_at_utc": "2026-10-12T20:30:30.457610+00:00",
+      "computed_at_utc": "2026-10-13T20:30:29.528542+00:00",
       "sector_scoped": false
     },
     "regional_banks": {
@@ -18,10 +18,10 @@
       "dxy_trend": "rising",
       "china_tension_level": "normal",
       "tnx_20d_pct": 0.05454545454545446,
-      "dxy_20d_pct": 0.03573500406079597,
+      "dxy_20d_pct": 0.03534711793923988,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-10-12T20:30:30.457638+00:00",
+      "computed_at_utc": "2026-10-13T20:30:29.528569+00:00",
       "sector_scoped": true
     },
     "healthcare": {
@@ -30,10 +30,10 @@
       "dxy_trend": "rising",
       "china_tension_level": "normal",
       "tnx_20d_pct": 0.05454545454545446,
-      "dxy_20d_pct": 0.03573500406079597,
+      "dxy_20d_pct": 0.03534711793923988,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-10-12T20:30:30.457657+00:00",
+      "computed_at_utc": "2026-10-13T20:30:29.528587+00:00",
       "sector_scoped": true
     },
     "consumer_discretionary": {
@@ -42,10 +42,10 @@
       "dxy_trend": "rising",
       "china_tension_level": "normal",
       "tnx_20d_pct": 0.05454545454545446,
-      "dxy_20d_pct": 0.03573500406079597,
+      "dxy_20d_pct": 0.03534711793923988,
       "adverse_signal_count": 0,
       "confidence_modifier": 0.0,
-      "computed_at_utc": "2026-10-12T20:30:30.457672+00:00",
+      "computed_at_utc": "2026-10-13T20:30:29.528602+00:00",
       "sector_scoped": true
     }
   }

@@ -270,3 +270,7 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-10-12T20:35:06.085400+00:00,v2.2.131,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='safety signal',False,safety signal
 2026-10-12T20:35:06.514525+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-10-12T20:35:06.895212+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='entity list',False,entity list
+2026-10-13T12:40:14.403960+00:00,v2.2.131,pre_market,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='safety signal' source='benzinga.com',True,safety signal
+2026-10-13T20:30:39.163807+00:00,v2.2.131,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='yahoo.com',True,export restriction
+2026-10-13T20:30:39.597821+00:00,v2.2.131,critical,NVDA,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='export restriction',False,export restriction
+2026-10-13T20:35:46.960946+00:00,v2.2.131,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='safety signal',False,safety signal
