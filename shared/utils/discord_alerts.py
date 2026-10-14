@@ -43,6 +43,8 @@ _CB_COLORS = {
 # untouched for it.
 _TRACK_BRANDING = {
     "rank": {"username": "StockAnalysis — Rank Track", "color": 0x9B59B6, "title_prefix": "🧪 [RANK] "},
+    # v2.2.133 shares-only track: the rank track's picks as plain stock positions.
+    "shares": {"username": "StockAnalysis — Shares Track", "color": 0x1ABC9C, "title_prefix": "📈 [SHARES] "},
 }
 
 

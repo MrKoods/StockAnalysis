@@ -50,11 +50,22 @@ from shared.utils.sector_config import get_ticker_sector_map  # noqa: E402
 
 _CONFIG_PATH = _REPO_ROOT / "config" / "swing_config.yaml"
 _RANK_TRADES_CSV = _REPO_ROOT / "paper_trading" / "rank_trades.csv"
+# v2.2.133: the shares-only track and the random-pick control spend the same
+# per-(day, sector) budget through the same code, so they're held to it too.
+_SHARES_TRADES_CSV = _REPO_ROOT / "paper_trading" / "shares_trades.csv"
+_RANDOM_TRADES_CSV = _REPO_ROOT / "paper_trading" / "random_trades.csv"
 
 
 def main() -> int:
-    if not _RANK_TRADES_CSV.exists():
-        print(f"check_rank_track_slot_budget: {_RANK_TRADES_CSV.name} not present — nothing to check.")
+    worst = 0
+    for path in (_RANK_TRADES_CSV, _SHARES_TRADES_CSV, _RANDOM_TRADES_CSV):
+        worst = max(worst, _check(path))
+    return worst
+
+
+def _check(ledger: Path) -> int:
+    if not ledger.exists():
+        print(f"check_rank_track_slot_budget: {ledger.name} not present — nothing to check.")
         return 0
 
     try:
@@ -66,7 +77,7 @@ def main() -> int:
     top_n = int(cfg.get("rank_track", {}).get("top_n_per_sector", 2))
     ticker_sector_map = get_ticker_sector_map(cfg)
 
-    with open(_RANK_TRADES_CSV, newline="", encoding="utf-8") as f:
+    with open(ledger, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
 
     if not rows:
@@ -99,7 +110,7 @@ def main() -> int:
     if violations:
         print(
             f"::error::check_rank_track_slot_budget: {len(violations)} (date, sector) group(s) exceed "
-            f"rank_track.top_n_per_sector={top_n} in {_RANK_TRADES_CSV}:"
+            f"rank_track.top_n_per_sector={top_n} in {ledger}:"
         )
         for (date, sector), tickers in sorted(violations.items()):
             print(f"  - {date} / {sector}: {len(tickers)} rows (budget {top_n}) — {', '.join(tickers)}")

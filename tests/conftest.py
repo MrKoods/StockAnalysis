@@ -111,6 +111,10 @@ def _isolate_paper_trading_csvs(tmp_path, monkeypatch):
     monkeypatch.setattr(paper_runner_module, "RANDOM_TRADES_LOCK_FILE", tmp_path / "random_trades.csv.lock")
     monkeypatch.setattr(paper_updater_module, "RANDOM_TRADES_CSV", tmp_path / "random_trades.csv")
     monkeypatch.setattr(paper_updater_module, "RANDOM_TRADES_LOCK_FILE", tmp_path / "random_trades.csv.lock")
+    monkeypatch.setattr(paper_runner_module, "SHARES_TRADES_CSV", tmp_path / "shares_trades.csv")
+    monkeypatch.setattr(paper_runner_module, "SHARES_TRADES_LOCK_FILE", tmp_path / "shares_trades.csv.lock")
+    monkeypatch.setattr(paper_updater_module, "SHARES_TRADES_CSV", tmp_path / "shares_trades.csv")
+    monkeypatch.setattr(paper_updater_module, "SHARES_TRADES_LOCK_FILE", tmp_path / "shares_trades.csv.lock")
     monkeypatch.setattr(options_pricer_module, "POSITIONS_CSV", tmp_path / "options_positions.csv")
     monkeypatch.setattr(options_pricer_module, "POSITIONS_LOCK", tmp_path / "options_positions.csv.lock")
     for _track, _name in (("threshold", "paper_trades"), ("rank", "rank_trades"), ("random", "random_trades")):
