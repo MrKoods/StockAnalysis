@@ -71,6 +71,7 @@ logged below it — enforced automatically by the code, no exceptions.
 
 | Version | Date | Category | Summary |
 |---|---|---|---|
+| v2.2.133 | 2026-10-13 | Feature | The model now trades shares only — every trade is a plain buy (long) or short-sale (short) of the stock itself, and options are no longer recommended anywhere. How stocks are scored and picked is unchanged, including the options-market data that feeds the scores; only the type of trade changed. Why: pricing the options the model had been recommending (v2.2.132) showed they would have given back most of the profit the same picks made as stock trades. Applies to every paper track and the live scan. Short sales are now allowed on the $15,000 account (they were blocked before as unlimited-risk); each one has a stop-loss like a long, is closed before earnings like any stock position, and needs a margin account to do for real. One config switch (`shares_only`) turns options back on. Replaces the separate "shares track" briefly added earlier the same day, which this makes redundant |
 | v2.2.132 | 2026-10-13 | Feature | Three tools for deciding whether the rank track (the only paper strategy currently in profit) is good enough for real money. (1) A go/no-go rule, written down before the data it will judge: after 100 closed trades it needs +0.15R per trade after costs, a strong-enough statistical result, and a better result than its own sector ETF — today it's at 43 of 100 and not close on the statistics. (2) A random-pick comparison track: every day it picks stocks and long/short direction at random from the same sectors and trades them with identical rules, so we can see whether the model's picks actually beat chance. (3) Real dollar pricing for the options trades the model recommends — until now the paper results quietly assumed stock-like returns. Estimated on past trades, the options would have turned the rank track's +$5,851 into about +$556, and the threshold track's +$1,231 into about −$4,136. Also found the model's "diagonal" options trades are built to lose money when the stock moves the way the model predicts. No score or trade decision changed |
 | v2.2.131 | 2026-09-29 | Infrastructure | Closes the month-long check of whether Seeking Alpha's price data could back up yfinance (the model's only price source): it can't, as-is — every time the two disagreed on the latest day's closing price (23 times), Seeking Alpha was the one that was wrong, and its price history isn't adjusted for dividends. yfinance stays the only source and the comparison logging is switched off. Also fixes the main app.log file, which had silently stopped recording anything once it filled up and was filling the scan logs with error tracebacks instead. No effect on any score, signal, or trade |
 | v2.2.130 | 2026-09-28 | Feature | The rank-based paper-trading track (the one that always takes the top 2 stocks per sector per day, to build a data sample faster) was spending more than half its daily picks on signals that almost never turned into real trades — the price that triggers the trade sat far from where the stock was actually trading, so the order expired or got replaced before it ever filled. It now skips any pick whose trigger is more than 1.5 "typical daily moves" (ATR) away and gives the slot to the next-ranked stock in that sector. Replayed on the real track's own history: never-filled picks drop from 40 to 9 and real trades go from 43 to 61 over the same days, with no sign of worse trade quality. Also re-tested whether a smaller profit target would help (on real trades and the 13.5-year backtest): it wouldn't — the current 3:1 target stays |
@@ -212,6 +213,39 @@ logged below it — enforced automatically by the code, no exceptions.
 | v2.1.0 | 2026-07-14 | Feature | Added a safety switch that can hide a trade signal during a serious news event |
 | v2.0.0 | 2026-07-13 | Scoring Change | Added a whole new scoring category and switched how the model reads public mood |
 | v1.0.0 | 2026-06-29 | Infrastructure | The very first version — basic structure built, but no real logic yet |
+
+---
+
+## [v2.2.133] — 2026-10-13 — [Feature] Shares only: every trade is the stock itself, long or short
+
+**Status:** Live from the next scan. New top-level config key `shares_only: true`;
+`trade_selector.rank_trade_structures` returns `_shares_only_result` when it's set. 7 new tests
+(`tests/test_shares_only_mode.py`). Supersedes a separate shares-only paper track committed and
+reverted earlier the same day (28e20d9 / f6e55fd) — it never logged a row, and once the rank track
+itself is shares-only it would have been an exact duplicate with double Discord alerts.
+
+**What changed.** The one function every caller uses to pick a trade vehicle (paper threshold, rank
+and random-control tracks, `run_swing_model`) now returns a single structure: `long_stock` for a
+bullish signal, `short_stock` for a bearish one, `position_type` "shares", `capital_required` = the
+per-share stop distance (what `derive_sizing_inputs` expects for shares). Sizing is unchanged: the
+track's risk budget divided by the stop distance, capped at `position_sizing.max_capital_pct`
+($5,000 at $15k) — on wide stops the cap binds and real dollar risk is below the budget.
+
+**Unchanged:** every score, weight, threshold, ranking, entry/stop/target and exit rule; the
+options-market data (put/call ratio, IV, skew) that feeds the Positioning score. Trades already open
+keep the structure they were logged with; their outcomes resolve on the stock's prices as before.
+
+**Behaviour to know about.**
+- **Shorts are allowed now.** The 42-structure filters exclude `short_stock` below a $50k account as
+  undefined-risk; shares-only mode bypasses them, otherwise every bearish signal would be
+  untradeable. A short is bounded by its stop like a long; both carry gap risk. Doing it for real
+  needs a margin account.
+- **Earnings exits now apply to every new trade** — shares positions are flattened 0-5 days before
+  earnings (`EARNINGS_EXIT_POSITION_TYPES`), which options rows weren't.
+- The two options-design flaws logged in v2.2.132 (expiry shorter than the hold; inverted
+  diagonals) no longer affect any trade; left unfixed because nothing uses them. `shares_only: false`
+  restores the 42-structure ranking, flaws included.
+- `options_pricer.py` stays for its estimate mode; its daily live pass now finds nothing to price.
 
 ---
 

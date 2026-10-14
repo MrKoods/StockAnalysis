@@ -625,6 +625,17 @@ rank_track:
 # paper trading is active. Tracked as future-scoped, not silently dropped.
 
 # Options account level
+# Shares only (2026-10-13, v2.2.133): every trade the model takes — paper
+# threshold, rank and random-control tracks and run_swing_model — is the
+# stock itself, long or short. No options structure is evaluated or
+# recommended (trade_selector._shares_only_result). Options-market DATA
+# (put/call ratio, IV, skew) still feeds the Positioning score; only the
+# trade vehicle changed. Why: v2.2.132 priced the recommended options and
+# they would have given back most of the rank track's stock-equivalent
+# profit (+$5,851 -> ~+$556 on 40 closed trades), with expiries shorter
+# than the 15-day hold and inverted diagonals. false restores the
+# 42-structure ranking.
+shares_only: true
 options_approval_level: 2           # 1=covered/cash-secured, 2=debit spreads, 3=naked/complex
 
 # Greeks filter (trade_selector.py Filter 4) — bounds on a structure's own
