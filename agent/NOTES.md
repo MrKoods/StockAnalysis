@@ -3,12 +3,14 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- Monitor random control fills: confirm ≤ 2 per sector stays enforced as trades start filling.
-- V2 rank mean R after costs dropped to +0.083 (was +0.132) — 3 bad closures Oct 14 (TXN, CFR, GILD).
-  Need recovery toward +0.15 threshold over next ~50 trades.
-- C6 forward trending negative: 8 days, mean −0.302R, t −1.42. Not significant yet (30-session bar).
-  Watch closely — if it reaches −0.5R average it may be worth flagging as failing direction.
-- ON1 forward: verify advances to Oct 14 in tomorrow's snapshot (after tonight's Dukascopy + IntradayFetch).
+- **V2 rank mean R after costs: -0.048** (was +0.083). 6 options-era full losses (-1.000R each)
+  processed Oct 16: BKNG, VRTX, SBUX, TFC, FITB, ZION. Shares-era just started (Oct 14); no
+  shares-era losses yet. Recovery still needed toward +0.15 threshold over remaining ~47 trades.
+- **C6 forward: mean -0.314R, day-t -1.69** (9/30 sessions). Last 3 days: -0.087, -0.785, -0.379.
+  All negative. Flag if mean drops below -0.5R or t ≤ -2.
+- **QCOM random: -0.863R unrealized** — near stop. Monitor.
+- Random control: 0 closed trades. ORLY/QCOM are first fills. Sector budget check deferred to
+  once more trades fill.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: is the profit from the 15-day time stop alone? (target hit 3/61, stops -27R, time stops +29R)
@@ -29,6 +31,21 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 - V3 G2 paper: +102.7 bps today; 3 sessions, mean +33.4 bps, t 0.63 (too early).
 - V3 ON1 paper: 74 signals logged, bps column unfilled; first evaluate 2026-10-14 06:45.
 - No bugs found. No fixes proposed.
+
+### 2026-10-16 daily review
+- All 12 tasks OK (result 0). WeeklyResearch result 267011 = never run (first run tomorrow Sat Oct 17).
+- 6 options-era trades processed as losses by today's 8:07 AM EOD updater (closed Oct 15):
+  BKNG, VRTX, SBUX, TFC bearish options (-1.000R each); FITB, ZION bearish hit stop-loss same day.
+  This is why yesterday's snapshot showed 47 closed but today shows 53.
+- V2 rank mean R after costs: +0.083 → -0.048 (53 closed). Raw mean +0.010. Week-t -0.61.
+- 16 new signals today across 3 tracks (6 rank, 2 threshold, 8 random) — all shares.
+- Random track: 2 open fills (ORLY -0.121R, QCOM -0.863R); 0 closed.
+- C6 forward: 9 days, mean -0.314R, day-t -1.69. Recent: -0.087, -0.785, -0.379.
+- G2 paper day 6: +44.022 bps. 6-day mean -1.116 bps, day-t -0.04. Noise.
+- ON1 paper 3 scored days: mean +41.050 bps, day-t 0.91. Noise.
+- G2 forward: 8 days, mean -0.018 ATR, day-t -0.23. ON1 forward: 7 days, mean -14.047 bps, day-t -0.54.
+- Minute research: GAPM/LSR_1m/C6_5m all failed stage3. Stage4 empty.
+- No bugs. No fixes proposed.
 
 ### 2026-10-15 daily review
 - All 14 tasks OK (result 0). Zero error lines in all V2 and V3 logs.

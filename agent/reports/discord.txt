@@ -1,9 +1,13 @@
-✅ Daily review 2026-10-15: all systems normal
+⚠️ Daily review 2026-10-16: 1 issue - rank mean R after costs dropped to -0.048
 
-All 14 tasks ran OK, zero errors in logs.
-19 new V2 signals today across 3 tracks — all shares as expected.
-No V2 trades closed today. Three rank closures yesterday: TXN −0.24R, CFR −0.01R, GILD −1.44R (loss).
-V2 rank go/no-go: 47/100 closed, mean R after costs now +0.083 (need ≥+0.15). Three bad closures pulled the mean down from +0.132; still collecting.
-V3 G2 paper day 5: −52 bps (4 gap-fades continued). 5-day mean −9 bps — all noise at this stage.
-V3 ON1 paper Oct 14 result: +121 bps (73 trades). Oct 15 signals logged, scored tomorrow.
-V3 forward tests (C6/G2/ON1): all noise, none near their pass/fail thresholds yet.
+All tasks ran OK. Zero errors in all logs.
+
+V2 rank: 6 options-era trades processed as losses today (BKNG, VRTX, SBUX, TFC, FITB, ZION, all -1.0R). Mean R after costs dropped from +0.083 to -0.048 (53/100 closed). These are all pre-shares-only era; no shares-era losses yet. Still collecting — too noisy to conclude.
+
+V2 today: 6 rank + 2 threshold + 8 random new signals, all shares. Random control: 2 filled (ORLY -0.12R, QCOM -0.86R unrealized).
+
+V3 C6 forward: day 9/30, mean -0.314R, t -1.69. Last 3 days all negative. Not yet significant but watching closely — will flag if mean drops below -0.5R or t hits -2.
+
+V3 G2 paper day 6: +44 bps today, 6-day mean -1.1 bps (noise). ON1 paper 3 days: mean +41 bps, t 0.91 (noise). Minute research: all families failed stage 3.
+
+No bugs. No action needed.
