@@ -1,15 +1,9 @@
-✅ Daily review 2026-10-14: all systems normal
+✅ Daily review 2026-10-15: all systems normal
 
-All V2 and V3 tasks ran cleanly (result 0, zero error lines).
-
-TRANSITION CONFIRMED: First shares-only post-close scan produced 6 rank + 2 threshold signals, all position_type=shares. No options-era rows appeared.
-
-Random control first run: 7 signals, all shares. QCOM correctly blocked by event gate (export restriction).
-
-ON1 paper first evaluate ran at 06:45 — 74 trades, −34.1 bps day 1. Pipeline confirmed working; too early to read.
-
-G2 paper day 4: −90.8 bps (NTAP/ON/TOST gap-fades failed). 4-day mean barely positive at +1.5 bps — noise.
-
-Forward tests all collecting: C6 7/30 mean −0.25R t=−0.95, G2 6/40 mean +0.024 ATR t=+0.25, ON1 5/40 mean −2.7 bps t=−0.08. Data lags (G2 through yesterday, ON1 through Monday) are expected and will catch up after tonight's Dukascopy download.
-
-V2 rank go/no-go: 44/100 closed, mean R after costs +0.132 (need ≥0.15), t=−0.63. Collecting.
+All 14 tasks ran OK, zero errors in logs.
+19 new V2 signals today across 3 tracks — all shares as expected.
+No V2 trades closed today. Three rank closures yesterday: TXN −0.24R, CFR −0.01R, GILD −1.44R (loss).
+V2 rank go/no-go: 47/100 closed, mean R after costs now +0.083 (need ≥+0.15). Three bad closures pulled the mean down from +0.132; still collecting.
+V3 G2 paper day 5: −52 bps (4 gap-fades continued). 5-day mean −9 bps — all noise at this stage.
+V3 ON1 paper Oct 14 result: +121 bps (73 trades). Oct 15 signals logged, scored tomorrow.
+V3 forward tests (C6/G2/ON1): all noise, none near their pass/fail thresholds yet.
