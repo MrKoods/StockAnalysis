@@ -13,6 +13,11 @@ Follow `agent/prompts/common.md` exactly. Today's date and the scheduled-task st
    If something looks wrong, dig in (read the relevant log tail and code) until you know the cause.
 3. **Results.** What opened, closed, filled or expired today, per track/strategy. Progress toward
    each frozen pass/fail rule. Anything statistically notable — but say "noise" when it is noise.
+   If the snapshot prints a `loss cluster` line (3+ same-direction losses with the same exit date),
+   say so in the report and in discord.txt: those trades are one correlated market move, not
+   independent evidence, and give the snapshot's "mean R excluding that exit day" next to the
+   headline mean. Mention it on the first review that sees the cluster only. This is context for
+   reading the go/no-go, not an issue or a reason to change anything — the frozen rules still decide.
 4. **Fix if broken.** For a clear bug (crash, wrong calculation, data corruption), prepare the fix in
    your workspace with a test, run the full test suite, and commit `PROPOSED FIX: ...`. Do not fix
    strategy behavior you merely disagree with — note it for the weekly review instead.

@@ -35,6 +35,25 @@ def t_stat(x: pd.Series) -> float:
     return float(x.mean() / (x.std(ddof=1) / np.sqrt(len(x)))) if len(x) > 1 and x.std(ddof=1) > 0 else float("nan")
 
 
+def loss_clusters(closed: pd.DataFrame, min_losses: int = 3, lookback_days: int = 7) -> list[str]:
+    """Same-day, same-direction losses on recent exit dates. Grouped by exit_date, not by the day the
+    updater recorded them, because closures can land in the ledger a day late. Such a cluster is one
+    market move hitting correlated positions, so the trades are not independent evidence."""
+    if closed.empty:
+        return []
+    exits = pd.to_datetime(closed["exit_date"], errors="coerce")
+    recent = closed[exits >= pd.Timestamp(DAY) - pd.Timedelta(days=lookback_days)]
+    lines = []
+    for (exit_day, direction), g in recent[recent["achieved_rr"] < 0].groupby(["exit_date", "direction"]):
+        if len(g) < min_losses:
+            continue
+        rest = closed[closed["exit_date"].astype(str) != str(exit_day)]["achieved_rr"]
+        lines.append(f"!! loss cluster {exit_day}: {len(g)} {direction} losses on one day "
+                     f"({', '.join(g['ticker'])}; {g['achieved_rr'].sum():+.2f}R). Correlated - one market move, "
+                     f"not {len(g)} independent results. Mean R excluding that exit day: {rest.mean():+.3f} (n={len(rest)})")
+    return lines
+
+
 def v2_section() -> None:
     print(f"=== V2 swing model (live: {V2}) ===")
     for track, name in V2_LEDGERS.items():
@@ -57,6 +76,8 @@ def v2_section() -> None:
             print(f"   new signals {DAY}: " + ", ".join(f"{r.ticker} {r.direction} ({r.position_type})" for r in new.itertuples()))
         if len(closed_today):
             print(f"   closed {DAY}: " + ", ".join(f"{r.ticker} {r.outcome} {r.achieved_rr:+.2f}R" for r in closed_today.itertuples()))
+        for line in loss_clusters(c):
+            print("   " + line)
         if "position_type" in d and len(new):
             bad = new[new["position_type"].fillna("") != "shares"]
             if len(bad):
