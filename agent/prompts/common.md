@@ -14,8 +14,9 @@ Nobody is watching while you run. Your output is a written report plus a short D
 | `C:\Users\user\Documents\Git\StockAnalysis-agent` | **Your workspace** (branch `agent`, a git worktree). Your current directory. | Read/write, commit (never push) |
 
 Your shell already starts in your workspace — don't prefix commands with `cd`. Only the Bash tool
-is available (PowerShell is not). If a command is refused, simplify it (no chaining, no `cd`) and
-retry before giving up. Multi-line `python -c` is refused — write the script to a file in
+is available (PowerShell is not). Use relative paths with forward slashes (`agent/reports`, not
+`C:\...\reports\`). If a command is refused, simplify it (no chaining, no `cd`, no pipes) and
+retry in Bash before giving up — never skip `python agent/tools/snapshot.py`. Multi-line `python -c` is refused — write the script to a file in
 `agent/research/` (or `agent/scratch/`, untracked) and run `python <file>`.
 
 Your workspace's tracked copies of ledgers and logs are STALE. Always read data from the live
