@@ -15,7 +15,14 @@ $Log = Join-Path $LogDir "$Today-$Mode.log"
 $Discord = Join-Path $Work 'agent\reports\discord.txt'
 
 function Post-Discord([string]$Text) {
-    $line = Select-String -Path (Join-Path $Live '.env') -Pattern '^\s*DISCORD_WEBHOOK_URL\s*=\s*(.+)$' | Select-Object -First 1
+    # The agent posts to its own channel (DISCORD_AGENT_WEBHOOK_URL); scans and pipeline alerts stay on
+    # DISCORD_WEBHOOK_URL (general). Falls back to general if the agent webhook isn't configured.
+    $envFile = Join-Path $Live '.env'
+    $line = Select-String -Path $envFile -Pattern '^\s*DISCORD_AGENT_WEBHOOK_URL\s*=\s*(.+)$' | Select-Object -First 1
+    if (-not $line) {
+        "no DISCORD_AGENT_WEBHOOK_URL in .env - posting to the general channel" | Out-File -FilePath $Log -Append -Encoding utf8
+        $line = Select-String -Path $envFile -Pattern '^\s*DISCORD_WEBHOOK_URL\s*=\s*(.+)$' | Select-Object -First 1
+    }
     if (-not $line) { "no DISCORD_WEBHOOK_URL in .env" | Out-File -FilePath $Log -Append -Encoding utf8; return }
     $url = $line.Matches[0].Groups[1].Value.Trim().Trim('"').Trim("'")
     if ($Text.Length -gt 1900) { $Text = $Text.Substring(0, 1900) + '...' }
