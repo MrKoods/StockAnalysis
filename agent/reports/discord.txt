@@ -1,13 +1,15 @@
-⚠️ Daily review 2026-10-16: 1 issue - rank mean R after costs dropped to -0.048
+📊 Weekly research 2026-10-17: all experiments collecting, C6 still trending negative
 
-All tasks ran OK. Zero errors in all logs.
+**Scorecard**
+• V2 rank: 53/100 closed, mean R −0.048 (need ≥+0.15), wk-t −0.61. Six options-era full losses processed Thu; shares-era (since Oct 14) has zero closures yet.
+• V2 random: 0 closed, 2 open fills (ORLY −0.121R, QCOM −0.863R unrealized).
+• C6 forward ⚠: 9/30 sessions, mean −0.314R, day-t −1.69. Pass bar: ≥+0.08R & t ≥ 2 at 30 sessions. Could reach t ≤ −2 within ~5 more sessions.
+• G2 forward: 8/40, mean −0.018 ATR, t −0.23. Noise.
+• ON1 forward: 7/40, mean −14.047 bps, t −0.54. Noise.
+• G2 paper: 6/20-40 days, mean −1.116 bps, t −0.04. Noise.
+• ON1 paper: 3/20-40 days, mean +41.050 bps, t 0.91. Noise.
 
-V2 rank: 6 options-era trades processed as losses today (BKNG, VRTX, SBUX, TFC, FITB, ZION, all -1.0R). Mean R after costs dropped from +0.083 to -0.048 (53/100 closed). These are all pre-shares-only era; no shares-era losses yet. Still collecting — too noisy to conclude.
+**Research: G2 paper open-auction slippage**
+Compared bps_at_0930_open vs bps_at_0932_entry across 57 trades (6 days). Mean 2-minute delta: −5.9 bps — the gap narrows slightly before entry on most days. If entries were taken at the open auction instead, the paper mean would be ~+4.8 bps, still below the +5 bps bar. High variance (daily std ≈ 11 bps) means the slippage estimate is noisy. Inconclusive; no action.
 
-V2 today: 6 rank + 2 threshold + 8 random new signals, all shares. Random control: 2 filled (ORLY -0.12R, QCOM -0.86R unrealized).
-
-V3 C6 forward: day 9/30, mean -0.314R, t -1.69. Last 3 days all negative. Not yet significant but watching closely — will flag if mean drops below -0.5R or t hits -2.
-
-V3 G2 paper day 6: +44 bps today, 6-day mean -1.1 bps (noise). ON1 paper 3 days: mean +41 bps, t 0.91 (noise). Minute research: all families failed stage 3.
-
-No bugs. No action needed.
+**Proposals: none.** All tracks within frozen rules and collecting data.

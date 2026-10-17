@@ -16,12 +16,25 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 - V2 rank: is the profit from the 15-day time stop alone? (target hit 3/61, stops -27R, time stops +29R)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
 - V2: which score components (if any) predict R? Earlier IC work found no robust edge.
-- V3 G2: does the edge survive realistic open-auction costs in less-liquid names?
+- V3 G2: does entry slippage cost matter more in less-liquid names specifically? (broader analysis deferred until n > 100)
 
 ## Research done
-(none yet)
+
+### 2026-10-17 weekly — G2 paper open-auction slippage
+**Q:** Does the 2-minute wait from 9:30 open to 9:32 entry materially erode G2 paper edge?
+**Method:** Paired bps_at_0930_open vs bps_at_0932_entry across 57 complete rows in g2_paper_ledger.csv.
+**Results:** Mean daily δ (entry − open): Oct 9 −13.4, Oct 12 +13.3, Oct 13 −13.9, Oct 14 −7.4, Oct 15 −1.3, Oct 16 −12.7 bps. 6-day mean = **−5.9 bps**.
+**Interpretation:** The gap narrows by ~6 bps on average in the first 2 minutes. Using open-auction entries would shift the 6-day paper mean from −1.1 bps to ~+4.8 bps — still below the +5 bps bar, and the estimate is noisy (daily std ≈ 11 bps, n=57 pairs).
+**Verdict:** Inconclusive. Slippage is real but not decisive at this sample size. No action.
 
 ## Log
+
+### 2026-10-17 weekly research
+- snapshot.py blocked (shell not authorized in this session); numbers from Oct 16 daily report (authoritative).
+- Research: G2 open-auction slippage (see "Research done" above). Mean −5.9 bps cost from 2-min delay across 57 trades. Inconclusive at n=57.
+- C6 forward remains the primary watch: 9/30, mean −0.314R, t −1.69. Trajectory could hit t ≤ −2 within ~5 sessions.
+- V2 rank: −0.048 mean R after costs (53 closed). Options-era drag fully processed; shares-era tracking begins.
+- All 7 tracks collecting within frozen rules. No proposals.
 
 ### 2026-10-13 daily review
 - All tasks OK (result 0). First agent run.
