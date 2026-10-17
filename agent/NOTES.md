@@ -3,38 +3,50 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.048** (was +0.083). 6 options-era full losses (-1.000R each)
-  processed Oct 16: BKNG, VRTX, SBUX, TFC, FITB, ZION. Shares-era just started (Oct 14); no
-  shares-era losses yet. Recovery still needed toward +0.15 threshold over remaining ~47 trades.
-- **C6 forward: mean -0.314R, day-t -1.69** (9/30 sessions). Last 3 days: -0.087, -0.785, -0.379.
-  All negative. Flag if mean drops below -0.5R or t ≤ -2.
+- **V2 rank mean R after costs: -0.048** (53/100 closed). 6 options-era losses processed Oct 16;
+  shares-era started Oct 14, no shares-era closures yet. Research confirmed: the entire +0.010R raw
+  mean comes from time-stop exits (+0.818R, n=25); without them, non-time-stop exits average -0.711R.
+  The 3R target has been hit only twice. Recovery toward +0.15 needs ~47 more trades.
+- **C6 forward: day-t -1.69** (9/30 sessions, mean -0.265R day-level). Projection: t reaches -2.0
+  at session 13 (4 more bad sessions). Sessions 2–4 and 7–9 all negative; only day 1 was strongly
+  positive. Monitor Mon–Thu next week closely.
 - **QCOM random: -0.863R unrealized** — near stop. Monitor.
-- Random control: 0 closed trades. ORLY/QCOM are first fills. Sector budget check deferred to
-  once more trades fill.
+- Random control: 0 closed trades. ORLY/QCOM are first fills.
 
 ## Open questions (candidates for weekly research)
-- V2 rank: is the profit from the 15-day time stop alone? (target hit 3/61, stops -27R, time stops +29R)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
 - V2: which score components (if any) predict R? Earlier IC work found no robust edge.
 - V3 G2: does entry slippage cost matter more in less-liquid names specifically? (broader analysis deferred until n > 100)
+- V2 rank: what distinguishes time-stop winners from losses? (direction/sector/vix/rsi — could inform future track design; cannot tune live experiment)
 
 ## Research done
 
-### 2026-10-17 weekly — G2 paper open-auction slippage
-**Q:** Does the 2-minute wait from 9:30 open to 9:32 entry materially erode G2 paper edge?
-**Method:** Paired bps_at_0930_open vs bps_at_0932_entry across 57 complete rows in g2_paper_ledger.csv.
-**Results:** Mean daily δ (entry − open): Oct 9 −13.4, Oct 12 +13.3, Oct 13 −13.9, Oct 14 −7.4, Oct 15 −1.3, Oct 16 −12.7 bps. 6-day mean = **−5.9 bps**.
-**Interpretation:** The gap narrows by ~6 bps on average in the first 2 minutes. Using open-auction entries would shift the 6-day paper mean from −1.1 bps to ~+4.8 bps — still below the +5 bps bar, and the estimate is noisy (daily std ≈ 11 bps, n=57 pairs).
-**Verdict:** Inconclusive. Slippage is real but not decisive at this sample size. No action.
+### 2026-10-17 weekly — C6 forward trajectory (agent/research/2026-10-17-c6-trajectory/)
+**Q:** How close to t = −2.0 is C6 and at what pace?
+**Method:** Day-level mean r_net, cumulative t-stat, projection at current mean/std.
+**Results:** Day-level mean −0.265R, std 0.471R. Sessions 2–4 and 7–9 all negative; day 1 (+0.629R) only positive outlier. Projection: t = −2.0 at session 13 (4 more bad sessions).
+**Verdict:** Primary watch item for next week. No action (not at threshold yet; no early trigger in frozen rules).
+
+### 2026-10-17 weekly — V2 rank time-stop attribution (agent/research/2026-10-17-rank-timestop/)
+**Q:** Is the rank track's near-zero mean R driven by time-stop exits?
+**Method:** Group closed 53 rank trades by outcome. Decompose total R contribution.
+**Results:** Time-stop exits (n=25): mean +0.818R. Loss exits (n=25): mean −1.105R. Total R = +0.54R, of which +20.45R from time stops and −19.91R from everything else. Without time stops: −0.711R/trade. Formal 3R target hit twice.
+**Verdict:** CONFIRMED. The model's near-zero mean is entirely the 15-day time stop acting as a soft exit. No formal edge in target hitting. Relevant context for go/no-go at n=100.
+
+### 2026-10-17 weekly — G2 paper open-auction slippage (earlier session; NOTES already had this)
+**Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
 
-### 2026-10-17 weekly research
-- snapshot.py blocked (shell not authorized in this session); numbers from Oct 16 daily report (authoritative).
-- Research: G2 open-auction slippage (see "Research done" above). Mean −5.9 bps cost from 2-min delay across 57 trades. Inconclusive at n=57.
-- C6 forward remains the primary watch: 9/30, mean −0.314R, t −1.69. Trajectory could hit t ≤ −2 within ~5 sessions.
-- V2 rank: −0.048 mean R after costs (53 closed). Options-era drag fully processed; shares-era tracking begins.
+### 2026-10-17 weekly research (second pass — snapshot.py available)
+- snapshot.py ran successfully. All numbers authoritative.
+- Research 1: C6 forward trajectory. Day-level mean −0.265R, std 0.471R. Projected t = −2.0 at session 13 (4 more bad sessions next week). Watch Mon–Thu.
+- Research 2: V2 rank time-stop attribution. Time-stop exits (n=25) provide 100% of positive R (+20.45R). Without them, track averages −0.711R/trade. 3R target hit only twice. Context for go/no-go at n=100.
 - All 7 tracks collecting within frozen rules. No proposals.
+- WeeklyDashboard missed Oct 11 (machine asleep); next run Oct 18 18:00.
+
+### 2026-10-17 weekly research (first pass — snapshot blocked)
+- snapshot.py blocked. Used Oct 16 daily report numbers. Research: G2 open-auction slippage (−5.9 bps, inconclusive).
 
 ### 2026-10-13 daily review
 - All tasks OK (result 0). First agent run.

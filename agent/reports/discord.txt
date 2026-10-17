@@ -1,15 +1,18 @@
-📊 Weekly research 2026-10-17: all experiments collecting, C6 still trending negative
+📊 Weekly research 2026-10-17: C6 4 sessions from abort; rank edge is entirely the time stop
 
 **Scorecard**
-• V2 rank: 53/100 closed, mean R −0.048 (need ≥+0.15), wk-t −0.61. Six options-era full losses processed Thu; shares-era (since Oct 14) has zero closures yet.
-• V2 random: 0 closed, 2 open fills (ORLY −0.121R, QCOM −0.863R unrealized).
-• C6 forward ⚠: 9/30 sessions, mean −0.314R, day-t −1.69. Pass bar: ≥+0.08R & t ≥ 2 at 30 sessions. Could reach t ≤ −2 within ~5 more sessions.
+• V2 rank: 53/100 closed, mean R −0.048 after costs (+0.010 raw), wk-t −0.61. Collecting.
+• V2 random: 0 closed, 2 open (ORLY −0.121R, QCOM −0.863R unrealized).
+• C6 forward ⚠: 9/30 sessions, mean −0.314R, day-t −1.69. Projection: t = −2.0 at session 13 (4 more bad sessions). Watch Mon–Thu.
 • G2 forward: 8/40, mean −0.018 ATR, t −0.23. Noise.
 • ON1 forward: 7/40, mean −14.047 bps, t −0.54. Noise.
-• G2 paper: 6/20-40 days, mean −1.116 bps, t −0.04. Noise.
-• ON1 paper: 3/20-40 days, mean +41.050 bps, t 0.91. Noise.
+• G2 paper: 6/20–40 days, mean −1.116 bps, t −0.04. Noise.
+• ON1 paper: 3/20–40 days, mean +41.050 bps, t +0.91. Early and noisy but the best reading of any V3 paper track.
 
-**Research: G2 paper open-auction slippage**
-Compared bps_at_0930_open vs bps_at_0932_entry across 57 trades (6 days). Mean 2-minute delta: −5.9 bps — the gap narrows slightly before entry on most days. If entries were taken at the open auction instead, the paper mean would be ~+4.8 bps, still below the +5 bps bar. High variance (daily std ≈ 11 bps) means the slippage estimate is noisy. Inconclusive; no action.
+**Research 1 — C6 trajectory**
+Day-by-day breakdown: day 1 was +0.629R; days 2–4 and 7–9 all negative. Assuming current mean (−0.265R/day) and std (0.471R) hold, t hits −2.0 at session 13. One good day arrests the slide; two bad days accelerate it.
 
-**Proposals: none.** All tracks within frozen rules and collecting data.
+**Research 2 — V2 rank time-stop attribution**
+Time-stop exits: n=25, mean +0.818R. Losses: n=25, mean −1.105R. Wins: n=2. The entire +0.54R net comes from time stops (+20.45R); all other exits net −19.91R. Without the 15-day time stop the track averages −0.711R/trade. The 3R formal target has been hit twice. The "edge," if it survives to n=100, is the time stop acting as a soft exit — not consistent target achievement.
+
+**Proposals: none.** All tracks within frozen rules.
