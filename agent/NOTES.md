@@ -3,15 +3,15 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.048** (53/100 closed). 6 options-era losses processed Oct 16;
-  shares-era started Oct 14, no shares-era closures yet. Research confirmed: the entire +0.010R raw
-  mean comes from time-stop exits (+0.818R, n=25); without them, non-time-stop exits average -0.711R.
-  The 3R target has been hit only twice. Recovery toward +0.15 needs ~47 more trades.
-- **C6 forward: day-t -1.69** (9/30 sessions, mean -0.265R day-level). Projection: t reaches -2.0
-  at session 13 (4 more bad sessions). Sessions 2–4 and 7–9 all negative; only day 1 was strongly
-  positive. Monitor Mon–Thu next week closely.
-- **QCOM random: -0.863R unrealized** — near stop. Monitor.
-- Random control: 0 closed trades. ORLY/QCOM are first fills.
+- **V2 rank mean R after costs: -0.067** (54/100 closed). UMBF loss (Oct 16 exit) bumped count
+  from 53 to 54; no new closures Oct 17-19. All exit types: loss(26), time_stop(25), win(2),
+  earnings_exit(1). Research confirmed: entire raw positive mean comes from time-stop exits.
+  Recovery toward +0.15 needs consistently positive results over remaining 46 trades.
+- **C6 forward: day-t -1.91** (10/30 sessions, mean -0.311R day-level). Arrived here faster than
+  Oct 17 projection (had estimated session 13). At current mean/std (~0.52), t = -2.0 projected
+  at session 11 (next session). No early-stop rule; frozen decision is at session 30. Watch Tue.
+- **QCOM random: unrealized near stop** — 4 open random trades, 0 closed.
+- **ON1 paper: day-t +1.46** at 4 days — best V3 paper reading so far; too early (need 20+ days).
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
@@ -37,6 +37,15 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-19 daily review
+- All 13 tasks result 0. No errors in V2 or V3 logs.
+- No new V2 closures Oct 17-19. UMBF (Oct 16 exit, -1.0R loss) processed Oct 17 — bumped rank to 54 closed; NOTES watch list was stale at 53.
+- 15 new signals today (all shares): 1 threshold (UNH), 6 rank, 8 random.
+- C6 forward session 10: -0.293R; day-t -1.91 (was -1.69 at session 9). Projection to t=-2.0 updated to session 11 (one more bad session), earlier than the Oct 17 estimate of session 13.
+- G2 paper day 7: +3.930 bps (noise). ON1 paper: no new scored day (last was Oct 16 at +311 bps).
+- G2 forward last bar Oct 16 (1 trading day behind); ON1 forward last bar Oct 15. C6 shows Oct 19 (daily re-run label — actual bar data is through Oct 17 Friday).
+- No bugs. No fixes proposed.
 
 ### 2026-10-17 weekly research (second pass — snapshot.py available)
 - snapshot.py ran successfully. All numbers authoritative.
