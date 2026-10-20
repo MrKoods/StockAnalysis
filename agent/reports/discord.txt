@@ -1,13 +1,13 @@
-✅ Daily review 2026-10-19: all systems normal
+✅ Daily review 2026-10-20: all systems normal
 
-All 13 tasks ran clean (result 0). 15 new signals today, all shares.
+All tasks ran (result 0). 15 new signals, all shares.
 
-• V2 rank: 54/100 closed, mean R after costs −0.067, wk-t −0.60. No new closures today (UMBF from Oct 16 bumped count to 54). Collecting.
-• V2 random: 0 closed, 4 open (QCOM still near stop).
-• C6 forward ⚠: 10/30 sessions, mean −0.311R, day-t −1.91. Projected to reach −2.0 at session 11 (next session). No early-stop rule; track continues. Oct 17 projection was session 13 — arriving faster.
-• G2 forward: 9 days, mean −0.006 ATR, day-t +0.13. Noise.
-• ON1 forward: 8 days, mean −6.2 bps, day-t −0.26. Noise.
-• G2 paper: 7 days, mean −0.374 bps, day-t −0.02. Noise.
-• ON1 paper: 4 days, mean +108.9 bps, day-t +1.46. Too early but best V3 paper reading so far.
+• V2 rank: 54/100 closed (no new closures), mean R after costs −0.067, wk-t −0.60. Collecting.
+• V2 random: 0 closed, 5 open.
+• C6 forward ⚠: session 11 −0.214R, day-t −2.07. t crossed −2.0 today exactly as projected. No early-stop rule — frozen decision at session 30. At current pace, trajectory points to a fail unless results reverse.
+• G2 forward: 10 days, mean +0.012 ATR, day-t 0.30. Noise.
+• ON1 forward: 9 days, mean +26 bps, day-t 0.68. Noise.
+• G2 paper: 8 days, mean −0.337 bps, day-t −0.02. Noise.
+• ON1 paper: 5 days, mean +95.6 bps, day-t 1.61. Best paper reading so far, still too early.
 
 No proposed fixes.

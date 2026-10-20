@@ -3,15 +3,10 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.067** (54/100 closed). UMBF loss (Oct 16 exit) bumped count
-  from 53 to 54; no new closures Oct 17-19. All exit types: loss(26), time_stop(25), win(2),
-  earnings_exit(1). Research confirmed: entire raw positive mean comes from time-stop exits.
-  Recovery toward +0.15 needs consistently positive results over remaining 46 trades.
-- **C6 forward: day-t -1.91** (10/30 sessions, mean -0.311R day-level). Arrived here faster than
-  Oct 17 projection (had estimated session 13). At current mean/std (~0.52), t = -2.0 projected
-  at session 11 (next session). No early-stop rule; frozen decision is at session 30. Watch Tue.
-- **QCOM random: unrealized near stop** — 4 open random trades, 0 closed.
-- **ON1 paper: day-t +1.46** at 4 days — best V3 paper reading so far; too early (need 20+ days).
+- **V2 rank mean R after costs: -0.067** (54/100 closed). No new closures Oct 17-20. All exit types: loss(26), time_stop(25), win(2), earnings_exit(1). Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 46 trades.
+- **C6 forward: day-t -2.07** (11/30 sessions, mean -0.302R day-level). t crossed -2.0 on Oct 20 session 11 — exactly as projected Oct 19. No early-stop rule; frozen decision is at session 30. At current pace (mean -0.302R/session), trajectory points to deep fail well before session 30 unless results reverse.
+- **ON1 paper: day-t +1.61** at 5 days — best V3 paper reading so far; still too early (need 20+ days).
+- **Random control: 5 open, 0 closed** — no read yet.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
@@ -37,6 +32,16 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-20 daily review
+- All tasks result 0 (DukascopyDownload not yet due at 14:45). Pre-market 1 transient SA empty-body error — same recurring pattern, scan completed fine.
+- No new V2 closures — rank still 54/100.
+- 15 new signals today (all shares): 1 threshold (UNH, superseding Oct 19 UNH), 6 rank (AMAT bearish, MTB bearish, UNH/PFE/HD/AMZN bullish), 8 random.
+- C6 forward session 11: -0.214R; day-t -2.07. t crossed -2.0 exactly as projected on Oct 19. No early-stop rule; frozen decision at session 30.
+- G2 paper day 8: -0.090 bps (noise). G2 forward last bar Oct 19 (+0.088 ATR, 10-day mean +0.012).
+- ON1 paper last scored Oct 19 (+42.377 bps); 5-day mean +95.565 bps, t 1.61. New Oct 20 signals logged (not yet scored).
+- ON1 forward last bar Oct 16 (4 days behind — Dukascopy lag).
+- No bugs. No fixes proposed.
 
 ### 2026-10-19 daily review
 - All 13 tasks result 0. No errors in V2 or V3 logs.
