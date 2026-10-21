@@ -1,13 +1,13 @@
-✅ Daily review 2026-10-20: all systems normal
+✅ Daily review 2026-10-21: all systems normal
 
-All tasks ran (result 0). 15 new signals, all shares.
+All tasks succeeded, zero errors. No position_type violations in today's signals.
 
-• V2 rank: 54/100 closed (no new closures), mean R after costs −0.067, wk-t −0.60. Collecting.
-• V2 random: 0 closed, 5 open.
-• C6 forward ⚠: session 11 −0.214R, day-t −2.07. t crossed −2.0 today exactly as projected. No early-stop rule — frozen decision at session 30. At current pace, trajectory points to a fail unless results reverse.
-• G2 forward: 10 days, mean +0.012 ATR, day-t 0.30. Noise.
-• ON1 forward: 9 days, mean +26 bps, day-t 0.68. Noise.
-• G2 paper: 8 days, mean −0.337 bps, day-t −0.02. Noise.
-• ON1 paper: 5 days, mean +95.6 bps, day-t 1.61. Best paper reading so far, still too early.
+V2 rank: 2 closures — PNFP time_stop −0.551R, TJX win +2.596R (only 3rd rank win ever, options-era). Rank 56/100 closed, mean after costs −0.030R (was −0.067); week-t −0.44. No path to GO visible yet.
+
+V3 C6 forward session 12: today −0.433R, day-t now −2.37 (was −2.07 at session 11). Deepening past −2.0. No early-stop rule; frozen decision at session 30.
+
+V3 ON1 paper day 6 (Oct 20 scored): −18.466 bps; 6-day mean +76.774 bps, day-t 1.47 (down from 1.61). Too early. G2 paper day 9: −42.190 bps, day-t −0.25, noise.
+
+New signals today all shares: 1 threshold (KEY), 7 rank (ADI KEY FITB UNH PFE TJX AMZN bullish), 7 random. All clean.
 
 No proposed fixes.

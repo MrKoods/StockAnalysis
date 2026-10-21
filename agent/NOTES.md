@@ -3,10 +3,10 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.067** (54/100 closed). No new closures Oct 17-20. All exit types: loss(26), time_stop(25), win(2), earnings_exit(1). Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 46 trades.
-- **C6 forward: day-t -2.07** (11/30 sessions, mean -0.302R day-level). t crossed -2.0 on Oct 20 session 11 — exactly as projected Oct 19. No early-stop rule; frozen decision is at session 30. At current pace (mean -0.302R/session), trajectory points to deep fail well before session 30 unless results reverse.
-- **ON1 paper: day-t +1.61** at 5 days — best V3 paper reading so far; still too early (need 20+ days).
-- **Random control: 5 open, 0 closed** — no read yet.
+- **V2 rank mean R after costs: -0.030** (56/100 closed). Oct 21: 2 closures — PNFP bearish time_stop -0.551R, TJX bullish win +2.596R (3rd rank win ever, options-era). Mean improved from -0.067 → -0.030; week-t -0.44. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 44 trades.
+- **C6 forward: day-t -2.37** (12/30 sessions, mean -0.309R day-level). Session 12 (Oct 21): -0.433R. t deepened from -2.07 to -2.37. No early-stop rule; frozen decision is at session 30.
+- **ON1 paper: day-t +1.47** at 6 days (Oct 20 scored -18.466 bps; 6-day mean +76.774 bps). Best V3 paper reading so far; still too early (need 20+ days).
+- **Random control: 10 open, 0 closed** — no read yet.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
@@ -32,6 +32,19 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-21 daily review
+- All tasks result 0 (DailyReview 267009 = currently running, expected).
+- Zero error lines in all V2 and V3 logs today.
+- V2 rank: 2 new closures — PNFP bearish time_stop -0.551R (options-era), TJX bullish win +2.596R (options-era, 3rd rank win). Rank now 56/100; mean after costs -0.030 (improved from -0.067); week-t -0.44.
+- 15 new signals today (all shares): 1 threshold (KEY), 7 rank (ADI/KEY/FITB/UNH/PFE/TJX/AMZN bullish), 7 random.
+- C6 forward session 12: -0.433R; day-t -2.37 (deepened from -2.07 at session 11). No early-stop rule; frozen decision at session 30.
+- G2 paper day 9: -42.190 bps (day-t -0.25, noise). G2 forward day 11: day-t +0.20, noise.
+- ON1 paper day 6 (Oct 20 scored): -18.466 bps; 6-day mean +76.774 bps, day-t 1.47.
+- ON1 forward day 10: day-t +0.82, noise.
+- Random control: 10 open, 0 closed — no read yet.
+- Loss cluster (Oct 15, 6 bearish losses) already flagged Oct 16 — not re-reported.
+- No bugs. No fixes proposed.
 
 ### 2026-10-20 daily review
 - All tasks result 0 (DukascopyDownload not yet due at 14:45). Pre-market 1 transient SA empty-body error — same recurring pattern, scan completed fine.
