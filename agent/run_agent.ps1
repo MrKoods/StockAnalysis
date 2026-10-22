@@ -69,6 +69,34 @@ Pop-Location
 # 4. Checks that must reach the user whatever the agent writes (or if it never ran): the 18:00 Dukascopy
 #    download (from snapshot.py's ACTION NEEDED lines) and whether the previous weekday's review happened.
 $alerts = @()
+# Every scheduled task: did its most recent scheduled time actually fire, and did it succeed? Old one-time
+# triggers and the hourly research loop are ignored; the Dukascopy download is judged by snapshot.py below.
+$now = Get-Date
+foreach ($t in Get-ScheduledTask -TaskName 'StockAnalysis_*') {
+    if ($t.TaskName -in 'StockAnalysis_Agent_DailyReview', 'StockAnalysis_Agent_WeeklyResearch', 'StockAnalysis_V3_DukascopyDownload', 'StockAnalysis_V3_MinuteResearchAuto') { continue }
+    $due = $null
+    foreach ($tr in $t.Triggers) {
+        $kind = $tr.CimClass.CimClassName
+        if ($kind -notin 'MSFT_TaskWeeklyTrigger', 'MSFT_TaskDailyTrigger') { continue }
+        $at = [datetime]::Parse($tr.StartBoundary).TimeOfDay
+        for ($back = 0; $back -le 8; $back++) {
+            $when = $now.Date.AddDays(-$back) + $at
+            if ($when -gt $now) { continue }
+            # DaysOfWeek bitmask: Sunday = 1 ... Saturday = 64
+            if ($kind -eq 'MSFT_TaskWeeklyTrigger' -and -not ($tr.DaysOfWeek -band (1 -shl [int]$when.DayOfWeek))) { continue }
+            if (-not $due -or $when -gt $due) { $due = $when }
+            break
+        }
+    }
+    if (-not $due) { continue }
+    $info = $t | Get-ScheduledTaskInfo
+    $name = $t.TaskName -replace '^StockAnalysis_', ''
+    if ($info.LastRunTime -lt $due.AddMinutes(-2)) {
+        $alerts += "ACTION NEEDED: $name did NOT run at $($due.ToString('ddd MM-dd HH:mm')) (last ran $($info.LastRunTime.ToString('MM-dd HH:mm'))) - computer off or asleep?"
+    } elseif ($info.LastTaskResult -notin 0, 267009) {
+        $alerts += "ACTION NEEDED: $name ran $($info.LastRunTime.ToString('ddd MM-dd HH:mm')) but FAILED (result $($info.LastTaskResult)) - check its log."
+    }
+}
 Push-Location $Work
 $alerts += python agent/tools/snapshot.py 2>&1 | Select-String 'ACTION NEEDED' | ForEach-Object { $_.Line.Trim() }
 Pop-Location

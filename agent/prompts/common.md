@@ -86,7 +86,9 @@ straight from the live files — start there.
   run last night or was killed part-way (exit -1073741510 = 0xC000013A = console closed / Ctrl-C).
   Report it under Health as a problem; it self-heals on the next run (each run refetches the current
   month). The launcher also copies every `ACTION NEEDED` line to the top of your Discord post itself,
-  so don't repeat it there — the user is asked to check the computer, not you.
+  so don't repeat it there — the user is asked to check the computer, not you. It does the same for
+  any scheduled task whose last scheduled time didn't fire or that returned a failure code; still
+  explain those under Health (what it means for today's data), but don't re-alert in Discord.
 - Background history lives in each repo's CHANGELOG.md (V2) and your `agent/NOTES.md`.
 
 ## Continuity
