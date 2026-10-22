@@ -134,6 +134,30 @@ def log_section() -> None:
                 where = f"last written {mtime:%Y-%m-%d %H:%M} PT"
             bad = [line for line in scope if pat.search(line)]
             print(f"  {name}: {where}, {len(bad)} error lines" + (f" | e.g. {bad[-1][:160]}" if bad else ""))
+    duka_section()
+
+
+def duka_section() -> None:
+    """The Dukascopy minute download runs at 18:00, after the daily review, so check the most recent run
+    (normally last evening's). A run that logged 'start' but never 'ALL DONE' was killed part-way; the
+    tickers it never reached are a day stale until the next run refetches the month."""
+    print("\n=== Dukascopy minute download (18:00 task; last run, normally yesterday evening) ===")
+    p = V3 / "data" / "intraday" / "duka_download.log"
+    if not p.exists():
+        print("  duka_download.log: missing")
+        return
+    lines = p.read_text(encoding="utf-8", errors="replace").splitlines()[-500:]
+    starts = [i for i, line in enumerate(lines) if " start " in line]
+    if not starts:
+        print("  no 'start' line in the last 500 log lines")
+        return
+    run = lines[starts[-1]:]
+    done = [line for line in run if "ALL DONE" in line]
+    got = [m.group(1) for m in (re.search(r" (\S+) \d{4}-\d{2}: \d+ bars", line) for line in run) if m]
+    failed = [line[24:] for line in run if re.search(r"[1-9]\d* days failed", line)]
+    print(f"  last run started {run[0][:19]}: " + (f"completed {done[-1][:19]}" if done else
+          f"!! NO 'ALL DONE' - killed part-way after {got[-1] if got else 'no ticker'}"))
+    print(f"  {len(got)} ticker(s) fetched" + (f"; with failed days: {'; '.join(failed)}" if failed else ""))
 
 
 if __name__ == "__main__":

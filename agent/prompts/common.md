@@ -80,7 +80,11 @@ straight from the live files — start there.
   `data/paper/g2_paper_ledger.csv` instead. V3 logs have no timestamps.
 - Scheduled times (Pacific, Mon-Fri): V2 5:30 pre-market scan, 8:07 updater, 9:00 mid-session,
   13:30 post-close (the only scan that picks rank/random trades). V3 6:34 G2 signals, 6:45 ON1
-  evaluate, 10:45 G2 evaluate, 12:40 ON1 signals, 14:00 forward tests.
+  evaluate, 10:45 G2 evaluate, 12:40 ON1 signals, 14:00 forward tests. V3 Dukascopy minute
+  download runs daily at 18:00 — AFTER your daily review, so the task table shows the previous
+  evening's run. Judge it by the snapshot's Dukascopy section: `!! NO 'ALL DONE'` means it was killed
+  part-way (exit -1073741510 = 0xC000013A = console closed / Ctrl-C). Report it as a health problem
+  naming the tickers left stale; it self-heals on the next run (each run refetches the current month).
 - Background history lives in each repo's CHANGELOG.md (V2) and your `agent/NOTES.md`.
 
 ## Continuity
