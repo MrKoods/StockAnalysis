@@ -1,7 +1,7 @@
 {
-  "technical": 0.6,
-  "sentiment": 0.25,
-  "news": 0.15,
-  "last_calibrated": "2026-10-14T15:07:08.776197+00:00",
-  "n_trades": 19
+  "technical": 0.6327,
+  "sentiment": 0.2347,
+  "news": 0.1327,
+  "last_calibrated": "2026-10-15T15:07:09.248548+00:00",
+  "n_trades": 20
 }
