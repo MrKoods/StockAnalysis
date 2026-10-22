@@ -66,10 +66,27 @@ $code = $LASTEXITCODE
 Pop-Location
 "=== claude exited $code at $(Get-Date -Format s) ===" | Out-File -FilePath $Log -Append -Encoding utf8
 
-# 4. Post the agent's own summary if it wrote one this run; otherwise say it failed.
+# 4. Checks that must reach the user whatever the agent writes (or if it never ran): the 18:00 Dukascopy
+#    download (from snapshot.py's ACTION NEEDED lines) and whether the previous weekday's review happened.
+$alerts = @()
+Push-Location $Work
+$alerts += python agent/tools/snapshot.py 2>&1 | Select-String 'ACTION NEEDED' | ForEach-Object { $_.Line.Trim() }
+Pop-Location
+$prev = (Get-Date).AddDays(-1)
+while ($prev.DayOfWeek -in 'Saturday', 'Sunday') { $prev = $prev.AddDays(-1) }
+$prevDay = $prev.ToString('yyyy-MM-dd')
+if (-not (Test-Path (Join-Path $Work "agent\reports\$prevDay-daily.md"))) {
+    $alerts += "ACTION NEEDED: no daily review for $prevDay - the agent didn't run that day (computer off, or Claude logged out). Check the computer and that day's Discord post."
+}
+$alertText = if ($alerts) { ((@('**:warning: CHECK THE COMPUTER**') + $alerts) -join "`n") + "`n`n" } else { '' }
+
+# 5. Post the agent's own summary if it wrote one this run; otherwise say it failed, and why if known.
 if ((Test-Path $Discord) -and ((Get-Item $Discord).LastWriteTime -gt $start)) {
-    Post-Discord (Get-Content $Discord -Raw -Encoding utf8)
+    Post-Discord ($alertText + (Get-Content $Discord -Raw -Encoding utf8))
 } else {
     $tail = (Get-Content $Log -Tail 8) -join "`n"
-    Post-Discord ("[FAILED] Review agent ($Mode, $Today) did not finish - no report written (exit $code). Log: $Log`n" + $tail)
+    $why = if (Select-String -Path $Log -Pattern 'Not logged in|/login|OAuth|authentication|401' -Quiet) {
+        "Claude is LOGGED OUT. Open Claude Code on the computer and log in; the review resumes at the next scheduled run."
+    } else { "Reason unknown - see the log tail below." }
+    Post-Discord ($alertText + ":red_circle: **[FAILED] Review agent ($Mode, $Today) did not run** - no report written (exit $code). $why`nLog: $Log`n" + $tail)
 }

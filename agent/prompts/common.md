@@ -82,9 +82,11 @@ straight from the live files — start there.
   13:30 post-close (the only scan that picks rank/random trades). V3 6:34 G2 signals, 6:45 ON1
   evaluate, 10:45 G2 evaluate, 12:40 ON1 signals, 14:00 forward tests. V3 Dukascopy minute
   download runs daily at 18:00 — AFTER your daily review, so the task table shows the previous
-  evening's run. Judge it by the snapshot's Dukascopy section: `!! NO 'ALL DONE'` means it was killed
-  part-way (exit -1073741510 = 0xC000013A = console closed / Ctrl-C). Report it as a health problem
-  naming the tickers left stale; it self-heals on the next run (each run refetches the current month).
+  evening's run. Judge it by the snapshot's Dukascopy section: an `ACTION NEEDED` line means it didn't
+  run last night or was killed part-way (exit -1073741510 = 0xC000013A = console closed / Ctrl-C).
+  Report it under Health as a problem; it self-heals on the next run (each run refetches the current
+  month). The launcher also copies every `ACTION NEEDED` line to the top of your Discord post itself,
+  so don't repeat it there — the user is asked to check the computer, not you.
 - Background history lives in each repo's CHANGELOG.md (V2) and your `agent/NOTES.md`.
 
 ## Continuity

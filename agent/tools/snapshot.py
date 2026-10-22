@@ -138,25 +138,34 @@ def log_section() -> None:
 
 
 def duka_section() -> None:
-    """The Dukascopy minute download runs at 18:00, after the daily review, so check the most recent run
-    (normally last evening's). A run that logged 'start' but never 'ALL DONE' was killed part-way; the
-    tickers it never reached are a day stale until the next run refetches the month."""
-    print("\n=== Dukascopy minute download (18:00 task; last run, normally yesterday evening) ===")
+    """The Dukascopy minute download runs daily at 18:00, after the daily review, so check the most recent
+    run, which should be yesterday evening's. No run since then means it never fired (computer off); a run
+    that logged 'start' but never 'ALL DONE' was killed part-way. Either way the data is a day stale until
+    the next run refetches the month. Problems are printed with ACTION NEEDED, which the launcher copies
+    into the Discord post regardless of what the agent writes."""
+    print("\n=== Dukascopy minute download (18:00 daily; last run should be yesterday evening) ===")
     p = V3 / "data" / "intraday" / "duka_download.log"
     if not p.exists():
-        print("  duka_download.log: missing")
+        print("  ACTION NEEDED: Dukascopy download log missing - the minute download has never run")
         return
     lines = p.read_text(encoding="utf-8", errors="replace").splitlines()[-500:]
     starts = [i for i, line in enumerate(lines) if " start " in line]
     if not starts:
-        print("  no 'start' line in the last 500 log lines")
+        print("  ACTION NEEDED: Dukascopy download has not run recently (no start in the last 500 log lines)")
         return
     run = lines[starts[-1]:]
+    yesterday = (pd.Timestamp(DAY) - pd.Timedelta(days=1)).date().isoformat()
+    if run[0][:10] < yesterday:
+        print(f"  ACTION NEEDED: Dukascopy download did NOT run last night - last run {run[0][:16]} "
+              "(computer off or task missed). Check the computer is on; data stays stale until it runs.")
     done = [line for line in run if "ALL DONE" in line]
     got = [m.group(1) for m in (re.search(r" (\S+) \d{4}-\d{2}: \d+ bars", line) for line in run) if m]
     failed = [line[24:] for line in run if re.search(r"[1-9]\d* days failed", line)]
-    print(f"  last run started {run[0][:19]}: " + (f"completed {done[-1][:19]}" if done else
-          f"!! NO 'ALL DONE' - killed part-way after {got[-1] if got else 'no ticker'}"))
+    if done:
+        print(f"  last run started {run[0][:19]}: completed {done[-1][:19]}")
+    else:
+        print(f"  ACTION NEEDED: Dukascopy download started {run[0][:16]} but was killed part-way after "
+              f"{got[-1] if got else 'no ticker'} (window closed / computer slept). Re-run it or wait for tonight's run.")
     print(f"  {len(got)} ticker(s) fetched" + (f"; with failed days: {'; '.join(failed)}" if failed else ""))
 
 
