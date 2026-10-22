@@ -3,10 +3,11 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.030** (56/100 closed). Oct 21: 2 closures — PNFP bearish time_stop -0.551R, TJX bullish win +2.596R (3rd rank win ever, options-era). Mean improved from -0.067 → -0.030; week-t -0.44. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 44 trades.
-- **C6 forward: day-t -2.37** (12/30 sessions, mean -0.309R day-level). Session 12 (Oct 21): -0.433R. t deepened from -2.07 to -2.37. No early-stop rule; frozen decision is at session 30.
-- **ON1 paper: day-t +1.47** at 6 days (Oct 20 scored -18.466 bps; 6-day mean +76.774 bps). Best V3 paper reading so far; still too early (need 20+ days).
-- **Random control: 10 open, 0 closed** — no read yet.
+- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 22: ISRG loss -1.000R (options-era), mean dropped from -0.030 → -0.048; week-t -0.45. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
+- **C6 forward: day-t -2.37** (12/30 sessions, mean -0.309R day-level). No session 13 today (IntradayFetch failed). No early-stop rule; frozen decision is at session 30.
+- **ON1 paper: day-t +1.91** at 7 days (Oct 21: +140.984 bps; 7-day mean +85.911 bps). Best V3 paper reading yet. 13+ days from 20-day evaluation window.
+- **Random control: 11 open, 2 closed** (mean -1.190R, n=2, noise).
+- **IntradayFetch pyarrow DLL issue:** PROPOSED FIX in agent/proposed_fixes/v3_pickle_fallback/ (pickle fallback). Awaiting user approval. If unresolved, will also break Dukascopy tonight and tomorrow's fetch.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
@@ -32,6 +33,19 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-22 daily review
+- All V2 tasks result 0. 1 SA pre-market empty-body error (recurring transient, harmless).
+- V3 IntradayFetch result 1: pyarrow _parquet DLL blocked by Windows Application Control. Crash at fetch_daily() → _merge_into_archive(). Forward tests updated (ran before crash); 1d/1m/5m bar archives not updated today. PROPOSED FIX: pickle fallback in agent/proposed_fixes/v3_pickle_fallback/ (data_changes.py + test_merge_fallback.py).
+- V3 DukascopyDownload Oct 21 exit 3221225786 (0xC000013A = console closed). Snapshot confirms script completed (8 tickers fetched). Wrapper signal, not a data error.
+- V2 rank: 1 closure — ISRG bullish loss -1.000R (options-era, exit Oct 21). Rank 57/100; mean after costs -0.048 (was -0.030); week-t -0.45.
+- 4 threshold signals, 6 rank signals, 8 random signals today — all shares.
+- C6 forward: still 12/30 sessions (no session 13 due to fetch failure), day-t -2.37.
+- G2 paper day 10: +15.814 bps (mean -3.553 bps, t -0.16, noise).
+- ON1 paper day 7: mean +85.911 bps, day-t 1.91. Last day Oct 21: +140.984 bps.
+- G2 forward day 11: +0.009 ATR mean, t +0.20, noise. ON1 forward day 10: +28.129 bps mean, t +0.82, noise.
+- Random control: 2 closed, mean -1.190R (noise).
+- V2 test suite: 1826 passed.
 
 ### 2026-10-21 daily review
 - All tasks result 0 (DailyReview 267009 = currently running, expected).
