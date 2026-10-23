@@ -149,6 +149,8 @@ if __name__ == "__main__":
         log.info("another downloader is running; exiting")
         sys.exit(0)
     log.info("start %s", datetime.now())
+    from .data import wait_for_parquet
+    wait_for_parquet()
     for sym in sys.argv[1:]:
         download(sym)
     log.info("ALL DONE %s", datetime.now())

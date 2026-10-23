@@ -22,6 +22,28 @@ COLS = ["open", "high", "low", "close", "volume"]
 RTH_START, RTH_END = time(9, 30), time(15, 59)
 
 
+def wait_for_parquet(tries: int = 5, wait: float = 60.0) -> None:
+    """Exit before touching the archive if pyarrow's parquet DLLs won't load.
+
+    Windows Smart App Control intermittently blocks pyarrow's unsigned DLLs (seen 2026-10-19 and
+    2026-10-22); a fresh process minutes later loads them fine. Each try runs in a new process
+    because a refused DLL load can stick for the life of the process that saw it.
+    """
+    import subprocess
+    import sys
+    import time as _time
+
+    cmd = [sys.executable, "-c", "import pyarrow.parquet"]
+    for i in range(1, tries + 1):
+        err = subprocess.run(cmd, capture_output=True, text=True).stderr.strip()
+        if not err:
+            return
+        log.warning("parquet unavailable (try %d/%d): %s", i, tries, err.splitlines()[-1])
+        if i < tries:
+            _time.sleep(wait)
+    raise SystemExit(f"pyarrow parquet still blocked after {tries} tries; archive left untouched")
+
+
 def _path(ticker: str, interval: str):
     return DATA_DIR / interval / f"{ticker}.parquet"
 

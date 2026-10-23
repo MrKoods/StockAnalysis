@@ -21,6 +21,7 @@ def main():
     c.add_argument("--seed", type=int, default=1)
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    data.wait_for_parquet()
 
     if args.cmd == "fetch":
         summary = data.fetch()
