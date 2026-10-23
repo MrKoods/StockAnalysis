@@ -1,9 +1,9 @@
-⚠️ Daily review 2026-10-22: 1 issue — PROPOSED FIX awaiting approval
+✅ Daily review 2026-10-22: all systems normal
 
-IntradayFetch crashed at fetch_daily(): pyarrow _parquet DLL blocked by Application Control. Forward tests (C6/G2/ON1) updated OK — they ran before the crash. 1d/1m/5m bar archives not updated today. If DLL stays blocked, Dukascopy tonight and tomorrow's fetch will also fail.
-Proposed fix: pickle fallback in daytrade/data.py → agent/proposed_fixes/v3_pickle_fallback/. Approve to apply to V3.
-V2 rank: 57/100 closed, ISRG loss −1.0R today (options-era), mean R after costs −0.048, week-t −0.45.
-C6 forward: 12/30 sessions, mean −0.309R, day-t −2.37. No session added today (fetch failed).
-ON1 paper: day-t +1.91 at 7 days — strongest V3 paper reading yet; 13+ days from evaluation window.
-G2 paper day 10: noise (mean −3.6 bps, t −0.16). G2/ON1 forward: all noise.
-V2 tests: 1826 passed.
+IntradayFetch earlier DLL block resolved — aff8929 retry fix ran at 21:44; C6/G2/ON1 session 13 data now available. Dukascopy completed cleanly at 18:55.
+C6 forward session 13: +0.247R today; day-t improved -2.37 → -2.06, mean -0.270R (13/30). Still tracking negative.
+G2 forward session 13: mean +0.034 ATR, t 0.73. ON1 forward session 12: mean +17.9 bps, t 0.54. Both noise.
+V2 rank: 57/100 closed, mean -0.048R after costs, t -0.23. No new closures today.
+ON1 paper: day-t 1.91 at 7 days — best V3 paper track; 13+ days from evaluation window.
+G2 paper day 10: mean -3.6 bps, t -0.16, noise.
+No bugs. No proposed fixes.

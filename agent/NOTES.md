@@ -3,11 +3,12 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 22: ISRG loss -1.000R (options-era), mean dropped from -0.030 → -0.048; week-t -0.45. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
-- **C6 forward: day-t -2.37** (12/30 sessions, mean -0.309R day-level). No session 13 today (IntradayFetch failed). No early-stop rule; frozen decision is at session 30.
+- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 22: ISRG loss -1.000R (options-era), mean dropped from -0.030 → -0.048; week-t -0.23. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
+- **C6 forward: day-t -2.06** (13/30 sessions, mean -0.270R day-level). Session 13 (Oct 22): +0.247R — improved t from -2.37. Still firmly negative; no early-stop rule; frozen decision at session 30.
 - **ON1 paper: day-t +1.91** at 7 days (Oct 21: +140.984 bps; 7-day mean +85.911 bps). Best V3 paper reading yet. 13+ days from 20-day evaluation window.
-- **Random control: 11 open, 2 closed** (mean -1.190R, n=2, noise).
+- **Random control: 11 open, 2 closed** (mean -1.260R after costs, n=2, noise).
 - **IntradayFetch pyarrow DLL issue: RESOLVED 2026-10-22 (V3 commit aff8929). Pickle-fallback proposal REJECTED** — one blocked run would replace the archive's history with only the new download window, and load() would prefer that stale .pkl forever (data loss; 1m history beyond Yahoo's 30 days is irreplaceable). Real cause: Smart App Control blocks pyarrow DLLs *intermittently* (Code Integrity events 3077 on Oct 19, Oct 22 00:43 and 14:00); a fresh process loads fine minutes later. Fix: `data.wait_for_parquet()` retries the import in a fresh process 5x/60s before fetch, forward and Dukascopy, and exits non-zero without writing if still blocked. Today's fetch+forward were re-run by hand after the fix. Note the task is `fetch && forward` — when fetch fails, forward does NOT run. If it recurs: a "parquet unavailable (try n/5)" line in daytrade_fetch_task.log is the retry working; only a "still blocked after 5 tries" exit is a real failure.
+- **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact on forward tests; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
@@ -34,18 +35,17 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Log
 
-### 2026-10-22 daily review
-- All V2 tasks result 0. 1 SA pre-market empty-body error (recurring transient, harmless).
-- V3 IntradayFetch result 1: pyarrow _parquet DLL blocked by Windows Application Control. Crash at fetch_daily() → _merge_into_archive(). Forward tests updated (ran before crash); 1d/1m/5m bar archives not updated today. PROPOSED FIX: pickle fallback in agent/proposed_fixes/v3_pickle_fallback/ (data_changes.py + test_merge_fallback.py).
-- V3 DukascopyDownload Oct 21 exit 3221225786 (0xC000013A = console closed). Snapshot confirms script completed (8 tickers fetched). Wrapper signal, not a data error.
-- V2 rank: 1 closure — ISRG bullish loss -1.000R (options-era, exit Oct 21). Rank 57/100; mean after costs -0.048 (was -0.030); week-t -0.45.
-- 4 threshold signals, 6 rank signals, 8 random signals today — all shares.
-- C6 forward: still 12/30 sessions (no session 13 due to fetch failure), day-t -2.37.
+### 2026-10-22 daily review (second run, 21:46)
+- All V2/V3 tasks result 0. IntradayFetch: earlier DLL block resolved by aff8929; re-ran 21:44, session 13 now available. Dukascopy result 0 (ran 18:00–18:55, 20 tickers). 1 SA pre-market empty-body (recurring transient).
+- CWEN-A, HLX, LEG returning Yahoo 404s during yfinance fetch (likely delisted). Low impact; logged for future cleanup.
+- V2 rank: ISRG closure already processed; no new closures today. 57/100; mean after costs -0.048; week-t -0.23. 4 threshold, 6 rank, 8 random signals (all shares).
+- C6 forward session 13: +0.247R; day-t -2.06 (improved from -2.37). mean -0.270R.
+- G2 forward session 13: mean +0.034 ATR, t +0.73 (noise).
+- ON1 forward session 12: mean +17.943 bps, t +0.54 (noise). Last day Oct 21: -165.870 bps.
 - G2 paper day 10: +15.814 bps (mean -3.553 bps, t -0.16, noise).
 - ON1 paper day 7: mean +85.911 bps, day-t 1.91. Last day Oct 21: +140.984 bps.
-- G2 forward day 11: +0.009 ATR mean, t +0.20, noise. ON1 forward day 10: +28.129 bps mean, t +0.82, noise.
-- Random control: 2 closed, mean -1.190R (noise).
-- V2 test suite: 1826 passed.
+- Random control: 2 closed, mean -1.260R after costs (noise).
+- No bugs. No fixes proposed.
 
 ### 2026-10-21 daily review
 - All tasks result 0 (DailyReview 267009 = currently running, expected).
