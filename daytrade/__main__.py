@@ -15,7 +15,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("fetch", help="download available 1m/5m bars into the archive")
     sub.add_parser("backtest", help="run the strategy and print the summary")
-    sub.add_parser("forward", help="update the C6 forward-test ledger from the archive")
+    sub.add_parser("forward", help="update the G2 and ON1 forward-test ledgers (C6 retired 2026-10-23)")
     c = sub.add_parser("charts", help="chart a sample of setups for visual checking")
     c.add_argument("-n", type=int, default=12)
     c.add_argument("--seed", type=int, default=1)
@@ -34,7 +34,8 @@ def main():
         from .data import fetch_hourly
         hourly = sorted(set(forward.g2_tickers()) | set(forward.index_tickers("sp600")))
         print("hourly bars updated for", fetch_hourly(hourly), "tickers")
-        print("C6", json.dumps(forward.update(), default=str))
+        # C6 retired 2026-10-23 (no edge in 8 years of minute data; forward t -2.16 at 14 sessions).
+        # Its ledger data/forward/c6_forward_trades.csv is kept as the record; forward.update() still exists.
         print("G2", json.dumps(forward.update_g2(), default=str))
         print("ON1 (secondary)", json.dumps(forward.update_on1(), default=str))
         return
