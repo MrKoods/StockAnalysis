@@ -1,6 +1,6 @@
 # Review agent
 
-An unattended Claude Code session that reviews the V2 and V3 paper-testing data on a schedule and
+An unattended Claude Code session that reviews the V2, V3 and V4 paper-testing data on a schedule and
 posts a summary to Discord. It **watches, researches and proposes**; it never changes a live model.
 
 | Task | When (Pacific) | What |

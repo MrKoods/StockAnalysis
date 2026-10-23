@@ -7,6 +7,7 @@ param([ValidateSet('daily', 'weekly')][string]$Mode = 'daily')
 $ErrorActionPreference = 'Continue'
 $Live = 'C:\Users\user\Documents\Git\StockAnalysis'
 $V3 = 'C:\Users\user\Documents\Git\StockAnalysis-V3'
+$V4 = 'C:\Users\user\Documents\Git\StockAnalysis-V4'
 $Work = 'C:\Users\user\Documents\Git\StockAnalysis-agent'
 $Today = Get-Date -Format 'yyyy-MM-dd'
 $LogDir = Join-Path $Work 'agent\logs'
@@ -48,12 +49,13 @@ else { $RebaseNote = 'agent branch rebased onto Version-1 cleanly' }
 # 2. Context the agent can't gather itself (it has no PowerShell access).
 $tasks = Get-ScheduledTask -TaskName 'StockAnalysis_*' | ForEach-Object {
     $i = $_ | Get-ScheduledTaskInfo
-    '{0,-40} last {1:yyyy-MM-dd HH:mm}  result {2,-11} next {3:yyyy-MM-dd HH:mm}' -f $_.TaskName, $i.LastRunTime, $i.LastTaskResult, $i.NextRunTime
+    '{0,-40} {4,-8} last {1:yyyy-MM-dd HH:mm}  result {2,-11} next {3:yyyy-MM-dd HH:mm}' -f $_.TaskName, $i.LastRunTime, $i.LastTaskResult, $i.NextRunTime, $_.State
 }
 @("Run mode: $Mode", "Today (Pacific): $Today $(Get-Date -Format 'HH:mm')", $RebaseNote, '',
   'Scheduled tasks (LastTaskResult 0 = success; 267011 = never run; 2147946720 = missed while asleep):') + $tasks +
   @('', 'Live V2 branch, last commits:') + (git -C $Live log --oneline -5) +
-  @('', 'Live V3 branch, last commits:') + (git -C $V3 log --oneline -3) |
+  @('', 'Live V3 branch, last commits:') + (git -C $V3 log --oneline -3) +
+  @('', 'Live V4 branch, last commits:') + (git -C $V4 log --oneline -3) |
   Set-Content (Join-Path $Work 'agent\state\context.txt') -Encoding utf8
 
 # 3. Run Claude headless. dontAsk = anything not allowed in agent_settings.json is refused, never prompted.
@@ -61,19 +63,20 @@ $prompt = "Today is $Today. Run the $Mode routine: read agent/prompts/common.md,
           $(if ($Mode -eq 'daily') { 'daily_review.md' } else { 'weekly_research.md' }) + ' and follow it exactly.'
 $start = Get-Date
 & claude -p $prompt --permission-mode dontAsk --settings (Join-Path $Work 'agent\agent_settings.json') `
-    --add-dir $Live $V3 -n "agent-$Mode-$Today" 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8
+    --add-dir $Live $V3 $V4 -n "agent-$Mode-$Today" 2>&1 | Out-File -FilePath $Log -Append -Encoding utf8
 $code = $LASTEXITCODE
 Pop-Location
 "=== claude exited $code at $(Get-Date -Format s) ===" | Out-File -FilePath $Log -Append -Encoding utf8
 
-# 4. Checks that must reach the user whatever the agent writes (or if it never ran): the 18:00 Dukascopy
-#    download (from snapshot.py's ACTION NEEDED lines) and whether the previous weekday's review happened.
+# 4. Checks that must reach the user whatever the agent writes (or if it never ran): snapshot.py's
+#    ACTION NEEDED lines (e.g. a stale V4 earnings calendar) and whether the previous weekday's review happened.
 $alerts = @()
 # Every scheduled task: did its most recent scheduled time actually fire, and did it succeed? Old one-time
-# triggers and the hourly research loop are ignored; the Dukascopy download is judged by snapshot.py below.
+# triggers and disabled (retired) tasks are ignored.
 $now = Get-Date
 foreach ($t in Get-ScheduledTask -TaskName 'StockAnalysis_*') {
-    if ($t.TaskName -in 'StockAnalysis_Agent_DailyReview', 'StockAnalysis_Agent_WeeklyResearch', 'StockAnalysis_V3_DukascopyDownload', 'StockAnalysis_V3_MinuteResearchAuto') { continue }
+    if ($t.State -eq 'Disabled') { continue }
+    if ($t.TaskName -in 'StockAnalysis_Agent_DailyReview', 'StockAnalysis_Agent_WeeklyResearch') { continue }
     $due = $null
     foreach ($tr in $t.Triggers) {
         $kind = $tr.CimClass.CimClassName

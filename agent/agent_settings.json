@@ -13,10 +13,12 @@
       "Write(//c/Users/user/Documents/Git/StockAnalysis/**)",
       "Edit(//c/Users/user/Documents/Git/StockAnalysis-V3/**)",
       "Write(//c/Users/user/Documents/Git/StockAnalysis-V3/**)",
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis-V4/**)",
+      "Write(//c/Users/user/Documents/Git/StockAnalysis-V4/**)",
       "Bash(git push*)", "Bash(git merge*)", "Bash(git rebase*)", "Bash(git reset*)",
       "Bash(git checkout*)", "Bash(git switch*)", "Bash(git -C*)", "Bash(git worktree*)",
       "Bash(python -m paper_trading.paper_runner*)", "Bash(python -m paper_trading.paper_updater*)",
-      "Bash(python -m paper_trading.options_pricer*)", "Bash(python -m daytrade*)",
+      "Bash(python -m paper_trading.options_pricer*)", "Bash(python -m daytrade*)", "Bash(python -m epre*)",
       "Bash(rm *)", "Bash(mv *)", "Bash(cp *)", "Bash(schtasks*)", "Bash(powershell*)", "PowerShell"
     ]
   }

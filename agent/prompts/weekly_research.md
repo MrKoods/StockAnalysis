@@ -8,7 +8,7 @@ questions, not on covering everything.
 
 1. Read `agent/NOTES.md` (especially research already done and open questions) and the week's
    `agent/reports/*-daily.md`.
-2. **Week in review.** Run `python agent/tools/snapshot.py`. For each V2 track and V3 strategy: the
+2. **Week in review.** Run `python agent/tools/snapshot.py`. For each V2 track, V3 strategy and the V4 EPRE test: the
    week's results, cumulative results, progress toward its frozen rule, and an honest read (on
    track / too early / looking weak). Compare the V2 rank track with the random-pick control and its
    sector ETFs once there is enough control data.

@@ -1,5 +1,5 @@
 """
-Daily snapshot of every paper-testing ledger in V2 and V3, read from the LIVE folders.
+Daily snapshot of every paper-testing ledger in V2, V3 and V4, read from the LIVE folders.
 
 The review agent works in its own git worktree (StockAnalysis-agent), whose tracked copies of the
 ledgers are stale. This script always reads the live files by absolute path, so the numbers the
@@ -22,12 +22,14 @@ import yaml
 
 V2 = Path(r"C:\Users\user\Documents\Git\StockAnalysis")
 V3 = Path(r"C:\Users\user\Documents\Git\StockAnalysis-V3")
+V4 = Path(r"C:\Users\user\Documents\Git\StockAnalysis-V4")
 DAY = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
 
 V2_LEDGERS = {"threshold": "paper_trades.csv", "rank": "rank_trades.csv", "random": "random_trades.csv"}
 V2_LOGS = ["paper_runner_premarket_task.log", "paper_updater_task.log",
            "paper_runner_midsession_task.log", "paper_runner_task.log"]
 V3_LOGS = ["g2_paper_task.log", "on1_paper_task.log", "daytrade_fetch_task.log"]
+V4_LOGS = ["epre_calendar_task.log", "epre_signals_task.log", "epre_evaluate_task.log"]
 
 
 def t_stat(x: pd.Series) -> float:
@@ -95,8 +97,8 @@ def v2_section() -> None:
 
 def v3_section() -> None:
     print(f"\n=== V3 day-trading model (live: {V3}) ===")
-    specs = [("C6 forward", "data/forward/c6_forward_trades.csv", "r_net", "R"),
-             ("G2 forward", "data/forward/g2_forward_trades.csv", "r_atr", "ATR"),
+    # C6 forward retired 2026-10-23 (ledger kept, no longer updated)
+    specs = [("G2 forward", "data/forward/g2_forward_trades.csv", "r_atr", "ATR"),
              ("ON1 forward", "data/forward/on1_forward_trades.csv", "bps", "bps"),
              ("G2 paper", "data/paper/g2_paper_ledger.csv", "bps_at_0932_entry", "bps"),
              ("ON1 paper", "data/paper/on1_paper_ledger.csv", "bps", "bps")]
@@ -117,7 +119,8 @@ def v3_section() -> None:
 def log_section() -> None:
     print("\n=== Task log health (lines dated today with ERROR / Traceback) ===")
     pat = re.compile(r"ERROR|Traceback|CRITICAL")
-    for root, logs in ((V2 / "data" / "logs", V2_LOGS), (V3 / "data" / "logs", V3_LOGS)):
+    for root, logs in ((V2 / "data" / "logs", V2_LOGS), (V3 / "data" / "logs", V3_LOGS),
+                       (V4 / "data" / "logs", V4_LOGS)):
         for name in logs:
             p = root / name
             if not p.exists():
@@ -134,39 +137,43 @@ def log_section() -> None:
                 where = f"last written {mtime:%Y-%m-%d %H:%M} PT"
             bad = [line for line in scope if pat.search(line)]
             print(f"  {name}: {where}, {len(bad)} error lines" + (f" | e.g. {bad[-1][:160]}" if bad else ""))
-    duka_section()
 
 
-def duka_section() -> None:
-    """The Dukascopy minute download runs daily at 18:00, after the daily review, so check the most recent
-    run, which should be yesterday evening's. No run since then means it never fired (computer off); a run
-    that logged 'start' but never 'ALL DONE' was killed part-way. Either way the data is a day stale until
-    the next run refetches the month. Problems are printed with ACTION NEEDED, which the launcher copies
-    into the Discord post regardless of what the agent writes."""
-    print("\n=== Dukascopy minute download (18:00 daily; last run should be yesterday evening) ===")
-    p = V3 / "data" / "intraday" / "duka_download.log"
-    if not p.exists():
-        print("  ACTION NEEDED: Dukascopy download log missing - the minute download has never run")
-        return
-    lines = p.read_text(encoding="utf-8", errors="replace").splitlines()[-500:]
-    starts = [i for i, line in enumerate(lines) if " start " in line]
-    if not starts:
-        print("  ACTION NEEDED: Dukascopy download has not run recently (no start in the last 500 log lines)")
-        return
-    run = lines[starts[-1]:]
-    yesterday = (pd.Timestamp(DAY) - pd.Timedelta(days=1)).date().isoformat()
-    if run[0][:10] < yesterday:
-        print(f"  ACTION NEEDED: Dukascopy download did NOT run last night - last run {run[0][:16]} "
-              "(computer off or task missed). Check the computer is on; data stays stale until it runs.")
-    done = [line for line in run if "ALL DONE" in line]
-    got = [m.group(1) for m in (re.search(r" (\S+) \d{4}-\d{2}: \d+ bars", line) for line in run) if m]
-    failed = [line[24:] for line in run if re.search(r"[1-9]\d* days failed", line)]
-    if done:
-        print(f"  last run started {run[0][:19]}: completed {done[-1][:19]}")
+def v4_section() -> None:
+    """EPRE paper test (V4). The calendar must be refreshed every weekday evening: entries are chosen from it
+    two sessions ahead, so a stale calendar silently drops trades. Problems print ACTION NEEDED, which the
+    launcher copies into the Discord post."""
+    print(f"\n=== V4 earnings-premium paper test (live: {V4}) ===")
+    cal = V4 / "data" / "calendar" / "earnings_calendar.csv"
+    if not cal.exists():
+        print("  ACTION NEEDED: V4 earnings calendar missing - StockAnalysis_V4_EPRE_Calendar has never completed")
     else:
-        print(f"  ACTION NEEDED: Dukascopy download started {run[0][:16]} but was killed part-way after "
-              f"{got[-1] if got else 'no ticker'} (window closed / computer slept). Re-run it or wait for tonight's run.")
-    print(f"  {len(got)} ticker(s) fetched" + (f"; with failed days: {'; '.join(failed)}" if failed else ""))
+        c = pd.read_csv(cal)
+        ref = str(c["refreshed"].max()) if len(c) else "never"
+        prev_wd = pd.Timestamp(DAY) - pd.offsets.BDay(1)
+        hist = int((c["time_source"] == "history").sum()) if len(c) else 0
+        print(f"  calendar: {len(c)} upcoming events, refreshed {ref} ({hist} times from company history)")
+        if ref == "never" or pd.Timestamp(ref) < prev_wd:
+            print(f"  ACTION NEEDED: V4 earnings calendar is stale (last refreshed {ref}) - the 17:15 refresh "
+                  "did not complete; trades two sessions out may be missed.")
+    p = V4 / "data" / "paper" / "epre_ledger.csv"
+    if not p.exists():
+        print("  [EPRE paper] ledger not created yet (first signals 2026-10-26)")
+        return
+    d = pd.read_csv(p, dtype={"entry_day": str, "exit_day": str, "date_ok": str})
+    x = d.dropna(subset=["hedged_bps"])
+    print(f"  [EPRE paper] signals logged {len(d)} | open {int(d['hedged_bps'].isna().sum())} "
+          f"| new today {int((d['entry_day'] == DAY).sum())}")
+    if len(x):
+        per_day = x.groupby("exit_day")["hedged_bps"].mean()
+        ok = x["date_ok"].dropna().str.lower()
+        acc = f"{(ok == 'true').mean():.0%}" if len(ok) else "n/a"
+        print(f"  [EPRE paper] closed {len(x)} | hedged mean {x['hedged_bps'].mean():+.1f} bps "
+              f"(net unhedged {x['net_bps'].mean():+.1f}) | exit-day t {t_stat(per_day):.2f} ({len(per_day)} days) "
+              f"| report-date accuracy {acc} | backtest ~ +19 bps; checkpoints at 1k/3k/6k trades (V4 RULES.md)")
+    late = d[d["hedged_bps"].isna() & (pd.to_datetime(d["exit_day"]) < pd.Timestamp(DAY) - pd.offsets.BDay(1))]
+    if len(late):
+        print(f"  ACTION NEEDED: {len(late)} V4 trade(s) past their exit day are still unscored - evaluate task failing?")
 
 
 if __name__ == "__main__":
@@ -175,4 +182,5 @@ if __name__ == "__main__":
     print(f"Snapshot for {DAY}\n")
     v2_section()
     v3_section()
+    v4_section()
     log_section()
