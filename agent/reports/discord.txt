@@ -1,9 +1,15 @@
-✅ Daily review 2026-10-22: all systems normal
+✅ Daily review 2026-10-23: all systems normal
 
-IntradayFetch earlier DLL block resolved — aff8929 retry fix ran at 21:44; C6/G2/ON1 session 13 data now available. Dukascopy completed cleanly at 18:55.
-C6 forward session 13: +0.247R today; day-t improved -2.37 → -2.06, mean -0.270R (13/30). Still tracking negative.
-G2 forward session 13: mean +0.034 ATR, t 0.73. ON1 forward session 12: mean +17.9 bps, t 0.54. Both noise.
-V2 rank: 57/100 closed, mean -0.048R after costs, t -0.23. No new closures today.
-ON1 paper: day-t 1.91 at 7 days — best V3 paper track; 13+ days from evaluation window.
-G2 paper day 10: mean -3.6 bps, t -0.16, noise.
-No bugs. No proposed fixes.
+20 new shares signals today (5 threshold, 7 rank, 8 random) — all shares, no violations.
+
+3 random control closures (5 total, mean −0.448R after costs, n=5, noise).
+
+V2 rank: 57/100 closed, mean −0.048R after costs, week-t −0.45. No new rank closures.
+
+C6 forward session 14: −0.140R today, day-t −2.16 (deepened from −2.06). 16 sessions to frozen decision.
+
+ON1 paper day 8: mean +85.3 bps, day-t 2.19 — t crossed +2.0 for the first time. Still 12+ days from the 20-day evaluation window; too early per frozen rule, but worth watching.
+
+G2 paper day 11: mean −8.9 bps, day-t −0.49. Noise.
+
+Transient Yahoo Finance news error for KEY — scan completed fine.

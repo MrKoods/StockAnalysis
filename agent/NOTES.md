@@ -3,10 +3,10 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 22: ISRG loss -1.000R (options-era), mean dropped from -0.030 → -0.048; week-t -0.23. Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
-- **C6 forward: day-t -2.06** (13/30 sessions, mean -0.270R day-level). Session 13 (Oct 22): +0.247R — improved t from -2.37. Still firmly negative; no early-stop rule; frozen decision at session 30.
-- **ON1 paper: day-t +1.91** at 7 days (Oct 21: +140.984 bps; 7-day mean +85.911 bps). Best V3 paper reading yet. 13+ days from 20-day evaluation window.
-- **Random control: 11 open, 2 closed** (mean -1.260R after costs, n=2, noise).
+- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 23: no new closures; week-t worsened -0.23 → -0.45 (week boundary shift, no new trades). Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
+- **C6 forward: day-t -2.16** (14/30 sessions, mean -0.260R day-level). Session 14 (Oct 23): -0.140R — slight improvement day over day, but t deepened from -2.06. No early-stop rule; frozen decision at session 30.
+- **ON1 paper: day-t +2.19** at 8 days (Oct 22: +80.750 bps; 8-day mean +85.266 bps). t crossed +2.0 for first time. Evaluation window opens at day 20 (12+ days away); too early per frozen rule, but best V3 paper track.
+- **Random control: 14 open, 5 closed** (mean -0.448R after costs, n=5, noise). 3 new closures today.
 - **IntradayFetch pyarrow DLL issue: RESOLVED 2026-10-22 (V3 commit aff8929). Pickle-fallback proposal REJECTED** — one blocked run would replace the archive's history with only the new download window, and load() would prefer that stale .pkl forever (data loss; 1m history beyond Yahoo's 30 days is irreplaceable). Real cause: Smart App Control blocks pyarrow DLLs *intermittently* (Code Integrity events 3077 on Oct 19, Oct 22 00:43 and 14:00); a fresh process loads fine minutes later. Fix: `data.wait_for_parquet()` retries the import in a fresh process 5x/60s before fetch, forward and Dukascopy, and exits non-zero without writing if still blocked. Today's fetch+forward were re-run by hand after the fix. Note the task is `fetch && forward` — when fetch fails, forward does NOT run. If it recurs: a "parquet unavailable (try n/5)" line in daytrade_fetch_task.log is the retry working; only a "still blocked after 5 tries" exit is a real failure.
 - **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact on forward tests; flag for future maintenance pass.
 
@@ -34,6 +34,16 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-23 daily review
+- All tasks result 0. Dukascopy last ran Oct 22 (today's run at 18:00 not yet due). 2 transient Yahoo news errors for KEY — non-impacting, recurring pattern.
+- V2 rank: no new closures (57/100); mean -0.048R after costs; week-t -0.45. 20 new shares signals (5 threshold, 7 rank, 8 random).
+- Random: 3 new closures (5 total, mean -0.448R after costs, noise).
+- C6 forward session 14: -0.140R; day-t -2.16 (deepened from -2.06). Mean improved -0.270 → -0.260R.
+- G2 forward session 13: mean +0.034 ATR, t +0.73. ON1 forward session 12: mean +17.889 bps, t +0.53. Both noise.
+- G2 paper day 11: -64.922 bps; mean -8.863 bps, day-t -0.49. Noise.
+- ON1 paper day 8: mean +85.266 bps, day-t **+2.19** (t crossed +2.0). Last day Oct 22: +80.750 bps. 12+ days from evaluation window.
+- No bugs. No fixes proposed.
 
 ### 2026-10-22 daily review (second run, 21:46)
 - All V2/V3 tasks result 0. IntradayFetch: earlier DLL block resolved by aff8929; re-ran 21:44, session 13 now available. Dukascopy result 0 (ran 18:00–18:55, 20 tickers). 1 SA pre-market empty-body (recurring transient).
