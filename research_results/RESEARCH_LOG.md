@@ -194,3 +194,31 @@ holdout (9 of 51 positive, best holdout t 1.37). SWEEP family best search t 1.52
 earlier "failed breakout short" theme was an artifact of the bug. Best (non-passing) holdout:
 long-only gap fill to half the gap, exit 14:00 (G2's mechanism): +10.9 bps, t 1.25.
 Buggy outputs kept as *_BUGGY2_plannedhold* for the record.
+
+## Round 7: EVENT-DRIVEN families (PROTOCOL12, 2026-10-23)
+First test of information events (never tested in rounds 1-6). Free data: earnings dates + surprise (yfinance,
+2000+), analyst rating changes (2012+), SEC Form 3/4/5 insider trades (2006+), VIX/VIX3M. 1,490 stocks
+(S&P 500/400/600 pooled), tiered costs 3/5/8 bps per side, universe-hedged, NW t. 4,184 configs + 648 EORB.
+Timing checks: day-0 |gap| 0.75 ATR vs ~0.17 on other days (dates aligned); analyst-action day moves
++-2.1% BEFORE our next-open entry (no look-ahead).
+Stage 3 holdout 2018-01..2026-10-06 (19 candidates, t >= 3.0):
+- PASS: EPRE = buy at the close 1 (or 2) sessions before the session whose open first reflects the
+  report, sell at that session's close ("earnings announcement premium"). k=1: n 48,526, +18.8 bps
+  hedged net, t 4.0, raw +36.9, 2018-21 +21.0 / 2022-26 +17.1, sp500 +12.0 / sp400 +28.8 / sp600 +18.0.
+  k=2: +19.3, t 3.6. Robustness: all of it is the overnight report gap (+25 bps gross hedged); run-up leg
+  ~0; reaction-day intraday +2. Liquid half -4.7 vs illiquid half +41.7 (small-cap effect). Per-trade
+  sd 793 bps (median +4.3; trimmed 1/99 mean +14.9; ex-top-1% -12.7). Years negative: 2021, 2022, 2025.
+  Placebo random 2-session windows -1.5 bps. Portfolio (raw, 10 slots): CAGR +33%, maxDD -37%,
+  worst month -19%; 20 slots +30% / -24%; 2x costs +20%; random-date 2-day longs same engine ~0% CAGR.
+  Caveat: current-constituent survivorship cannot be ruled out for event days (literature on CRSP
+  data does find the premium); forward t accrues only ~1.35/yr -> a forward test needs ~2 years to prove.
+- Near miss: INS insider open-market buys >= $100k by officers, next-open -> close: +17.6, t 2.3.
+- FAIL: EGAP earnings-gap continuation (search t 9.9 -> holdout -0.9 bps), ESUR surprise drift (all
+  negative), ANL analyst actions, MAC VIX timing, RRV residual reversal (holdout dominated by outliers /
+  likely bad prints in small caps, t 1.3). Classic 2000-2017 anomalies dead after 2018 again.
+- EORB stocks-in-play first-hour ORB (hourly 2023-26): median search t -1.46; top 6 all negative in
+  holdout (2025-07+). Day-trade versions best search t 2.2 (luck level).
+- HOLDL (user: "if the day trade is wrong, hold up to 5 days"): 385 day-trade configs. Win rate 49% ->
+  62%; mean unchanged where there is no multi-day edge (EGAP -10.4 -> -10.7); avg loss -345 -> -621
+  bps, worst 1% -13% -> -19%, worst single -60% -> -134% (short). Prettier win rate, same expectancy,
+  fatter left tail.

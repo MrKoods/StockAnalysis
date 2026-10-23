@@ -1,0 +1,51 @@
+panel 1490 x 6982 (27s)
+4184 configs
+loaded E (4s)
+0/4184 4s
+250/4184 11s
+500/4184 15s
+750/4184 19s
+1000/4184 21s
+1250/4184 24s
+1500/4184 29s
+1750/4184 32s
+2000/4184 34s
+loaded I (116s)
+2250/4184 152s
+2500/4184 153s
+2750/4184 156s
+3000/4184 166s
+3250/4184 172s
+loaded R (3s)
+3500/4184 177s
+loaded RRV (1s)
+3750/4184 282s
+4000/4184 435s
+loaded VIX (0s)
+ANL: best search t 1.78  single-config null p 0.025  (family has 288 configs; 95% of null |t| < 2.38)
+EGAP: best search t 9.93  single-config null p 0.000  (family has 1200 configs; 95% of null |t| < 4.62)
+EPRE: best search t 8.41  single-config null p 0.000  (family has 72 configs; 95% of null |t| < 5.59)
+ESUR: best search t 7.00  single-config null p 0.000  (family has 864 configs; 95% of null |t| < 3.68)
+INS: best search t 8.37  single-config null p 0.000  (family has 1152 configs; 95% of null |t| < 3.55)
+MAC: best search t 2.97  single-config null p 0.000  (family has 32 configs; 95% of null |t| < 1.85)
+RRV: best search t 12.90  single-config null p 0.000  (family has 576 configs; 95% of null |t| < 6.15)
+     family                                       p      filt       n       mean         raw          t  long_mean  short_mean
+3347    ANL           ["up", true, false, false, 5]  illiquid     362  36.981867   77.145347   1.783189  36.981867         NaN
+3451    ANL          ["down", true, false, true, 3]    liquid     583  13.498272  -10.623803   0.849375        NaN   13.498272
+3311    ANL           ["up", false, false, true, 5]  illiquid    1441   3.579400   39.466495   0.334676   3.579400         NaN
+9      EGAP  [0.5, "follow", "o0", 1, "surp_agree"]      none   25579  41.272621   49.812309   9.931672  46.176925   30.807263
+309    EGAP    [1, "follow", "o0", 1, "surp_agree"]      none   16749  35.957752   44.969594   7.490572  42.876710   21.721978
+613    EGAP          [2, "follow", "o0", 2, "none"]    liquid    5577  43.003384   43.430478   6.222242  49.363234   36.128576
+2073   EPRE                  [1, "through", "none"]      none   63195  25.522810   43.712406   8.408067  25.522810         NaN
+2091   EPRE                  [2, "through", "none"]      none   63197  23.966785   50.877661   7.279886  23.966785         NaN
+2112   EPRE               [3, "through", "loser20"]      none   26879  41.407663   77.305610   7.113293  41.407663         NaN
+1664   ESUR      [10, "both", "c0", 5, "gap_agree"]  illiquid   11551  42.561792   51.824847   7.000608  40.643560   46.261589
+1878   ESUR      [25, "both", "c0", 5, "gap_agree"]      none   10385  40.906368   53.482005   6.287894  38.782249   45.202207
+1448   ESUR       [5, "both", "c0", 5, "gap_agree"]  illiquid   15031  31.166707   41.839979   6.093559  28.964366   35.462871
+2352    INS     ["P", 100000.0, true, 1, "none", 1]      none    2812  44.756973   52.638225   8.372899  44.756973         NaN
+2208    INS      ["P", 25000.0, true, 1, "none", 1]      none    4856  30.139623   40.731148   7.002729  30.139623         NaN
+2430    INS    ["P", 500000.0, false, 1, "none", 3]      none    3205  58.509306   75.902932   5.804762  58.509306         NaN
+4161    MAC                        ["vixjump10", 2]      none     881  35.351732   42.995370   2.972309  35.351732         NaN
+3617    RRV           [1, 0.05, 3, "close", "long"]  illiquid  135807  60.546624   77.203894  12.898110  60.546624         NaN
+3887    RRV           [3, 0.05, 2, "close", "long"]  illiquid  131409  46.827887   59.728000  12.636488  46.827887         NaN
+3779    RRV           [2, 0.05, 5, "close", "long"]  illiquid  133143  91.048498  118.410195  12.503720  91.048498         NaN

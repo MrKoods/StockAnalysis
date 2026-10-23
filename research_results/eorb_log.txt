@@ -1,0 +1,8 @@
+panel rows 1047358  earnings-day rows 16103
+648 configs; search t quantiles [-5.09, -1.46, 1.36]
+{"p": "[\"earn\", 0.0, \"follow\", \"c1\", false, true, \"small\"]", "search_n": 2733, "search_mean": 30.75, "search_t": 2.79, "ho_n": 2356, "ho_mean": -4.05, "ho_raw": -5.47, "ho_t": -0.32, "ho_long": -15.31, "ho_short": 8.62, "PASS": false}
+{"p": "[\"earn\", 0.0, \"follow\", \"c3\", false, true, \"small\"]", "search_n": 2733, "search_mean": 39.38, "search_t": 2.79, "ho_n": 2320, "ho_mean": -23.86, "ho_raw": -25.19, "ho_t": -1.36, "ho_long": -10.81, "ho_short": -38.61, "PASS": false}
+{"p": "[\"earn\", 0.25, \"follow\", \"c3\", false, true, \"small\"]", "search_n": 2294, "search_mean": 40.36, "search_t": 2.71, "ho_n": 1945, "ho_mean": -25.21, "ho_raw": -27.11, "ho_t": -1.31, "ho_long": -11.38, "ho_short": -41.24, "PASS": false}
+{"p": "[\"earn\", 0.25, \"follow\", \"c1\", false, true, \"small\"]", "search_n": 2294, "search_mean": 32.29, "search_t": 2.68, "ho_n": 1976, "ho_mean": -9.09, "ho_raw": -11.02, "ho_t": -0.66, "ho_long": -20.37, "ho_short": 3.95, "PASS": false}
+{"p": "[\"earn\", 0.5, \"follow\", \"c3\", false, true, \"small\"]", "search_n": 1863, "search_mean": 41.08, "search_t": 2.55, "ho_n": 1615, "ho_mean": -38.99, "ho_raw": -40.3, "ho_t": -1.71, "ho_long": -21.75, "ho_short": -58.83, "PASS": false}
+{"p": "[\"earn\", 0.5, \"follow\", \"c1\", false, true, \"none\"]", "search_n": 2816, "search_mean": 23.61, "search_t": 2.53, "ho_n": 2404, "ho_mean": -9.78, "ho_raw": -11.87, "ho_t": -0.84, "ho_long": -9.54, "ho_short": -10.07, "PASS": false}
