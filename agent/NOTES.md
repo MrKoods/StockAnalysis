@@ -3,20 +3,44 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.048** (57/100 closed). Oct 23: no new closures; week-t worsened -0.23 → -0.45 (week boundary shift, no new trades). Research confirmed: entire raw positive mean comes from time-stop exits. Recovery toward +0.15 needs consistently positive results over remaining 43 trades.
-- **C6 forward: day-t -2.16** (14/30 sessions, mean -0.260R day-level). Session 14 (Oct 23): -0.140R — slight improvement day over day, but t deepened from -2.06. No early-stop rule; frozen decision at session 30.
-- **ON1 paper: day-t +2.19** at 8 days (Oct 22: +80.750 bps; 8-day mean +85.266 bps). t crossed +2.0 for first time. Evaluation window opens at day 20 (12+ days away); too early per frozen rule, but best V3 paper track.
-- **Random control: 14 open, 5 closed** (mean -0.448R after costs, n=5, noise). 3 new closures today.
-- **IntradayFetch pyarrow DLL issue: RESOLVED 2026-10-22 (V3 commit aff8929). Pickle-fallback proposal REJECTED** — one blocked run would replace the archive's history with only the new download window, and load() would prefer that stale .pkl forever (data loss; 1m history beyond Yahoo's 30 days is irreplaceable). Real cause: Smart App Control blocks pyarrow DLLs *intermittently* (Code Integrity events 3077 on Oct 19, Oct 22 00:43 and 14:00); a fresh process loads fine minutes later. Fix: `data.wait_for_parquet()` retries the import in a fresh process 5x/60s before fetch, forward and Dukascopy, and exits non-zero without writing if still blocked. Today's fetch+forward were re-run by hand after the fix. Note the task is `fetch && forward` — when fetch fails, forward does NOT run. If it recurs: a "parquet unavailable (try n/5)" line in daytrade_fetch_task.log is the retry working; only a "still blocked after 5 tries" exit is a real failure.
-- **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact on forward tests; flag for future maintenance pass.
+- **V2 rank mean R after costs: -0.048** (57/100 closed). GO mathematically unreachable at current rate: remaining 43 trades need +0.412R/trade each to reach +0.15 — ~9× current mean. Projected final mean ~-0.047R. Frozen at n=100.
+- **C6 forward: day-t -2.16** (14/30 sessions, mean -0.260R). Deepening. No early-stop rule; frozen at session 30.
+- **ON1 paper: day-t +2.19** (8 days, mean +85.3 bps). t crossed +2.0; not single-outlier-driven (drop largest day Oct 16 = t 2.13). Still 3/8 drop-ones <2.0 (fragile at n=8). Eval window at day 20 (next ~Nov 7).
+- **Random control: 5 closed** (mean -0.448R after costs, noise). 14 open, 19 pending.
+- **V4 EPRE first run Monday 2026-10-26.** ~117 signals day 1; checkpoint A (~1,000 trades) may arrive ~Nov 7 given peak earnings season (not 1-1.5 years as in RULES.md — that's annual average).
+- **IntradayFetch pyarrow DLL: RESOLVED** (V3 commit aff8929, Oct 22). Retry-before-touch pattern in place.
+- **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
 - V2: which score components (if any) predict R? Earlier IC work found no robust edge.
-- V3 G2: does entry slippage cost matter more in less-liquid names specifically? (broader analysis deferred until n > 100)
-- V2 rank: what distinguishes time-stop winners from losses? (direction/sector/vix/rsi — could inform future track design; cannot tune live experiment)
+- V3 G2: does entry slippage cost matter more in less-liquid names specifically? (deferred until n > 100)
+- ON1 paper: does day-t hold above 2.0 as evaluation window approaches? (watch daily)
 
 ## Research done
+
+### 2026-10-24 weekly — ON1 paper consistency (agent/research/2026-10-24-weekly/on1_paper_analysis.py)
+**Q:** Is day-t +2.19 driven by a single outlier?
+**Method:** Day-by-day breakdown, drop-one t-stat for each of 8 days.
+**Results:** 6/8 days positive. Mean +85.3 bps, std 109.9. Dropping Oct 16 (largest, +311.6 bps) → t=2.13. Three drop-ones fall below t=2 (Oct 14, Oct 21, Oct 22). Day-level win rate 75%.
+**Verdict:** Not a single-outlier artifact; fragile at n=8 as expected. Watch for consistency over next 12 days.
+
+### 2026-10-24 weekly — V2 rank time-stop vs loss predictors (agent/research/2026-10-24-weekly/rank_timestop_analysis2.py)
+**Q:** Which signal features distinguish time-stop exits from losses?
+**Method:** Mann-Whitney U tests on 6 features (VIX, RSI, rs_zscore, mom_5d, technical_score, confidence) for time_stop (n=26) vs loss (n=27). Direction analysis.
+**Results:** Only mom_5d reached p=0.04 (time-stops have slightly negative momentum vs losses' slightly positive). With 6 features tested, this is expected by chance. No other feature p<0.10. Bearish time-stop rate 54.5% vs bullish 40%, p=0.31. All 56 closed are options-era.
+**Verdict:** No robust predictor found. Outcome appears to be random short-term price movement. Context: time-stops exit at mean 11.5 days (hitting the 15-day limit); losses exit at mean 4.3 days (stopping out quickly).
+
+### 2026-10-24 weekly — V2 rank go/no-go trajectory (agent/research/2026-10-24-weekly/rank_gonogo_trajectory.py)
+**Q:** Is GO (+0.15R at n=100) mathematically reachable?
+**Method:** Simple arithmetic from current total R and required future per-trade mean.
+**Results:** Required mean for remaining 43 trades: +0.412R/trade. At current mix projected final mean ≈ -0.047R. Even 100% time-stop future → only +0.277R (requires implausible run).
+**Verdict:** GO unreachable at current trajectory. Not a change — experiment runs to n=100.
+
+### 2026-10-24 weekly — V4 EPRE calendar readiness (agent/research/2026-10-24-weekly/epre_preview2.py)
+**Q:** How many signals on first EPRE run? When does checkpoint A arrive?
+**Results:** Monday Oct 26: 117 signals (reaction Oct 28). Week 1: ~514 trades. Week 2: ~474. Checkpoint A (~1,000) may arrive ~Nov 7.
+**Note:** RULES.md "1-1.5 years" is annual-average-based; peak earnings season is ~5× denser.
 
 ### 2026-10-17 weekly — C6 forward trajectory (agent/research/2026-10-17-c6-trajectory/)
 **Q:** How close to t = −2.0 is C6 and at what pace?
@@ -34,6 +58,16 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-24 weekly research
+- All tasks result 0; V4 EPRE tasks (signals, evaluate) never run — expected, first run Monday.
+- V2 rank 57/100, mean -0.048R after costs, week-t -0.45. Trajectory: GO unreachable (+0.412R/trade needed for remaining 43). Random control 5 closed, mean -0.448R (noise).
+- C6 forward session 14/30: day-t -2.16, deepening. Frozen at session 30.
+- ON1 paper 8 days: day-t +2.19, mean +85.3 bps, 6/8 positive. Not outlier-driven (drop-one Oct 16 → t=2.13). Evaluation window day 20.
+- G2 paper 11 days: day-t -0.49, noise. G2 forward 13 days: day-t +0.73, noise. ON1 forward 12 days: day-t +0.53, noise.
+- V4 EPRE: 117 signals expected Monday; checkpoint A may arrive ~Nov 7.
+- Research: ON1 paper consistency (not outlier-driven, fragile); rank time-stop predictors (none found); rank go/no-go trajectory (unreachable); EPRE calendar preview.
+- No proposals. No bugs.
 
 ### 2026-10-23 daily review
 - All tasks result 0. Dukascopy last ran Oct 22 (today's run at 18:00 not yet due). 2 transient Yahoo news errors for KEY — non-impacting, recurring pattern.

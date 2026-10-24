@@ -1,15 +1,17 @@
-✅ Daily review 2026-10-23: all systems normal
+📊 Weekly research 2026-10-24: V2 rank on NO-GO trajectory; ON1 paper t +2.19 holds up; EPRE fires Monday
 
-20 new shares signals today (5 threshold, 7 rank, 8 random) — all shares, no violations.
+**Scorecard**
+• V2 rank: 57/100 closed, mean −0.048R after costs, week-t −0.45 → projected final mean −0.047R; GO needs +0.412R/trade remaining (9× current) — unreachable at this rate
+• C6 forward: session 14/30, day-t −2.16 (deepened again) — frozen at session 30
+• ON1 paper: 8 days, mean +85 bps, day-t +2.19 — crossed threshold; eval window at day 20 (12 days away); not single-outlier-driven (removing biggest day still t=2.13)
+• G2 paper: 11 days, mean −8.9 bps, day-t −0.49 — noise
+• G2 forward: 13 days, day-t +0.73 — noise
+• ON1 forward: 12 days, day-t +0.53 — noise
+• V4 EPRE: first signals Monday Oct 26 (~117 trades); checkpoint A (1,000) may arrive ~Nov 7 given peak earnings season
 
-3 random control closures (5 total, mean −0.448R after costs, n=5, noise).
+**Research done**
+1. ON1 paper drop-one: not outlier-driven; 3/8 drop-ones fall below t=2 — fragile at n=8 as expected
+2. V2 rank time-stop predictors: no feature (VIX, RSI, momentum, score, confidence) separates time-stop from loss at p<0.05 after multiple-testing; pure price-path luck
+3. V2 rank trajectory: GO mathematically unreachable at current rate (need +0.412R/trade remaining)
 
-V2 rank: 57/100 closed, mean −0.048R after costs, week-t −0.45. No new rank closures.
-
-C6 forward session 14: −0.140R today, day-t −2.16 (deepened from −2.06). 16 sessions to frozen decision.
-
-ON1 paper day 8: mean +85.3 bps, day-t 2.19 — t crossed +2.0 for the first time. Still 12+ days from the 20-day evaluation window; too early per frozen rule, but worth watching.
-
-G2 paper day 11: mean −8.9 bps, day-t −0.49. Noise.
-
-Transient Yahoo Finance news error for KEY — scan completed fine.
+**Proposals awaiting approval:** none this week
