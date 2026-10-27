@@ -18,3 +18,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-10-23,v4-EPRE,earnings_events,holdout,1,2018-2026,4.0,18.8,pass,pre-team: Version-4 paper running
 2026-10-23,v3-ESUR,earnings_events,holdout,1,2018-2026,,,fail,pre-team: PEAD drift
 2026-10-23,v3-insider-buys,insider,holdout,1,2018-2026,2.3,,near_miss,pre-team: officer buys >=$100k
+2026-10-27,insider-cluster-buys,insider,search,12,2006-01-01..2013-12-31,2.9,82.63,,team train run
