@@ -1,0 +1,11 @@
+{"verdict": "PASS",
+ "summary": "Pre-registered n2_h5_m75k: no look-ahead (filing-date trigger, strictly-next-session entry), net t 2.9 > luck 2.23, sign stable across all 12 variants, 82 bps net survives 1.5x cost; survivorship + thin holdout are pre-declared, go to the 3.0 holdout bar.",
+ "checks": {
+   "lookahead": "PASS - trigger by FILING_DATE only (test.py:57,73); entry = searchsorted side=right, strictly after fd (test.py:96); no full-sample stats; episode dedupe consumes fire even when prices missing.",
+   "luck": "PASS - chosen is pre-registered not best-of-train (test.py:27,147); still net t 2.9 > luck_t_best_of_n 2.23 and >2.0 floor; smooth sign-stable neighbourhood (all n2 t 2.75-4.04, all n3 positive); best variant h10 t4.04 correctly not carried.",
+   "costs": "PASS - cost_bps 20 subtracted in harness (jobs.py:99); reported bps are net; liquid SP500/400 open->close; net per-trade 86.6 bps survives 1.5x cost (~72-76 net).",
+   "sample": "PASS - 299 weekly periods / 863 trades over 2006-2013; well above 20-week floor; holdout 2014-2017 will be thinner - flagged for Holdout Keeper.",
+   "baseline": "PASS-with-caveat - metric is SPY-hedged (test.py:107), not long beta; survivorship (current sp500/400 applied to 2006) biases up but is modest for a 5-session hedged hold and unlikely to explain t2.9/82bps; if holdout is marginal, treat as survivorship. Pre-declared.",
+   "paper_match": "PASS - strategy.py encodes chosen rule (N_INS2/$25k each/$75k total/5d window, next-open entry, close +4 sessions) same universe; BUT promotion is correctly BLOCKED (SEC quarterly bulk lags a quarter; cannot trade a 3-5d hold live) - research verdict only, do not promote.",
+   "graveyard": "PASS - no cluster work in graveyard; family's spent holdout was single-officer >=$100k (t 2.3), a distinct signal; queued insider-officer-buys is also separate. Not a rerun."
+ }}
