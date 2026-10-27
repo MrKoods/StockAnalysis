@@ -41,7 +41,24 @@ Missing keys fall back to `DISCORD_AGENT_WEBHOOK_URL` (never the general scan ch
 `Edit(...)` rules govern the Write tool too; `Write(...)` allow rules alone are ignored (verified 2026-10-27).
 Every role denies all Webull order/revoke/post tools; unlisted tools are refused (dontAsk mode).
 
+## When each role runs
+| Role | Trigger |
+|---|---|
+| Scorekeeper | a task failure to diagnose, a frozen checkpoint reached, Friday scorecard |
+| Scout | Tue + Thu, if fewer than 5 ideas are waiting |
+| Director | Saturday review; Wednesday if the pipeline is idle; any paper verdict or holdout pass |
+| Researcher | an idea was queued (or its script needs fixing) - same dispatch as the Director |
+| Skeptic | a train result is waiting for review - same dispatch |
+| Holdout Keeper | (script) right after a Skeptic PASS - same dispatch, exactly once per idea |
+A role that already finished today is not relaunched (except Researcher/Skeptic, which work per idea).
+
+## Research safeguards
+- Research scripts load data only via `tools/research_data.py`, which cuts at the plan's train end; a static
+  scan rejects scripts that import yfinance/requests, read files, or touch the cutoff variable.
+- The harness, not the script, computes stats: subtracts the plan's cost, clusters by day/week, reports the
+  best-of-N luck t. `plan.lock` kills an idea whose plan changes after commit. Holdouts run once, ever.
+- Promotion fingerprints the strategy; the paper runner refuses a strategy whose files changed.
+
 ## Status
-Phase 1 (2026-10-27): dispatcher, Ops Monitor, Paper Runner, gate, trial budget, Scorekeeper - live.
-Phase 2: Scout, Researcher (+ backtest job runner), Skeptic, Holdout Keeper, Director - built next, roles disabled.
+2026-10-27: phases 1 + 2 built, all roles enabled. Permissions probed per role. 17 tests.
 Workspace: worktree `C:\Users\user\Documents\Git\StockAnalysis-Team`, orphan branch `team` (local, not pushed).
