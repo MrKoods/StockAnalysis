@@ -1,0 +1,12 @@
+{
+  "runs": 1,
+  "status": "done",
+  "bar": 3.0,
+  "t": 1.11,
+  "mean_bps": 28.76,
+  "n_trades": 344,
+  "n_periods": 151,
+  "passed": false,
+  "chosen": "n2_h5_m75k",
+  "error": ""
+}
