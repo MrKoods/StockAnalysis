@@ -54,11 +54,13 @@ def last_due(triggers: list[dict], now: datetime) -> datetime | None:
         kind = tr.get("Kind")
         if kind not in ("MSFT_TaskWeeklyTrigger", "MSFT_TaskDailyTrigger") or not tr.get("Start"):
             continue
-        at = datetime.fromisoformat(tr["Start"][:19]).time()
+        start = datetime.fromisoformat(tr["Start"][:19])
         for back in range(9):
-            when = datetime.combine(now.date() - timedelta(days=back), at)
+            when = datetime.combine(now.date() - timedelta(days=back), start.time())
             if when > now:
                 continue
+            if when < start:  # before the task existed (e.g. registered today) - nothing was due
+                break
             # DaysOfWeek bitmask: Sunday = 1 ... Saturday = 64; Python weekday(): Monday = 0
             if kind == "MSFT_TaskWeeklyTrigger" and not (int(tr.get("Days") or 0) >> ((when.weekday() + 1) % 7)) & 1:
                 continue

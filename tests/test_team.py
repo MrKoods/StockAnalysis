@@ -88,6 +88,8 @@ def test_last_due_weekly_mask():
     assert ops_monitor.last_due([weekdays], sat) == datetime(2026, 10, 30, 14, 45)
     tue_morning = datetime(2026, 10, 27, 9, 0)
     assert ops_monitor.last_due([weekdays], tue_morning) == datetime(2026, 10, 26, 14, 45)
+    new_today = {**weekdays, "Start": "2026-10-27T14:50:00"}  # registered Tue 1 AM
+    assert ops_monitor.last_due([new_today], tue_morning) is None
 
 
 def test_task_not_run_and_failed():
