@@ -182,8 +182,11 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
     with open(USAGE, "a", encoding="utf-8") as fh:
         if new_usage:
             fh.write("date,role,model,turns,minutes,cost_equiv_usd,status\n")
-        status = ("logged_out" if re.search(r"Not logged in|/login|OAuth|authentication_error|401", raw)
-                  else "ok" if out_file.exists() and out_file.stat().st_mtime > start
+        # A finished run (outbox written) is ok whatever its text says; only an unfinished one is checked for
+        # a lost login (a bare "401" matched normal output once and raised a false LOGGED OUT alarm).
+        finished = out_file.exists() and out_file.stat().st_mtime > start
+        status = ("ok" if finished else
+                  "logged_out" if re.search(r"Not logged in|Please run /login|authentication_error|OAuth token", raw)
                   else "failed")
         fh.write(f"{today},{role},{cfg['model']},{res.get('num_turns', '')},{(time.time() - start) / 60:.1f},"
                  f"{res.get('total_cost_usd', '')},{status}\n")

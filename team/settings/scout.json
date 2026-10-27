@@ -9,6 +9,8 @@
    "WebFetch",
    "ToolSearch",
    "Bash(python tools/ideas.py *)",
+   "Bash(python tools/budget.py)",
+   "Bash(python tools/budget.py *)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/ideas/**)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/notes/scout.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/outbox/scout.txt)",
