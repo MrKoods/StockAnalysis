@@ -24,6 +24,8 @@ import time
 from datetime import date, timedelta
 
 import budget
+import ideas
+import jobs
 import ops_monitor
 import paper_runner
 from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, load_json, log, now_pt,
@@ -71,13 +73,30 @@ def runs_this_week() -> int:
     return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:] if line[:10] >= monday)
 
 
+def in_stage(stage: str) -> list[str]:
+    return [r["id"] for r in ideas.load() if r["stage"] == stage]
+
+
 def open_items(stage: str) -> int:
-    p = TEAM / "registry" / "ideas.csv"
-    if not p.exists():
-        return 0
-    import csv
-    with open(p, newline="", encoding="utf-8") as f:
-        return sum(1 for r in csv.DictReader(f) if r.get("stage") == stage)
+    return len(in_stage(stage))
+
+
+def research_work() -> str | None:
+    """The one idea the Researcher should work on now: fix a broken plan first, then the oldest queued."""
+    for iid in in_stage("planned") + in_stage("queued"):
+        d = TEAM / "research" / iid
+        for f in ("train_error.txt", "plan_problems.txt"):
+            if (d / f).exists():
+                return f"FIX {iid}: {f} says: " + (d / f).read_text(encoding="utf-8", errors="replace")[-400:]
+    for iid in in_stage("queued"):
+        if not (TEAM / "research" / iid / "plan.json").exists():
+            return f"RESEARCH {iid} (write its plan, test and strategy)"
+    return None
+
+
+def review_work() -> str | None:
+    todo = [i for i in in_stage("awaiting_review") if not (TEAM / "research" / i / "skeptic.json").exists()]
+    return f"REVIEW {todo[0]}" + (f" (+{len(todo) - 1} more waiting)" if len(todo) > 1 else "") if todo else None
 
 
 def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict, prev_paper: dict) -> dict[str, str]:
@@ -97,24 +116,27 @@ def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict,
         why.append("weekly scorecard")
     if why:
         want["scorekeeper"] = " | ".join(why)
-    # Phase 2 roles (ignored while disabled in roles.json).
     if day in ("Tue", "Thu") and open_items("idea") < 5:
         want["scout"] = f"scheduled scouting ({open_items('idea')} ideas waiting, target 5)"
-    if open_items("queued") and day in ("Wed", "Sat"):
-        want["researcher"] = f"{open_items('queued')} idea(s) queued for research"
-    if open_items("awaiting_review"):
-        want["skeptic"] = f"{open_items('awaiting_review')} result(s) awaiting review"
     director = (["weekly review"] if day == "Sat" else []) + verdicts
     if open_items("holdout_done"):
-        director.append(f"{open_items('holdout_done')} holdout result(s) to decide")
+        director.append(f"decide on holdout passes: {', '.join(in_stage('holdout_done'))}")
+    pipeline_idle = not (open_items("queued") or open_items("planned") or open_items("awaiting_review"))
+    if day == "Wed" and open_items("idea") and pipeline_idle:
+        director.append(f"pipeline idle with {open_items('idea')} idea(s) waiting - queue one")
     if director:
         want["director"] = "; ".join(director)
+    # Researcher and Skeptic are re-checked after the Director (it may queue work) - see main().
     return want
 
 
-def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict, want: dict) -> None:
+def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict, want: dict,
+                  pipeline: list[str]) -> None:
     lines = [f"# Team context for {today} ({DAYS[today.weekday()]}) - written by the dispatcher", "",
-             "## Why each role was woken"] + [f"- {r}: {w}" for r, w in want.items()] + [
+             "## Why you were woken"] + [f"- {r}: {w}" for r, w in want.items()] + [
+             "", "## Research pipeline moves today (tools/jobs.py)"] + [f"- {p}" for p in pipeline or ["none"]] + [
+             "", "## Ideas by stage (python tools/ideas.py list)"] + [
+             f"- {s}: {', '.join(in_stage(s))}" for s in ideas.STAGES if in_stage(s)] + [
              "", "## Ops alerts (already posted to #agent-ops - don't re-alert)"] + [f"- {a}" for a in f.alerts or ["none"]] + [
              "", "## To diagnose"] + [f"- {d}" for d in f.diagnose or ["none"]] + [
              "", "## Checkpoints crossed today"] + [f"- {h}" for h in hits or ["none"]] + [
@@ -208,35 +230,60 @@ def main(argv: list[str]) -> int:
             post("director", f"📌 Team paper test **{sid}** reached its rule verdict: **{s['verdict']}** "
                              f"({s['days']} days, mean {s['mean_bps']} bps, t {s['t']})", "Team - Paper Runner")
 
-    # 3. triggers
+    # 3. research pipeline, script part (train runs, Skeptic verdicts, holdouts) - no Claude
+    pipeline = [] if stopped() else jobs.advance(a.dry_run)
+
+    # 4. triggers
     cfg = load_json(ROLES, {"roles": {}})
     want = triggers(today, f, hits, paper, prev_paper)
     for r in a.force:
         want.setdefault(r, "forced by hand")
-    want = {r: w for r, w in want.items() if cfg["roles"].get(r, {}).get("enabled") or r in a.force}
-    write_context(today, f, hits, paper, want)
     if not a.dry_run:
         save_json(STATE / "dispatch_state.json", {"metrics": cur, "date": str(today)})
-    log(f"roles wanted: {want or 'none (quiet day)'}", "dispatch")
 
-    # 4. roles - Scout/Skeptic before Director, so the Director sees today's work
-    if stopped() or a.no_claude:
+    paused = stopped() or a.no_claude
+    if paused:
         if want and stopped():
             post("ops", f"⏸️ Team is STOPped (delete the STOP file to resume). Skipped: {', '.join(want)}",
                  "Team - Ops Monitor", a.dry_run)
-        want = {}
+        write_context(today, f, hits, paper, {}, pipeline)
+        log("paused - no Claude roles", "dispatch")
+        return 0
     cap = int(cfg.get("weekly_claude_run_cap", 12))
     role_runs = load_json(STATE / "role_runs.json", {})
-    for role in [r for r in ("scorekeeper", "scout", "researcher", "skeptic", "director") if r in want]:
+
+    def launch(role: str, why: str) -> None:
+        if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
+            return
+        last = role_runs.get(role, {})
+        if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
+                and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
+            log(f"{role} already ran OK today - not relaunched", "dispatch")
+            return
         if not a.dry_run and runs_this_week() >= cap and role not in a.force:
-            post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {want[role]}",
-                 "Team - Ops Monitor")
-            continue
-        role_runs[role] = run_role(role, cfg["roles"][role], want[role], today, a.dry_run)
+            post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
+            return
+        write_context(today, f, hits, paper, {role: why}, pipeline)
+        role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
         if not a.dry_run:
             save_json(STATE / "role_runs.json", role_runs)
-            commit(f"team-runner: {role} {today} ({want[role][:80]})")
-    log("dispatch done", "dispatch")
+            commit(f"team-runner: {role} {today} ({why[:80]})")
+
+    # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
+    for role in ("scorekeeper", "scout", "director"):
+        if role in want:
+            launch(role, want[role])
+    # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
+    why = research_work() or want.get("researcher")
+    if why:
+        launch("researcher", why)
+        pipeline += jobs.advance(a.dry_run)
+    why = review_work() or want.get("skeptic")
+    if why:
+        launch("skeptic", why)
+        pipeline += jobs.advance(a.dry_run)
+    write_context(today, f, hits, paper, {}, pipeline)
+    log(f"dispatch done; pipeline: {pipeline or 'no moves'}", "dispatch")
     return 0
 
 

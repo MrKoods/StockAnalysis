@@ -190,6 +190,15 @@ def score(rows: list[dict], rule: dict) -> dict:
 
 # ---------- strategies ----------
 
+def fingerprint(sid: str) -> str:
+    """Hash of strategy.py + spec.json. Recorded by the gate at promotion; a running test whose files
+    changed is refused (a changed rule = a new test)."""
+    h = hashlib.sha256()
+    for f in ("strategy.py", "spec.json"):
+        h.update((TEAM / "strategies" / sid / f).read_bytes().replace(b"\r\n", b"\n"))
+    return h.hexdigest()[:16]
+
+
 def load_strategy(sid: str):
     path = TEAM / "strategies" / sid / "strategy.py"
     spec_obj = importlib.util.spec_from_file_location(f"strategy_{sid}", path)
@@ -232,6 +241,10 @@ def run(asof: date, dry_run: bool = False, only: str | None = None) -> dict[str,
     bars_cache: dict = {}
     for sid, meta in reg.get("strategies", {}).items():
         if meta.get("status") != "active" or (only and sid != only):
+            continue
+        if meta.get("fingerprint") and fingerprint(sid) != meta["fingerprint"]:
+            results[sid] = {"verdict": "ERROR", "error": "strategy files changed after promotion - refused"}
+            log(f"paper {sid} REFUSED: files changed since promotion", "paper")
             continue
         try:
             results[sid] = run_one(sid, asof, bars_cache, dry_run)

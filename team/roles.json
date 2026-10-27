@@ -4,13 +4,13 @@
   "roles": {
     "scorekeeper": {"enabled": true,  "phase": 1, "model": "sonnet", "effort": "medium", "max_turns": 30, "timeout_min": 20,
                     "channel": "director", "username": "Team - Scorekeeper"},
-    "scout":       {"enabled": false, "phase": 2, "model": "sonnet", "effort": "medium", "max_turns": 40, "timeout_min": 30,
+    "scout":       {"enabled": true,  "phase": 2, "model": "sonnet", "effort": "medium", "max_turns": 40, "timeout_min": 30,
                     "channel": "research", "username": "Team - Scout"},
-    "researcher":  {"enabled": false, "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 60, "timeout_min": 45,
+    "researcher":  {"enabled": true,  "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 60, "timeout_min": 45,
                     "channel": "research", "username": "Team - Researcher"},
-    "skeptic":     {"enabled": false, "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 30,
+    "skeptic":     {"enabled": true,  "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 30,
                     "channel": "research", "username": "Team - Skeptic"},
-    "director":    {"enabled": false, "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 40,
+    "director":    {"enabled": true,  "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 40,
                     "channel": "director", "username": "Team - Director"}
   }
 }
