@@ -1,0 +1,4 @@
+{"family": "insider",
+ "train_start": "2006-01-01", "train_end": "2013-12-31",
+ "holdout_start": "2014-01-01", "holdout_end": "2017-12-31",
+ "cost_bps": 20, "cluster": "week", "max_variants": 12, "metric": "hedged"}
