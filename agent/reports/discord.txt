@@ -1,8 +1,15 @@
-✅ Daily review 2026-10-26: all systems normal
+✅ Daily review 2026-10-27: all systems normal
 
-V4 EPRE first signals: 115 logged today (15:38 ET, within MOC window). All open; reactions start Oct 28. Checkpoint A ~Nov 7.
-V3 ON1 paper day 9: t +2.37 (up from 2.19). Mean +81.6 bps. Holding above 2.0 for second review; eval window day 20.
-V3 G2 paper day 12: mean -16.1 bps, t -0.91. Still noise.
-V2 rank 59/100: mean -0.019R after costs. GO unreachable.
-Random track loss cluster Oct 23: 6 bullish losses same exit day (ABBV, ONB, TMO, BMY, CFR, UMBF; -3.18R) — one correlated move, not independent. Mean excl. that day: -0.390R (n=5).
-No bugs. No fixes proposed.
+All tasks result 0. No errors.
+
+V4 EPRE: 173 new signals today (288 total open). First reactions Oct 28. Checkpoint A ~Nov 7.
+
+V3 ON1 paper day 10: mean +75.8 bps, day-t +2.42. Holding above t=2 for third consecutive review. Fragile at n=10; eval window opens day 20 (~Nov 7).
+
+V3 G2 paper day 13: mean -21 bps, day-t -1.22. Trending negative but still noise.
+
+V2 rank: 59/100 closed, mean -0.019R after costs. GO unreachable; running to n=100.
+
+Random control: 14 closed, mean -0.358R after costs (2 new closures today).
+
+EPRE calendar confirmed refreshed Oct 26; today's 17:15 refresh will advance to Oct 27.

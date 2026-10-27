@@ -5,11 +5,11 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 ## Watch list
 - **V2 rank mean R after costs: -0.019** (59/100 closed). GO mathematically unreachable. Frozen at n=100.
 - **C6 forward: RETIRED 2026-10-23.** No longer updated or reported.
-- **ON1 paper: day-t +2.37** (9 days, mean +81.6 bps). Holding above 2.0 for second consecutive review. Fragile at n=9. Eval window at day 20 (~Nov 7).
-- **V3 G2 paper: day-t -0.91** (12 days, mean -16.1 bps). Moving negative but still noise.
-- **Random control: 12 closed** (mean -0.351R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
-- **V4 EPRE: 115 signals open** (first run 2026-10-26). Reactions start Oct 28. Checkpoint A (~1,000 trades) ~Nov 7.
-- **EPRE calendar last refreshed Oct 23.** Verify tomorrow that the 17:15 Oct 26 refresh completed (date should advance to Oct 26).
+- **ON1 paper: day-t +2.42** (10 days, mean +75.8 bps). Holding above 2.0 for third consecutive review (days 9, 10). Fragile at n=10. Eval window at day 20 (~Nov 7).
+- **V3 G2 paper: day-t -1.22** (13 days, mean -21.1 bps). Trending negative; still noise. Eval window opens day 20.
+- **Random control: 14 closed** (mean -0.358R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
+- **V4 EPRE: 288 signals open** (day 2; 173 new today). Reactions start Oct 28. Checkpoint A (~1,000 trades) ~Nov 7.
+- **EPRE calendar refreshed Oct 26** ✓. Today's 17:15 refresh should advance to Oct 27.
 - **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
@@ -59,6 +59,16 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-27 daily review
+- All tasks result 0. No error lines. EPRE calendar confirmed refreshed Oct 26 (resolves yesterday's watch item). Today's 17:15 EPRE calendar refresh runs after this review.
+- V4 EPRE day 2: 173 new signals (288 total open). 3 tickers dropped for shifted report dates (LXP Oct 27, GHC+CHCO Oct 26) — normal. EPRE evaluate: "nothing to score yet" — correct.
+- V2 rank: no new closures (59/100); mean -0.019R after costs, week-t -0.20. GO still unreachable. 8 new rank signals, 4 threshold, 6 random (all shares bullish).
+- V2 random: 2 new closures (12→14 closed); mean -0.358R after costs. Loss cluster (Oct 23) not re-reported (already flagged Oct 26).
+- V3 ON1 paper day 10 (Oct 26: +23.727 bps): mean +75.806 bps, day-t +2.42 (up from 2.37). Holding above 2.0 for third consecutive review despite below-mean day.
+- V3 G2 paper day 13 (Oct 27: -77.310 bps): mean -21.115 bps, day-t -1.22 (from -0.91). Worsening but still noise.
+- G2 forward day 15 (last bar Oct 26): t +0.45 (noise). ON1 forward day 14 (last bar Oct 23): t +0.53 (noise). ON1 forward 2 trading days behind — expected, Dukascopy disabled.
+- No bugs. No fixes proposed.
 
 ### 2026-10-26 daily review
 - All tasks result 0. No error lines. V4 EPRE first signals ran at 12:38 PT (15:38 ET, within MOC window) — 115 signals logged, all open. EPRE evaluate ran at 13:45 (nothing to score; reactions Oct 28+). EPRE calendar last refreshed Oct 23; 17:15 refresh runs after review.
