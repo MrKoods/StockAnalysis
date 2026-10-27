@@ -1,0 +1,244 @@
+"""Dispatcher - the team's single scheduled entry point (StockAnalysis_Team_Dispatch, Mon-Sat 14:50 PT).
+
+    python tools/dispatch.py [--dry-run] [--force <role>] [--no-claude]
+
+Scripts do the routine work; a Claude role is launched ONLY when it has a reason to run:
+  1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals
+  2. ops_monitor   - script: heartbeat or alerts to #agent-ops
+  3. triggers      - script: decide which roles have work (see TRIGGERS below)
+  4. roles         - Claude headless, one at a time, each with its own model / turn cap / permission file
+  5. commit        - the dispatcher commits after every step (agents have no git access)
+
+--dry-run prints posts instead of sending, writes no ledger, launches no Claude.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from datetime import date, timedelta
+
+import budget
+import ops_monitor
+import paper_runner
+from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, load_json, log, now_pt,
+                    post, save_json, stopped)
+
+ROLES = TEAM / "team" / "roles.json"
+USAGE = STATE / "usage.csv"
+DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+# Frozen checkpoints of the live V2/V3/V4 tests (from their rules). Crossing one wakes the Scorekeeper.
+CHECKPOINTS = {
+    "V2 rank go/no-go (closed trades)": (r"go/no-go: COLLECTING \((\d+)/100", [100]),
+    "V3 G2 forward (days)": (r"\[G2 forward\] (\d+) days", [40]),
+    "V3 ON1 forward (days)": (r"\[ON1 forward\] (\d+) days", [40]),
+    "V3 G2 paper (days)": (r"\[G2 paper\] (\d+) days", [20, 40]),
+    "V3 ON1 paper (days)": (r"\[ON1 paper\] (\d+) days", [20, 40]),
+    "V4 EPRE (closed trades)": (r"signals logged (\d+) \| open (\d+)", [1000, 3000, 6000]),
+}
+
+
+def metrics(snapshot: str) -> dict[str, int]:
+    out = {}
+    for name, (rx, _) in CHECKPOINTS.items():
+        m = re.search(rx, snapshot)
+        if m:
+            g = [int(x) for x in m.groups()]
+            out[name] = g[0] - g[1] if len(g) == 2 else g[0]
+    return out
+
+
+def crossed(prev: dict[str, int], cur: dict[str, int]) -> list[str]:
+    hits = []
+    for name, val in cur.items():
+        before = prev.get(name)
+        for level in CHECKPOINTS[name][1]:
+            if before is not None and before < level <= val:
+                hits.append(f"{name} reached {level} (now {val})")
+    return hits
+
+
+def runs_this_week() -> int:
+    if not USAGE.exists():
+        return 0
+    monday = (now_pt().date() - timedelta(days=now_pt().weekday())).isoformat()
+    return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:] if line[:10] >= monday)
+
+
+def open_items(stage: str) -> int:
+    p = TEAM / "registry" / "ideas.csv"
+    if not p.exists():
+        return 0
+    import csv
+    with open(p, newline="", encoding="utf-8") as f:
+        return sum(1 for r in csv.DictReader(f) if r.get("stage") == stage)
+
+
+def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict, prev_paper: dict) -> dict[str, str]:
+    """role -> why it should run today. Empty dict = a quiet day with zero Claude usage."""
+    day = DAYS[today.weekday()]
+    want: dict[str, str] = {}
+    verdicts = [f"{sid} verdict {s.get('verdict')}" for sid, s in paper.items()
+                if s.get("verdict") in ("PASS", "FAIL", "ERROR")
+                and prev_paper.get(sid, {}).get("verdict") != s.get("verdict")]
+    # Scorekeeper: diagnose real failures, report checkpoints, weekly scorecard on Friday.
+    why = []
+    if f.diagnose:
+        why.append("diagnose: " + "; ".join(f.diagnose)[:600])
+    if hits:
+        why.append("checkpoint: " + "; ".join(hits))
+    if day == "Fri":
+        why.append("weekly scorecard")
+    if why:
+        want["scorekeeper"] = " | ".join(why)
+    # Phase 2 roles (ignored while disabled in roles.json).
+    if day in ("Tue", "Thu") and open_items("idea") < 5:
+        want["scout"] = f"scheduled scouting ({open_items('idea')} ideas waiting, target 5)"
+    if open_items("queued") and day in ("Wed", "Sat"):
+        want["researcher"] = f"{open_items('queued')} idea(s) queued for research"
+    if open_items("awaiting_review"):
+        want["skeptic"] = f"{open_items('awaiting_review')} result(s) awaiting review"
+    director = (["weekly review"] if day == "Sat" else []) + verdicts
+    if open_items("holdout_done"):
+        director.append(f"{open_items('holdout_done')} holdout result(s) to decide")
+    if director:
+        want["director"] = "; ".join(director)
+    return want
+
+
+def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict, want: dict) -> None:
+    lines = [f"# Team context for {today} ({DAYS[today.weekday()]}) - written by the dispatcher", "",
+             "## Why each role was woken"] + [f"- {r}: {w}" for r, w in want.items()] + [
+             "", "## Ops alerts (already posted to #agent-ops - don't re-alert)"] + [f"- {a}" for a in f.alerts or ["none"]] + [
+             "", "## To diagnose"] + [f"- {d}" for d in f.diagnose or ["none"]] + [
+             "", "## Checkpoints crossed today"] + [f"- {h}" for h in hits or ["none"]] + [
+             "", "## Team paper tests (tools/paper_runner.py)", "```", json.dumps(paper, indent=1), "```",
+             "", "## Trial budget (tools/budget.py)", "```"]
+    tot = budget.totals()
+    lines += [f"{k}: {v}" for k, v in tot.items()] + ["```", "",
+              "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source)."]
+    (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def claude_env() -> dict[str, str]:
+    """A child of a Claude session inherits CLAUDE*/ANTHROPIC* vars that break a fresh headless login."""
+    return {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "ANTHROPIC"))}
+
+
+def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> dict:
+    out_file = OUTBOX / f"{role}.txt"
+    prompt = (f"Today is {today}. You are the team's {role.upper()}. Read TEAM.md, then prompts/common.md, "
+              f"then prompts/{role}.md, and follow them exactly. Why you were woken: {reason}")
+    cmd = [shutil.which("claude") or "claude", "-p", prompt, "--permission-mode", "dontAsk",
+           "--settings", str(TEAM / "team" / "settings" / f"{role}.json"),
+           "--model", cfg["model"], "--effort", cfg.get("effort", "medium"),
+           "--max-turns", str(cfg["max_turns"]), "--output-format", "json",
+           "--add-dir", str(LIVE_V2), str(LIVE_V3), str(LIVE_V4), "-n", f"team-{role}-{today}"]
+    if dry_run:
+        print("[dry-run] would launch:", role, "|", reason)
+        return {"status": "dry_run"}
+    start = time.time()
+    stdout = ""
+    try:
+        r = subprocess.run(cmd, cwd=TEAM, env=claude_env(), capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=cfg["timeout_min"] * 60)
+        stdout, raw = r.stdout, r.stdout + r.stderr
+    except subprocess.TimeoutExpired:
+        raw = f"TIMEOUT after {cfg['timeout_min']} min"
+    (STATE / "logs" / f"{today}-{role}.json").write_text(raw, encoding="utf-8")
+    try:
+        res = json.loads(stdout) if stdout.strip().startswith("{") else {}
+    except json.JSONDecodeError:
+        res = {}
+    new_usage = not USAGE.exists()
+    with open(USAGE, "a", encoding="utf-8") as fh:
+        if new_usage:
+            fh.write("date,role,model,turns,minutes,cost_equiv_usd,status\n")
+        status = ("logged_out" if re.search(r"Not logged in|/login|OAuth|authentication_error|401", raw)
+                  else "ok" if out_file.exists() and out_file.stat().st_mtime > start
+                  else "failed")
+        fh.write(f"{today},{role},{cfg['model']},{res.get('num_turns', '')},{(time.time() - start) / 60:.1f},"
+                 f"{res.get('total_cost_usd', '')},{status}\n")
+    if status == "ok":
+        channel = cfg["channel"]
+        if role == "scorekeeper" and reason.startswith("diagnose") and "checkpoint" not in reason \
+                and "weekly" not in reason:
+            channel = "ops"
+        post(channel, out_file.read_text(encoding="utf-8"), cfg["username"])
+    else:
+        why = ("Claude is LOGGED OUT - open Claude Code on the computer and log in."
+               if status == "logged_out" else f"no report written - see state/logs/{today}-{role}.json")
+        post("ops", f"🔴 Team role **{role}** did not finish ({today}): {why}", "Team - Ops Monitor")
+    return {"status": status, "date": str(today), "note": raw[-300:] if status != "ok" else ""}
+
+
+def main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--no-claude", action="store_true")
+    ap.add_argument("--force", action="append", default=[], help="run this role regardless of triggers")
+    a = ap.parse_args(argv)
+    if a.dry_run:
+        os.environ["TEAM_DRY_RUN"] = "1"
+    today = now_pt().date()
+    log(f"dispatch start {today} dry_run={a.dry_run} stop={stopped()}", "dispatch")
+    if today.weekday() == 6:
+        log("Sunday - nothing scheduled", "dispatch")
+        return 0
+
+    # 1. paper runner (evaluates even when STOPped; STOP only blocks new signals)
+    prev_paper = load_json(STATE / "paper_status.json", {})
+    paper = {} if today.weekday() == 5 else paper_runner.run(today, dry_run=a.dry_run)
+    if not a.dry_run:
+        commit(f"team-runner: paper {today}")
+
+    # 2. ops (script only; Saturday has no market tasks worth a heartbeat)
+    f = ops_monitor.run(dry_run=a.dry_run, post_it=today.weekday() < 5)
+    state = load_json(STATE / "dispatch_state.json", {})
+    cur = metrics(f.snapshot)
+    hits = crossed(state.get("metrics", {}), cur)
+    for sid, s in paper.items():
+        if s.get("verdict") in ("PASS", "FAIL") and prev_paper.get(sid, {}).get("verdict") != s["verdict"]:
+            post("director", f"📌 Team paper test **{sid}** reached its rule verdict: **{s['verdict']}** "
+                             f"({s['days']} days, mean {s['mean_bps']} bps, t {s['t']})", "Team - Paper Runner")
+
+    # 3. triggers
+    cfg = load_json(ROLES, {"roles": {}})
+    want = triggers(today, f, hits, paper, prev_paper)
+    for r in a.force:
+        want.setdefault(r, "forced by hand")
+    want = {r: w for r, w in want.items() if cfg["roles"].get(r, {}).get("enabled") or r in a.force}
+    write_context(today, f, hits, paper, want)
+    if not a.dry_run:
+        save_json(STATE / "dispatch_state.json", {"metrics": cur, "date": str(today)})
+    log(f"roles wanted: {want or 'none (quiet day)'}", "dispatch")
+
+    # 4. roles - Scout/Skeptic before Director, so the Director sees today's work
+    if stopped() or a.no_claude:
+        if want and stopped():
+            post("ops", f"⏸️ Team is STOPped (delete the STOP file to resume). Skipped: {', '.join(want)}",
+                 "Team - Ops Monitor", a.dry_run)
+        want = {}
+    cap = int(cfg.get("weekly_claude_run_cap", 12))
+    role_runs = load_json(STATE / "role_runs.json", {})
+    for role in [r for r in ("scorekeeper", "scout", "researcher", "skeptic", "director") if r in want]:
+        if not a.dry_run and runs_this_week() >= cap and role not in a.force:
+            post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {want[role]}",
+                 "Team - Ops Monitor")
+            continue
+        role_runs[role] = run_role(role, cfg["roles"][role], want[role], today, a.dry_run)
+        if not a.dry_run:
+            save_json(STATE / "role_runs.json", role_runs)
+            commit(f"team-runner: {role} {today} ({want[role][:80]})")
+    log("dispatch done", "dispatch")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

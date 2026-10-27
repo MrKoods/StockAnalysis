@@ -1,0 +1,20 @@
+date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
+2026-10-06,v3-sweep-search,sweep_reversal,search,309744,1m+5m 50 tickers,,,luck,pre-team approx: mass search; luck-baseline p 0.82/0.35
+2026-10-06,v3-sweep-configs,sweep_reversal,search,734,5m/1m time-split,,,,pre-team: 734-config search
+2026-10-06,v3-C6,sweep_reversal,holdout,1,5m holdout,1.8,,fail,pre-team: C6 +0.095R unproven; forward retired 2026-10-23
+2026-10-07,v3-sweep-hourly,sweep_reversal,search,21000,hourly 509 tickers 2y,,,luck,pre-team approx
+2026-10-07,v3-lsr-spyqqq,sweep_reversal,holdout,1,SPY/QQQ 8y minute,-2.67,-5.4,fail,pre-team: user's LSR definitively no edge
+2026-10-06,v3-families-mom-orb-gap,gap_fade,search,0,hourly S&P500,,,,pre-team: variant count not recorded
+2026-10-06,v3-G2-sp500,gap_fade,holdout,1,S&P500 holdout,2.37,,fail,pre-team: below 2.6 bar
+2026-10-06,v3-G2-midcap,gap_fade,holdout,1,S&P400 pre-registered,4.70,17,pass,pre-team: G2 paper/forward running
+2026-10-06,v3-round1-2,intraday_misc,search,6673,hourly XS/PER/ON/MR/NR/SIP/GAPV/ONV,,,,pre-team: PROTOCOL5+7
+2026-10-06,v3-ON1,overnight_reversal,holdout,1,hourly holdout,2.24,,borderline,pre-team: midcap t1.89 fail; ON1 paper running
+2026-10-07,v3-daily-classics,daily_short_term,search,0,daily 2000-2026,,,fail,pre-team: reversal/IBS/RSI2/breakout fade/gap fade; count not recorded
+2026-10-07,v3-round4-blends,ml_blends,search,10008,daily+hourly,,,luck,pre-team: 10k random blends + 8 ridge
+2026-10-07,v3-round4-shortlist,ml_blends,holdout,18,holdout,,,fail,pre-team: 18 shortlisted all failed (counted as one row)
+2026-10-08,v3-minute-library,minute_library,search,26492,SPY QQQ AAPL MSFT NVDA AMZN minute 2018-22,,,,pre-team: PROTOCOL11 17 families
+2026-10-08,v3-ORBF-short,failed_breakout_short,holdout,1,minute 2023+,4.58,3.1,pass_stage3,pre-team: then failed unseen-symbol stage; avg -2.8 bps
+2026-10-23,v3-round7-events,earnings_events,search,4832,events 2000-2017,,,,pre-team: PROTOCOL12 4184+648
+2026-10-23,v4-EPRE,earnings_events,holdout,1,2018-2026,4.0,18.8,pass,pre-team: Version-4 paper running
+2026-10-23,v3-ESUR,earnings_events,holdout,1,2018-2026,,,fail,pre-team: PEAD drift
+2026-10-23,v3-insider-buys,insider,holdout,1,2018-2026,2.3,,near_miss,pre-team: officer buys >=$100k

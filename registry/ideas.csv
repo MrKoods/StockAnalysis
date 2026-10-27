@@ -1,0 +1,2 @@
+id,date,source,family,horizon,stage,summary,mechanism,data_needed,est_cost_bps,notes
+insider-officer-buys,2026-10-23,pre-team round 7,insider,1-5d,idea,Buy after officer open-market purchases >= $100k (SEC Form 4),Insiders trade on private information; officer buys are the cleanest signal,SEC Form 345 (free; V3 data/events),20,Near miss t 2.3 in 2018-26 holdout - that holdout is now USED; needs fresh data or a new period

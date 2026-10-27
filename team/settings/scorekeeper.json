@@ -1,0 +1,20 @@
+{
+  "_doc": "Edit(...) rules govern Write too (verified 2026-10-27: Write(...) allow rules alone are ignored). Unlisted paths are refused in dontAsk mode.",
+  "permissions": {
+    "allow": [
+      "Read", "Glob", "Grep",
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/reports/**)",
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/outbox/scorekeeper.txt)",
+      "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/notes/scorekeeper.md)"
+    ],
+    "deny": [
+      "Read(//c/Users/user/Documents/Git/**/.env)",
+      "Bash", "PowerShell", "WebFetch", "WebSearch", "Agent",
+      "mcp__claude_ai_Webull__place_stock_instruction", "mcp__claude_ai_Webull__place_option_single_instruction",
+      "mcp__claude_ai_Webull__place_option_strategy_instruction", "mcp__claude_ai_Webull__place_algo_instruction",
+      "mcp__claude_ai_Webull__place_crypto_instruction", "mcp__claude_ai_Webull__place_futures_instruction",
+      "mcp__claude_ai_Webull__place_event_instruction", "mcp__claude_ai_Webull__revoke_instruction",
+      "mcp__claude_ai_Webull__create_community_post", "mcp__claude_ai_Webull__create_community_comment"
+    ]
+  }
+}
