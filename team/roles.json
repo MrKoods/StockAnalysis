@@ -11,6 +11,8 @@
     "skeptic":     {"enabled": true,  "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 30,
                     "channel": "research", "username": "Team - Skeptic"},
     "director":    {"enabled": true,  "phase": 2, "model": "opus",   "effort": "high",   "max_turns": 40, "timeout_min": 40,
-                    "channel": "director", "username": "Team - Director"}
+                    "channel": "director", "username": "Team - Director"},
+    "auditor":     {"enabled": true,  "phase": 3, "model": "opus",   "effort": "high",   "max_turns": 50, "timeout_min": 40,
+                    "channel": "director", "username": "Team - Auditor"}
   }
 }

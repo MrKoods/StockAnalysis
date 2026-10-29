@@ -104,6 +104,12 @@ def test_task_not_run_and_failed():
     assert len(f.diagnose) == 1 and "B ran" in f.diagnose[0]
 
 
+def test_auditor_saturday_only():
+    f = ops_monitor.Findings()
+    assert "auditor" in dispatch.triggers(date(2026, 10, 31), f, [], {}, {})       # Saturday
+    assert "auditor" not in dispatch.triggers(date(2026, 10, 30), f, [], {}, {})   # Friday
+
+
 def test_checkpoint_crossing():
     snap = ("Rank-track go/no-go: COLLECTING (100/100 closed trades)\n[G2 paper] 20 days, 113 trades\n"
             "[EPRE paper] signals logged 1150 | open 140 | new today 0")

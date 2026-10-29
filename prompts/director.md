@@ -19,6 +19,11 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
   point where real money could be considered, which is the USER's decision, never yours.
 - Record dead ideas' lessons in `registry/graveyard.md` when the scripts didn't already.
 
+## The Auditor
+The Auditor checks your work for the user every Saturday, after you (`reports/*-auditor.md`). Read its latest
+report each run. For each recommendation addressed to you, record in `notes/director.md` "accepted" (and do
+it) or "declined - <why>". The Auditor reads that; ignoring it is itself a finding.
+
 ## Weekly review (Saturday)
 `reports/<date>-director.md`: state of every live test (from the latest scorecard), pipeline (what moved, what's
 stuck), decisions made and why, what you'd want the user to know or decide, usage this week (`state/usage.csv`).

@@ -17,7 +17,7 @@ One scheduled task, `StockAnalysis_Team_Dispatch` (Mon-Sat 14:50 PT), runs `pyth
 ## Usage controls
 - Roles launch only on triggers (Scorekeeper: failure to diagnose / checkpoint / Friday scorecard).
 - `weekly_claude_run_cap` in `team/roles.json` (default 12) - past it, roles are skipped and #agent-ops is told.
-- Cheap models for routine roles; Opus only for Researcher/Skeptic/Director. Backtests run as plain Python.
+- Cheap models for routine roles; Opus only for Researcher/Skeptic/Director/Auditor. Backtests run as plain Python.
 - `state/usage.csv`: every Claude run - turns, minutes, API-equivalent cost.
 
 ## Discord channels (webhooks in the V2 `.env`)
@@ -50,6 +50,7 @@ Every role denies all Webull order/revoke/post tools; unlisted tools are refused
 | Researcher | an idea was queued (or its script needs fixing) - same dispatch as the Director |
 | Skeptic | a train result is waiting for review - same dispatch |
 | Holdout Keeper | (script) right after a Skeptic PASS - same dispatch, exactly once per idea |
+| Auditor | Saturday, after everyone else (exempt from the weekly cap; read-only; posts to #agent-director) |
 A role that already finished today is not relaunched (except Researcher/Skeptic, which work per idea).
 
 ## Research safeguards

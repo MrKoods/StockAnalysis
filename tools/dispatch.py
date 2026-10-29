@@ -6,7 +6,8 @@ Scripts do the routine work; a Claude role is launched ONLY when it has a reason
   1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals
   2. ops_monitor   - script: heartbeat or alerts to #agent-ops
   3. triggers      - script: decide which roles have work (see TRIGGERS below)
-  4. roles         - Claude headless, one at a time, each with its own model / turn cap / permission file
+  4. roles         - Claude headless, one at a time, each with its own model / turn cap / permission file;
+                     Saturday ends with the Auditor (read-only, independent check of the whole project)
   5. commit        - the dispatcher commits after every step (agents have no git access)
 
 --dry-run prints posts instead of sending, writes no ledger, launches no Claude.
@@ -28,7 +29,7 @@ import ideas
 import jobs
 import ops_monitor
 import paper_runner
-from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, load_json, log, now_pt,
+from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, git, load_json, log, now_pt,
                     post, save_json, stopped)
 
 ROLES = TEAM / "team" / "roles.json"
@@ -126,6 +127,8 @@ def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict,
         director.append(f"pipeline idle with {open_items('idea')} idea(s) waiting - queue one")
     if director:
         want["director"] = "; ".join(director)
+    if day == "Sat":
+        want["auditor"] = "weekly audit of the whole project"
     # Researcher and Skeptic are re-checked after the Director (it may queue work) - see main().
     return want
 
@@ -146,6 +149,22 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
     lines += [f"{k}: {v}" for k, v in tot.items()] + ["```", "",
               "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source)."]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def write_audit_pack(today: date) -> None:
+    """What the Auditor can't get itself (it has no git): the week's commits, Claude runs and role statuses."""
+    since = (today - timedelta(days=8)).isoformat()
+    usage = [l for l in (USAGE.read_text(encoding="utf-8").splitlines()[1:] if USAGE.exists() else [])
+             if l[:10] >= since]
+    lines = [f"# Audit pack for {today} - written by the dispatcher", "",
+             f"## Commits since {since} (order proves plan-before-results)", "```",
+             git("log", f"--since={since}", "--date=format:%Y-%m-%d %H:%M", "--format=%h %ad %s") or "none", "```",
+             "", "## Claude runs (state/usage.csv: date,role,model,turns,minutes,cost_equiv_usd,status)", "```"]
+    lines += usage or ["none"]
+    lines += ["```", "", "## Last run per role (state/role_runs.json)", "```",
+              json.dumps(load_json(STATE / "role_runs.json", {}), indent=1), "```", "",
+              "Raw transcripts of each run: state/logs/<date>-<role>.json (refused commands show there)."]
+    (STATE / "audit_pack.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def claude_env() -> dict[str, str]:
@@ -263,7 +282,8 @@ def main(argv: list[str]) -> int:
                 and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
             log(f"{role} already ran OK today - not relaunched", "dispatch")
             return
-        if not a.dry_run and runs_this_week() >= cap and role not in a.force:
+        # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
+        if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
             post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
             return
         write_context(today, f, hits, paper, {role: why}, pipeline)
@@ -285,6 +305,10 @@ def main(argv: list[str]) -> int:
     if why:
         launch("skeptic", why)
         pipeline += jobs.advance(a.dry_run)
+    # Auditor last, so it sees everything the other roles did today.
+    if "auditor" in want:
+        write_audit_pack(today)
+        launch("auditor", want["auditor"])
     write_context(today, f, hits, paper, {}, pipeline)
     log(f"dispatch done; pipeline: {pipeline or 'no moves'}", "dispatch")
     return 0

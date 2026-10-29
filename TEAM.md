@@ -17,6 +17,7 @@ aim is money; no real money moves until a pre-registered test passes. A clear "t
 | Skeptic | Claude (Opus) | Tries to kill every result (look-ahead, costs, luck vs variants tried, survivorship) |
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |
 | Holdout Keeper | script | Runs a strategy on the locked holdout period exactly once |
+| Auditor | Claude (Opus) | Saturday, last. Read-only, independent of the Director: checks decisions, research honesty, paper/live tests, going in circles, the machinery and the overall direction; reports to the user |
 
 ## The pipeline (registry/ideas.csv `stage`)
 `idea` (Scout) -> `queued` (Director) -> `planned` (Researcher; PLAN.md committed) -> `awaiting_review`
