@@ -1,7 +1,7 @@
-✅ Daily review 2026-10-28: all systems normal
+✅ Daily review 2026-10-29: all systems normal
 
-All tasks ran OK. First EPRE closures today: 115 trades (Oct 26 batch), hedged mean -54.8 bps. Only 1 exit day (t=nan) — pure noise, no read yet. 102 new signals logged (390 total, 275 open). Report-date accuracy 100%.
-ON1 paper day 11: mean +75.1 bps, day-t +2.64 (up from 2.42). Fourth day above t=2.0. Eval window opens day 20 ~Nov 7.
-G2 paper day 14: +28.5 bps today, mean -17.4 bps, day-t -1.07. Still noise, two positive days in a row.
-V2 rank: 59/100 closed, mean -0.019R after costs. GO unreachable. Random control: 17 closed, mean -0.491R after costs (3 new closures).
-EPRE calendar confirmed refreshed Oct 27; today's 17:15 refresh runs after this review.
+All tasks ran OK. Team_Dispatch first run today at 14:50 (never run before — new task, not a failure).
+V4 EPRE day 2 exits: 173 new closures (Oct 29 batch, hedged mean +11.6 bps). Combined 288 closed, hedged mean -14.9 bps (exit-day t -0.65, pure noise; expect ~+19 bps). Report-date accuracy 97.6%. 14 new signals today, 404 total, 116 open. EPRE calendar confirmed refreshed Oct 28.
+ON1 paper day 12: bad day Oct 28 (-95.5 bps), mean +61.0 bps, day-t +2.06. Down from 2.64 — still above 2.0 for 5th consecutive review. Eval at day 20 ~Nov 7.
+G2 paper day 15: -7.7 bps today, mean -16.7 bps, day-t -1.11. Noise.
+V2 rank: 3 new closures (62/100) — MU -0.756R, PFE -0.600R, ZION -1.000R (all shares). Mean after costs worsened: -0.019 → -0.058. GO unreachable. Random control: 22 closed, mean -0.447R after costs.

@@ -3,13 +3,14 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.019** (59/100 closed). GO mathematically unreachable. Frozen at n=100.
+- **V2 rank mean R after costs: -0.058** (62/100 closed). GO mathematically unreachable. Frozen at n=100.
 - **C6 forward: RETIRED 2026-10-23.** No longer updated or reported.
-- **ON1 paper: day-t +2.64** (11 days, mean +75.1 bps). Holding above 2.0 for FOUR consecutive reviews. Fragile at n=11. Eval window at day 20 (~Nov 7).
-- **V3 G2 paper: day-t -1.07** (14 days, mean -17.4 bps). Two positive days in a row (+28.5 bps Oct 28). Still noise. Eval window opens day 20.
-- **Random control: 17 closed** (mean -0.491R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
-- **V4 EPRE: first closures Oct 28** — 115 trades (Oct 26 batch), hedged mean -54.8 bps (1 exit day, t=nan, pure noise). 275 open. Checkpoint A (~1,000 trades) ~Nov 7.
-- **EPRE calendar refreshed Oct 27** ✓. Today's 17:15 refresh (Oct 28) scheduled after review — verify in Oct 29 context.txt.
+- **ON1 paper: day-t +2.06** (12 days, mean +61.0 bps). Oct 28 was -95.5 bps — bad day pulled t down from 2.64. Still above 2.0 for FIVE consecutive reviews. Eval window at day 20 (~Nov 7).
+- **V3 G2 paper: day-t -1.11** (15 days, mean -16.7 bps). Noise. Eval window opens day 20.
+- **Random control: 22 closed** (mean -0.447R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
+- **V4 EPRE: day 2 exits** — 288 closed (Oct 28: 115, Oct 29: 173). Hedged mean -14.9 bps (exit-day t -0.65, pure noise). 116 open. Checkpoint A (~1,000 trades) ~Nov 7.
+- **EPRE calendar refreshed Oct 28** ✓. Today's 17:15 refresh (Oct 29) scheduled after review.
+- **Team_Dispatch first run Oct 29 14:50** — new task, never run before. Check for errors tomorrow.
 - **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
@@ -59,6 +60,16 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-29 daily review
+- All tasks result 0. Team_Dispatch scheduled first run 14:50 PT (267011 = never run, not a failure). EPRE log files 0 lines (expected by design). EPRE calendar confirmed refreshed Oct 28 17:15.
+- V4 EPRE day 2 exits: 173 new closures (Oct 29 exit day, hedged mean +11.6 bps vs Oct 28's -54.8 bps). Combined 288 closed, hedged mean -14.9 bps (exit-day t -0.65). Report-date accuracy 97.6% (7/288 mismatches — still well above 90% checkpoint B floor). 116 open; 14 new signals. 404 total.
+- V2 rank: 3 new closures (59→62): MU time_stop -0.756R, PFE earnings_exit -0.600R, ZION loss -1.000R (all shares, all Oct 28 exits). Mean after costs -0.019 → -0.058. Week-t -0.64 (track), -0.92 (go/no-go). GO still unreachable.
+- V2 random: 5 new closures (17→22); mean after costs -0.491 → -0.447. Week-t -1.77 (noise). Loss cluster Oct 23 not re-flagged (already reported Oct 26).
+- V3 ON1 paper day 12 (Oct 28 scored: -95.526 bps): mean +61.021 bps, day-t +2.06 (down from 2.64). Fifth consecutive day above t=2.0.
+- V3 G2 paper day 15 (Oct 29: -7.680 bps): mean -16.706 bps, day-t -1.11. Noise.
+- G2 forward day 17: t +0.50 (noise). ON1 forward day 16: t +0.80 (noise).
+- No bugs. No fixes proposed.
 
 ### 2026-10-28 daily review
 - All tasks result 0. No error lines. EPRE log files (signals/evaluate) show 0 lines today — confirmed by design: the evaluate code only calls log.info() on "nothing to score yet" / "prices not available"; when it scores trades it posts to Discord + writes ledger silently. Signals only logs dropped-ticker events.
