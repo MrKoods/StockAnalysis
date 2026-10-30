@@ -1,5 +1,5 @@
 """
-Main window — App_UI_Scope.md §3.4. Run control (scan-type selector, Run
+Main window — docs/App_UI_Scope.md §3.4. Run control (scan-type selector, Run
 Scan button, AV budget guard, progress indicator) lives above the tabs so
 it's available from any screen, per the scope doc.
 """

@@ -1,4 +1,4 @@
-"""Tests for app_ui/scan_worker.py's Alpha Vantage budget guard (App_UI_Scope.md §6)."""
+"""Tests for app_ui/scan_worker.py's Alpha Vantage budget guard (docs/App_UI_Scope.md §6)."""
 
 from app_ui import scan_worker
 

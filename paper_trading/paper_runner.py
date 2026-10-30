@@ -145,7 +145,7 @@ NEAR_MISS_THRESHOLD = 65  # awareness-only Discord ping; never logged as a trade
 STRUCTURE_EVAL_DIAGNOSTIC_THRESHOLD = 60
 
 # Maps a layer_scores.layer_name (app_ui/db.py) to the compute_confidence_score()
-# result key it comes from — 5 scored categories + 6 modifiers, see App_UI_Scope.md §3.1/§5.
+# result key it comes from — 5 scored categories + 6 modifiers, see docs/App_UI_Scope.md §3.1/§5.
 _LAYER_SCORE_FIELDS = {
     "technical": "technical_total",
     "market_positioning": "positioning_total",
@@ -300,7 +300,7 @@ def _load_open_positions(csv_path: Optional[Path] = None) -> set[str]:
     + data/processed/position_state.json: that state file belongs to a
     separate, currently-dormant pipeline (run_swing_model.py's own live/Discord
     position tracking, not the daily paper_runner.py path — see
-    PROJECT_OVERVIEW.md). CHANGELOG.md v2.2.37 already hit this exact question
+    docs/PROJECT_OVERVIEW.md). CHANGELOG.md v2.2.37 already hit this exact question
     for account-equity tracking and deliberately kept paper trading's state
     out of position_state.json to avoid "silently mixed two unrelated
     pipelines' state" — same reasoning applies here.
@@ -493,7 +493,7 @@ def _append_row(row: dict, csv_path: Optional[Path] = None, lock_path: Optional[
 # App UI persistence — writes alongside the existing CSV/Discord behavior,
 # never in place of it. Every call is wrapped so a DB failure (locked file,
 # disk full) never breaks a scan the way it would if this were load-bearing.
-# See App_UI_Scope.md §4 — "wrap instead of consolidate."
+# See docs/App_UI_Scope.md §4 — "wrap instead of consolidate."
 # ---------------------------------------------------------------------------
 
 def _read_config_snapshot() -> str:

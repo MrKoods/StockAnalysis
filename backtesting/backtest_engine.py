@@ -27,7 +27,7 @@ bootstrapped 95% CI lower bound on per-trade R-expectancy to clear
 min_expectancy_r, alongside the existing trade-count/Sharpe/drawdown floors.
 win_rate/avg_rr are still computed and reported for continuity with existing
 dashboards, they just no longer gate "passed" on their own. See CHANGELOG.md
-v2.2.17 and Project_Scope.md's go-live criteria section for the full rationale.
+v2.2.17 and docs/Project_Scope.md's go-live criteria section for the full rationale.
 
 Walk-forward pooled gate (2026-08-23): "passed" also requires the SAME
 expectancy-CI/Sharpe/drawdown/trade-count bar to clear on qualifying trades

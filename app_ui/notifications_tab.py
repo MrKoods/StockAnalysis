@@ -1,5 +1,5 @@
 """
-Notifications / Alerts feed — App_UI_Scope.md §3.2. Chronological log of every
+Notifications / Alerts feed — docs/App_UI_Scope.md §3.2. Chronological log of every
 alert the pipeline sends, filterable by ticker and alert type. Discord is the
 only delivery channel (see CHANGELOG.md v2.2.1), so there's a single delivery
 status column, not per-channel ones.

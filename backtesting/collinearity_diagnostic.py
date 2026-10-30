@@ -188,7 +188,7 @@ def main() -> None:
     print(
         "\nInterpretation: |r| > 0.5 means Technical and Sentiment are substantially "
         "the same signal under two labels in this backtest (the proxy limitation "
-        "documented in PROJECT_OVERVIEW.md §13) — the backtest's apparent win rate "
+        "documented in docs/PROJECT_OVERVIEW.md §13) — the backtest's apparent win rate "
         "is a soft upper bound, not a lower bound, on what independent live "
         "sentiment data will contribute. |r| < 0.3 would suggest the categories are "
         "adding meaningfully separate information even under the proxy."

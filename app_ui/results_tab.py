@@ -1,5 +1,5 @@
 """
-Results screen — App_UI_Scope.md §3.1. Watchlist tickers for a chosen scan run,
+Results screen — docs/App_UI_Scope.md §3.1. Watchlist tickers for a chosen scan run,
 grouped by outcome category, each expandable to its 5-category + modifier
 layer breakdown. Historical runs are browsable via a run-date selector that
 pulls from the DB, not just the latest run.

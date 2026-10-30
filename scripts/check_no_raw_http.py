@@ -9,7 +9,7 @@ limiter (shared/api_clients/rate_limiter.py) are always applied. This project
 has repeatedly been bitten by one call site diverging from the rest — the
 Alpha Vantage counter that undercounted retries (Signal Integrity Audit E.3),
 `fundamental_client`'s Finnhub calls that skipped the shared backoff,
-`download_historical_news.py` keeping its own copy of the AV day counter. A
+`scripts/download_historical_news.py` keeping its own copy of the AV day counter. A
 new scoring layer that calls `requests.get` directly would silently sit
 outside the whole data plane. This is the guardrail that makes that impossible
 to add without CI noticing.

@@ -1,6 +1,6 @@
 """
 Loads cached historical Alpha Vantage news articles for backtesting.
-Articles are stored as quarterly JSON files downloaded by download_historical_news.py.
+Articles are stored as quarterly JSON files downloaded by scripts/download_historical_news.py.
 
 Directory layout:
   data/historical_news/{TICKER}/{YYYY-Q{N}.json}

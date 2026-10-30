@@ -1,130 +1,104 @@
-# AI-Assisted Swing Trading Signal System
+# StockAnalysis — V2 swing model (branch `Version-1`)
 
-## Section 1 — What This Project Does
+A multi-sector swing-trading **signal** model (hold 1-15 trading days). It scores 48 stocks in four
+sectors (semiconductors, regional banks, healthcare, consumer discretionary) on technicals, sentiment,
+news, fundamentals and positioning, and logs the trades it would take to **paper** ledgers. It never
+places orders. Current model version: top entry of [CHANGELOG.md](CHANGELOG.md) (v2.2.134).
 
-A swing trading decision-support system for the semiconductor sector (NVDA, AMD, AVGO, TSM, MU, ASML). It pulls technical, sentiment, and news data for 6 semiconductor stocks, combines them into a statistically-grounded confidence score (0-100), evaluates all 42 trade structures by expected value, and delivers ranked trade recommendations via Discord alerts. Every recommendation requires your review and manual execution — this is not an autonomous trading system. Starting capital: $15,000 | Holding period: 1-15 trading days.
+> **Naming note:** this branch is called `Version-1` for historical reasons, but the model on it is V2
+> (versions 2.x in the CHANGELOG). Other models live on other branches — see
+> [Other branches](#other-branches-and-folders).
 
----
+**Status (2026-10-30):** paper only. No edge established yet. The rank track has a pre-registered
+go/no-go at 100 closed trades (`paper_trading/rank_verdict.py`). Trades are shares only
+(`shares_only: true` in the config).
 
-## Section 2 — Quick Start
+## What runs every day
 
-1. Clone the repo: `git clone <repo-url> && cd StockAnalysis`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Install spaCy English model: `python -m spacy download en_core_web_sm`
-4. Copy env template: `cp .env.example .env` — fill in your API keys
-5. Run the swing model: `python swing_model/run_swing_model.py`
-6. Check Discord for output (configure `DISCORD_WEBHOOK_URL` in `.env` first)
+All times Pacific, Mon-Fri, via Windows Task Scheduler. Each task runs from this folder.
 
----
-
-## Section 3 — API Keys Required
-
-| Key | Where to Get It | `.env` Variable |
+| Task | Time | Command |
 |---|---|---|
-| Alpha Vantage | [alphavantage.co](https://www.alphavantage.co/support/#api-key) — free tier | `ALPHA_VANTAGE_API_KEY` |
-| StockTwits + Seeking Alpha Finance (RapidAPI) | [rapidapi.com](https://rapidapi.com) — paid subscription, shared key for both (Sentiment layer) | `RAPIDAPI_KEY` |
-| Finnhub | [finnhub.io](https://finnhub.io) — free tier; used for `/company-news` headlines only (social-sentiment requires a paid plan) | `FINNHUB_API_KEY` |
-| Discord Webhook | Discord server → Edit Channel → Integrations → Webhooks | `DISCORD_WEBHOOK_URL` |
+| `StockAnalysis_PaperRunner_PreMarket` | 05:30 | `python -m paper_trading.paper_runner --scan-type pre_market` |
+| `StockAnalysis_PaperUpdater` | 08:07 | `python -m paper_trading.paper_updater` (closes/scores open paper trades) |
+| `StockAnalysis_PaperRunner_MidSession` | 09:00 | `python -m paper_trading.paper_runner --scan-type mid_session` |
+| `StockAnalysis_PaperRunner` | 13:30 | `python -m paper_trading.paper_runner --scan-type post_close` |
+| `StockAnalysis_WeeklyDashboard` | Sun 18:00 | `python -m monitoring.performance_dashboard` |
 
----
+Task output goes to `data/logs/*_task.log`. Results are posted to Discord (`DISCORD_WEBHOOK_URL`).
 
-## Section 4 — Project Structure
+**Do not rename or move** `paper_trading/paper_runner.py`, `paper_trading/paper_updater.py`,
+`monitoring/performance_dashboard.py`, or the paper ledgers (`paper_trading/*.csv`): the scheduled tasks,
+the review agent and the agent team all reference them by path.
 
-| Folder | Purpose |
+## Folder map
+
+| Folder | What's in it |
 |---|---|
-| `shared/` | All reusable logic: API clients, indicator math, utilities (used by swing model and backtesting) |
-| `swing_model/` | Pipeline, scoring, trade selection, and portfolio management for the semiconductor swing strategy |
-| `backtesting/` | Historical replay engine, metrics, walk-forward validation, stress testing |
-| `paper_trading/` | Forward-testing with real-time data and simulated fills (no real capital) |
-| `monitoring/` | Weekly performance dashboard sent to Discord |
-| `data/` | `raw/` (gitignored API cache), `processed/` (position state, live weights), `historical/` (gitignored), `logs/` (audit, override, validation, fill, trade outcomes, performance) |
-| `config/` | `global_config.yaml` (infrastructure settings) + `swing_config.yaml` (watchlist, all thresholds) |
-| `output/` | Daily ranked CSV/JSON recommendations |
-| `tests/` | pytest test suites for indicators, scoring, and stress scenarios |
+| `swing_model/` | The model: data pipeline, the five scoring layers, `scoring.py`, trade selection, portfolio rules. `run_swing_model.py` is the full scan. |
+| `paper_trading/` | Live paper testing. `paper_runner.py` (scans + logs signals), `paper_updater.py` (resolves outcomes), the ledgers (`paper_trades.csv` threshold track, `rank_trades.csv` rank track, `random_trades.csv` random control, `options_positions.csv`), `rank_verdict.py` (go/no-go), and diagnostics. |
+| `shared/` | Code used everywhere. `api_clients/` = every external data source (all HTTP goes through here, with caching and rate limiting); `indicators/` = technical math; `utils/` = risk, sizing, gates, alerts, logging. |
+| `backtesting/` | Historical replay (`backtest_engine.py`, `run_backtest.py`, `walk_forward.py`, `stress_test.py`) plus one-off research sweeps/diagnostics (`*_sweep.py`, `*_diagnostic.py`). Their output is in `backtesting/reports/`. Several of these are imported by the live code, so treat them as part of the codebase, not scratch. |
+| `monitoring/` | Weekly performance dashboard. |
+| `app_ui/` | Optional desktop app (PySide) for running scans by hand: `python -m app_ui.main`. |
+| `agent/` | The scheduled review agent (Claude Code, headless). See [agent/README.md](agent/README.md). Its reports live on the `agent` branch. |
+| `config/` | `swing_config.yaml` (watchlist, sectors, thresholds, every model setting) and `global_config.yaml` (API/infrastructure). |
+| `data/` | `processed/` live model state, `logs/` audit trail and task logs, `historical_news/` and `panel/` research datasets. Raw downloads and caches are gitignored. |
+| `scripts/` | CI guard checks (`check_*.py`), one-time ledger migrations/backfills, and `download_historical_news.py`. |
+| `tests/` | pytest suite (~1,800 tests). |
+| `docs/` | Original design documents: `Project_Scope.md` (full spec), `PROJECT_OVERVIEW.md`, `App_UI_Scope.md`. Useful background; the CHANGELOG is the authoritative record of what changed since. |
+| `output/` | Scan recommendation files (`config/global_config.yaml` → `output.recommendations_dir`). |
 
----
-
-## Section 5 — Current Build Status
-
-**Phase: Scaffolding complete — Phase 1 (market data + technical indicators) in progress.**
-
-| Phase | Status | Description |
-|---|---|---|
-| 1 | 🔄 In progress | `market_data_client.py`, `technical_common.py` with z-score normalization |
-| 2 | ⏳ Pending | `indicator_pipeline.py` |
-| 3 | ⏳ Pending | Macro context layer (regime, rotation, earnings, seasonality, macro overlay) |
-| 4 | ⏳ Pending | Sentiment + news layer |
-| 5 | ⏳ Pending | Volume profile + cross-ticker analysis |
-| 6 | ⏳ Pending | Confidence scoring (`scoring.py`) |
-| 7 | ⏳ Pending | EV-based trade selector (42 structures) |
-| 8 | ⏳ Pending | Signal decay + portfolio management |
-| 9 | ⏳ Pending | Risk mitigation layer |
-| 10 | ⏳ Pending | Discord alerts + notification routing + `run_swing_model.py` |
-| 11 | ⏳ Pending | Model versioning + CHANGELOG enforcement |
-| 12 | ⏳ Pending | Backtesting (70/30, walk-forward, stress test) |
-| 13 | ⏳ Pending | Paper trading (60-90 trading days minimum) |
-| 14 | ⏳ Pending | Feedback loop + performance monitoring |
-| 15 | 🔮 Future | Live execution (after Phase 13 paper trading passes) |
-| 16 | 🔮 Ongoing | Continuous improvement |
-
-**Event Severity Gate (v2.1.0):** ✅ Built and tested — `shared/utils/event_gate.py`, wired into `news_layer.py`/`scoring.py`/`run_swing_model.py`. Binary veto (not a scoring category) that suppresses signal surfacing on critical, thesis-opposed news until the next post-close scan completes after the event. See `CHANGELOG.md` v2.1.0 and `Project_Scope.md` → "Event Severity Gate". **Not yet backtested** — same not-live-eligible status as the rest of the model until a passing backtest is logged.
-
----
-
-## Section 6 — How to Run Each Component
+## Setup
 
 ```bash
-# Run daily swing model scan
-python swing_model/run_swing_model.py
-
-# Run full backtest
-python backtesting/run_backtest.py
-
-# Run sensitivity analysis only
-python backtesting/run_backtest.py --sensitivity
-
-# Run stress test
-python backtesting/stress_test.py
-
-# Run paper trading engine
-python paper_trading/paper_trade_engine.py
-
-# Run performance dashboard (generate weekly summary)
-python monitoring/performance_dashboard.py
+pip install -r requirements.txt          # requirements.lock.txt = exact versions CI uses
+python -m spacy download en_core_web_sm
+cp .env.example .env                     # then fill in the keys
 ```
 
----
+Main `.env` keys: `ALPHA_VANTAGE_API_KEY`, `FINNHUB_API_KEY`, `RAPIDAPI_KEY`, `SEC_EDGAR_USER_AGENT`,
+`DISCORD_WEBHOOK_URL` (plus `DISCORD_AGENT_WEBHOOK_URL` and the team webhooks; see `.env.example`).
+The other worktrees (V3, V4, team, agent) read this same `.env`.
 
-## Section 7 — Configuration
+## Running things by hand
 
-**`config/swing_config.yaml`** — strategy-level settings:
-- `watchlist.tickers` — add/remove tickers here; `benchmark` sets the RS reference (SMH)
-- `confidence.min_threshold` — documented as 90, but not yet wired into scoring.py (real gate is
-  `CONFIDENCE_THRESHOLD=70`, hardcoded); editing this value currently has no effect (Tier B, in
-  progress — see CHANGELOG.md)
-- `scoring_weights` — technical/sentiment/news max contributions (must sum to 100); also not yet
-  wired into real code (Tier B, in progress)
-- `modifier_bounds` — per-modifier min/max safety clamps; `sector_rotation`/`earnings_proximity`/
-  `macro_overlay` are queued to be wired for real (Tier B, in progress) — `regime`/`cross_ticker`/
-  `seasonality` were removed, already enforced by hardcoded clamps in their own modules
-- risk-per-confidence-tier sizing (`position_sizing.tiers` config block was removed 2026-08-19 —
-  it had drifted stale and unread; the real ladder is `shared/utils/position_sizer.py`'s
-  `SIZING_TIERS` constant); `position_sizing.max_capital_pct` still caps per-trade size via config
-- `circuit_breakers` — yellow's drawdown/size-multiplier levels are real and config-driven;
-  orange/red's drawdown thresholds are real, but their "no new positions"/"full stop" behavior is
-  intentionally hardcoded, not config-driven (already always-on, see CHANGELOG.md 2026-08-19)
-- `options_approval_level` — set to your actual brokerage approval level (1/2/3)
-- `event_severity_gate` — enable/disable flag, sector-wide/ticker trigger keyword lists, principal sources, minimum source credibility (news veto, not a scoring category)
+```bash
+python -m paper_trading.paper_runner --scan-type post_close   # a paper scan (what the task runs)
+python -m paper_trading.paper_updater --summary               # paper performance summary
+python swing_model/run_swing_model.py                         # full model scan
+python backtesting/run_backtest.py [--sensitivity]            # backtest
+python -m monitoring.performance_dashboard                    # weekly dashboard
+python -m app_ui.main                                         # desktop app
+```
 
-**`config/global_config.yaml`** — infrastructure settings:
-- API base URLs, rate limits, retry backoff parameters
-- Scan schedule (pre-market 8:30am ET, mid-session 12pm ET, post-close 4:30pm ET)
-- Log file paths, notification routing rules
+## Checks (same as CI)
 
----
+```bash
+ruff check .
+pytest
+python scripts/check_config_coverage.py
+python scripts/check_confidence_threshold_duplication.py
+python scripts/check_no_raw_http.py
+python scripts/check_rank_track_slot_budget.py
+```
 
-## Section 8 — Warnings
+CI (`.github/workflows/ci.yml`) also runs `scripts/check_version_bump.py`. Any change to
+`config/swing_config.yaml` or `swing_model/scoring.py` must come with a new top version entry in
+`CHANGELOG.md`, including comment-only edits.
 
-- **Backtesting required before live use.** The $15,000 must not go live until Phase 12 backtesting confirms 80% win rate + 1:3 R:R + 90/100 minimum confidence across multiple market regimes, including at least one high-volatility period (VIX > 30).
-- **Not financial advice.** This system is a decision-support tool. Every recommendation requires your review and manual execution. Past backtested performance does not guarantee future results.
-- **Paper trading gate.** Even after backtesting passes, the $15,000 must not go live until Phase 13 paper trading sustains 80% win rate + 1:3 R:R + slippage within 10% of modeled estimates over a minimum of 60 trading days (~3 calendar months).
+## Other branches and folders
+
+This one GitHub repo holds several separate projects, one per branch. Each branch is checked out in
+its own folder (a git worktree) next to this one:
+
+| Branch | Local folder | What it is |
+|---|---|---|
+| `Version-1` | `StockAnalysis` (this) | V2 swing model, paper testing |
+| `Version-3` | `StockAnalysis-V3` | Research lab + G2 gap-fade and ON1 overnight paper tests |
+| `Version-4` | `StockAnalysis-V4` | EPRE earnings-premium paper model |
+| `team` | `StockAnalysis-Team` | Automated agent team (dispatcher, quotes, scan ops) |
+| `agent` | `StockAnalysis-agent` | Review-agent reports. Rebased onto `Version-1` every run, so push it with `git push --force-with-lease origin agent` |
+| `main` | — | Landing page: the map of all of the above |
+
+The status and pass/fail rule of every running test is in `MODULES.md` on the `Version-4` branch.

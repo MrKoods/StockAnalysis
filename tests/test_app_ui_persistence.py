@@ -1,6 +1,6 @@
 """
 Integration test for the app_ui DB wiring added to paper_runner.py (see
-App_UI_Scope.md §4 — "wrap instead of consolidate"). Every pipeline/Discord
+docs/App_UI_Scope.md §4 — "wrap instead of consolidate"). Every pipeline/Discord
 dependency is mocked; this only verifies run_paper_scan() writes the right
 scan_runs/ticker_results/layer_scores/notifications rows for a scan that
 produces one trade-recommended ticker and one near-miss ticker.

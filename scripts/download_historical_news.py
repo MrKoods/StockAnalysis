@@ -11,8 +11,8 @@ Re-run safe: already-downloaded quarters are skipped.
 Priority: most-recent quarters first (test-set data arrives on day 1).
 
 Usage:
-  python download_historical_news.py              # collect everything
-  python download_historical_news.py --status     # show what has been downloaded
+  python scripts/download_historical_news.py              # collect everything
+  python scripts/download_historical_news.py --status     # show what has been downloaded
 """
 
 import argparse

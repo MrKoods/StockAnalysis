@@ -1,5 +1,5 @@
 """
-Desktop app UI entry point (App_UI_Scope.md). Run with:
+Desktop app UI entry point (docs/App_UI_Scope.md). Run with:
     python -m app_ui.main
 """
 

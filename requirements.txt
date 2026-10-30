@@ -49,7 +49,7 @@ ruff>=0.6.0
 python-dateutil>=2.8.0
 pytz>=2023.3
 
-# Desktop app UI (see App_UI_Scope.md)
+# Desktop app UI (see docs/App_UI_Scope.md)
 # Capped below 6.10 — 6.10.0+ has never shipped a Linux wheel (Windows-only
 # so far), which breaks `pip install` in CI (ubuntu-latest). Raise the cap
 # once a Linux wheel appears for a newer release.

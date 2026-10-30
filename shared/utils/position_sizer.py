@@ -245,7 +245,7 @@ def apply_consecutive_loss_sizing(
     cfg: Optional[dict] = None,
 ) -> tuple[float, float]:
     """
-    Apply the consecutive-loss-streak size reduction (Project_Scope.md's
+    Apply the consecutive-loss-streak size reduction (docs/Project_Scope.md's
     Category 7 escalation ladder — 2 losses: half size until next winner;
     3/4 losses are a new-entry PAUSE instead, enforced by
     portfolio_manager.can_open_new_position, not a sizing reduction, so

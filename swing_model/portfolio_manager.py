@@ -125,7 +125,7 @@ def close_position(state: dict, ticker: str, exit_price: float, reason: str, cfg
     Close a position and update realized P&L, consecutive loss count, and equity.
     Logs outcome to data/logs/trade_outcomes.csv.
 
-    Also tracks the consecutive-loss-streak PAUSE window (Project_Scope.md's
+    Also tracks the consecutive-loss-streak PAUSE window (docs/Project_Scope.md's
     Category 7 ladder: 3 losses -> pause new entries N trading days, enforced
     by can_open_new_position): set once when the streak first reaches 3,
     cleared on any win. 4+ losses is a separate full-pause requiring manual
@@ -324,7 +324,7 @@ def can_open_new_position(
     if cb_state in ("orange", "red"):
         return False, f"circuit_breaker_{cb_state}_no_new_positions"
 
-    # Consecutive-loss escalation ladder (Project_Scope.md Category 7):
+    # Consecutive-loss escalation ladder (docs/Project_Scope.md Category 7):
     # 4+ losses -> full pause, requires manual review (can only clear via a
     # win, which can't happen while paused — deliberate, matches "system
     # review required" for what the spec calls a statistically rare event).

@@ -294,7 +294,7 @@ def compute_iv_percentile(current_iv: Optional[float], iv_history: list) -> dict
 
     Requires at least _MIN_IV_HISTORY_SAMPLES prior readings before reporting a
     real percentile — same "accumulates going forward, not backtestable yet"
-    caveat already accepted for Positioning/Sentiment (see PROJECT_OVERVIEW.md
+    caveat already accepted for Positioning/Sentiment (see docs/PROJECT_OVERVIEW.md
     §13). Below that floor, returns a neutral 50.0 with data_quality flagged so
     callers can tell "genuinely mid-range" apart from "not enough history yet."
 

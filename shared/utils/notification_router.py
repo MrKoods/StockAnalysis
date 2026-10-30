@@ -1,5 +1,5 @@
 """
-SHARED: Sends alerts to Discord. Discord and the desktop app UI (see App_UI_Scope.md)
+SHARED: Sends alerts to Discord. Discord and the desktop app UI (see docs/App_UI_Scope.md)
 are the only two places alerts surface — there is no email or SMS delivery channel.
 """
 

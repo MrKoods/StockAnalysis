@@ -1,5 +1,5 @@
 """
-SQLite persistence for the desktop app UI (see App_UI_Scope.md). Stores scan
+SQLite persistence for the desktop app UI (see docs/App_UI_Scope.md). Stores scan
 results, layer breakdowns, and notification history so the UI has something to
 show on launch without needing a scan to have just run.
 
@@ -18,7 +18,7 @@ from typing import Optional
 
 DEFAULT_DB_PATH = Path("stockanalysis_history.db")
 
-# Categories a ticker_results row can fall into — see App_UI_Scope.md §3.1
+# Categories a ticker_results row can fall into — see docs/App_UI_Scope.md §3.1
 CATEGORY_TRADE_RECOMMENDED = "trade_recommended"
 CATEGORY_PASSED_NO_TRADE = "passed_no_trade"
 CATEGORY_NEAR_MISS = "near_miss"
@@ -98,7 +98,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
     """
     cols = {row["name"] for row in conn.execute("PRAGMA table_info(ticker_results)")}
     if "sector" not in cols:
-        # Added v2.2.10 for multi-sector result grouping (App_UI_Scope.md §3.1) —
+        # Added v2.2.10 for multi-sector result grouping (docs/App_UI_Scope.md §3.1) —
         # existing rows from before this migration get sector=NULL, shown under
         # an "Unknown Sector" bucket in results_tab.py rather than dropped.
         conn.execute("ALTER TABLE ticker_results ADD COLUMN sector TEXT")

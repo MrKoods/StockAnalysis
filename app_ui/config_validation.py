@@ -1,6 +1,6 @@
 """
 Validation for swing_config.yaml edits made in the app UI's Config tab
-(App_UI_Scope.md §3.3) — catches a bad edit before it's written back to the
+(docs/App_UI_Scope.md §3.3) — catches a bad edit before it's written back to the
 file the pipeline actually reads, since config remains the single source of
 truth (the DB never stores config, only results/notifications).
 

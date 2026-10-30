@@ -60,7 +60,7 @@ data/historical/
 # five of these in paper_trading/.
 *.bak
 
-# Desktop app UI — local scan history (App_UI_Scope.md), regenerated per machine
+# Desktop app UI — local scan history (docs/App_UI_Scope.md), regenerated per machine
 stockanalysis_history.db
 
 # API-layer on-disk cache + rate-limiter state (shared/api_clients/cache.py, rate_limiter.py)

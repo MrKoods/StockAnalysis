@@ -3,9 +3,9 @@ Background scan execution for the app UI. Two pieces:
 
 - get_av_budget_status(): reads today's Alpha Vantage call count and estimates
   whether a manual run would exceed the daily budget — the guard recommended
-  in App_UI_Scope.md §3.4/§6 in place of a generic confirmation dialog.
+  in docs/App_UI_Scope.md §3.4/§6 in place of a generic confirmation dialog.
 - ScanWorker: a QThread that runs paper_trading.paper_runner.run_paper_scan()
-  off the Qt main thread, per App_UI_Scope.md §2/§3.4. Targets the paper
+  off the Qt main thread, per docs/App_UI_Scope.md §2/§3.4. Targets the paper
   runner, not run_swing_model.py — every model version through the current
   CHANGELOG.md entry is still marked not-yet-eligible-to-go-live.
 """

@@ -1,5 +1,5 @@
 """
-Config screen — App_UI_Scope.md §3.3. Editable view of swing_config.yaml.
+Config screen — docs/App_UI_Scope.md §3.3. Editable view of swing_config.yaml.
 Edits write back to the YAML file directly (config stays the pipeline's single
 source of truth); validation runs before every save so a bad edit can't
 silently break a run.
