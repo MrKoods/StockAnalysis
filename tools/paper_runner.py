@@ -15,7 +15,8 @@ Strategy contract - strategies/<id>/strategy.py:
 strategies/<id>/spec.json:
     {"family", "hold_sessions": 0 (= exit at the entry day's close) | N, "exit_at": "close"|"open",
      "stop_pct": null|float, "target_pct": null|float, "cost_bps": round-trip, "max_signals_per_day",
-     "rule": {"metric": "net_bps"|"hedged_bps", "min_days", "max_days", "pass_mean_bps", "pass_t",
+     "rule": {"metric": "real_bps"|"real_hedged_bps" (required for new promotions; real Webull quotes -
+             see tools/quotes.py) | "net_bps"|"hedged_bps" (official prices), "min_days", "max_days", "pass_mean_bps", "pass_t",
               "early_fail_days": opt, "early_fail_mean_bps": opt}}
 """
 from __future__ import annotations
@@ -38,7 +39,8 @@ REGISTRY = TEAM / "strategies" / "registry.json"
 PAPER = TEAM / "paper"
 CACHE = STATE / "cache"
 FIELDS = ["strategy", "signal_date", "ticker", "side", "status", "entry_date", "entry_px", "exit_date",
-          "exit_px", "exit_reason", "gross_bps", "net_bps", "spy_bps", "hedged_bps"]
+          "exit_px", "exit_reason", "gross_bps", "net_bps", "spy_bps", "hedged_bps",
+          "real_entry_px", "real_exit_px", "real_legs", "real_bps", "real_hedged_bps"]
 
 
 # ---------- data ----------
@@ -107,8 +109,10 @@ def _bps(side: str, entry: float, exit_: float) -> float:
     return (1 if side == "long" else -1) * (exit_ / entry - 1) * 1e4
 
 
-def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list[date]) -> dict:
-    """Fill and/or exit one trade using sessions up to the last available bar. Pure function."""
+def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list[date],
+            quotes: dict | None = None) -> dict:
+    """Fill and/or exit one trade using sessions up to the last available bar. Pure function. `quotes`:
+    (date, 'open'|'close', ticker) -> (bid, ask) from tools/quotes.py, for the real-price columns."""
     if row["status"] not in ("pending", "open"):
         return row
     row = dict(row)
@@ -158,7 +162,25 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
     row.update(status="closed", exit_date=str(exit_day), exit_px=round(exit_px, 4), exit_reason=reason,
                gross_bps=round(gross, 2), net_bps=round(net, 2), spy_bps=round(spy_bps, 2),
                hedged_bps=round(net - sgn * spy_bps, 2))
+    exit_when = "open" if reason == "time" and spec.get("exit_at") == "open" and hold > 0 else \
+        "close" if reason == "time" else None              # stop/target fill intraday - no capture for those
+    row.update(real_price(row, spec, quotes or {}, entry_day, exit_day, exit_when))
     return row
+
+
+def real_price(row: dict, spec: dict, quotes: dict, entry_day: date, exit_day: date, exit_when: str | None) -> dict:
+    """The same trade at real Webull quotes (tools/quotes.py): buy at the ask, sell at the bid (short: the
+    reverse). A leg without a captured quote falls back to the official price minus half the plan's cost
+    estimate; `real_legs` (0-2) says how many legs used real quotes."""
+    sgn = 1 if row["side"] == "long" else -1
+    half = float(spec.get("cost_bps", 10)) / 2 / 1e4
+    entry_q = quotes.get((str(entry_day), "open", row["ticker"]))
+    exit_q = quotes.get((str(exit_day), exit_when, row["ticker"])) if exit_when else None
+    e = (entry_q[1] if sgn > 0 else entry_q[0]) if entry_q else float(row["entry_px"]) * (1 + sgn * half)
+    x = (exit_q[0] if sgn > 0 else exit_q[1]) if exit_q else float(row["exit_px"]) * (1 - sgn * half)
+    real = _bps(row["side"], e, x)
+    return {"real_entry_px": round(e, 4), "real_exit_px": round(x, 4), "real_legs": int(bool(entry_q)) + int(bool(exit_q)),
+            "real_bps": round(real, 2), "real_hedged_bps": round(real - sgn * float(row["spy_bps"]), 2)}
 
 
 def score(rows: list[dict], rule: dict) -> dict:
@@ -220,7 +242,9 @@ def run_one(sid: str, asof: date, bars_cache: dict, dry_run: bool) -> dict:
     uni = list(mod.universe())
     bars = bars_cache.setdefault(tuple(sorted(uni)), download(uni, asof))
     sessions = sorted(d for d in bars["SPY"].index if d <= asof)
-    rows = [advance(r, spec, bars, sessions) for r in read_ledger(sid)]
+    import quotes as qmod
+    q = qmod.load_quotes()
+    rows = [advance(r, spec, bars, sessions, q) for r in read_ledger(sid)]
     traded_today = bool(sessions) and sessions[-1] == asof
     new = 0
     if traded_today and not stopped() and not any(r["signal_date"] == str(asof) for r in rows):

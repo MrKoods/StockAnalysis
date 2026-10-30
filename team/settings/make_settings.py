@@ -59,6 +59,9 @@ ROLES = {
                           "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)"] + own("auditor"),
                 "deny": ["WebFetch", "WebSearch", "Bash(python tools/ideas.py set *)", "Bash(python tools/ideas.py add *)",
                          "Bash(python tools/gate.py promote *)", "Bash(python tools/gate.py retire *)"]},
+    # One read-only quote tool and nothing else: no files, no shell, no web.
+    "quote_clerk": {"allow": ["ToolSearch", "mcp__claude_ai_Webull__get_stock_snapshot"],
+                    "deny": ["Read", "Glob", "Grep", "Edit", "Write", "Bash", "WebFetch", "WebSearch"]},
 }
 
 here = Path(__file__).parent

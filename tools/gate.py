@@ -71,6 +71,8 @@ def checks(sid: str, smoke: bool = True) -> list[tuple[str, bool, str]]:
     rule = spec.get("rule", {})
     ok_spec = (strat / "strategy.py").exists() and all(k in rule for k in RULE_KEYS) and "cost_bps" in spec
     out.append(("strategy + frozen rule", ok_spec, f"rule keys {sorted(rule)}"))
+    out.append(("judged at real prices", rule.get("metric") in ("real_bps", "real_hedged_bps"),
+                f"rule metric {rule.get('metric')!r} - must be real_bps or real_hedged_bps (Webull bid/ask fills)"))
     if smoke and ok_spec:
         out.append(smoke_test(sid))
 

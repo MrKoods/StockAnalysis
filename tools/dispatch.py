@@ -31,6 +31,7 @@ import ideas
 import jobs
 import ops_monitor
 import paper_runner
+import quotes
 from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, git, load_json, log, now_pt,
                     post, save_json, stopped)
 
@@ -73,7 +74,9 @@ def runs_this_week() -> int:
     if not USAGE.exists():
         return 0
     monday = (now_pt().date() - timedelta(days=now_pt().weekday())).isoformat()
-    return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:] if line[:10] >= monday)
+    # The Quote Clerk has its own cap (tools/quotes.py) - its fixed-time runs must not crowd out the team's.
+    return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:]
+               if line[:10] >= monday and ",quote_clerk," not in line)
 
 
 def in_stage(stage: str) -> list[str]:
@@ -150,7 +153,9 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
     tot = budget.totals()
     lines += [f"{k}: {v}" for k, v in tot.items()] + ["```", "",
               "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source).",
-              "What data research can use, and each family's used periods: state/data_catalog.md."]
+              "What data research can use, and each family's used periods: state/data_catalog.md.",
+              "ON1 at real Webull bid/ask (Quote Clerk, frozen rule in team/real_price_rules.json): "
+              "paper/on1_real_price_status.json."]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -244,6 +249,13 @@ def main(argv: list[str]) -> int:
     paper = {} if today.weekday() == 5 else paper_runner.run(today, dry_run=a.dry_run)
     if not a.dry_run:
         commit(f"team-runner: paper {today}")
+
+    # 1a. ON1 re-priced at the Quote Clerk's real bid/ask (tools/quotes.py) - read by the Scorekeeper/Director.
+    if not a.dry_run:
+        try:
+            log(f"on1 real-price: {quotes.on1()}", "dispatch")
+        except Exception as e:
+            log(f"on1 real-price failed: {e}", "dispatch")
 
     # 1b. research data: EDGAR filings (daily, only companies that filed), splits (Saturday), data catalog.
     #     Plain Python, zero tokens. A failure is reported, never fatal - research can use yesterday's archive.

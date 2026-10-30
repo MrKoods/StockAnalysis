@@ -1,3 +1,3 @@
-{"family": "template", "hold_sessions": 0, "exit_at": "close", "stop_pct": null, "target_pct": null,
+﻿{"family": "template", "hold_sessions": 0, "exit_at": "close", "stop_pct": null, "target_pct": null,
  "cost_bps": 6, "max_signals_per_day": 2,
- "rule": {"metric": "hedged_bps", "min_days": 20, "max_days": 40, "pass_mean_bps": 5, "pass_t": 2.0}}
+ "rule": {"metric": "real_hedged_bps", "min_days": 20, "max_days": 40, "pass_mean_bps": 5, "pass_t": 2.0}}

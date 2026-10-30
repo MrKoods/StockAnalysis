@@ -25,8 +25,10 @@ the filing), never `filing_date` - an after-close filing can't be traded until t
    variants and set `chosen` by a rule you state in PLAN.md (e.g. best train t) - in the holdout phase evaluate
    only `chosen`.
 4. `strategies/<id>/strategy.py` + `spec.json` - the SAME rule as `chosen`, in the paper-runner contract, with a
-   frozen `rule` (min_days/max_days/pass_mean_bps/pass_t; metric). If the rule can't be expressed there, say so
-   in PLAN.md - it then cannot become a paper test.
+   frozen `rule` (min_days/max_days/pass_mean_bps/pass_t; metric). The metric MUST be `real_bps` or
+   `real_hedged_bps`: the paper test is judged at real Webull bid/ask fills (the gate refuses anything else), so
+   size `pass_mean_bps` knowing spreads come out of it. If the rule can't be expressed there, say so in PLAN.md -
+   it then cannot become a paper test.
 5. Then run `python tools/jobs.py check <id>` and `python tools/jobs.py smoke <id>` and fix until both pass
    (smoke shows only counts, never performance - that's deliberate).
 

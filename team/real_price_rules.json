@@ -1,0 +1,7 @@
+{
+  "_doc": "Frozen real-price rules (tools/quotes.py). Set 2026-10-30, before any quote was captured. Change only BEFORE a test starts being judged; a changed rule afterwards = a new test.",
+  "on1": {
+    "text": "ON1 picks re-priced at real quotes (buy at the ask ~3:56 PM ET, sell at the bid ~9:31 AM ET, no other costs). Day-clustered over days with both quotes. From 15 days: PASS if mean >= +5 bps/trade and day-t >= 2; FAIL if mean < 0; otherwise continue; at 30 days PASS or FAIL.",
+    "min_days": 15, "max_days": 30, "pass_mean_bps": 5, "pass_t": 2.0
+  }
+}
