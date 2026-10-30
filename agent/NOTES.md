@@ -3,14 +3,14 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.058** (62/100 closed). GO mathematically unreachable. Frozen at n=100.
+- **V2 rank mean R after costs: -0.006** (65/100 closed). GO mathematically unreachable. ABBV options-era +2.422R time-stop (Oct 29) moved mean from -0.058. Frozen at n=100.
 - **C6 forward: RETIRED 2026-10-23.** No longer updated or reported.
-- **ON1 paper: day-t +2.06** (12 days, mean +61.0 bps). Oct 28 was -95.5 bps — bad day pulled t down from 2.64. Still above 2.0 for FIVE consecutive reviews. Eval at day 20 = trade day Mon Nov 9, scored at the Tue Nov 10 06:45 evaluate (corrected 2026-10-30 from the ledger; ~Nov 7 was wrong). G2 day 20 = Thu Nov 5.
-- **V3 G2 paper: day-t -1.11** (15 days, mean -16.7 bps). Noise. Eval window opens day 20.
-- **Random control: 22 closed** (mean -0.447R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
-- **V4 EPRE: day 2 exits** — 288 closed (Oct 28: 115, Oct 29: 173). Hedged mean -14.9 bps (exit-day t -0.65, pure noise). 116 open. Checkpoint A (~1,000 trades) ~Nov 7.
-- **EPRE calendar refreshed Oct 28** ✓. Today's 17:15 refresh (Oct 29) scheduled after review.
-- **Team_Dispatch first run Oct 29 14:50** — new task, never run before. Check for errors tomorrow.
+- **ON1 paper: day-t +1.91** (13 days, mean +53.5 bps). Oct 29 was -81.0 bps — first dip below 2.0 since Oct 23 streak began (was above 2.0 for 5 consecutive reviews). Eval at day 20 = trade day Mon Nov 9, scored at Tue Nov 10 06:45 evaluate. G2 day 20 = Thu Nov 5.
+- **V3 G2 paper: day-t -1.36** (16 days, mean -19.6 bps). Worsening but noise. Eval window opens day 20 = Nov 5.
+- **Random control: 24 closed** (mean -0.356R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
+- **V4 EPRE: 3 exit days** — 388 closed. Hedged mean -6.9 bps (exit-day t -0.39, pure noise). 127 open. Checkpoint A (~1,000 trades) arriving ~Nov 4–7.
+- **EPRE calendar refreshed Oct 29** ✓. Today's 17:15 refresh (Oct 30) scheduled after review.
+- **Team_Dispatch Oct 29 result 0** — resolved (watch item cleared).
 - **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
@@ -60,6 +60,17 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-30 daily review
+- All tasks result 0. Team_Dispatch Oct 29 result 0 — watch item resolved.
+- V2 rank: 3 new closures (exit Oct 29): ABBV time_stop +2.422R (options-era Oct 8), AVGO time_stop -0.220R (shares), MCD earnings_exit +1.234R (shares). TGT expired NaN (not counted). Mean after costs: -0.058 → -0.006 (65/100). Move driven by ABBV's single options-era result. Week-t -0.25. GO unreachable. 8 new signals today (all shares).
+- V2 random: 2 new closures (22→24); mean after costs -0.447 → -0.356R. 8 new signals.
+- V3 ON1 paper day 13 (Oct 29 scored: -81.035 bps): mean +53.491 bps, day-t +1.91 (down from 2.06). First dip below 2.0 in 5 reviews.
+- V3 G2 paper day 16 (Oct 30: -64.956 bps): mean -19.563 bps, day-t -1.36 (from -1.11). Noise.
+- G2 forward day 18: t +0.65 (noise). ON1 forward day 17: t +0.70 (noise).
+- V4 EPRE 3rd exit day: ~100 new closures → 388 closed. Hedged mean -6.9 bps (was -14.9), exit-day t -0.39 (3 days). 111 new signals today (515 total, 127 open). Calendar refreshed Oct 29; Oct 30 17:15 refresh runs after this review.
+- No bugs. No fixes proposed.
+- Note: snapshot.py passes absolute V2 paths to rank_verdict.compute_verdict() correctly. Earlier check_rank_delta.py script accidentally read stale agent-workspace ledger (RANK_TRADES_CSV is a relative Path). Numbers from snapshot.py are authoritative.
 
 ### 2026-10-29 daily review
 - All tasks result 0. Team_Dispatch scheduled first run 14:50 PT (267011 = never run, not a failure). EPRE log files 0 lines (expected by design). EPRE calendar confirmed refreshed Oct 28 17:15.
