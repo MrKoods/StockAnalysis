@@ -286,3 +286,39 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-10-21T20:37:49.103275+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
 2026-10-21T20:37:49.514718+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-10-21T20:37:49.988992+00:00,v2.2.134,post_close,BKNG,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-22T12:38:32.154849+00:00,v2.2.134,pre_market,AVGO,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-22T12:38:45.474018+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='yahoo.com',True,export restriction
+2026-10-22T12:44:26.109945+00:00,v2.2.134,pre_market,BKNG,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='benzinga.com',True,fraud
+2026-10-22T20:31:27.107166+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='trade war' source='yahoo.com',True,trade war
+2026-10-22T20:32:45.149238+00:00,v2.2.134,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-22T20:32:45.741973+00:00,v2.2.134,critical,KEY,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='fraud',False,fraud
+2026-10-22T20:36:15.398412+00:00,v2.2.134,post_close,AVGO,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-22T20:36:15.807301+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
+2026-10-22T20:36:16.219188+00:00,v2.2.134,post_close,BKNG,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-23T12:40:19.977291+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='export restriction' source='yahoo.com',True,export restriction
+2026-10-23T12:52:41.157556+00:00,v2.2.134,pre_market,BKNG,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='benzinga.com',True,fraud
+2026-10-23T20:33:09.896480+00:00,v2.2.134,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='patient death' source='yahoo.com',True,patient death
+2026-10-23T20:34:33.139006+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='trade war',False,trade war
+2026-10-23T20:34:33.599765+00:00,v2.2.134,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-23T20:34:34.097937+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='export restriction',False,export restriction
+2026-10-23T20:34:34.510338+00:00,v2.2.134,post_close,BKNG,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-26T12:36:21.071945+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-10-26T12:36:48.426812+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='trade war' source='yahoo.com',True,trade war
+2026-10-26T12:37:32.829313+00:00,v2.2.134,pre_market,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-26T20:35:50.804151+00:00,v2.2.134,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='patient death',False,patient death
+2026-10-26T20:35:51.793625+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-10-26T20:35:52.184249+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='trade war',False,trade war
+2026-10-26T20:35:52.644592+00:00,v2.2.134,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-27T12:36:14.513138+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='trade war' source='yahoo.com',True,trade war
+2026-10-27T12:36:57.747263+00:00,v2.2.134,pre_market,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-27T12:38:39.083495+00:00,v2.2.134,pre_market,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='patient death' source='yahoo.com',True,patient death
+2026-10-27T20:32:36.995793+00:00,v2.2.134,critical,UNH,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='fraud',False,fraud
+2026-10-27T20:34:53.546929+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='trade war',False,trade war
+2026-10-27T20:34:54.017740+00:00,v2.2.134,post_close,KEY,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-27T20:34:54.479237+00:00,v2.2.134,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='patient death',False,patient death
+2026-10-28T12:39:56.264391+00:00,v2.2.134,pre_market,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-28T12:40:19.121814+00:00,v2.2.134,pre_market,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='patient death' source='yahoo.com',True,patient death
+2026-10-28T20:34:56.263474+00:00,v2.2.134,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-10-28T20:34:56.810054+00:00,v2.2.134,post_close,"LLY,PFE,MRK,ABBV,UNH,JNJ,AMGN,GILD,BMY,VRTX,TMO,ABT,ISRG,SYK",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='patient death',False,patient death
+2026-10-29T12:38:43.205370+00:00,v2.2.134,pre_market,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-10-29T20:34:38.015749+00:00,v2.2.134,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
