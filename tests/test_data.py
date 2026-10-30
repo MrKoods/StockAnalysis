@@ -23,6 +23,14 @@ def test_first_session_timing():
     assert list(got) == list(want)
 
 
+def test_sessions_from_spy_respect_cutoff(tmp_path, monkeypatch):
+    (tmp_path / "daily_max").mkdir()
+    pd.DataFrame({"close": [1.0, 2.0, 3.0]}, index=pd.to_datetime(["2024-05-22", "2024-05-23", "2024-05-24"])
+                 ).to_parquet(tmp_path / "daily_max" / "SPY.parquet")
+    monkeypatch.setattr(rd, "INTRA", tmp_path)
+    assert list(rd._sessions(pd.Timestamp("2024-05-23"))) == list(pd.to_datetime(["2024-05-22", "2024-05-23"]))
+
+
 def test_filings_cutoff_and_filters(tmp_path, monkeypatch):
     df = pd.DataFrame({
         "ticker": ["A", "A", "B", "B"], "cik": [1, 1, 2, 2], "form": ["8-K", "8-K/A", "10-Q", "8-K"],

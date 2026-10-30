@@ -190,6 +190,8 @@ def splits() -> str:
         return "edgar splits: no filings archive yet - run backfill first"
     filings = pd.read_parquet(FILINGS, columns=["ticker", "form", "accepted", "accession"])
     old = pd.read_parquet(SPLITS) if SPLITS.exists() else pd.DataFrame()
+    if len(old):                                          # a failed search is retried, not cached
+        old = old[old["found_by"] != "search_failed"]
     done = set(zip(old["ticker"], old["ex_date"])) if len(old) else set()
     ciks, rows = cik_map(), []
     for t in universe():
@@ -202,14 +204,18 @@ def splits() -> str:
             if (t, ex) in done or t not in ciks:
                 continue
             row = {"ticker": t, "ex_date": ex, "ratio": float(ratio)}
-            row.update(_announcement(ciks[t], ex, filings[filings["ticker"] == t]))
+            try:
+                row.update(_announcement(ciks[t], ex, filings[filings["ticker"] == t]))
+            except RuntimeError:                          # SEC search busy: keep going, retry next run
+                row["found_by"] = "search_failed"
             rows.append(row)
     new = pd.DataFrame(rows)
     df = pd.concat([old, new], ignore_index=True) if len(new) else old
     if len(df):
         OUT.mkdir(parents=True, exist_ok=True)
         df.sort_values(["ex_date", "ticker"]).reset_index(drop=True).to_parquet(SPLITS)
-    return f"edgar splits: {len(new)} new splits; {len(df)} total"
+    failed = int((df["found_by"] == "search_failed").sum()) if len(df) else 0
+    return f"edgar splits: {len(new)} new splits; {len(df)} total" + (f"; {failed} searches to retry" if failed else "")
 
 
 def status() -> str:

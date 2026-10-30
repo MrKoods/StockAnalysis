@@ -150,7 +150,8 @@ def insider(start: str = "2006-01-01") -> pd.DataFrame:
 def _sessions(end: pd.Timestamp) -> pd.DatetimeIndex:
     """NYSE sessions up to the cutoff (SPY's daily bars)."""
     spy = _read(INTRA / "daily_max" / "SPY.parquet")
-    return pd.DatetimeIndex(pd.to_datetime(spy.index).normalize()).unique().sort_values()[lambda i: i <= end]
+    idx = pd.DatetimeIndex(pd.to_datetime(spy.index)).normalize().unique().sort_values()
+    return idx[idx <= end]
 
 
 def _first_session(ts: pd.Series, sessions: pd.DatetimeIndex) -> pd.Series:
