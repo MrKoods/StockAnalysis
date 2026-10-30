@@ -5,7 +5,7 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 ## Watch list
 - **V2 rank mean R after costs: -0.058** (62/100 closed). GO mathematically unreachable. Frozen at n=100.
 - **C6 forward: RETIRED 2026-10-23.** No longer updated or reported.
-- **ON1 paper: day-t +2.06** (12 days, mean +61.0 bps). Oct 28 was -95.5 bps — bad day pulled t down from 2.64. Still above 2.0 for FIVE consecutive reviews. Eval window at day 20 (~Nov 7).
+- **ON1 paper: day-t +2.06** (12 days, mean +61.0 bps). Oct 28 was -95.5 bps — bad day pulled t down from 2.64. Still above 2.0 for FIVE consecutive reviews. Eval at day 20 = trade day Mon Nov 9, scored at the Tue Nov 10 06:45 evaluate (corrected 2026-10-30 from the ledger; ~Nov 7 was wrong). G2 day 20 = Thu Nov 5.
 - **V3 G2 paper: day-t -1.11** (15 days, mean -16.7 bps). Noise. Eval window opens day 20.
 - **Random control: 22 closed** (mean -0.447R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
 - **V4 EPRE: day 2 exits** — 288 closed (Oct 28: 115, Oct 29: 173). Hedged mean -14.9 bps (exit-day t -0.65, pure noise). 116 open. Checkpoint A (~1,000 trades) ~Nov 7.
