@@ -40,8 +40,8 @@ GAP = 0.125                                                       # SEC allows 1
 _last = [0.0]
 
 
-def _get(url: str, params: dict | None = None, tries: int = 5) -> requests.Response | None:
-    """Rate-limited GET with retries. 404 -> None (e.g. no daily index on a holiday)."""
+def _get(url: str, params: dict | None = None, tries: int = 5, missing=(404,)) -> requests.Response | None:
+    """Rate-limited GET with retries. A status in `missing` -> None (e.g. no daily index on a holiday)."""
     ua = read_env().get("SEC_EDGAR_USER_AGENT")
     if not ua:
         raise SystemExit("SEC_EDGAR_USER_AGENT missing from the V2 .env (SEC requires a contact User-Agent)")
@@ -55,7 +55,7 @@ def _get(url: str, params: dict | None = None, tries: int = 5) -> requests.Respo
         except requests.RequestException:
             time.sleep(2 ** i)
             continue
-        if r.status_code == 404:
+        if r.status_code in missing:
             return None
         if r.status_code in (429, 500, 502, 503, 504) or (r.ok and '"errorType"' in r.text[:40]):
             time.sleep(2 ** i)                      # full-text search returns 200 + errorType when busy
@@ -141,7 +141,9 @@ def update() -> str:
     filers, last_ok = set(), None
     while day <= date.today():
         q = (day.month - 1) // 3 + 1
-        r = _get(f"https://www.sec.gov/Archives/edgar/daily-index/{day.year}/QTR{q}/master.{day:%Y%m%d}.idx")
+        # SEC answers 403 (not 404) for a daily index it hasn't published yet (e.g. today's, before ~10 PM ET).
+        r = _get(f"https://www.sec.gov/Archives/edgar/daily-index/{day.year}/QTR{q}/master.{day:%Y%m%d}.idx",
+                 missing=(403, 404))
         if r is not None:                             # None = weekend/holiday or not published yet
             for line in r.text.splitlines():
                 p = line.split("|")

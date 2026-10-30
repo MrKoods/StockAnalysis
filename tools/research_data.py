@@ -214,6 +214,11 @@ def ratings(tickers) -> dict[str, pd.DataFrame]:
         df = _read(EVENTS / "ratings" / f"{t}.parquet")
         if df is None or not len(df):
             continue
-        df = _clip_index(df.sort_index(), end) if isinstance(df.index, pd.DatetimeIndex) else df
-        out[t] = df
+        # Dated by the GradeDate column (the index is a plain row number) - clip on it, or nothing is clipped.
+        when = pd.to_datetime(df["GradeDate"], errors="coerce")
+        if getattr(when.dt, "tz", None) is not None:
+            when = when.dt.tz_convert("America/New_York").dt.tz_localize(None)
+        df = df[when.dt.normalize() <= end].sort_values("GradeDate")
+        if len(df):
+            out[t] = df.reset_index(drop=True)
     return out

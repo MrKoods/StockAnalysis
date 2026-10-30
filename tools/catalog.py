@@ -44,7 +44,7 @@ def sources() -> list[str]:
         ("earnings(tickers)", f"{n(rd.EVENTS / 'earnings')} tickers",
          _range(rd.EVENTS / "earnings" / "AAPL.parquet", "Earnings Date"), "dates + EPS estimate/actual/surprise"),
         ("insider(start)", "all filers", f"{yrs[0]} .. {yrs[-1]}" if yrs else "?", "Form 3/4/5 transactions"),
-        ("ratings(tickers)", f"{n(rd.EVENTS / 'ratings')} tickers", _range(rd.EVENTS / "ratings" / "AAPL.parquet"),
+        ("ratings(tickers)", f"{n(rd.EVENTS / 'ratings')} tickers", _range(rd.EVENTS / "ratings" / "AAPL.parquet", "GradeDate"),
          "analyst rating changes"),
     ]
     lines = ["| loader | coverage | dates | what |", "|---|---|---|---|"]

@@ -25,9 +25,13 @@ holdout window. Dropped: split-announcement-drift, sp-reconstitution (need scrap
 earnings-contagion also DROPPED (user, 2026-10-30): earnings_events searched 2000-2017 and held out
 2018-2026 twice (EPRE, ESUR) - no clean window. Don't add more earnings_events ideas.
 
+## 2026-10-30: SEC company-event data added (see state/data_catalog.md)
+rd.filings() = every SEC filing + 8-K item codes since 2004 (officer changes, deals, restatements,
+buybacks...); rd.splits() = splits with announcement dates. split-announcement-drift is back at `idea`.
+Each 8-K event type is a NEW family with its whole history clean - the best place to look next.
+
 ## Needs data (not registered - the user decides if the data is worth getting)
 - sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
-- split-announcement-drift: forward-split announcement dates (EDGAR 8-K full-text search)
 - any insider idea: a clean insider period no longer exists in the 2006+ SEC data
 
 ## Data sourcing notes for Director (older)

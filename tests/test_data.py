@@ -48,6 +48,15 @@ def test_filings_cutoff_and_filters(tmp_path, monkeypatch):
     assert out.loc[out.accession == "w", "first_session"].item() == pd.Timestamp("2024-05-23")
 
 
+def test_ratings_clipped_by_grade_date(tmp_path, monkeypatch):
+    (tmp_path / "ratings").mkdir()
+    pd.DataFrame({"GradeDate": pd.to_datetime(["2024-05-20 09:00", "2024-05-24 18:00", "2024-05-25 08:00"]),
+                  "Firm": ["a", "b", "c"]}).to_parquet(tmp_path / "ratings" / "X.parquet")   # RangeIndex, like V3's
+    monkeypatch.setattr(rd, "EVENTS", tmp_path)
+    monkeypatch.setenv("TEAM_DATA_END", "2024-05-24")
+    assert list(rd.ratings(["X"])["X"]["Firm"]) == ["a", "b"]
+
+
 def test_splits_hide_unannounced_future(tmp_path, monkeypatch):
     sp = pd.DataFrame({"ticker": ["N", "M", "Q"], "ex_date": pd.to_datetime(["2024-06-10", "2024-06-10", "2024-05-01"]),
                        "ratio": [10.0, 2.0, 3.0],
