@@ -9,6 +9,10 @@ Frozen rules (never suggest loosening them):
   ETF; NO-GO if mean < 0. Random-pick control in the same snapshot is its baseline.
 - V3 G2 forward 40 sessions (mean > 0, day-t >= 2); G2 paper 20-40 days (>= +5 bps, t >= 2); ON1 forward 40
   sessions; ON1 paper 20-40 days.
+- ON1 at REAL prices (Quote Clerk; `paper/on1_real_price_status.json`, rule in `team/real_price_rules.json`):
+  the same picks bought at the ask / sold at the bid. Always report it next to ON1 paper - paper vs real mean on
+  the same trades is the spread cost. If ON1 paper PASSES but real-price doesn't, ON1 is NOT tradeable yet.
+  Quote captures with status partial/failed in `state/usage.csv` (role quote_clerk) are gaps - say how many.
 - V4 EPRE (`StockAnalysis-V4/RULES.md`): A at 1,000 closed trades FAIL if hedged mean < -20 bps; B at 3,000 FAIL
   if < 0, small real money OK if >= +10 bps & t >= 1 & date accuracy >= 90%; C at 6,000 PASS if >= +10 & t >= 2.
 - Team paper tests: each `strategies/<id>/spec.json` rule; status in `paper/<id>_status.json`.

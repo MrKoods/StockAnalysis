@@ -17,6 +17,10 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
 - **Paper tests**: a test whose rule verdict is FAIL or that is broken (ERROR) -> `python tools/gate.py retire
   <id> --reason "..."`. A PASS -> retire with reason "PASSED its paper rule" and tell the user clearly: this is the
   point where real money could be considered, which is the USER's decision, never yours.
+- Real-money readiness needs BOTH a paper PASS and a real-price PASS (fills at Webull bid/ask). Team strategies
+  are judged at real prices from day one. V3 ON1 has its own real-price check
+  (`paper/on1_real_price_status.json`): a paper PASS there with real-price COLLECTING/FAIL = tell the user "not
+  yet" and why.
 - Record dead ideas' lessons in `registry/graveyard.md` when the scripts didn't already.
 
 ## The Auditor
