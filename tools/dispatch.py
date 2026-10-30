@@ -25,6 +25,8 @@ import time
 from datetime import date, timedelta
 
 import budget
+import catalog
+import edgar
 import ideas
 import jobs
 import ops_monitor
@@ -147,7 +149,8 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
              "", "## Trial budget (tools/budget.py)", "```"]
     tot = budget.totals()
     lines += [f"{k}: {v}" for k, v in tot.items()] + ["```", "",
-              "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source)."]
+              "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source).",
+              "What data research can use, and each family's used periods: state/data_catalog.md."]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -241,6 +244,18 @@ def main(argv: list[str]) -> int:
     paper = {} if today.weekday() == 5 else paper_runner.run(today, dry_run=a.dry_run)
     if not a.dry_run:
         commit(f"team-runner: paper {today}")
+
+    # 1b. research data: EDGAR filings (daily, only companies that filed), splits (Saturday), data catalog.
+    #     Plain Python, zero tokens. A failure is reported, never fatal - research can use yesterday's archive.
+    if not a.dry_run:
+        for name, job in [("edgar update", edgar.update)] + ([("edgar splits", edgar.splits)]
+                                                              if today.weekday() == 5 else []) + [("catalog", catalog.write)]:
+            try:
+                log(job(), "dispatch")
+            except Exception as e:
+                log(f"{name} failed: {e}", "dispatch")
+                post("ops", f"⚠️ Team data refresh **{name}** failed: {str(e)[:300]}", "Team - Ops Monitor")
+        commit(f"team-runner: data refresh {today}")
 
     # 2. ops (script only; Saturday has no market tasks worth a heartbeat)
     f = ops_monitor.run(dry_run=a.dry_run, post_it=today.weekday() < 5)

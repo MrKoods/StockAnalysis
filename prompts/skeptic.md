@@ -9,7 +9,8 @@ Review the idea named in the prompt. Read `research/<id>/PLAN.md`, `plan.json`, 
 Checklist - any clear failure = FAIL:
 1. **Look-ahead**: does any signal use data not available at decision time (same-bar close for an open entry,
    future earnings dates/estimates, full-sample means/ranks, today's universe membership applied to the past,
-   shift() in the wrong direction)? Trace each input.
+   shift() in the wrong direction; an SEC event dated by `filing_date` instead of `first_session`)? Trace each
+   input.
 2. **Luck**: chosen train t vs `luck_t_best_of_n` (best-of-N under no edge). The chosen t must be >= 2.0 AND
    clearly above the luck figure for the variants tried; a chosen config that is just the best of many similar
    ones with neighbours near zero = luck. Check `configs` for a smooth neighbourhood.

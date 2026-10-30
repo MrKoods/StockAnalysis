@@ -53,6 +53,14 @@ Every role denies all Webull order/revoke/post tools; unlisted tools are refused
 | Auditor | Saturday, after everyone else (exempt from the weekly cap; read-only; posts to #agent-director) |
 A role that already finished today is not relaunched (except Researcher/Skeptic, which work per idea).
 
+## Research data
+- V3 archives (prices, earnings, insider, ratings) + the team's own SEC archive in `data/edgar/` (git-ignored):
+  every filing for the S&P 1500 with acceptance times and 8-K item codes, and stock splits with announcement dates.
+- `tools/edgar.py`: `backfill` once; the dispatcher runs `update` every run (EDGAR's daily index -> re-fetch only
+  companies that filed) and `splits` on Saturdays. Plain Python - no Claude usage. Needs `SEC_EDGAR_USER_AGENT`.
+- `tools/catalog.py` writes `state/data_catalog.md` every run: what exists, its dates, what's NOT available, and
+  each family's used periods. The Scout may only register ideas whose data is in it.
+
 ## Research safeguards
 - Research scripts load data only via `tools/research_data.py`, which cuts at the plan's train end; a static
   scan rejects scripts that import yfinance/requests, read files, or touch the cutoff variable.

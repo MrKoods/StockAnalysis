@@ -2,8 +2,11 @@
 
 Find **new, testable** short-horizon trading ideas. Quality over quantity: add at most 3 per run; 0 is fine.
 
-1. Read `notes/scout.md`, `registry/graveyard.md` (dead ideas - never re-propose them or a renamed variant),
-   `python tools/ideas.py list`, and `python tools/budget.py` (families already mined hard).
+1. Read `notes/scout.md`, `state/data_catalog.md` (what data exists, its dates, and each family's used periods),
+   `registry/graveyard.md` (dead ideas - never re-propose them or a renamed variant), `python tools/ideas.py
+   list`, and `python tools/budget.py` (families already mined hard).
+   The SEC company-event archive (8-K item types: officer changes, deals, restatements, buybacks, splits...) is
+   largely untested ground - every event type in the catalog is a family with its whole history clean.
 2. Search for ideas with a **mechanism** - who is on the other side and why they pay you (forced flows,
    index rebalances, liquidity provision, behavioural over/under-reaction to events, information leakage,
    calendar/settlement effects, short-sale constraints). Sources: academic papers (SSRN, arXiv q-fin, journals),
@@ -11,14 +14,12 @@ Find **new, testable** short-horizon trading ideas. Quality over quantity: add a
    Webull tools give live market colour (unusual activity, gainers/losers, earnings calendar, news, capital flow)
    - use them to sanity-check that an idea's setup actually occurs now, a few calls per run, not for bulk data.
 3. Keep only ideas that are:
-   - testable NOW with `tools/research_data.py` alone (its loaders: daily OHLCV 1999+, hourly 2023-11+, 5-min,
-     1-min, earnings, insider, ratings, universe sp500/400/600). Every input of the rule - including event
-     dates such as announcements, index changes or filings - must come from one of those loaders. If it needs a
-     scrape or any other new data, do NOT add it: list it under "Needs data" in `notes/scout.md` (one line) so
-     the user can decide whether that data is worth getting;
-   - left with an untouched holdout: the `data` column of the family's rows in `registry/trials.csv` lists the
-     periods already searched or held out; what remains must include a clean multi-year window. A family whose
-     periods are all used cannot be tested honestly - don't propose it;
+   - testable NOW with the loaders in `state/data_catalog.md` alone. Every input of the rule - including event
+     dates such as announcements or filings - must come from one of them. If it needs anything in the catalog's
+     "Not available" list or any other new data, do NOT add it: list it under "Needs data" in `notes/scout.md`
+     (one line: idea, the data, where it is free) so the user can decide whether that data is worth getting;
+   - left with an untouched holdout: the catalog's "Periods each family has used" must leave a clean multi-year
+     window. A family whose periods are all used cannot be tested honestly - don't propose it;
    - holding period <= ~5 trading days (shorter preferred, if costs allow);
    - plausible after realistic costs (>= 10 bps round trip large caps, 20-40 bps small caps);
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or

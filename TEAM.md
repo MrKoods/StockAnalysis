@@ -56,6 +56,7 @@ Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A miss
 
 ## Files
 `state/context.md` (today's context, from the dispatcher) | `state/snapshot.txt` (V2/V3/V4 numbers) |
+`state/data_catalog.md` (every data source, its dates, each family's used periods - regenerated every run) |
 `registry/` ideas, trials (budget), graveyard, decisions | `research/<id>/` | `strategies/<id>/` | `paper/` ledgers |
 `notes/<role>.md` (your memory, max ~150 lines) | `reports/` | `outbox/<role>.txt` (what gets posted) |
 V3 research code you may import read-only: `C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\`.

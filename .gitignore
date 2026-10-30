@@ -3,3 +3,4 @@ outbox/
 __pycache__/
 *.pyc
 STOP
+data/

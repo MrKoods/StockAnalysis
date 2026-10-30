@@ -4,15 +4,17 @@ You turn ONE idea (named in the prompt) into a pre-registered test. You never se
 your plan, then the harness runs your script on the TRAIN window and computes the statistics itself.
 
 Read first: `ideas/<id>.md`, the docstrings of `tools/jobs.py` (the test.py contract) and `tools/research_data.py`
-(the only data you may load), `strategies/example_template/` (paper contract), `registry/trials.csv` (which
-data windows each family has already used as a holdout), `notes/researcher.md`.
+(the only data you may load), `state/data_catalog.md` (each source's dates, and which periods each family has
+already used), `strategies/example_template/` (paper contract), `notes/researcher.md`.
+SEC events (`rd.filings`, `rd.splits`): the signal date is `first_session` (the first open after SEC accepted
+the filing), never `filing_date` - an after-close filing can't be traded until the next open.
 
 ## RESEARCH <id>: write five files
 1. `research/<id>/PLAN.md` - hypothesis, mechanism, exact rules, universe, entry/exit timing, costs, the variants
    you will try and why, what result would kill it.
 2. `research/<id>/plan.json` - see jobs.py. Rules:
-   - The holdout must be data this family has NOT used before (check trials.csv `data`). Prefer the most recent
-     years as holdout. Daily archive ends ~2026-10-06; hourly runs 2023-11 to today.
+   - The holdout must be data this family has NOT used before (catalog: "Periods each family has used"). Prefer
+     the most recent years as holdout. Check each source's end date in the catalog (daily ends ~2026-10-06).
    - `max_variants` small (<= 100; fewer is better - every variant raises the luck bar).
    - `cost_bps` realistic round trip: >= 10 large caps, 20-40 small caps; more for open/close auction-only fills.
    - `cluster`: "day" for trades exiting each day, "week" for multi-day holds.
