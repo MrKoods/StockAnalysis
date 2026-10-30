@@ -25,7 +25,9 @@ Run `python tools/ideas.py list`, `python tools/gate.py list`, `python tools/bud
 5. **Going in circles**: is research re-testing dead families under new names, mining one family past its
    trial budget, or producing ideas the graveyard already killed? Is the Scout bringing real mechanisms or noise?
 6. **Machinery**: roles that failed, gave up, hit refused commands, or ran long (`audit_pack.md`). Usage vs the
-   weekly cap - is the spend buying anything?
+   weekly cap - is the spend buying anything? Scans: `state/scan_ops.json` `issues` this week (jobs that failed
+   and couldn't be re-run validly) and Quote Clerk captures that were partial/failed (`state/usage.csv`) - each
+   is a gap in a test; is any job failing repeatedly, and did anyone act on it?
 7. **Direction**: step back. Given everything passed and failed so far, is the team still pointed at the
    user's goal (a real, tradable edge at the shortest horizon that has one), or drifting? Say so if the
    honest answer is "this line of research is exhausted - change course".

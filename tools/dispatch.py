@@ -32,6 +32,7 @@ import jobs
 import ops_monitor
 import paper_runner
 import quotes
+import scan_ops
 from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, git, load_json, log, now_pt,
                     post, save_json, stopped)
 
@@ -154,8 +155,10 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
     lines += [f"{k}: {v}" for k, v in tot.items()] + ["```", "",
               "Full V2/V3/V4 numbers: state/snapshot.txt (from snapshot.py - the only valid source).",
               "What data research can use, and each family's used periods: state/data_catalog.md.",
-              "ON1 at real Webull bid/ask (Quote Clerk, frozen rule in team/real_price_rules.json): "
-              "paper/on1_real_price_status.json."]
+              "ON1 / EPRE at real Webull bid/ask (Quote Clerk, rules in team/real_price_rules.json): "
+              "paper/on1_real_price_status.json, paper/epre_real_price_status.json.",
+              "Every scan's schedule and health (Scan Operator): team/schedule.json, state/scan_ops.json "
+              "(`issues` = jobs that failed and could not be re-run validly this week)."]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -252,10 +255,12 @@ def main(argv: list[str]) -> int:
 
     # 1a. ON1 re-priced at the Quote Clerk's real bid/ask (tools/quotes.py) - read by the Scorekeeper/Director.
     if not a.dry_run:
-        try:
-            log(f"on1 real-price: {quotes.on1()}", "dispatch")
-        except Exception as e:
-            log(f"on1 real-price failed: {e}", "dispatch")
+        for name, job in (("on1 real-price", quotes.on1), ("epre real-price", quotes.epre),
+                          ("scan operator", scan_ops.run)):
+            try:
+                log(f"{name}: {job()}", "dispatch")
+            except Exception as e:
+                log(f"{name} failed: {e}", "dispatch")
 
     # 1b. research data: EDGAR filings (daily, only companies that filed), splits (Saturday), data catalog.
     #     Plain Python, zero tokens. A failure is reported, never fatal - research can use yesterday's archive.

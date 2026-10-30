@@ -18,9 +18,15 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
   <id> --reason "..."`. A PASS -> retire with reason "PASSED its paper rule" and tell the user clearly: this is the
   point where real money could be considered, which is the USER's decision, never yours.
 - Real-money readiness needs BOTH a paper PASS and a real-price PASS (fills at Webull bid/ask). Team strategies
-  are judged at real prices from day one. V3 ON1 has its own real-price check
-  (`paper/on1_real_price_status.json`): a paper PASS there with real-price COLLECTING/FAIL = tell the user "not
-  yet" and why.
+  are judged at real prices from day one. V3 ON1 and V4 EPRE have real-price checks
+  (`paper/on1_real_price_status.json`, `paper/epre_real_price_status.json`): a paper PASS with real-price
+  COLLECTING/FAIL = tell the user "not yet" and why.
+- **Ready for real money** (both PASS): your outbox headline says so plainly. Include: the rule it passed with
+  the numbers, the average spread cost it paid, what one trade looks like (when to buy/sell, how many names), a
+  suggested small starting size, and what would make you say stop. The user decides and places every order.
+- **Scans**: the Scan Operator keeps them running (`team/schedule.json`, `state/scan_ops.json`). If a job keeps
+  failing, or a time looks wrong, PROPOSE the change in your report (job, new time, why, which test it touches -
+  a `frozen` time can't move during its test). You never change the schedule or tasks.
 - Record dead ideas' lessons in `registry/graveyard.md` when the scripts didn't already.
 
 ## The Auditor

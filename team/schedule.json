@@ -1,0 +1,24 @@
+{
+  "_doc": "The team's master schedule (tools/scan_ops.py). Times are Pacific, Windows Task Scheduler is the clock. retry_until = latest time a re-run still produces a VALID result (after it, a re-run would change what the test measures, so it is reported instead). frozen = the time is part of a running test's rule: never move it during that test. Agents may PROPOSE changes (Director report); only the user's session edits this file and the tasks.",
+  "jobs": {
+    "StockAnalysis_Team_ScanOps":           {"model": "team", "what": "Scan Operator (every 10 min to 18:50)", "at": "05:00", "days": "Mon-Sat", "retry_until": null, "frozen": false, "log": null},
+    "StockAnalysis_PaperRunner_PreMarket":  {"model": "V2", "what": "pre-market scan",          "at": "05:30", "days": "Mon-Fri", "retry_until": "06:25", "frozen": false, "log": "StockAnalysis/data/logs/paper_runner_premarket_task.log"},
+    "StockAnalysis_Team_QuoteOpen":         {"model": "team", "what": "Quote Clerk: bid/ask after the open", "at": "06:31", "days": "Mon-Fri", "retry_until": "06:40", "frozen": true, "log": "StockAnalysis-Team/state/logs/quote_task.log"},
+    "StockAnalysis_V3_G2Paper_Signals":     {"model": "V3", "what": "G2 gap-fade signals",      "at": "06:34", "days": "Mon-Fri", "retry_until": "06:40", "frozen": true,  "log": "StockAnalysis-V3/data/logs/g2_paper_task.log"},
+    "StockAnalysis_V3_ON1Paper_Evaluate":   {"model": "V3", "what": "ON1 score overnight trades", "at": "06:45", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V3/data/logs/on1_paper_task.log"},
+    "StockAnalysis_PaperUpdater":           {"model": "V2", "what": "update open V2 trades",    "at": "08:07", "days": "Mon-Fri", "retry_until": "12:00", "frozen": false, "log": "StockAnalysis/data/logs/paper_updater_task.log"},
+    "StockAnalysis_PaperRunner_MidSession": {"model": "V2", "what": "mid-session scan",         "at": "09:00", "days": "Mon-Fri", "retry_until": "11:00", "frozen": false, "log": "StockAnalysis/data/logs/paper_runner_midsession_task.log"},
+    "StockAnalysis_V3_G2Paper_Evaluate":    {"model": "V3", "what": "G2 score today's trades",  "at": "10:45", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V3/data/logs/g2_paper_task.log"},
+    "StockAnalysis_V4_EPRE_Signals":        {"model": "V4", "what": "EPRE buy-at-close signals", "at": "12:38", "days": "Mon-Fri", "retry_until": "12:46", "frozen": true,  "log": "StockAnalysis-V4/data/logs/epre_signals_task.log"},
+    "StockAnalysis_V3_ON1Paper_Signals":    {"model": "V3", "what": "ON1 buy-at-close picks",   "at": "12:40", "days": "Mon-Fri", "retry_until": "12:48", "frozen": true,  "log": "StockAnalysis-V3/data/logs/on1_paper_task.log"},
+    "StockAnalysis_Team_QuoteClose":        {"model": "team", "what": "Quote Clerk: bid/ask before the close", "at": "12:56", "days": "Mon-Fri", "retry_until": "12:59", "frozen": true, "log": "StockAnalysis-Team/state/logs/quote_task.log"},
+    "StockAnalysis_PaperRunner":            {"model": "V2", "what": "post-close scan",          "at": "13:30", "days": "Mon-Fri", "retry_until": "16:00", "frozen": false, "log": "StockAnalysis/data/logs/paper_runner_task.log"},
+    "StockAnalysis_V4_EPRE_Evaluate":       {"model": "V4", "what": "EPRE score closed trades", "at": "13:45", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V4/data/logs/epre_evaluate_task.log"},
+    "StockAnalysis_V3_IntradayFetch":       {"model": "V3", "what": "intraday bars + forward tests", "at": "14:00", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V3/data/logs/daytrade_fetch_task.log"},
+    "StockAnalysis_Agent_DailyReview":      {"model": "old agent", "what": "old review agent (Claude)", "at": "14:45", "days": "Mon-Fri", "retry_until": null, "frozen": false, "log": null},
+    "StockAnalysis_Team_Dispatch":          {"model": "team", "what": "team dispatcher (scripts + agents)", "at": "14:50", "days": "Mon-Sat", "retry_until": "20:00", "frozen": false, "log": "StockAnalysis-Team/state/logs/dispatch_task.log"},
+    "StockAnalysis_V4_EPRE_Calendar":       {"model": "V4", "what": "EPRE earnings calendar",   "at": "17:15", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V4/data/logs/epre_calendar_task.log"},
+    "StockAnalysis_Agent_WeeklyResearch":   {"model": "old agent", "what": "old review agent weekly (Claude)", "at": "09:00", "days": "Sat", "retry_until": null, "frozen": false, "log": null},
+    "StockAnalysis_WeeklyDashboard":        {"model": "V2", "what": "weekly dashboard",         "at": "18:00", "days": "Sun", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis/data/logs/weekly_dashboard_task.log"}
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "trades": 0,
+  "rule": "V4 EPRE closed trades re-priced (buy at the ask ~3:56 PM ET on the entry day, sell at the bid ~3:56 PM ET on the exit day; hedge leg unchanged). No separate verdict: V4 RULES.md checkpoint B's real-money condition (hedged mean >= +10 bps, day-t >= 1.0) must ALSO hold on these real-price numbers before real money is considered."
+}

@@ -40,5 +40,10 @@ def test_stream_parsing_reads_inline_and_saved_results(tmp_path):
                                                   "content": f"<persisted-output>\nFull output saved to: {saved}\n"}]}},
         {"type": "assistant", "message": {"content": [{"type": "text", "text": "[{\"symbol\": \"FAKE\"}]"}]}},
     ]
+    raw = tmp_path / "raw.txt"                                    # the other format: raw payload in a .txt
+    raw.write_text(json.dumps([{"symbol": "RAW", "bid": "1", "ask": "2"}]))
+    lines.append({"type": "user", "message": {"content": [{"type": "tool_result", "content": [{"type": "text",
+                  "text": f"Error: result (74,485 characters) exceeds maximum allowed tokens. Output has been "
+                          f"saved to {raw}.\nFormat: Plain text"}]}]}})
     got = quotes._tool_results("\n".join(json.dumps(x) for x in lines))
-    assert sorted(d["symbol"] for d in got) == ["AAA", "BIG"]      # model-typed text is never trusted
+    assert sorted(d["symbol"] for d in got) == ["AAA", "BIG", "RAW"]   # model-typed text is never trusted

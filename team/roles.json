@@ -14,7 +14,7 @@
                     "channel": "director", "username": "Team - Director"},
     "auditor":     {"enabled": true,  "phase": 3, "model": "opus",   "effort": "high",   "max_turns": 50, "timeout_min": 40,
                     "channel": "director", "username": "Team - Auditor"},
-    "quote_clerk": {"enabled": true,  "phase": 4, "model": "haiku",  "max_turns": 8, "timeout_min": 4, "weekly_cap": 12,
+    "quote_clerk": {"enabled": true,  "phase": 4, "model": "haiku",  "max_turns": 16, "timeout_min": 4, "weekly_cap": 12,
                     "_doc": "launched by tools/quotes.py from its own scheduled tasks (not the dispatcher); own cap, not counted in weekly_claude_run_cap"}
   }
 }

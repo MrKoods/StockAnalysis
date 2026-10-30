@@ -53,6 +53,23 @@ Every role denies all Webull order/revoke/post tools; unlisted tools are refused
 | Auditor | Saturday, after everyone else (exempt from the weekly cap; read-only; posts to #agent-director) |
 A role that already finished today is not relaunched (except Researcher/Skeptic, which work per idea).
 
+## Scans (the team runs them)
+- `team/schedule.json` is the master schedule of every scan (V2/V3/V4 + team): time, days, how late a re-run is
+  still valid (`retry_until`), and `frozen` (the time is part of a running test's rule).
+- **Scan Operator** (`tools/scan_ops.py`, task `StockAnalysis_Team_ScanOps`, every 10 min 05:00-18:50 Mon-Sat,
+  plus once in each dispatch): checks each job really worked (ran, exit 0, no new Traceback in its log), re-runs
+  it while valid (max 2), reports recovery or a clear "results missing today", flags schedule drift. It only
+  re-runs existing tasks; changing a time is proposed by the Director and made by the user.
+- `python tools/scan_ops.py status` shows the whole schedule and today's state.
+
+## Real prices (Quote Clerk)
+- `tools/quotes.py capture open|close` (tasks `StockAnalysis_Team_QuoteOpen` 06:31 / `_QuoteClose` 12:56 PT):
+  Claude Haiku whose only tool is Webull's read-only snapshot fetches bid/ask for every paper trade filling at
+  that moment (team strategies, V3 ON1, V4 EPRE). A script parses the tool results; `paper/quotes.csv`.
+- Webull's connector takes LIMIT orders only (no market-on-open/close), so real fills pay the spread. Team paper
+  tests are judged on `real_bps`/`real_hedged_bps` (the gate requires it); ON1/EPRE get real-price status files.
+- Register the three team tasks once: `powershell -ExecutionPolicy Bypass -File team\register_team_tasks.ps1`.
+
 ## Research data
 - V3 archives (prices, earnings, insider, ratings) + the team's own SEC archive in `data/edgar/` (git-ignored):
   every filing for the S&P 1500 with acceptance times and 8-K item codes, and stock splits with announcement dates.

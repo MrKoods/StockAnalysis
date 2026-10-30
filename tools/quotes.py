@@ -28,13 +28,15 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 
-from common import LIVE_V3, STATE, TEAM, load_json, log, now_pt, post, save_json
+from common import LIVE_V3, LIVE_V4, STATE, TEAM, load_json, log, now_pt, post, save_json
 
 QUOTES = TEAM / "paper" / "quotes.csv"
 QFIELDS = ["date", "when", "ticker", "bid", "ask", "bid_size", "ask_size", "last", "quote_time"]
 ON1_LEDGER = LIVE_V3 / "data" / "paper" / "on1_paper_ledger.csv"
+EPRE_LEDGER = LIVE_V4 / "data" / "paper" / "epre_ledger.csv"
 RULES = TEAM / "team" / "real_price_rules.json"
 USAGE = STATE / "usage.csv"
+INVALID = TEAM / "paper" / "quote_invalid_symbols.json"     # tickers Webull's quote tool doesn't know
 TOOL = "mcp__claude_ai_Webull__get_stock_snapshot"
 
 
@@ -54,6 +56,9 @@ def needs(when: str, today: date) -> list[str]:
             prev = [d for d in days if d < str(today)]
             if prev:
                 out |= set(led.loc[led["day"] == prev[-1], "ticker"])
+    if when == "close" and EPRE_LEDGER.exists():     # EPRE buys at the close and sells at a later close
+        e = pd.read_csv(EPRE_LEDGER, usecols=["entry_day", "exit_day", "ticker"])
+        out |= set(e.loc[(e["entry_day"] == str(today)) | (e["exit_day"] == str(today)), "ticker"])
     import paper_runner as pr
     reg = load_json(pr.REGISTRY, {"strategies": {}})
     for sid, meta in reg.get("strategies", {}).items():
@@ -75,8 +80,10 @@ def runs_this_week() -> int:
 def prompt(batches: list[list[str]]) -> str:
     lines = [f"You are the Quote Clerk. First load the tool: ToolSearch with query \"select:{TOOL}\".",
              f"Then call {TOOL} once per batch below, with category \"US_STOCK\", extend_hour_required false,",
-             "overnight_required false, and symbols exactly as given (comma-separated). Do nothing else: no",
-             "other tools, no analysis, no retries of a batch that returned data. When every batch is done, reply DONE."]
+             "overnight_required false, and symbols exactly as given (comma-separated). If a call fails with",
+             "INVALID_SYMBOL [X], call it again for that batch WITHOUT X (repeat if another symbol is named, up to 4",
+             "times per batch). Do nothing else: no other tools, no analysis, no retries of a batch that returned",
+             "data. When every batch is done, reply DONE."]
     lines += [f"Batch {i}: {','.join(b)}" for i, b in enumerate(batches, 1)]
     return "\n".join(lines)
 
@@ -97,13 +104,23 @@ def _tool_results(stream: str) -> list:
             content = part.get("content")
             texts = [content] if isinstance(content, str) else [c.get("text", "") for c in content or []
                                                                 if isinstance(c, dict)]
-            # A large result (> ~64KB) is saved to a file and only a preview is streamed - read the file.
+            # A large result is saved to a file and only a note is streamed ("Full output saved to: X.json" or
+            # "Output has been saved to X.txt.") - read the file: a [{type,text}] list, or the raw payload.
             for t in list(texts):
-                m = re.search(r"Full output saved to: (\S+\.(?:json|txt))", t or "")
-                if m and os.path.exists(m.group(1)):
-                    saved = json.loads(open(m.group(1), encoding="utf-8").read())
-                    texts += [saved] if isinstance(saved, str) else [c.get("text", "") for c in saved
-                                                                     if isinstance(c, dict)]
+                m = re.search(r"saved to:? (\S+?\.(?:json|txt))(?=\.?\s|\.?$)", t or "")
+                if not (m and os.path.exists(m.group(1))):
+                    continue
+                raw = open(m.group(1), encoding="utf-8").read()
+                try:
+                    saved = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(saved, list) and saved and isinstance(saved[0], dict) and "symbol" in saved[0]:
+                    texts.append(raw)
+                elif isinstance(saved, list):
+                    texts += [c.get("text", "") for c in saved if isinstance(c, dict)]
+                elif isinstance(saved, str):
+                    texts.append(saved)
             for t in texts:
                 try:
                     data = json.loads(t)
@@ -135,6 +152,9 @@ def capture(when: str, dry_run: bool = False) -> str:
     if runs_this_week() >= int(cfg.get("weekly_cap", 12)):
         post("ops", f"⚠️ Quote Clerk weekly cap reached - {when} quotes NOT captured today", "Team - Ops Monitor")
         return "quotes: weekly cap reached"
+    invalid = set(load_json(INVALID, []))
+    skipped = sorted(set(tickers) & invalid)
+    tickers = [t for t in tickers if t not in invalid]
     batches = [tickers[i:i + 100] for i in range(0, len(tickers), 100)]
     text = prompt(batches)
     if dry_run:
@@ -155,6 +175,13 @@ def capture(when: str, dry_run: bool = False) -> str:
     (STATE / "logs" / f"{today}-quote_clerk-{when}.jsonl").write_text(stream, encoding="utf-8")
     want, rows = set(tickers), {}
     results = _tool_results(stream)
+    # Webull doesn't list these. Only from tool results - the prompt's own "INVALID_SYMBOL [X]" example is
+    # in the stream too.
+    bad = {s for line in stream.splitlines() if '"tool_result"' in line
+           for s in re.findall(r"INVALID_SYMBOL[^\[]*\[([A-Z0-9.\-]+)\]", line)}
+    if bad:
+        save_json(INVALID, sorted(invalid | bad))
+        want -= bad
     for d in results:
         sym = str(d.get("symbol", "")).upper()
         qt = d.get("quote_time")
@@ -173,7 +200,7 @@ def capture(when: str, dry_run: bool = False) -> str:
                 w.writeheader()
             w.writerows(rows.values())
     res = next((json.loads(l) for l in stream.splitlines()[::-1] if l.startswith('{"type":"result"')), {})
-    status = "ok" if len(rows) >= 0.9 * len(tickers) else ("partial" if rows else "failed")
+    status = "ok" if len(rows) >= 0.9 * len(want) else ("partial" if rows else "failed")
     if not rows and results:
         status = "market_closed"            # Webull answered, but every quote is from an earlier day (holiday)
     new_usage = not USAGE.exists()
@@ -182,9 +209,11 @@ def capture(when: str, dry_run: bool = False) -> str:
             fh.write("date,role,model,turns,minutes,cost_equiv_usd,status\n")
         fh.write(f"{today},quote_clerk,{cfg['model']},{res.get('num_turns', '')},{(time.time() - start) / 60:.1f},"
                  f"{res.get('total_cost_usd', '')},{status}\n")
-    msg = f"quotes {when}: {len(rows)}/{len(tickers)} tickers captured ({status})"
+    msg = (f"quotes {when}: {len(rows)}/{len(want)} tickers captured ({status})"
+           + (f"; {len(skipped) + len(bad)} not on Webull, skipped: {sorted(set(skipped) | bad)[:10]}"
+              if skipped or bad else ""))
     if status in ("partial", "failed"):
-        post("ops", f"⚠️ Quote Clerk {when} {today}: only {len(rows)}/{len(tickers)} quotes captured - those trades "
+        post("ops", f"⚠️ Quote Clerk {when} {today}: only {len(rows)}/{len(want)} quotes captured - those trades "
                     f"fall back to official prices. Log: state/logs/{today}-quote_clerk-{when}.jsonl",
              "Team - Ops Monitor")
     return msg
@@ -242,6 +271,36 @@ def on1(write: bool = True) -> dict:
     return out
 
 
+def epre(write: bool = True) -> dict:
+    """V4 EPRE's closed trades re-priced: buy at the ask near the entry close, sell at the bid near the exit
+    close; hedged with the ledger's own hedge leg. Its real-money bar (RULES.md checkpoint B, hedged mean
+    >= +10 bps) must also hold here - see team/real_price_rules.json."""
+    rule = load_json(RULES, {}).get("epre", {})
+    if not EPRE_LEDGER.exists():
+        return {"verdict": "NO DATA"}
+    led = pd.read_csv(EPRE_LEDGER).dropna(subset=["hedged_bps"])
+    q = load_quotes()
+    rows = []
+    for r in led.itertuples():
+        buy, sell = q.get((str(r.entry_day), "close", r.ticker)), q.get((str(r.exit_day), "close", r.ticker))
+        if buy and sell:
+            real = (sell[0] / buy[1] - 1) * 1e4
+            rows.append({"exit_day": r.exit_day, "paper_hedged": r.hedged_bps,
+                         "real_hedged": real - r.hedge_bps, "cost_bps": r.ret_bps - real})
+    out = {"trades": len(rows), "rule": rule.get("text", "")}
+    if rows:
+        x = pd.DataFrame(rows)
+        per_day = x.groupby("exit_day")["real_hedged"].mean()
+        sd = per_day.std(ddof=1) if len(per_day) > 1 else 0.0
+        out |= {"exit_days": len(per_day), "real_hedged_mean_bps": round(float(x["real_hedged"].mean()), 1),
+                "paper_hedged_mean_bps_same_trades": round(float(x["paper_hedged"].mean()), 1),
+                "spread_cost_bps": round(float(x["cost_bps"].mean()), 1),
+                "real_t": round(float(per_day.mean() / (sd / math.sqrt(len(per_day)))), 2) if sd and sd > 0 else 0.0}
+    if write:
+        save_json(TEAM / "paper" / "epre_real_price_status.json", out)
+    return out
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if args[:1] == ["capture"]:
@@ -249,5 +308,7 @@ if __name__ == "__main__":
         log(msg, "quotes")
     elif args[:1] == ["on1"]:
         print(on1())
+    elif args[:1] == ["epre"]:
+        print(epre())
     else:
         print(__doc__)

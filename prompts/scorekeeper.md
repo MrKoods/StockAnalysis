@@ -21,7 +21,9 @@ Known quirks (not problems): `g2_paper_task.log` is normally empty - G2 health =
 (`StockAnalysis-V3/data/paper/g2_paper_ledger.csv`). V3 logs have no timestamps.
 
 ## Diagnose
-For each item under "To diagnose": read the relevant log tail and code (read-only) until you know the cause.
+For each item under "To diagnose", and each job in `state/scan_ops.json` `issues` (scans the Scan Operator
+re-ran or couldn't validly re-run - their schedule and log paths are in `team/schedule.json`): read the relevant
+log tail and code (read-only) until you know the cause.
 Write `reports/<today>-diagnosis.md`: what broke, cause with file:line, effect on data (lost trades? wrong
 numbers?), the fix you'd suggest. You don't fix live code. Outbox headline: `🔧 <what broke> - <cause>`.
 
