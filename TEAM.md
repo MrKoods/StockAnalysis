@@ -45,6 +45,15 @@ Cluster t-stats by day (or week for swing). Count variants and say how many. Com
 (SPY/sector hedge, random picks, costs). t < 2 is noise; a holdout must clear `python tools/budget.py bar <family>`
 (>= 3.0). Weeks of live data are mostly noise - say "too early" when it is. Never loosen a frozen bar.
 
+## Key dates of the live tests (worked out 2026-10-30 from each frozen rule + ledger; use THESE, don't re-estimate)
+Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A missed session pushes a date later.
+- **V3 G2 paper**: 20th day = Thu 2026-11-05 (scored 10:45 PT that day); 40th = Fri 2026-12-04. Rule: from day 20
+  PASS if mean >= +5 bps and day-t >= 2, FAIL if mean < 0, else continue; day 40 = PASS or FAIL.
+- **V3 ON1 paper**: 20th trade day = Mon 2026-11-09, scored at the Tue 2026-11-10 06:45 PT evaluate; 40th = Tue
+  2026-12-08 (scored Wed 12-09). Same rule as G2.
+- **V2 rank**: go/no-go at 100 closed trades (62 on 10-29) - no fixed date.
+- **V4 EPRE**: checkpoints at 1k/3k/6k closed trades - no fixed date.
+
 ## Files
 `state/context.md` (today's context, from the dispatcher) | `state/snapshot.txt` (V2/V3/V4 numbers) |
 `registry/` ideas, trials (budget), graveyard, decisions | `research/<id>/` | `strategies/<id>/` | `paper/` ledgers |

@@ -27,6 +27,6 @@ train-best h10 (t4.04), Skeptic evidence verified at the file:lines it cited, ho
 - No orders, no promotions, registry empty, gate clean.
 
 ### Watch calendar
-- ~2026-11-10 V3 G2 paper 20-day cp (failing). ~2026-11-13 ON1 paper cp (passing, t2.37).
+- 2026-11-05 V3 G2 paper 20-day cp (failing). 2026-11-10 AM ON1 paper cp (TEAM.md Key dates).
 - mid-Nov V2 rank 100-trade go/no-go (far behind, likely NO-GO).
 - Next audit is the regular Saturday slot (after the Director).

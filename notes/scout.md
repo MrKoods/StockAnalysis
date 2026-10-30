@@ -18,7 +18,20 @@
 4. earnings-contagion — earnings_events, 1-3d (needs GICS sector mapping via yfinance)
 5. split-announcement-drift — corporate_events, 3-5d (NEEDS announcement dates from EDGAR 8-K scrape)
 
-## Data sourcing notes for Director
+## 2026-10-30 (set by the user's session, not a Scout run)
+Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
+holdout window. Dropped: split-announcement-drift, sp-reconstitution (need scrapes), insider-officer-buys
+(insider family has no clean period left). Remaining: turn-of-month, earnings-contagion.
+CAUTION earnings-contagion: earnings_events family already searched 2000-2017 and held out 2018-2026 twice
+(EPRE pass, ESUR fail) - no clean window left by the new rule. Director/user to decide; don't add more
+earnings_events ideas.
+
+## Needs data (not registered - the user decides if the data is worth getting)
+- sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
+- split-announcement-drift: forward-split announcement dates (EDGAR 8-K full-text search)
+- any insider idea: a clean insider period no longer exists in the 2006+ SEC data
+
+## Data sourcing notes for Director (older)
 - sp-reconstitution: S&P 400/600 announcement dates not in archives; free one-time scrape spglobal.com
 - split-announcement-drift: 8-K announcement dates not in archives; EDGAR full-text search "stock split" 8-K filings; yfinance only has effective dates
 - earnings-contagion: GICS sector mapping available free via yfinance; no external scrape needed

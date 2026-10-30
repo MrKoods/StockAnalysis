@@ -11,8 +11,14 @@ Find **new, testable** short-horizon trading ideas. Quality over quantity: add a
    Webull tools give live market colour (unusual activity, gainers/losers, earnings calendar, news, capital flow)
    - use them to sanity-check that an idea's setup actually occurs now, a few calls per run, not for bulk data.
 3. Keep only ideas that are:
-   - testable on data we HAVE (see `tools/research_data.py` docstring: daily 1999+, hourly 2023-11+, earnings,
-     insider, ratings; S&P 500/400/600) - or say exactly what free data would be needed;
+   - testable NOW with `tools/research_data.py` alone (its loaders: daily OHLCV 1999+, hourly 2023-11+, 5-min,
+     1-min, earnings, insider, ratings, universe sp500/400/600). Every input of the rule - including event
+     dates such as announcements, index changes or filings - must come from one of those loaders. If it needs a
+     scrape or any other new data, do NOT add it: list it under "Needs data" in `notes/scout.md` (one line) so
+     the user can decide whether that data is worth getting;
+   - left with an untouched holdout: the `data` column of the family's rows in `registry/trials.csv` lists the
+     periods already searched or held out; what remains must include a clean multi-year window. A family whose
+     periods are all used cannot be tested honestly - don't propose it;
    - holding period <= ~5 trading days (shorter preferred, if costs allow);
    - plausible after realistic costs (>= 10 bps round trip large caps, 20-40 bps small caps);
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
