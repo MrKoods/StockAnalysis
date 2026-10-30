@@ -1,4 +1,0 @@
-ticker,direction,structure,entry,stop,target,rr_ratio,score,iv_regime
-TSM,bullish,bull_call_spread,462.12,425.36,535.64,2.0,6,high
-MU,bullish,bull_call_spread,1133.99,974.35,1453.27,2.0,5,high
-AMD,bullish,bull_call_spread,537.37,471.48,669.15,2.0,3,high
