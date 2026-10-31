@@ -21,3 +21,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-10-27,insider-cluster-buys,insider,search,12,2006-01-01..2013-12-31,2.9,82.63,,team train run
 2026-10-27,insider-cluster-buys,insider,holdout,1,2014-01-01..2017-12-31,1.11,28.76,fail,team holdout (one look)
 2026-10-31,split-announcement-drift,corporate_events,search,6,2001-01-01..2017-12-31,3.08,64.98,,team train run
+2026-10-31,split-announcement-drift,corporate_events,holdout,1,2018-01-01..2026-10-06,0.99,78.4,fail,team holdout (one look)

@@ -12,3 +12,4 @@ Pre-team (V3 research, 2026-10-06 .. 10-23; details in StockAnalysis-V3/research
 Lessons: two look-ahead bugs caught in minute research (bar ordering; filter using post-entry data -> fake t 11.5).
 Price/volume patterns on free hourly/daily data are largely exhausted; edges found live in events + small caps.
 - **insider-cluster-buys** (2026-10-27): holdout FAIL: t 1.11 vs bar 3.00, 28.76 bps
+- **split-announcement-drift** (2026-10-31): holdout FAIL: t 0.99 vs bar 3.00, 78.4 bps

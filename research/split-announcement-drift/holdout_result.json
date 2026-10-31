@@ -1,0 +1,12 @@
+{
+  "runs": 1,
+  "status": "done",
+  "bar": 3.0,
+  "t": 0.99,
+  "mean_bps": 78.4,
+  "n_trades": 99,
+  "n_periods": 85,
+  "passed": false,
+  "chosen": "h4_r2",
+  "error": ""
+}
