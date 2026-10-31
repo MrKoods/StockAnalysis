@@ -1,6 +1,16 @@
 # Skeptic notes
 
 ## Reviewed
+- 2026-10-31 **split-announcement-drift** -> PASS to holdout. Pre-registered h4_r2 (hold 4, fwd
+  splits >=2:1), train net t 3.08 (week-clustered) > luck 1.89, 65 bps gross / 282 wks / 395 trades.
+  Clean look-ahead (leak-free first_session = open after SEC accepted ts; dated by `announced` not
+  filing_date). r2 tier strong at both holds (3.26/3.08) = coherent, not a spike. Survives 1.5x cost.
+  Best (h2_r2 3.26) NOT chosen; plan committed before results. First corporate_events family use.
+  HOLDOUT WATCH: (1) survivorship (today's SP1500 back-applied) biases LONG up -> marginal t =
+  survivorship not edge; (2) only ~812/3189 fwd splits have found announcement -> skews larger;
+  (3) IF promoted, strategy.py skips premarket same-day announcements (after-close runner can't trade
+  them) -> paper is a thinner SUBSET of backtest, mean may drift. Promotable (unlike insider-cluster).
+
 - 2026-10-27 **insider-cluster-buys** -> PASS to holdout. Pre-registered n2_h5_m75k (NOT best-of-N;
   best was h10 t4.04). Train net t 2.9 > luck 2.23, 82 bps/wk net, 299 wks. Clean on look-ahead
   (filing-date trigger, strictly-next-session open entry), costs (survives 1.5x), sign-stable across
