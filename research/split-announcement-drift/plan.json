@@ -1,0 +1,4 @@
+{"family": "corporate_events",
+ "train_start": "2001-01-01", "train_end": "2017-12-31",
+ "holdout_start": "2018-01-01", "holdout_end": "2026-10-06",
+ "cost_bps": 20, "cluster": "week", "max_variants": 6, "metric": "hedged"}

@@ -1,5 +1,26 @@
 # Researcher notes
 
+## 2026-10-31 — split-announcement-drift (planned, check+smoke pass)
+- Five files in research/split-announcement-drift/ + strategies/split-announcement-drift/.
+- Family `corporate_events` (NOT in catalog's used-periods table → whole history clean). Bar 3.00.
+- Windows: train 2001-01-01..2017-12-31, holdout 2018-01-01..2026-10-06 (most recent = arbitraged
+  era, the hard/honest test). Daily ends 2026-10-06; announcements begin ~2001.
+- Signal: FORWARD split (ratio>1), entry at OPEN of rd.splits `first_session` (leak-free), exit CLOSE
+  H sessions later. SPY-hedged gross; cost 20 bps; cluster "week".
+- 6 variants: H∈{2,4} × ratio tier {r1>1, r2≥2, r3≥3}. chosen PRE-REGISTERED = `h4_r2`.
+- Smoke (2001 only): h4_r2 11 trades/10 wk; h*_r3 0 (3:1 rare early) — fine, r3 is robustness only.
+- PROMOTABLE (unlike insider): split 8-Ks are same-day public; splits.parquet rebuilt each dispatcher
+  run → strategy.py reads it live. BUT forward splits ~30/yr → paper min_days=20 takes many months.
+
+### Data facts learned (reuse next time)
+- rd.splits(None) cols: ticker, ex_date, ratio(>1 fwd,<1 rev), announced, announce_form,
+  announce_accession, found_by, first_session (NaT if no announcement found). ~812 of 3189 fwd splits
+  have an announcement. first_session already leak-free (first open after `announced`, cut at cutoff).
+- rd.daily index may not be exactly normalized → normalize both sides + use positional iloc, don't
+  trust label equality. Pattern used in test.py _trades.
+- strategy.py (NOT static-scanned) reads data/edgar/splits.parquet via parents[2]/data/edgar. bars
+  index in paper_runner are datetime.date, not Timestamp.
+
 ## 2026-10-27 — insider-cluster-buys (planned, check+smoke pass)
 - Five files written in research/insider-cluster-buys/ and strategies/insider-cluster-buys/.
 - Windows: train 2006-01-01..2013-12-31, holdout 2014-01-01..2017-12-31. Insider family already
