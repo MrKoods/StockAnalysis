@@ -1,32 +1,36 @@
 # Auditor notes
 
-## 2026-10-29 — first audit (mid-week, by hand)
-Checked the team's first full pipeline run: insider-cluster-buys → dead. Clean and honest:
-plan-before-results order correct, pre-registered config (n2_h5_m75k) honored over the tempting
-train-best h10 (t4.04), Skeptic evidence verified at the file:lines it cited, holdout ran once
-(t1.11 vs 3.0) and killed it, graveyard+trials+budget+registry all consistent. No red flags.
+## 2026-10-31 — 2nd audit (regular Saturday slot)
+Project sound. One honest negative this week: split-announcement-drift → dead. Clean cycle:
+plan-before-results (commit order 76d94a1→dbc2f6f→913f880→d1b22e7), pre-registered h4_r2 honored over
+train-best h2_r2, Skeptic substantive (flagged survivorship = prescient), holdout ran once (t0.99<3.0),
+graveyard+budget+ideas all consistent. No red flags. Director acted on all 3 of my 10-29 recs.
 
-### Open findings (for next audit — were these acted on?)
-- **C1 OPEN**: `insider-officer-buys` parked at `idea`, but NO untouched holdout window remains for
-  the insider family (2006-13 train, 2014-17 cluster holdout, 2018-26 officer holdout; data starts
-  2006). Director's revival condition ("fresh period exists") can't be met → should be dropped.
-  Recommended Director drop it. CHECK NEXT RUN: did it get dropped, or re-queued (the latter would
-  head toward a peek).
-- **C2 OPEN (structural)**: the team's research data for insiders is SEC quarterly bulk, which lags a
-  quarter, so a strategy built on it can't be paper-traded as-is. Promotion correctly BLOCKED in PLAN.
-  CORRECTION (from the builder, 2026-10-29): a live feed does NOT need a paid service - SEC EDGAR posts
-  Form 4s free within ~2 business days and V2 already fetches Form 4 XML with its SEC user agent. So
-  live insider paper-trading is a build task (wire a free EDGAR feed into the team's paper runner), the
-  user's call, not a subscription. Watch: no insider idea promotes to paper until that feed exists.
-- **C3 CLOSED - not a problem (my error)**: g2_paper_task.log being empty/stale is a KNOWN QUIRK (see
-  "Known quirks" in prompts/scorekeeper.md): G2 health = its ledger, which updates. Don't re-flag.
+### Prior findings — resolution
+- **C1 CLOSED**: insider-officer-buys dropped (shows `dropped`). Director accepted; no untouched insider
+  window remains. Done.
+- **C2 → now moot/closed**: insider = verdict-only without a live Form-4 feed. Director passed to user.
+  Insider family now fully exhausted (all 3 holdouts burned). Nothing left to run unless user builds a free
+  EDGAR Form-4 feed. Reframed as 10-31 Rec 3; treat as closed unless user revives.
+- **C3**: was my error (g2 log staleness = known quirk). Stays closed. Don't re-flag.
 
-### Things that looked GOOD and I don't need to re-verify unless they change
-- Skeptic is doing real work (not rubber-stamping) — evidence was accurate.
-- Director reports live tests honestly ("too early" / "likely NO-GO" used correctly).
-- No orders, no promotions, registry empty, gate clean.
+### Open findings (check next audit)
+- **C4 OPEN (Director)**: idea queue near-empty after split died — only turn-of-month parked (weak,
+  heavily-mined). Scout last ran 10-29. CHECK: did Scout replenish with real mechanisms before the next
+  research slot, or did the Director default to queuing turn-of-month?
+- **C5 OPEN (User)**: real-price Quote Clerk = 0 data (only test_runs 10-30; both paper/*_real_price_status.json
+  trades:0). Sole gate on ON1 real-money readiness. 10-31 Sat = nothing due. CHECK: did scheduled capture fire
+  Mon 11-03+ and start producing real-price days before ON1's ~11-10 cp? Scorekeeper/Director "FAILED"
+  wording is slightly loose (they were test_runs that DID return quotes) but the conclusion is honest.
+
+### Pattern to watch (direction)
+Two families in a row (insider, corporate_events/split) died UNDERPOWERED on the modern 2018-26 holdout
+(split holdout mean +78bps > train, but n=99 → t0.99). Discipline is correct. But the binding constraint is
+now idea *supply + event count*, not method honesty. Push toward event families with enough annual events to
+power a modern holdout.
 
 ### Watch calendar
-- 2026-11-05 V3 G2 paper 20-day cp (failing). 2026-11-10 AM ON1 paper cp (TEAM.md Key dates).
-- mid-Nov V2 rank 100-trade go/no-go (far behind, likely NO-GO).
-- Next audit is the regular Saturday slot (after the Director).
+- 2026-11-03 first real trading-day test of Quote Clerk real-price capture.
+- 2026-11-05 V3 G2 paper 20-day cp (likely FAIL → gate retire). 2026-11-09/10 ON1 paper 20-day cp (borderline).
+- ~Dec: V2 rank 100-trade go/no-go (likely NO-GO, 65/100); V3 40-day cps; V4 EPRE 1k-trade cp A.
+- Next audit: regular Saturday slot after the Director.
