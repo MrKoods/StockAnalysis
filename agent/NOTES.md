@@ -3,21 +3,22 @@
 Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 
 ## Watch list
-- **V2 rank mean R after costs: -0.006** (65/100 closed). GO mathematically unreachable. ABBV options-era +2.422R time-stop (Oct 29) moved mean from -0.058. Frozen at n=100.
+- **V2 rank mean R after costs: -0.006** (65/100 closed). GO mathematically unreachable. Frozen at n=100.
 - **C6 forward: RETIRED 2026-10-23.** No longer updated or reported.
-- **ON1 paper: day-t +1.91** (13 days, mean +53.5 bps). Oct 29 was -81.0 bps — first dip below 2.0 since Oct 23 streak began (was above 2.0 for 5 consecutive reviews). Eval at day 20 = trade day Mon Nov 9, scored at Tue Nov 10 06:45 evaluate. G2 day 20 = Thu Nov 5.
-- **V3 G2 paper: day-t -1.36** (16 days, mean -19.6 bps). Worsening but noise. Eval window opens day 20 = Nov 5.
-- **Random control: 24 closed** (mean -0.356R after costs). Loss cluster exit Oct 23 already flagged (first seen 2026-10-26 daily).
-- **V4 EPRE: 3 exit days** — 388 closed. Hedged mean -6.9 bps (exit-day t -0.39, pure noise). 127 open. Checkpoint A (~1,000 trades) arriving ~Nov 4–7.
-- **EPRE calendar refreshed Oct 29** ✓. Today's 17:15 refresh (Oct 30) scheduled after review.
-- **Team_Dispatch Oct 29 result 0** — resolved (watch item cleared).
+- **ON1 paper: day-t +1.91** (13 days, mean +53.5 bps). Needs only +7.2 bps/day avg over next 7 days to pass at day 20 (Nov 9). Recent Oct 28-29 weakness is drag but not structural. PASS is the modal outcome.
+- **G2 paper: FAIL at day 20 (Nov 5) is near-certain.** At 16 days mean -19.6 bps, needs +79 bps/day avg over 4 days to avoid mean < 0 — historically impossible (max day +102.7 bps, best 4-day run +1.4 bps/day).
+- **V3 G2 paper: day-t -1.36** (16 days, mean -19.6 bps). Eval day 20 = Thu Nov 5. Expect FAIL.
+- **Random control: 24 closed** (mean -0.356R after costs). Loss cluster exit Oct 23 already flagged.
+- **V4 EPRE: 390 scored closed**. Hedged mean -6.9 bps trending toward 0. Checkpoint A ~Nov 10-14. FAIL threshold is -20 bps; on track.
+- **EPRE calendar refreshed Oct 30** ✓.
 - **Stale V3 universe symbols:** CWEN-A, HLX, LEG returning Yahoo 404s (likely delisted). Low impact; flag for future maintenance pass.
 
 ## Open questions (candidates for weekly research)
 - V2 rank: bank shorts drove the profit but picked banks did no better than other banks — skill or sector beta?
 - V2: which score components (if any) predict R? Earlier IC work found no robust edge.
 - V3 G2: does entry slippage cost matter more in less-liquid names specifically? (deferred until n > 100)
-- ON1 paper: does day-t hold above 2.0 as evaluation window approaches? (watch daily)
+- ON1 paper: does day-t recover to 2.0+ at day 20? (researched Oct 31: PASS is modal outcome if next 7 days avg > +7.2 bps)
+- EPRE: after checkpoint A (est. Nov 10-14), does hedged mean converge to the +19 bps backtest expectation?
 
 ## Research done
 
@@ -60,6 +61,15 @@ Created 2026-10-14. Keep under ~300 lines; summarize and prune.
 **Verdict:** Inconclusive at n=57. Mean 2-min delay cost −5.9 bps/day. No action.
 
 ## Log
+
+### 2026-10-31 weekly research
+- All tasks result 0. All three active experiments collecting within frozen rules.
+- V2 rank: 65/100, mean -0.006R after costs, week-t -0.25. GO unreachable. Single ABBV options-era +2.422R trade drove the improvement.
+- V2 random: 24 closed, mean -0.356R (comparison baseline; rank outperforms random by +0.35R).
+- Research 1: ON1 paper day-20 outlook. Needs +7.2 bps/day avg over next 7 days for t=2.0 at day 20. Even 0 bps gives t=1.84 (very close). PASS is modal outcome. Oct 28-29 bad days are the drag; without Oct 29 drop-one gives t=2.32.
+- Research 2: G2 paper day-20 outlook. FAIL at day 20 (Nov 5) arithmetically near-certain. Needs +79.3 bps/day; historical max is +102.7 bps; best 4-day run was +1.4 bps/day. Frozen rule handles this — no action needed.
+- Research 3: EPRE checkpoint A timing. ~Nov 10-14 estimate. Mean -6.9 bps trending toward 0 (well above -20 bps fail line). EPRE ledger note: exit_day is pre-set at signal time; rows with exit_day set but hedged_bps=NaN are in-flight (not yet priced).
+- No proposals. No bugs.
 
 ### 2026-10-30 daily review
 - All tasks result 0. Team_Dispatch Oct 29 result 0 — watch item resolved.

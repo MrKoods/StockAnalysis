@@ -1,11 +1,12 @@
-✅ Daily review 2026-10-30: all systems normal
+📊 Weekly research 2026-10-31: G2 paper headed for FAIL at day 20; ON1 paper still on track; EPRE checkpoint A ~Nov 10-14
 
-All tasks passed (result 0). Team_Dispatch ran cleanly yesterday — resolved.
+**Scorecard**
+V2 rank: 65/100, mean R -0.006 after costs, week-t -0.25. GO unreachable; collecting to n=100.
+V2 random control: 24 closed, mean -0.356R (baseline).
+V3 G2 paper: 16 days, mean -19.6 bps, t -1.36. FAIL at day 20 (Nov 5) is arithmetically certain — needs +79 bps/day avg over 4 days; historical max is +103 bps, best 4-day run ever averaged +1.4 bps/day.
+V3 ON1 paper: 13 days, mean +53.5 bps, t +1.91. On track — needs only +7.2 bps/day avg to hit t=2.0 at day 20 (Nov 9). Recent Oct 28-29 weakness is a watch item but not structural.
+V3 G2 forward: 18 days, t +0.65. Noise.
+V3 ON1 forward: 17 days, t +0.70. Noise.
+V4 EPRE: 390 scored, mean -6.9 bps (t -0.16, noise). Checkpoint A ~Nov 10-14; well above -20 bps fail line. All tasks healthy.
 
-V2 rank: 3 new closures (ABBV time-stop +2.42R options-era, AVGO −0.22R, MCD +1.23R). Mean after costs moved −0.058 → −0.006R (65/100). Almost entirely ABBV's large options-era result; GO still unreachable.
-
-V3 ON1 paper day 13: Oct 29 was −81 bps, pulling day-t from +2.06 → +1.91 (first dip below 2.0 since the streak began Oct 23). Still positive; eval at day 20, Nov 9.
-
-V3 G2 paper day 16 (today): −65 bps; mean −19.6 bps, day-t −1.36 (noise). Eval day 20 Nov 5.
-
-V4 EPRE: 3rd exit day scored, 388 closed, hedged mean −6.9 bps (noise; t −0.39). 111 new signals today (515 total). Checkpoint A (~1,000 trades) arriving ~Nov 4–7 this week.
+**Proposals awaiting approval:** none this week.
