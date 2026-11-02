@@ -1,4 +1,14 @@
-# Review agent
+# Review agent - RETIRED 2026-11-01
+
+**Retired.** Its two scheduled tasks are disabled; the agent team (branch `team`, folder `StockAnalysis-Team`)
+does its job: the Ops Monitor posts the daily health check + numbers to #agent-ops (~2:51 PM PT), with ledger
+integrity checks (`tools/integrity.py`) and the outlook arithmetic (`tools/outlook.py`); the Scorekeeper,
+Director and Auditor cover diagnosis, checkpoints and the weekly review. Its notes were carried over to the
+team's `notes/scorekeeper.md`; its reports stay on branch `agent`.
+
+**Still live: `tools/snapshot.py`.** The team reads every V2/V3/V4 number through it - keep it here.
+
+What follows describes the agent as it ran (kept for reference).
 
 An unattended Claude Code session that reviews the V2, V3 and V4 paper-testing data on a schedule and
 posts a summary to Discord. It **watches, researches and proposes**; it never changes a live model.
@@ -23,4 +33,4 @@ proposed fix from <date>". Nothing reaches Version-1 otherwise.
 **Run by hand:** `powershell -NoProfile -ExecutionPolicy Bypass -File agent\run_agent.ps1 -Mode daily`
 from the worktree (or the main folder — the script uses absolute paths).
 
-**Turn off:** disable the two scheduled tasks (Task Scheduler) — nothing else depends on them.
+**Turn off:** done 2026-11-01 (both tasks disabled). Only `tools/snapshot.py` is still used (by the team).

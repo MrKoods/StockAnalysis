@@ -29,7 +29,7 @@ Task output goes to `data/logs/*_task.log`. Results are posted to Discord (`DISC
 
 **Do not rename or move** `paper_trading/paper_runner.py`, `paper_trading/paper_updater.py`,
 `monitoring/performance_dashboard.py`, or the paper ledgers (`paper_trading/*.csv`): the scheduled tasks,
-the review agent and the agent team all reference them by path.
+the agent team and `agent/tools/snapshot.py` all reference them by path.
 
 ## Folder map
 
@@ -41,7 +41,7 @@ the review agent and the agent team all reference them by path.
 | `backtesting/` | Historical replay (`backtest_engine.py`, `run_backtest.py`, `walk_forward.py`, `stress_test.py`) plus one-off research sweeps/diagnostics (`*_sweep.py`, `*_diagnostic.py`). Their output is in `backtesting/reports/`. Several of these are imported by the live code, so treat them as part of the codebase, not scratch. |
 | `monitoring/` | Weekly performance dashboard. |
 | `app_ui/` | Optional desktop app (PySide) for running scans by hand: `python -m app_ui.main`. |
-| `agent/` | The scheduled review agent (Claude Code, headless). See [agent/README.md](agent/README.md). Its reports live on the `agent` branch. |
+| `agent/` | The old review agent, **retired 2026-11-01** (replaced by the agent team). Its `tools/snapshot.py` is still live: the team's Ops Monitor reads every V2/V3/V4 number through it, so don't move or delete it. See [agent/README.md](agent/README.md). |
 | `config/` | `swing_config.yaml` (watchlist, sectors, thresholds, every model setting) and `global_config.yaml` (API/infrastructure). |
 | `data/` | `processed/` live model state, `logs/` audit trail and task logs, `historical_news/` and `panel/` research datasets. Raw downloads and caches are gitignored. |
 | `scripts/` | CI guard checks (`check_*.py`), one-time ledger migrations/backfills, and `download_historical_news.py`. |
@@ -98,7 +98,7 @@ its own folder (a git worktree) next to this one:
 | `Version-3` | `StockAnalysis-V3` | Research lab + G2 gap-fade and ON1 overnight paper tests |
 | `Version-4` | `StockAnalysis-V4` | EPRE earnings-premium paper model |
 | `team` | `StockAnalysis-Team` | Automated agent team (dispatcher, quotes, scan ops) |
-| `agent` | `StockAnalysis-agent` | Review-agent reports. Rebased onto `Version-1` every run, so push it with `git push --force-with-lease origin agent` |
+| `agent` | `StockAnalysis-agent` | Retired review agent's reports, 2026-10-13 to 10-31 (frozen) |
 | `main` | — | Landing page: the map of all of the above |
 
 The status and pass/fail rule of every running test is in `MODULES.md` on the `Version-4` branch.
