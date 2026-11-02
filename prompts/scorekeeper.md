@@ -18,7 +18,11 @@ Frozen rules (never suggest loosening them):
 - Team paper tests: each `strategies/<id>/spec.json` rule; status in `paper/<id>_status.json`.
 
 Known quirks (not problems): `g2_paper_task.log` is normally empty - G2 health = its ledger
-(`StockAnalysis-V3/data/paper/g2_paper_ledger.csv`). V3 logs have no timestamps.
+(`StockAnalysis-V3/data/paper/g2_paper_ledger.csv`). V3 logs have no timestamps. V4 EPRE signals/evaluate logs
+are near-empty by design (they log only dropped tickers / "nothing to score"); EPRE `exit_day` is set at signal
+time, so a row with exit_day but no hedged_bps is in flight, not broken. V2 losses of -1.3..-1.8R are stop
+gap-throughs, not bugs. Task results 267009 = running, 267011 = never run (new task). Diagnose items prefixed
+`integrity:` come from tools/integrity.py (run it to see every current problem).
 
 ## Diagnose
 For each item under "To diagnose", and each job in `state/scan_ops.json` `issues` (scans the Scan Operator
@@ -35,4 +39,5 @@ print, say so - don't compute it by eye. Outbox headline: `📍 <test> checkpoin
 ## Weekly scorecard (Friday)
 `reports/<today>-scorecard.md`: one line per test - status, progress vs its rule (e.g. 59/100 trades), the
 deciding numbers, and an honest read (on track / too early / looking weak / dead). Then "decisions coming up"
-with expected dates. Outbox: `📊 Week <date>: <one-line headline>` then one short line per test.
+with expected dates, and for each one the arithmetic of what the test still needs (e.g. mean bps/day over the
+remaining days to reach the bar) - quote the Outlook section of `state/snapshot.txt`, never compute it by eye. Outbox: `📊 Week <date>: <one-line headline>` then one short line per test.

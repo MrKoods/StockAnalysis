@@ -15,10 +15,8 @@
     "StockAnalysis_PaperRunner":            {"model": "V2", "what": "post-close scan",          "at": "13:30", "days": "Mon-Fri", "retry_until": "16:00", "frozen": false, "log": "StockAnalysis/data/logs/paper_runner_task.log"},
     "StockAnalysis_V4_EPRE_Evaluate":       {"model": "V4", "what": "EPRE score closed trades", "at": "13:45", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V4/data/logs/epre_evaluate_task.log"},
     "StockAnalysis_V3_IntradayFetch":       {"model": "V3", "what": "intraday bars + forward tests", "at": "14:00", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V3/data/logs/daytrade_fetch_task.log"},
-    "StockAnalysis_Agent_DailyReview":      {"model": "old agent", "what": "old review agent (Claude)", "at": "14:45", "days": "Mon-Fri", "retry_until": null, "frozen": false, "log": null},
     "StockAnalysis_Team_Dispatch":          {"model": "team", "what": "team dispatcher (scripts + agents)", "at": "14:50", "days": "Mon-Sat", "retry_until": "20:00", "frozen": false, "log": "StockAnalysis-Team/state/logs/dispatch_task.log"},
     "StockAnalysis_V4_EPRE_Calendar":       {"model": "V4", "what": "EPRE earnings calendar",   "at": "17:15", "days": "Mon-Fri", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis-V4/data/logs/epre_calendar_task.log"},
-    "StockAnalysis_Agent_WeeklyResearch":   {"model": "old agent", "what": "old review agent weekly (Claude)", "at": "09:00", "days": "Sat", "retry_until": null, "frozen": false, "log": null},
     "StockAnalysis_WeeklyDashboard":        {"model": "V2", "what": "weekly dashboard",         "at": "18:00", "days": "Sun", "retry_until": "23:00", "frozen": false, "log": "StockAnalysis/data/logs/weekly_dashboard_task.log"}
   }
 }

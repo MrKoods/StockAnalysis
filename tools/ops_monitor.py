@@ -3,18 +3,23 @@
     python tools/ops_monitor.py [--dry-run]
 
 Checks: every enabled StockAnalysis_* scheduled task fired at its last scheduled time and succeeded;
-snapshot.py ACTION NEEDED lines (V2/V3/V4); the team's own last role runs (logged out / failed).
-Returns the findings so the dispatcher can decide whether a Claude role is worth waking.
+snapshot.py ACTION NEEDED and "!!" lines (V2/V3/V4); ledger integrity (tools/integrity.py); the team's own last
+role runs (logged out / failed). The post carries a short digest of the day's numbers - it replaced the old
+review agent's daily Discord message. Returns the findings so the dispatcher can decide whether a Claude role is
+worth waking.
 """
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from common import PYTHON, SNAPSHOT, STATE, LIVE_V2, load_json, log, now_pt, post
+import integrity
+import outlook
+from common import PYTHON, SNAPSHOT, STATE, LIVE_V2, load_json, log, now_pt, post, save_json
 
 # 0 = success, 267009 = still running, 267011 = never run (new task)
 OK_RESULTS = {0, 267009, 267011}
@@ -37,6 +42,7 @@ Get-ScheduledTask -TaskName 'StockAnalysis_*' | ForEach-Object {
 class Findings:
     alerts: list[str] = field(default_factory=list)      # needs the user (computer off, task failed)
     diagnose: list[str] = field(default_factory=list)    # worth a Claude look (crash, traceback)
+    notes: list[str] = field(default_factory=list)       # context for the user, not a problem (loss cluster)
     snapshot: str = ""
     tasks_checked: int = 0
 
@@ -100,6 +106,51 @@ def check_snapshot(f: Findings) -> None:
             f.alerts.append(line.strip().replace("ACTION NEEDED: ", ""))
         elif "error lines" in line and not line.rstrip().endswith(" 0 error lines"):
             f.diagnose.append(line.strip())
+        elif "!! loss cluster" in line:
+            f.notes.append(line.strip().removeprefix("!! "))
+        elif line.strip().startswith("!!"):
+            f.diagnose.append(line.strip().removeprefix("!! "))
+    f.notes = only_new(f.notes, STATE / "notes_seen.json")  # a cluster stays in the 7-day window; say it once
+
+
+def only_new(items: list[str], path) -> list[str]:
+    seen = set(load_json(path, []))
+    save_json(path, sorted(seen | set(items))[-200:])
+    return [x for x in items if x not in seen]
+
+
+def check_integrity(f: Findings) -> None:
+    new, _known = integrity.check()
+    for x in new:
+        f.alerts.append(f"data problem: {x}")
+        f.diagnose.append(f"integrity: {x}")
+
+
+DIGEST = [  # (snapshot pattern, line for the post) - the day's numbers, in the order the user reads them
+    (r"COLLECTING \((\d+)/100 closed trades\)\s+mean R after costs ([+-][\d.]+)",
+     "V2 rank: {0}/100 closed, {1}R after costs (GO needs +0.15)"),
+    (r"random-pick control: (\d+) closed, mean R after costs ([+-][\d.]+)", "V2 random control: {0} closed, {1}R"),
+    (r"\[(G2 paper)\] (\d+) days, \d+ trades \| mean ([+-][\d.]+) bps \| day-t ([+-]?[\w.]+)",
+     "V3 {0}: day {1}, mean {2} bps, t {3}"),
+    (r"\[(ON1 paper)\] (\d+) days, \d+ trades \| mean ([+-][\d.]+) bps \| day-t ([+-]?[\w.]+)",
+     "V3 {0}: day {1}, mean {2} bps, t {3}"),
+    (r"\[EPRE paper\] closed (\d+) \| hedged mean ([+-][\d.]+) bps.*?exit-day t ([+-]?[\w.]+)",
+     "V4 EPRE: {0}/1,000 closed, hedged {1} bps, t {2}"),
+]
+
+
+def digest(snapshot: str) -> list[str]:
+    """Headline numbers per test, then what the V2 threshold/rank tracks opened or closed today."""
+    out = [label.format(*m.groups()) for rx, label in DIGEST if (m := re.search(rx, snapshot))]
+    track = None
+    for raw in snapshot.splitlines():
+        line = raw.strip()
+        if m := re.match(r"\[(threshold|rank|random)\] closed", line):
+            track = m.group(1)
+        elif track in ("threshold", "rank") and (m := re.match(r"(new signals|closed) \d{4}-\d{2}-\d{2}: (.*)", line)):
+            out.append(f"  {track} {m.group(1).replace('new signals', 'new')} today: "
+                       + m.group(2).replace(" (shares)", "")[:220])
+    return out
 
 
 def check_team(f: Findings) -> None:
@@ -122,6 +173,15 @@ def run(dry_run: bool = False, post_it: bool = True) -> Findings:
         check_snapshot(f)
     except Exception as e:  # noqa: BLE001
         f.alerts.append(f"snapshot.py did not finish: {e}")
+    try:
+        f.snapshot += ("\n=== Outlook: what each next decision still needs (tools/outlook.py) ===\n"
+                       + "\n".join("  " + x for x in outlook.lines(f.snapshot)) + "\n")
+    except Exception as e:  # noqa: BLE001
+        log(f"outlook failed: {e}", "ops")
+    try:
+        check_integrity(f)
+    except Exception as e:  # noqa: BLE001
+        f.alerts.append(f"integrity check did not finish: {e}")
     check_team(f)
     (STATE / "snapshot.txt").write_text(f.snapshot, encoding="utf-8")
     if post_it:
@@ -129,8 +189,13 @@ def run(dry_run: bool = False, post_it: bool = True) -> Findings:
             text = f"🛑 **Ops {now:%a %m-%d}: {len(f.alerts)} problem(s)**\n" + "\n".join(f"- {a}" for a in f.alerts)
         else:
             text = f"✅ Ops {now:%a %m-%d}: all {f.tasks_checked} scheduled tasks ran OK, data fresh."
+        text += "".join(f"\nℹ️ {n}" for n in f.notes)
+        lines = digest(f.snapshot)
+        if lines:
+            text += "\n" + "\n".join(lines)
         post("ops", text, "Team - Ops Monitor", dry_run)
-    log(f"ops: {len(f.alerts)} alerts, {len(f.diagnose)} to diagnose, {f.tasks_checked} tasks", "ops")
+    log(f"ops: {len(f.alerts)} alerts, {len(f.diagnose)} to diagnose, {len(f.notes)} notes, "
+        f"{f.tasks_checked} tasks", "ops")
     return f
 
 

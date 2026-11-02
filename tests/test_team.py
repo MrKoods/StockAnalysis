@@ -120,3 +120,86 @@ def test_checkpoint_crossing():
     assert any("rank" in h for h in hits) and any("EPRE" in h for h in hits)
     assert not any("G2 paper" in h for h in hits)  # already at 20 yesterday
     assert dispatch.crossed({}, cur) == []          # first run sets the baseline, no false alarm
+
+
+# --- checks taken over from the old review agent (2026-11-01) ---
+import integrity  # noqa: E402
+
+SNAP = """[threshold] closed 31 | mean R +0.328 | win 45%
+   closed 2026-10-30: AMGN win +3.92R
+[rank] closed 65 | mean R +0.052 | win 38%
+   new signals 2026-10-30: ADI bullish (shares), QCOM bearish (shares)
+[random] closed 24 | mean R -0.302 | win 29%
+   new signals 2026-10-30: MU bearish (shares)
+   Rank-track go/no-go: COLLECTING (65/100 closed trades)
+     mean R after costs -0.006 (need >= +0.15) | week-clustered t -0.25
+     random-pick control: 24 closed, mean R after costs -0.356
+[G2 paper] 16 days, 152 trades | mean -19.563 bps | day-t -1.36 | last day 2026-10-30: -64.956
+[ON1 paper] 13 days, 962 trades | mean +53.491 bps | day-t nan | last day 2026-10-29: -81.035
+  [EPRE paper] closed 388 | hedged mean -6.9 bps (net unhedged +42.6) | exit-day t -0.39 (3 days) | x
+"""
+
+
+def test_digest_order_and_tracks():
+    d = ops_monitor.digest(SNAP)
+    assert d[0] == "V2 rank: 65/100 closed, -0.006R after costs (GO needs +0.15)"
+    assert d[1] == "V2 random control: 24 closed, -0.356R"
+    assert "V3 ON1 paper: day 13, mean +53.491 bps, t nan" in d
+    assert "V4 EPRE: 388/1,000 closed, hedged -6.9 bps, t -0.39" in d
+    assert "  threshold closed today: AMGN win +3.92R" in d
+    assert "  rank new today: ADI bullish, QCOM bearish" in d
+    assert not any("MU" in x for x in d)  # random track's daily picks are noise - not posted
+
+
+def test_snapshot_bang_lines(monkeypatch, tmp_path):
+    monkeypatch.setattr(ops_monitor, "STATE", tmp_path)
+    out = ("   !! 2 new row(s) not 'shares' although shares_only is on: ['A']\n"
+           "   !! loss cluster 2026-10-23: 6 bullish losses on one day\n")
+    monkeypatch.setattr(ops_monitor.subprocess, "run",
+                        lambda *a, **k: type("R", (), {"stdout": out, "stderr": "", "returncode": 0})())
+    f = ops_monitor.Findings()
+    ops_monitor.check_snapshot(f)
+    assert any("not 'shares'" in x for x in f.diagnose) and f.notes == ["loss cluster 2026-10-23: 6 bullish losses on one day"]
+    f2 = ops_monitor.Findings()
+    ops_monitor.check_snapshot(f2)
+    assert f2.notes == []  # a cluster is reported once, not every day it stays in the 7-day window
+
+
+def v2_row(**kw):
+    r = {"signal_date": "2026-10-28", "ticker": "A", "direction": "bullish", "fill_date": "2026-10-29",
+         "exit_date": "2026-10-30", "achieved_rr": 1.0, "entry_price": 10, "fill_price": 10, "exit_price": 11,
+         "stop_loss": 9}
+    return {**r, **kw}
+
+
+def test_integrity_v2():
+    today = date(2026, 10, 30)
+    ok = pd.DataFrame([v2_row(), v2_row(ticker="B", achieved_rr=-1.75)])  # gap-through loss is legit
+    assert integrity.v2_checks(ok, "V2 rank", today) == []
+    bad = pd.DataFrame([v2_row(), v2_row(), v2_row(ticker="C", exit_date="2026-10-28", achieved_rr=12.0, exit_price=0)])
+    msgs = " | ".join(integrity.v2_checks(bad, "V2 rank", today))
+    assert "1 duplicate" in msgs and "exit before fill" in msgs and "outside" in msgs and "exit_price <= 0" in msgs
+    assert "stopped updating" in " ".join(integrity.v2_checks(ok, "V2 rank", date(2026, 11, 5)))
+
+
+def test_integrity_v4_and_seen(monkeypatch, tmp_path):
+    d = pd.DataFrame([{"entry_day": "2026-10-28", "exit_day": "2026-10-28", "ticker": "X", "ret_bps": 9000,
+                       "net_bps": 1, "hedged_bps": 1, "entry_close": 5, "exit_close": 5}])
+    msgs = " | ".join(integrity.v4_checks(d, date(2026, 10, 28)))
+    assert "on/before entry" in msgs and "|ret_bps| > 5000" in msgs
+    monkeypatch.setattr(integrity, "SEEN", tmp_path / "seen.json")
+    monkeypatch.setattr(integrity, "scan", lambda today=None: ["p1"])
+    assert integrity.check() == (["p1"], [])
+    assert integrity.check() == ([], ["p1"])  # known problem: no second wake-up
+
+
+import outlook  # noqa: E402
+
+
+def test_outlook_arithmetic():
+    s = outlook.v2_line("COLLECTING (65/100 closed trades)\n     mean R after costs -0.006 (need")
+    assert "+0.440R" in s and "+0.011R" in s
+    per_day = pd.Series([-20.0] * 16)
+    s = outlook.v3_line("G2 paper", per_day)
+    assert "day 16/20" in s and "must average +80.0" in s  # (0*20 - (-320)) / 4
+    assert "past the last checkpoint" in outlook.v3_line("x", pd.Series([1.0] * 41))

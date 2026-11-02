@@ -8,7 +8,9 @@ Charter, roles and hard limits: [TEAM.md](TEAM.md).
 One scheduled task, `StockAnalysis_Team_Dispatch` (Mon-Sat 14:50 PT), runs `python tools/dispatch.py`:
 
 1. **Paper runner** (script): trades the team's active strategies on paper, scores them.
-2. **Ops Monitor** (script): every StockAnalysis_* task ran? data fresh? -> one line to #agent-ops.
+2. **Ops Monitor** (script): every StockAnalysis_* task ran? data fresh? ledgers intact (tools/integrity.py)?
+   -> #agent-ops: alerts or ✅, plus the day's V2/V3/V4 numbers. This daily post replaced the old review agent
+   (retired 2026-11-01); no post by ~3 PM PT on a weekday = the computer was off or the dispatcher failed.
 3. **Triggers** (script): decides which Claude roles have a reason to run. Quiet day = **zero Claude usage**.
 4. **Roles** (Claude headless): each with its own model, effort, turn cap, timeout and permission file
    (`team/roles.json`, `team/settings/<role>.json`). Output in `outbox/<role>.txt` is posted to its channel.
