@@ -1,5 +1,20 @@
 # Researcher notes
 
+## 2026-11-03 — reg-fd-small-cap-disclosure (planned, check+smoke pass)
+- Five files in research/reg-fd-small-cap-disclosure/ + strategies/reg-fd-small-cap-disclosure/.
+- Family `8k_7_01` (used only screen 2005-2013). Windows: train 2005-01-01..2013-12-31, holdout
+  2014-01-01..2026-10-30 (clean; daily+filings end 2026-11-02, buffer for 1d exit). Bar 3.00.
+- Signal: 8-K with item 7.01 (Reg FD) by a universe ticker; LONG at `first_session` OPEN, exit CLOSE
+  H sessions later. SPY-hedged gross; cost 30 bps (small-cap); cluster "day".
+- 6 variants: universe {sp600, sp400, sp46=400+600} × hold {1,3}. chosen PRE-REGISTERED = `sp600_h1`
+  (smallest cap = strongest mechanism; hold 1 = screen best-t). Others = Skeptic robustness only.
+- Smoke (2005 only): sp600_h1 683 trades/222 day-periods, sp46_h1 1221 — ample sample.
+- PROMOTABLE: 7.01 8-Ks are same-day public; filings.parquet rebuilt each dispatcher run → strategy.py
+  reads it live. spec hold_sessions=1, metric real_hedged_bps, pass_mean_bps 5, pass_t 2.0, 20-40 days.
+- Reused split-drift's test.py/strategy.py skeleton. Runner auto-adds SPY to universe (paper_runner:51),
+  builds sessions from bars["SPY"].index (:244) and computes the hedge (spy_bps) itself — strategy.py
+  only needs SPY for the session calendar. filings.parquet cols incl accepted, items, form, ticker.
+
 ## 2026-10-31 — split-announcement-drift (planned, check+smoke pass)
 - Five files in research/split-announcement-drift/ + strategies/split-announcement-drift/.
 - Family `corporate_events` (NOT in catalog's used-periods table → whole history clean). Bar 3.00.
