@@ -47,3 +47,25 @@ def test_matches_research_mapping():
             k = sess if minute < 570 else (sess + 1 if same else sess)
             assert reaction_session(day, minute) == sessions[k]
             assert entry_session(sessions[k]) == sessions[k - 2]
+
+
+def test_upcoming_placeholder_follows_dst(monkeypatch):
+    """2026-11-02: Yahoo's 'time unknown' for an upcoming report moved 15:00 -> 16:00 ET when DST ended."""
+    import pandas as pd
+    from epre import calendar as cal
+
+    def frame(upcoming_min, past_min):
+        ts = [pd.Timestamp(f"2026-0{m}-05", tz="America/New_York") for m in (2, 5, 8)]
+        ts = [t + pd.Timedelta(minutes=past_min) for t in ts] + \
+             [pd.Timestamp("2026-11-04", tz="America/New_York") + pd.Timedelta(minutes=upcoming_min)]
+        return pd.DataFrame({"ts": ts, "minute": [past_min] * 3 + [upcoming_min], "reported": [True] * 3 + [False]})
+
+    today = date(2026, 11, 2)
+    monkeypatch.setattr(cal, "earnings_frame", lambda t, limit=8: frame(16 * 60, 6 * 60))   # CG: BMO habit
+    ev = cal.next_event("CG", today)
+    assert ev["time_source"] == "history" and ev["bmo"]
+    monkeypatch.setattr(cal, "earnings_frame", lambda t, limit=8: frame(16 * 60, 16 * 60))  # past 16:00 = real AMC
+    ev = cal.next_event("AAPL", today)
+    assert ev["time_source"] == "history" and not ev["bmo"]
+    monkeypatch.setattr(cal, "earnings_frame", lambda t, limit=8: frame(8 * 60, 16 * 60))   # a real upcoming time
+    assert cal.next_event("X", today)["time_source"] == "yahoo"

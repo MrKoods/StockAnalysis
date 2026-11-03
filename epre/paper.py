@@ -155,6 +155,9 @@ def signals(dry: bool = False, day: date | None = None) -> None:
     for d in days:
         rows = _new_rows(d, entries_for(d, cal, recheck=not dry or day is None))
         rows = rows[~rows["ticker"].isin(led.loc[led["entry_day"] == str(d), "ticker"])]
+        # never a second trade on the same report (e.g. the calendar re-timed it after the first entry)
+        held = set(zip(led["ticker"].astype(str), led["report_day"].astype(str)))
+        rows = rows[[(t, r) not in held for t, r in zip(rows["ticker"].astype(str), rows["report_day"].astype(str))]]
         new.append(rows)
         sells = pd.concat([led, rows])
         sells = sells[sells["exit_day"] == str(d)]

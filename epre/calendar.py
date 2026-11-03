@@ -1,7 +1,7 @@
 """Nightly earnings-calendar refresh (~1,490 tickers, ~30 min at Yahoo's pace).
 
 For each stock: the next unreported earnings event, its time of day, and where that time came from.
-Yahoo often shows a placeholder time (15:00 or 00:00) for future reports; then the company's own habit
+Yahoo often shows a placeholder time (15:00 or 00:00 ET in summer time, 16:00 or 01:00 in winter) for future reports; then the company's own habit
 (time of its last 4 reports) decides before-open vs after-close, and the row is marked 'history'.
 """
 
@@ -13,7 +13,8 @@ from datetime import date
 
 import pandas as pd
 
-from .config import BMO_CUTOFF_MIN, CALENDAR, ETFS, INDEXES, TZ, UNCONFIRMED_TIMES, UNIVERSE_DIR
+from .config import (BMO_CUTOFF_MIN, CALENDAR, ETFS, INDEXES, TZ, UNCONFIRMED_TIMES, UNIVERSE_DIR,
+                     UPCOMING_PLACEHOLDER_TIMES)
 
 log = logging.getLogger("epre.calendar")
 COLS = ["ticker", "index", "report_day", "minute", "time_source", "bmo", "refreshed"]
@@ -48,7 +49,7 @@ def next_event(ticker: str, today: date) -> dict | None:
         return None
     ev = fut.iloc[0]
     past = f[f["reported"] & ~f["minute"].isin(UNCONFIRMED_TIMES)].tail(4)
-    if ev["minute"] not in UNCONFIRMED_TIMES:
+    if ev["minute"] not in UPCOMING_PLACEHOLDER_TIMES:
         minute, source = int(ev["minute"]), "yahoo"
     elif len(past):
         # company habit: before the open if most of its recent reports were
