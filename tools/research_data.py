@@ -3,8 +3,10 @@ the plan's train_end for the train run, holdout_end for the one holdout run), so
 holdout period. Earlier data than a window's start is allowed (indicator warm-up); scoring only counts trades
 inside the window - the harness checks that.
 
+Team archive (data/daily, tools/daily_bars.py - full re-download every Saturday):
+  daily(tickers)    1999-01 .. last Friday   ~1,510 S&P 1500 names, split/dividend-adjusted OHLCV (yfinance)
+
 Archives (read-only, from the V3 lab, refreshed by V3's daily tasks):
-  daily(tickers)    1999-01 .. ~2026-10   ~1,510 S&P 1500 names (daily_max), unadjusted-ish OHLCV
   hourly(tickers)   2023-11 .. today       ~1,510 names, America/New_York regular session bars
   five_min / one_min                       ~513 S&P 500 names, last few months only
   earnings(tickers) yfinance earnings dates + EPS estimate/actual/surprise, 2000+
@@ -33,6 +35,7 @@ INTRA = V3 / "data" / "intraday"
 EVENTS = V3 / "data" / "events"
 UNIVERSES = {"sp500": "sp500_new.csv", "sp400": "sp400.csv", "sp600": "sp600.csv"}
 EDGAR = Path(__file__).resolve().parent.parent / "data" / "edgar"
+DAILY = Path(__file__).resolve().parent.parent / "data" / "daily"   # tools/daily_bars.py
 EIGHT_K_ITEMS = {
     "1.01": "entry into a material agreement", "1.02": "termination of a material agreement",
     "1.03": "bankruptcy or receivership", "2.01": "completed acquisition or disposition of assets",
@@ -79,9 +82,10 @@ def _clip_index(df: pd.DataFrame, end: pd.Timestamp) -> pd.DataFrame:
 
 def _bars(folder: str, tickers) -> dict[str, pd.DataFrame]:
     end = data_end()
+    base = DAILY if folder == "daily" else INTRA / folder
     out = {}
     for t in tickers:
-        df = _read(INTRA / folder / f"{t}.parquet")
+        df = _read(base / f"{t}.parquet")
         if df is not None and len(df):
             df = _clip_index(df.sort_index(), end)
             if len(df):
@@ -91,14 +95,14 @@ def _bars(folder: str, tickers) -> dict[str, pd.DataFrame]:
 
 def universe(name: str = "all") -> list[str]:
     if name == "all":
-        return sorted(p.stem for p in (INTRA / "daily_max").glob("*.parquet"))
+        return sorted(p.stem for p in DAILY.glob("*.parquet"))
     df = pd.read_csv(V3 / "daytrade" / UNIVERSES[name])
     return sorted(df.iloc[:, 0].astype(str).str.strip().tolist())
 
 
 def daily(tickers) -> dict[str, pd.DataFrame]:
     """Daily OHLCV (columns open high low close volume), index = date."""
-    return _bars("daily_max", tickers)
+    return _bars("daily", tickers)
 
 
 def hourly(tickers) -> dict[str, pd.DataFrame]:
@@ -149,7 +153,7 @@ def insider(start: str = "2006-01-01") -> pd.DataFrame:
 
 def _sessions(end: pd.Timestamp) -> pd.DatetimeIndex:
     """NYSE sessions up to the cutoff (SPY's daily bars)."""
-    spy = _read(INTRA / "daily_max" / "SPY.parquet")
+    spy = _read(DAILY / "SPY.parquet")
     idx = pd.DatetimeIndex(pd.to_datetime(spy.index)).normalize().unique().sort_values()
     return idx[idx <= end]
 

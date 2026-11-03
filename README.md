@@ -86,6 +86,9 @@ A role that already finished today is not relaunched (except Researcher/Skeptic,
   every filing for the S&P 1500 with acceptance times and 8-K item codes, and stock splits with announcement dates.
 - `tools/edgar.py`: `backfill` once; the dispatcher runs `update` every run (EDGAR's daily index -> re-fetch only
   companies that filed) and `splits` on Saturdays. Plain Python - no Claude usage. Needs `SEC_EDGAR_USER_AGENT`.
+- `tools/daily_bars.py` (Saturday dispatch): the team's own daily-bar archive `data/daily` (~1,510 S&P 1500 names,
+  1999+, adjusted), a full yfinance re-download, never overwriting a file with a shorter or older pull. Replaced
+  reading V3's `daily_max`, a one-off pull from 2026-10-06 that nothing refreshed.
 - `tools/catalog.py` writes `state/data_catalog.md` every run: what exists, its dates, what's NOT available, and
   each family's used periods. The Scout may only register ideas whose data is in it.
 - `tools/screen.py` (free, re-runs every 4 weeks): every 8-K event type, 2005-2013 only, buy after the filing,

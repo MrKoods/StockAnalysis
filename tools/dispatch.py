@@ -28,6 +28,7 @@ from datetime import date, timedelta
 
 import budget
 import catalog
+import daily_bars
 import daily_report
 import edgar
 import ideas
@@ -271,11 +272,13 @@ def main(argv: list[str]) -> int:
             except Exception as e:
                 log(f"{name} failed: {e}", "dispatch")
 
-    # 1b. research data: EDGAR filings (daily, only companies that filed), splits (Saturday), data catalog.
+    # 1b. research data: EDGAR filings (daily, only companies that filed), splits + daily bars (Saturday),
+    #     data catalog.
     #     Plain Python, zero tokens. A failure is reported, never fatal - research can use yesterday's archive.
     #     The bulk event screen (tools/screen.py) re-runs itself every 4 weeks; the catalog then shows its periods.
     if not a.dry_run:
-        for name, job in [("edgar update", edgar.update)] + ([("edgar splits", edgar.splits)]
+        for name, job in [("edgar update", edgar.update)] + ([("edgar splits", edgar.splits),
+                                                               ("daily bars", daily_bars.run)]
                                                               if today.weekday() == 5 else []) + [
                 ("screen", screen.run), ("catalog", catalog.write)]:
             try:

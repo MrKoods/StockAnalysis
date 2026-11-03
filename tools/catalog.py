@@ -36,7 +36,7 @@ def sources() -> list[str]:
     n = lambda d: len(list(d.glob("*.parquet")))   # noqa: E731
     yrs = sorted(int(p.stem[:4]) for p in (rd.EVENTS / "insider").glob("*.parquet"))
     rows = [
-        ("daily(tickers)", f"{n(rd.INTRA / 'daily_max')} tickers", _range(rd.INTRA / "daily_max" / "SPY.parquet"),
+        ("daily(tickers)", f"{n(rd.DAILY)} tickers", _range(rd.DAILY / "SPY.parquet"),
          "OHLCV, S&P 1500"),
         ("hourly(tickers)", f"{n(rd.INTRA / '1h')} tickers", _range(rd.INTRA / "1h" / "AAPL.parquet"), "regular session"),
         ("five_min / one_min", f"{n(rd.INTRA / '5m')} / {n(rd.INTRA / '1m')} tickers",

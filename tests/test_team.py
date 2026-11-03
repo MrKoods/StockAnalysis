@@ -269,3 +269,16 @@ def test_screen_event_returns():
     r1 = screen.event_returns(ev.iloc[1:2], opens, closes, 2, drift)
     assert r1.empty                                                 # +200% = a split/bad bar, dropped
     assert screen.family("5.02") == "8k_5_02"
+
+
+def test_daily_bars_never_overwrite_with_worse(tmp_path):
+    import daily_bars
+    idx = pd.bdate_range("2020-01-01", periods=300)
+    old = pd.DataFrame({"close": 1.0}, index=idx)
+    old.to_parquet(tmp_path / "X.parquet")
+    assert not daily_bars.better(old.iloc[:-1], tmp_path / "X.parquet")           # ends earlier
+    longer = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2020-01-01", periods=305))
+    assert daily_bars.better(longer, tmp_path / "X.parquet")
+    short = pd.DataFrame({"close": 1.0}, index=pd.bdate_range("2020-06-01", periods=200))
+    assert not daily_bars.better(short, tmp_path / "X.parquet")                   # partial history
+    assert daily_bars.better(old, tmp_path / "missing.parquet")
