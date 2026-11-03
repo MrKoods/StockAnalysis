@@ -159,3 +159,9 @@ if __name__ == "__main__":
         print(status())
     else:
         run(dry_run="--dry-run" in sys.argv)
+        try:  # the first tick at/after 18:00 on a weekday also runs the evening check (no task of its own)
+            import evening_check
+            evening_check.run(dry_run="--dry-run" in sys.argv)
+        except Exception as e:  # noqa: BLE001
+            log(f"evening check failed: {e}", "scan_ops")
+            post("ops", f"⚠️ Evening check could not run: {str(e)[:300]}", USER)

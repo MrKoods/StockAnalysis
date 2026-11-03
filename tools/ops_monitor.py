@@ -1,17 +1,16 @@
-"""Ops Monitor - script only, never calls Claude. Posts a one-line heartbeat or an alert list to #agent-ops.
+"""Ops Monitor - script only, never calls Claude. Checks everything; posts to #agent-ops only when it finds a problem.
 
     python tools/ops_monitor.py [--dry-run]
 
 Checks: every enabled StockAnalysis_* scheduled task fired at its last scheduled time and succeeded;
 snapshot.py ACTION NEEDED and "!!" lines (V2/V3/V4); ledger integrity (tools/integrity.py); the team's own last
-role runs (logged out / failed). The post carries a short digest of the day's numbers - it replaced the old
-review agent's daily Discord message. Returns the findings so the dispatcher can decide whether a Claude role is
-worth waking.
+role runs (logged out / failed). A problem is posted straight away (🛑); the full end-of-day report is posted by
+tools/daily_report.py at the end of the dispatch. Returns the findings so the dispatcher can decide whether a
+Claude role is worth waking.
 """
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -126,33 +125,6 @@ def check_integrity(f: Findings) -> None:
         f.diagnose.append(f"integrity: {x}")
 
 
-DIGEST = [  # (snapshot pattern, line for the post) - the day's numbers, in the order the user reads them
-    (r"COLLECTING \((\d+)/100 closed trades\)\s+mean R after costs ([+-][\d.]+)",
-     "V2 rank: {0}/100 closed, {1}R after costs (GO needs +0.15)"),
-    (r"random-pick control: (\d+) closed, mean R after costs ([+-][\d.]+)", "V2 random control: {0} closed, {1}R"),
-    (r"\[(G2 paper)\] (\d+) days, \d+ trades \| mean ([+-][\d.]+) bps \| day-t ([+-]?[\w.]+)",
-     "V3 {0}: day {1}, mean {2} bps, t {3}"),
-    (r"\[(ON1 paper)\] (\d+) days, \d+ trades \| mean ([+-][\d.]+) bps \| day-t ([+-]?[\w.]+)",
-     "V3 {0}: day {1}, mean {2} bps, t {3}"),
-    (r"\[EPRE paper\] closed (\d+) \| hedged mean ([+-][\d.]+) bps.*?exit-day t ([+-]?[\w.]+)",
-     "V4 EPRE: {0}/1,000 closed, hedged {1} bps, t {2}"),
-]
-
-
-def digest(snapshot: str) -> list[str]:
-    """Headline numbers per test, then what the V2 threshold/rank tracks opened or closed today."""
-    out = [label.format(*m.groups()) for rx, label in DIGEST if (m := re.search(rx, snapshot))]
-    track = None
-    for raw in snapshot.splitlines():
-        line = raw.strip()
-        if m := re.match(r"\[(threshold|rank|random)\] closed", line):
-            track = m.group(1)
-        elif track in ("threshold", "rank") and (m := re.match(r"(new signals|closed) \d{4}-\d{2}-\d{2}: (.*)", line)):
-            out.append(f"  {track} {m.group(1).replace('new signals', 'new')} today: "
-                       + m.group(2).replace(" (shares)", "")[:220])
-    return out
-
-
 def check_team(f: Findings) -> None:
     runs = load_json(STATE / "role_runs.json", {})
     for role, r in runs.items():
@@ -184,16 +156,9 @@ def run(dry_run: bool = False, post_it: bool = True) -> Findings:
         f.alerts.append(f"integrity check did not finish: {e}")
     check_team(f)
     (STATE / "snapshot.txt").write_text(f.snapshot, encoding="utf-8")
-    if post_it:
-        if f.alerts:
-            text = f"🛑 **Ops {now:%a %m-%d}: {len(f.alerts)} problem(s)**\n" + "\n".join(f"- {a}" for a in f.alerts)
-        else:
-            text = f"✅ Ops {now:%a %m-%d}: all {f.tasks_checked} scheduled tasks ran OK, data fresh."
-        text += "".join(f"\nℹ️ {n}" for n in f.notes)
-        lines = digest(f.snapshot)
-        if lines:
-            text += "\n" + "\n".join(lines)
-        post("ops", text, "Team - Ops Monitor", dry_run)
+    if post_it and f.alerts:
+        post("ops", f"🛑 **Problem found {now:%a %m-%d %H:%M}** - {len(f.alerts)} (the daily report follows)\n"
+             + "\n".join(f"• {x}" for x in f.alerts), "Team - Ops Monitor", dry_run)
     log(f"ops: {len(f.alerts)} alerts, {len(f.diagnose)} to diagnose, {len(f.notes)} notes, "
         f"{f.tasks_checked} tasks", "ops")
     return f

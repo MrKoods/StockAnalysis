@@ -9,12 +9,21 @@ One scheduled task, `StockAnalysis_Team_Dispatch` (Mon-Sat 14:50 PT), runs `pyth
 
 1. **Paper runner** (script): trades the team's active strategies on paper, scores them.
 2. **Ops Monitor** (script): every StockAnalysis_* task ran? data fresh? ledgers intact (tools/integrity.py)?
-   -> #agent-ops: alerts or ✅, plus the day's V2/V3/V4 numbers. This daily post replaced the old review agent
-   (retired 2026-11-01); no post by ~3 PM PT on a weekday = the computer was off or the dispatcher failed.
+   A problem is posted to #agent-ops at once.
 3. **Triggers** (script): decides which Claude roles have a reason to run. Quiet day = **zero Claude usage**.
 4. **Roles** (Claude headless): each with its own model, effort, turn cap, timeout and permission file
    (`team/roles.json`, `team/settings/<role>.json`). Output in `outbox/<role>.txt` is posted to its channel.
 5. **Commit**: only the dispatcher commits (agents have no git), so commit times prove plan-before-results.
+6. **Daily report** (script, Mon-Fri, last): the user's end-of-day report in #agent-ops (tools/daily_report.py).
+
+**What the user reads - #agent-ops, Mon-Fri:**
+- ~2:51 PM PT **Daily report** (later on a busy research day): ✅/🛑 jobs, ⚠️ needs you, 📈 live tests, 💵 real
+  prices, 🔁 V2 trades, 🤖 team today, ℹ️ notes. Replaced the old review agent (retired 2026-11-01).
+- ~6:00 PM PT **Evening check** (tools/evening_check.py, run by the 18:00 Scan Operator tick): jobs since the report
+  + the EPRE calendar is fresh and sane. 🌙 = ready for tomorrow.
+- 🛑 any time: a problem found (Ops Monitor, Scan Operator, Quote Clerk).
+- No daily report by ~4 PM PT on a weekday = the computer was off or the dispatcher failed.
+
 
 ## Usage controls
 - Roles launch only on triggers (Scorekeeper: failure to diagnose / checkpoint / Friday scorecard).

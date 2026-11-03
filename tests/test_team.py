@@ -140,15 +140,47 @@ SNAP = """[threshold] closed 31 | mean R +0.328 | win 45%
 """
 
 
-def test_digest_order_and_tracks():
-    d = ops_monitor.digest(SNAP)
-    assert d[0] == "V2 rank: 65/100 closed, -0.006R after costs (GO needs +0.15)"
-    assert d[1] == "V2 random control: 24 closed, -0.356R"
-    assert "V3 ON1 paper: day 13, mean +53.491 bps, t nan" in d
-    assert "V4 EPRE: 388/1,000 closed, hedged -6.9 bps, t -0.39" in d
-    assert "  threshold closed today: AMGN win +3.92R" in d
-    assert "  rank new today: ADI bullish, QCOM bearish" in d
-    assert not any("MU" in x for x in d)  # random track's daily picks are noise - not posted
+def test_daily_report_sections(monkeypatch, tmp_path):
+    import daily_report as dr
+    monkeypatch.setattr(dr, "STATE", tmp_path)
+    monkeypatch.setattr(dr, "TEAM", tmp_path)
+    monkeypatch.setattr(dr.outlook, "short", lambda snap: {"ON1 paper": "PASS needs +13"})
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "2026-11-02-quotes.log").write_text(
+        "2026-11-02 06:31:19 quotes open: 65/74 tickers captured (partial)\n"
+        "2026-11-02 12:56:26 quotes close: 196/196 tickers captured (ok)\n", encoding="utf-8")
+    f = ops_monitor.Findings(snapshot=SNAP, tasks_checked=17)
+    text = dr.compose(date(2026, 11, 2), f, [])
+    assert text.startswith("✅ **Daily report Mon 11-02** - all 17 scheduled jobs ran OK")
+    assert "Needs you" not in text and "Quiet day" in text
+    assert "• **V2 rank** - 65/100 trades · -0.006R after costs" in text
+    assert "• **V3 ON1 paper** - day 13 · mean +53.5 bps · t nan\n  ↳ PASS needs +13" in text
+    assert "open 65/74 (partial) · close 196/196" in text
+    assert "• threshold closed: AMGN win +3.92R" in text and "• rank new signals: ADI bullish, QCOM bearish" in text
+    assert "MU" not in text   # random track's daily picks are noise - not posted
+    f.alerts = ["PaperRunner did NOT run"]
+    assert "🛑 **Daily report Mon 11-02** - 1 problem(s)\n\n**⚠️ Needs you**\n• PaperRunner" in \
+        dr.compose(date(2026, 11, 2), f, [])
+
+
+def test_report_chunks_respect_discord_limit():
+    import daily_report as dr
+    text = "\n\n".join(["**A**\n" + "x" * 900, "**B**\n" + "y" * 900, "**C**\n" + "\n".join(["z" * 100] * 30)])
+    parts = dr.chunks(text)
+    assert all(len(p) <= dr.LIMIT for p in parts) and len(parts) >= 3
+    assert "".join(parts).count("z" * 100) == 30
+
+
+def test_evening_check_catches_dst_calendar_shift():
+    import evening_check as ev
+    good = {"refreshed": "2026-11-02", "events": 1458, "history_share": 0.52}
+    assert ev.compare(good, good, "2026-11-02") == []
+    bad = {"refreshed": "2026-11-02", "events": 1449, "history_share": 0.004}   # the real 2026-11-02 night
+    assert "company history moved 52% -> 0%" in " ".join(ev.compare(bad, good, "2026-11-02"))
+    stale = {**good, "refreshed": "2026-10-30"}
+    assert "NOT refreshed" in " ".join(ev.compare(stale, good, "2026-11-02"))
+    assert ev.compare({**good, "refreshed": "2026-11-03"}, good, "2026-11-02") == []   # late run dated in ET
+    assert "shrank" in " ".join(ev.compare({**good, "events": 500}, good, "2026-11-02"))
 
 
 def test_snapshot_bang_lines(monkeypatch, tmp_path):

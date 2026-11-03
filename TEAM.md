@@ -10,7 +10,9 @@ aim is money; no real money moves until a pre-registered test passes. A clear "t
 | Role | Kind | Job |
 |---|---|---|
 | Scan Operator | script | Owns every scan's running (team/schedule.json = the master schedule). Every 10 min: verifies each job really worked, re-runs it while a re-run is still valid, alerts #agent-ops when it can't, flags schedule drift |
-| Ops Monitor | script | Daily post to #agent-ops (~2:51 PM PT, Mon-Sat): every scheduled task ran, ACTION NEEDED alerts, ledger integrity (tools/integrity.py: duplicates, impossible values, stale ledgers), and a digest of the day's V2/V3/V4 numbers. Replaced the old review agent (retired 2026-11-01) |
+| Ops Monitor | script | Every dispatch: every scheduled task ran, ACTION NEEDED alerts, ledger integrity (tools/integrity.py: duplicates, impossible values, stale ledgers). A problem goes to #agent-ops at once |
+| Daily Report | script | **The user's end-of-day report** in #agent-ops (Mon-Fri, end of the dispatch, ~2:51 PM PT on a quiet day): jobs OK?, needs you, live tests + what each next decision needs, real Webull prices, V2 trades, what the team did. tools/daily_report.py. Replaced the old review agent (retired 2026-11-01) |
+| Evening Check | script | First Scan Operator tick at/after 6 PM PT, Mon-Fri: jobs since the report ran, and the V4 EPRE calendar is fresh and didn't shift abnormally (tools/evening_check.py). 🌙 all OK or 🛑 |
 | Quote Clerk | Claude (Haiku) | Twice a day (9:31 AM / 3:56 PM ET) captures live Webull bid/ask for every paper trade that fills then. One read-only tool; numbers parsed by script |
 | Paper Runner | script | Trades every active team strategy on paper; scores it against its frozen rule |
 | Scorekeeper | Claude (Sonnet) | Diagnoses failures; reports checkpoints of the live V2/V3/V4 tests; Friday scorecard |

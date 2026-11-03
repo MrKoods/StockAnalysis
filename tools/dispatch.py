@@ -4,11 +4,12 @@
 
 Scripts do the routine work; a Claude role is launched ONLY when it has a reason to run:
   1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals
-  2. ops_monitor   - script: heartbeat or alerts to #agent-ops
+  2. ops_monitor   - script: all checks; a problem is posted to #agent-ops at once
   3. triggers      - script: decide which roles have work (see TRIGGERS below)
   4. roles         - Claude headless, one at a time, each with its own model / turn cap / permission file;
                      Saturday ends with the Auditor (read-only, independent check of the whole project)
   5. commit        - the dispatcher commits after every step (agents have no git access)
+  6. daily report  - script: the end-of-day report to #agent-ops, Mon-Fri (tools/daily_report.py)
 
 --dry-run prints posts instead of sending, writes no ledger, launches no Claude.
 """
@@ -26,6 +27,7 @@ from datetime import date, timedelta
 
 import budget
 import catalog
+import daily_report
 import edgar
 import ideas
 import jobs
@@ -276,74 +278,84 @@ def main(argv: list[str]) -> int:
 
     # 2. ops (script only; Saturday has no market tasks worth a heartbeat)
     f = ops_monitor.run(dry_run=a.dry_run, post_it=today.weekday() < 5)
-    state = load_json(STATE / "dispatch_state.json", {})
-    cur = metrics(f.snapshot)
-    hits = crossed(state.get("metrics", {}), cur)
-    for sid, s in paper.items():
-        if s.get("verdict") in ("PASS", "FAIL") and prev_paper.get(sid, {}).get("verdict") != s["verdict"]:
-            post("director", f"📌 Team paper test **{sid}** reached its rule verdict: **{s['verdict']}** "
-                             f"({s['days']} days, mean {s['mean_bps']} bps, t {s['t']})", "Team - Paper Runner")
+    pipeline: list[str] = []
+    # 6. the end-of-day report (tools/daily_report.py) - in `finally`, so a crashed role can't swallow it
+    try:
+        state = load_json(STATE / "dispatch_state.json", {})
+        cur = metrics(f.snapshot)
+        hits = crossed(state.get("metrics", {}), cur)
+        for sid, s in paper.items():
+            if s.get("verdict") in ("PASS", "FAIL") and prev_paper.get(sid, {}).get("verdict") != s["verdict"]:
+                post("director", f"📌 Team paper test **{sid}** reached its rule verdict: **{s['verdict']}** "
+                                 f"({s['days']} days, mean {s['mean_bps']} bps, t {s['t']})", "Team - Paper Runner")
 
-    # 3. research pipeline, script part (train runs, Skeptic verdicts, holdouts) - no Claude
-    pipeline = [] if stopped() else jobs.advance(a.dry_run)
+        # 3. research pipeline, script part (train runs, Skeptic verdicts, holdouts) - no Claude
+        pipeline = [] if stopped() else jobs.advance(a.dry_run)
 
-    # 4. triggers
-    cfg = load_json(ROLES, {"roles": {}})
-    want = triggers(today, f, hits, paper, prev_paper)
-    for r in a.force:
-        want.setdefault(r, "forced by hand")
-    if not a.dry_run:
-        save_json(STATE / "dispatch_state.json", {"metrics": cur, "date": str(today)})
-
-    paused = stopped() or a.no_claude
-    if paused:
-        if want and stopped():
-            post("ops", f"⏸️ Team is STOPped (delete the STOP file to resume). Skipped: {', '.join(want)}",
-                 "Team - Ops Monitor", a.dry_run)
-        write_context(today, f, hits, paper, {}, pipeline)
-        log("paused - no Claude roles", "dispatch")
-        return 0
-    cap = int(cfg.get("weekly_claude_run_cap", 12))
-    role_runs = load_json(STATE / "role_runs.json", {})
-
-    def launch(role: str, why: str) -> None:
-        if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
-            return
-        last = role_runs.get(role, {})
-        if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
-                and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
-            log(f"{role} already ran OK today - not relaunched", "dispatch")
-            return
-        # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
-        if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
-            post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
-            return
-        write_context(today, f, hits, paper, {role: why}, pipeline)
-        role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
+        # 4. triggers
+        cfg = load_json(ROLES, {"roles": {}})
+        want = triggers(today, f, hits, paper, prev_paper)
+        for r in a.force:
+            want.setdefault(r, "forced by hand")
         if not a.dry_run:
-            save_json(STATE / "role_runs.json", role_runs)
-            commit(f"team-runner: {role} {today} ({why[:80]})")
+            save_json(STATE / "dispatch_state.json", {"metrics": cur, "date": str(today)})
 
-    # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
-    for role in ("scorekeeper", "scout", "director"):
-        if role in want:
-            launch(role, want[role])
-    # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
-    why = research_work() or want.get("researcher")
-    if why:
-        launch("researcher", why)
-        pipeline += jobs.advance(a.dry_run)
-    why = review_work() or want.get("skeptic")
-    if why:
-        launch("skeptic", why)
-        pipeline += jobs.advance(a.dry_run)
-    # Auditor last, so it sees everything the other roles did today.
-    if "auditor" in want:
-        write_audit_pack(today)
-        launch("auditor", want["auditor"])
-    write_context(today, f, hits, paper, {}, pipeline)
-    log(f"dispatch done; pipeline: {pipeline or 'no moves'}", "dispatch")
-    return 0
+        paused = stopped() or a.no_claude
+        if paused:
+            if want and stopped():
+                post("ops", f"⏸️ Team is STOPped (delete the STOP file to resume). Skipped: {', '.join(want)}",
+                     "Team - Ops Monitor", a.dry_run)
+            write_context(today, f, hits, paper, {}, pipeline)
+            log("paused - no Claude roles", "dispatch")
+            return 0
+        cap = int(cfg.get("weekly_claude_run_cap", 12))
+        role_runs = load_json(STATE / "role_runs.json", {})
+
+        def launch(role: str, why: str) -> None:
+            if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
+                return
+            last = role_runs.get(role, {})
+            if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
+                    and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
+                log(f"{role} already ran OK today - not relaunched", "dispatch")
+                return
+            # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
+            if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
+                post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
+                return
+            write_context(today, f, hits, paper, {role: why}, pipeline)
+            role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
+            if not a.dry_run:
+                save_json(STATE / "role_runs.json", role_runs)
+                commit(f"team-runner: {role} {today} ({why[:80]})")
+
+        # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
+        for role in ("scorekeeper", "scout", "director"):
+            if role in want:
+                launch(role, want[role])
+        # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
+        why = research_work() or want.get("researcher")
+        if why:
+            launch("researcher", why)
+            pipeline += jobs.advance(a.dry_run)
+        why = review_work() or want.get("skeptic")
+        if why:
+            launch("skeptic", why)
+            pipeline += jobs.advance(a.dry_run)
+        # Auditor last, so it sees everything the other roles did today.
+        if "auditor" in want:
+            write_audit_pack(today)
+            launch("auditor", want["auditor"])
+        write_context(today, f, hits, paper, {}, pipeline)
+        log(f"dispatch done; pipeline: {pipeline or 'no moves'}", "dispatch")
+        return 0
+    finally:
+        if today.weekday() < 5:
+            try:
+                daily_report.send(today, f, pipeline, a.dry_run)
+            except Exception as e:  # noqa: BLE001
+                log(f"daily report failed: {e}", "dispatch")
+                post("ops", f"⚠️ Daily report could not be built: {str(e)[:300]}", "Team - Ops Monitor", a.dry_run)
 
 
 if __name__ == "__main__":
