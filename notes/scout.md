@@ -1,22 +1,18 @@
 # Scout notes (max ~150 lines)
 
-## Last run: 2026-10-29
-- Run reason: scheduled scouting (4 ideas waiting, target 5)
-- Ideas at start: 4 (insider-officer-buys, turn-of-month, sp-reconstitution, earnings-contagion all at `idea`)
-- insider-cluster-buys moved to `dead` since last run (holdout FAIL t=1.11 vs bar 3.00)
-- Added 1 new idea: split-announcement-drift → 5 ideas total at `idea` stage (target met)
+## Last run: 2026-11-03
+- Run reason: scouting (1 idea waiting, target 10)
+- Ideas at start: 1 (turn-of-month at `idea`; split-announcement-drift and sp-reconstitution both dead/dropped)
+- Added 4 new ideas: pre-holiday-drift, january-small-cap-reversal, reg-fd-small-cap-disclosure, analyst-initiation-buy
+- Total at `idea` stage after run: 5 (turn-of-month + 4 new)
+- Still 5 short of target 10; next run should add 4 more
 
-## What was done
-- Wrote ideas/split-announcement-drift.md
-- Registered via tools/ideas.py add (succeeded)
-- Registry verified: 5 ideas at `idea` stage
-
-## Current ideas at `idea` stage (as of 2026-10-29)
-1. insider-officer-buys — insider, 1-5d
-2. turn-of-month — calendar_effects, 4d
-3. sp-reconstitution — index_events, 3-7d (NEEDS announcement dates scraped from spglobal.com)
-4. earnings-contagion — earnings_events, 1-3d (needs GICS sector mapping via yfinance)
-5. split-announcement-drift — corporate_events, 3-5d (NEEDS announcement dates from EDGAR 8-K scrape)
+## Current ideas at `idea` stage (as of 2026-11-03)
+1. turn-of-month — calendar_effects, 4d
+2. pre-holiday-drift — pre_holiday, 1d (NYSE holiday calendar trigger)
+3. january-small-cap-reversal — january_reversal, 5d (annual; power-limited ~20 year-clusters)
+4. reg-fd-small-cap-disclosure — 8k_7_01, 1d (screen best of all types t=2.31; small-cap subset)
+5. analyst-initiation-buy — analyst_ratings, 3d (verify "Initiated" action type in ratings() loader)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -27,32 +23,46 @@ earnings-contagion also DROPPED (user, 2026-10-30): earnings_events searched 200
 
 ## 2026-10-30: SEC company-event data added (see state/data_catalog.md)
 rd.filings() = every SEC filing + 8-K item codes since 2004 (officer changes, deals, restatements,
-buybacks...); rd.splits() = splits with announcement dates. split-announcement-drift is back at `idea`.
-Each 8-K event type is a NEW family with its whole history clean - the best place to look next.
+buybacks...); rd.splits() = splits with announcement dates. Each 8-K event type is a NEW family
+with its whole history clean except screen (2005-2013) already used.
 
 ## Needs data (not registered - the user decides if the data is worth getting)
 - sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
 - any insider idea: a clean insider period no longer exists in the 2006+ SEC data
+- analyst initiation (registered but flagged): verify ratings() loader has "Initiated" action type distinct from upgrades
 
-## Data sourcing notes for Director (older)
-- sp-reconstitution: S&P 400/600 announcement dates not in archives; free one-time scrape spglobal.com
-- split-announcement-drift: 8-K announcement dates not in archives; EDGAR full-text search "stock split" 8-K filings; yfinance only has effective dates
-- earnings-contagion: GICS sector mapping available free via yfinance; no external scrape needed
+## What is left untested in 8-K space (for next runs)
+Screen results summary (best-of-57 luck t ~2.84 — no type is a lead):
+- 7.01 Reg FD: t=2.31 (closest to threshold) → registered as small-cap subset idea
+- 2.04 debt acceleration trigger: t=1.93-1.99 (5d, 3d); only ~205 events in 9y = very sparse, power risk
+- 2.05 restructuring/exit costs: t=1.79 (3d); +11.6 bps after 20 bps costs for small-cap subset; worth a card
+- 3.03 shareholders' rights change: t=-1.76 to -1.98 (short side); shorts cost more → thin after costs
+- 4.02 restatement: t=-0.96 to -1.13 (short side); sparse (329 events); thin after costs; skip
+- All other types: t < 1.5, skip
 
-## Budget state (2026-10-29)
-- insider: 2 holdouts used (cluster failed t=1.11; officer-buys still at idea); bar = 3.00
-- earnings_events: 4832 variants, 2 holdouts; heavily mined; bar = 3.00
-- calendar_effects: 0 holdouts (new family from turn-of-month)
-- index_events: 0 holdouts (new family from sp-reconstitution)
-- corporate_events: 0 holdouts (new family from split-announcement-drift)
+Ideas to target next run (up to 4 more needed to reach ~9 ideas, still below target 10):
+1. restructuring-announcement (8k_2_05): small-cap 3d, +11.6 bps after costs, t=1.79 in full sample
+2. quarter-end-window-dressing (calendar/daily): buy prior-month winners last 2 days of quarter, sell at quarter+1; mechanism = institutional window dressing (Carhart et al. 2002)
+3. material-agreement-momentum (8k_1_01): 1.01 is flat on average but a subset (large deals, specific sectors) may differ — only if a mechanism is found in literature
+4. Any SSRN/arXiv paper with new mechanism not covered above — do a web search next run
 
-## Areas/sources checked
-- Academic: Ikenberry et al 1996, Grinblatt et al 1984, McNichols & Dravid 1990, Desai & Jain 1997 (stock splits)
-- Graveyard: no conflicts found for split-announcement-drift (earnings events ≠ corporate events; no split ideas previously tested)
-- Considered and rejected: OPEX week (no directional signal without strike data), post-earnings analyst revision (need consensus revision data not in archives), earnings gap fade (too close to graveyard daily gap fade)
+## Budget state (2026-11-03)
+- analyst_ratings: 0 holdouts, 0 search variants (new family, clean)
+- pre_holiday: 0 holdouts, 0 search variants (new family, clean)
+- january_reversal: 0 holdouts, 0 search variants (new family, clean)
+- 8k_7_01: search 2005-2013 (screen); holdout 2014-2026 clean
+- calendar_effects: 0 holdouts (turn-of-month at idea)
+- insider: 2 holdouts used; bar = 3.00
+- earnings_events: 2 holdouts used; NO CLEAN HOLDOUT - don't add more
+- corporate_events: 1 holdout used (fail)
+
+## Areas/sources checked 2026-11-03
+- Academic: Lakonishok & Smidt (1988), Ariel (1990) [holidays]; Reinganum (1983), Keim (1983), Ritter (1988) [January]; Heflin et al. (2003), Bailey et al. (2003) [Reg FD]; Womack (1996), Barber et al. (2001) [analyst initiation]
+- Graveyard: no conflicts found for any new idea; analyst-initiation differs from generic "analyst rating actions" (new coverage vs. opinion change)
+- Screen: 7.01 is the only 8-K type near the luck threshold; registered as reg-fd-small-cap-disclosure
 
 ## Watch for next run
-- Were the 5 `idea` stage ideas queued by Director?
-- sp-reconstitution and split-announcement-drift both need data sourcing — flag if stalled
-- If insider-officer-buys goes to planned/tested, note the insider family now has 2 holdouts; next bar stays 3.00
-- If more ideas needed: options-expiry pinning is plausible but needs directional filter; Russell reconstitution (annual, June only) is out-of-horizon
+- Was analyst-initiation-buy's "Initiated" action type verified in ratings() loader?
+- Were the 5 ideas queued by Director?
+- Need 5 more ideas to reach target 10; add up to 4 next run
+- Consider: restructuring-announcement (2.05), quarter-end-window-dressing, SSRN search for new mechanisms
