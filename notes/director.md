@@ -58,3 +58,13 @@ heavily-mined calendar effect, keep as backup only if split fails. Pipeline now 
 - 2026-11-10 AM ON1 paper 20-day cp (borderline PASS/continue).
 - Quote Clerk: is it capturing real quotes yet, or still test_run / failing? Real-price gate depends on it.
 - split-announcement-drift → should progress to `planned` (Researcher).
+
+### Corrections from the user's session (2026-11-02)
+- Quote Clerk did NOT fail on 10-30: those were test runs. Scheduled captures started 11-02 and work: open
+  65/74 (9 not yet quoted at 9:31 ET - expect ~10% most mornings; they fall back to official prices), close
+  196/196. First ON1 real-price day scores with the 11-03 dispatch.
+- A near-real-time Form 4 feed is NOT a paid service: SEC EDGAR is free (V2 already uses it; tools/edgar.py reads
+  the daily index). Insider is closed anyway (all holdouts used), so no action - just don't repeat the premise.
+- V4 EPRE: Yahoo's placeholder time moved 15:00 -> 16:00 ET when DST ended; fixed in V4 the same night (16:00/01:00
+  now also count as placeholders for upcoming reports; no second trade on a report already held). V4's rules
+  are unchanged - this restores how it ran Oct 26-30.

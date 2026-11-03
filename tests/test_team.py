@@ -187,6 +187,9 @@ def test_integrity_v4_and_seen(monkeypatch, tmp_path):
                        "net_bps": 1, "hedged_bps": 1, "entry_close": 5, "exit_close": 5}])
     msgs = " | ".join(integrity.v4_checks(d, date(2026, 10, 28)))
     assert "on/before entry" in msgs and "|ret_bps| > 5000" in msgs
+    two = pd.DataFrame([{"entry_day": e, "exit_day": "2026-11-05", "ticker": "CG", "report_day": "2026-11-04"}
+                        for e in ("2026-11-02", "2026-11-03")])
+    assert "duplicate row(s) on ticker+report_day" in " ".join(integrity.v4_checks(two, date(2026, 11, 3)))
     monkeypatch.setattr(integrity, "SEEN", tmp_path / "seen.json")
     monkeypatch.setattr(integrity, "scan", lambda today=None: ["p1"])
     assert integrity.check() == (["p1"], [])

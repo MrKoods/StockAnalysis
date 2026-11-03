@@ -81,18 +81,20 @@ def v3_checks(d: pd.DataFrame, label: str, keys: list[str], val: str | None, day
 def v4_checks(d: pd.DataFrame, today: date) -> list[str]:
     label = "V4 EPRE"
     out = _dupes(d, ["entry_day", "ticker"], label)
+    if "report_day" in d:  # a second trade on the same report from another entry day (2026-11-02 DST bug)
+        out += _dupes(d, ["ticker", "report_day"], label)
     entry, exit_ = pd.to_datetime(d["entry_day"], errors="coerce"), pd.to_datetime(d["exit_day"], errors="coerce")
     n = int((exit_ <= entry).sum())
     if n:
         out.append(f"{label}: {n} trade(s) exit on/before entry day")
     for col in ("ret_bps", "net_bps", "hedged_bps"):
-        v = pd.to_numeric(d.get(col), errors="coerce")
-        if v is not None and int((v.abs() > BPS_MAX).sum()):
-            out.append(f"{label}: {int((v.abs() > BPS_MAX).sum())} row(s) with |{col}| > {BPS_MAX} bps")
+        v = pd.to_numeric(d[col], errors="coerce") if col in d else pd.Series(dtype=float)
+        if n := int((v.abs() > BPS_MAX).sum()):
+            out.append(f"{label}: {n} row(s) with |{col}| > {BPS_MAX} bps")
     for col in ("entry_close", "exit_close"):
-        v = pd.to_numeric(d.get(col), errors="coerce")
-        if v is not None and int((v <= 0).sum()):
-            out.append(f"{label}: {int((v <= 0).sum())} row(s) with {col} <= 0")
+        v = pd.to_numeric(d[col], errors="coerce") if col in d else pd.Series(dtype=float)
+        if n := int((v <= 0).sum()):
+            out.append(f"{label}: {n} row(s) with {col} <= 0")
     return out + _stale(entry.max(), label, today)
 
 
