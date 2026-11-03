@@ -59,6 +59,22 @@ heavily-mined calendar effect, keep as backup only if split fails. Pipeline now 
 - Quote Clerk: is it capturing real quotes yet, or still test_run / failing? Real-price gate depends on it.
 - split-announcement-drift → should progress to `planned` (Researcher).
 
+## 2026-11-03 (Tue) — weekday queue run
+Pipeline was 0/2 in research, 5 ideas waiting (all Scout-added 11-03 + older calendar). Filled both slots:
+- **queued reg-fd-small-cap-disclosure** (8k_7_01, 1d): strongest — builds on in-house 8-K screen (7.01 best
+  type, t2.31 full-sample), real-time 8-K paper-tradable, data in hand, 8k_7_01 holdout untouched. Risk flagged
+  to Researcher: 25bps spread on small/mid caps at 1d is the kill test.
+- **queued analyst-initiation-buy** (analyst_ratings, 3d): distinct from dead generic-ratings (first-ever
+  initiation+Buy only), Womack mechanism, 15bps. Caveat to Researcher: VERIFY ratings() loader has an "Initiated"
+  action type first + check initiation count powers a holdout (2012-26 only); bounce to dead if not.
+- **dropped january-small-cap-reversal** (once/yr ~25 clusters, most-mined anomaly, decayed, 25bps) and
+  **pre-holiday-drift** (few holidays/yr = low event count, mined/decayed since 1988). Left **turn-of-month**
+  parked at idea as the single calendar backup.
+Ops: context flags 1 V4 trade past exit day still unscored (already posted to #agent-ops — evaluate task may be
+failing; watch next run). Yahoo news-fetch errors in paper_runner logs are confirmation-only, non-blocking.
+Watch next run: 2026-11-05 G2 paper 20-day cp (likely FAIL→retire via gate); both queued ideas should move to
+`planned` (Researcher); the unscored-V4 evaluate task.
+
 ### Corrections from the user's session (2026-11-02)
 - Quote Clerk did NOT fail on 10-30: those were test runs. Scheduled captures started 11-02 and work: open
   65/74 (9 not yet quoted at 9:31 ET - expect ~10% most mornings; they fall back to official prices), close
