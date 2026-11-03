@@ -16,7 +16,7 @@ aim is money; no real money moves until a pre-registered test passes. A clear "t
 | Quote Clerk | Claude (Haiku) | Twice a day (9:31 AM / 3:56 PM ET) captures live Webull bid/ask for every paper trade that fills then. One read-only tool; numbers parsed by script |
 | Paper Runner | script | Trades every active team strategy on paper; scores it against its frozen rule |
 | Scorekeeper | Claude (Sonnet) | Diagnoses failures; reports checkpoints of the live V2/V3/V4 tests; Friday scorecard |
-| Scout | Claude (Sonnet) | Finds ideas (papers, practitioner work, Webull market data) -> idea cards |
+| Scout | Claude (Sonnet) | Mon-Fri until 10 ideas wait: finds ideas (papers, practitioner work, the free 8-K event screen in state/screen.md, Webull market data) -> idea cards that name their data |
 | Researcher | Claude (Opus) | Writes a pre-registered PLAN + test script for a queued idea; scripts run it on TRAIN data |
 | Skeptic | Claude (Opus) | Tries to kill every result (look-ahead, costs, luck vs variants tried, survivorship) |
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |

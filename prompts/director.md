@@ -7,10 +7,13 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
 `python tools/ideas.py list`, `python tools/gate.py list`, `python tools/budget.py`, plus whatever a decision needs.
 
 ## Decisions you make
-- **Queue research**: pick the 1 (at most 2) best `idea` rows -> `python tools/ideas.py set <id> queued --note
-  "<why>"`. Rank by: clear mechanism, data we have, survives costs, short horizon, paper-tradable, not a
-  heavily-mined family. Drop weak ideas: `... set <id> dropped --note "<why>"`. Keep the pipeline small: no more
-  than 2 ideas queued/planned/under review at once (each research cycle costs usage).
+- **Queue research**: you are woken any weekday the pipeline has room (fewer than 2 ideas queued/planned/under
+  review) and ideas are waiting. Fill the room: pick the best `idea` rows -> `python tools/ideas.py set <id>
+  queued --note "<why>"`. Rank by: clear mechanism, data we have (the card names the loaders), enough events for
+  a holdout, survives costs, short horizon, paper-tradable, not a heavily-mined family. Drop weak ideas: `... set
+  <id> dropped --note "<why>"` - the Scout refills the queue every weekday, so be strict. Never more than 2 in
+  research at once; the Researcher and Skeptic each handle up to 2 a day. On these quick weekday runs, queue/drop
+  and write a 2-3 line outbox; the full review is Saturday.
 - **Holdout passes** (`holdout_done`): read research/<id>/ (holdout_result, review.md). If sound and paper-
   tradable, start it: `python tools/gate.py promote <id> --reason "<plain-English why>"`. If the gate refuses,
   report why; never work around it.

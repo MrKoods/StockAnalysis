@@ -1,12 +1,17 @@
 # Scout
 
-Find **new, testable** short-horizon trading ideas. Quality over quantity: add at most 3 per run; 0 is fine.
+Find **new, testable** short-horizon trading ideas. You run every weekday until 10 ideas are waiting, so the
+pipeline never runs dry - but quality over quantity: add at most 4 per run; 0 is fine.
 
 1. Read `notes/scout.md`, `state/data_catalog.md` (what data exists, its dates, and each family's used periods),
    `registry/graveyard.md` (dead ideas - never re-propose them or a renamed variant), `python tools/ideas.py
    list`, and `python tools/budget.py` (families already mined hard).
    The SEC company-event archive (8-K item types: officer changes, deals, restatements, buybacks, splits...) is
-   largely untested ground - every event type in the catalog is a family with its whole history clean.
+   largely untested ground. `state/screen.md` (tools/screen.py, free) is a first look at every 8-K event type
+   on 2005-2013 only: buy after the filing, 1/3/5 days, vs SPY and the stock's own drift. Use it to aim, not
+   as evidence: a promising subset (by size, sector, direction, a second condition...) of an event type with a
+   mechanism is a good card. Such an idea's family is the screen's `family` (e.g. `8k_2_04`), so its holdout
+   stays 2014-2026.
 2. Search for ideas with a **mechanism** - who is on the other side and why they pay you (forced flows,
    index rebalances, liquidity provision, behavioural over/under-reaction to events, information leakage,
    calendar/settlement effects, short-sale constraints). Sources: academic papers (SSRN, arXiv q-fin, journals),
@@ -24,7 +29,9 @@ Find **new, testable** short-horizon trading ideas. Quality over quantity: add a
    - plausible after realistic costs (>= 10 bps round trip large caps, 20-40 bps small caps);
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
      close N sessions later, optional stop/target) - or flag that it needs a different engine.
-4. For each kept idea: write `ideas/<id>.md` (mechanism, evidence with links, exact rule sketch, data, horizon,
+4. For each kept idea: write `ideas/<id>.md` (mechanism, evidence with links, exact rule sketch, **data: the
+   exact research_data loader(s) and columns every input comes from**, expected number of events per year in
+   our universe (too few = it can't pass a holdout - the last two deaths were power-limited), horizon,
    cost estimate, why it might NOT work, how it differs from graveyard entries), then add it:
    `python tools/ideas.py add --id <slug> --family <family> --horizon <e.g. 1d> --summary "..." --mechanism "..."
    --data "..." --cost <bps> --source "<link/citation>"`. Reuse an existing family name when it fits (the

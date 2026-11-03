@@ -238,3 +238,34 @@ def test_outlook_arithmetic():
     s = outlook.v3_line("G2 paper", per_day)
     assert "day 16/20" in s and "must average +80.0" in s  # (0*20 - (-320)) / 4
     assert "past the last checkpoint" in outlook.v3_line("x", pd.Series([1.0] * 41))
+
+
+def test_research_cadence(monkeypatch):
+    f = ops_monitor.Findings()
+    stages = {"idea": ["a", "b", "c"], "queued": ["q"]}
+    monkeypatch.setattr(dispatch, "in_stage", lambda s: stages.get(s, []))
+    mon = dispatch.triggers(date(2026, 11, 2), f, [], {}, {})
+    assert "scout" in mon and "target 10" in mon["scout"]           # every weekday until 10 ideas wait
+    assert "queue up to 1" in mon["director"]                       # room for 1 more (1 of 2 in research)
+    stages["queued"] = ["q1", "q2"]
+    assert "director" not in dispatch.triggers(date(2026, 11, 2), f, [], {}, {})   # pipeline full
+    stages["idea"] = [str(i) for i in range(10)]
+    assert "scout" not in dispatch.triggers(date(2026, 11, 2), f, [], {}, {})      # queue full
+    sat = dispatch.triggers(date(2026, 11, 7), f, [], {}, {})
+    assert "scout" not in sat and sat["director"] == "weekly review"
+
+
+def test_screen_event_returns():
+    import screen
+    days = pd.bdate_range("2010-01-04", periods=6)
+    opens = pd.DataFrame({"SPY": [100.0] * 6, "X": [100.0] * 6}, index=days)
+    closes = pd.DataFrame({"SPY": [100.0] * 6, "X": [100, 102, 104, 106, 108, 300.0]}, index=days)
+    ev = pd.DataFrame({"ticker": ["X", "X", "ZZZ"], "first_session": [days[0], days[4], days[0]]})
+    drift = pd.Series({"SPY": 0.0, "X": 10.0}).reindex(closes.columns).to_numpy()
+    r = screen.event_returns(ev, opens, closes, 3, drift)
+    # X from the open of day 0 (100) to the close of day 2 (104) = +400 bps, minus 3 days x 10 bps drift;
+    # the day-4 event has no day 6 (dropped), unknown tickers are dropped
+    assert len(r) == 1 and r["gross_bps"].iloc[0] == pytest.approx(370)
+    r1 = screen.event_returns(ev.iloc[1:2], opens, closes, 2, drift)
+    assert r1.empty                                                 # +200% = a split/bad bar, dropped
+    assert screen.family("5.02") == "8k_5_02"

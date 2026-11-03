@@ -3,7 +3,8 @@
     python tools/dispatch.py [--dry-run] [--force <role>] [--no-claude]
 
 Scripts do the routine work; a Claude role is launched ONLY when it has a reason to run:
-  1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals
+  1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals; data refresh
+                     (EDGAR, catalog) and the free bulk event screen (tools/screen.py -> state/screen.md)
   2. ops_monitor   - script: all checks; a problem is posted to #agent-ops at once
   3. triggers      - script: decide which roles have work (see TRIGGERS below)
   4. roles         - Claude headless, one at a time, each with its own model / turn cap / permission file;
@@ -35,12 +36,17 @@ import ops_monitor
 import paper_runner
 import quotes
 import scan_ops
+import screen
 from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, git, load_json, log, now_pt,
                     post, save_json, stopped)
 
 ROLES = TEAM / "team" / "roles.json"
 USAGE = STATE / "usage.csv"
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+IDEA_TARGET = 10          # the Scout runs Mon-Fri until this many ideas wait
+MAX_ACTIVE = 2            # ideas in research at once (queued + planned + under review)
+ACTIVE_STAGES = ("queued", "planned", "awaiting_review")
+PER_DAY = 2               # Researcher / Skeptic runs per dispatch (one idea each)
 
 # Frozen checkpoints of the live V2/V3/V4 tests (from their rules). Crossing one wakes the Scorekeeper.
 CHECKPOINTS = {
@@ -91,7 +97,7 @@ def open_items(stage: str) -> int:
 
 
 def research_work() -> str | None:
-    """The one idea the Researcher should work on now: fix a broken plan first, then the oldest queued."""
+    """The next idea the Researcher should work on: fix a broken plan first, then the oldest queued."""
     for iid in in_stage("planned") + in_stage("queued"):
         d = TEAM / "research" / iid
         for f in ("train_error.txt", "plan_problems.txt"):
@@ -125,14 +131,15 @@ def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict,
         why.append("weekly scorecard")
     if why:
         want["scorekeeper"] = " | ".join(why)
-    if day in ("Tue", "Thu") and open_items("idea") < 5:
-        want["scout"] = f"scheduled scouting ({open_items('idea')} ideas waiting, target 5)"
+    if day != "Sat" and open_items("idea") < IDEA_TARGET:
+        want["scout"] = f"scouting ({open_items('idea')} ideas waiting, target {IDEA_TARGET})"
     director = (["weekly review"] if day == "Sat" else []) + verdicts
     if open_items("holdout_done"):
         director.append(f"decide on holdout passes: {', '.join(in_stage('holdout_done'))}")
-    pipeline_idle = not (open_items("queued") or open_items("planned") or open_items("awaiting_review"))
-    if day == "Wed" and open_items("idea") and pipeline_idle:
-        director.append(f"pipeline idle with {open_items('idea')} idea(s) waiting - queue one")
+    active = sum(open_items(s) for s in ACTIVE_STAGES)
+    if day != "Sat" and open_items("idea") and active < MAX_ACTIVE:
+        director.append(f"pipeline has room ({active}/{MAX_ACTIVE} in research) with {open_items('idea')} "
+                        f"idea(s) waiting - queue up to {MAX_ACTIVE - active}")
     if director:
         want["director"] = "; ".join(director)
     if day == "Sat":
@@ -266,9 +273,11 @@ def main(argv: list[str]) -> int:
 
     # 1b. research data: EDGAR filings (daily, only companies that filed), splits (Saturday), data catalog.
     #     Plain Python, zero tokens. A failure is reported, never fatal - research can use yesterday's archive.
+    #     The bulk event screen (tools/screen.py) re-runs itself every 4 weeks; the catalog then shows its periods.
     if not a.dry_run:
         for name, job in [("edgar update", edgar.update)] + ([("edgar splits", edgar.splits)]
-                                                              if today.weekday() == 5 else []) + [("catalog", catalog.write)]:
+                                                              if today.weekday() == 5 else []) + [
+                ("screen", screen.run), ("catalog", catalog.write)]:
             try:
                 log(job(), "dispatch")
             except Exception as e:
@@ -334,14 +343,18 @@ def main(argv: list[str]) -> int:
             if role in want:
                 launch(role, want[role])
         # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
-        why = research_work() or want.get("researcher")
-        if why:
-            launch("researcher", why)
-            pipeline += jobs.advance(a.dry_run)
-        why = review_work() or want.get("skeptic")
-        if why:
-            launch("skeptic", why)
-            pipeline += jobs.advance(a.dry_run)
+        # Up to PER_DAY ideas each; stop early if the same work comes back (the run didn't move it).
+        for role, work in (("researcher", research_work), ("skeptic", review_work)):
+            done: list[str] = []
+            for _ in range(PER_DAY):
+                why = work() or (want.get(role) if not done else None)
+                if not why or why in done:
+                    break
+                done.append(why)
+                launch(role, why)
+                pipeline += jobs.advance(a.dry_run)
+                if a.dry_run:
+                    break
         # Auditor last, so it sees everything the other roles did today.
         if "auditor" in want:
             write_audit_pack(today)

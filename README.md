@@ -27,7 +27,7 @@ One scheduled task, `StockAnalysis_Team_Dispatch` (Mon-Sat 14:50 PT), runs `pyth
 
 ## Usage controls
 - Roles launch only on triggers (Scorekeeper: failure to diagnose / checkpoint / Friday scorecard).
-- `weekly_claude_run_cap` in `team/roles.json` (default 12) - past it, roles are skipped and #agent-ops is told.
+- `weekly_claude_run_cap` in `team/roles.json` (25 since 2026-11-03, about $35-45/week API-equivalent) - past it, roles are skipped and #agent-ops is told.
 - Cheap models for routine roles; Opus only for Researcher/Skeptic/Director/Auditor. Backtests run as plain Python.
 - `state/usage.csv`: every Claude run - turns, minutes, API-equivalent cost.
 
@@ -56,10 +56,10 @@ Every role denies all Webull order/revoke/post tools; unlisted tools are refused
 | Role | Trigger |
 |---|---|
 | Scorekeeper | a task failure to diagnose, a frozen checkpoint reached, Friday scorecard |
-| Scout | Tue + Thu, if fewer than 5 ideas are waiting |
-| Director | Saturday review; Wednesday if the pipeline is idle; any paper verdict or holdout pass |
-| Researcher | an idea was queued (or its script needs fixing) - same dispatch as the Director |
-| Skeptic | a train result is waiting for review - same dispatch |
+| Scout | Mon-Fri, until 10 ideas are waiting |
+| Director | Saturday review; any weekday the pipeline has room (< 2 ideas in research) and ideas wait; any paper verdict or holdout pass |
+| Researcher | an idea was queued (or its script needs fixing) - same dispatch as the Director, up to 2 ideas a day |
+| Skeptic | a train result is waiting for review - same dispatch, up to 2 a day |
 | Holdout Keeper | (script) right after a Skeptic PASS - same dispatch, exactly once per idea |
 | Auditor | Saturday, after everyone else (exempt from the weekly cap; read-only; posts to #agent-director) |
 A role that already finished today is not relaunched (except Researcher/Skeptic, which work per idea).
@@ -88,6 +88,9 @@ A role that already finished today is not relaunched (except Researcher/Skeptic,
   companies that filed) and `splits` on Saturdays. Plain Python - no Claude usage. Needs `SEC_EDGAR_USER_AGENT`.
 - `tools/catalog.py` writes `state/data_catalog.md` every run: what exists, its dates, what's NOT available, and
   each family's used periods. The Scout may only register ideas whose data is in it.
+- `tools/screen.py` (free, re-runs every 4 weeks): every 8-K event type, 2005-2013 only, buy after the filing,
+  1/3/5 days vs SPY and the stock's own drift -> `state/screen.md`, which aims the Scout. Each type is logged as a
+  search in its family (`8k_<item>`) in trials.csv, so 2014-2026 stays the clean holdout. Not a test.
 
 ## Research safeguards
 - Research scripts load data only via `tools/research_data.py`, which cuts at the plan's train end; a static
