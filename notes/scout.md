@@ -1,18 +1,17 @@
 # Scout notes (max ~150 lines)
 
-## Last run: 2026-11-03
+## Last run: 2026-11-04
 - Run reason: scouting (1 idea waiting, target 10)
-- Ideas at start: 1 (turn-of-month at `idea`; split-announcement-drift and sp-reconstitution both dead/dropped)
-- Added 4 new ideas: pre-holiday-drift, january-small-cap-reversal, reg-fd-small-cap-disclosure, analyst-initiation-buy
-- Total at `idea` stage after run: 5 (turn-of-month + 4 new)
-- Still 5 short of target 10; next run should add 4 more
+- Ideas at start: 1 (turn-of-month at `idea`; analyst-initiation-buy queued; reg-fd-small-cap-disclosure awaiting_review)
+- Added 3 new ideas: restructuring-bounce, quarter-end-window-dressing, early-10k-drift
+- Total at `idea` stage after run: 4 (turn-of-month + 3 new)
+- Still 6 short of target 10; next run should add up to 4 more
 
-## Current ideas at `idea` stage (as of 2026-11-03)
+## Current ideas at `idea` stage (as of 2026-11-04)
 1. turn-of-month — calendar_effects, 4d
-2. pre-holiday-drift — pre_holiday, 1d (NYSE holiday calendar trigger)
-3. january-small-cap-reversal — january_reversal, 5d (annual; power-limited ~20 year-clusters)
-4. reg-fd-small-cap-disclosure — 8k_7_01, 1d (screen best of all types t=2.31; small-cap subset)
-5. analyst-initiation-buy — analyst_ratings, 3d (verify "Initiated" action type in ratings() loader)
+2. restructuring-bounce — 8k_2_05, 3d (kitchen-sink recovery; screen t=1.79; small-cap subset)
+3. quarter-end-window-dressing — calendar_effects, 2d (institutional window dressing; Carhart 2002)
+4. early-10k-drift — 10k_timing, 3d (early annual filer = confidence signal; Chambers & Penman 1984)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -30,39 +29,52 @@ with its whole history clean except screen (2005-2013) already used.
 - sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
 - any insider idea: a clean insider period no longer exists in the 2006+ SEC data
 - analyst initiation (registered but flagged): verify ratings() loader has "Initiated" action type distinct from upgrades
+- 5.02 officer departure vs appointment: needs text parsing to separate departure from appointment direction
+- dividend capture: needs a dividend ex-date calendar (not in catalog)
+- options expiration pinning reversal: needs options open interest data (not in catalog)
 
-## What is left untested in 8-K space (for next runs)
-Screen results summary (best-of-57 luck t ~2.84 — no type is a lead):
-- 7.01 Reg FD: t=2.31 (closest to threshold) → registered as small-cap subset idea
-- 2.04 debt acceleration trigger: t=1.93-1.99 (5d, 3d); only ~205 events in 9y = very sparse, power risk
-- 2.05 restructuring/exit costs: t=1.79 (3d); +11.6 bps after 20 bps costs for small-cap subset; worth a card
-- 3.03 shareholders' rights change: t=-1.76 to -1.98 (short side); shorts cost more → thin after costs
-- 4.02 restatement: t=-0.96 to -1.13 (short side); sparse (329 events); thin after costs; skip
+## What is left in 8-K space (for future runs)
+Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that threshold):
+- 7.01 Reg FD: t=2.31 → registered as reg-fd-small-cap-disclosure
+- 2.04 debt acceleration trigger: t=1.99 (3d); but only ~23/yr events (276 holdout) — marginal power; mechanism "disclosure resolves distress uncertainty" is plausible but weak; skip unless researcher wants to try
+- 2.05 restructuring: t=1.79 (3d) → registered as restructuring-bounce
+- 3.03 shareholders' rights change: t=-1.98 (1d); short side, thin after costs; skip
 - All other types: t < 1.5, skip
 
-Ideas to target next run (up to 4 more needed to reach ~9 ideas, still below target 10):
-1. restructuring-announcement (8k_2_05): small-cap 3d, +11.6 bps after costs, t=1.79 in full sample
-2. quarter-end-window-dressing (calendar/daily): buy prior-month winners last 2 days of quarter, sell at quarter+1; mechanism = institutional window dressing (Carhart et al. 2002)
-3. material-agreement-momentum (8k_1_01): 1.01 is flat on average but a subset (large deals, specific sectors) may differ — only if a mechanism is found in literature
-4. Any SSRN/arXiv paper with new mechanism not covered above — do a web search next run
+## Calendar effects family status (2026-11-04)
+- turn-of-month: at `idea` stage
+- quarter-end-window-dressing: at `idea` stage (2 ideas in calendar_effects OK; 0 holdouts used so far)
+- Both use same family; each would use 1 holdout look if tested; family bar = 3.0
 
-## Budget state (2026-11-03)
+## Ideas to target next run (need ~4 more to approach 10)
+1. Any remaining 8-K types not yet considered — but most below t=1.5; 2.04 is the only marginal one remaining
+2. SSRN/arXiv: search for specific effects using filings() that aren't event-screen-based
+   - e.g., multiple 8-K items filed simultaneously as a complexity signal?
+   - e.g., 1.01 material agreement announcement timing (after hours vs. during session)?
+3. 10-Q analog to early-10k-drift: early quarterly filers? Same family (10k_timing) — researcher can combine both
+4. Cross-asset: sector rotation using capital flow (Webull get_stock_capital_flow) — but this is not in research_data.py catalog
+5. Any new mechanism from SSRN search next run: focus on "event-driven anomalies", "SEC filings", "small cap"
+
+## Budget state (2026-11-04)
+- 8k_2_05: search 2005-2013 (screen); holdout 2014-2026 clean
+- calendar_effects: 0 holdouts, 0 search variants (turn-of-month + quarter-end-window-dressing both at idea)
+- 10k_timing: new family, entire history clean
 - analyst_ratings: 0 holdouts, 0 search variants (new family, clean)
-- pre_holiday: 0 holdouts, 0 search variants (new family, clean)
-- january_reversal: 0 holdouts, 0 search variants (new family, clean)
-- 8k_7_01: search 2005-2013 (screen); holdout 2014-2026 clean
-- calendar_effects: 0 holdouts (turn-of-month at idea)
-- insider: 2 holdouts used; bar = 3.00
+- 8k_7_01: search 2005-2013 (screen + train); holdout 2014-2026 clean
 - earnings_events: 2 holdouts used; NO CLEAN HOLDOUT - don't add more
 - corporate_events: 1 holdout used (fail)
+- insider: 2 holdouts used; bar = 3.00 (no clean period)
 
-## Areas/sources checked 2026-11-03
-- Academic: Lakonishok & Smidt (1988), Ariel (1990) [holidays]; Reinganum (1983), Keim (1983), Ritter (1988) [January]; Heflin et al. (2003), Bailey et al. (2003) [Reg FD]; Womack (1996), Barber et al. (2001) [analyst initiation]
-- Graveyard: no conflicts found for any new idea; analyst-initiation differs from generic "analyst rating actions" (new coverage vs. opinion change)
-- Screen: 7.01 is the only 8-K type near the luck threshold; registered as reg-fd-small-cap-disclosure
+## Areas/sources checked 2026-11-04
+- Academic: Kinney & Trezevant (1997), Elliott & Shaw (1988) [restructuring/kitchen-sink]
+  Carhart et al. (2002), Sias (2007), Haugen & Lakonishok (1988) [window dressing]
+  Chambers & Penman (1984), Begley & Fischer (1998) [10-K timeliness]
+- Screen: re-read screen.md; 2.05 is the best remaining lead after 7.01
+- SSRN search done: 8-K trading gap paper (Cohen et al.) - not directly testable; Q-end window dressing confirmed in literature
+- Graveyard: no conflicts found for any new idea; 10k_timing is completely new family
 
 ## Watch for next run
-- Was analyst-initiation-buy's "Initiated" action type verified in ratings() loader?
-- Were the 5 ideas queued by Director?
-- Need 5 more ideas to reach target 10; add up to 4 next run
-- Consider: restructuring-announcement (2.05), quarter-end-window-dressing, SSRN search for new mechanisms
+- Did Director queue restructuring-bounce, quarter-end-window-dressing, early-10k-drift?
+- Was analyst-initiation-buy's "Initiated" action verified in ratings() loader?
+- Need ~4 more ideas to reach target 10; consider: 8-K timing-of-filing ideas, SSRN search for new mechanism
+- Check if reg-fd-small-cap-disclosure passed Skeptic; if so, pipeline is moving
