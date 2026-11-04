@@ -159,6 +159,13 @@ if __name__ == "__main__":
         print(status())
     else:
         run(dry_run="--dry-run" in sys.argv)
+        try:  # backup for the plan-limit waiter: start the held team roles if it hasn't (tools/plan_limit.py)
+            import plan_limit
+            if "--dry-run" not in sys.argv and plan_limit.due(plan_limit.BACKUP_GRACE) and not plan_limit.running():
+                log("plan limit has reset and the held roles have not started - starting them", "scan_ops")
+                plan_limit.spawn(wait=False)
+        except Exception as e:  # noqa: BLE001
+            log(f"plan-limit resume check failed: {e}", "scan_ops")
         try:  # the first tick at/after 18:00 on a weekday also runs the evening check (no task of its own)
             import evening_check
             evening_check.run(dry_run="--dry-run" in sys.argv)

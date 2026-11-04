@@ -15,9 +15,10 @@ Problems are ALSO posted straight away by the Ops Monitor, so a slow research ru
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, datetime
 
 import outlook
+import plan_limit
 from common import OUTBOX, STATE, TEAM, load_json, post
 
 LIMIT = 1900   # Discord caps a message at 2,000 characters; longer reports go out as several messages
@@ -103,9 +104,15 @@ def team_today(today: date, pipeline: list[str]) -> list[str]:
             f = OUTBOX / f"{role}.txt"
             head = f.read_text(encoding="utf-8").strip().splitlines()[0][:160] if f.exists() else "(no headline)"
             out.append(f"• {role.capitalize()}: {head}")
+        elif r.get("status") == "limited":
+            out.append(f"• {role.capitalize()}: stopped by the Claude plan limit - re-runs after the reset")
         else:
             out.append(f"• {role.capitalize()}: did NOT finish ({r.get('status')})")
     out += [f"• Research: {p}" for p in pipeline]
+    if held := plan_limit.pending():
+        at = datetime.fromisoformat(held["resets_at"])
+        out.append(f"• ⏸️ Waiting for the plan limit to reset ({at:%a %H:%M}): {', '.join(held['roles'])} "
+                   "run automatically then")
     if not out:
         return ["• Quiet day - no Claude role needed (nothing broke, no checkpoint, nothing scheduled)"]
     return out + ["  (full posts in #agent-director / #agent-research)"]

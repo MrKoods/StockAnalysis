@@ -1,6 +1,7 @@
 """Dispatcher - the team's single scheduled entry point (StockAnalysis_Team_Dispatch, Mon-Sat 14:50 PT).
 
     python tools/dispatch.py [--dry-run] [--force <role>] [--no-claude]
+    python tools/dispatch.py --resume [--wait]   # roles a Claude plan limit held back (tools/plan_limit.py)
 
 Scripts do the routine work; a Claude role is launched ONLY when it has a reason to run:
   1. paper_runner  - script: fill/exit/score the team's paper tests, log tomorrow's signals; data refresh
@@ -24,7 +25,7 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import budget
 import catalog
@@ -35,6 +36,7 @@ import ideas
 import jobs
 import ops_monitor
 import paper_runner
+import plan_limit
 import quotes
 import scan_ops
 import screen
@@ -85,8 +87,10 @@ def runs_this_week() -> int:
         return 0
     monday = (now_pt().date() - timedelta(days=now_pt().weekday())).isoformat()
     # The Quote Clerk has its own cap (tools/quotes.py) - its fixed-time runs must not crowd out the team's.
+    # A run refused at once by the plan limit (0-1 turns, no tokens) is not a run.
     return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:]
-               if line[:10] >= monday and ",quote_clerk," not in line)
+               if line[:10] >= monday and ",quote_clerk," not in line
+               and not (line.endswith(",limited") and line.split(",")[3] in ("", "0", "1")))
 
 
 def in_stage(stage: str) -> list[str]:
@@ -227,9 +231,13 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
         finished = out_file.exists() and out_file.stat().st_mtime > start
         status = ("ok" if finished else
                   "logged_out" if re.search(r"Not logged in|Please run /login|authentication_error|OAuth token", raw)
-                  else "failed")
+                  else "limited" if plan_limit.is_limited(raw, res) else "failed")
         fh.write(f"{today},{role},{cfg['model']},{res.get('num_turns', '')},{(time.time() - start) / 60:.1f},"
                  f"{res.get('total_cost_usd', '')},{status}\n")
+    if status == "limited":   # hold() posts one message for all the roles held back - no per-role alarm
+        resets = plan_limit.reset_time(raw, now_pt())
+        log(f"{role} hit the Claude plan limit; resets {resets:%m-%d %H:%M}", "dispatch")
+        return {"status": status, "date": str(today), "note": raw[-300:], "resets_at": resets.isoformat()}
     if status == "ok":
         channel = cfg["channel"]
         if role == "scorekeeper" and reason.startswith("diagnose") and "checkpoint" not in reason \
@@ -243,12 +251,141 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
     return {"status": status, "date": str(today), "note": raw[-300:] if status != "ok" else ""}
 
 
+def ran_ok_today(role: str, today: date) -> int:
+    if not USAGE.exists():
+        return 0
+    return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:]
+               if line.startswith(f"{today},{role},") and line.endswith(",ok"))
+
+
+def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Findings, hits: list[str],
+              paper: dict, pipeline: list[str]) -> dict:
+    """5. the Claude roles, in order. Returns {"roles": role -> why, "resets_at": iso} for the roles a Claude
+    plan limit held back (empty roles = everything that had work ran). After the first limited run nothing
+    else is launched - those roles wait for the reset (tools/plan_limit.py)."""
+    limit: dict = {"roles": {}, "resets_at": None}
+    cap = int(cfg.get("weekly_claude_run_cap", 12))
+    role_runs = load_json(STATE / "role_runs.json", {})
+
+    def launch(role: str, why: str) -> None:
+        if limit["roles"]:
+            limit["roles"].setdefault(role, why)
+            return
+        if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
+            return
+        last = role_runs.get(role, {})
+        if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
+                and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
+            log(f"{role} already ran OK today - not relaunched", "dispatch")
+            return
+        # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
+        if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
+            post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
+            return
+        write_context(today, f, hits, paper, {role: why}, pipeline)
+        role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
+        if not a.dry_run:
+            save_json(STATE / "role_runs.json", role_runs)
+            commit(f"team-runner: {role} {today} ({why[:80]})")
+        if role_runs[role]["status"] == "limited":
+            limit["roles"][role] = why
+            limit["resets_at"] = role_runs[role]["resets_at"]
+
+    # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
+    for role in ("scorekeeper", "scout", "director"):
+        if role in want:
+            launch(role, want[role])
+    # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
+    # Up to PER_DAY ideas each; stop early if the same work comes back (the run didn't move it).
+    for role, work in (("researcher", research_work), ("skeptic", review_work)):
+        done: list[str] = []
+        for _ in range(max(0, PER_DAY - ran_ok_today(role, today))):
+            why = work() or (want.get(role) if not done else None)
+            if not why or why in done:
+                break
+            done.append(why)
+            launch(role, why)
+            pipeline += jobs.advance(a.dry_run)
+            if a.dry_run or limit["roles"]:
+                break
+    # Auditor last, so it sees everything the other roles did today.
+    if "auditor" in want:
+        write_audit_pack(today)
+        launch("auditor", want["auditor"])
+    return limit
+
+
+def _clock(at: datetime) -> str:
+    return f"{at:%I:%M %p}".lstrip("0") + ("" if at.date() == now_pt().date() else f" {at:%a %m-%d}")
+
+
+def hold(today: date, limit: dict, attempts: int) -> None:
+    """The plan limit stopped the roles: save what is left and start the waiter that runs it at the reset."""
+    roles, at = limit["roles"], datetime.fromisoformat(limit["resets_at"])
+    if attempts >= plan_limit.MAX_ATTEMPTS:
+        plan_limit.clear()
+        post("ops", f"🛑 The Claude plan limit stopped the team {attempts + 1} times today - giving up until the "
+                    f"next dispatch. Not run: {', '.join(roles)}", "Team - Ops Monitor")
+        return
+    plan_limit.save(str(today), at, roles, attempts)
+    try:
+        plan_limit.spawn(wait=True)
+        how = "they start on their own then"
+    except Exception as e:  # noqa: BLE001 - the Scan Operator tick is the backup
+        log(f"resume waiter did not start: {e}", "dispatch")
+        how = "the Scan Operator starts them then (the waiter did not start)"
+    log(f"held by the plan limit until {at:%m-%d %H:%M}: {', '.join(roles)}", "dispatch")
+    post("ops", f"⏸️ Claude plan limit reached (your plan's usage limit, not a bug). Still to run: "
+                f"**{', '.join(roles)}** - the limit resets at {_clock(at)} and {how}.", "Team - Ops Monitor")
+
+
+def resume(a) -> int:
+    """Run the roles a plan limit held back (state/resume.json), once it has reset. Started by hold()'s
+    detached waiter (--wait) or, as a backup, by the Scan Operator tick."""
+    if a.wait and not plan_limit.wait_until_due():
+        log("resume cancelled - nothing pending any more (a later dispatch took over)", "dispatch")
+        return 0
+    r = plan_limit.pending()
+    if not r or not plan_limit.due(timedelta(0)) or not plan_limit.take_lock():
+        return 0
+    try:
+        today = now_pt().date()
+        log(f"resume start {today}: {', '.join(r['roles'])} (held since {r['date']}, attempt {r['attempts'] + 1})",
+            "dispatch")
+        if stopped():
+            plan_limit.clear()
+            post("ops", f"⏸️ Team is STOPped - held roles not resumed: {', '.join(r['roles'])}", "Team - Ops Monitor")
+            return 0
+        # The roles see what they would have seen at the dispatch: its snapshot and paper status.
+        f = ops_monitor.Findings()
+        snap = STATE / "snapshot.txt"
+        f.snapshot = snap.read_text(encoding="utf-8") if snap.exists() else ""
+        paper = load_json(STATE / "paper_status.json", {})
+        pipeline: list[str] = []
+        limit = run_roles(today, a, load_json(ROLES, {"roles": {}}), r["roles"], f, [], paper, pipeline)
+        write_context(today, f, [], paper, {}, pipeline)
+        if limit["roles"]:
+            hold(today, limit, attempts=r["attempts"] + 1)
+        else:
+            plan_limit.clear()
+            post("ops", "▶️ **Team resumed after the Claude plan limit reset**\n"
+                        + "\n".join(daily_report.team_today(today, pipeline)), "Team - Daily Report")
+        log(f"resume done; pipeline: {pipeline or 'no moves'}", "dispatch")
+        return 0
+    finally:
+        plan_limit.drop_lock()
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-claude", action="store_true")
     ap.add_argument("--force", action="append", default=[], help="run this role regardless of triggers")
+    ap.add_argument("--resume", action="store_true", help="run the roles a Claude plan limit held back")
+    ap.add_argument("--wait", action="store_true", help="with --resume: sleep until the limit resets first")
     a = ap.parse_args(argv)
+    if a.resume:
+        return resume(a)
     if a.dry_run:
         os.environ["TEAM_DRY_RUN"] = "1"
     today = now_pt().date()
@@ -304,7 +441,10 @@ def main(argv: list[str]) -> int:
         # 3. research pipeline, script part (train runs, Skeptic verdicts, holdouts) - no Claude
         pipeline = [] if stopped() else jobs.advance(a.dry_run)
 
-        # 4. triggers
+        # 4. triggers. A resume still pending from an earlier limit is superseded: today's run covers it.
+        if not a.dry_run and plan_limit.pending():
+            log(f"superseding a pending resume: {plan_limit.pending()['roles']}", "dispatch")
+            plan_limit.clear()
         cfg = load_json(ROLES, {"roles": {}})
         want = triggers(today, f, hits, paper, prev_paper)
         for r in a.force:
@@ -320,48 +460,9 @@ def main(argv: list[str]) -> int:
             write_context(today, f, hits, paper, {}, pipeline)
             log("paused - no Claude roles", "dispatch")
             return 0
-        cap = int(cfg.get("weekly_claude_run_cap", 12))
-        role_runs = load_json(STATE / "role_runs.json", {})
-
-        def launch(role: str, why: str) -> None:
-            if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
-                return
-            last = role_runs.get(role, {})
-            if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
-                    and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
-                log(f"{role} already ran OK today - not relaunched", "dispatch")
-                return
-            # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
-            if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
-                post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
-                return
-            write_context(today, f, hits, paper, {role: why}, pipeline)
-            role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
-            if not a.dry_run:
-                save_json(STATE / "role_runs.json", role_runs)
-                commit(f"team-runner: {role} {today} ({why[:80]})")
-
-        # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
-        for role in ("scorekeeper", "scout", "director"):
-            if role in want:
-                launch(role, want[role])
-        # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
-        # Up to PER_DAY ideas each; stop early if the same work comes back (the run didn't move it).
-        for role, work in (("researcher", research_work), ("skeptic", review_work)):
-            done: list[str] = []
-            for _ in range(PER_DAY):
-                why = work() or (want.get(role) if not done else None)
-                if not why or why in done:
-                    break
-                done.append(why)
-                launch(role, why)
-                pipeline += jobs.advance(a.dry_run)
-                if a.dry_run:
-                    break
-        # Auditor last, so it sees everything the other roles did today.
-        if "auditor" in want:
-            write_audit_pack(today)
-            launch("auditor", want["auditor"])
+        limit = run_roles(today, a, cfg, want, f, hits, paper, pipeline)
+        if limit["roles"]:
+            hold(today, limit, attempts=0)
         write_context(today, f, hits, paper, {}, pipeline)
         log(f"dispatch done; pipeline: {pipeline or 'no moves'}", "dispatch")
         return 0

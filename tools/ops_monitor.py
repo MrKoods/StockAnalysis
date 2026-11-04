@@ -11,6 +11,7 @@ Claude role is worth waking.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -103,8 +104,15 @@ def check_snapshot(f: Findings) -> None:
     for line in r.stdout.splitlines():
         if "ACTION NEEDED" in line:
             f.alerts.append(line.strip().replace("ACTION NEEDED: ", ""))
-        elif "error lines" in line and not line.rstrip().endswith(" 0 error lines"):
-            f.diagnose.append(line.strip())
+        elif "error lines" in line:
+            # snapshot.py counts a provider's own outage apart: a note for the user, nothing to diagnose
+            if not re.search(r", 0 error lines\b", line):
+                f.diagnose.append(re.sub(r" \| outside outage: .*", "", line.strip()))
+            for label in re.findall(r"outside outage: ([^|]+?) x\d+", line):
+                note = (f"{now_pt():%Y-%m-%d}: {label} - outside outage, the scans carry on with their other "
+                        f"sources (not our bug)")
+                if note not in f.notes:
+                    f.notes.append(note)
         elif "!! loss cluster" in line:
             f.notes.append(line.strip().removeprefix("!! "))
         elif line.strip().startswith("!!"):
