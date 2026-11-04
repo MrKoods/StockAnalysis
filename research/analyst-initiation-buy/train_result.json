@@ -1,0 +1,68 @@
+{
+  "phase": "train",
+  "start": "2012-09-12",
+  "end": "2019-12-31",
+  "variants": 6,
+  "chosen": "sp600_h3",
+  "configs": {
+    "sp600_h1": {
+      "n_trades": 1645,
+      "n_periods": 358,
+      "mean_bps": -19.54,
+      "t": -1.77,
+      "trade_mean_bps": -22.5,
+      "outside_window": 52
+    },
+    "sp600_h3": {
+      "n_trades": 1646,
+      "n_periods": 362,
+      "mean_bps": -19.85,
+      "t": -1.28,
+      "trade_mean_bps": -24.22,
+      "outside_window": 51
+    },
+    "sp600_h5": {
+      "n_trades": 1646,
+      "n_periods": 361,
+      "mean_bps": -16.59,
+      "t": -0.86,
+      "trade_mean_bps": -26.33,
+      "outside_window": 51
+    },
+    "sp46_h1": {
+      "n_trades": 3265,
+      "n_periods": 378,
+      "mean_bps": -1.36,
+      "t": -0.12,
+      "trade_mean_bps": -12.48,
+      "outside_window": 128
+    },
+    "sp46_h3": {
+      "n_trades": 3267,
+      "n_periods": 376,
+      "mean_bps": -7.93,
+      "t": -0.74,
+      "trade_mean_bps": -13.86,
+      "outside_window": 126
+    },
+    "sp46_h5": {
+      "n_trades": 3268,
+      "n_periods": 382,
+      "mean_bps": 2.57,
+      "t": 0.19,
+      "trade_mean_bps": -15.07,
+      "outside_window": 124
+    }
+  },
+  "luck_t_best_of_n": 1.89,
+  "best_t": 0.19,
+  "chosen_stats": {
+    "n_trades": 1646,
+    "n_periods": 362,
+    "mean_bps": -19.85,
+    "t": -1.28,
+    "trade_mean_bps": -24.22,
+    "outside_window": 51
+  },
+  "problems": []
+}
