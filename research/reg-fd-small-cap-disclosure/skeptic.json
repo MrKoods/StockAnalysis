@@ -1,0 +1,11 @@
+{"verdict": "FAIL",
+ "summary": "Pre-registered sp600_h1 LONG is train t -2.77 / mean -17.9 bps; small-cap tilt runs opposite to the thesis.",
+ "checks": {
+   "lookahead": "pass - first_session open entry strictly after SEC acceptance, SPY-hedged same window, dated by first_session not filing_date (test.py:42-82)",
+   "luck": "FAIL - chosen sp600_h1 train t -2.77 (mean -17.9 bps), must be >= +2.0; all 1d longs strongly negative, mechanism inverted vs the +6.5bps full-universe screen",
+   "costs": "n/a - gross already -17.9 bps before costs; cost_bps 30 reasonable for small caps",
+   "sample": "pass - 7820 trades / 2095 day-periods; negative result is not a thin-sample artifact",
+   "baseline": "pass - SPY-hedged, not beta; survivorship biases long UP so true edge even more negative",
+   "paper_match": "pass - strategy.py encodes sp600_h1 long, enter first_session open, hold 1 (immaterial given FAIL)",
+   "graveyard": "ok - first 8k_7_01 holdout attempt; do NOT spend the holdout on a config train shows is a loser"
+ }}

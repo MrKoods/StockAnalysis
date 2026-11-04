@@ -1,6 +1,19 @@
 # Skeptic notes
 
 ## Reviewed
+- 2026-11-04 **reg-fd-small-cap-disclosure** -> FAIL. Pre-registered sp600_h1 LONG train t -2.77,
+  mean -17.9 bps. ALL 1d longs strongly negative; mechanism INVERTED vs the +6.5bps full-S&P1500
+  7.01 screen (positive signal was the large caps the plan excluded). Clean look-ahead, ample sample.
+  Did NOT spend 8k_7_01 holdout. Honest plan, just a false hypothesis.
+- 2026-11-04 **analyst-initiation-buy** -> FAIL. Pre-registered sp600_h3 LONG train t -1.28, mean
+  -19.85 bps. sp600 worst at every hold; best variant t +0.19 (< luck 1.89). Also flagged NOT
+  promotable (one-time yfinance ratings snapshot, no real-time feed - like insider family). Dead.
+  analyst_ratings holdout NOT spent.
+- PATTERN: both small-cap LONG event ideas came back NEGATIVE on train with the small-cap tilt
+  running opposite the thesis. Watch the other queued small-cap-long-drift ideas (restructuring-
+  bounce, early-10k-drift, turn-of-month) for the same inversion before burning holdouts.
+
+## Prior reviews
 - 2026-10-31 **split-announcement-drift** -> PASS to holdout. Pre-registered h4_r2 (hold 4, fwd
   splits >=2:1), train net t 3.08 (week-clustered) > luck 1.89, 65 bps gross / 282 wks / 395 trades.
   Clean look-ahead (leak-free first_session = open after SEC accepted ts; dated by `announced` not

@@ -1,0 +1,11 @@
+{"verdict": "FAIL",
+ "summary": "Pre-registered sp600_h3 LONG is train t -1.28 / mean -19.85 bps; small caps worst not best; also flagged not promotable.",
+ "checks": {
+   "lookahead": "pass - entry at open of first session strictly after date-only GradeDate; leak-free regardless of publish time; SPY-hedged same window (PLAN.md:29-31)",
+   "luck": "FAIL - chosen sp600_h3 train t -1.28 (mean -19.85 bps); all sp600 holds negative; best variant only t +0.19, below luck 1.89; must be >= +2.0",
+   "costs": "n/a - gross already deeply negative; cost_bps 25 reasonable",
+   "sample": "thin (1645 sp600 trades / 358 wk-periods) but sign is consistent and strongly negative, not a fluke a richer holdout rescues",
+   "baseline": "pass - SPY-hedged; survivorship + underwriter-conflict both bias long UP, so true edge is worse",
+   "paper_match": "n/a - strategy.py encodes frozen rule for record only; NOT promotable (no real-time rating feed, PLAN.md:82-88)",
+   "graveyard": "ok - distinct from dead V3 re-rating work; analyst_ratings family unused, but do NOT spend the holdout on a negative train"
+ }}
