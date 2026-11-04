@@ -1,12 +1,12 @@
 {
   "verdict": "COLLECTING",
-  "days": 1,
-  "trades": 72,
-  "real_mean_bps": -16.6,
-  "real_t": 0.0,
-  "paper_mean_bps_same_trades": 211.1,
-  "avg_half_spread_bps": 45.1,
+  "days": 2,
+  "trades": 146,
+  "real_mean_bps": 41.0,
+  "real_t": 0.71,
+  "paper_mean_bps_same_trades": 191.9,
+  "avg_half_spread_bps": 51.6,
   "first_day": "2026-11-02",
-  "last_day": "2026-11-02",
+  "last_day": "2026-11-03",
   "rule": "ON1 picks re-priced at real quotes (buy at the ask ~3:56 PM ET, sell at the bid ~9:31 AM ET, no other costs). Day-clustered over days with both quotes. From 15 days: PASS if mean >= +5 bps/trade and day-t >= 2; FAIL if mean < 0; otherwise continue; at 30 days PASS or FAIL."
 }
