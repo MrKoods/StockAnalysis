@@ -13,3 +13,5 @@ Lessons: two look-ahead bugs caught in minute research (bar ordering; filter usi
 Price/volume patterns on free hourly/daily data are largely exhausted; edges found live in events + small caps.
 - **insider-cluster-buys** (2026-10-27): holdout FAIL: t 1.11 vs bar 3.00, 28.76 bps
 - **split-announcement-drift** (2026-10-31): holdout FAIL: t 0.99 vs bar 3.00, 78.4 bps
+- **reg-fd-small-cap-disclosure** (2026-11-04): Skeptic FAIL: Pre-registered sp600_h1 LONG is train t -2.77 / mean -17.9 bps; small-cap tilt runs opposite to the thesis.
+- **analyst-initiation-buy** (2026-11-04): Skeptic FAIL: Pre-registered sp600_h3 LONG is train t -1.28 / mean -19.85 bps; small caps worst not best; also flagged not promotable.
