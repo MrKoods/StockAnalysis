@@ -112,7 +112,8 @@ def test_auditor_saturday_only():
 
 def test_checkpoint_crossing():
     snap = ("Rank-track go/no-go: COLLECTING (100/100 closed trades)\n[G2 paper] 20 days, 113 trades\n"
-            "[EPRE paper] signals logged 1150 | open 140 | new today 0")
+            "[EPRE paper] signals logged 1150 | open 136 | new today 0 | void 4\n"
+            "[EPRE paper] closed 1010 | hedged mean +3.0 bps")    # void trades are neither open nor closed
     cur = dispatch.metrics(snap)
     assert cur["V4 EPRE (closed trades)"] == 1010
     prev = {"V2 rank go/no-go (closed trades)": 99, "V3 G2 paper (days)": 20, "V4 EPRE (closed trades)": 990}

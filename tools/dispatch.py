@@ -58,7 +58,7 @@ CHECKPOINTS = {
     "V3 ON1 forward (days)": (r"\[ON1 forward\] (\d+) days", [40]),
     "V3 G2 paper (days)": (r"\[G2 paper\] (\d+) days", [20, 40]),
     "V3 ON1 paper (days)": (r"\[ON1 paper\] (\d+) days", [20, 40]),
-    "V4 EPRE (closed trades)": (r"signals logged (\d+) \| open (\d+)", [1000, 3000, 6000]),
+    "V4 EPRE (closed trades)": (r"\[EPRE paper\] closed (\d+)", [1000, 3000, 6000]),   # void trades never count
 }
 
 
