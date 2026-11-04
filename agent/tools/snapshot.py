@@ -116,6 +116,12 @@ def v3_section() -> None:
               f"| day-t {t_stat(per_day):.2f} | last day {per_day.index[-1]}: {per_day.iloc[-1]:+.3f}")
 
 
+# Error lines that only mean an outside service is down (the code logs it and carries on with other sources).
+OUTSIDE_OUTAGES = {
+    "Yahoo Finance news down": re.compile(r"Yahoo Finance news fetch failed"),
+}
+
+
 def log_section() -> None:
     print("\n=== Task log health (lines dated today with ERROR / Traceback) ===")
     pat = re.compile(r"ERROR|Traceback|CRITICAL")
@@ -136,7 +142,11 @@ def log_section() -> None:
                 mtime = pd.Timestamp(p.stat().st_mtime, unit="s", tz="UTC").tz_convert("America/Los_Angeles")
                 where = f"last written {mtime:%Y-%m-%d %H:%M} PT"
             bad = [line for line in scope if pat.search(line)]
-            print(f"  {name}: {where}, {len(bad)} error lines" + (f" | e.g. {bad[-1][:160]}" if bad else ""))
+            # A provider's own outage is not our bug: counted apart so it isn't sent off to be diagnosed
+            outages = {label: sum(1 for line in bad if rx.search(line)) for label, rx in OUTSIDE_OUTAGES.items()}
+            bad = [line for line in bad if not any(rx.search(line) for rx in OUTSIDE_OUTAGES.values())]
+            print(f"  {name}: {where}, {len(bad)} error lines" + (f" | e.g. {bad[-1][:160]}" if bad else "")
+                  + "".join(f" | outside outage: {label} x{n}" for label, n in outages.items() if n))
 
 
 def v4_section() -> None:
