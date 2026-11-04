@@ -172,8 +172,10 @@ def v4_section() -> None:
         return
     d = pd.read_csv(p, dtype={"entry_day": str, "exit_day": str, "date_ok": str})
     x = d.dropna(subset=["hedged_bps"])
-    print(f"  [EPRE paper] signals logged {len(d)} | open {int(d['hedged_bps'].isna().sum())} "
-          f"| new today {int((d['entry_day'] == DAY).sum())}")
+    # void = the stock had stopped trading, so the trade could never be made (V4 RULES.md amendment 2026-11-04)
+    void = d["void"].fillna("").astype(str).ne("") if "void" in d else pd.Series(False, index=d.index)
+    print(f"  [EPRE paper] signals logged {len(d)} | open {int((d['hedged_bps'].isna() & ~void).sum())} "
+          f"| new today {int((d['entry_day'] == DAY).sum())} | void {int(void.sum())}")
     if len(x):
         per_day = x.groupby("exit_day")["hedged_bps"].mean()
         ok = x["date_ok"].dropna().str.lower()
@@ -181,7 +183,7 @@ def v4_section() -> None:
         print(f"  [EPRE paper] closed {len(x)} | hedged mean {x['hedged_bps'].mean():+.1f} bps "
               f"(net unhedged {x['net_bps'].mean():+.1f}) | exit-day t {t_stat(per_day):.2f} ({len(per_day)} days) "
               f"| report-date accuracy {acc} | backtest ~ +19 bps; checkpoints at 1k/3k/6k trades (V4 RULES.md)")
-    late = d[d["hedged_bps"].isna() & (pd.to_datetime(d["exit_day"]) < pd.Timestamp(DAY) - pd.offsets.BDay(1))]
+    late = d[d["hedged_bps"].isna() & ~void & (pd.to_datetime(d["exit_day"]) < pd.Timestamp(DAY) - pd.offsets.BDay(1))]
     if len(late):
         print(f"  ACTION NEEDED: {len(late)} V4 trade(s) past their exit day are still unscored - evaluate task failing?")
 
