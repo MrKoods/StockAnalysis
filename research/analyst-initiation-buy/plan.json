@@ -1,0 +1,4 @@
+{"family": "analyst_ratings",
+ "train_start": "2012-09-12", "train_end": "2019-12-31",
+ "holdout_start": "2020-01-01", "holdout_end": "2026-10-15",
+ "cost_bps": 25, "cluster": "week", "max_variants": 6, "metric": "hedged"}

@@ -1,5 +1,29 @@
 # Researcher notes
 
+## 2026-11-04 — analyst-initiation-buy (planned, check+smoke pass)
+- Five files in research/analyst-initiation-buy/ + strategies/analyst-initiation-buy/.
+- Family `analyst_ratings` (whole history clean). Train 2012-09-12..2019-12-31, holdout
+  2020-01-01..2026-10-15 (ratings end 2026-10-20, daily 2026-11-02 → buffer for 3-5d exit). Bar
+  via budget (floor 3.0). cost 25 bps, cluster "week", metric hedged.
+- Signal: ratings Action=="init" + bullish ToGrade (buy/outperform/overweight/positive/
+  accumulate/conviction). LONG at OPEN of first session STRICTLY AFTER GradeDate (date-only → no
+  same-day trade = leak-free), exit CLOSE H sessions later. SPY-hedged gross.
+- 6 variants: univ {sp600, sp46=sp400+sp600} × hold {1,3,5}. chosen PRE-REGISTERED = sp600_h3
+  (smallest cap + 3d drift window). Others = Skeptic robustness only.
+- Smoke (2012-09..2013-09): sp600_h3 182 trades/48 wk, sp46_h3 376 — ample even in year 1.
+- NOT PROMOTABLE: ratings archive is a one-time yfinance snapshot (files last fetched ~10-23;
+  events_fetch.py skips existing files) — no near-real-time point-in-time feed. strategy.py says
+  DO NOT PROMOTE until a fresh feed exists (same blocker as insider). spec hold_sessions=3,
+  exit close, metric real_hedged_bps, pass 5 bps / t 2.0, 20-40 days.
+
+### Data facts learned (reuse next time)
+- rd.ratings(tickers) → dict ticker→df, cols: GradeDate(date-only, no intraday), Firm, ToGrade,
+  FromGrade, Action. Action codes are yfinance short forms: up/down/main/init/reit. "init" =
+  coverage initiation (confirmed vs V3 events.load_ratings). ToGrade = the (initiated) rating text.
+  Loader clips by GradeDate<=cutoff and sorts. Verified ToGrade present via smoke (182 trades).
+- Ratings archive: StockAnalysis-V3/data/events/ratings/{ticker}.parquet. From yfinance
+  upgrades_downgrades, fetched ONCE (events_fetch skips existing) → stale, not live-updatable.
+
 ## 2026-11-03 — reg-fd-small-cap-disclosure (planned, check+smoke pass)
 - Five files in research/reg-fd-small-cap-disclosure/ + strategies/reg-fd-small-cap-disclosure/.
 - Family `8k_7_01` (used only screen 2005-2013). Windows: train 2005-01-01..2013-12-31, holdout
