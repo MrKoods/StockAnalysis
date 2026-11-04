@@ -31,3 +31,17 @@ consistent with the research and execution is sound, without claiming proof.
 
 ## Real-money sizing if B or C allows it (guidance, decided by the user)
 20+ equal positions, no single position > 5% of the account (one report gap can be -30% or worse).
+
+## Amendment 2026-11-04 - stocks that stopped trading (approved by the user)
+Why: the frozen 2026-10-06 list keeps stocks that were later bought out, and Yahoo keeps listing an "upcoming
+report" for them. V4 bought ACA on 2026-10-28 (Arcosa, delisted 2026-10-23) and WBD, HLX, RAMP on 2026-11-03 -
+trades nobody could have made, which could never be scored. This changes data hygiene, not the strategy: a
+stock that cannot be bought is not a trade.
+- Signals: a candidate is dropped if it has no daily bar on the entry day or the 2 sessions before, or if it
+  was bought out in the last 30 days (Form 25 within 3 days of an 8-K item 5.01, from the team's SEC archive).
+  If the price download itself looks broken (SPY missing, or most candidates missing), nothing is dropped on price.
+- Scoring: a trade is VOID (ledger column `void` says why) when its stock has no price on the entry day, or no
+  price on the exit day after having one on entry - decided 2 sessions later, and only when SPY/IJH/IJR do have
+  prices for that day. Void trades count as neither open nor closed and are excluded from every checkpoint.
+- First voids: ACA (decided 2026-11-04), WBD, HLX, RAMP (on their 2026-11-05 evaluation). Before this rule no trade
+  had been scored on a stock that had stopped trading (KVUE, delisted 2026-11-02, was a normal 10-28 -> 10-30 trade).

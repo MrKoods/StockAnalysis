@@ -25,7 +25,10 @@ from .rules import entry_session, reaction_session
 
 log = logging.getLogger("epre.paper")
 COLS = ["entry_day", "exit_day", "ticker", "index", "report_day", "bmo", "time_source", "posted",
-        "entry_close", "exit_close", "ret_bps", "hedge_bps", "net_bps", "hedged_bps", "date_ok", "scored_on"]
+        "entry_close", "exit_close", "ret_bps", "hedge_bps", "net_bps", "hedged_bps", "date_ok", "scored_on",
+        "void"]
+TEAM_FILINGS = ROOT.parent / "StockAnalysis-Team" / "data" / "edgar" / "filings.parquet"   # SEC archive (read-only)
+DELIST_LOOKBACK_DAYS = 30     # a Form 25 (removal from listing) this recent = the stock is going away
 
 
 # ------------------------------------------------------------------ discord
@@ -53,7 +56,7 @@ def post(text: str, dry: bool) -> None:
 
 
 # ------------------------------------------------------------------ ledger
-TEXT_COLS = ("entry_day", "exit_day", "report_day", "date_ok", "scored_on")
+TEXT_COLS = ("entry_day", "exit_day", "report_day", "date_ok", "scored_on", "void")
 
 
 def load_ledger() -> pd.DataFrame:
@@ -61,6 +64,8 @@ def load_ledger() -> pd.DataFrame:
         led = pd.read_csv(LEDGER, dtype={c: str for c in TEXT_COLS})
     else:
         led = pd.DataFrame(columns=COLS)
+    if "void" not in led:
+        led["void"] = np.nan
     for c in TEXT_COLS:      # all-empty columns read back as float; keep them text so True/dates fit
         led[c] = led[c].astype(object)
     return led
@@ -97,6 +102,70 @@ def entries_for(day: date, cal: pd.DataFrame, recheck: bool = True) -> pd.DataFr
         if not ok:
             log.info("%s: report date moved since the calendar refresh - dropped", r.ticker)
         keep.append(bool(ok))
+    return q[np.array(keep, bool)]
+
+
+def _recent_bars(tickers: list[str], day: date) -> dict[str, date]:
+    """Last daily bar of each ticker over the past ~2 weeks (today's bar counts during the session)."""
+    import yfinance as yf
+    raw = yf.download([t.replace(".", "-") for t in tickers], start=str(day - pd.Timedelta(days=14)),
+                      end=str(day + pd.Timedelta(days=1)), interval="1d", auto_adjust=True, group_by="ticker",
+                      progress=False, threads=True)
+    out = {}
+    for t in tickers:
+        y = t.replace(".", "-")
+        if isinstance(raw.columns, pd.MultiIndex) and y in raw.columns.get_level_values(0):
+            c = raw[y]["Close"].dropna()
+            if len(c):
+                out[t] = pd.Timestamp(c.index.max()).date()
+    return out
+
+
+def _recently_acquired(day: date) -> set[str]:
+    """Tickers bought out in the last 30 days, from the team's SEC archive: a Form 25 / 25-NSE (removal from
+    listing) within 3 days of an 8-K item 5.01 (change in control). A Form 25 alone is often a bond or an
+    exchange switch (2026-11 examples: MCK, LUMN, IBOC - all still trading), so it is not enough.
+    Missing archive -> empty set (the price check still runs)."""
+    try:
+        f = pd.read_parquet(TEAM_FILINGS, columns=["ticker", "form", "filing_date", "items"])
+    except Exception as exc:  # noqa: BLE001
+        log.warning("SEC archive unreadable (%s) - buyout check skipped", exc)
+        return set()
+    when = pd.to_datetime(f["filing_date"])
+    f = f[(when >= pd.Timestamp(day) - pd.Timedelta(days=DELIST_LOOKBACK_DAYS)) & (when <= pd.Timestamp(day))]
+    f = f.assign(when=pd.to_datetime(f["filing_date"]))
+    f25 = f[f["form"].astype(str).str.match(r"25(-NSE)?$")]
+    ctl = f[(f["form"] == "8-K") & f["items"].fillna("").astype(str).str.contains(r"\b5\.01\b")]
+    m = f25[["ticker", "when"]].merge(ctl[["ticker", "when"]], on="ticker", suffixes=("", "_8k"))
+    return set(m.loc[(m["when"] - m["when_8k"]).abs() <= pd.Timedelta(days=3), "ticker"].astype(str))
+
+
+def tradable(q: pd.DataFrame, day: date) -> pd.DataFrame:
+    """Drop candidates that are no longer listed (RULES.md amendment 2026-11-04): no daily bar in the last 3
+    sessions, or bought out in the last 30 days (Form 25 + 8-K 5.01). If the price download itself looks broken (SPY missing
+    or most candidates missing) nothing is dropped on price - evaluate() voids a dead trade later anyway."""
+    if q.empty:
+        return q
+    tickers = sorted(set(q["ticker"].astype(str)))
+    try:
+        last = _recent_bars(tickers + ["SPY"], day)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("listing check: price download failed (%s) - price check skipped", exc)
+        last = None
+    cutoff = nyse.prev_session(nyse.prev_session(day))     # a bar on day, day-1 or day-2
+    if last is not None and ("SPY" not in last or sum(t in last for t in tickers) < 0.5 * len(tickers)):
+        log.warning("listing check: price download looks broken (%d/%d) - price check skipped",
+                    sum(t in last for t in tickers), len(tickers))
+        last = None
+    gone = _recently_acquired(day)
+    keep = []
+    for t in q["ticker"].astype(str):
+        why = ("bought out: Form 25 + change-in-control 8-K" if t in gone else
+               f"no price since {last.get(t, 'over 2 weeks ago')}"
+               if last is not None and last.get(t, date.min) < cutoff else None)
+        if why:
+            log.info("%s: not listed any more (%s) - dropped", t, why)
+        keep.append(why is None)
     return q[np.array(keep, bool)]
 
 
@@ -153,7 +222,9 @@ def signals(dry: bool = False, day: date | None = None) -> None:
         days.append(nxt)          # tomorrow closes at 1 PM: post its orders today
     lines, new = [], []
     for d in days:
-        rows = _new_rows(d, entries_for(d, cal, recheck=not dry or day is None))
+        live = not dry or day is None
+        q = entries_for(d, cal, recheck=live)
+        rows = _new_rows(d, tradable(q, d) if live else q)
         rows = rows[~rows["ticker"].isin(led.loc[led["entry_day"] == str(d), "ticker"])]
         # never a second trade on the same report (e.g. the calendar re-timed it after the first entry)
         held = set(zip(led["ticker"].astype(str), led["report_day"].astype(str)))
@@ -208,7 +279,12 @@ def evaluate(dry: bool = False) -> None:
         return
     # an exit close is final once it is a past session, or today after 16:15 ET
     last_final = now.date() if now.time() >= time(16, 15) else nyse.prev_session(now.date())
-    due = led["net_bps"].isna() & (pd.to_datetime(led["exit_day"]).dt.date <= last_final)
+    # A trade whose stock stopped trading can never be scored: it is VOIDED, not left open (RULES.md amendment
+    # 2026-11-04) - decided once 2 sessions have passed since the day with the missing price.
+    void_by = nyse.prev_session(nyse.prev_session(last_final))
+    open_ = led["net_bps"].isna() & led["void"].fillna("").astype(str).eq("")
+    exit_d, entry_d = pd.to_datetime(led["exit_day"]).dt.date, pd.to_datetime(led["entry_day"]).dt.date
+    due = open_ & ((exit_d <= last_final) | (entry_d <= void_by))
     if not due.any():
         log.info("nothing to score yet")
         return
@@ -216,11 +292,20 @@ def evaluate(dry: bool = False) -> None:
     start = min(date.fromisoformat(d) for d in sub["entry_day"])
     end = max(date.fromisoformat(d) for d in sub["exit_day"])
     px = _closes(sorted(set(sub["ticker"]) | set(HEDGE)), start, end)
-    scored = []
+    scored, voided = [], []
     for i in np.flatnonzero(due.to_numpy()):
         t, ed, xd = led.at[i, "ticker"], date.fromisoformat(led.at[i, "entry_day"]), date.fromisoformat(led.at[i, "exit_day"])
         s = px.get(t)
-        if s is None or ed not in s.index or xd not in s.index:
+        has = (lambda d: s is not None and d in s.index)
+        market = (lambda d: all(h in px and d in px[h].index for h in HEDGE))   # the download had that day
+        why = (f"no price on entry day {ed} - not trading (delisted?)" if not has(ed) and ed <= void_by and market(ed)
+               else f"no price on exit day {xd} - stopped trading while held"
+               if has(ed) and not has(xd) and xd <= void_by and market(xd) else None)
+        if why:
+            led.at[i, "void"], led.at[i, "scored_on"] = why, str(now.date())
+            voided.append(i)
+            continue
+        if xd > last_final or not has(ed) or not has(xd):
             continue
         hedge = [px[h].loc[xd] / px[h].loc[ed] - 1 for h in HEDGE if h in px and ed in px[h].index and xd in px[h].index]
         if len(hedge) < len(HEDGE):
@@ -236,13 +321,17 @@ def evaluate(dry: bool = False) -> None:
         led.at[i, "date_ok"] = "" if ok is None else str(ok)
         led.at[i, "scored_on"] = str(now.date())
         scored.append(i)
-    if not scored:
+    if not scored and not voided:
         log.info("prices not available yet")
         return
     if not dry:
         save_ledger(led)
     new = led.loc[scored]
-    lines = []
+    lines = ([f"**EPRE: {len(voided)} trade(s) VOIDED** - the stock had stopped trading, so the trade could never "
+              "be made (RULES.md amendment 2026-11-04; counted as neither a win nor a loss):", "```"]
+             + [f"{led.at[i, 'ticker']:6s} bought {led.at[i, 'entry_day']}"
+                f"{' (was posted)' if str(led.at[i, 'posted']) == 'True' else ''}: {led.at[i, 'void']}" for i in voided]
+             + ["```"]) if voided else []
     for xd, g in new.groupby("exit_day"):
         p = g[g["posted"].astype(bool)]
         lines += [f"**EPRE paper results, sold at the {xd} close** ({len(g)} trades; net of costs, hedged vs SPY/IJH/IJR):"]
