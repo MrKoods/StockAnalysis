@@ -1,5 +1,25 @@
 # Researcher notes
 
+## 2026-11-05 — restructuring-bounce (planned, check+smoke pass)
+- Five files in research/restructuring-bounce/ + strategies/restructuring-bounce/.
+- Family `8k_2_05` (used only screen 2005-2013). Train 2005-01-01..2013-12-31, holdout
+  2014-01-01..2026-10-28 (clean; daily ends 2026-11-02, buffer for open+5 exit). Bar 3.00.
+- Signal: 8-K item 2.05 (exit/restructuring costs). LONG at OPEN of the session AFTER `first_session`
+  (= open+2 from event — skip the open+1 first-reaction day), exit at OPEN H sessions later. SPY-hedged
+  gross open->open; cost 35 (small-cap, BOTH legs at open auction); cluster "week".
+- 4 variants: univ {sp600, sp46=sp400+sp600} × hold {3,5}. chosen PRE-REGISTERED = `sp600_h3`
+  (smallest cap + screen's 3d horizon = open+2→open+5). Others = Skeptic robustness only. luck_t~1.67.
+- Smoke (2005 only): sp600_h3 33 trades/25 wk, sp46_h5 51 — ample even in year 1, power is fine.
+- PROMOTABLE: 2.05 8-Ks same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live.
+  BUT 2.05 RARE in sp600 → paper min_days=20 may take many months (flagged for Director).
+- KEY timing trick for open+2 entry: runner enters at the open of the session AFTER signal_date and exits
+  hold_sessions later at open. So strategy emits when the event's first tradable session == TODAY (asof):
+  runner then enters next open (=open+2), exits 3 sessions later (=open+5). spec hold_sessions=3,
+  exit_at="open", metric real_hedged_bps, pass 5 bps / t 2.0, 20-40 days.
+- Reused reg-fd-small-cap skeleton (test.py + strategy.py); changed items→2.05, entry_pos=pos+1,
+  open->open exit, hedge open->open, cluster week, cost 35. paper_runner exit_at="open" + hold>0 uses
+  SPY open for the hedge exit too (advance():159) — matches research open->open hedge. Verified.
+
 ## 2026-11-04 — analyst-initiation-buy (planned, check+smoke pass)
 - Five files in research/analyst-initiation-buy/ + strategies/analyst-initiation-buy/.
 - Family `analyst_ratings` (whole history clean). Train 2012-09-12..2019-12-31, holdout

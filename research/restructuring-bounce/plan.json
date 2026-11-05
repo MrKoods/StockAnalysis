@@ -1,0 +1,4 @@
+{"family": "8k_2_05",
+ "train_start": "2005-01-01", "train_end": "2013-12-31",
+ "holdout_start": "2014-01-01", "holdout_end": "2026-10-28",
+ "cost_bps": 35, "cluster": "week", "max_variants": 4, "metric": "hedged"}
