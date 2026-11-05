@@ -28,7 +28,10 @@ pipeline never runs dry - but quality over quantity: add at most 4 per run; 0 is
    - holding period <= ~5 trading days (shorter preferred, if costs allow);
    - plausible after realistic costs (>= 10 bps round trip large caps, 20-40 bps small caps);
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
-     close N sessions later, optional stop/target) - or flag that it needs a different engine.
+     close N sessions later, optional stop/target) - or flag that it needs a different engine;
+   - fed by live data: every loader it needs says "yes" (or "weekly", if that is fast enough for the rule) in the
+     catalog's `live for paper?` column. An idea resting on a "NO" source (insider, ratings) can never become a
+     paper test - put it under "Needs data" as "needs a live <source> feed" instead of registering it.
 4. For each kept idea: write `ideas/<id>.md` (mechanism, evidence with links, exact rule sketch, **data: the
    exact research_data loader(s) and columns every input comes from**, expected number of events per year in
    our universe (too few = it can't pass a holdout - the last two deaths were power-limited), horizon,

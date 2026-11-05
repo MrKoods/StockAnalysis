@@ -99,3 +99,51 @@ def test_outside_outage_is_a_note_not_a_diagnosis(monkeypatch, tmp_path):
     ops_monitor.check_snapshot(f)
     assert f.diagnose == ["paper_updater_task.log: 103 lines today, 2 error lines | e.g. boom"]
     assert len(f.notes) == 1 and "Yahoo Finance news down" in f.notes[0]
+
+
+def test_director_refills_the_same_day_when_research_closes_ideas(monkeypatch, tmp_path):
+    today = date(2026, 11, 4)    # Wed
+    stages = {"awaiting_review": ["A"], "queued": ["B"], "idea": ["X", "Y", "Z"], "dead": []}
+    usage = tmp_path / "usage.csv"
+    usage.write_text("date,role,model,turns,minutes,cost_equiv_usd,status\n", encoding="utf-8")
+    for name, val in (("STATE", tmp_path), ("USAGE", usage), ("commit", lambda *x: None),
+                      ("post", lambda *x, **k: None), ("write_context", lambda *x, **k: None)):
+        monkeypatch.setattr(dispatch, name, val)
+    monkeypatch.setattr(dispatch.jobs, "advance", lambda dry: [])
+    monkeypatch.setattr(dispatch, "in_stage", lambda s: list(stages.get(s, [])))
+    monkeypatch.setattr(dispatch, "research_work", lambda: f"RESEARCH {stages['queued'][0]}" if stages["queued"] else None)
+    monkeypatch.setattr(dispatch, "review_work",
+                        lambda: f"REVIEW {stages['awaiting_review'][0]}" if stages["awaiting_review"] else None)
+    ran = []
+
+    def move(src, dst, n=1):
+        for _ in range(min(n, len(stages[src]))):
+            stages[dst].append(stages[src].pop(0))
+
+    def fake_run(role, cfg, why, today_, dry):
+        ran.append((role, why.split(" ")[1] if role in ("researcher", "skeptic") else why[:6]))
+        if role == "researcher":
+            move("queued", "awaiting_review")
+        elif role == "skeptic":
+            move("awaiting_review", "dead")        # every review is a FAIL
+        elif role == "director":
+            move("idea", "queued", 2 - sum(len(stages[s]) for s in dispatch.ACTIVE_STAGES if s in stages))
+        with open(usage, "a", encoding="utf-8") as fh:
+            fh.write(f"{today_},{role},m,5,1,1,ok\n")
+        return {"status": "ok", "date": str(today_), "note": ""}
+    monkeypatch.setattr(dispatch, "run_role", fake_run)
+    cfg = {"roles": {r: {"enabled": True} for r in ("director", "researcher", "skeptic")}}
+    a = SimpleNamespace(force=[], dry_run=False)
+    limit = dispatch.run_roles(today, a, cfg, {}, ops_monitor.Findings(), [], {}, [])
+    assert limit["roles"] == {}
+    assert ran[:3] == [("researcher", "B"), ("skeptic", "A"), ("skeptic", "B")]
+    assert ran[3] == ("director", "refill")                       # pipeline emptied -> refilled today
+    assert ran[4:] == [("researcher", "X")]                       # the Researcher's 2nd slot today, not tomorrow
+    assert stages["queued"] == ["Y"] and stages["awaiting_review"] == ["X"]
+
+
+def test_no_refill_when_nothing_closed(monkeypatch, tmp_path):
+    ran, cfg, a = _setup(monkeypatch, tmp_path, limited_role=None)
+    monkeypatch.setattr(dispatch, "in_stage", lambda s: {"queued": ["Q"], "idea": ["X"]}.get(s, []))
+    dispatch.run_roles(date(2026, 11, 4), a, cfg, {}, ops_monitor.Findings(), [], {}, [])
+    assert "director" not in ran

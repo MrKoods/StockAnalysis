@@ -267,14 +267,14 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     cap = int(cfg.get("weekly_claude_run_cap", 12))
     role_runs = load_json(STATE / "role_runs.json", {})
 
-    def launch(role: str, why: str) -> None:
+    def launch(role: str, why: str, again: bool = False) -> None:
         if limit["roles"]:
             limit["roles"].setdefault(role, why)
             return
         if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
             return
         last = role_runs.get(role, {})
-        if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force \
+        if last.get("date") == str(today) and last.get("status") == "ok" and role not in a.force and not again \
                 and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
             log(f"{role} already ran OK today - not relaunched", "dispatch")
             return
@@ -297,17 +297,30 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
             launch(role, want[role])
     # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
     # Up to PER_DAY ideas each; stop early if the same work comes back (the run didn't move it).
-    for role, work in (("researcher", research_work), ("skeptic", review_work)):
-        done: list[str] = []
-        for _ in range(max(0, PER_DAY - ran_ok_today(role, today))):
-            why = work() or (want.get(role) if not done else None)
-            if not why or why in done:
-                break
-            done.append(why)
-            launch(role, why)
-            pipeline += jobs.advance(a.dry_run)
-            if a.dry_run or limit["roles"]:
-                break
+    def research() -> None:
+        for role, work in (("researcher", research_work), ("skeptic", review_work)):
+            done: list[str] = []
+            for _ in range(max(0, PER_DAY - ran_ok_today(role, today))):
+                why = work() or (want.get(role) if not done else None)
+                if not why or why in done:
+                    break
+                done.append(why)
+                launch(role, why)
+                pipeline.extend(jobs.advance(a.dry_run))
+                if a.dry_run or limit["roles"]:
+                    break
+
+    active_before = sum(open_items(s) for s in ACTIVE_STAGES)
+    research()
+    # Refill: when this dispatch's Skeptic/holdouts closed ideas, the Director queues more NOW and the new ones
+    # get today's remaining Researcher slots - instead of the pipeline sitting empty until tomorrow.
+    active = sum(open_items(s) for s in ACTIVE_STAGES)
+    if (DAYS[today.weekday()] != "Sat" and not a.dry_run and active < active_before and active < MAX_ACTIVE
+            and open_items("idea")):
+        launch("director", f"refill: research just closed {active_before - active} idea(s) - pipeline has room "
+                           f"({active}/{MAX_ACTIVE}) with {open_items('idea')} idea(s) waiting - queue up to "
+                           f"{MAX_ACTIVE - active}", again=True)
+        research()
     # Auditor last, so it sees everything the other roles did today.
     if "auditor" in want:
         write_audit_pack(today)

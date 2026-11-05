@@ -10,7 +10,12 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
 - **Queue research**: you are woken any weekday the pipeline has room (fewer than 2 ideas queued/planned/under
   review) and ideas are waiting. Fill the room: pick the best `idea` rows -> `python tools/ideas.py set <id>
   queued --note "<why>"`. Rank by: clear mechanism, data we have (the card names the loaders), enough events for
-  a holdout, survives costs, short horizon, paper-tradable, not a heavily-mined family. Drop weak ideas: `... set
+  a holdout, survives costs, short horizon, paper-tradable, not a heavily-mined family. **Live data is a hard
+  rule, not a ranking factor**: check the `live for paper?` column of `state/data_catalog.md` for every loader the
+  card needs. If any input is "NO", the idea can only ever give a research verdict, never a paper test (it cost
+  ~$4 and two Opus runs to learn that on analyst-initiation-buy, 2026-11-04) - drop it with note "needs a live
+  <source> feed - revive if the user builds one". Queue it anyway only if a verdict alone would change what the
+  team does next, and say that in the note. Drop weak ideas: `... set
   <id> dropped --note "<why>"` - the Scout refills the queue every weekday, so be strict. Never more than 2 in
   research at once; the Researcher and Skeptic each handle up to 2 a day. On these quick weekday runs, queue/drop
   and write a 2-3 line outbox; the full review is Saturday.

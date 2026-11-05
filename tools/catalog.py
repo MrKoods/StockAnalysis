@@ -21,6 +21,18 @@ NOT_AVAILABLE = [
     "(only EPS estimate vs actual per report)", "index add/remove ANNOUNCEMENT dates (S&P announces them; only "
     "companies that also filed an 8-K are visible)", "intraday bars before 2023-11", "companies no longer listed "
     "(the universe is today's S&P 1500 - every backtest has survivorship bias; say so)"]
+# Can a paper test get this data on the day it trades? A "no" source can give a research verdict, never a paper
+# test, until someone builds a live feed for it (the user decides). Keep in step with what actually refreshes.
+LIVE = {
+    "daily(tickers)": "yes - the paper runner downloads each day's bars",
+    "hourly(tickers)": "yes - V3 fetch task, daily ~14:00 PT",
+    "five_min / one_min": "yes - V3 fetch task, daily ~14:00 PT",
+    "earnings(tickers)": "dates yes via Yahoo's calendar (as V4 EPRE does); this file is a 2026-10-23 copy",
+    "insider(start)": "NO - 2026-10-23 copy, no Form 4 feed",
+    "ratings(tickers)": "NO - 2026-10-23 copy, no ratings feed",
+    "filings(forms, items, tickers)": "yes - SEC daily index each dispatch (a filing reaches it the next weekday)",
+    "splits(tickers)": "weekly - refreshed Saturdays",
+}
 
 
 def _range(path, col=None) -> str:
@@ -47,15 +59,15 @@ def sources() -> list[str]:
         ("ratings(tickers)", f"{n(rd.EVENTS / 'ratings')} tickers", _range(rd.EVENTS / "ratings" / "AAPL.parquet", "GradeDate"),
          "analyst rating changes"),
     ]
-    lines = ["| loader | coverage | dates | what |", "|---|---|---|---|"]
-    lines += [f"| `{a}` | {b} | {c} | {d} |" for a, b, c, d in rows]
+    lines = ["| loader | coverage | dates | what | live for paper? |", "|---|---|---|---|---|"]
+    lines += [f"| `{a}` | {b} | {c} | {d} | {LIVE.get(a, '?')} |" for a, b, c, d in rows]
     f = rd.EDGAR / "filings.parquet"
     if f.exists():
         df = pd.read_parquet(f, columns=["ticker", "form", "accepted", "items"])
         st = load_json(rd.EDGAR / "state.json", {})
         lines.append(f"| `filings(forms, items, tickers)` | {df['ticker'].nunique()} tickers, {len(df):,} filings | "
                      f"{df['accepted'].min():%Y-%m-%d} .. {st.get('updated_through', '?')} | SEC filings + exact "
-                     f"acceptance time; 8-K item codes from 2004-08 |")
+                     f"acceptance time; 8-K item codes from 2004-08 | {LIVE['filings(forms, items, tickers)']} |")
         k8 = df[df["form"].str.startswith("8-K") & (df["accepted"] >= "2004-08-23")]
         counts = k8["items"].fillna("").str.split(",").explode().str.strip().value_counts()
         item_lines = [f"- `{c}` {rd.EIGHT_K_ITEMS.get(c, '')}: {counts[c]:,} filings"
@@ -71,7 +83,7 @@ def sources() -> list[str]:
         lines.append(f"| `splits(tickers)` | {len(sp)} splits ({int((sp['ratio'] > 1).sum())} forward, "
                      f"{int((sp['ratio'] < 1).sum())} reverse); announcement found for {ann} | "
                      f"{sp['ex_date'].min():%Y-%m-%d} .. {sp['ex_date'].max():%Y-%m-%d} | ex-date, ratio, first "
-                     f"'stock split' filing (2001+) |")
+                     f"'stock split' filing (2001+) | {LIVE['splits(tickers)']} |")
     return lines + ["", "### 8-K event types available (2004-08+, our universe) - each is a possible family", ""] + \
         item_lines + ([f"", f"Most common forms: {form_line}"] if form_line else [])
 
@@ -93,7 +105,9 @@ def write() -> str:
     text = "\n".join([
         f"# Data catalog - generated {now_pt():%Y-%m-%d %H:%M} by tools/catalog.py (do not edit)", "",
         "Everything research can use. Only these loaders exist (tools/research_data.py); an idea whose inputs",
-        "are not here needs new data - list it under 'Needs data' in your notes, don't register it.", "",
+        "are not here needs new data - list it under 'Needs data' in your notes, don't register it.",
+        "`live for paper?` = can a paper test get the input on the day it trades. An idea resting on a NO source",
+        "can only ever give a research verdict - not a paper test - so the Director does not queue it by default.", "",
         "## Sources", ""] + sources() + [
         "", "## Not available (needs new data - the user decides)", ""] + [f"- {x}" for x in NOT_AVAILABLE] + [
         "", "## Periods each family has used", "",
