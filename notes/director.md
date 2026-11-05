@@ -106,6 +106,19 @@ Pipeline 0/2 at start; 7 ideas parked (all live=yes in data_catalog — none ver
 - Did the user's V3 session stop/park G2 after its 20-day FAIL?
 - Saturday = weekly director report + Auditor.
 
+## 2026-11-05 (Thu) — 2nd run, refill
+early-10q-drift + restructuring-bounce both ran train + Skeptic FAIL today (now `dead`) → pipeline back to 0/2.
+Refilled both slots from the 4 remaining parked ideas:
+- **queued turn-of-month** (calendar_effects, 4d): distinct calendar mechanism untouched by today's failures;
+  data in hand, paper-tradable. Caveat to Researcher: mined family + few TOM clusters/yr → must power a clean
+  untouched holdout and prove it survives costs.
+- **queued nt-filing-short** (nt_filing, 3d short): distinct late-filing short signal. Confirmed paper_runner
+  supports side=short (paper_runner.py:235). Caveat: Researcher MUST verify filings() actually returns NT 10-K/
+  NT 10-Q forms first; bounce to dead if not. 30bps short-side cost = kill test.
+- **dropped early-10k-drift**: twin mechanism of the just-failed 10q-drift, with ~1/4 the events.
+- **dropped debt-acceleration-bounce**: kitchen-sink twin of the just-failed 2.05 restructuring; only 410 events.
+Only turn-of-month remains as a backup if these die — Scout should refill the parked pool next weekday.
+
 ### Corrections from the user's session (2026-11-02)
 - Quote Clerk did NOT fail on 10-30: those were test runs. Scheduled captures started 11-02 and work: open
   65/74 (9 not yet quoted at 9:31 ET - expect ~10% most mornings; they fall back to official prices), close
