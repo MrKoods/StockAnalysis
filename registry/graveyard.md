@@ -15,3 +15,5 @@ Price/volume patterns on free hourly/daily data are largely exhausted; edges fou
 - **split-announcement-drift** (2026-10-31): holdout FAIL: t 0.99 vs bar 3.00, 78.4 bps
 - **reg-fd-small-cap-disclosure** (2026-11-04): Skeptic FAIL: Pre-registered sp600_h1 LONG is train t -2.77 / mean -17.9 bps; small-cap tilt runs opposite to the thesis.
 - **analyst-initiation-buy** (2026-11-04): Skeptic FAIL: Pre-registered sp600_h3 LONG is train t -1.28 / mean -19.85 bps; small caps worst not best; also flagged not promotable.
+- **restructuring-bounce** (2026-11-05): Skeptic FAIL: Pre-registered chosen sp600_h3 is NEGATIVE on train (t -0.85, mean -24.43 bps); thesis inverted, no variant clears luck 1.67.
+- **early-10q-drift** (2026-11-05): Skeptic FAIL: Chosen sp1500_t7_long t 0.99 - below the 2.0 floor and luck 1.89; best variant 1.45 also sub-luck; trade-level mean negative (-9.97). Honest null on a clean new family.
