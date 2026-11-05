@@ -75,6 +75,37 @@ failing; watch next run). Yahoo news-fetch errors in paper_runner logs are confi
 Watch next run: 2026-11-05 G2 paper 20-day cp (likely FAIL→retire via gate); both queued ideas should move to
 `planned` (Researcher); the unscored-V4 evaluate task.
 
+## 2026-11-05 (Thu) — weekday queue run
+Pipeline 0/2 at start; 7 ideas parked (all live=yes in data_catalog — none verdict-only). Filled both slots:
+- **queued early-10q-drift** (10q_timing, 3d): best — family wholly unmined, 10-Q quarterly freq = ~4x the 10-K
+  analog's events (holdout power), clean timeliness mechanism, S&P 1500 (not small-cap-only), 18bps, paper-tradable
+  off the live SEC index. Preferred over early-10k-drift (same mechanism, 1/4 the events) — left 10k parked.
+- **queued restructuring-bounce** (8k_2_05, 3d): in-house screen t=1.79@3d, 2,097 item-2.05 filings, untouched
+  8k_2_05 holdout, kitchen-sink mechanism, real-time 8-K. CAUTION to Researcher: reg-fd(7.01) + analyst-initiation
+  both just died on TRAIN with NEGATIVE t because the small-cap LONG ran opposite — don't force an S&P400+600-only
+  long; test full S&P 1500 too. 30bps@3d is the kill risk.
+- **dropped quarter-end-window-dressing**: ~4 correlated clusters/yr = thin holdout power + heavily-mined calendar
+  (same reasoning as pre-holiday/january drops). turn-of-month kept as single calendar backup.
+- Left parked: turn-of-month (calendar backup), early-10k-drift (timeliness backup), debt-acceleration-bounce
+  (kitchen-sink twin of 2.05, only 410 events — redundant/underpowered vs restructuring), nt-filing-short
+  (blocker: verify paper_runner supports direction=short AND that NT 10-K/NT 10-Q forms exist in filings()).
+
+### Live tests (from 2026-11-05 snapshot — do not re-derive)
+- **V3 G2 paper: 20-day checkpoint = FAIL** (mean -33.5 bps, day-t -2.05; rule FAILs if mean<0). V3 folder =
+  read-only for team, no team gate entry, so the team can't retire it — user's V3 session / Scorekeeper to act.
+  Reported in outbox.
+- V3 ON1 paper: 17/20 days, +70.3 bps, t 2.90 — still clearing its bar; 20-day cp Mon 11-09 (scored Tue 11-10 AM).
+- V2 rank go/no-go: 72/100, +0.024R after costs (bar +0.15), week-t -0.26 — needs +0.474R over last 28 to GO; drifting NO-GO.
+- V4 EPRE: 836 closed, hedged +28.7 bps, exit-day t 0.11 (7d) — too early, cp A at 1k. Integrity alerts (|ret/net_bps|>5000)
+  already posted → Scorekeeper to diagnose.
+
+### Watch next run
+- Both queued ideas should move to `planned` (Researcher). Confirm.
+- Mon 11-09 ON1 paper 20-day cp (borderline PASS — needs mean>=+5 AND t>=2 at day 20).
+- V2 rank go/no-go approaching 100 trades.
+- Did the user's V3 session stop/park G2 after its 20-day FAIL?
+- Saturday = weekly director report + Auditor.
+
 ### Corrections from the user's session (2026-11-02)
 - Quote Clerk did NOT fail on 10-30: those were test runs. Scheduled captures started 11-02 and work: open
   65/74 (9 not yet quoted at 9:31 ET - expect ~10% most mornings; they fall back to official prices), close
