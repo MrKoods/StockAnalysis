@@ -5,8 +5,10 @@ Created 2026-10-27.
 ## Watch list (as of 2026-10-30)
 - V2 rank go/no-go: 65/100 trades; mean R -0.006 (need +0.15), t -0.25 — looking weak, likely NO-GO
 - V3 ON1 paper: 13 days, t 1.91, mean +53.5 bps — softening (was t 2.37/+81.6 bps at 9 days); checkpoint at 20 days = Tue 2026-11-10 AM; borderline
-- V3 G2 paper: 16 days, mean -19.6 bps, t -1.36 — heading to FAIL; checkpoint Thu 2026-11-05
-- V4 EPRE: 388 closed trades, hedged mean -6.9 bps — too early; checkpoint A at 1,000 trades
+- V3 G2 paper: FAILED day 20 (2026-11-05): mean -33.5 bps, t -2.05. Director to retire.
+- V4 EPRE: 836 closed trades, hedged mean +28.7 bps, day-t 0.11 (7 exit days) — too early for t; checkpoint A at 1,000 trades
+- V4 EPRE real-price: 322 trades, 2 exit days only; real hedged +110.6 bps vs paper +111.2 (spread cost 12.6 bps). Too early.
+- VCYT: flagged 2026-11-05 as outlier (-5228 bps). User to verify $24.0 exit close vs Webull.
 - ON1 real-price (Quote Clerk): 0 days captured. The 2026-10-30 runs in state/usage.csv were TEST runs
   (note test_run), not failures; scheduled captures start Mon 2026-11-02 06:31 / 12:56 PT. Must be working before
   ON1 paper matters.
@@ -31,3 +33,8 @@ Created 2026-10-27.
 2026-10-30: weekly scorecard. Scorecard written to reports/2026-10-30-scorecard.md.
   G2 heading to FAIL at Nov 5. ON1 softened but still positive. V4 EPRE now active (388 closed).
   Quote Clerk had failed capture — no real-price data yet.
+2026-11-05: diagnosis + G2 day-20 checkpoint. Reports/2026-11-05-diagnosis.md.
+  G2 FAILED at day 20 (mean -33.5 bps, t -2.05). Director to retire.
+  VCYT in EPRE ledger (line 831): ret_bps -5228 / net_bps -5244, flagged by integrity. Likely real
+  post-earnings crash (50.29 -> 24.0, -52.3%). User must verify VCYT close on 11-05 in Webull.
+  integrity_seen.json now records this as known; will not re-alert unless VCYT row changes.
