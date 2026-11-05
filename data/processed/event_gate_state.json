@@ -2551,9 +2551,85 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-11-02T21:34:51.312733+00:00"
+    },
+    {
+      "id": "38e73e5e-82f4-4dd2-a4d8-51f3890890af",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Memory Trade Warnings Pile Up: Dell\u2019s Tripled Inventory Says Chip Supply Is \u201ca Lot Closer\u201d to Demand",
+      "trigger_match": "trade war",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-03T08:57:40+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-03T13:36:21.504804+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-03T21:36:28.619346+00:00"
+    },
+    {
+      "id": "f90f1d8a-8b40-444a-8558-ccf47d8be05a",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Memory Trade Warnings Pile Up: Dell\u2019s Tripled Inventory Says Chip Supply Is \u201ca Lot Closer\u201d to Demand",
+      "trigger_match": "trade war",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-03T08:57:40+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-04T13:33:46.692586+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-04T21:34:56.784168+00:00"
+    },
+    {
+      "id": "c21c5b4f-342b-4d32-8163-0ce7848de3d0",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Dow Skyrockets 1,500 Points in Best Day Since Trump's Tariff Pause",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-04T17:02:21+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-04T21:30:29.255504+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": false,
+      "expired_at_utc": null
     }
   ],
-  "critical_alerts_sent": {
-    "UNH|fraud|2026-10-27T14:00:00+00:00": "2026-10-27T20:32:36.995949+00:00"
-  }
+  "critical_alerts_sent": {}
 }
