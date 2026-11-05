@@ -1,6 +1,17 @@
 # Skeptic notes
 
 ## Reviewed
+- 2026-11-05 **restructuring-bounce** -> FAIL. Pre-registered sp600_h3 (8k_2_05, item 2.05 LONG)
+  train t -0.85, mean -24.43 bps. Thesis INVERTED (smallest caps keep falling at open+2->open+5);
+  no variant clears luck 1.67 (best sp46_h5 t0.99), signs flip across grid. Clean look-ahead,
+  ample sample (230 wks). Survivorship biases long UP yet still -24 -> strengthens FAIL. Full-
+  S&P screen cited as prior (t1.79) was already below its own luck bar 2.84. 8k_2_05 holdout NOT spent.
+- 2026-11-05 **early-10q-drift** -> FAIL (honest null, NOT inversion). Pre-registered sp1500_t7_long
+  (10q_timing, early-filer LONG) train t 0.99 < 2.0 floor & < luck 1.89; best sp1500_t14_long t1.45
+  also sub-luck. Tell: trade_mean_bps -9.97 vs week-mean +20.33 -> positive period-mean is heavy-week
+  composition, not a per-trade edge. Clean look-ahead (prior-yr match from PAST filings, open entry
+  strictly after acceptance). Well-powered (452 wks). Late-filer short also null = no symmetric timing
+  effect. First 10q_timing family use; holdout NOT spent (family stays clean).
 - 2026-11-04 **reg-fd-small-cap-disclosure** -> FAIL. Pre-registered sp600_h1 LONG train t -2.77,
   mean -17.9 bps. ALL 1d longs strongly negative; mechanism INVERTED vs the +6.5bps full-S&P1500
   7.01 screen (positive signal was the large caps the plan excluded). Clean look-ahead, ample sample.
