@@ -1,5 +1,25 @@
 # Researcher notes
 
+## 2026-11-05 — early-10q-drift (planned, check+smoke pass)
+- Five files in research/early-10q-drift/ + strategies/early-10q-drift/.
+- Family `10q_timing` (NEW, entirely clean). Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-28
+  (recent = arbitraged era; daily ends 11-02 → buffer for open+3 exit; filings end 11-04). Bar floor 3.0.
+- Signal: original 10-Q (form=="10-Q", drop /A) filed >= N calendar days earlier than this ticker's prior
+  10-Q accepted 300-430 days before (closest to 365 = same fiscal quarter a yr ago; excludes 91/182/273/456).
+  days_early=(prior_acc+1yr)-this_acc. LONG at first_session OPEN, exit OPEN+3. SPY-hedged open->open; cost 20
+  (S&P1500 large/mid); cluster "week". 5 trading days ≈ 7 cal, 10 ≈ 14.
+- 6 variants: univ {sp1500, sp46=sp400+sp600} × thr {7,14} long + late-filer SHORT (de<=-7) {sp1500,sp46}.
+  chosen PRE-REGISTERED = `sp1500_t7_long` (broad universe academic result is on, base thr, long).
+  luck_t~1.9. Hold fixed 3.
+- Smoke (2001 only): sp1500_t7_long 137 trades/28 wk, sp1500_t7_short 142/24 — ample power year 1.
+- PROMOTABLE (with caveat): 10-Qs same-day public; filings.parquet has full 10-Q history for prior-yr match;
+  strategy.py reads it live, universe = sp500_new+sp400+sp600 CSVs. CAVEAT: SEC daily index reaches parquet
+  next weekday → same-session filing can slip 1 day in paper (research uses clean first_session). Flagged for
+  Director. spec hold_sessions=3, exit open, metric real_hedged_bps, pass 5 bps/t 2.0, 20-40 days.
+- KEY: prior-year match by actual prior-filing gap (not calendar quarter) → handles non-calendar fiscal yrs.
+  Reused restructuring/reg-fd skeleton; reg-fd's "first tradable session is NEXT session" emit = first_session
+  open entry. df["open"] does NOT trip FORBIDDEN `\bopen\(` (no paren). pd.DateOffset(years=1) for anniversary.
+
 ## 2026-11-05 — restructuring-bounce (planned, check+smoke pass)
 - Five files in research/restructuring-bounce/ + strategies/restructuring-bounce/.
 - Family `8k_2_05` (used only screen 2005-2013). Train 2005-01-01..2013-12-31, holdout
