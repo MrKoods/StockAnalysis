@@ -1,5 +1,30 @@
 # Researcher notes
 
+## 2026-11-06 — nt-filing-short (planned, check+smoke pass)
+- Five files in research/nt-filing-short/ + strategies/nt-filing-short/. Family `nt_filing` (NEW, whole
+  history clean). Bar 3.00. SHORT idea.
+- Train 2005-01-01..2017-12-31 (8-K item codes from 2004-08, needed for ex202 variant), holdout
+  2018-01-01..2026-10-24 (recent arbitraged era; daily ends 11-02, buffer for close+3 exit).
+- Signal: NT 10-K / NT 10-Q accepted (forms=["NT 10-K","NT 10-Q"]). SHORT at CLOSE of session AFTER
+  first_session (entry_pos=pos+1), cover CLOSE +H. SPY-hedged gross SHORT = spy_ret−stock_ret
+  close→close. cost 30 (close floor ~12 + borrow/slippage buffer). cluster "week".
+- 5 variants: univ {sp500, sp54=sp500+sp400} × hold {2,3} + sp54_h3_ex202 (exclude NT within ±2 cal days
+  of an 8-K 2.02 earnings release). chosen PRE-REGISTERED = `sp54_h3` (broad tradable univ, ~3d drift).
+  luck_t~1.79. sp600 EXCLUDED (borrow prohibitive).
+- CLOSE fills forced: edge ~50-70 bps CAR < ~80 bps open round trip → open untradable for this user.
+  Cost of entering 1 session late = central risk, flagged for Skeptic + as kill condition.
+- Smoke (2005): sp54_h3 73 trades/17 wk, sp500_h3 27/13, ex202 52/13 — NT forms CONFIRMED retrievable
+  (idea's gate), ample power, ~29% of NT coincide with earnings (ex202 drop).
+- PROMOTABLE: NT filings same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live
+  (reads sp500_new.csv + sp400.csv). strategy emits short when first_session==today → runner enters next
+  session close = first_session+1 close, hold 3, exit close. spec entry_at=close, metric real_hedged_bps,
+  pass 15 bps/t 2.0, 20-40 days. CAVEAT: real_hedged_bps prices SPREAD not BORROW → pass_mean_bps 15
+  leaves borrow room; Director must confirm borrow before real money. Survivorship biases a SHORT AGAINST
+  us (delisted worst-cases absent) → a pass is conservative.
+- KEY: SEC form stored raw ("NT 10-K"/"NT 10-Q"), NT not in SKIP_FORMS (edgar.py). paper_runner handles
+  side="short" (sgn in _bps + real_price; hedged = real_bps − sgn·spy_bps). Reused restructuring skeleton;
+  close→close hedge uses spy close both legs (advance exit_at=close). df["close"] lowercase in rd.daily.
+
 ## 2026-11-06 — turn-of-month (planned, check+smoke pass)
 - Five files in research/turn-of-month/ + strategies/turn-of-month/.
 - Family `calendar_effects` (NOT in catalog used-periods table → whole history clean). Bar 3.00.
@@ -100,18 +125,6 @@
 - Reused split-drift's test.py/strategy.py skeleton. Runner auto-adds SPY to universe (paper_runner:51),
   builds sessions from bars["SPY"].index (:244) and computes the hedge (spy_bps) itself — strategy.py
   only needs SPY for the session calendar. filings.parquet cols incl accepted, items, form, ticker.
-
-## 2026-10-31 — split-announcement-drift (planned, check+smoke pass)
-- Five files in research/split-announcement-drift/ + strategies/split-announcement-drift/.
-- Family `corporate_events` (NOT in catalog's used-periods table → whole history clean). Bar 3.00.
-- Windows: train 2001-01-01..2017-12-31, holdout 2018-01-01..2026-10-06 (most recent = arbitraged
-  era, the hard/honest test). Daily ends 2026-10-06; announcements begin ~2001.
-- Signal: FORWARD split (ratio>1), entry at OPEN of rd.splits `first_session` (leak-free), exit CLOSE
-  H sessions later. SPY-hedged gross; cost 20 bps; cluster "week".
-- 6 variants: H∈{2,4} × ratio tier {r1>1, r2≥2, r3≥3}. chosen PRE-REGISTERED = `h4_r2`.
-- Smoke (2001 only): h4_r2 11 trades/10 wk; h*_r3 0 (3:1 rare early) — fine, r3 is robustness only.
-- PROMOTABLE (unlike insider): split 8-Ks are same-day public; splits.parquet rebuilt each dispatcher
-  run → strategy.py reads it live. BUT forward splits ~30/yr → paper min_days=20 takes many months.
 
 ### Data facts learned (reuse next time)
 - rd.splits(None) cols: ticker, ex_date, ratio(>1 fwd,<1 rev), announced, announce_form,
