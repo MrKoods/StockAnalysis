@@ -45,3 +45,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-11-04,analyst-initiation-buy,analyst_ratings,search,6,2012-09-12..2019-12-31,-1.28,-19.85,,team train run
 2026-11-05,restructuring-bounce,8k_2_05,search,4,2005-01-01..2013-12-31,-0.85,-24.43,,team train run
 2026-11-05,early-10q-drift,10q_timing,search,6,2001-01-01..2015-12-31,0.99,20.33,,team train run
+2026-11-06,turn-of-month,calendar_effects,search,4,1999-01-01..2014-12-31,1.37,21.96,,team train run
