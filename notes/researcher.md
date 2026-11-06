@@ -1,5 +1,27 @@
 # Researcher notes
 
+## 2026-11-06 — turn-of-month (planned, check+smoke pass)
+- Five files in research/turn-of-month/ + strategies/turn-of-month/.
+- Family `calendar_effects` (NOT in catalog used-periods table → whole history clean). Bar 3.00.
+  Train 1999-01-01..2014-12-31, holdout 2015-01-01..2026-10-31 (recent arbitraged era; daily ends
+  2026-11-02 → +3 exit buffer; Oct-2026 turn forms no trade, fine).
+- Signal: LONG whole sp500 EW at CLOSE of last NYSE session of month (T), exit CLOSE of H-th new-month
+  session. RAW (unhedged) close→close bps — TOM is MARKET-LEVEL so SPY-hedge would CANCEL it. cost 10
+  (floor sp500 close→close 6.6). cluster "week" = ~1 cluster/month (all names share one exit date).
+- 4 variants: tom_h1/h2/h3 + mid_h3 PLACEBO (enter middle session of month, hold 3 = same beta, no TOM).
+  chosen PRE-REGISTERED = `tom_h3` (canonical McConnell-Xu window). luck_t~1.67.
+- BETA CONFOUND flagged for Skeptic: raw 4-day long earns ~16bps equity premium regardless of TOM →
+  tom_h3 must EXCEED mid_h3 placebo, not just be >0. Harness scores configs separately (no diff test).
+- Smoke (1999): tom_h* 3368 trades/11 wk, mid_h3 3675/12 — ample power year 1.
+- PROMOTABLE BUT IMPRACTICAL: strategy.py uses self-contained NYSE holiday calendar (_easter/Good Friday,
+  Memorial last-Mon-May can be 5/31, Juneteenth≥2022, NYSE keeps Dec31 open when 1/1=Sat) to detect
+  month-end; emits on 2nd-to-last session so runner enters month-end close. BUT 1 cluster/month → min_days
+  20 ≈ 20 months, max_days 40 ≈ 3+yr. Effectively research-only; flagged for Director. metric real_bps
+  (raw, NOT hedged), pass 15 bps/t 2.0, hold 3, entry+exit close, max_signals 520 (whole sp500 one day).
+- KEY: plan carries ONE cost floor, so can't mix sp500/sp400/sp600 (would mis-charge) → scoped to sp500
+  only + documented. daily cols lowercase close. rd.universe("sp500")=V3 sp500_new.csv (current members →
+  survivorship, flagged). month-end from SPY session calendar = NOT look-ahead (calendar known in advance).
+
 ## 2026-11-05 — early-10q-drift (planned, check+smoke pass)
 - Five files in research/early-10q-drift/ + strategies/early-10q-drift/.
 - Family `10q_timing` (NEW, entirely clean). Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-28
@@ -100,19 +122,7 @@
 - strategy.py (NOT static-scanned) reads data/edgar/splits.parquet via parents[2]/data/edgar. bars
   index in paper_runner are datetime.date, not Timestamp.
 
-## 2026-10-27 — insider-cluster-buys (planned, check+smoke pass)
-- Five files written in research/insider-cluster-buys/ and strategies/insider-cluster-buys/.
-- Windows: train 2006-01-01..2013-12-31, holdout 2014-01-01..2017-12-31. Insider family already
-  spent its one holdout on 2018-2026 (v3-insider-buys), so that window is OFF LIMITS for this family.
-  Insider data starts 2006 → 2014-2017 is the most recent still-free holdout.
-- Signal: >=2 distinct RPTOWNERCIK open-market Form-4 purchases (TRANS_CODE 'P'), each >=$25k, within
-  a 5-CALENDAR-DAY window by FILING_DATE (filing-date window = leak-free), total >=$75k. Long next
-  open, exit close H sessions later. SPY-hedged gross bps; cost 20 bps; cluster "week".
-- `chosen` is PRE-REGISTERED = n2_h5_m75k (not best-of-train). Other 11 configs reported for Skeptic
-  robustness only. Keeps holdout a single hypothesis; luck bar = floor 3.0 (K=2).
-- Smoke (2006 only): 62-74 trades, 33-37 weekly periods per variant → sample is fine.
-
-### Data facts learned (reuse next time)
+### Data facts learned (reuse next time) [insider-cluster-buys 2026-10-27 narrative pruned]
 - Insider parquet cols: ACCESSION_NUMBER, TRANS_DATE, TRANS_CODE(P/S), TRANS_SHARES,
   TRANS_PRICEPERSHARE, TRANS_ACQUIRED_DISP_CD(A/D), FILING_DATE(%d-%b-%Y), ISSUERTRADINGSYMBOL,
   DOCUMENT_TYPE, RPTOWNERCIK, RPTOWNER_RELATIONSHIP(contains 'Officer'/'Director'), RPTOWNER_TITLE.
