@@ -1,20 +1,16 @@
 # Scout notes (max ~150 lines)
 
-## Last run: 2026-11-05
-- Run reason: scouting (4 ideas waiting, target 10)
-- Ideas at start: 4 (turn-of-month, restructuring-bounce, quarter-end-window-dressing, early-10k-drift)
-- Added 3 new ideas: early-10q-drift (10q_timing), debt-acceleration-bounce (8k_2_04), nt-filing-short (nt_filing)
-- Total at `idea` stage after run: 7
-- Still 3 short of target 10; next run should add up to 3 more
+## Last run: 2026-11-06
+- Run reason: scouting (0 ideas waiting, target 10)
+- Ideas at start: 0 at `idea` stage (turn-of-month and nt-filing-short already `queued`)
+- Added 4 new ideas: activist-13d-long (activist_13d), pipe-short (8k_3_02), year-end-loser-reversal (calendar_effects), late-10k-short (10k_timing)
+- Total at `idea` stage after run: 4 (target 10; still 6 short — needs more next run)
 
-## Current ideas at `idea` stage (as of 2026-11-05)
-1. turn-of-month — calendar_effects, 4d
-2. restructuring-bounce — 8k_2_05, 3d
-3. quarter-end-window-dressing — calendar_effects, 2d
-4. early-10k-drift — 10k_timing, 3d
-5. early-10q-drift — 10q_timing, 3d (10-Q timeliness; Chambers & Penman; 4x more events than 10-K)
-6. debt-acceleration-bounce — 8k_2_04, 3d (screen t=+1.99; distress-resolution bounce)
-7. nt-filing-short — nt_filing, 3d (NT filing = negative signal; short S&P 500 large-cap only)
+## Current ideas at `idea` stage (as of 2026-11-06)
+1. activist-13d-long — activist_13d, 3d (close entry; Brav et al. 2008 +7.2% at 13D)
+2. pipe-short — 8k_3_02, 3d (SHORT; close entry; screen t=-1.70; Brophy et al. 2009)
+3. year-end-loser-reversal — calendar_effects, 5d (S&P 400 down>=20% YTD; close Dec 26)
+4. late-10k-short — 10k_timing, 3d (SHORT; close entry; exclude NT filers)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -38,60 +34,63 @@ with its whole history clean except screen (2005-2013) already used.
 - dividend capture: needs a dividend ex-date calendar (not in catalog)
 - options expiration pinning reversal: needs options open interest data (not in catalog)
 - SC 13G new blockholder: initial SC 13G filing = passive 5%+ holder; mechanism weaker than 13D
-  (activist); February filing cluster is a paper-runner concern; needs "first-ever vs amendment" logic;
-  Edmans (2009) shows 13D (activist) is strong but 13G (passive) is weak; deferred
+  (activist); February filing cluster is a paper-runner concern; Edmans (2009) shows 13D is strong but
+  13G (passive) is weak; deferred
 
 ## What is left in 8-K space (for future runs)
 Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that threshold):
 - 7.01 Reg FD: t=2.31 → registered (now DEAD); small-cap tilt ran negative
-- 2.04 debt acceleration trigger: t=1.99 (3d) → registered as debt-acceleration-bounce
-- 2.05 restructuring: t=1.79 (3d) → registered as restructuring-bounce
-- 3.03 shareholders' rights change: t=-1.98 (1d); short side, thin after costs; skip
-- 3.02 unregistered equity sale: t=-1.70 (3d); -37.9 bps but after 20bps costs = +17.9 → short, expensive
+- 2.04 debt acceleration trigger: t=1.99 (3d) → registered as debt-acceleration-bounce (dropped)
+- 2.05 restructuring: t=1.79 (3d) → registered (now DEAD)
+- 3.02 unregistered equity sale: t=-1.70 (3d) → registered as pipe-short (SHORT, close entry)
+- 3.03 shareholders' rights change: t=-1.98 (1d); after 20bps costs = +4.9; too thin; skip
+- 3.01 delisting notice: t=-1.47 (3d); after 20bps = +22.6; t too low; skip
+- 4.02 restatement: t=-1.13 (5d); after 20bps = +31.4; t too low; skip
 - All other types: t < 1.5, skip
 - 8k_5_01 (change in control): NOT in screen; 384 events/20yr = ~19/yr → ~180 holdout events; too sparse
 
 ## Calendar effects family status
-- turn-of-month: at `idea` stage
-- quarter-end-window-dressing: at `idea` stage
-- Both: 0 holdouts used, 0 search variants; family bar = 3.0
+- turn-of-month: at `queued`
+- quarter-end-window-dressing: `dropped`
+- year-end-loser-reversal: at `idea` (S&P 400, down>=20% YTD)
+- All: 0 holdouts used, 0 search variants; family bar = 3.0
 
-## Budget state (2026-11-05)
-- 10q_timing: new family, entirely clean
-- nt_filing: new family, entirely clean
-- 8k_2_04: search 2005-2013 (screen); holdout 2014-2026 clean; 0 researcher variants
-- 8k_2_05: search 2005-2013 (screen); holdout 2014-2026 clean
-- 10k_timing: new family, entirely clean
-- calendar_effects: 0 holdouts, 0 variants
-- analyst_ratings: search 2012-2019 (train run); live feed=NO → no more ideas
+## Budget state (2026-11-06)
+- activist_13d: new family, entirely clean
+- 8k_3_02: search 2005-2013 (screen, 3 variants); holdout 2014-2026 clean
+- 10k_timing: new family, entirely clean; early-10k-drift dropped, late-10k-short at idea
+- calendar_effects: 0 holdouts, 0 search variants
+- 10q_timing: search 2001-2015 (team train run); holdout clean (early-10q-drift DEAD)
+- nt_filing: new family; nt-filing-short at queued
+- 8k_2_04: search 2005-2013 (screen); holdout 2014-2026 clean
 - 8k_7_01: fully mined (screen + train run); small-cap effect ran opposite; don't add more
 - earnings_events: 2 holdouts used; NO CLEAN HOLDOUT - don't add more
 - corporate_events: 1 holdout used (fail)
 - insider: 2 holdouts used; bar = 3.00 (no clean period)
+- analyst_ratings: search 2012-2019 (train run); live feed=NO → no more ideas
 
-## Ideas to target next run (need ~3 more to approach 10)
-1. Any fresh SSRN/arXiv ideas using filings() that don't overlap with the above families:
-   - CORRESP filing (SEC scrutiny signal): filings(forms=['CORRESP']); mechanism is speculative (response vs. notice); deferred pending clearer mechanism evidence
-   - Multiple 8-K items in same filing as opacity signal: 2.05 + 5.02 together as "captain jumping ship";
-     would need filings() item co-occurrence logic (researcher could do it)
-2. 10-K late filer short (family 10k_timing): complement to early-10k-drift; same researcher test
-3. DEF 14A timing: proxy statement timing; mechanism unclear; skip unless literature found
-4. Additional calendar effects: year-end tax-loss harvesting reversal (buy beaten-down Dec stocks for
-   January bounce) — but january-small-cap-reversal was already dropped; check if data-driven
+## Ideas to target next run (need ~6 more to approach 10)
+1. Fresh SSRN/arXiv search for 2022-2025 papers on short-horizon event studies — do a WebSearch
+2. CORRESP filing (SEC scrutiny signal): filings(forms=['CORRESP']); mechanism speculative (response
+   vs. notice ambiguous); skip unless clearer direction found in literature
+3. SC 13D/A amendments (activist increases position): same activist_13d family; weaker signal;
+   possibly worth testing as a separate variant if activist-13d-long clears train
+4. DEF 14A timing (proxy_timing family): proxy filing timing signal; academic support thin; deferred
+5. Any fresh 8-K angle requires text parsing (not available)
 
-## Areas/sources checked 2026-11-05
-- Academic: Chambers & Penman (1984), Begley & Fischer (1998) [10-Q timeliness]
-  Engelberg, Reed & Ringgenberg (2012) [short-seller resolution bounce]
-  Ettredge, Lee & Scholz (2000), Kinney & McDaniel (1989) [NT filings = bad news]
-  Ohlson (1980) [distress resolution bounce]
-  Edmans (2009), Clifford (2008) [13D/13G blockholder disclosures]
-- Screen: re-read screen.md; 2.04 is the last remaining lead (t=1.99)
-- Catalog: verified 10q_timing and nt_filing are clean new families
-- Graveyard: no conflicts found for any new idea
+## Areas/sources checked 2026-11-06
+- Screen: re-read; 3.02 pipe-short added based on close-entry economics (screen t=-1.70 viable at 12bps)
+- fill_costs.json: confirmed close fills SP500=6.6bps, SP400=12.0bps round trip (much cheaper than open)
+- Academic: Brav et al. (2008), Klein & Zur (2009) [activist 13D]; Brophy et al. (2009),
+  Chaplinsky & Haushalter (2010) [PIPE short]; Reinganum (1983), Poterba & Weisbenner (2001) [year-end]
+  Ettredge et al. (2000), Kinney & McDaniel (1989) [late filer short]
+- Catalog: verified activist_13d is a new family; 8k_3_02 holdout clean; 10k_timing clean; calendar_effects clean
+- Budget: all new families at bar 3.0; no holdout conflicts
 
 ## Watch for next run
-- Did Director queue early-10q-drift, debt-acceleration-bounce, nt-filing-short?
-- Was V3 G2 day-20 checkpoint scored today (2026-11-05)? Check context.md
-- Need ~3 more ideas to reach target 10
-- SC 13G idea deferred (passive 13G mechanism too weak vs 13D)
-- nt-filing-short needs researcher to verify paper_runner.py short direction support
+- Did Director queue any of today's 4 ideas?
+- Need ~6 more ideas to reach target 10; need fresh academic sources — run WebSearch for recent SSRN papers
+- pipe-short: researcher needs to verify SHORT direction support in paper_runner.py (same issue as nt-filing-short)
+- activist-13d-long: researcher should verify that filings(forms=['SC 13D']) indexes by TARGET company, not filer
+- year-end-loser-reversal: january-small-cap-reversal was dropped; Director may drop this too — that's OK
+- late-10k-short + nt-filing-short overlap concern: researcher must exclude NT filers from late-10k-short dataset
