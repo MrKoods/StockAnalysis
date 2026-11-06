@@ -18,3 +18,4 @@ Price/volume patterns on free hourly/daily data are largely exhausted; edges fou
 - **restructuring-bounce** (2026-11-05): Skeptic FAIL: Pre-registered chosen sp600_h3 is NEGATIVE on train (t -0.85, mean -24.43 bps); thesis inverted, no variant clears luck 1.67.
 - **early-10q-drift** (2026-11-05): Skeptic FAIL: Chosen sp1500_t7_long t 0.99 - below the 2.0 floor and luck 1.89; best variant 1.45 also sub-luck; trade-level mean negative (-9.97). Honest null on a clean new family.
 - **turn-of-month** (2026-11-06): train result below the minimum: chosen tom_h3 t 1.37, 21.96 bps after cost 10.0 bps round trip - no holdout spent, no review needed
+- **nt-filing-short** (2026-11-06): train result below the minimum: chosen sp54_h3 t 0.04, 1.64 bps after cost 30.0 bps round trip - no holdout spent, no review needed
