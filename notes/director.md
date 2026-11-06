@@ -128,3 +128,26 @@ Only turn-of-month remains as a backup if these die — Scout should refill the 
 - V4 EPRE: Yahoo's placeholder time moved 15:00 -> 16:00 ET when DST ended; fixed in V4 the same night (16:00/01:00
   now also count as placeholders for upcoming reports; no second trade on a report already held). V4's rules
   are unchanged - this restores how it ran Oct 26-30.
+
+## 2026-11-06 (Fri) — refill run
+turn-of-month + nt-filing-short both ran train + went dead today → pipeline 0/2. 4 ideas parked. Filled both slots:
+- **queued pipe-short** (8k_3_02, 3d short): strongest. PIPE/unregistered-equity dilution = documented issuer
+  underperformance; 3,635 filings, 8k_3_02 holdout untouched, real-time 8-K paper-tradable, side=short supported.
+  Caveat: ~30bps short-side cost at 3d is the kill test; test full S&P 1500 (small-cap-only longs killed reg-fd +
+  analyst-initiation).
+- **queued activist-13d-long** (activist_13d, 3d long): SC 13D activist stake, documented positive abnormal
+  return, long/easy-to-paper. CAVEAT to Researcher: VERIFY filings() actually returns SC 13D forms first — 13D is
+  absent from data_catalog's top-12 (only SC 13G/13G-A show; 13G = passive cousin, not the signal). Bounce to dead
+  if 13D not present OR event count can't power a clean holdout. (Couldn't self-verify: research_data.py Bash
+  denied, filings.parquet not greppable — left as Researcher's cheap first step, same pattern as nt-filing-short.)
+- **dropped year-end-loser-reversal**: = already-dropped january-small-cap-reversal (tax-loss reversal), mined/
+  decayed, once-a-year so can never build a 20-40-day paper test; turn-of-month (last calendar) died today too.
+- Left parked: **late-10k-short** (10k_timing) as the single backup — weaker now, both early-10q-drift AND
+  nt-filing-short (related "late/early filing" theses) died today. Scout should refill the pool next weekday.
+
+### Watch next run
+- Both queued ideas → should move to `planned` (Researcher). Confirm activist didn't bounce to dead on the SC 13D check.
+- Mon 11-09 ON1 paper 20-day cp (borderline PASS — needs mean>=+5 AND t>=2 at day 20; scored Tue 11-10 AM).
+- V2 rank go/no-go approaching 100 trades (72/100 as of 11-05, drifting NO-GO).
+- Did the user's V3 session stop/park G2 after its 20-day FAIL (11-05)?
+- Saturday = weekly director report + Auditor report to read.
