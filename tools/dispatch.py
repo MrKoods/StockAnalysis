@@ -32,6 +32,7 @@ import catalog
 import daily_bars
 import daily_report
 import edgar
+import fill_costs
 import ideas
 import jobs
 import ops_monitor
@@ -278,8 +279,10 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
                 and role not in ("researcher", "skeptic"):   # those two work per idea, not per day
             log(f"{role} already ran OK today - not relaunched", "dispatch")
             return
-        # The Auditor is exempt: one run a week, and heavy usage is exactly what it should be there to flag.
-        if not a.dry_run and runs_this_week() >= cap and role not in a.force and role != "auditor":
+        # Exempt: the Auditor (heavy usage is exactly what it should flag) and the Director's Saturday weekly
+        # review - one run each a week, and a busy Friday must not be able to crowd them out.
+        weekly = role == "auditor" or (role == "director" and "weekly review" in why)
+        if not a.dry_run and runs_this_week() >= cap and role not in a.force and not weekly:
             post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
             return
         write_context(today, f, hits, paper, {role: why}, pipeline)
@@ -430,7 +433,7 @@ def main(argv: list[str]) -> int:
         for name, job in [("edgar update", edgar.update)] + ([("edgar splits", edgar.splits),
                                                                ("daily bars", daily_bars.run)]
                                                               if today.weekday() == 5 else []) + [
-                ("screen", screen.run), ("catalog", catalog.write)]:
+                ("screen", screen.run), ("fill costs", fill_costs.write), ("catalog", catalog.write)]:
             try:
                 log(job(), "dispatch")
             except Exception as e:

@@ -26,9 +26,12 @@ pipeline never runs dry - but quality over quantity: add at most 4 per run; 0 is
    - left with an untouched holdout: the catalog's "Periods each family has used" must leave a clean multi-year
      window. A family whose periods are all used cannot be tested honestly - don't propose it;
    - holding period <= ~5 trading days (shorter preferred, if costs allow);
-   - plausible after realistic costs (>= 10 bps round trip large caps, 20-40 bps small caps);
+   - plausible after REAL costs at the user's broker (`team/fill_costs.json`: close fills ~7-22 bps round trip,
+     open fills ~80-250 bps - small caps the most);
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
-     close N sessions later, optional stop/target) - or flag that it needs a different engine;
+     close N sessions later, optional stop/target) - or flag that it needs a different engine. Entry at a later
+     close is also supported and is far cheaper on the user's broker (round trip close->close ~7-22 bps vs
+     open->open ~80-250 bps, team/fill_costs.json): prefer ideas that work at the close;
    - fed by live data: every loader it needs says "yes" (or "weekly", if that is fast enough for the rule) in the
      catalog's `live for paper?` column. An idea resting on a "NO" source (insider, ratings) can never become a
      paper test - put it under "Needs data" as "needs a live <source> feed" instead of registering it.

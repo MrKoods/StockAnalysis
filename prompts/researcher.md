@@ -16,7 +16,13 @@ the filing), never `filing_date` - an after-close filing can't be traded until t
    - The holdout must be data this family has NOT used before (catalog: "Periods each family has used"). Prefer
      the most recent years as holdout. Check each source's end date in the catalog (daily ends ~2026-10-06).
    - `max_variants` small (<= 100; fewer is better - every variant raises the luck bar).
-   - `cost_bps` realistic round trip: >= 10 large caps, 20-40 small caps; more for open/close auction-only fills.
+   - `entry_at` / `exit_at` ("open" | "close") and `universe` (list of "sp500"/"sp400"/"sp600") are REQUIRED in
+     practice: the harness charges max(`cost_bps`, the real Webull spread for those fill times and indexes) from
+     `team/fill_costs.json`. The user's broker has no opening/closing auction orders, so an open fill pays the
+     ~9:31 spread: round trip open->open ~80 (sp500) / ~185 (sp400) / ~250 (sp600) bps, close->close ~7 / ~12 /
+     ~22 bps. **Prefer close fills** (signal on day t, buy at a later close) unless the edge needs the open and is
+     large enough to pay for it. Left out = open/open on sp600, the most expensive case.
+   - `cost_bps` your own estimate on top (the floor already covers the spread; add impact for big/illiquid sizes).
    - `cluster`: "day" for trades exiting each day, "week" for multi-day holds.
 3. `research/<id>/test.py` - `run(start, end, phase, chosen)` per jobs.py. Load data ONLY via
    `import research_data as rd`. Signals at time t may use only data available at t (no same-bar close for an
@@ -25,7 +31,8 @@ the filing), never `filing_date` - an after-close filing can't be traded until t
    variants and set `chosen` by a rule you state in PLAN.md (e.g. best train t) - in the holdout phase evaluate
    only `chosen`.
 4. `strategies/<id>/strategy.py` + `spec.json` - the SAME rule as `chosen`, in the paper-runner contract, with a
-   frozen `rule` (min_days/max_days/pass_mean_bps/pass_t; metric). The metric MUST be `real_bps` or
+   frozen `rule` (min_days/max_days/pass_mean_bps/pass_t; metric) and the same fill times: spec `entry_at`
+   ("open" = next session's open, "close" = next session's close) and `exit_at`. The metric MUST be `real_bps` or
    `real_hedged_bps`: the paper test is judged at real Webull bid/ask fills (the gate refuses anything else), so
    size `pass_mean_bps` knowing spreads come out of it. If the rule can't be expressed there, say so in PLAN.md -
    it then cannot become a paper test.

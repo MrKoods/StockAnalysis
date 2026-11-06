@@ -14,12 +14,15 @@ Checklist - any clear failure = FAIL:
 2. **Luck**: chosen train t vs `luck_t_best_of_n` (best-of-N under no edge). The chosen t must be >= 2.0 AND
    clearly above the luck figure for the variants tried; a chosen config that is just the best of many similar
    ones with neighbours near zero = luck. Check `configs` for a smooth neighbourhood.
-3. **Costs & fills**: is `cost_bps` realistic for these names, entry type and size? Small caps, opens and
-   closes cost more. Would the edge survive 1.5x the cost? (mean_bps vs cost_bps).
+3. **Costs & fills**: train_result.json `cost_bps_used` is what was charged (the real Webull spread floor for
+   plan.json `entry_at`/`exit_at`/`universe`, or the plan's cost if higher). FAIL if those declared fill times
+   or indexes don't match what test.py actually prices (e.g. plan says close, test.py uses Open), since the
+   floor would then be wrong. Would the edge survive 1.5x the cost?
 4. **Sample**: enough independent periods (>= 40 days or >= 20 weeks)? Driven by one year or a few days?
 5. **Baseline**: long-only results that are just market beta (plan metric should be hedged), sector tilt,
    or survivorship (today's constituents back-tested - say how much that could inflate it).
-6. **Paper match**: strategy.py implements the same rule as test.py's `chosen` with the same timing.
+6. **Paper match**: strategy.py implements the same rule as test.py's `chosen` with the same timing, and
+   spec.json `entry_at`/`exit_at` match plan.json.
 7. **Not a graveyard rerun** under a new name.
 
 Write `research/<id>/review.md` (each check: pass/fail + evidence with file:line) and LAST

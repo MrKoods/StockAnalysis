@@ -6,14 +6,21 @@
 Pipeline moves made here (TEAM.md):
   queued  + committed plan.json/PLAN.md/test.py  -> planned
   planned -> TRAIN run (data cut at train_end)    -> awaiting_review   (crash: stays planned, train_error.txt)
+                                                     -> dead if the chosen config is below the Skeptic's own
+                                                        minimum (t >= 2.0, mean > 0): no Opus review needed
   awaiting_review + skeptic.json PASS/FAIL        -> skeptic_pass / dead
   skeptic_pass -> HOLDOUT run, exactly once       -> holdout_done / dead
 The test script never computes its own statistics: it returns per-trade GROSS bps, the harness subtracts the
-plan's cost and clusters by day or week.
+cost and clusters by day or week. The cost is max(plan cost_bps, the REAL Webull spread for the plan's fill
+times and indexes - team/fill_costs.json, tools/fill_costs.py), fixed at the train run and reused for the
+holdout. Webull retail has no auction orders: an "open" fill pays the 9:31 spread (64-194 bps round trip
+measured), a "close" fill the 3:56 spread (5-16 bps).
 
 research/<id>/plan.json:
   {"family", "train_start", "train_end", "holdout_start", "holdout_end", "cost_bps", "cluster": "day"|"week",
-   "max_variants", "metric": "raw"|"hedged"}
+   "max_variants", "metric": "raw"|"hedged",
+   "entry_at": "open"|"close", "exit_at": "open"|"close", "universe": ["sp500"|"sp400"|"sp600", ...]}
+  entry_at/exit_at/universe set the real-cost floor; left out = open/open on the most expensive index.
 research/<id>/test.py:
   def run(start: str, end: str, phase: "train"|"holdout", chosen: str|None) -> dict
       {"variants": <int, configs evaluated>, "chosen": <config name to carry to the holdout (train only)>,
@@ -33,11 +40,13 @@ import sys
 from datetime import date, timedelta
 
 import budget
+import fill_costs
 import ideas
 from common import PYTHON, TEAM, commit, git, load_json, log, post, save_json
 
 RESEARCH = TEAM / "research"
 TIMEOUT_MIN = 45
+SKEPTIC_MIN_T = 2.0      # prompts/skeptic.md check 2: the chosen train t must be >= 2.0 to PASS
 PLAN_KEYS = ("family", "train_start", "train_end", "holdout_start", "holdout_end", "cost_bps", "cluster",
              "max_variants")
 # Research scripts reach data only through research_data (which enforces the cutoff). This is a guard
@@ -68,6 +77,12 @@ def plan_problems(iid: str) -> list[str]:
         probs.append("holdout_end is in the future")
     if p["cluster"] not in ("day", "week"):
         probs.append("cluster must be day or week")
+    for k in ("entry_at", "exit_at"):
+        if k in p and p[k] not in ("open", "close"):
+            probs.append(f"{k} must be open or close")
+    if "universe" in p and not (isinstance(p["universe"], list)
+                                and set(p["universe"]) <= set(fill_costs.INDEXES) and p["universe"]):
+        probs.append(f"universe must be a non-empty list of {fill_costs.INDEXES}")
     idea = ideas.get(iid)
     if idea and idea["family"] and p["family"] != idea["family"]:
         probs.append(f"plan family {p['family']} != idea family {idea['family']}")
@@ -83,6 +98,17 @@ def static_problems(path) -> list[str]:
 
 
 # ---------- statistics (harness-owned) ----------
+
+def cost_used(plan: dict, iid: str, phase: str) -> tuple[float, float]:
+    """(cost charged, real-spread floor). The holdout reuses the train run's cost, so both are judged alike."""
+    if phase == "holdout":
+        tr = load_json(RESEARCH / iid / "train_result.json", {})
+        if "cost_bps_used" in tr:
+            return float(tr["cost_bps_used"]), float(tr.get("cost_floor_bps", 0))
+    floor = fill_costs.floor_bps(plan.get("entry_at", "open"), plan.get("exit_at", "open"),
+                                 plan.get("universe", list(fill_costs.INDEXES)))
+    return max(float(plan["cost_bps"]), floor), floor
+
 
 def stats(trades, cost_bps: float, cluster: str, start: str, end: str) -> dict:
     import pandas as pd
@@ -128,12 +154,14 @@ def child(iid: str, phase: str) -> None:
     spec.loader.exec_module(mod)
     out = mod.run(start, end, "train" if phase == "smoke" else phase, chosen)
     trades = out.get("trades", {})
+    cost, floor = cost_used(plan, iid, phase)
     res = {"phase": phase, "start": start, "end": end, "variants": int(out.get("variants", len(trades))),
-           "chosen": out.get("chosen") if phase == "train" else chosen, "configs": {}}
+           "chosen": out.get("chosen") if phase == "train" else chosen, "configs": {},
+           "cost_bps_used": cost, "cost_floor_bps": floor, "plan_cost_bps": float(plan["cost_bps"])}
     for name, tr in trades.items():
         if hasattr(tr, "to_dict"):
             tr = tr.to_dict("records")
-        res["configs"][str(name)] = stats(tr, plan["cost_bps"], plan["cluster"], start, end)
+        res["configs"][str(name)] = stats(tr, cost, plan["cluster"], start, end)
     print("@@RESULT@@" + json.dumps(res, default=str))
 
 
@@ -204,10 +232,21 @@ def do_train(iid: str, dry_run: bool) -> None:
                    "variants": res["variants"], "data": f"{plan['train_start']}..{plan['train_end']}",
                    "result_t": (res.get("chosen_stats") or {}).get("t", ""),
                    "result_bps": (res.get("chosen_stats") or {}).get("mean_bps", ""), "note": "team train run"})
-    ideas.set_stage(iid, "awaiting_review", f"train done: chosen {chosen} t {(res.get('chosen_stats') or {}).get('t')}")
     cs = res.get("chosen_stats") or {}
+    cost = (f"cost {res['cost_bps_used']} bps round trip" + (f" (real-spread floor; plan said {res['plan_cost_bps']})"
+            if res["cost_bps_used"] > res["plan_cost_bps"] else ""))
+    t, mean = cs.get("t") or 0, cs.get("mean_bps") or 0
+    if t < SKEPTIC_MIN_T or mean <= 0:
+        # The Skeptic's checklist can't PASS this (chosen t >= 2.0 and a positive mean are its minimum), so
+        # an Opus review would only confirm it. No holdout is spent.
+        post("research", f"🧪 **{iid}** train result: chosen `{chosen}` mean {cs.get('mean_bps')} bps, t {cs.get('t')} "
+                         f"({cost}) - below the minimum (t >= {SKEPTIC_MIN_T}, mean > 0).", "Team - Research Pipeline")
+        bury(iid, f"train result below the minimum: chosen {chosen} t {cs.get('t')}, {cs.get('mean_bps')} bps after "
+                  f"{cost} - no holdout spent, no review needed")
+        return
+    ideas.set_stage(iid, "awaiting_review", f"train done: chosen {chosen} t {cs.get('t')}")
     post("research", f"🧪 **{iid}** train result: chosen `{chosen}` mean {cs.get('mean_bps')} bps, t {cs.get('t')} "
-                     f"over {cs.get('n_periods')} {plan['cluster']}s; {res['variants']} variants "
+                     f"over {cs.get('n_periods')} {plan['cluster']}s, {cost}; {res['variants']} variants "
                      f"(best-of-N luck t ~{res['luck_t_best_of_n']}). Skeptic reviews next.",
          "Team - Research Pipeline")
 

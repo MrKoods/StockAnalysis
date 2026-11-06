@@ -13,7 +13,10 @@ Strategy contract - strategies/<id>/strategy.py:
     def universe() -> list[str]
     def signals(asof: date, bars: dict[str, pd.DataFrame]) -> list[dict]   # {"ticker", "side": "long"|"short"}
 strategies/<id>/spec.json:
-    {"family", "hold_sessions": 0 (= exit at the entry day's close) | N, "exit_at": "close"|"open",
+    {"family", "entry_at": "open" (default: the next session's open) | "close" (the next session's close - on
+     Webull the close is ~10x cheaper than the open: no auction orders for retail, 9:31 spreads 64-194 bps vs 5-16
+     at 3:56, see team/fill_costs.json),
+     "hold_sessions": 0 (= exit at the entry day's close; open entries only) | N, "exit_at": "close"|"open",
      "stop_pct": null|float, "target_pct": null|float, "cost_bps": round-trip, "max_signals_per_day",
      "rule": {"metric": "real_bps"|"real_hedged_bps" (required for new promotions; real Webull quotes -
              see tools/quotes.py) | "net_bps"|"hedged_bps" (official prices), "min_days", "max_days", "pass_mean_bps", "pass_t",
@@ -123,12 +126,16 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
     entry_day = later[0]
     df = bars.get(row["ticker"])
     spy = bars["SPY"]
-    if df is None or entry_day not in df.index or pd.isna(df.at[entry_day, "Open"]):
+    at_close = spec.get("entry_at", "open") == "close"
+    entry_col = "Close" if at_close else "Open"
+    if df is None or entry_day not in df.index or pd.isna(df.at[entry_day, entry_col]):
         row.update(status="void", exit_reason="no bar on entry day")
         return row
-    entry = float(df.at[entry_day, "Open"])
+    entry = float(df.at[entry_day, entry_col])
     row.update(status="open", entry_date=str(entry_day), entry_px=round(entry, 4))
     hold = int(spec.get("hold_sessions", 0))
+    if at_close:
+        hold = max(hold, 1)        # bought at the close: the earliest exit is the next session
     path = later[: hold + 1]
     side = row["side"]
     stop, target = spec.get("stop_pct"), spec.get("target_pct")
@@ -137,7 +144,7 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
     tgt_px = entry * (1 + sgn * target / 100) if target else None
     exit_px = reason = exit_day = None
     for i, d in enumerate(path):
-        if d not in df.index:
+        if d not in df.index or (at_close and i == 0):   # nothing can happen before a close entry fills
             continue
         o, h, l, c = (float(df.at[d, k]) for k in ("Open", "High", "Low", "Close"))
         if i > 0 and stop_px and (o <= stop_px if sgn > 0 else o >= stop_px):
@@ -155,7 +162,7 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
         return row
     gross = _bps(side, entry, exit_px)
     net = gross - float(spec.get("cost_bps", 10))
-    spy_entry = float(spy.at[entry_day, "Open"])
+    spy_entry = float(spy.at[entry_day, entry_col])
     spy_exit = float(spy.at[exit_day, "Open" if reason == "time" and spec.get("exit_at") == "open"
                             and hold > 0 else "Close"])
     spy_bps = (spy_exit / spy_entry - 1) * 1e4
@@ -164,17 +171,19 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
                hedged_bps=round(net - sgn * spy_bps, 2))
     exit_when = "open" if reason == "time" and spec.get("exit_at") == "open" and hold > 0 else \
         "close" if reason == "time" else None              # stop/target fill intraday - no capture for those
-    row.update(real_price(row, spec, quotes or {}, entry_day, exit_day, exit_when))
+    row.update(real_price(row, spec, quotes or {}, entry_day, exit_day, exit_when,
+                          "close" if at_close else "open"))
     return row
 
 
-def real_price(row: dict, spec: dict, quotes: dict, entry_day: date, exit_day: date, exit_when: str | None) -> dict:
+def real_price(row: dict, spec: dict, quotes: dict, entry_day: date, exit_day: date, exit_when: str | None,
+               entry_when: str = "open") -> dict:
     """The same trade at real Webull quotes (tools/quotes.py): buy at the ask, sell at the bid (short: the
     reverse). A leg without a captured quote falls back to the official price minus half the plan's cost
     estimate; `real_legs` (0-2) says how many legs used real quotes."""
     sgn = 1 if row["side"] == "long" else -1
     half = float(spec.get("cost_bps", 10)) / 2 / 1e4
-    entry_q = quotes.get((str(entry_day), "open", row["ticker"]))
+    entry_q = quotes.get((str(entry_day), entry_when, row["ticker"]))
     exit_q = quotes.get((str(exit_day), exit_when, row["ticker"])) if exit_when else None
     e = (entry_q[1] if sgn > 0 else entry_q[0]) if entry_q else float(row["entry_px"]) * (1 + sgn * half)
     x = (exit_q[0] if sgn > 0 else exit_q[1]) if exit_q else float(row["exit_px"]) * (1 - sgn * half)
