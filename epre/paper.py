@@ -186,14 +186,16 @@ def _lines(day: date, buys: pd.DataFrame, sells: pd.DataFrame, label: str) -> li
     ps = sells[sells["posted"].astype(bool)]
     out = [f"**{label}** - BUY {len(pb)} of {len(buys)} qualifying | SELL {len(ps)} (posted ones exiting today)"]
     if len(pb):
-        out += ["BUY at the close (market-on-close order before the cutoff). Hold through the earnings report.",
-                "```"]
+        # Webull retail has no market-on-close order (institutional only), so: a limit at the ask just before the
+        # close - the same fill the real-price check scores (ask at ~3:56 PM ET).
+        out += ["BUY just before the close: limit order at the ask, ~3:55 PM ET (Webull has no market-on-close "
+                "for retail). Hold through the earnings report.", "```"]
         out += [f"BUY  {r.ticker:6s} {r.index:5s} reports {r.report_day} {'before open' if r.bmo else 'after close'}"
                 f"{'' if r.time_source == 'yahoo' else ' (time from company history)'}  -> sell {r.exit_day} close"
                 for r in pb.sort_values("ticker").itertuples()]
         out.append("```")
     if len(ps):
-        out += ["SELL at the close (market-on-close):", "```"]
+        out += ["SELL just before the close: limit order at the bid, ~3:55 PM ET:", "```"]
         out += [f"SELL {r.ticker:6s} bought {r.entry_day}" for r in ps.sort_values("ticker").itertuples()]
         out.append("```")
     return out
@@ -212,7 +214,7 @@ def signals(dry: bool = False, day: date | None = None) -> None:
         log.info("early close today - today's orders were posted yesterday")
         return
     if not dry and not (time(15, 30) <= now.time() <= time(15, 48)):
-        log.info("skipping signals at %s ET (outside 15:30-15:48; MOC cutoff 15:50)", now.time())
+        log.info("skipping signals at %s ET (outside 15:30-15:48 - posts must leave time to buy before the close)", now.time())
         return
     cal = pd.read_csv(CALENDAR, dtype={"report_day": str})
     led = load_ledger()
@@ -233,7 +235,7 @@ def signals(dry: bool = False, day: date | None = None) -> None:
         sells = pd.concat([led, rows])
         sells = sells[sells["exit_day"] == str(d)]
         label = f"EPRE paper trades {d}" + ("" if d == today else " (TOMORROW - early close 1 PM ET, "
-                                                                  "MOC cutoff 12:50 PM ET)")
+                                                                  "buy by ~12:55 PM ET)")
         lines += _lines(d, rows, sells, label)
     led = pd.concat([led, *new], ignore_index=True)
     if not dry:
