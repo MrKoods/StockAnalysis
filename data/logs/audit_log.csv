@@ -331,3 +331,6 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-11-04T13:33:47.193363+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='trade war' source='yahoo.com',True,trade war
 2026-11-04T21:30:29.760174+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
 2026-11-04T21:34:57.209926+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='trade war',False,trade war
+2026-11-05T21:34:07.566717+00:00,v2.2.134,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
+2026-11-05T21:34:08.027468+00:00,v2.2.134,critical,LOW,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='guidance cut',False,guidance cut
+2026-11-05T21:34:16.931664+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff

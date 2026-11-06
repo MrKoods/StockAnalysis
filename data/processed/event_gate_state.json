@@ -2627,9 +2627,37 @@
       "ner_sentiment": null,
       "created_at_utc": "2026-11-04T21:30:29.255504+00:00",
       "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-05T21:34:16.470692+00:00"
+    },
+    {
+      "id": "504a3121-6060-4675-82db-1434ff8e637f",
+      "tickers": [
+        "AMZN",
+        "TSLA",
+        "HD",
+        "NKE",
+        "SBUX",
+        "TGT",
+        "MCD",
+        "BKNG",
+        "TJX",
+        "LOW",
+        "ORLY"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Guidance Cut Could Be A Big Test For Lowe's Stock (LOW)",
+      "trigger_match": "guidance cut",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-05T16:13:41+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-05T21:34:07.056910+00:00",
+      "expiry_condition": "next_post_close_scan",
       "expired": false,
       "expired_at_utc": null
     }
   ],
-  "critical_alerts_sent": {}
+  "critical_alerts_sent": {
+    "LOW|guidance cut|2026-11-05T16:13:41+00:00": "2026-11-05T21:34:08.027660+00:00"
+  }
 }
