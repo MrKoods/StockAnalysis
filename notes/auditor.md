@@ -1,5 +1,37 @@
 # Auditor notes
 
+## 2026-11-07 — 3rd audit (regular Saturday slot)
+No red flags. Honest week: 8 ideas died (reg-fd, analyst-init, early-10q, restructuring, turn-of-month,
+nt-filing, activist-13d, pipe-short) — all clean nulls. Spot-checked pipe-short + activist train_result.json
+= exact match to graveyard (t −1.57/−31.89; t 0.17/+2.37); auto-fail below luck bar, no holdout spent — good
+discipline. restructuring skeptic.json substantive (cites test.py:43-82). Commit order plan-before-results holds.
+New auto-fail path (00a948c) working, preserves holdouts. gate.py list EMPTY — zero team paper tests ever
+promoted (all paper = V2/V3/V4). scan_ops issues empty all week. Prior C4 + C5 both RESOLVED.
+
+### Open findings (check next audit)
+- **C6 OPEN (Scorekeeper)**: 11-06 scorecard V2-rank row used gross +0.185R vs the after-cost bar +0.15 and
+  said "Mean just clears bar" — wrong; after-cost mean is +0.129 < bar. Conclusion still honest (NO-GO),
+  Director used the right number. CHECK: does the next scorecard pair after-cost mean with after-cost bar?
+- **C7 OPEN (Director/direction)**: single-8-K-item vein near-exhausted + cost-blocked. Edges of 15-30 bps
+  keep dying against a 21.8-25 bps floor; events too sparse to power 2018-26 holdout. 0 promotions to paper
+  in ~3 weeks. Not circling (distinct families), but a dead-end. Recommended biasing queue to EPRE-style
+  edges that clear the cost floor with margin. CHECK: did Director narrow the 8-K family churn or keep mining it?
+
+### Pattern to watch (direction) — ESCALATED from 10-31
+The 10-31 "idea supply + event count is the binding constraint" has sharpened into a cost-floor problem:
+small-cap event longs/shorts at 1-5d simply can't beat ~25 bps round-trip. EPRE (holdout pass) works because
+earnings reactions dwarf costs. Steer toward large-reaction mechanisms, not thin-margin event drift.
+
+### Watch calendar
+- Mon 11-09 ON1 paper 20-day cp (likely PASS, scored Tue 11-10 AM) — but ON1 real-price −35.5 bps/4d vs paper
+  +188 = ~223 bps gap; paper PASS ≠ tradeable. Real gate = 15-day real-price check ~11-24.
+- Did user's V3 session stop/park G2 (FAILED 11-05, still running day 21)?
+- V2 rank ~100-trade go/no-go (79/100, drifting NO-GO, t wall).
+- V4 EPRE cp A at 1k (~943, ~3 sessions) — FAIL-only bar, won't fail.
+- VCYT in EPRE ledger (−5228 bps) = genuine 52% earnings crash, not a data error (diagnosis 11-05); user to
+  confirm $24.0 close vs Webull if not done.
+- Next audit: regular Saturday slot after the Director.
+
 ## 2026-10-31 — 2nd audit (regular Saturday slot)
 Project sound. One honest negative this week: split-announcement-drift → dead. Clean cycle:
 plan-before-results (commit order 76d94a1→dbc2f6f→913f880→d1b22e7), pre-registered h4_r2 honored over
