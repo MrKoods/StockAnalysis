@@ -151,3 +151,33 @@ turn-of-month + nt-filing-short both ran train + went dead today → pipeline 0/
 - V2 rank go/no-go approaching 100 trades (72/100 as of 11-05, drifting NO-GO).
 - Did the user's V3 session stop/park G2 after its 20-day FAIL (11-05)?
 - Saturday = weekly director report + Auditor report to read.
+
+## 2026-11-07 (Sat) — weekly review
+Pipeline full 2/2 (activist-13d-long, pipe-short both queued 11-06, in research); late-10k-short parked. Nothing
+to queue. Wrote reports/2026-11-07-director.md.
+
+G2 FAIL confirmed as NOT the team's to retire: ran `python tools/gate.py retire g2` → refused "g2 is not an
+active paper test" (no team gate entry; V3 folder read-only). Reported to user as their V3 session's job. G2 is
+still running (day 21/40, mean -26.2) as of 11-06 snapshot — user hasn't parked it yet.
+
+### Live tests (from 2026-11-07 snapshot / 11-06 scorecard — do not re-derive)
+- V2 rank: 79/100, +0.129R after costs (bar +0.15), week-t 0.51–0.82 (bar 2). Drifting NO-GO; t is the wall.
+- V3 ON1 paper: day 18/20, +86.2 bps, day-t 3.10 → very likely PASS at day 20 (Mon 11-09, scored Tue 11-10 AM).
+  BUT ON1 real-price -35.5 bps/4 days vs paper +188 (~223 bps gap) → paper PASS ≠ tradeable; real-price 15-day
+  check ~11-24 is the live gate. Tell user "not yet" even on a paper PASS.
+- V4 EPRE: 943/1000 to cp A (~3 sessions). hedged +20.1 bps (FAIL<-20), t -0.06 — well above FAIL, too early.
+  Real-price spread negligible (11 bps). cp A is FAIL-only; real-money conditions at cp B (3000).
+
+### Auditor 2026-10-31 recs — my response (recorded late; prior notes missed these)
+- Rec 1 (Director) replenish queue w/ real mechanisms, don't default to turn-of-month: **ACCEPTED — done**.
+  Scout ran daily 11-03→11-06; 6 distinct mechanisms queued+tested, no lazy fallback; turn-of-month queued as a
+  distinct test not a default. Queue supply held all week.
+- Rec 2/3 (User): Quote Clerk firing (resolved by 11-02 correction — captures work) + insider line closed unless
+  user builds Form-4 feed (user's call). Both passed to user.
+
+### Watch next run
+- activist-13d-long + pipe-short → should be `planned`/`awaiting_review`; confirm 13D check didn't kill activist.
+- Mon 11-09 ON1 paper 20-day cp (likely PASS). Tue 11-10 AM scored.
+- Did user's V3 session stop/park G2 yet?
+- V2 rank nearing 100 trades (drifting NO-GO).
+- 2026-11-07 Auditor report (runs after me today) — read + respond next run.
