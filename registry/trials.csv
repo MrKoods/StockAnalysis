@@ -48,3 +48,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-11-06,turn-of-month,calendar_effects,search,4,1999-01-01..2014-12-31,1.37,21.96,,team train run
 2026-11-06,nt-filing-short,nt_filing,search,5,2005-01-01..2017-12-31,0.04,1.64,,team train run
 2026-11-07,activist-13d-long,activist_13d,search,6,2001-01-01..2015-12-31,0.17,2.37,,team train run
+2026-11-07,pipe-short,8k_3_02,search,7,2005-01-01..2013-12-31,-1.57,-31.89,,team train run
