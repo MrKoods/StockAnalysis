@@ -1,5 +1,31 @@
 # Researcher notes
 
+## 2026-11-07 — activist-13d-long (planned, check+smoke pass)
+- Five files in research/activist-13d-long/ + strategies/activist-13d-long/. Family `activist_13d` (NEW,
+  whole history clean). Bar via budget (floor 3.0). LONG idea.
+- Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-24 (recent arbitraged era; daily ends 11-02,
+  buffer for hold-5 close exit). cluster "week".
+- Signal: INITIAL SC 13D accepted (rd.filings(forms=["SC 13D"]) then filter RAW form=="SC 13D" to drop
+  SC 13D/A amendments). LONG at CLOSE of session AFTER first_session (entry_pos=pos+1), exit CLOSE +H.
+  SPY-hedged LONG gross = stock_ret−spy_ret close→close. cost 25 (sp600 close floor 21.8 + impact). 
+- 6 variants: univ {sp1500=500+400+600, sp500} × hold {1,3,5}. chosen PRE-REGISTERED = `sp1500_h3`
+  (full activist universe, few-day drift). luck_t~1.89.
+- KEY DATA FACT (idea's central risk, RESOLVED FAVORABLY): EDGAR indexes SCHEDULE filings (13D/13G) under
+  the SUBJECT company, so rd.filings(tickers=sp1500) returns 13Ds where our ticker is the TARGET, not the
+  filer. Confirmed: SC 13G is in catalog top-forms indexed by universe tickers; smoke found 154 sp1500 /
+  81 sp500 SC 13D trades in year 1 (2001). Ample power. filings(forms=["SC 13D"]) matches "SC 13D" AND
+  "SC 13D/A" (/A stripped both sides) → MUST filter raw form=="SC 13D" for initial-only.
+- CENTRAL RISK flagged for Skeptic + as kill condition: entering first_session+1 (one session late, dispatch
+  after-close + next-weekday index lag) may miss Brav's front-loaded announcement return → tradable residual
+  ~0. Signature = hold-1 much weaker than hold-3/5 in train.
+- COST CAVEAT: one shared floor = sp600 close (21.8) over-charges sp500-only variant (real ~6.6) → biases
+  AGAINST sp500 result (conservative). SURVIVORSHIP biases a LONG UP (current members only, no delisted) →
+  a pass is NOT conservative on that axis; Skeptic should weight it.
+- PROMOTABLE: 13D same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live (sp500_new
+  +sp400+sp600 csvs), emits long when first_session==today → runner enters next close = first_session+1
+  close, hold 3. spec entry_at=close, exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
+  Reused nt-filing-short skeleton (SEC-filing, close→close, hedged); flipped to LONG, dropped ex202 map.
+
 ## 2026-11-06 — nt-filing-short (planned, check+smoke pass)
 - Five files in research/nt-filing-short/ + strategies/nt-filing-short/. Family `nt_filing` (NEW, whole
   history clean). Bar 3.00. SHORT idea.
@@ -111,22 +137,10 @@
 - Ratings archive: StockAnalysis-V3/data/events/ratings/{ticker}.parquet. From yfinance
   upgrades_downgrades, fetched ONCE (events_fetch skips existing) → stale, not live-updatable.
 
-## 2026-11-03 — reg-fd-small-cap-disclosure (planned, check+smoke pass)
-- Five files in research/reg-fd-small-cap-disclosure/ + strategies/reg-fd-small-cap-disclosure/.
-- Family `8k_7_01` (used only screen 2005-2013). Windows: train 2005-01-01..2013-12-31, holdout
-  2014-01-01..2026-10-30 (clean; daily+filings end 2026-11-02, buffer for 1d exit). Bar 3.00.
-- Signal: 8-K with item 7.01 (Reg FD) by a universe ticker; LONG at `first_session` OPEN, exit CLOSE
-  H sessions later. SPY-hedged gross; cost 30 bps (small-cap); cluster "day".
-- 6 variants: universe {sp600, sp400, sp46=400+600} × hold {1,3}. chosen PRE-REGISTERED = `sp600_h1`
-  (smallest cap = strongest mechanism; hold 1 = screen best-t). Others = Skeptic robustness only.
-- Smoke (2005 only): sp600_h1 683 trades/222 day-periods, sp46_h1 1221 — ample sample.
-- PROMOTABLE: 7.01 8-Ks are same-day public; filings.parquet rebuilt each dispatcher run → strategy.py
-  reads it live. spec hold_sessions=1, metric real_hedged_bps, pass_mean_bps 5, pass_t 2.0, 20-40 days.
-- Reused split-drift's test.py/strategy.py skeleton. Runner auto-adds SPY to universe (paper_runner:51),
-  builds sessions from bars["SPY"].index (:244) and computes the hedge (spy_bps) itself — strategy.py
-  only needs SPY for the session calendar. filings.parquet cols incl accepted, items, form, ticker.
-
 ### Data facts learned (reuse next time)
+- Paper runner: auto-adds SPY to universe (paper_runner:51), builds sessions from bars["SPY"].index (:244),
+  computes the hedge (spy_bps) itself — strategy.py only needs SPY for the session calendar. filings.parquet
+  cols: accepted, items, form, ticker, cik, filing_date, accession, primary_doc, description.
 - rd.splits(None) cols: ticker, ex_date, ratio(>1 fwd,<1 rev), announced, announce_form,
   announce_accession, found_by, first_session (NaT if no announcement found). ~812 of 3189 fwd splits
   have an announcement. first_session already leak-free (first open after `announced`, cut at cutoff).
