@@ -1,5 +1,33 @@
 # Researcher notes
 
+## 2026-11-07 — pipe-short (planned, check+smoke pass)
+- Five files in research/pipe-short/ + strategies/pipe-short/. Family `8k_3_02` (screen used 2005-2013 →
+  holdout 2014-2026 CLEAN). Bar via budget (floor 3.0). SHORT idea.
+- Train 2005-01-01..2013-12-31 (same region the screen searched = a train look), holdout
+  2014-01-01..2026-10-24 (clean; daily ends 11-02, buffer for close+5 exit). cluster "week".
+- Signal: 8-K item 3.02 (unregistered equity sale = completed PIPE). SHORT at CLOSE of session AFTER
+  first_session (entry_pos=pos+1), cover CLOSE +H. SPY-hedged SHORT gross = spy_ret−stock_ret close→close.
+  cost 25 (sp1500 close floor ~21.6 + impact). metric hedged.
+- 7 variants: univ {sp1500=500+400+600, sp46=400+600} × hold {1,3,5} + sp1500_h3_ex (drop 3.02 within ±2
+  cal days of an 8-K 2.02 OR 1.01). chosen PRE-REGISTERED = `sp1500_h3` (idea card's primary rule, ~3d
+  screen horizon). luck_t~1.97.
+- Smoke (2005): sp1500_h3 114 trades/47 wk, sp46_h3 84/45 — ample power year 1, item-code filter confirmed
+  retrievable.
+- CENTRAL RISKS flagged for Skeptic + as kill conditions: (1) screen t only −1.70 (marginal); (2)
+  one-session-late entry (first_session+1 close) may eat the front-loaded PIPE drift → signature = hold-1 ≪
+  hold-3/5; (3) if sp1500_h3_ex collapses it was co-incident earnings/deal news not dilution; (4) if sp1500
+  flat but sp46 strong, it's a small-cap signal (research verdict, NOT a switch of chosen — large-cap 3.02s
+  are often benign benefit-plan/private placements).
+- COST/BORROW CAVEATS: sp600 close floor over-charges sp500 names in sp1500 (conservative). SURVIVORSHIP
+  (current members, no delisted) biases a SHORT AGAINST us → a pass is conservative on that axis. real_hedged_bps
+  prices SPREAD not BORROW; distressed small-caps hard-to-borrow → Director MUST confirm borrow before real
+  money; pass_mean_bps 15 leaves room.
+- PROMOTABLE: 3.02 same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live (sp500_new
+  +sp400+sp600 csvs, items col split on "," == "3.02"), emits short when first_session==today → runner enters
+  next close = first_session+1 close, hold 3. spec entry_at=close, exit_at=close, metric real_hedged_bps, pass
+  15 bps/t 2.0, 20-40 days. Reused nt-filing-short skeleton (SHORT close→close hedged + ex-event filter) +
+  restructuring item-code filter in strategy.py. BUT 3.02 uncommon in sp1500 → paper may take many months.
+
 ## 2026-11-07 — activist-13d-long (planned, check+smoke pass)
 - Five files in research/activist-13d-long/ + strategies/activist-13d-long/. Family `activist_13d` (NEW,
   whole history clean). Bar via budget (floor 3.0). LONG idea.
@@ -51,27 +79,11 @@
   side="short" (sgn in _bps + real_price; hedged = real_bps − sgn·spy_bps). Reused restructuring skeleton;
   close→close hedge uses spy close both legs (advance exit_at=close). df["close"] lowercase in rd.daily.
 
-## 2026-11-06 — turn-of-month (planned, check+smoke pass)
-- Five files in research/turn-of-month/ + strategies/turn-of-month/.
-- Family `calendar_effects` (NOT in catalog used-periods table → whole history clean). Bar 3.00.
-  Train 1999-01-01..2014-12-31, holdout 2015-01-01..2026-10-31 (recent arbitraged era; daily ends
-  2026-11-02 → +3 exit buffer; Oct-2026 turn forms no trade, fine).
-- Signal: LONG whole sp500 EW at CLOSE of last NYSE session of month (T), exit CLOSE of H-th new-month
-  session. RAW (unhedged) close→close bps — TOM is MARKET-LEVEL so SPY-hedge would CANCEL it. cost 10
-  (floor sp500 close→close 6.6). cluster "week" = ~1 cluster/month (all names share one exit date).
-- 4 variants: tom_h1/h2/h3 + mid_h3 PLACEBO (enter middle session of month, hold 3 = same beta, no TOM).
-  chosen PRE-REGISTERED = `tom_h3` (canonical McConnell-Xu window). luck_t~1.67.
-- BETA CONFOUND flagged for Skeptic: raw 4-day long earns ~16bps equity premium regardless of TOM →
-  tom_h3 must EXCEED mid_h3 placebo, not just be >0. Harness scores configs separately (no diff test).
-- Smoke (1999): tom_h* 3368 trades/11 wk, mid_h3 3675/12 — ample power year 1.
-- PROMOTABLE BUT IMPRACTICAL: strategy.py uses self-contained NYSE holiday calendar (_easter/Good Friday,
-  Memorial last-Mon-May can be 5/31, Juneteenth≥2022, NYSE keeps Dec31 open when 1/1=Sat) to detect
-  month-end; emits on 2nd-to-last session so runner enters month-end close. BUT 1 cluster/month → min_days
-  20 ≈ 20 months, max_days 40 ≈ 3+yr. Effectively research-only; flagged for Director. metric real_bps
-  (raw, NOT hedged), pass 15 bps/t 2.0, hold 3, entry+exit close, max_signals 520 (whole sp500 one day).
-- KEY: plan carries ONE cost floor, so can't mix sp500/sp400/sp600 (would mis-charge) → scoped to sp500
-  only + documented. daily cols lowercase close. rd.universe("sp500")=V3 sp500_new.csv (current members →
-  survivorship, flagged). month-end from SPY session calendar = NOT look-ahead (calendar known in advance).
+## 2026-11-06 — turn-of-month (planned) [narrative pruned 2026-11-07]
+- calendar_effects (whole history clean). LONG sp500 EW at month-end close, RAW (not hedged — TOM is
+  market-level). chosen tom_h3 vs mid_h3 PLACEBO (beta confound). PROMOTABLE BUT IMPRACTICAL: ~1 cluster/
+  month → 20 days ≈ 20 months. strategy.py has a self-contained NYSE holiday calendar. One cost floor →
+  can't mix indexes, scoped sp500 only.
 
 ## 2026-11-05 — early-10q-drift (planned, check+smoke pass)
 - Five files in research/early-10q-drift/ + strategies/early-10q-drift/.
@@ -113,21 +125,10 @@
   open->open exit, hedge open->open, cluster week, cost 35. paper_runner exit_at="open" + hold>0 uses
   SPY open for the hedge exit too (advance():159) — matches research open->open hedge. Verified.
 
-## 2026-11-04 — analyst-initiation-buy (planned, check+smoke pass)
-- Five files in research/analyst-initiation-buy/ + strategies/analyst-initiation-buy/.
-- Family `analyst_ratings` (whole history clean). Train 2012-09-12..2019-12-31, holdout
-  2020-01-01..2026-10-15 (ratings end 2026-10-20, daily 2026-11-02 → buffer for 3-5d exit). Bar
-  via budget (floor 3.0). cost 25 bps, cluster "week", metric hedged.
-- Signal: ratings Action=="init" + bullish ToGrade (buy/outperform/overweight/positive/
-  accumulate/conviction). LONG at OPEN of first session STRICTLY AFTER GradeDate (date-only → no
-  same-day trade = leak-free), exit CLOSE H sessions later. SPY-hedged gross.
-- 6 variants: univ {sp600, sp46=sp400+sp600} × hold {1,3,5}. chosen PRE-REGISTERED = sp600_h3
-  (smallest cap + 3d drift window). Others = Skeptic robustness only.
-- Smoke (2012-09..2013-09): sp600_h3 182 trades/48 wk, sp46_h3 376 — ample even in year 1.
-- NOT PROMOTABLE: ratings archive is a one-time yfinance snapshot (files last fetched ~10-23;
-  events_fetch.py skips existing files) — no near-real-time point-in-time feed. strategy.py says
-  DO NOT PROMOTE until a fresh feed exists (same blocker as insider). spec hold_sessions=3,
-  exit close, metric real_hedged_bps, pass 5 bps / t 2.0, 20-40 days.
+## 2026-11-04 — analyst-initiation-buy (planned) [narrative pruned 2026-11-07]
+- analyst_ratings (whole history clean). LONG on ratings Action=="init" + bullish ToGrade, OPEN entry
+  strictly after GradeDate (leak-free), exit close+H. chosen sp600_h3. NOT PROMOTABLE: ratings archive is
+  a one-time yfinance snapshot (no live feed) — strategy.py says DO NOT PROMOTE (same blocker as insider).
 
 ### Data facts learned (reuse next time)
 - rd.ratings(tickers) → dict ticker→df, cols: GradeDate(date-only, no intraday), Firm, ToGrade,

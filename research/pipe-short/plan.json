@@ -1,0 +1,4 @@
+{"family": "8k_3_02", "train_start": "2005-01-01", "train_end": "2013-12-31",
+ "holdout_start": "2014-01-01", "holdout_end": "2026-10-24", "cost_bps": 25, "cluster": "week",
+ "max_variants": 8, "metric": "hedged", "entry_at": "close", "exit_at": "close",
+ "universe": ["sp500", "sp400", "sp600"]}
