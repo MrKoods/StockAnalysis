@@ -1,5 +1,30 @@
 # Researcher notes
 
+## 2026-11-09 — seo-short (planned, check+smoke pass)
+- Five files in research/seo-short/ + strategies/seo-short/. Family `seo_offering` (NEW, whole history clean).
+  Bar via budget (floor 3.0). SHORT idea. Reused pipe-short skeleton (SEC-filing SHORT close→close hedged),
+  swapped 8-K item-3.02 filter for forms=["424B4","424B5"], dropped the ex-event map.
+- Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-24 (recent arbitraged era; daily ends 11-06,
+  buffer for close+5 exit). cluster "week". cost 25 (sp600 close floor ~22 + impact). metric hedged.
+- Signal: 424B4 (final prospectus) / 424B5 (shelf supplement) = SEO pricing-day disclosure. SHORT at CLOSE of
+  session AFTER first_session (entry_pos=pos+1), cover CLOSE +H. 424B ticker = ISSUER (own prospectus), unlike
+  13D — so filings(tickers=sp1500) returns the right names directly.
+- 12 variants: form {b4,b5,both} × univ {sp1500, sp46} × hold {3,5}. chosen PRE-REGISTERED = `both_sp1500_h3`
+  (idea card primary). luck_t~2.23. names `<form>_<univ>_h<H>`, parsed name.split("_").
+- Smoke (2001): b4_sp1500_h3 46 trades/32 wk, b5_sp1500_h3 288/52 → both ≈330/yr. b5 ≫ b4 (shelf takedowns
+  incl. lots of DEBT). Ample power. b4 alone ~46/yr near the card's 50 floor.
+- CENTRAL RISKS flagged for Skeptic + kill conditions: (1) one-session-late entry (first_session+1 close) may
+  eat the front-loaded post-offering drift → untradeable for this user if +1→+3/+5 window ≈0. (2) 424B4 is also
+  the IPO form + NO point-in-time membership → a current member's old IPO 424B4 can leak in (IPO pops positive
+  → HURT a short → conservative, but a b4≫b5 result is contamination not SEO). (3) b5 diluted by investment-grade
+  debt shelves → if both collapse the blend is debt noise. ROBUSTNESS read b4-vs-b5 is a verdict, NOT a switch.
+- COST/BORROW: real_hedged_bps prices SPREAD not BORROW; SEO issuers skew mid/small-cap, some hard-to-borrow →
+  Director MUST confirm borrow before real money; pass_mean_bps 15 leaves room. Survivorship biases a SHORT
+  AGAINST us (delisted worst-cases absent) → a pass is conservative on that axis.
+- PROMOTABLE: 424B same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live, emits short
+  when first_session==today → runner enters next close = first_session+1, hold 3. spec entry_at=close,
+  exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
+
 ## 2026-11-07 — pipe-short (planned, check+smoke pass)
 - Five files in research/pipe-short/ + strategies/pipe-short/. Family `8k_3_02` (screen used 2005-2013 →
   holdout 2014-2026 CLEAN). Bar via budget (floor 3.0). SHORT idea.
@@ -85,45 +110,17 @@
   month → 20 days ≈ 20 months. strategy.py has a self-contained NYSE holiday calendar. One cost floor →
   can't mix indexes, scoped sp500 only.
 
-## 2026-11-05 — early-10q-drift (planned, check+smoke pass)
-- Five files in research/early-10q-drift/ + strategies/early-10q-drift/.
-- Family `10q_timing` (NEW, entirely clean). Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-28
-  (recent = arbitraged era; daily ends 11-02 → buffer for open+3 exit; filings end 11-04). Bar floor 3.0.
-- Signal: original 10-Q (form=="10-Q", drop /A) filed >= N calendar days earlier than this ticker's prior
-  10-Q accepted 300-430 days before (closest to 365 = same fiscal quarter a yr ago; excludes 91/182/273/456).
-  days_early=(prior_acc+1yr)-this_acc. LONG at first_session OPEN, exit OPEN+3. SPY-hedged open->open; cost 20
-  (S&P1500 large/mid); cluster "week". 5 trading days ≈ 7 cal, 10 ≈ 14.
-- 6 variants: univ {sp1500, sp46=sp400+sp600} × thr {7,14} long + late-filer SHORT (de<=-7) {sp1500,sp46}.
-  chosen PRE-REGISTERED = `sp1500_t7_long` (broad universe academic result is on, base thr, long).
-  luck_t~1.9. Hold fixed 3.
-- Smoke (2001 only): sp1500_t7_long 137 trades/28 wk, sp1500_t7_short 142/24 — ample power year 1.
-- PROMOTABLE (with caveat): 10-Qs same-day public; filings.parquet has full 10-Q history for prior-yr match;
-  strategy.py reads it live, universe = sp500_new+sp400+sp600 CSVs. CAVEAT: SEC daily index reaches parquet
-  next weekday → same-session filing can slip 1 day in paper (research uses clean first_session). Flagged for
-  Director. spec hold_sessions=3, exit open, metric real_hedged_bps, pass 5 bps/t 2.0, 20-40 days.
-- KEY: prior-year match by actual prior-filing gap (not calendar quarter) → handles non-calendar fiscal yrs.
-  Reused restructuring/reg-fd skeleton; reg-fd's "first tradable session is NEXT session" emit = first_session
-  open entry. df["open"] does NOT trip FORBIDDEN `\bopen\(` (no paren). pd.DateOffset(years=1) for anniversary.
+## 2026-11-05 — early-10q-drift (planned) [narrative pruned 2026-11-09]
+- `10q_timing` (NEW clean). LONG original 10-Q filed >=N cal days earlier than prior-yr 10-Q (prior-filing-gap
+  match, not calendar quarter → handles odd fiscal yrs). OPEN entry at first_session, exit OPEN+3, hedged. chosen
+  sp1500_t7_long. CAVEAT: SEC daily-index lag can slip same-session filing 1 day in paper. df["open"] (no paren)
+  is NOT a FORBIDDEN `\bopen\(` hit.
 
-## 2026-11-05 — restructuring-bounce (planned, check+smoke pass)
-- Five files in research/restructuring-bounce/ + strategies/restructuring-bounce/.
-- Family `8k_2_05` (used only screen 2005-2013). Train 2005-01-01..2013-12-31, holdout
-  2014-01-01..2026-10-28 (clean; daily ends 2026-11-02, buffer for open+5 exit). Bar 3.00.
-- Signal: 8-K item 2.05 (exit/restructuring costs). LONG at OPEN of the session AFTER `first_session`
-  (= open+2 from event — skip the open+1 first-reaction day), exit at OPEN H sessions later. SPY-hedged
-  gross open->open; cost 35 (small-cap, BOTH legs at open auction); cluster "week".
-- 4 variants: univ {sp600, sp46=sp400+sp600} × hold {3,5}. chosen PRE-REGISTERED = `sp600_h3`
-  (smallest cap + screen's 3d horizon = open+2→open+5). Others = Skeptic robustness only. luck_t~1.67.
-- Smoke (2005 only): sp600_h3 33 trades/25 wk, sp46_h5 51 — ample even in year 1, power is fine.
-- PROMOTABLE: 2.05 8-Ks same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live.
-  BUT 2.05 RARE in sp600 → paper min_days=20 may take many months (flagged for Director).
-- KEY timing trick for open+2 entry: runner enters at the open of the session AFTER signal_date and exits
-  hold_sessions later at open. So strategy emits when the event's first tradable session == TODAY (asof):
-  runner then enters next open (=open+2), exits 3 sessions later (=open+5). spec hold_sessions=3,
-  exit_at="open", metric real_hedged_bps, pass 5 bps / t 2.0, 20-40 days.
-- Reused reg-fd-small-cap skeleton (test.py + strategy.py); changed items→2.05, entry_pos=pos+1,
-  open->open exit, hedge open->open, cluster week, cost 35. paper_runner exit_at="open" + hold>0 uses
-  SPY open for the hedge exit too (advance():159) — matches research open->open hedge. Verified.
+## 2026-11-05 — restructuring-bounce (planned) [narrative pruned 2026-11-09]
+- `8k_2_05` (screen 2005-2013). LONG on 8-K item 2.05, OPEN+2 entry (enter open of session AFTER first_session,
+  exit open+H), hedged open->open, cost 35, chosen sp600_h3. 2.05 RARE in sp600 → paper may take months. KEY: for
+  open+2 entry, strategy emits when first_session==today → runner enters next open. paper_runner exit_at="open" +
+  hold>0 uses SPY open for the hedge exit too (advance():159) — matches research open->open hedge.
 
 ## 2026-11-04 — analyst-initiation-buy (planned) [narrative pruned 2026-11-07]
 - analyst_ratings (whole history clean). LONG on ratings Action=="init" + bullish ToGrade, OPEN entry
