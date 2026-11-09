@@ -4,7 +4,7 @@
   "trades": 294,
   "real_mean_bps": -35.5,
   "real_t": -0.64,
-  "paper_mean_bps_same_trades": 188.0,
+  "paper_mean_bps_same_trades": 64.6,
   "avg_half_spread_bps": 50.0,
   "first_day": "2026-11-02",
   "last_day": "2026-11-05",
