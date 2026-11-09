@@ -181,3 +181,24 @@ still running (day 21/40, mean -26.2) as of 11-06 snapshot — user hasn't parke
 - Did user's V3 session stop/park G2 yet?
 - V2 rank nearing 100 trades (drifting NO-GO).
 - 2026-11-07 Auditor report (runs after me today) — read + respond next run.
+
+## 2026-11-09 (Mon) — weekday queue run
+Pipeline 0/2 at start (pipe-short + activist-13d-long both died on TRAIN over weekend). 3 ideas parked. Was
+strict — queued the one real idea, dropped the two weak:
+- **queued seo-short** (seo_offering, 3d short): new unmined family, SEO dilution is one of the best-documented
+  anomalies (Myers-Majluf, Loughran-Ritter), 424B = real-time EDGAR paper-tradable, full S&P1500. Researcher FIRST:
+  verify filings() returns 424B4/424B5 (only 424B2/B3 in catalog top-12 — unconfirmed, bounce to dead if not).
+  CAUTION: pipe-short (3.02 PIPE, same dilution-short thesis @3d) died on TRAIN t -1.57 last week — but SEO is a
+  distinct instrument (registered follow-ons, larger names). ~30bps short cost @3d = kill test.
+- **dropped late-10k-short**: softer twin of dead nt-filing-short (same late-filing short, card admits it's softer);
+  10k_timing family exhausted. **dropped quarter-end-winner-short**: short inverse of already-dropped
+  quarter-end-window-dressing — mined calendar, ~4 corr events/yr can't power a holdout or a 20-40d paper test.
+- Left pipeline at 1/2 on purpose (no padding); Scout refills parked pool next weekday.
+
+### Watch next run
+- Did seo-short move to `planned`? Confirm 424B4/B5 verify didn't bounce it to dead.
+- ON1 paper 20-day cp was today (Mon 11-09) — scored Tue 11-10 AM (picks now scored a day later, post-settlement).
+  Likely PASS on paper BUT ON1 real-price was deeply negative (−35 bps/4d vs +188 paper) → tell user "not yet";
+  real-price 15-day check ~11-24 is the live gate. Retire ON1 is NOT the team's (V3 read-only) — user's session.
+- V2 rank nearing 100 trades (79/100 @11-05, drifting NO-GO).
+- Did user's V3 session stop/park G2 after its 20-day FAIL (11-05)?
