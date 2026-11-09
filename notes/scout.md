@@ -1,16 +1,16 @@
 # Scout notes (max ~150 lines)
 
-## Last run: 2026-11-06
-- Run reason: scouting (0 ideas waiting, target 10)
-- Ideas at start: 0 at `idea` stage (turn-of-month and nt-filing-short already `queued`)
-- Added 4 new ideas: activist-13d-long (activist_13d), pipe-short (8k_3_02), year-end-loser-reversal (calendar_effects), late-10k-short (10k_timing)
-- Total at `idea` stage after run: 4 (target 10; still 6 short — needs more next run)
+## Last run: 2026-11-09
+- Run reason: scouting (1 idea waiting, target 10)
+- Ideas at start: 1 at `idea` stage (late-10k-short)
+- Added 2 new ideas: seo-short (seo_offering), quarter-end-winner-short (calendar_effects)
+- Total at `idea` stage after run: 3 (target 10; still 7 short — need more next runs)
+- Exhausted all viable 8-K screen leads; pivoted to non-8K academic ideas
 
-## Current ideas at `idea` stage (as of 2026-11-06)
-1. activist-13d-long — activist_13d, 3d (close entry; Brav et al. 2008 +7.2% at 13D)
-2. pipe-short — 8k_3_02, 3d (SHORT; close entry; screen t=-1.70; Brophy et al. 2009)
-3. year-end-loser-reversal — calendar_effects, 5d (S&P 400 down>=20% YTD; close Dec 26)
-4. late-10k-short — 10k_timing, 3d (SHORT; close entry; exclude NT filers)
+## Current ideas at `idea` stage (as of 2026-11-09)
+1. late-10k-short — 10k_timing, 3d (SHORT; close entry; Ettredge et al. 2000)
+2. seo-short — seo_offering, 3d (SHORT; close entry; Loughran & Ritter 1997, ~300 bps)
+3. quarter-end-winner-short — calendar_effects, 3d (SHORT; close entry; Carhart et al. 2002, ~90 bps)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -24,6 +24,20 @@ rd.filings() = every SEC filing + 8-K item codes since 2004 (officer changes, de
 buybacks...); rd.splits() = splits with announcement dates. Each 8-K event type is a NEW family
 with its whole history clean except screen (2005-2013) already used.
 
+## 8-K space: ALL VIABLE SCREEN LEADS EXHAUSTED
+Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that threshold):
+- 7.01 Reg FD: t=2.31 → registered (now DEAD); small-cap tilt ran negative
+- 2.04 debt acceleration trigger: t=1.99 (3d) → registered as debt-acceleration-bounce (dropped)
+- 2.05 restructuring: t=1.79 (3d) → registered (now DEAD)
+- 3.02 unregistered equity sale: t=-1.70 (3d) → registered as pipe-short (now DEAD; wrong direction)
+- 3.03 shareholders' rights change: t=-1.98 (1d); gross -24.9 bps; below 50 bps threshold; skip
+- 3.01 delisting notice: t=-1.47 (3d); gross -42.6 bps; below 50 bps threshold; skip
+- 4.02 restatement: t=-1.13 (5d); gross -51.4 bps; barely meets 50 bps but t too low; skip
+- 5.02 director/officer change: t=-1.45 (1d); gross -3.3 bps; way below 50 bps; skip
+- 4.01 auditor change: t=-0.26 to -0.45; near-zero; skip
+- All other types: t < 1.5 or below 50 bps gross, skip
+- 8k_5_01 (change in control): NOT in screen; 384 events/20yr = ~19/yr → ~180 holdout events; too sparse
+
 ## Needs data (not registered - the user decides if the data is worth getting)
 - sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
 - any insider idea: a clean insider period no longer exists in the 2006+ SEC data
@@ -36,61 +50,65 @@ with its whole history clean except screen (2005-2013) already used.
 - SC 13G new blockholder: initial SC 13G filing = passive 5%+ holder; mechanism weaker than 13D
   (activist); February filing cluster is a paper-runner concern; Edmans (2009) shows 13D is strong but
   13G (passive) is weak; deferred
-
-## What is left in 8-K space (for future runs)
-Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that threshold):
-- 7.01 Reg FD: t=2.31 → registered (now DEAD); small-cap tilt ran negative
-- 2.04 debt acceleration trigger: t=1.99 (3d) → registered as debt-acceleration-bounce (dropped)
-- 2.05 restructuring: t=1.79 (3d) → registered (now DEAD)
-- 3.02 unregistered equity sale: t=-1.70 (3d) → registered as pipe-short (SHORT, close entry)
-- 3.03 shareholders' rights change: t=-1.98 (1d); after 20bps costs = +4.9; too thin; skip
-- 3.01 delisting notice: t=-1.47 (3d); after 20bps = +22.6; t too low; skip
-- 4.02 restatement: t=-1.13 (5d); after 20bps = +31.4; t too low; skip
-- All other types: t < 1.5, skip
-- 8k_5_01 (change in control): NOT in screen; 384 events/20yr = ~19/yr → ~180 holdout events; too sparse
+- SEC comment letter short (UPLOAD form): academic support mixed — revenue recognition letters are
+  negative but other 10-K letters are positive (Ryans 2019, Lee et al. 2023); direction contaminated
+  without text parsing; skip unless NLP added
+- rights-plan-short (8k_3_03): screen -41.5 bps at 5d (below 50 bps threshold); Ryngaert (1988) avg
+  only -34 bps (discriminatory pills -109 bps); direction ambiguous (adoption vs. removal); skip
+- proxy contest (DFAN14A): ~15-25 events/year in S&P 1500; too sparse; mixed signal (contests vs.
+  routine shareholder proposals both use DFAN14A without text parsing)
+- SEO via 424B3: may supplement seo-short; researcher should check event counts on 424B3 as well
+  (424B3 covers shelf offerings including debt — mixed direction)
 
 ## Calendar effects family status
-- turn-of-month: at `queued`
-- quarter-end-window-dressing: `dropped`
-- year-end-loser-reversal: at `idea` (S&P 400, down>=20% YTD)
-- All: 0 holdouts used, 0 search variants; family bar = 3.0
+- turn-of-month: DEAD (train t=1.37)
+- quarter-end-window-dressing: DROPPED (not tested)
+- year-end-loser-reversal: at `dropped` (Director dropped; not in `idea` queue any more)
+- quarter-end-winner-short: at `idea` (SHORT top-30d momentum at quarter-end close; Carhart 2002)
+- train period 1999-2014 used by turn-of-month; holdout 2015-2026 clean
+- Family bar = 3.0
 
-## Budget state (2026-11-06)
-- activist_13d: new family, entirely clean
-- 8k_3_02: search 2005-2013 (screen, 3 variants); holdout 2014-2026 clean
-- 10k_timing: new family, entirely clean; early-10k-drift dropped, late-10k-short at idea
-- calendar_effects: 0 holdouts, 0 search variants
-- 10q_timing: search 2001-2015 (team train run); holdout clean (early-10q-drift DEAD)
-- nt_filing: new family; nt-filing-short at queued
-- 8k_2_04: search 2005-2013 (screen); holdout 2014-2026 clean
+## New family seo_offering status
+- seo-short: at `idea` (SHORT after 424B4/424B5 pricing prospectus; Loughran & Ritter 1997)
+- Entirely clean (no screen, no search, no holdout)
+- Family bar = 3.0
+
+## Budget state (2026-11-09)
+- seo_offering: new family, entirely clean
+- calendar_effects: search 1999-2014 (turn-of-month train run); holdout clean (2015-2026)
+- 10k_timing: entirely clean (early-10k-drift dropped before test; late-10k-short at idea)
+- 10q_timing: search 2001-2015 (team train run); holdout 2016-2026 clean
+- nt_filing: search 2005-2017 (team train run); 0 holdouts
+- 8k_3_02: search 2005-2013 (screen + team train run); 0 holdouts
 - 8k_7_01: fully mined (screen + train run); small-cap effect ran opposite; don't add more
 - earnings_events: 2 holdouts used; NO CLEAN HOLDOUT - don't add more
 - corporate_events: 1 holdout used (fail)
 - insider: 2 holdouts used; bar = 3.00 (no clean period)
 - analyst_ratings: search 2012-2019 (train run); live feed=NO → no more ideas
+- activist_13d: search 2001-2015 (team train run); 0 holdouts; dead idea; skip adding more
 
-## Ideas to target next run (need ~6 more to approach 10)
-1. Fresh SSRN/arXiv search for 2022-2025 papers on short-horizon event studies — do a WebSearch
-2. CORRESP filing (SEC scrutiny signal): filings(forms=['CORRESP']); mechanism speculative (response
-   vs. notice ambiguous); skip unless clearer direction found in literature
-3. SC 13D/A amendments (activist increases position): same activist_13d family; weaker signal;
-   possibly worth testing as a separate variant if activist-13d-long clears train
-4. DEF 14A timing (proxy_timing family): proxy filing timing signal; academic support thin; deferred
-5. Any fresh 8-K angle requires text parsing (not available)
+## Ideas to target next run (need ~7 more to approach 10)
+1. Fresh SSRN/arXiv search for 2022-2025 papers on short-horizon event studies — WebSearch
+   especially: post-spinoff drift, tender offer post-announcement drift, rights offering short
+2. 424B3 as supplement to seo-short: researcher should check if 424B3 shelf offering events
+   from S&P 1500 are mostly common equity vs debt (if equity, add to seo-short or as variant)
+3. New forms not yet explored: SC 13E-3 (going-private; too sparse ~10-20/yr S&P 1500)
+4. Any fresh calendar effect not in graveyard: pre-earnings-announcement drift? (earnings_events
+   family is exhausted but a pure calendar rule using daily() and earnings() might be new family)
+5. FOMC-week effect: stocks that react most to Fed decisions; systematic but may need sector conditioning
 
-## Areas/sources checked 2026-11-06
-- Screen: re-read; 3.02 pipe-short added based on close-entry economics (screen t=-1.70 viable at 12bps)
-- fill_costs.json: confirmed close fills SP500=6.6bps, SP400=12.0bps round trip (much cheaper than open)
-- Academic: Brav et al. (2008), Klein & Zur (2009) [activist 13D]; Brophy et al. (2009),
-  Chaplinsky & Haushalter (2010) [PIPE short]; Reinganum (1983), Poterba & Weisbenner (2001) [year-end]
-  Ettredge et al. (2000), Kinney & McDaniel (1989) [late filer short]
-- Catalog: verified activist_13d is a new family; 8k_3_02 holdout clean; 10k_timing clean; calendar_effects clean
-- Budget: all new families at bar 3.0; no holdout conflicts
+## Areas/sources checked 2026-11-09
+- Screen: re-read all 57 variants; confirmed all viable leads already registered or below 50 bps
+- data_catalog: confirmed seo_offering and calendar_effects family status; 424B4/424B5 accessible
+- Academic: Loughran & Ritter (1997), D'Mello & Ferris (2000) [SEO short]; Carhart et al. (2002),
+  Duong & Meschke (2020) [quarter-end reversal]; Ryngaert (1988) [rights plan — rejected below threshold]
+- WebSearch: SEC comment letter returns mixed (revenue recognition = negative, other = positive);
+  M&A termination returns mixed; rights plan returns below 50 bps threshold
+- fill_costs.json: confirmed close fills SP500=6.4bps, SP400=12.0bps, SP600=21.8bps RT
 
 ## Watch for next run
-- Did Director queue any of today's 4 ideas?
-- Need ~6 more ideas to reach target 10; need fresh academic sources — run WebSearch for recent SSRN papers
-- pipe-short: researcher needs to verify SHORT direction support in paper_runner.py (same issue as nt-filing-short)
-- activist-13d-long: researcher should verify that filings(forms=['SC 13D']) indexes by TARGET company, not filer
-- year-end-loser-reversal: january-small-cap-reversal was dropped; Director may drop this too — that's OK
-- late-10k-short + nt-filing-short overlap concern: researcher must exclude NT filers from late-10k-short dataset
+- Did Director queue any of today's 2 ideas?
+- seo-short key risk: researcher must verify event counts (424B4+424B5 from S&P 1500); if < 50/year → power concern
+- quarter-end-winner-short: effect may have attenuated post-2015; researcher should check by decade
+- Need ~7 more ideas to approach target 10; consider 424B3 shelf equity, fresh SSRN search
+- year-end-loser-reversal: check if still at `idea` or dropped by Director (last seen at `dropped`)
