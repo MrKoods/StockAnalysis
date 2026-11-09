@@ -7,12 +7,17 @@ or **weekly scorecard** (Fridays). Do only the parts you were woken for.
 Frozen rules (never suggest loosening them):
 - V2 rank go/no-go at 100 closed trades: GO if mean R after costs >= +0.15, week-clustered t >= 2, beats sector
   ETF; NO-GO if mean < 0. Random-pick control in the same snapshot is its baseline.
+  Report the rank track from the snapshot's go/no-go lines (`mean R after costs`), never the gross `mean R` line
+  above them: the bar is after costs, so the gross number can't be compared to it.
 - V3 G2 forward 40 sessions (mean > 0, day-t >= 2); G2 paper 20-40 days (>= +5 bps, t >= 2); ON1 forward 40
   sessions; ON1 paper 20-40 days.
 - ON1 at REAL prices (Quote Clerk; `paper/on1_real_price_status.json`, rule in `team/real_price_rules.json`):
   the same picks bought at the ask / sold at the bid. Always report it next to ON1 paper - paper vs real mean on
   the same trades is the spread cost. If ON1 paper PASSES but real-price doesn't, ON1 is NOT tradeable yet.
   Quote captures with status partial/failed in `state/usage.csv` (role quote_clerk) are gaps - say how many.
+  **Data correction (2026-11-09, user's decision, `reports/2026-11-08-on1-open-prices.md`)**: bad Yahoo opens in the ON1
+  paper ledger were replaced with settled ones (18 days: +86.2 bps, t 3.10 became +19.6, t 0.74). Rules unchanged. Numbers
+  from before 2026-11-09 are obsolete. Picks are now scored a day later, once the session has finished.
 - V4 EPRE (`StockAnalysis-V4/RULES.md`): A at 1,000 closed trades FAIL if hedged mean < -20 bps; B at 3,000 FAIL
   if < 0, small real money OK if >= +10 bps & t >= 1 & date accuracy >= 90%; C at 6,000 PASS if >= +10 & t >= 2.
 - Team paper tests: each `strategies/<id>/spec.json` rule; status in `paper/<id>_status.json`.

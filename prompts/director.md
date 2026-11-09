@@ -19,6 +19,9 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
   <id> dropped --note "<why>"` - the Scout refills the queue every weekday, so be strict. Never more than 2 in
   research at once; the Researcher and Skeptic each handle up to 2 a day. On these quick weekday runs, queue/drop
   and write a 2-3 line outbox; the full review is Saturday.
+- **Size of the edge is also a hard rule**: drop any idea whose card doesn't show a gross edge of at least ~50 bps
+  per trade (about twice the close-to-close cost floor). The single-8-K-item vein is near exhausted (Auditor
+  2026-11-07): prefer mechanisms with large moves relative to costs, as earnings reactions have.
 - **Holdout passes** (`holdout_done`): read research/<id>/ (holdout_result, review.md). If sound and paper-
   tradable, start it: `python tools/gate.py promote <id> --reason "<plain-English why>"`. If the gate refuses,
   report why; never work around it.
@@ -29,6 +32,9 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
   are judged at real prices from day one. V3 ON1 and V4 EPRE have real-price checks
   (`paper/on1_real_price_status.json`, `paper/epre_real_price_status.json`): a paper PASS with real-price
   COLLECTING/FAIL = tell the user "not yet" and why.
+  **Data correction (2026-11-09, user's decision, `reports/2026-11-08-on1-open-prices.md`)**: bad Yahoo opens in the ON1
+  paper ledger were replaced with settled ones (18 days: +86.2 bps, t 3.10 became +19.6, t 0.74). Rules unchanged. Numbers
+  from before 2026-11-09 are obsolete. Picks are now scored a day later, once the session has finished.
 - **Ready for real money** (both PASS): your outbox headline says so plainly. Include: the rule it passed with
   the numbers, the average spread cost it paid, what one trade looks like (when to buy/sell, how many names), a
   suggested small starting size, and what would make you say stop. The user decides and places every order.

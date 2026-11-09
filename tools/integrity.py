@@ -25,7 +25,6 @@ STALE_BDAYS = 3         # a ledger whose newest row is older than this many busi
 
 V2_LEDGERS = {"V2 threshold": "paper_trades.csv", "V2 rank": "rank_trades.csv", "V2 random": "random_trades.csv"}
 V3_LEDGERS = {  # label: (path, key columns, value column, date column)
-    "V3 G2 paper": ("data/paper/g2_paper_ledger.csv", ["day", "ticker", "side"], "bps_at_0932_entry", "day"),
     "V3 ON1 paper": ("data/paper/on1_paper_ledger.csv", ["day", "ticker"], "bps", "day"),
     "V3 G2 forward": ("data/forward/g2_forward_trades.csv", ["day", "ticker", "direction"], None, "day"),
     # no ticker column: several trades per day per index are normal, so no duplicate key

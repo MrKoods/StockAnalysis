@@ -28,6 +28,9 @@ pipeline never runs dry - but quality over quantity: add at most 4 per run; 0 is
    - holding period <= ~5 trading days (shorter preferred, if costs allow);
    - plausible after REAL costs at the user's broker (`team/fill_costs.json`: close fills ~7-22 bps round trip,
      open fills ~80-250 bps - small caps the most);
+   - **big enough before costs**: published or screened gross edge of at least ~50 bps per trade (about twice the
+     close-to-close cost floor). Edges of 15-30 bps kept dying against costs (8 ideas, week of 2026-11-02). State the
+     gross edge and where it comes from on the card; if nothing gives a number, don't add it;
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
      close N sessions later, optional stop/target) - or flag that it needs a different engine. Entry at a later
      close is also supported and is far cheaper on the user's broker (round trip close->close ~7-22 bps vs

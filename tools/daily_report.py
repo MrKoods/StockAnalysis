@@ -32,7 +32,7 @@ def _num(rx: str, text: str) -> tuple[str, ...] | None:
 def live_tests(snapshot: str) -> list[str]:
     need = outlook.short(snapshot)
     out = []
-    for label in ("ON1 paper", "G2 paper"):
+    for label in ("ON1 paper",):   # G2 paper retired 2026-11-08 (FAILED day 20)
         g = _num(rf"\[{label}\] (\d+) days, \d+ trades \| mean ([+-][\d.]+) bps \| day-t ([+-]?[\w.]+)", snapshot)
         if g:
             out.append(f"• **V3 {label}** - day {g[0]} · mean {float(g[1]):+.1f} bps · t {g[2]}")

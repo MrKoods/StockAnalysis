@@ -21,7 +21,8 @@ aim is money; no real money moves until a pre-registered test passes. A clear "t
 | Skeptic | Claude (Opus) | Tries to kill every result (look-ahead, costs, luck vs variants tried, survivorship) |
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |
 | Holdout Keeper | script | Runs a strategy on the locked holdout period exactly once |
-| Auditor | Claude (Opus) | Saturday, last. Read-only, independent of the Director: checks decisions, research honesty, paper/live tests, going in circles, the machinery and the overall direction; reports to the user |
+| Engineer | Claude (Opus) + script guard | Last in a dispatch, when something failed and every Saturday: finds the cause, fixes the team's own machinery, proves it with tests. tools/engineer.py keeps the edit only if it is on the editable list, passes static checks and passes every test; otherwise it rolls the run back. Log: registry/engineer_log.csv |
+| Auditor | Claude (Opus) | Saturday, last before the Engineer. Read-only, independent of the Director: checks decisions, research honesty, paper/live tests, going in circles, the machinery and the overall direction; reports to the user |
 
 ## The pipeline (registry/ideas.csv `stage`)
 `idea` (Scout) -> `queued` (Director) -> `planned` (Researcher; PLAN.md committed) -> `awaiting_review`
@@ -59,6 +60,8 @@ a complete frozen rule, at most 5 active paper tests, no STOP file.
 5. **Numbers come from scripts** (state/snapshot.txt, paper status files, research result files), never from
    reading CSVs by eye.
 6. `strategies/registry.json` changes only through tools/gate.py.
+7. **The Engineer fixes machinery, never results.** No edits to gate, budget, jobs, scoring, costs, rules, schedules,
+   permissions or its own guard (tools/engineer.py enforces this). Improving a model = a NEW test through the pipeline.
 
 ## Statistics (every role)
 Cluster t-stats by day (or week for swing). Count variants and say how many. Compare to the right baseline
@@ -67,10 +70,11 @@ Cluster t-stats by day (or week for swing). Count variants and say how many. Com
 
 ## Key dates of the live tests (worked out 2026-10-30 from each frozen rule + ledger; use THESE, don't re-estimate)
 Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A missed session pushes a date later.
-- **V3 G2 paper**: 20th day = Thu 2026-11-05 (scored 10:45 PT that day); 40th = Fri 2026-12-04. Rule: from day 20
+- **V3 G2 paper**: RETIRED 2026-11-08 (FAILED its day-20 check, mean -26 bps); its two tasks are disabled, ledger kept.
+  20th day = Thu 2026-11-05 (scored 10:45 PT that day); 40th = Fri 2026-12-04. Rule: from day 20
   PASS if mean >= +5 bps and day-t >= 2, FAIL if mean < 0, else continue; day 40 = PASS or FAIL.
-- **V3 ON1 paper**: 20th trade day = Mon 2026-11-09, scored at the Tue 2026-11-10 06:45 PT evaluate; 40th = Tue
-  2026-12-08 (scored Wed 12-09). Same rule as G2.
+- **V3 ON1 paper**: 20th trade day = Mon 2026-11-09, scored at the Wed 2026-11-11 06:45 PT evaluate (settled prices only, since 2026-11-09); 40th = Tue
+  2026-12-08 (scored Thu 12-10). Same rule as G2.
 - **V2 rank**: go/no-go at 100 closed trades (62 on 10-29) - no fixed date.
 - **V4 EPRE**: checkpoints at 1k/3k/6k closed trades - no fixed date.
 

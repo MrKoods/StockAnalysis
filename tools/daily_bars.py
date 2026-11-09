@@ -28,7 +28,8 @@ STATEF = TEAM / "state" / "daily_bars.json"
 START = "1999-01-01"
 BATCH = 100
 MIN_ROWS = 250
-STALE_DAYS = 6       # skip a run if the last full refresh is newer than this (one refresh a week)
+STALE_DAYS = 6       # skip a run if the last full refresh is newer than this (one refresh a week)...
+MAX_BAR_AGE = 3      # ...unless its newest bar is older than this (a midweek manual run must not skip Saturday's)
 
 
 def seed() -> int:
@@ -70,10 +71,15 @@ def better(new: pd.DataFrame, path) -> bool:
     return new.index.max() > pd.Timestamp(old.index.max()) and len(new) >= len(old) - 5
 
 
+def fresh(st: dict, today: date) -> bool:
+    return (st.get("date", "") > str(today - timedelta(days=STALE_DAYS))
+            and st.get("through", "") >= str(today - timedelta(days=MAX_BAR_AGE)))
+
+
 def run(force: bool = False) -> str:
     st = load_json(STATEF, {})
     seeded = seed()
-    if not force and st.get("date", "") > str(date.today() - timedelta(days=STALE_DAYS)):
+    if not force and fresh(st, date.today()):
         return f"daily bars: up to date (refreshed {st['date']}, through {st.get('through')})"
     names = tickers()
     saved, kept = 0, []

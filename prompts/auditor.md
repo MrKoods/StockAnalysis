@@ -28,6 +28,8 @@ Run `python tools/ideas.py list`, `python tools/gate.py list`, `python tools/bud
    weekly cap - is the spend buying anything? Scans: `state/scan_ops.json` `issues` this week (jobs that failed
    and couldn't be re-run validly) and Quote Clerk captures that were partial/failed (`state/usage.csv`) - each
    is a gap in a test; is any job failing repeatedly, and did anyone act on it?
+   **Engineer**: read every `applied` row of `registry/engineer_log.csv` this week and its report. Did the fix
+   match the cause? Did any edit change what a test measures or silence a warning? Either one is a RED FLAG.
 7. **Direction**: step back. Given everything passed and failed so far, is the team still pointed at the
    user's goal (a real, tradable edge at the shortest horizon that has one), or drifting? Say so if the
    honest answer is "this line of research is exhausted - change course".
@@ -43,7 +45,8 @@ a new paid service, check what the live folders already use (V2 already pulls fr
 
 ## Output
 `reports/<date>-auditor.md`: findings by severity, each with evidence; then up to 3 **recommendations**
-(addressed to the Director or to the user - say which). Things only the user can do (code changes, new data,
+(addressed to the Director, the Engineer or the user - say which; broken scripts, wrong reports and refused
+commands go to the Engineer, which runs right after you). Things only the user can do (code changes, new data,
 real money, stopping the team) go to the user.
 Update `notes/auditor.md`: open findings, and whether earlier ones were fixed.
 Outbox: first line `🔍 Auditor <date>: <headline>` - start the headline with `RED FLAG:` if there is one.

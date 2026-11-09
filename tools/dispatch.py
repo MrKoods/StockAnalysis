@@ -32,6 +32,7 @@ import catalog
 import daily_bars
 import daily_report
 import edgar
+import engineer
 import fill_costs
 import ideas
 import jobs
@@ -281,12 +282,16 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
             return
         # Exempt: the Auditor (heavy usage is exactly what it should flag) and the Director's Saturday weekly
         # review - one run each a week, and a busy Friday must not be able to crowd them out.
-        weekly = role == "auditor" or (role == "director" and "weekly review" in why)
+        weekly = role == "auditor" or (role in ("director", "engineer") and "weekly review" in why)
         if not a.dry_run and runs_this_week() >= cap and role not in a.force and not weekly:
             post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
             return
+        if role == "engineer" and not a.dry_run:
+            commit(f"team-runner: before engineer {today}")   # so its guard sees only the Engineer's own edits
         write_context(today, f, hits, paper, {role: why}, pipeline)
         role_runs[role] = run_role(role, cfg["roles"][role], why, today, a.dry_run)
+        if role == "engineer" and not a.dry_run:              # keep or roll back BEFORE anything is committed
+            role_runs[role]["guard"] = engineer.finish(today, role_runs[role]["status"])
         if not a.dry_run:
             save_json(STATE / "role_runs.json", role_runs)
             commit(f"team-runner: {role} {today} ({why[:80]})")
@@ -328,6 +333,10 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     if "auditor" in want:
         write_audit_pack(today)
         launch("auditor", want["auditor"])
+    # Engineer after everyone, so it can act on today's failures and the Auditor's report (tools/engineer.py).
+    fix = want.get("engineer") or engineer.prepare(today, DAYS[today.weekday()] == "Sat", a.dry_run)
+    if fix:
+        launch("engineer", fix)
     return limit
 
 
