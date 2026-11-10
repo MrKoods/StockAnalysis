@@ -2,14 +2,17 @@
 
 Created 2026-10-27.
 
-## Watch list (as of 2026-11-06)
-- V2 rank go/no-go: 79/100 trades; mean +0.185R (clears +0.15 bar), week-t 0.82 (need 2) — looking weak, t very unlikely to reach 2 in remaining 21 trades; likely NO-GO
-- V3 ON1 paper: day 18/20, mean +86.2 bps, t 3.10 — PASS very likely at day 20 (Mon Nov 9, scored Tue AM)
-- V3 ON1 real-price: 4 days, mean -35.5 bps vs paper +188.0 same trades (gap 223.5 bps, half-spread 50 bps). Too early but gap is large. Paper PASS ≠ tradeable. Rule: 15-day decision point ~2026-11-24.
-- V3 G2 paper: FAILED day 20 (2026-11-05). Director must retire via gate.py. Still running on day 21.
-- V4 EPRE: 943/1000 to checkpoint A (fail if hedged mean < -20 bps). Currently +20.1 bps. Exit-t -0.06 (8 days) too early. ~57 trades to checkpoint A (~3 trading days at current pace).
-- V4 EPRE real-price: 429 trades, 3 exit days; real hedged +72.5 bps vs paper +71.7 (spread 11.3 bps). Negligible spread; too few exit days for t.
-- VCYT: flagged 2026-11-05 as outlier (-5228 bps). integrity_seen.json records it as known. User may still need to verify $24.0 close vs Webull.
+## Watch list (as of 2026-11-10)
+- V2 rank go/no-go: last noted 79/100 trades (2026-11-06); likely NO-GO at 100 (week-t 0.82, need 2)
+- V3 ON1 paper: day 20 was Mon 2026-11-09, scored at Wed 2026-11-11 06:45 evaluate — verdict pending
+- V3 ON1 real-price: 5 days (2026-11-02 to 2026-11-06), 368 trades, real_mean -24.2 bps vs paper +71.3
+  (gap 95.5 bps ≈ spread); real_t -0.54. COLLECTING (need 15 days). Direction negative — watch closely.
+  11-07 through 11-09 close captures exist; 11-10 close MISSED (see below). Rule: 15-day point ~2026-11-24.
+- V3 G2 paper: RETIRED 2026-11-08 per TEAM.md. No further tracking needed.
+- V4 EPRE: checkpoint A (1,000 trades) imminent; hedged mean well above -20 bps bar.
+- V4 EPRE real-price: 447 trades, 4 exit days (through 2026-11-09); real_hedged +82.5 bps, spread 12.2,
+  real_t 1.05. Missed today's (11-10) exit-day capture — 19 trades permanently a gap unless user runs fix.
+- VCYT: flagged 2026-11-05 as outlier (-5228 bps). integrity_seen.json records it as known.
 - g2_paper_task.log stale since 2026-10-09 (known quirk; G2 ledger is valid source)
 
 ## Inherited from the old review agent (retired 2026-11-01; its notes: StockAnalysis-agent/agent/NOTES.md)
@@ -41,3 +44,8 @@ Created 2026-10-27.
   EPRE ~57 trades from checkpoint A — will pass easily at +20.1 bps.
   V2 rank mean clears bar but t=0.82 far from 2 — likely NO-GO at 100.
   G2 still running despite FAIL — Director must retire.
+2026-11-10: diagnosis. Reports/2026-11-10-diagnosis.md.
+  QuoteClose failed (0x800710E0) — machine asleep 10AM-3:30PM PT, Windows killed task on wake.
+  19 EPRE exit-day trades (11-06 entry batch) missed close capture; permanently a real-price gap
+  unless user runs `python tools/quotes.py capture close` tonight.
+  ON1 real-price now 5 days: -24.2 bps (negative direction, t -0.54). Still COLLECTING.
