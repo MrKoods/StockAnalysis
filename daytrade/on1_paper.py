@@ -1,7 +1,7 @@
 """ON1 paper-trading alerts + ledger (alerts go to the V2 Discord webhook, like g2_paper).
 
     python -m daytrade.on1_paper signals    # weekdays ~15:40 ET: rank, log picks, post 10 to buy at the close
-    python -m daytrade.on1_paper evaluate   # weekdays after the 09:30 open: score every pending pick
+    python -m daytrade.on1_paper evaluate   # weekdays: score every pick whose next session has finished
     add --dry-run to print instead of posting/writing
 
 ON1 rules: buy the 5% of stocks (ranked separately within the S&P 500 / 400 / 600) with the worst
@@ -117,9 +117,16 @@ def signals(dry: bool = False, day: date | None = None) -> None:
     post("\n".join(lines), dry)
 
 
+def _settled(session: date, now: pd.Timestamp) -> bool:
+    """Yahoo's open for a session still running can be badly wrong (2026-11-09 correction, on1_correct_opens.py),
+    so a session counts only once it has ended."""
+    return session < now.date() or (session == now.date() and now.time() >= time(16, 30))
+
+
 def _score(led: pd.DataFrame) -> pd.DataFrame:
-    """Fill close/next_open/bps for pending rows whose next session has opened. Returns updated ledger."""
+    """Fill close/next_open/bps for pending rows whose next session has finished. Returns updated ledger."""
     led = led.copy()
+    now = pd.Timestamp.now(tz=TZ)
     led["next_day"] = led["next_day"].astype(object)     # all-NaN on read -> float column
     pend = led["bps"].isna()
     if not pend.any():
@@ -135,7 +142,7 @@ def _score(led: pd.DataFrame) -> pd.DataFrame:
         df = (raw[t] if isinstance(raw.columns, pd.MultiIndex) else raw).dropna(subset=["Open", "Close"])
         days = pd.DatetimeIndex(df.index).date
         on, after = df[days == d], df[days > d]
-        if not len(on) or not len(after):
+        if not len(on) or not len(after) or not _settled(days[days > d][0], now):
             continue
         c, o = float(on["Close"].iloc[0]), float(after["Open"].iloc[0])
         led.at[i, "close"], led.at[i, "next_open"] = round(c, 4), round(o, 4)
