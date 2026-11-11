@@ -1,5 +1,35 @@
 # Researcher notes
 
+## 2026-11-11 — pre-earnings-premium (planned, check+smoke pass)
+- Five files in research/pre-earnings-premium/ + strategies/pre-earnings-premium/. Family `pre_earnings`
+  (NEW, whole history clean). LONG idea. EARNINGS-based (first team idea using rd.earnings, not filings).
+- Mechanism: pre-announcement RISK PREMIUM (Laarits 2020; Ai-Bansal-Han 2021: 72% of earnings-period
+  excess return accrues BEFORE release). LONG close A-2 -> exit close A-1 (hold 1), flat before the
+  number => ZERO surprise risk. Distinct from V4 EPRE (holds THROUGH the announcement).
+- Train 2003-01-01..2015-12-31, holdout 2016-01-01..2026-10-24 (recent arbitraged/post-publication era
+  = the decay test; earnings data ends 2026-11-02, daily 2026-11-06, buffer ok). cluster "day" (earnings
+  cluster into seasons -> many names share an exit date). metric hedged (firm-specific; staggered dates).
+- SP500 ONLY, deliberate: plan has ONE cost floor = worst index; close RT ~6.4(sp500)/12(sp400)/22(sp600);
+  a ~1-day premium can't survive sp400/sp600, and adding them over-charges every sp500 trade. cost_bps 8
+  (floor 6.4 + impact). "too small for sp4/6 costs" is a documented outcome, not an untested gap.
+- 4 variants: h1_sp500 (chosen, PRE-REGISTERED), h2_sp500 (hold 2 = close A-3->A-1), h1_mom_sp500 (prior
+  5-sess ret>0), h1_raw_sp500 (unhedged diagnostic). luck_t~1.67. chosen NOT best-t. Reads (not switches):
+  raw>>hedged => market beta not firm premium; h2>>h1 => edge not in final 24h; mom>>h1 => momentum.
+- Smoke (2003): h1 1270 trades/176 day-clusters, mom 651/143 — ample power.
+- KEY DATA FACT: rd.earnings(tickers) -> dict ticker->df, col "Earnings Date" (tz-aware UTC). Normalize to
+  ET date, require it be a real SPY session (searchsorted on SPY calendar), dedupe per ticker. Built the
+  session calendar from SPY daily index (close->close hedge uses spy close by session). df["close"] lower.
+- CENTRAL RISK for Skeptic: scheduling LOOK-AHEAD — entering A-2 assumes date A was known 2 sessions
+  ahead; usually confirmed but some Yahoo dates are "estimated" and shift; no flag in data => cannot fully
+  remove in backtest (paper is leak-free: live calendar only shows scheduled date). Also survivorship
+  (current sp500 only) biases a LONG UP — a pass is NOT conservative there.
+- PROMOTABLE: strategy.py reads V4's nightly earnings_calendar.csv (data/calendar/, same feed EPRE trades;
+  cols ticker,index,report_day,minute,time_source,bmo,refreshed), emits LONG when report_day == 3rd NYSE
+  session after asof -> runner enters close(asof+1)=A-2, hold 1, exit close A-1. Future sessions counted on
+  a self-contained NYSE calendar (reused turn-of-month's _easter/_nth_weekday/_nyse_holidays). spec
+  entry_at=close, exit_at=close, hold_sessions=1, metric real_hedged_bps, pass 5 bps/t 2.0, 20-40 days,
+  max_signals_per_day 25 (peak earnings days under-sampled; clerk can't quote more).
+
 ## 2026-11-09 — seo-short (planned, check+smoke pass)
 - Five files in research/seo-short/ + strategies/seo-short/. Family `seo_offering` (NEW, whole history clean).
   Bar via budget (floor 3.0). SHORT idea. Reused pipe-short skeleton (SEC-filing SHORT close→close hedged),
@@ -79,30 +109,9 @@
   close, hold 3. spec entry_at=close, exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
   Reused nt-filing-short skeleton (SEC-filing, close→close, hedged); flipped to LONG, dropped ex202 map.
 
-## 2026-11-06 — nt-filing-short (planned, check+smoke pass)
-- Five files in research/nt-filing-short/ + strategies/nt-filing-short/. Family `nt_filing` (NEW, whole
-  history clean). Bar 3.00. SHORT idea.
-- Train 2005-01-01..2017-12-31 (8-K item codes from 2004-08, needed for ex202 variant), holdout
-  2018-01-01..2026-10-24 (recent arbitraged era; daily ends 11-02, buffer for close+3 exit).
-- Signal: NT 10-K / NT 10-Q accepted (forms=["NT 10-K","NT 10-Q"]). SHORT at CLOSE of session AFTER
-  first_session (entry_pos=pos+1), cover CLOSE +H. SPY-hedged gross SHORT = spy_ret−stock_ret
-  close→close. cost 30 (close floor ~12 + borrow/slippage buffer). cluster "week".
-- 5 variants: univ {sp500, sp54=sp500+sp400} × hold {2,3} + sp54_h3_ex202 (exclude NT within ±2 cal days
-  of an 8-K 2.02 earnings release). chosen PRE-REGISTERED = `sp54_h3` (broad tradable univ, ~3d drift).
-  luck_t~1.79. sp600 EXCLUDED (borrow prohibitive).
-- CLOSE fills forced: edge ~50-70 bps CAR < ~80 bps open round trip → open untradable for this user.
-  Cost of entering 1 session late = central risk, flagged for Skeptic + as kill condition.
-- Smoke (2005): sp54_h3 73 trades/17 wk, sp500_h3 27/13, ex202 52/13 — NT forms CONFIRMED retrievable
-  (idea's gate), ample power, ~29% of NT coincide with earnings (ex202 drop).
-- PROMOTABLE: NT filings same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live
-  (reads sp500_new.csv + sp400.csv). strategy emits short when first_session==today → runner enters next
-  session close = first_session+1 close, hold 3, exit close. spec entry_at=close, metric real_hedged_bps,
-  pass 15 bps/t 2.0, 20-40 days. CAVEAT: real_hedged_bps prices SPREAD not BORROW → pass_mean_bps 15
-  leaves borrow room; Director must confirm borrow before real money. Survivorship biases a SHORT AGAINST
-  us (delisted worst-cases absent) → a pass is conservative.
-- KEY: SEC form stored raw ("NT 10-K"/"NT 10-Q"), NT not in SKIP_FORMS (edgar.py). paper_runner handles
-  side="short" (sgn in _bps + real_price; hedged = real_bps − sgn·spy_bps). Reused restructuring skeleton;
-  close→close hedge uses spy close both legs (advance exit_at=close). df["close"] lowercase in rd.daily.
+## 2026-11-06 — nt-filing-short (planned) [narrative pruned 2026-11-11]
+- `nt_filing` (NEW clean). SHORT on NT 10-K/10-Q, close→close hedged, entry first_session+1, chosen
+  sp54_h3. paper_runner handles side="short" (hedged = real_bps − sgn·spy_bps). sp600 excluded (borrow).
 
 ## 2026-11-06 — turn-of-month (planned) [narrative pruned 2026-11-07]
 - calendar_effects (whole history clean). LONG sp500 EW at month-end close, RAW (not hedged — TOM is
