@@ -1,5 +1,30 @@
 # Researcher notes
 
+## 2026-11-11 — issuer-self-tender-long (planned, check+smoke pass)
+- Five files in research/issuer-self-tender-long/ + strategies/. Family `self_tender` (NEW, whole history
+  clean). Bar via budget (floor 3.0). LONG idea. Reused seo-short skeleton (SEC-filing close→close hedged),
+  flipped to LONG, swapped 424B filter for SC TO-I, added a momentum-conditioned variant.
+- Signal: INITIAL SC TO-I (issuer self-tender = company buys its OWN shares at a premium → undervaluation
+  signal + price floor; Peyer-Vermaelen 2009 +200bps 3-5d). filings(forms=["SC TO-I"]) matches SC TO-I AND
+  SC TO-I/A → filter RAW form=="SC TO-I" for initial-only. FILER is the issuer so filings(tickers=sp1500)
+  returns the right names directly (like 424B, unlike 13D). LONG close of first_session+1, exit CLOSE+H.
+  SPY-hedged LONG gross = stock_ret−spy_ret.
+- Train 2001-01-01..2015-12-31 (SC TO-I replaced SC 13E4 in Jan 2000), holdout 2016-01-01..2026-10-24 (daily
+  ends 11-06, buffers close+5). cluster week. cost 25 (sp600 close floor 22 + impact). metric hedged.
+- 7 variants: univ {sp1500, sp500} × hold {1,3,5} + sp1500_h3_momneg (prior-20-sess stock ret as of
+  first_session < 0). chosen PRE-REGISTERED = `sp1500_h3`. luck_t~1.97. Explicit CONFIGS dict (name→
+  (univ,hold,momneg)), no fragile name parsing.
+- SMOKE (2001): sp1500_h3 17 trades/14wk, sp500_h3 8/7. SC TO-I IS queryable. KEY CONCERN: ~17 events/yr in
+  sp1500 → 15yr train ~255 events (power OK for backtest ~t4), but PAPER IS SLOW: 20 scored trades at ~1.4/mo
+  ≈ 14 months. Director: promotable but a paper pass would take a year+.
+- CENTRAL RISKS for Skeptic: (1) one-session-late entry (first_session+1 close) may eat the front-loaded
+  announcement pop → kill signature = hold-1 ≫ hold-3/5 with +1→+3 ≈ 0. (2) survivorship (current members
+  only) biases a LONG UP → a pass is NOT conservative there (self-tenderer usually stays listed, but acquired/
+  delisted ones absent). (3) momneg ≫ base = undervaluation not momentum (read, NOT a switch).
+- PROMOTABLE: SC TO-I same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live, emits
+  LONG when initial SC TO-I first_session==today → runner enters next close. spec entry_at=close, hold 3,
+  exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days. NO borrow concern (it's LONG).
+
 ## 2026-11-11 — pre-earnings-premium (planned, check+smoke pass)
 - Five files in research/pre-earnings-premium/ + strategies/pre-earnings-premium/. Family `pre_earnings`
   (NEW, whole history clean). LONG idea. EARNINGS-based (first team idea using rd.earnings, not filings).
@@ -55,59 +80,17 @@
   when first_session==today → runner enters next close = first_session+1, hold 3. spec entry_at=close,
   exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
 
-## 2026-11-07 — pipe-short (planned, check+smoke pass)
-- Five files in research/pipe-short/ + strategies/pipe-short/. Family `8k_3_02` (screen used 2005-2013 →
-  holdout 2014-2026 CLEAN). Bar via budget (floor 3.0). SHORT idea.
-- Train 2005-01-01..2013-12-31 (same region the screen searched = a train look), holdout
-  2014-01-01..2026-10-24 (clean; daily ends 11-02, buffer for close+5 exit). cluster "week".
-- Signal: 8-K item 3.02 (unregistered equity sale = completed PIPE). SHORT at CLOSE of session AFTER
-  first_session (entry_pos=pos+1), cover CLOSE +H. SPY-hedged SHORT gross = spy_ret−stock_ret close→close.
-  cost 25 (sp1500 close floor ~21.6 + impact). metric hedged.
-- 7 variants: univ {sp1500=500+400+600, sp46=400+600} × hold {1,3,5} + sp1500_h3_ex (drop 3.02 within ±2
-  cal days of an 8-K 2.02 OR 1.01). chosen PRE-REGISTERED = `sp1500_h3` (idea card's primary rule, ~3d
-  screen horizon). luck_t~1.97.
-- Smoke (2005): sp1500_h3 114 trades/47 wk, sp46_h3 84/45 — ample power year 1, item-code filter confirmed
-  retrievable.
-- CENTRAL RISKS flagged for Skeptic + as kill conditions: (1) screen t only −1.70 (marginal); (2)
-  one-session-late entry (first_session+1 close) may eat the front-loaded PIPE drift → signature = hold-1 ≪
-  hold-3/5; (3) if sp1500_h3_ex collapses it was co-incident earnings/deal news not dilution; (4) if sp1500
-  flat but sp46 strong, it's a small-cap signal (research verdict, NOT a switch of chosen — large-cap 3.02s
-  are often benign benefit-plan/private placements).
-- COST/BORROW CAVEATS: sp600 close floor over-charges sp500 names in sp1500 (conservative). SURVIVORSHIP
-  (current members, no delisted) biases a SHORT AGAINST us → a pass is conservative on that axis. real_hedged_bps
-  prices SPREAD not BORROW; distressed small-caps hard-to-borrow → Director MUST confirm borrow before real
-  money; pass_mean_bps 15 leaves room.
-- PROMOTABLE: 3.02 same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live (sp500_new
-  +sp400+sp600 csvs, items col split on "," == "3.02"), emits short when first_session==today → runner enters
-  next close = first_session+1 close, hold 3. spec entry_at=close, exit_at=close, metric real_hedged_bps, pass
-  15 bps/t 2.0, 20-40 days. Reused nt-filing-short skeleton (SHORT close→close hedged + ex-event filter) +
-  restructuring item-code filter in strategy.py. BUT 3.02 uncommon in sp1500 → paper may take many months.
+## 2026-11-07 — pipe-short (planned) [narrative pruned 2026-11-11]
+- `8k_3_02` (screen 2005-2013 → holdout 2014-2026 clean). SHORT on 8-K item 3.02 (PIPE), close→close hedged,
+  entry first_session+1, chosen sp1500_h3. Screen t only −1.70 (marginal). 3.02 uncommon in sp1500 → paper
+  slow. Reused nt-filing skeleton + restructuring item-code filter. Borrow caveat (Director confirms).
 
-## 2026-11-07 — activist-13d-long (planned, check+smoke pass)
-- Five files in research/activist-13d-long/ + strategies/activist-13d-long/. Family `activist_13d` (NEW,
-  whole history clean). Bar via budget (floor 3.0). LONG idea.
-- Train 2001-01-01..2015-12-31, holdout 2016-01-01..2026-10-24 (recent arbitraged era; daily ends 11-02,
-  buffer for hold-5 close exit). cluster "week".
-- Signal: INITIAL SC 13D accepted (rd.filings(forms=["SC 13D"]) then filter RAW form=="SC 13D" to drop
-  SC 13D/A amendments). LONG at CLOSE of session AFTER first_session (entry_pos=pos+1), exit CLOSE +H.
-  SPY-hedged LONG gross = stock_ret−spy_ret close→close. cost 25 (sp600 close floor 21.8 + impact). 
-- 6 variants: univ {sp1500=500+400+600, sp500} × hold {1,3,5}. chosen PRE-REGISTERED = `sp1500_h3`
-  (full activist universe, few-day drift). luck_t~1.89.
-- KEY DATA FACT (idea's central risk, RESOLVED FAVORABLY): EDGAR indexes SCHEDULE filings (13D/13G) under
-  the SUBJECT company, so rd.filings(tickers=sp1500) returns 13Ds where our ticker is the TARGET, not the
-  filer. Confirmed: SC 13G is in catalog top-forms indexed by universe tickers; smoke found 154 sp1500 /
-  81 sp500 SC 13D trades in year 1 (2001). Ample power. filings(forms=["SC 13D"]) matches "SC 13D" AND
-  "SC 13D/A" (/A stripped both sides) → MUST filter raw form=="SC 13D" for initial-only.
-- CENTRAL RISK flagged for Skeptic + as kill condition: entering first_session+1 (one session late, dispatch
-  after-close + next-weekday index lag) may miss Brav's front-loaded announcement return → tradable residual
-  ~0. Signature = hold-1 much weaker than hold-3/5 in train.
-- COST CAVEAT: one shared floor = sp600 close (21.8) over-charges sp500-only variant (real ~6.6) → biases
-  AGAINST sp500 result (conservative). SURVIVORSHIP biases a LONG UP (current members only, no delisted) →
-  a pass is NOT conservative on that axis; Skeptic should weight it.
-- PROMOTABLE: 13D same-day public; filings.parquet rebuilt each dispatch → strategy.py reads live (sp500_new
-  +sp400+sp600 csvs), emits long when first_session==today → runner enters next close = first_session+1
-  close, hold 3. spec entry_at=close, exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
-  Reused nt-filing-short skeleton (SEC-filing, close→close, hedged); flipped to LONG, dropped ex202 map.
+## 2026-11-07 — activist-13d-long (planned) [narrative pruned 2026-11-11]
+- `activist_13d` (NEW clean). LONG on INITIAL SC 13D (filter raw form=="SC 13D" to drop /A), close→close
+  hedged, entry first_session+1, chosen sp1500_h3. KEY: EDGAR indexes 13D/13G under the SUBJECT company →
+  filings(tickers=sp1500) returns 13Ds where our ticker is the TARGET (smoke 154 sp1500 trades yr1). Risk:
+  one-session-late entry may miss Brav's front-loaded return (kill sig = hold-1 ≪ hold-3/5); survivorship
+  biases LONG UP (pass NOT conservative). Reused nt-filing skeleton, flipped LONG, dropped ex202 map.
 
 ## 2026-11-06 — nt-filing-short (planned) [narrative pruned 2026-11-11]
 - `nt_filing` (NEW clean). SHORT on NT 10-K/10-Q, close→close hedged, entry first_session+1, chosen
