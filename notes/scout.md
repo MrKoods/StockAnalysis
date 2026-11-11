@@ -1,16 +1,14 @@
 # Scout notes (max ~150 lines)
 
-## Last run: 2026-11-09
-- Run reason: scouting (1 idea waiting, target 10)
-- Ideas at start: 1 at `idea` stage (late-10k-short)
-- Added 2 new ideas: seo-short (seo_offering), quarter-end-winner-short (calendar_effects)
-- Total at `idea` stage after run: 3 (target 10; still 7 short — need more next runs)
-- Exhausted all viable 8-K screen leads; pivoted to non-8K academic ideas
+## Last run: 2026-11-10
+- Run reason: scouting (0 ideas waiting, target 10)
+- Ideas at start: 0 at `idea` stage (yesterday's 3 were all processed: seo-short dead, late-10k-short dropped, quarter-end-winner-short dropped)
+- Added 2 new ideas: pre-earnings-premium (pre_earnings), issuer-self-tender-long (self_tender)
+- Total at `idea` stage after run: 2 (need 8 more to approach 10)
 
-## Current ideas at `idea` stage (as of 2026-11-09)
-1. late-10k-short — 10k_timing, 3d (SHORT; close entry; Ettredge et al. 2000)
-2. seo-short — seo_offering, 3d (SHORT; close entry; Loughran & Ritter 1997, ~300 bps)
-3. quarter-end-winner-short — calendar_effects, 3d (SHORT; close entry; Carhart et al. 2002, ~90 bps)
+## Current ideas at `idea` stage (as of 2026-11-10)
+1. pre-earnings-premium — pre_earnings, 1d (LONG; close-2 to close-1; Laarits 2020 SSRN, Ai et al. 2021; 6000 events/yr)
+2. issuer-self-tender-long — self_tender, 3d (LONG; SC TO-I; Peyer & Vermaelen 2009; ~20-50/yr; needs SC TO-I verification)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -32,7 +30,7 @@ Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that th
 - 3.02 unregistered equity sale: t=-1.70 (3d) → registered as pipe-short (now DEAD; wrong direction)
 - 3.03 shareholders' rights change: t=-1.98 (1d); gross -24.9 bps; below 50 bps threshold; skip
 - 3.01 delisting notice: t=-1.47 (3d); gross -42.6 bps; below 50 bps threshold; skip
-- 4.02 restatement: t=-1.13 (5d); gross -51.4 bps; barely meets 50 bps but t too low; skip
+- 4.02 restatement: t=-1.13 (5d); gross -51.4 bps; barely meets 50 bps but t too low + only 25/yr + screen period contaminated; skip
 - 5.02 director/officer change: t=-1.45 (1d); gross -3.3 bps; way below 50 bps; skip
 - 4.01 auditor change: t=-0.26 to -0.45; near-zero; skip
 - All other types: t < 1.5 or below 50 bps gross, skip
@@ -55,60 +53,58 @@ Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that th
   without text parsing; skip unless NLP added
 - rights-plan-short (8k_3_03): screen -41.5 bps at 5d (below 50 bps threshold); Ryngaert (1988) avg
   only -34 bps (discriminatory pills -109 bps); direction ambiguous (adoption vs. removal); skip
-- proxy contest (DFAN14A): ~15-25 events/year in S&P 1500; too sparse; mixed signal (contests vs.
-  routine shareholder proposals both use DFAN14A without text parsing)
-- SEO via 424B3: may supplement seo-short; researcher should check event counts on 424B3 as well
-  (424B3 covers shelf offerings including debt — mixed direction)
+- proxy contest (DFAN14A): ~15-25 events/year in S&P 1500; too sparse; mixed signal
+- SEO via 424B3: may supplement seo-short; but seo-short is now DEAD; leave alone
+- FOMC pre-announcement drift: "80%+ of equity premium earned in 24hr before FOMC" (Lucca & Moench
+  2015); mechanism strong; needs FOMC meeting dates from federalreserve.gov (8/yr, free, fixed calendar)
+  → user decides if worth adding as a small static file in research_data.py
+- IPO lockup expiration short: needs IPO lockup expiration dates
+- Buyback announcement LONG (via 8-K 8.01 text filter): needs text parsing; 8.01 near-zero without filter
+- After-hours earnings release short (8k_2_02 subset, acceptance_time >4PM): Doyle & Magilke (2009)
+  shows 100 bps spread early vs late filers BUT close+1 entry means most day-0 reaction is priced;
+  residual drift to close+3 may be only 20-30 bps (below 50 bps gross); borderline; skip for now
 
 ## Calendar effects family status
 - turn-of-month: DEAD (train t=1.37)
 - quarter-end-window-dressing: DROPPED (not tested)
 - year-end-loser-reversal: at `dropped` (Director dropped; not in `idea` queue any more)
-- quarter-end-winner-short: at `idea` (SHORT top-30d momentum at quarter-end close; Carhart 2002)
+- quarter-end-winner-short: at `dropped` (Director dropped; Carhart 2002)
 - train period 1999-2014 used by turn-of-month; holdout 2015-2026 clean
 - Family bar = 3.0
+- NOTE: Director has dropped 3+ calendar variants without testing; next calendar idea needs very strong direct
+  academic evidence with specific bps number before proposing
 
 ## New family seo_offering status
-- seo-short: at `idea` (SHORT after 424B4/424B5 pricing prospectus; Loughran & Ritter 1997)
-- Entirely clean (no screen, no search, no holdout)
+- seo-short: DEAD (train t=-5.92; SHORT was -36 bps after cost; LONG was +36 bps but that's below 50 bps gross; skip)
+- Entirely mined — don't add more seo_offering ideas
+
+## New family pre_earnings status
+- pre-earnings-premium: at `idea` (LONG close-2 to close-1; Laarits 2020; Ai et al. 2021)
+- Family entirely clean (no screen, no prior search, no holdout)
 - Family bar = 3.0
 
-## Budget state (2026-11-09)
-- seo_offering: new family, entirely clean
-- calendar_effects: search 1999-2014 (turn-of-month train run); holdout clean (2015-2026)
-- 10k_timing: entirely clean (early-10k-drift dropped before test; late-10k-short at idea)
-- 10q_timing: search 2001-2015 (team train run); holdout 2016-2026 clean
-- nt_filing: search 2005-2017 (team train run); 0 holdouts
-- 8k_3_02: search 2005-2013 (screen + team train run); 0 holdouts
-- 8k_7_01: fully mined (screen + train run); small-cap effect ran opposite; don't add more
+## New family self_tender status
+- issuer-self-tender-long: at `idea` (LONG SC TO-I filing; Peyer & Vermaelen 2009)
+- Family entirely clean; researcher must verify SC TO-I in filings()
+- Family bar = 3.0
+
+## Budget state (2026-11-10)
+- pre_earnings: new family, entirely clean
+- self_tender: new family, entirely clean
+- seo_offering: search 2001-2015 (team train run); MINED — no more ideas
+- calendar_effects: search 1999-2014 (team train run); holdout 2015-2026 clean; Director dropped 3 variants
+- 10k_timing: entirely clean; late-10k-short + early-10k-drift both dropped; needs fresh angle
+- 10q_timing: search 2001-2015 (team train run); early-10q-drift DEAD; nt-filing-short DEAD; skip
 - earnings_events: 2 holdouts used; NO CLEAN HOLDOUT - don't add more
-- corporate_events: 1 holdout used (fail)
-- insider: 2 holdouts used; bar = 3.00 (no clean period)
-- analyst_ratings: search 2012-2019 (train run); live feed=NO → no more ideas
-- activist_13d: search 2001-2015 (team train run); 0 holdouts; dead idea; skip adding more
+- 8k_X_XX families: ALL screen (2005-2013) used; all viable screen leads registered and failed
+- activist_13d: search 2001-2015 (team train run); dead
+- analyst_ratings: search 2012-2019 (team train run); live feed=NO
 
-## Ideas to target next run (need ~7 more to approach 10)
-1. Fresh SSRN/arXiv search for 2022-2025 papers on short-horizon event studies — WebSearch
-   especially: post-spinoff drift, tender offer post-announcement drift, rights offering short
-2. 424B3 as supplement to seo-short: researcher should check if 424B3 shelf offering events
-   from S&P 1500 are mostly common equity vs debt (if equity, add to seo-short or as variant)
-3. New forms not yet explored: SC 13E-3 (going-private; too sparse ~10-20/yr S&P 1500)
-4. Any fresh calendar effect not in graveyard: pre-earnings-announcement drift? (earnings_events
-   family is exhausted but a pure calendar rule using daily() and earnings() might be new family)
-5. FOMC-week effect: stocks that react most to Fed decisions; systematic but may need sector conditioning
-
-## Areas/sources checked 2026-11-09
-- Screen: re-read all 57 variants; confirmed all viable leads already registered or below 50 bps
-- data_catalog: confirmed seo_offering and calendar_effects family status; 424B4/424B5 accessible
-- Academic: Loughran & Ritter (1997), D'Mello & Ferris (2000) [SEO short]; Carhart et al. (2002),
-  Duong & Meschke (2020) [quarter-end reversal]; Ryngaert (1988) [rights plan — rejected below threshold]
-- WebSearch: SEC comment letter returns mixed (revenue recognition = negative, other = positive);
-  M&A termination returns mixed; rights plan returns below 50 bps threshold
-- fill_costs.json: confirmed close fills SP500=6.4bps, SP400=12.0bps, SP600=21.8bps RT
-
-## Watch for next run
-- Did Director queue any of today's 2 ideas?
-- seo-short key risk: researcher must verify event counts (424B4+424B5 from S&P 1500); if < 50/year → power concern
-- quarter-end-winner-short: effect may have attenuated post-2015; researcher should check by decade
-- Need ~7 more ideas to approach target 10; consider 424B3 shelf equity, fresh SSRN search
-- year-end-loser-reversal: check if still at `idea` or dropped by Director (last seen at `dropped`)
+## Ideas to target next run (need ~8 more)
+1. FOMC pre-announcement: strong evidence (80%+ equity premium, Lucca & Moench 2015); only needs
+   8 dates/year as a small lookup table — worth asking user if researcher can hardcode a calendar
+2. 10k_timing fresh angle: entirely clean family; late-10k-short dropped but family unused; think
+   of a genuinely different variant (not conditional on earnings — event count too low)
+3. Fresh SSRN search for 2024-2025 papers on event-driven anomalies not in catalog/graveyard
+4. After-hours earnings short: revisit if evidence for close+1→close+3 drift >50 bps is found
+5. Any large-volume, high-gross 8-K event type not yet in graveyard (but all screen leads exhausted)
