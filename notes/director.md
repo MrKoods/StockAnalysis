@@ -228,9 +228,21 @@ issuer-self-tender-long 11-10). Filled both slots + dropped one duplicate:
   mean **-45.5 bps**, t -1.08, half-spread 48 bps vs paper +47.2 on the same trades — the spread eats the whole
   edge. Real-price 15-day gate ~11-24 is the live decision. Retiring ON1 is the user's V3 session (team read-only).
 
+## 2026-11-11 (Wed) — 2nd run, refill
+Both morning-queued ideas (issuer-self-tender-long, pre-earnings-premium) died on TRAIN same day → pipeline 0/2.
+Only 2 ideas parked. Was strict — queued 1, dropped 1 (left pipeline 1/2, no padding):
+- **queued proxy-contest-long** (proxy_contest, 3d long): big edge (Fos 2017 ~6.5% event-window premium) clears the
+  50-bps cost bar easily; new unmined family, holdout untouched; DFAN14A = real-time EDGAR paper-tradable.
+  Researcher FIRST: verify filings() returns DFAN14A (not in catalog top-12); bounce to dead if absent / can't
+  power a clean holdout. CAUTION: small/mid-cap-only LONG = exact inversion that killed reg-fd/analyst-init/
+  restructuring, and activist-13d-long died 11-07 → test full S&P1500 too, not only 400+600.
+- **dropped pre-earnings-beat-streak**: base twin pre-earnings-premium (same pre_earnings family + same 1-day
+  close-2→close-1 slice) died on train TODAY — the 1-day pre-earnings slice has no edge; a 4-beat-streak filter
+  cuts events further (less holdout power) without evidence the base edge exists. pre_earnings vein looks exhausted.
+- Parked pool now empty → Scout must refill next weekday.
+
 ### Watch next run
-- issuer-self-tender-long + pre-earnings-premium → should move to `planned`; confirm SC TO-I verify didn't kill
-  self-tender, and that pre-earnings-premium's gross edge cleared 50 bps on train (else dead).
+- proxy-contest-long → should move to `planned`; confirm DFAN14A verify didn't bounce it to dead.
 - V2 rank nearing 100 trades (drifting NO-GO).
-- ON1 real-price 15-day check ~11-24; did user's V3 session park G2 (20-day FAIL 11-05) / ON1?
+- ON1 real-price 15-day check ~11-24 (spread -45 bps eats the edge); did user's V3 session park G2 / ON1?
 - Saturday = weekly director report + Auditor to read.
