@@ -2,16 +2,13 @@
 
 Created 2026-10-27.
 
-## Watch list (as of 2026-11-10)
-- V2 rank go/no-go: last noted 79/100 trades (2026-11-06); likely NO-GO at 100 (week-t 0.82, need 2)
-- V3 ON1 paper: day 20 was Mon 2026-11-09, scored at Wed 2026-11-11 06:45 evaluate — verdict pending
-- V3 ON1 real-price: 5 days (2026-11-02 to 2026-11-06), 368 trades, real_mean -24.2 bps vs paper +71.3
-  (gap 95.5 bps ≈ spread); real_t -0.54. COLLECTING (need 15 days). Direction negative — watch closely.
-  11-07 through 11-09 close captures exist; 11-10 close MISSED (see below). Rule: 15-day point ~2026-11-24.
+## Watch list (as of 2026-11-11)
+- V2 rank go/no-go: 83/100 trades (2026-11-11); mean +0.135R after costs (need >= +0.15), week-t 0.66 (need >= 2). Likely NO-GO at 100.
+- V3 ON1 paper: day 20 checkpoint scored 2026-11-11. CONTINUE (mean +18.9 bps >= +5 but t 0.77 < 2). Day 40 scored ~Thu 2026-12-10. Need +50.6 bps/day avg over next 20 to PASS.
+- V3 ON1 real-price: 6 days (2026-11-02 to 2026-11-09), 441 trades, real_mean -45.5 bps (t -1.08) vs paper +47.2. COLLECTING (need 15 days, ~2026-11-24). Direction firmly negative — spread ~48 bps half-spread eating paper edge.
 - V3 G2 paper: RETIRED 2026-11-08 per TEAM.md. No further tracking needed.
-- V4 EPRE: checkpoint A (1,000 trades) imminent; hedged mean well above -20 bps bar.
-- V4 EPRE real-price: 447 trades, 4 exit days (through 2026-11-09); real_hedged +82.5 bps, spread 12.2,
-  real_t 1.05. Missed today's (11-10) exit-day capture — 19 trades permanently a gap unless user runs fix.
+- V4 EPRE: 987 closed, mean +25.3 bps hedged. Checkpoint A (1,000 trades) imminent — 13 trades away. Bar: FAIL if < -20 bps. Well clear.
+- V4 EPRE real-price: 4 exit days. 19 exit-day trades from 11-06 entry batch permanently missed (11-10 QuoteClose failure, user ran fix or not).
 - VCYT: flagged 2026-11-05 as outlier (-5228 bps). integrity_seen.json records it as known.
 - g2_paper_task.log stale since 2026-10-09 (known quirk; G2 ledger is valid source)
 
@@ -49,3 +46,7 @@ Created 2026-10-27.
   19 EPRE exit-day trades (11-06 entry batch) missed close capture; permanently a real-price gap
   unless user runs `python tools/quotes.py capture close` tonight.
   ON1 real-price now 5 days: -24.2 bps (negative direction, t -0.54). Still COLLECTING.
+2026-11-11: diagnosis + ON1 day-20 checkpoint. Reports/2026-11-11-diagnosis.md.
+  SA /symbols/get-factor-grades transient outage at premarket (~05:30 PT). 3 attempts, all empty body.
+  Graceful fallback: NVDA/AMD/ASML fundamentals carried forward, scan completed, 2 signals logged (KEY, PFE). No action needed.
+  ON1 day 20: CONTINUE (mean +18.9 bps, t 0.77). Real-price -45.5 bps on 6 days — negative direction, spread eating paper edge.
