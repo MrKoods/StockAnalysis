@@ -120,7 +120,9 @@ def check(now: datetime, tasks: list[dict], sched: dict, st: dict, dry_run: bool
             once(f"gave_up:{name}", f"🛑 **{short}** ({j['what']}) {problem} and can't be fixed automatically - "
                                     f"{why}. Today's {j['model']} results from it are missing.{frozen} "
                                     f"The Scorekeeper will diagnose it at 2:50 PM.")
-            st.setdefault("issues", []).append({"date": today, "job": name, "problem": problem})
+            issue = {"date": today, "job": name, "problem": problem}
+            if issue not in st.setdefault("issues", []):  # one issue per job per day, not one per 10-min tick
+                st["issues"].append(issue)
     return events
 
 
