@@ -1,2 +1,3 @@
 date,result,files,why
 2026-11-10,applied,tools/scan_ops.py tests/test_eng_scan_ops_dedup.py,guard and tests passed
+2026-11-11,applied,tools/scan_ops.py tests/test_eng_scan_ops_self_flag.py,guard and tests passed

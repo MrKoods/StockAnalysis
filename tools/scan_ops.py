@@ -30,6 +30,7 @@ GIT = TEAM.parent
 DAYS = {"Mon-Fri": 62, "Mon-Sat": 126, "Sat": 64, "Sun": 1}
 MAX_RETRIES = 2
 USER = "Team - Scan Operator"
+OWN_TASK = "StockAnalysis_Team_ScanOps"   # the task this very script runs as - see the self-skip in check()
 
 
 def _hm(s: str | None, day) -> datetime | None:
@@ -90,6 +91,14 @@ def check(now: datetime, tasks: list[dict], sched: dict, st: dict, dry_run: bool
         if j["at"] not in times or not any(int(tr.get("Days") or 0) == DAYS[j["days"]] for tr in weekly):
             once(f"drift:{name}", f"⚠️ **{short}** fires at {sorted(times) or '?'} but the master schedule says "
                                   f"{j['at']} {j['days']} - someone changed it?")
+        if name == OWN_TASK:
+            # Never judge our own run outcome: while this check runs the task is itself Running, and after a
+            # sleep/wake the snapshot can show a stale terminated LastResult (the pre-sleep run that the system
+            # killed) with State no longer "Running", which the State guard below doesn't catch - so scan_ops
+            # would false-flag itself as "exited with an error" (it never re-runs itself, so that goes straight
+            # to a give-up ticket). A real ScanOps failure is still caught by ops_monitor.check_tasks, which runs
+            # once per dispatch when the machine is awake and the transient terminated state has cleared.
+            continue
         due = last_due(t.get("Triggers"), now)
         if due is None or due.date() != now.date() or t["State"] == "Running":
             continue
