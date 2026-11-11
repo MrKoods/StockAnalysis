@@ -202,3 +202,35 @@ strict — queued the one real idea, dropped the two weak:
   real-price 15-day check ~11-24 is the live gate. Retire ON1 is NOT the team's (V3 read-only) — user's session.
 - V2 rank nearing 100 trades (79/100 @11-05, drifting NO-GO).
 - Did user's V3 session stop/park G2 after its 20-day FAIL (11-05)?
+
+## 2026-11-11 (Wed) — weekday queue run
+Pipeline 0/2 at start (seo-short died on TRAIN, t -5.92; no other research live). 5 fresh ideas parked (Scout
+added pre-earnings-premium, pre-earnings-beat-streak, proxy-contest-long, earnings-announcement-risk-premium 11-10/11;
+issuer-self-tender-long 11-10). Filled both slots + dropped one duplicate:
+- **queued issuer-self-tender-long** (self_tender, 3d long): strongest by edge size — self-tender at a premium =
+  hard price floor + undervaluation (Peyer-Vermaelen ~8%), clearly clears the 50-bps edge bar vs 15bps cost;
+  unmined family; full S&P1500 LONG (avoids the small-cap-only-long trap that killed reg-fd/analyst-init/restructuring);
+  real-time SC TO-I = paper-tradable. Researcher FIRST: verify filings() returns SC TO-I (not in catalog top-12) +
+  that rare self-tender events still power a clean holdout; bounce to dead if not.
+- **queued pre-earnings-premium** (pre_earnings, 1d): our one proven vein (earnings), DISTINCT from live V4 EPRE —
+  holds BEFORE announcement (close-2→close-1) vs EPRE through it. Fresh pre_earnings family, full S&P1500, huge event
+  count = best holdout power here. KILL RISK = edge SIZE (1-day slice of a multi-day premium, Laarits 2020): told
+  Researcher to size gross edge on TRAIN first, must clear ~50 bps vs 15-25bps cost or bounce to dead.
+- **dropped earnings-announcement-risk-premium**: it IS the Savor-Wilson announcement premium = already passed
+  holdout (Round 7, t4.0) and running live as V4 EPRE. Re-testing a live edge can't produce a new result.
+- Left parked at `idea`: **pre-earnings-beat-streak** (conditional twin of pre-earnings-premium, same pre_earnings
+  family/holdout — redundant unless #1 dies; backup) and **proxy-contest-long** (6.5% edge BUT small/mid-cap-only
+  LONG = the exact pattern that inverted-and-killed reg-fd/analyst-init/restructuring, and activist-13d just died
+  11-07; backup only). Scout refills next weekday.
+
+### Live tests (from scripts this run — do not re-derive)
+- V3 ON1 paper hit its 20-day checkpoint today. Even a paper PASS ≠ tradeable: ON1 real-price COLLECTING 6 days,
+  mean **-45.5 bps**, t -1.08, half-spread 48 bps vs paper +47.2 on the same trades — the spread eats the whole
+  edge. Real-price 15-day gate ~11-24 is the live decision. Retiring ON1 is the user's V3 session (team read-only).
+
+### Watch next run
+- issuer-self-tender-long + pre-earnings-premium → should move to `planned`; confirm SC TO-I verify didn't kill
+  self-tender, and that pre-earnings-premium's gross edge cleared 50 bps on train (else dead).
+- V2 rank nearing 100 trades (drifting NO-GO).
+- ON1 real-price 15-day check ~11-24; did user's V3 session park G2 (20-day FAIL 11-05) / ON1?
+- Saturday = weekly director report + Auditor to read.
