@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 import integrity
 import outlook
-from common import PYTHON, SNAPSHOT, STATE, LIVE_V2, load_json, log, now_pt, post, save_json
+from common import PYTHON, SNAPSHOT, STATE, TEAM, LIVE_V2, load_json, log, now_pt, post, save_json
 
 # 0 = success, 267009 = still running, 267011 = never run (new task)
 OK_RESULTS = {0, 267009, 267011}
@@ -76,7 +76,43 @@ def last_due(triggers: list[dict], now: datetime) -> datetime | None:
     return due
 
 
-def check_tasks(tasks: list[dict], now: datetime, f: Findings) -> None:
+OFF_GAP = timedelta(minutes=25)   # Scan Operator ticks every 10 min; a longer silence = the PC was off or asleep
+
+
+def offline(start: datetime, end: datetime, ticks: list[str], now: datetime | None = None) -> tuple | None:
+    """(last tick before `start`, first tick after `end`) when the Scan Operator saw nothing in between for longer
+    than OFF_GAP - i.e. the machine was off/asleep through the whole [start, end] window. None otherwise,
+    including when there is no tick history to judge by. `now` counts as a tick (the current check)."""
+    ts = sorted(datetime.fromisoformat(x) for x in ticks)
+    before = [x for x in ts if x < start]
+    after = [x for x in ts if x > end] + ([now] if now and now > end else [])
+    if not before or not after or any(start <= x <= end for x in ts):
+        return None
+    prev, nxt = before[-1], min(after)
+    return (prev, nxt) if nxt - prev > OFF_GAP else None
+
+
+def window_gap(name: str, due: datetime, now: datetime, sched: dict, ticks: list[str]) -> str | None:
+    """A note when a window-bound job (has `retry_until`) could not run because the PC was off through its
+    whole valid window - an expected one-day gap, not a failure for the user or the Engineer to fix."""
+    j = sched.get(name) or {}
+    if not j.get("retry_until"):
+        return None
+    until = datetime.combine(due.date(), datetime.strptime(j["retry_until"], "%H:%M").time())
+    if now <= until or not (off := offline(due, until, ticks, now)):
+        return None
+    test = f" ({j.get('model')} test)" if j.get("frozen") else ""
+    return (f"{name.removeprefix('StockAnalysis_')} could not run in its {j['at']}-{j['retry_until']} window - "
+            f"the PC was off or asleep {off[0]:%H:%M}-{off[1]:%H:%M}. One-day gap in {j['what']}{test}; "
+            f"nothing to fix.")
+
+
+def check_tasks(tasks: list[dict], now: datetime, f: Findings, sched: dict | None = None,
+                ticks: list[str] | None = None) -> None:
+    if sched is None:
+        sched = load_json(TEAM / "team" / "schedule.json", {}).get("jobs", {})
+    if ticks is None:
+        ticks = load_json(STATE / "scan_ops.json", {}).get("ticks", [])
     for t in tasks:
         if t["State"] == "Disabled":
             continue
@@ -86,6 +122,10 @@ def check_tasks(tasks: list[dict], now: datetime, f: Findings) -> None:
         f.tasks_checked += 1
         name = t["Name"].removeprefix("StockAnalysis_")
         last = datetime.fromisoformat(t["LastRun"]) if t.get("LastRun") else None
+        bad = last is None or last < due - timedelta(minutes=2) or int(t["LastResult"]) not in OK_RESULTS
+        if bad and (note := window_gap(t["Name"], due, now, sched, ticks)):
+            f.notes.append(note)
+            continue
         if last is None or last < due - timedelta(minutes=2):
             ran = f"last ran {last:%m-%d %H:%M}" if last else "never ran"
             f.alerts.append(f"{name} did NOT run at {due:%a %m-%d %H:%M} ({ran}) - computer off or asleep?")

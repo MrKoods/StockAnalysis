@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from common import STATE, TEAM, load_json, log, now_pt, post, save_json
-from ops_monitor import OK_RESULTS, last_due, scheduled_tasks
+from ops_monitor import OK_RESULTS, last_due, scheduled_tasks, window_gap
 
 SCHEDULE = TEAM / "team" / "schedule.json"
 STATEF = STATE / "scan_ops.json"
@@ -115,6 +115,12 @@ def check(now: datetime, tasks: list[dict], sched: dict, st: dict, dry_run: bool
                 events.append(f"✅ **{short}** recovered after {retries} automatic re-run(s).")
             continue
         until = _hm(j.get("retry_until"), now.date())
+        if gap := window_gap(name, due, now, sched, st.get("ticks", [])):
+            # The PC was off/asleep through the whole valid window: an expected gap, not a failure. Recorded
+            # (and shown under Notes in the daily report by ops_monitor), but no alert and no Engineer ticket.
+            if not any(g["date"] == today and g["job"] == name for g in st.setdefault("gaps", [])):
+                st["gaps"].append({"date": today, "job": name, "note": gap})   # once per job per day
+            continue
         if until and now <= until and retries < MAX_RETRIES:
             day[f"retries:{name}"] = retries + 1
             events.append(f"🔁 **{short}** ({j['what']}) {problem} - re-running it automatically "
@@ -141,11 +147,15 @@ def run(dry_run: bool = False) -> list[str]:
     st = load_json(STATEF, {})
     for k in [k for k in st if k[:2] == "20" and k < (now.date() - timedelta(days=7)).isoformat()]:
         st.pop(k)                                 # keep a week of per-day state
-    st["issues"] = [i for i in st.get("issues", []) if i["date"] >= (now.date() - timedelta(days=7)).isoformat()]
+    week_ago = (now.date() - timedelta(days=7)).isoformat()
+    st["issues"] = [i for i in st.get("issues", []) if i["date"] >= week_ago]
+    st["gaps"] = [g for g in st.get("gaps", []) if g["date"] >= week_ago]
     events = check(now, scheduled_tasks(), sched, st, dry_run)
     if dry_run:
         print("\n".join(events) or "nothing to do")
         return events
+    # Every tick is remembered for a week: a long silence between ticks = the PC was off or asleep (window_gap).
+    st["ticks"] = [x for x in st.get("ticks", []) if x[:10] >= week_ago] + [now.isoformat(timespec="seconds")]
     save_json(STATEF, st)
     if events:
         post("ops", "\n".join(events), USER)

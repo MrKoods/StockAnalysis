@@ -139,10 +139,24 @@ def _f(x) -> float | None:
         return None
 
 
+def too_late(when: str, now: datetime) -> str | None:
+    """A capture after its valid window (team/schedule.json retry_until + 2 min grace) would record quotes from
+    the wrong moment (e.g. after hours, when the PC woke late) - those are worse than no quotes. Skip it."""
+    j = load_json(TEAM / "team" / "schedule.json", {}).get("jobs", {}).get(
+        f"StockAnalysis_Team_Quote{when.capitalize()}", {})
+    if not j.get("retry_until"):
+        return None
+    end = datetime.combine(now.date(), datetime.strptime(j["retry_until"], "%H:%M").time()) + timedelta(minutes=2)
+    return (f"quotes {when}: skipped - started {now:%H:%M}, after its {j['at']}-{j['retry_until']} window; "
+            f"late quotes would be from the wrong moment, so today is a gap") if now > end else None
+
+
 def capture(when: str, dry_run: bool = False) -> str:
     today = now_pt().date()
     if today.weekday() >= 5:
         return "quotes: weekend - nothing to capture"
+    if not dry_run and (late := too_late(when, now_pt())):
+        return late
     tickers = needs(when, today)
     if not tickers:
         return f"quotes {when}: no open paper trades need quotes - Claude not launched"

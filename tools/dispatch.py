@@ -174,7 +174,8 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
               "ON1 / EPRE at real Webull bid/ask (Quote Clerk, rules in team/real_price_rules.json): "
               "paper/on1_real_price_status.json, paper/epre_real_price_status.json.",
               "Every scan's schedule and health (Scan Operator): team/schedule.json, state/scan_ops.json "
-              "(`issues` = jobs that failed and could not be re-run validly this week)."]
+              "(`issues` = jobs that failed and could not be re-run validly this week; `gaps` = jobs that "
+              "could not run because the PC was off/asleep through their whole window - expected, nothing to fix)."]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
 
 
