@@ -12,6 +12,7 @@ The `t["State"] == "Running"` guard can't prevent this: the false flag happens p
 a stale non-Running state. A real ScanOps failure is still caught by ops_monitor.check_tasks (once per dispatch,
 machine awake). So scan_ops must skip its own run-outcome evaluation outright.
 """
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -51,3 +52,24 @@ def test_scan_ops_never_flags_itself():
     assert all(i["job"] != scan_ops.OWN_TASK for i in issues), f"scan_ops filed a ticket against itself: {issues}"
     # A real failure of another job is still recorded, so the self-skip didn't blunt the monitor.
     assert any(i["job"] == "StockAnalysis_X" for i in issues), f"real failure not recorded: {issues}"
+
+
+def test_prune_drops_stale_own_task_issue(tmp_path, monkeypatch):
+    """A ScanOps issue written before the self-flag fix (2026-11-10) must be purged on the next prune, so
+    engineer.py stops replaying it as a phantom ticket. A real recent failure of another job is kept."""
+    statef = tmp_path / "scan_ops.json"
+    today = "2026-11-12"
+    seed = {"issues": [{"date": "2026-11-10", "job": scan_ops.OWN_TASK, "problem": "exited with an error"},
+                       {"date": today, "job": "StockAnalysis_X", "problem": "exited with an error"}],
+            "ticks": [], "gaps": []}
+    statef.write_text(json.dumps(seed), encoding="utf-8")
+    monkeypatch.setattr(scan_ops, "STATEF", statef)
+    monkeypatch.setattr(scan_ops, "now_pt", lambda: datetime(2026, 11, 12, 15, 40))
+    monkeypatch.setattr(scan_ops, "scheduled_tasks", lambda: [])
+    monkeypatch.setattr(scan_ops, "SCHEDULE", tmp_path / "no_sched.json")
+    monkeypatch.setattr(scan_ops, "post", lambda *a, **k: None)
+    monkeypatch.setattr(scan_ops, "log", lambda *a, **k: None)
+    scan_ops.run(dry_run=False)
+    issues = json.loads(statef.read_text(encoding="utf-8")).get("issues", [])
+    assert all(i["job"] != scan_ops.OWN_TASK for i in issues), f"stale ScanOps issue not purged: {issues}"
+    assert any(i["job"] == "StockAnalysis_X" for i in issues), f"real failure wrongly dropped: {issues}"

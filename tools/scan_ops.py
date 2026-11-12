@@ -148,7 +148,11 @@ def run(dry_run: bool = False) -> list[str]:
     for k in [k for k in st if k[:2] == "20" and k < (now.date() - timedelta(days=7)).isoformat()]:
         st.pop(k)                                 # keep a week of per-day state
     week_ago = (now.date() - timedelta(days=7)).isoformat()
-    st["issues"] = [i for i in st.get("issues", []) if i["date"] >= week_ago]
+    # Drop anything older than a week, and any issue filed against OWN_TASK: scan_ops no longer judges its own run
+    # (see the self-skip in check()), so a ScanOps row here can only be pre-fix false-positive residue. Leaving it
+    # made engineer.py replay a phantom "ScanOps exited with an error" ticket every dispatch until it aged out.
+    # Real ScanOps failures are caught by ops_monitor.check_tasks, not by this list.
+    st["issues"] = [i for i in st.get("issues", []) if i["date"] >= week_ago and i["job"] != OWN_TASK]
     st["gaps"] = [g for g in st.get("gaps", []) if g["date"] >= week_ago]
     events = check(now, scheduled_tasks(), sched, st, dry_run)
     if dry_run:

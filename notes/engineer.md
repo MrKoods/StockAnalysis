@@ -1,6 +1,13 @@
 # Engineer notes
 
 ## Fixed
+- 2026-11-12: the 2026-11-11 self-flag fix stopped NEW ScanOps self-tickets, but the stale 2026-11-10 ScanOps
+  record stayed in scan_ops.json `issues` (pruned only by one-week age), so engineer.py:183-185 replayed it as a
+  phantom ticket every dispatch and was about to false-escalate at the attempt cap. Completed the fix: scan_ops.run()
+  now also drops any `issues` row where job==OWN_TASK on prune (scan_ops.py:150-155) - a ScanOps row there can only
+  be pre-fix residue since scan_ops no longer judges its own run; real ScanOps failures are caught by
+  ops_monitor.check_tasks, not this list. Proven by test_prune_drops_stale_own_task_issue. If a phantom ScanOps
+  ticket recurs, check that this prune still runs and that the issue date really is a pre-fix OWN_TASK entry.
 - 2026-11-11: scan_ops false-flagged its OWN task "exited with an error" (2026-11-10). Same sleep event as the
   QuoteClose ticket: machine asleep 10:00-15:30, pre-sleep ScanOps run terminated -> stale non-OK LastResult; a
   post-wake snapshot showed State != "Running" so the `State=="Running"` self-skip (scan_ops.py:94) missed it,
@@ -14,6 +21,10 @@
   by tests/test_eng_scan_ops_dedup.py. If duplicate tickets recur, this is where to look.
 
 ## Open / for the user (not my editable files)
+- 2026-11-12 (optional): engineer.py (off-list, runs the agents) re-reads scan_ops/usage failures by date window
+  with no "already resolved" memory, so a fixed issue keeps ticketing until it ages out and can false-escalate at
+  the attempt cap. Proposed to the user in reports/2026-11-12-engineer.md. Headed off for ScanOps at the source;
+  don't try to fix engineer.py yourself.
 - 2026-11-10 QuoteClose failure root cause: machine was ASLEEP at the 12:56 PT frozen window; Task Scheduler ran
   the missed task late at 15:30 (after US close), it crashed before launching the clerk (no close jsonl / usage /
   log line). One-day gap in ON1/EPRE real-price capture; unrecoverable by design. Proposals in
