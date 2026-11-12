@@ -1,31 +1,31 @@
 {
   "_doc": "Mean HALF-spread (bps) paid per fill at Webull, by fill time and index (tools/fill_costs.py). A round trip costs entry half + exit half. Cells with < 30 quotes use the 2026-11-04 defaults.",
-  "updated": "2026-11-11 14:51",
-  "quote_days": 8,
+  "updated": "2026-11-12 14:50",
+  "quote_days": 9,
   "first_day": "2026-11-02",
-  "last_day": "2026-11-11",
+  "last_day": "2026-11-12",
   "half_spread_bps": {
     "open": {
-      "sp500": 39.1,
-      "sp400": 90.4,
-      "sp600": 128.5
+      "sp500": 38.9,
+      "sp400": 87.3,
+      "sp600": 125.6
     },
     "close": {
       "sp500": 3.2,
-      "sp400": 6.0,
-      "sp600": 11.0
+      "sp400": 5.9,
+      "sp600": 10.9
     }
   },
   "quotes": {
     "open": {
-      "sp500": 197,
-      "sp400": 155,
-      "sp600": 227
+      "sp500": 222,
+      "sp400": 174,
+      "sp600": 256
     },
     "close": {
-      "sp500": 403,
-      "sp400": 382,
-      "sp600": 677
+      "sp500": 429,
+      "sp400": 402,
+      "sp600": 706
     }
   }
 }
