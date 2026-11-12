@@ -1,5 +1,34 @@
 # Researcher notes
 
+## 2026-11-12 — proxy-contest-long (planned, check+smoke pass)
+- Five files in research/proxy-contest-long/ + strategies/. Family `proxy_contest` (NEW, whole history clean).
+  LONG idea. Reused activist-13d-long skeleton (SEC-filing close→close hedged LONG, entry first_session+1).
+- Signal: dissident proxy soliciting material. DFAN14A (non-mgmt additional material = opening shot) and
+  DEFC14A (dissident's definitive contested proxy). NOT DEFA14A (that's MANAGEMENT's additional material,
+  26.9k in catalog — do not confuse). 14A material IS indexed under SUBJECT company → filings(tickers=sp1500)
+  returns the TARGET directly (confirmed: smoke returns DFAN14A counts, so subject-indexing extends to 14A).
+- CAMPAIGN DEDUP (new pattern): dissident files MANY DFAN14A/contest. _first_in_campaign keeps only the FIRST
+  per ticker — a filing is a new event only after >90 quiet days (sliding window). Without this we'd enter the
+  same contest a dozen times. strategy.py mirrors it (skip if any prior DFAN14A for ticker in last 90 days).
+- Train 2001-2015, holdout 2016-2026-10-24 (daily ends 11-06, buffer for close+5). cluster week. cost 25 (sp600
+  close floor 22 + impact). metric hedged. Universe plan ["sp500","sp400","sp600"].
+- 12 variants: form {dfan,defc} × univ {sp46=sp400+sp600, sp1500} × hold {1,3,5}. chosen PRE-REGISTERED =
+  `dfan_sp46_h3` (mechanism predicts mid/small caps where filing IS the announcement). Explicit CONFIGS dict
+  (name→(form,univ,hold)), no name parsing. luck_t~2.23. SC 14N EXCLUDED (Rule 14a-11 vacated 2011 Business
+  Roundtable v SEC → form ~unused → would be an empty variant raising the luck bar).
+- Earnings-exclusion filter (idea card rule #5) DELIBERATELY OMITTED: 2nd live-data dep + look-ahead surface;
+  earnings jumps are symmetric noise hedge can't remove → raise variance not mean → omitting is CONSERVATIVE.
+- KEY POWER CONCERN for Director/Skeptic: smoke 2001 sp46=3 trades/yr, sp1500=8/yr (early EDGAR proxy ramp).
+  Card estimated ~20-25/yr sp46; counts likely grow post-2001 but 15yr train total may be modest → watch t power
+  and a slow paper (~20-25/yr → 20 scored ≈ 10-12 months).
+- CENTRAL RISKS for Skeptic: (1) small/mid-cap-only LONG is the exact inversion that killed reg-fd/analyst-init/
+  restructuring AND activist-13d (11-07) — sp1500 variant maps if large caps differ. (2) one-session-late entry
+  (first_session+1) may eat a front-loaded pop → kill sig = hold-1 ≪ hold-3/5. (3) survivorship (current members)
+  biases LONG UP → a pass NOT conservative. (4) defc≫dfan = edge at definitive-proxy stage not opening shot.
+- PROMOTABLE: DFAN14A same-day public; filings.parquet rebuilt each dispatch → strategy reads live, emits LONG
+  when campaign-opening DFAN14A first_session==today → runner enters next close. spec entry_at=close, hold 3,
+  exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days. LONG = no borrow concern.
+
 ## 2026-11-11 — issuer-self-tender-long (planned, check+smoke pass)
 - Five files in research/issuer-self-tender-long/ + strategies/. Family `self_tender` (NEW, whole history
   clean). Bar via budget (floor 3.0). LONG idea. Reused seo-short skeleton (SEC-filing close→close hedged),
@@ -80,27 +109,12 @@
   when first_session==today → runner enters next close = first_session+1, hold 3. spec entry_at=close,
   exit_at=close, metric real_hedged_bps, pass 15 bps/t 2.0, 20-40 days.
 
-## 2026-11-07 — pipe-short (planned) [narrative pruned 2026-11-11]
-- `8k_3_02` (screen 2005-2013 → holdout 2014-2026 clean). SHORT on 8-K item 3.02 (PIPE), close→close hedged,
-  entry first_session+1, chosen sp1500_h3. Screen t only −1.70 (marginal). 3.02 uncommon in sp1500 → paper
-  slow. Reused nt-filing skeleton + restructuring item-code filter. Borrow caveat (Director confirms).
-
-## 2026-11-07 — activist-13d-long (planned) [narrative pruned 2026-11-11]
+## 2026-11-07 — activist-13d-long (planned; DIED 11-07) [narrative pruned 2026-11-11]
 - `activist_13d` (NEW clean). LONG on INITIAL SC 13D (filter raw form=="SC 13D" to drop /A), close→close
   hedged, entry first_session+1, chosen sp1500_h3. KEY: EDGAR indexes 13D/13G under the SUBJECT company →
   filings(tickers=sp1500) returns 13Ds where our ticker is the TARGET (smoke 154 sp1500 trades yr1). Risk:
   one-session-late entry may miss Brav's front-loaded return (kill sig = hold-1 ≪ hold-3/5); survivorship
   biases LONG UP (pass NOT conservative). Reused nt-filing skeleton, flipped LONG, dropped ex202 map.
-
-## 2026-11-06 — nt-filing-short (planned) [narrative pruned 2026-11-11]
-- `nt_filing` (NEW clean). SHORT on NT 10-K/10-Q, close→close hedged, entry first_session+1, chosen
-  sp54_h3. paper_runner handles side="short" (hedged = real_bps − sgn·spy_bps). sp600 excluded (borrow).
-
-## 2026-11-06 — turn-of-month (planned) [narrative pruned 2026-11-07]
-- calendar_effects (whole history clean). LONG sp500 EW at month-end close, RAW (not hedged — TOM is
-  market-level). chosen tom_h3 vs mid_h3 PLACEBO (beta confound). PROMOTABLE BUT IMPRACTICAL: ~1 cluster/
-  month → 20 days ≈ 20 months. strategy.py has a self-contained NYSE holiday calendar. One cost floor →
-  can't mix indexes, scoped sp500 only.
 
 ## 2026-11-05 — early-10q-drift (planned) [narrative pruned 2026-11-09]
 - `10q_timing` (NEW clean). LONG original 10-Q filed >=N cal days earlier than prior-yr 10-Q (prior-filing-gap
