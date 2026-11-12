@@ -246,3 +246,21 @@ Only 2 ideas parked. Was strict — queued 1, dropped 1 (left pipeline 1/2, no p
 - V2 rank nearing 100 trades (drifting NO-GO).
 - ON1 real-price 15-day check ~11-24 (spread -45 bps eats the edge); did user's V3 session park G2 / ON1?
 - Saturday = weekly director report + Auditor to read.
+
+## 2026-11-12 (Thu) — refill run
+proxy-contest-long died on TRAIN today → pipeline 0/2. Only 1 idea parked (pre-holiday-small-cap-long). Was
+strict — dropped it, left pipeline 0/2 (no padding):
+- **dropped pre-holiday-small-cap-long** (pre_holiday, 1d S&P600 long): 3 independent kills. (1) Un-paper-tradable
+  cadence — fires ~10 days/yr, so a 20-40 day paper test (days-with-scored-trades) = ~2-4 yrs; same fatal flaw
+  that killed turn-of-month/january/quarter-end/pre-holiday-drift. No path to real money through the gate on any
+  useful horizon. (2) Most-mined calendar anomaly (known since 1988); card itself predicts decay below 50bps
+  post-2000. (3) Small-cap-ONLY LONG = the exact inversion that killed reg-fd/analyst-init/restructuring/
+  activist-13d/proxy-contest (5 straight). Distinct-family/82bps-gross only beats the edge-size filter.
+- Parked pool now empty → Scout must refill next weekday. Calendar vein is now effectively closed here (every
+  calendar card dropped on the same cadence/mining logic).
+
+### Watch next run
+- Scout should refill parked pool (was empty after this run).
+- V2 rank nearing 100 trades (drifting NO-GO).
+- ON1 real-price 15-day check ~11-24 (spread -45 bps eats the edge); did user's V3 session park G2 / ON1?
+- Saturday = weekly director report + Auditor to read.
