@@ -1,17 +1,19 @@
 # Scout notes (max ~150 lines)
 
+## Last run: 2026-11-12
+- Run reason: scouting (0 ideas waiting, target 10)
+- Ideas at start: 0 (pre-earnings-premium dead, issuer-self-tender-long dead, pre-earnings-beat-streak dropped, earnings-announcement-risk-premium dropped, proxy-contest-long queued)
+- Added 1 new idea: pre-holiday-small-cap-long (pre_holiday)
+- Total at `idea` stage after run: 1
+
 ## Last run: 2026-11-11
 - Run reason: scouting (2 ideas waiting, target 10)
 - Ideas at start: 2 (pre-earnings-premium, issuer-self-tender-long)
 - Added 3 new ideas: pre-earnings-beat-streak (pre_earnings), proxy-contest-long (proxy_contest), earnings-announcement-risk-premium (announcement_premium)
 - Total at `idea` stage after run: 5 (need 5 more to approach 10)
 
-## Current ideas at `idea` stage (as of 2026-11-11)
-1. pre-earnings-premium — pre_earnings, 1d (LONG; close-2 to close-1; Laarits 2020 SSRN 3660814; ~8000/yr)
-2. issuer-self-tender-long — self_tender, 3d (LONG; SC TO-I; Peyer & Vermaelen 2009; ~20-50/yr; needs SC TO-I verification)
-3. pre-earnings-beat-streak — pre_earnings, 1d (LONG; close-2→close-1, conditional on 4+ consecutive EPS beats; Laarits 2020 + Gao/Hu/Zhang 2020 SSRN 3595953; ~3000-5000/yr)
-4. proxy-contest-long — proxy_contest, 3d (LONG; DFAN14A filing; Fos 2017 SSRN 1705707; 6.5% event-window; ~20-25/yr S&P 400+600; sparse risk)
-5. earnings-announcement-risk-premium — announcement_premium, 1d (LONG; close-1→close; Savor & Wilson 2016 JFE ~200 bps; Frazzini & Lamont 2007 JFE; ~8000-10000/yr)
+## Current ideas at `idea` stage (as of 2026-11-12)
+1. pre-holiday-small-cap-long — pre_holiday, 1d (LONG; close T-2→close T-1; Kim & Park 1994 ~82 bps gross for S&P 600; 10 holidays/yr × 600 stocks)
 
 ## 2026-10-30 (set by the user's session, not a Scout run)
 Rule tightened in prompts/scout.md: only ideas testable with research_data.py alone AND with an untouched
@@ -103,15 +105,21 @@ Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that th
 - Family bar = 3.0
 
 ## New family announcement_premium status
-- earnings-announcement-risk-premium: at `idea` (LONG close-1→close; Savor & Wilson 2016 ~200 bps)
-- Family entirely clean; not related to earnings_events (different mechanism: systematic risk premium, not drift)
+- earnings-announcement-risk-premium: DROPPED by Director
+- Family: clean holdout still available if a fresh variant is found
+
+## New family pre_holiday status
+- pre-holiday-small-cap-long: at `idea` (LONG close T-2→close T-1 before NYSE holidays; S&P 600 only; Kim & Park 1994 ~82 bps)
+- Family entirely clean; holdout 2015-2026 clean (train = 2000-2014 proposed)
+- Main risk: post-publication decay since 1994; must verify >=50 bps on train data
 - Family bar = 3.0
 
-## Budget state (2026-11-11)
-- pre_earnings: new family, entirely clean (2 ideas registered)
-- self_tender: new family, entirely clean (1 idea registered)
-- proxy_contest: new family, entirely clean (1 idea registered; event count unverified)
-- announcement_premium: new family, entirely clean (1 idea registered)
+## Budget state (2026-11-12)
+- pre_holiday: new family, entirely clean (1 idea registered: pre-holiday-small-cap-long)
+- pre_earnings: search 2003-2015 (team train run); both ideas dead/dropped; MINED
+- self_tender: search 2001-2015 (team train run); issuer-self-tender-long dead; MINED
+- proxy_contest: entirely clean (1 idea queued by Director)
+- announcement_premium: entirely clean (idea dropped by Director; variant possible if fresh evidence)
 - seo_offering: search 2001-2015 (team train run); MINED — no more ideas
 - calendar_effects: search 1999-2014 (team train run); holdout 2015-2026 clean; Director dropped 3 variants
 - 10k_timing: entirely clean; late-10k-short + early-10k-drift both dropped; NO fresh angle found
@@ -121,7 +129,7 @@ Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that th
 - activist_13d: search 2001-2015 (team train run); dead
 - analyst_ratings: search 2012-2019 (team train run); live feed=NO
 
-## Ideas to target next run (need ~5 more)
+## Ideas to target next run (need ~9 more)
 1. FOMC pre-announcement: strong evidence (80%+ equity premium, Lucca & Moench 2015); only needs
    8 dates/year as a small lookup table — advocate to user/Director that researcher can hardcode
    the calendar directly in research_data.py (federalreserve.gov, completely free, no API needed)
@@ -130,7 +138,9 @@ Screen results summary (best-of-57 luck t ~2.84 — no type is a lead at that th
    text parsing or separate calendar) → currently in Needs Data
 3. After-hours earnings short: Doyle & Magilke (2009); revisit only if evidence for first 3 days
    post-announcement is specifically >50 bps; current evidence suggests only 20-30 bps residual
-4. 10k_timing fresh angle: family still entirely clean; no viable academic angle found in 2026-11-11
+4. 10k_timing fresh angle: family still entirely clean; no viable academic angle found in 2026-11-12
    search; defer until a specific paper with >=50 bps short-horizon effect is found
-5. SC TO-T target drift: when acquirer files SC TO-T, the target has residual drift post-filing;
-   needs 14D-9 form count in filings() to be verified; likely sparse (~30-50/yr for S&P 1500 targets)
+5. SC TO-T target drift: sparse (~30-50/yr for S&P 1500 targets), no specific bps number found; skip
+6. *** Pipeline is RUNNING LOW: 1 idea in queue. All major 8-K families screened out.
+   FOMC + special dividend drift require data additions. Future ideas need new data sources or
+   literature areas not yet explored. Consider asking Director/user to add FOMC calendar data. ***
