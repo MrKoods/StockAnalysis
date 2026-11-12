@@ -2653,8 +2653,160 @@
       "ner_sentiment": null,
       "created_at_utc": "2026-11-05T21:34:07.056910+00:00",
       "expiry_condition": "next_post_close_scan",
-      "expired": false,
-      "expired_at_utc": null
+      "expired": true,
+      "expired_at_utc": "2026-11-06T21:34:40.512358+00:00"
+    },
+    {
+      "id": "5a2a39bd-a1c1-4ce0-917b-9bf924aa1998",
+      "tickers": [
+        "AVGO"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "What Is Broadcom (AVGO) Changing In AI Security And Fraud Defense?",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-04T00:17:41+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-06T13:32:28.267373+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-06T21:34:40.512366+00:00"
+    },
+    {
+      "id": "f8dc2da7-7078-421b-b74c-42466f8e4c56",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "The S&P 500 Just Had Its Worst Week Since the April 2025 Tariff Crash",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-07T17:33:39+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-09T13:32:12.296298+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-09T21:33:59.890442+00:00"
+    },
+    {
+      "id": "e02ee9cd-2673-40a4-a8e2-8e22b17c55c8",
+      "tickers": [
+        "AMZN",
+        "TSLA",
+        "HD",
+        "NKE",
+        "SBUX",
+        "TGT",
+        "MCD",
+        "BKNG",
+        "TJX",
+        "LOW",
+        "ORLY"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Guidance Cut Could Be A Big Test For Lowe's Stock (LOW)",
+      "trigger_match": "guidance cut",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-05T16:13:41+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-09T13:36:11.242557+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-09T21:33:59.890450+00:00"
+    },
+    {
+      "id": "7b76a867-d65f-405b-9507-44e45acc382f",
+      "tickers": [
+        "TSLA"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "Tesla offered $5,000 to a homeowner whose $110K Solar Roof never produced power. A judge has deemed it liable for fraud",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-09T17:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-10T13:36:32.206759+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-10T23:36:29.020415+00:00"
+    },
+    {
+      "id": "eb84d593-4160-46f8-b8ec-3f004a786c24",
+      "tickers": [
+        "AMZN",
+        "TSLA",
+        "HD",
+        "NKE",
+        "SBUX",
+        "TGT",
+        "MCD",
+        "BKNG",
+        "TJX",
+        "LOW",
+        "ORLY"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Guidance Cut Could Be A Big Test For Lowe's Stock (LOW)",
+      "trigger_match": "guidance cut",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-05T16:13:41+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-10T13:37:15.422232+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-10T23:36:29.020422+00:00"
+    },
+    {
+      "id": "fce59287-2099-499c-9eef-c8cd6516f4bd",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Stock Trades at Widest Gap Versus 200-Day Average Since Trump's Tariffs Rout",
+      "trigger_match": "tariff",
+      "source": "benzinga.com",
+      "event_timestamp_utc": "2026-11-09T14:05:08+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-10T23:32:15.313398+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-11T21:35:36.503903+00:00"
+    },
+    {
+      "id": "25642a22-9c84-40d3-98ac-200346598750",
+      "tickers": [
+        "TSLA"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "Tesla offered $5,000 to a homeowner whose $110K Solar Roof never produced power. A judge has deemed it liable for fraud",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-09T17:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-11T13:37:57.198430+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-11T21:35:36.503910+00:00"
     }
   ],
   "critical_alerts_sent": {

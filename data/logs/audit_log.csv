@@ -334,3 +334,18 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-11-05T21:34:07.566717+00:00,v2.2.134,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
 2026-11-05T21:34:08.027468+00:00,v2.2.134,critical,LOW,,,,,,,,,,,,,False,,,,,,,,,OPEN POSITION CRITICAL EVENT ALERT — trigger='guidance cut',False,guidance cut
 2026-11-05T21:34:16.931664+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-11-06T13:32:29.183588+00:00,v2.2.134,pre_market,AVGO,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-11-06T21:34:40.969818+00:00,v2.2.134,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-11-06T21:34:41.415288+00:00,v2.2.134,post_close,AVGO,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-11-09T13:32:12.733599+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
+2026-11-09T13:36:11.698450+00:00,v2.2.134,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
+2026-11-09T21:34:00.717396+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-11-09T21:34:01.125244+00:00,v2.2.134,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-11-10T13:36:32.621104+00:00,v2.2.134,pre_market,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-11-10T13:37:15.844543+00:00,v2.2.134,pre_market,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='guidance cut' source='yahoo.com',True,guidance cut
+2026-11-10T23:32:15.756187+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='benzinga.com',True,tariff
+2026-11-10T23:36:29.443807+00:00,v2.2.134,post_close,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-11-10T23:36:29.871655+00:00,v2.2.134,post_close,"AMZN,TSLA,HD,NKE,SBUX,TGT,MCD,BKNG,TJX,LOW,ORLY",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='guidance cut',False,guidance cut
+2026-11-11T13:37:57.712021+00:00,v2.2.134,pre_market,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-11-11T21:35:37.168668+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-11-11T21:35:37.717215+00:00,v2.2.134,post_close,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud

@@ -39,3 +39,8 @@ Performance summary — status: no_trades
 
 Go-live gate: overall_pass=False  data_status=insufficient_trades
   Failures: insufficient_trade_data_29_below_30
+
+Performance summary — status: no_trades
+
+Go-live gate: overall_pass=False  data_status=evaluated
+  Failures: expectancy_ci_lower_-0.136R_below_0.3R_(34_trades)

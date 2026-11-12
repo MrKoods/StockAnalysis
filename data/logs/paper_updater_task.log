@@ -7920,3 +7920,648 @@ Rank-track go/no-go: COLLECTING (72/100 closed trades)
 [threshold] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
 [rank] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
 [random] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+2026-11-06 08:07:01,922 [__main__] INFO — 16 open paper trade(s) to check
+2026-11-06 08:07:02,398 [__main__] INFO — ISRG 2026-10-23: still open after 9 trading days | mark=468.52 | $+182.49 (+0.44R)
+2026-11-06 08:07:03,376 [__main__] INFO — ABT 2026-10-27: win | exit=117.03 | pnl=+10.25% | +3.24R | $+511.36 | 5d
+2026-11-06 08:07:04,430 [__main__] INFO — KEY 2026-10-29: loss | exit=20.91 | pnl=-2.74% | -1.00R | $-137.47 | 5d
+2026-11-06 08:07:05,321 [__main__] INFO — HBAN 2026-10-30: still open after 4 trading days | mark=15.61 | $-93.90 (-0.46R)
+2026-11-06 08:07:06,331 [__main__] INFO — TFC 2026-10-30: still open after 4 trading days | mark=49.84 | $+59.59 (+0.54R)
+2026-11-06 08:07:07,303 [__main__] INFO — LLY 2026-11-02: still open after 3 trading days | mark=1364.73 | $-124.74 (-0.46R)
+2026-11-06 08:07:08,753 [__main__] INFO — ABBV 2026-11-03: loss | exit=287.87 | pnl=-3.64% | -1.00R | $-173.92 | 1d
+2026-11-06 08:07:09,247 [__main__] WARNING — AMZN: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:09,247 [__main__] WARNING — NKE: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:09,247 [__main__] WARNING — BKNG: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:09,247 [__main__] WARNING — LOW: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:09,247 [__main__] WARNING — SBUX: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:09,247 [__main__] INFO — PFE: signal is from today — no bars possible yet, skipping
+2026-11-06 08:07:09,247 [__main__] INFO — UNH: signal is from today — no bars possible yet, skipping
+2026-11-06 08:07:09,247 [__main__] INFO — AMGN: signal is from today — no bars possible yet, skipping
+2026-11-06 08:07:09,247 [__main__] INFO — SYK: signal is from today — no bars possible yet, skipping
+2026-11-06 08:07:09,377 [__main__] INFO — KEY 2026-10-21: hypothetical (immediate-fill) outcome time_stop | +0.22R — entry-zone opportunity cost
+2026-11-06 08:07:10,377 [__main__] INFO — KEY 2026-10-22: hypothetical (immediate-fill) outcome time_stop | -0.14R — entry-zone opportunity cost
+2026-11-06 08:07:11,359 [__main__] INFO — ISRG 2026-10-22: hypothetical (immediate-fill) outcome time_stop | +0.85R — entry-zone opportunity cost
+2026-11-06 08:07:15,429 [__main__] INFO — TSLA 2026-10-27: hypothetical (immediate-fill) outcome loss | -1.02R — entry-zone opportunity cost
+2026-11-06 08:07:16,413 [__main__] INFO — KEY 2026-10-28: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:07:22,483 [__main__] INFO — UNH 2026-11-04: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:07:30,445 [__main__] INFO — 6 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-06 08:07:30,451 [__main__] INFO — Paper updater complete — 3 trade(s) closed
+2026-11-06 08:07:30,485 [__main__] INFO — Calibration check: status=pass weights_updated=False
+2026-11-06 08:07:31,833 [__main__] INFO — 26 open paper trade(s) to check
+2026-11-06 08:07:32,260 [__main__] INFO — LOW 2026-10-16: win | exit=230.33 | pnl=+17.06% | +3.50R | $+946.89 | 13d
+2026-11-06 08:07:33,412 [__main__] INFO — AMAT 2026-10-20: win | exit=328.99 | pnl=+19.77% | +4.00R | $+972.72 | 12d
+2026-11-06 08:07:34,274 [__main__] INFO — FITB 2026-10-21: time_stop | exit=53.45 | pnl=+1.75% | +0.79R | $+86.48 | 11d
+2026-11-06 08:07:35,169 [__main__] INFO — PNFP 2026-10-22: time_stop | exit=101.49 | pnl=+0.03% | +0.00R | $+1.47 | 10d
+2026-11-06 08:07:36,189 [__main__] INFO — NVDA 2026-10-23: still open after 9 trading days | mark=181.60 | $+710.01 (+2.55R)
+2026-11-06 08:07:37,252 [__main__] INFO — ISRG 2026-10-23: still open after 9 trading days | mark=468.52 | $+182.49 (+0.56R)
+2026-11-06 08:07:38,210 [__main__] INFO — TXN 2026-10-27: loss | exit=287.12 | pnl=-6.56% | -1.00R | $-346.72 | 7d
+2026-11-06 08:07:39,246 [__main__] INFO — ABT 2026-10-30: win | exit=116.59 | pnl=+9.07% | +2.46R | $+455.90 | 4d
+2026-11-06 08:07:40,429 [__main__] INFO — SBUX 2026-10-30: still open after 4 trading days | mark=106.16 | $-7.52 (-0.03R)
+2026-11-06 08:07:41,468 [__main__] INFO — AVGO 2026-11-02: still open after 3 trading days | mark=291.53 | $+463.50 (+2.47R)
+2026-11-06 08:07:42,528 [__main__] INFO — TFC 2026-11-03: still open after 2 trading days | mark=49.84 | $-109.89 (-0.57R)
+2026-11-06 08:07:43,473 [__main__] INFO — LLY 2026-11-03: still open after 2 trading days | mark=1364.73 | $-225.81 (-0.83R)
+2026-11-06 08:07:44,381 [__main__] INFO — ORLY 2026-11-03: still open after 2 trading days | mark=91.49 | $-30.78 (-0.14R)
+2026-11-06 08:07:46,070 [__main__] INFO — KLAC 2026-11-04: still open after 1 trading days | mark=129.80 | $+315.38 (+0.57R)
+2026-11-06 08:07:46,923 [__main__] INFO — MU 2026-11-04: still open after 1 trading days | mark=656.39 | $+385.20 (+0.64R)
+2026-11-06 08:07:48,162 [__main__] INFO — KEY 2026-11-04: still open after 1 trading days | mark=20.96 | $-210.21 (-0.75R)
+2026-11-06 08:07:48,996 [__main__] INFO — PFE 2026-11-04: loss | exit=30.24 | pnl=-2.73% | -1.00R | $-136.00 | 1d
+2026-11-06 08:07:50,177 [__main__] INFO — NKE 2026-11-04: still open after 1 trading days | mark=39.56 | $-100.86 (-0.53R)
+2026-11-06 08:07:50,177 [__main__] WARNING — QCOM: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — ADI: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — ONB: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — CFG: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — SYK: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — JNJ: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,177 [__main__] WARNING — BKNG: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,178 [__main__] WARNING — AMZN: no price data since 2026-11-06 — skipping
+2026-11-06 08:07:50,509 [__main__] INFO — LOW 2026-10-15: hypothetical (immediate-fill) outcome win | +5.09R — entry-zone opportunity cost
+2026-11-06 08:07:51,516 [__main__] INFO — HD 2026-10-15: hypothetical (immediate-fill) outcome win | +3.20R — entry-zone opportunity cost
+2026-11-06 08:07:52,579 [__main__] INFO — KEY 2026-10-21: hypothetical (immediate-fill) outcome time_stop | +0.22R — entry-zone opportunity cost
+2026-11-06 08:07:53,507 [__main__] INFO — KEY 2026-10-22: hypothetical (immediate-fill) outcome time_stop | -0.14R — entry-zone opportunity cost
+2026-11-06 08:07:54,479 [__main__] INFO — ISRG 2026-10-22: hypothetical (immediate-fill) outcome time_stop | +0.85R — entry-zone opportunity cost
+2026-11-06 08:07:56,528 [__main__] INFO — TXN 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:07:57,530 [__main__] INFO — ADI 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.26R — entry-zone opportunity cost
+2026-11-06 08:07:59,489 [__main__] INFO — TSLA 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.03R — entry-zone opportunity cost
+2026-11-06 08:08:00,510 [__main__] INFO — ADI 2026-10-27: hypothetical (immediate-fill) outcome loss | -1.23R — entry-zone opportunity cost
+2026-11-06 08:08:01,520 [__main__] INFO — KEY 2026-10-27: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:03,530 [__main__] INFO — KEY 2026-10-28: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:08,511 [__main__] INFO — KEY 2026-10-30: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:12,514 [__main__] INFO — KEY 2026-11-02: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:18,530 [__main__] INFO — ADI 2026-11-03: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:19,515 [__main__] INFO — KEY 2026-11-03: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:22,505 [__main__] INFO — CFG 2026-11-04: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:08:24,496 [__main__] INFO — 16 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-06 08:08:24,506 [__main__] INFO — Paper updater complete — 7 trade(s) closed
+2026-11-06 08:08:25,065 [__main__] INFO — 38 open paper trade(s) to check
+2026-11-06 08:08:25,707 [__main__] INFO — ISRG 2026-10-20: still open after 12 trading days | mark=468.52 | $+365.20 (+1.55R)
+2026-11-06 08:08:26,789 [__main__] INFO — TFC 2026-10-22: still open after 10 trading days | mark=49.84 | $+170.98 (+1.31R)
+2026-11-06 08:08:27,739 [__main__] INFO — LLY 2026-10-23: still open after 9 trading days | mark=1364.73 | $+96.00 (+0.33R)
+2026-11-06 08:08:28,754 [__main__] INFO — TSM 2026-10-23: win | exit=359.11 | pnl=+12.48% | +4.00R | $+614.64 | 5d
+2026-11-06 08:08:29,741 [__main__] INFO — KEY 2026-10-26: still open after 8 trading days | mark=20.96 | $-86.95 (-0.38R)
+2026-11-06 08:08:30,818 [__main__] INFO — TXN 2026-10-26: loss | exit=284.37 | pnl=-5.02% | -1.00R | $-264.00 | 8d
+2026-11-06 08:08:32,000 [__main__] INFO — BMY 2026-10-27: still open after 7 trading days | mark=63.13 | $-3.12 (-0.02R)
+2026-11-06 08:08:32,801 [__main__] INFO — RF 2026-10-27: still open after 7 trading days | mark=28.41 | $-67.08 (-0.35R)
+2026-11-06 08:08:33,845 [__main__] INFO — HBAN 2026-10-28: loss | exit=15.57 | pnl=-2.38% | -1.00R | $-118.94 | 6d
+2026-11-06 08:08:34,893 [__main__] INFO — HD 2026-10-29: still open after 5 trading days | mark=349.94 | $+248.85 (+0.80R)
+2026-11-06 08:08:35,905 [__main__] INFO — ABT 2026-10-29: win | exit=116.72 | pnl=+9.96% | +3.24R | $+496.79 | 5d
+2026-11-06 08:08:36,708 [__main__] INFO — PNFP 2026-10-29: still open after 5 trading days | mark=101.49 | $-75.36 (-0.26R)
+2026-11-06 08:08:37,805 [__main__] INFO — FITB 2026-10-29: still open after 5 trading days | mark=53.45 | $-103.74 (-0.44R)
+2026-11-06 08:08:38,740 [__main__] INFO — NVDA 2026-10-29: win | exit=188.73 | pnl=+9.67% | +2.41R | $+464.83 | 5d
+2026-11-06 08:08:40,069 [__main__] INFO — SBUX 2026-10-30: still open after 4 trading days | mark=106.16 | $-7.52 (-0.03R)
+2026-11-06 08:08:40,726 [__main__] INFO — AMAT 2026-10-30: still open after 4 trading days | mark=319.25 | $+587.50 (+1.41R)
+2026-11-06 08:08:41,813 [__main__] INFO — MU 2026-10-30: win | exit=663.36 | pnl=+23.01% | +4.00R | $+991.40 | 4d
+2026-11-06 08:08:42,741 [__main__] INFO — ORLY 2026-11-02: still open after 3 trading days | mark=91.49 | $-30.24 (-0.13R)
+2026-11-06 08:08:43,848 [__main__] INFO — GILD 2026-11-02: still open after 3 trading days | mark=167.57 | $-194.04 (-0.75R)
+2026-11-06 08:08:44,839 [__main__] INFO — MRK 2026-11-02: loss | exit=147.69 | pnl=-3.41% | -1.00R | $-166.72 | 1d
+2026-11-06 08:08:45,720 [__main__] INFO — AMD 2026-11-02: still open after 3 trading days | mark=404.40 | $+490.77 (+1.14R)
+2026-11-06 08:08:46,776 [__main__] INFO — KLAC 2026-11-02: still open after 3 trading days | mark=129.80 | $+315.38 (+0.56R)
+2026-11-06 08:08:47,865 [__main__] INFO — MCD 2026-11-03: still open after 2 trading days | mark=278.04 | $+166.50 (+1.00R)
+2026-11-06 08:08:48,794 [__main__] INFO — TJX 2026-11-03: entry zone ($133.80-$135.26) not reached yet — order still pending
+2026-11-06 08:08:49,829 [__main__] INFO — TMO 2026-11-03: loss | exit=681.25 | pnl=-3.78% | -1.00R | $-187.25 | 2d
+2026-11-06 08:08:50,851 [__main__] INFO — CFR 2026-11-03: loss | exit=157.03 | pnl=-3.07% | -1.00R | $-154.07 | 2d
+2026-11-06 08:08:51,811 [__main__] INFO — ONB 2026-11-03: loss | exit=25.23 | pnl=-2.62% | -1.00R | $-130.56 | 2d
+2026-11-06 08:08:52,950 [__main__] INFO — JNJ 2026-11-04: loss | exit=272.19 | pnl=-2.89% | -1.00R | $-137.70 | 1d
+2026-11-06 08:08:53,764 [__main__] INFO — AMGN 2026-11-04: still open after 1 trading days | mark=460.28 | $-237.10 (-0.75R)
+2026-11-06 08:08:54,920 [__main__] INFO — UMBF 2026-11-04: loss | exit=134.57 | pnl=-4.22% | -1.00R | $-207.55 | 1d
+2026-11-06 08:08:55,792 [__main__] INFO — ZION 2026-11-04: loss | exit=65.49 | pnl=-3.24% | -1.00R | $-162.06 | 1d
+2026-11-06 08:08:56,724 [__main__] INFO — AVGO 2026-11-04: still open after 1 trading days | mark=291.53 | $+305.40 (+0.88R)
+2026-11-06 08:08:56,724 [__main__] WARNING — BKNG: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:56,724 [__main__] WARNING — NKE: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:56,724 [__main__] WARNING — SYK: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:56,724 [__main__] WARNING — CFG: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:56,724 [__main__] WARNING — ADI: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:56,724 [__main__] WARNING — ASML: no price data since 2026-11-06 — skipping
+2026-11-06 08:08:57,537 [__main__] INFO — LOW 2026-10-16: hypothetical (immediate-fill) outcome win | +5.00R — entry-zone opportunity cost
+2026-11-06 08:08:59,497 [__main__] INFO — TSLA 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.03R — entry-zone opportunity cost
+2026-11-06 08:09:01,547 [__main__] INFO — HBAN 2026-10-27: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-06 08:09:02,548 [__main__] INFO — ADI 2026-10-27: hypothetical (immediate-fill) outcome loss | -1.23R — entry-zone opportunity cost
+2026-11-06 08:09:08,552 [__main__] INFO — 4 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-06 08:09:08,557 [__main__] INFO — Paper updater complete — 13 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (34 closed, 13 open, 11 expired, 90 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 47.1%
+  Target hits:        4
+  Stops:              14
+  Time stops:         13  (+11 profitable)
+  Earnings exits:     3  (+1 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.66R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 11
+  Superseded (pending, replaced by a newer signal): 90  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE, PFE, PFE, LLY, PFE, PFE, PFE, ABBV, AMGN, PFE, PFE, PFE, UNH, UNH, UNH, UNH, UNH, KEY, KEY, UNH, ISRG, LOW, KEY, LOW, UNH, TJX, KEY, UNH, ABT, KEY, UNH, TSLA, KEY, UNH, LOW, SYK, LOW, UNH, SYK, LOW, SYK, LOW, PFE, UNH, AMGN, SYK, LOW, AMZN, PFE, UNH, AMGN, SYK)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        13
+  Open unrealized P&L: $+23.44  (4 marked position(s))
+==================================================
+
+[threshold] Closed 3 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (79 closed, 19 open, 40 expired, 262 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 41.8%
+  Target hits:        8
+  Stops:              34
+  Time stops:         31  (+21 profitable)
+  Earnings exits:     6  (+4 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.35R
+  Expired (never filled): 40
+  Superseded (pending, replaced by a newer signal): 262  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, LLY, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY, NVDA, CFR, PFE, ORLY, NVDA, TXN, PNFP, CFR, LLY, PFE, KLAC, TXN, PNFP, CFR, KLAC, TFC, ISRG, ABT, ORLY, AMZN, MU, TFC, ISRG, ABT, ORLY, MU, TFC, HBAN, ORLY, AMZN, MU, TFC, ABBV, ORLY, MU, UMBF, TFC, ABBV, ORLY, MU, TFC, AMGN, ABBV, AMZN, ZION, TFC, AMZN, ZION, PFE, AMZN, TSLA, ADI, AMGN, PFE, AMZN, PFE, AMZN, HBAN, UNH, PFE, CFG, KEY, UNH, PFE, LOW, HD, FITB, UNH, PFE, HD, UNH, PFE, AMZN, HD, UNH, PFE, AMZN, ADI, KEY, TJX, KEY, ISRG, TJX, KEY, ZION, ABT, TXN, ADI, KEY, ABT, JNJ, TSLA, NKE, ADI, KEY, TFC, TMO, JNJ, TSLA, NKE, ADI, QCOM, KEY, TMO, JNJ, TSLA, NKE, QCOM, ADI, KEY, TFC, NKE, ADI, KEY, TFC, LLY, NKE, ADI, KEY, TFC, SYK, LLY, NKE, ORLY, ADI, KEY, SYK, NKE, CFG, SYK, AMZN)
+    -> entry-zone opportunity cost: 18 resolved (0 still pending), hypothetical win rate 5.6%, avg -0.94R if filled immediately at signal time
+  Open trades:        19
+  Open unrealized P&L: $+1371.51  (11 marked position(s))
+==================================================
+
+[rank] Closed 7 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (52 closed, 25 open, 5 expired, 44 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 30.8%
+  Target hits:        5
+  Stops:              28
+  Time stops:         3  (+3 profitable)
+  Earnings exits:     16  (+8 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.53R
+  Expired (never filled): 5
+  Superseded (pending, replaced by a newer signal): 44  (TGT, JNJ, PFE, TGT, KEY, ONB, AVGO, LOW, NKE, ONB, CFG, AVGO, TGT, TMO, ISRG, KEY, ONB, MU, LOW, AVGO, TSLA, ADI, TSLA, ADI, VRTX, HBAN, TSLA, SYK, HBAN, NVDA, VRTX, HBAN, ADI, HD, AMZN, ONB, ADI, GILD, MRK, ONB, BKNG, ONB, BKNG, NKE)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        25
+  Open unrealized P&L: $+1941.43  (18 marked position(s))
+==================================================
+
+[random] Closed 13 trade(s) this run.
+Rank-track go/no-go: COLLECTING (79/100 closed trades)
+  mean R after costs +0.129 (need >= +0.15) | week-clustered t 0.51 over 11 weeks (need >= 2) | vs sector ETF +0.19%/trade (need > 0)
+  random-pick control: 52 closed, mean R after costs -0.185
+[threshold] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[rank] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[random] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+2026-11-09 08:07:02,646 [__main__] INFO — 16 open paper trade(s) to check
+2026-11-09 08:07:03,239 [__main__] INFO — ISRG 2026-10-23: time_stop | exit=452.80 | pnl=+0.19% | +0.02R | $+9.57 | 10d
+2026-11-09 08:07:04,156 [__main__] INFO — HBAN 2026-10-30: still open after 5 trading days | mark=15.47 | $-137.72 (-0.68R)
+2026-11-09 08:07:05,207 [__main__] INFO — TFC 2026-10-30: still open after 5 trading days | mark=49.38 | $+13.13 (+0.12R)
+2026-11-09 08:07:06,245 [__main__] INFO — LLY 2026-11-02: still open after 4 trading days | mark=1354.00 | $-156.93 (-0.58R)
+2026-11-09 08:07:07,574 [__main__] INFO — AMZN 2026-11-05: still open after 1 trading days | mark=259.30 | $-82.62 (-0.27R)
+2026-11-09 08:07:08,162 [__main__] INFO — NKE 2026-11-05: entry zone ($40.20-$40.78) not reached yet — order still pending
+2026-11-09 08:07:09,140 [__main__] INFO — BKNG 2026-11-05: entry zone ($169.37-$172.57) not reached yet — order still pending
+2026-11-09 08:07:10,145 [__main__] INFO — SBUX 2026-11-05: entry zone ($109.11-$110.53) not reached yet — order still pending
+2026-11-09 08:07:10,999 [__main__] WARNING — PFE: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:11,907 [__main__] WARNING — UNH: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:12,920 [__main__] WARNING — SYK: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:13,909 [__main__] WARNING — ABT: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:14,958 [__main__] WARNING — JNJ: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:15,891 [__main__] WARNING — ORLY: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:15,891 [__main__] INFO — AMGN: signal is from today — no bars possible yet, skipping
+2026-11-09 08:07:15,891 [__main__] INFO — LOW: signal is from today — no bars possible yet, skipping
+2026-11-09 08:07:16,959 [__main__] INFO — KEY 2026-10-23: hypothetical (immediate-fill) outcome time_stop | -0.36R — entry-zone opportunity cost
+2026-11-09 08:07:17,951 [__main__] INFO — KEY 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:07:24,016 [__main__] INFO — PFE 2026-11-04: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:07:24,933 [__main__] INFO — AMGN 2026-11-04: hypothetical (immediate-fill) outcome loss | -1.09R — entry-zone opportunity cost
+2026-11-09 08:07:28,933 [__main__] INFO — PFE 2026-11-05: hypothetical immediate entry impossible — first open $29.07 already through the $30.24 stop
+2026-11-09 08:07:29,902 [__main__] INFO — UNH 2026-11-05: hypothetical immediate entry impossible — first open $388.39 already through the $399.72 stop
+2026-11-09 08:07:30,945 [__main__] INFO — AMGN 2026-11-05: hypothetical immediate entry impossible — first open $448.17 already through the $452.25 stop
+2026-11-09 08:07:34,926 [__main__] INFO — 7 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-09 08:07:34,932 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+2026-11-09 08:07:34,966 [__main__] INFO — Calibration check: status=pass weights_updated=False
+2026-11-09 08:07:35,887 [__main__] INFO — 23 open paper trade(s) to check
+2026-11-09 08:07:36,318 [__main__] INFO — NVDA 2026-10-23: still open after 10 trading days | mark=186.64 | $+594.09 (+2.13R)
+2026-11-09 08:07:37,294 [__main__] INFO — ISRG 2026-10-23: time_stop | exit=452.80 | pnl=+0.19% | +0.03R | $+9.57 | 10d
+2026-11-09 08:07:38,275 [__main__] INFO — SBUX 2026-10-30: still open after 5 trading days | mark=105.41 | $-42.77 (-0.15R)
+2026-11-09 08:07:39,277 [__main__] INFO — AVGO 2026-11-02: still open after 4 trading days | mark=293.69 | $+431.10 (+2.29R)
+2026-11-09 08:07:40,315 [__main__] INFO — TFC 2026-11-03: still open after 3 trading days | mark=49.38 | $-155.43 (-0.81R)
+2026-11-09 08:07:41,324 [__main__] INFO — LLY 2026-11-03: loss | exit=1349.59 | pnl=-6.28% | -1.00R | $-271.23 | 3d
+2026-11-09 08:07:42,299 [__main__] INFO — ORLY 2026-11-03: still open after 3 trading days | mark=89.89 | $-117.18 (-0.51R)
+2026-11-09 08:07:43,311 [__main__] INFO — KLAC 2026-11-04: still open after 2 trading days | mark=138.49 | $+89.44 (+0.16R)
+2026-11-09 08:07:44,327 [__main__] INFO — MU 2026-11-04: still open after 2 trading days | mark=690.00 | $+250.76 (+0.42R)
+2026-11-09 08:07:45,264 [__main__] INFO — KEY 2026-11-04: still open after 2 trading days | mark=20.85 | $-235.62 (-0.84R)
+2026-11-09 08:07:46,337 [__main__] INFO — NKE 2026-11-04: loss | exit=38.27 | pnl=-5.23% | -1.35R | $-259.53 | 2d
+2026-11-09 08:07:47,247 [__main__] INFO — QCOM 2026-11-05: entry zone ($154.51-$158.99) not reached yet — order still pending
+2026-11-09 08:07:48,918 [__main__] INFO — ADI 2026-11-05: still open after 1 trading days | mark=363.56 | $+24.24 (+0.06R)
+2026-11-09 08:07:49,301 [__main__] INFO — CFG 2026-11-05: entry zone ($61.01-$61.82) not reached yet — order still pending
+2026-11-09 08:07:50,304 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-09 08:07:51,297 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-09 08:07:52,271 [__main__] INFO — AMZN 2026-11-05: entry zone ($269.13-$273.85) not reached yet — order still pending
+2026-11-09 08:07:53,061 [__main__] WARNING — MTB: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:54,039 [__main__] WARNING — ONB: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:55,081 [__main__] WARNING — JNJ: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:56,068 [__main__] WARNING — TMO: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:57,048 [__main__] WARNING — MCD: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:58,060 [__main__] WARNING — TJX: no price data since 2026-11-07 — skipping
+2026-11-09 08:07:59,120 [__main__] INFO — KEY 2026-10-23: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:11,054 [__main__] INFO — LLY 2026-11-02: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:15,159 [__main__] INFO — NKE 2026-11-03: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:19,136 [__main__] INFO — JNJ 2026-11-05: hypothetical immediate entry impossible — first open $267.56 already through the $272.19 stop
+2026-11-09 08:08:19,136 [__main__] INFO — 4 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-09 08:08:19,146 [__main__] INFO — Paper updater complete — 3 trade(s) closed
+2026-11-09 08:08:19,679 [__main__] INFO — 30 open paper trade(s) to check
+2026-11-09 08:08:20,319 [__main__] INFO — ISRG 2026-10-20: time_stop | exit=452.80 | pnl=+4.02% | +0.82R | $+192.28 | 12d
+2026-11-09 08:08:21,406 [__main__] INFO — TFC 2026-10-22: time_stop | exit=49.38 | pnl=+2.49% | +0.94R | $+123.60 | 11d
+2026-11-09 08:08:22,251 [__main__] INFO — LLY 2026-10-23: still open after 10 trading days | mark=1354.00 | $+63.81 (+0.22R)
+2026-11-09 08:08:23,399 [__main__] INFO — KEY 2026-10-26: still open after 9 trading days | mark=20.85 | $-112.80 (-0.49R)
+2026-11-09 08:08:24,361 [__main__] INFO — BMY 2026-10-27: still open after 8 trading days | mark=62.14 | $-80.34 (-0.54R)
+2026-11-09 08:08:25,284 [__main__] INFO — RF 2026-10-27: still open after 8 trading days | mark=28.31 | $-84.28 (-0.45R)
+2026-11-09 08:08:26,317 [__main__] INFO — HD 2026-10-29: still open after 6 trading days | mark=343.47 | $+151.80 (+0.49R)
+2026-11-09 08:08:27,335 [__main__] INFO — PNFP 2026-10-29: still open after 6 trading days | mark=100.64 | $-100.18 (-0.34R)
+2026-11-09 08:08:28,318 [__main__] INFO — FITB 2026-10-29: still open after 6 trading days | mark=53.04 | $-141.05 (-0.60R)
+2026-11-09 08:08:29,401 [__main__] INFO — SBUX 2026-10-30: still open after 5 trading days | mark=105.41 | $-42.77 (-0.15R)
+2026-11-09 08:08:30,283 [__main__] INFO — AMAT 2026-10-30: earnings inside force-defined-risk window (0-5 days out) for an undefined-risk shares position — flattening early at $332.72 instead of holding through the print
+2026-11-09 08:08:30,284 [__main__] INFO — AMAT 2026-10-30: earnings_exit | exit=332.72 | pnl=+11.98% | +1.09R | $+452.80 | 5d
+2026-11-09 08:08:31,269 [__main__] INFO — ORLY 2026-11-02: still open after 4 trading days | mark=89.89 | $-116.64 (-0.50R)
+2026-11-09 08:08:32,831 [__main__] INFO — GILD 2026-11-02: loss | exit=164.11 | pnl=-5.95% | -1.13R | $-290.92 | 3d
+2026-11-09 08:08:33,384 [__main__] INFO — AMD 2026-11-02: still open after 4 trading days | mark=449.04 | $+178.29 (+0.42R)
+2026-11-09 08:08:34,303 [__main__] INFO — KLAC 2026-11-02: still open after 4 trading days | mark=138.49 | $+89.44 (+0.16R)
+2026-11-09 08:08:35,265 [__main__] INFO — MCD 2026-11-03: still open after 3 trading days | mark=276.52 | $+139.14 (+0.84R)
+2026-11-09 08:08:36,340 [__main__] INFO — TJX 2026-11-03: still open after 3 trading days | mark=135.30 | $-1.48 (-0.01R)
+2026-11-09 08:08:37,282 [__main__] INFO — AMGN 2026-11-04: loss | exit=448.17 | pnl=-7.40% | -1.13R | $-358.20 | 2d
+2026-11-09 08:08:38,581 [__main__] INFO — AVGO 2026-11-04: still open after 2 trading days | mark=293.69 | $+273.00 (+0.79R)
+2026-11-09 08:08:39,316 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-09 08:08:40,247 [__main__] INFO — NKE 2026-11-05: entry zone ($40.80-$41.40) not reached yet — order still pending
+2026-11-09 08:08:41,333 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-09 08:08:42,299 [__main__] INFO — ADI 2026-11-05: still open after 1 trading days | mark=363.56 | $+24.24 (+0.06R)
+2026-11-09 08:08:43,321 [__main__] INFO — ASML 2026-11-05: entry zone ($1340.04-$1373.26) not reached yet — order still pending
+2026-11-09 08:08:44,025 [__main__] WARNING — TSLA: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:45,073 [__main__] WARNING — TMO: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:46,050 [__main__] WARNING — VRTX: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:47,052 [__main__] WARNING — CFG: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:48,073 [__main__] WARNING — ONB: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:49,074 [__main__] WARNING — TXN: no price data since 2026-11-07 — skipping
+2026-11-09 08:08:50,052 [__main__] INFO — HBAN 2026-10-23: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:51,064 [__main__] INFO — HBAN 2026-10-26: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:54,117 [__main__] INFO — ONB 2026-10-30: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:57,064 [__main__] INFO — NKE 2026-11-04: hypothetical (immediate-fill) outcome loss | -1.35R — entry-zone opportunity cost
+2026-11-09 08:08:58,230 [__main__] INFO — CFG 2026-11-05: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-09 08:08:58,230 [__main__] INFO — 5 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-09 08:08:58,235 [__main__] INFO — Paper updater complete — 5 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (35 closed, 15 open, 11 expired, 93 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 48.6%
+  Target hits:        4
+  Stops:              14
+  Time stops:         14  (+12 profitable)
+  Earnings exits:     3  (+1 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.66R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 11
+  Superseded (pending, replaced by a newer signal): 93  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE, PFE, PFE, LLY, PFE, PFE, PFE, ABBV, AMGN, PFE, PFE, PFE, UNH, UNH, UNH, UNH, UNH, KEY, KEY, UNH, ISRG, LOW, KEY, LOW, UNH, TJX, KEY, UNH, ABT, KEY, UNH, TSLA, KEY, UNH, LOW, SYK, LOW, UNH, SYK, LOW, SYK, LOW, PFE, UNH, AMGN, SYK, LOW, AMZN, PFE, UNH, AMGN, SYK, LOW, AMGN, LOW)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        15
+  Open unrealized P&L: $-364.14  (4 marked position(s))
+==================================================
+
+[threshold] Closed 1 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (82 closed, 20 open, 40 expired, 264 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 41.5%
+  Target hits:        8
+  Stops:              36
+  Time stops:         32  (+22 profitable)
+  Earnings exits:     6  (+4 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.35R
+  Expired (never filled): 40
+  Superseded (pending, replaced by a newer signal): 264  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, LLY, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY, NVDA, CFR, PFE, ORLY, NVDA, TXN, PNFP, CFR, LLY, PFE, KLAC, TXN, PNFP, CFR, KLAC, TFC, ISRG, ABT, ORLY, AMZN, MU, TFC, ISRG, ABT, ORLY, MU, TFC, HBAN, ORLY, AMZN, MU, TFC, ABBV, ORLY, MU, UMBF, TFC, ABBV, ORLY, MU, TFC, AMGN, ABBV, AMZN, ZION, TFC, AMZN, ZION, PFE, AMZN, TSLA, ADI, AMGN, PFE, AMZN, PFE, AMZN, HBAN, UNH, PFE, CFG, KEY, UNH, PFE, LOW, HD, FITB, UNH, PFE, HD, UNH, PFE, AMZN, HD, UNH, PFE, AMZN, ADI, KEY, TJX, KEY, ISRG, TJX, KEY, ZION, ABT, TXN, ADI, KEY, ABT, JNJ, TSLA, NKE, ADI, KEY, TFC, TMO, JNJ, TSLA, NKE, ADI, QCOM, KEY, TMO, JNJ, TSLA, NKE, QCOM, ADI, KEY, TFC, NKE, ADI, KEY, TFC, LLY, NKE, ADI, KEY, TFC, SYK, LLY, NKE, ORLY, ADI, KEY, SYK, NKE, CFG, SYK, AMZN, ONB, JNJ)
+    -> entry-zone opportunity cost: 18 resolved (0 still pending), hypothetical win rate 5.6%, avg -0.94R if filled immediately at signal time
+  Open trades:        20
+  Open unrealized P&L: $+838.63  (9 marked position(s))
+==================================================
+
+[rank] Closed 3 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (57 closed, 25 open, 5 expired, 45 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 33.3%
+  Target hits:        5
+  Stops:              30
+  Time stops:         5  (+5 profitable)
+  Earnings exits:     17  (+9 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.53R
+  Expired (never filled): 5
+  Superseded (pending, replaced by a newer signal): 45  (TGT, JNJ, PFE, TGT, KEY, ONB, AVGO, LOW, NKE, ONB, CFG, AVGO, TGT, TMO, ISRG, KEY, ONB, MU, LOW, AVGO, TSLA, ADI, TSLA, ADI, VRTX, HBAN, TSLA, SYK, HBAN, NVDA, VRTX, HBAN, ADI, HD, AMZN, ONB, ADI, GILD, MRK, ONB, BKNG, ONB, BKNG, NKE, CFG)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        25
+  Open unrealized P&L: $+240.18  (15 marked position(s))
+==================================================
+
+[random] Closed 5 trade(s) this run.
+Rank-track go/no-go: COLLECTING (82/100 closed trades)
+  mean R after costs +0.094 (need >= +0.15) | week-clustered t 0.33 over 11 weeks (need >= 2) | vs sector ETF +0.04%/trade (need > 0)
+  random-pick control: 57 closed, mean R after costs -0.162
+[threshold] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[rank] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[random] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+2026-11-10 08:07:02,901 [__main__] INFO — 18 open paper trade(s) to check
+2026-11-10 08:07:03,631 [__main__] INFO — HBAN 2026-10-30: still open after 6 trading days | mark=15.92 | $+3.13 (+0.02R)
+2026-11-10 08:07:04,275 [__main__] INFO — TFC 2026-10-30: still open after 6 trading days | mark=50.33 | $+109.08 (+0.99R)
+2026-11-10 08:07:05,358 [__main__] INFO — LLY 2026-11-02: still open after 5 trading days | mark=1411.95 | $+16.92 (+0.06R)
+2026-11-10 08:07:06,241 [__main__] INFO — AMZN 2026-11-05: still open after 2 trading days | mark=266.93 | $+54.72 (+0.18R)
+2026-11-10 08:07:07,320 [__main__] INFO — NKE 2026-11-05: entry zone ($40.20-$40.78) not reached yet — order still pending
+2026-11-10 08:07:08,250 [__main__] INFO — BKNG 2026-11-05: entry zone ($169.37-$172.57) not reached yet — order still pending
+2026-11-10 08:07:09,743 [__main__] INFO — SBUX 2026-11-05: still open after 2 trading days | mark=109.44 | $+14.85 (+0.11R)
+2026-11-10 08:07:10,262 [__main__] INFO — PFE 2026-11-06: entry zone ($30.88-$31.24) not reached yet — order still pending
+2026-11-10 08:07:11,363 [__main__] INFO — UNH 2026-11-06: entry zone ($423.40-$429.70) not reached yet — order still pending
+2026-11-10 08:07:12,750 [__main__] INFO — JNJ 2026-11-06: still open after 1 trading days | mark=282.11 | $+32.98 (+0.24R)
+2026-11-10 08:07:13,258 [__main__] INFO — ORLY 2026-11-06: entry zone ($93.19-$94.31) not reached yet — order still pending
+2026-11-10 08:07:13,258 [__main__] WARNING — LOW: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:13,259 [__main__] WARNING — VRTX: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:13,259 [__main__] INFO — KEY: signal is from today — no bars possible yet, skipping
+2026-11-10 08:07:13,259 [__main__] INFO — AMGN: signal is from today — no bars possible yet, skipping
+2026-11-10 08:07:13,259 [__main__] INFO — TMO: signal is from today — no bars possible yet, skipping
+2026-11-10 08:07:13,259 [__main__] INFO — ABT: signal is from today — no bars possible yet, skipping
+2026-11-10 08:07:13,259 [__main__] INFO — SYK: signal is from today — no bars possible yet, skipping
+2026-11-10 08:07:25,048 [__main__] INFO — SYK 2026-11-06: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-10 08:07:26,078 [__main__] INFO — ABT 2026-11-06: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-10 08:07:29,080 [__main__] INFO — 2 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-10 08:07:29,086 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+2026-11-10 08:07:29,588 [__main__] INFO — 24 open paper trade(s) to check
+2026-11-10 08:07:30,246 [__main__] INFO — NVDA 2026-10-23: still open after 11 trading days | mark=178.67 | $+777.40 (+2.79R)
+2026-11-10 08:07:31,357 [__main__] INFO — SBUX 2026-10-30: still open after 6 trading days | mark=109.44 | $+146.64 (+0.52R)
+2026-11-10 08:07:32,249 [__main__] INFO — AVGO 2026-11-02: still open after 5 trading days | mark=319.48 | $+44.25 (+0.24R)
+2026-11-10 08:07:33,272 [__main__] INFO — TFC 2026-11-03: still open after 4 trading days | mark=50.33 | $-61.38 (-0.32R)
+2026-11-10 08:07:34,450 [__main__] INFO — ORLY 2026-11-03: still open after 4 trading days | mark=89.79 | $-122.58 (-0.54R)
+2026-11-10 08:07:35,247 [__main__] INFO — KLAC 2026-11-04: still open after 3 trading days | mark=151.38 | $-245.70 (-0.44R)
+2026-11-10 08:07:36,256 [__main__] INFO — MU 2026-11-04: still open after 3 trading days | mark=733.15 | $+78.16 (+0.13R)
+2026-11-10 08:07:37,262 [__main__] INFO — KEY 2026-11-04: still open after 3 trading days | mark=21.41 | $-106.26 (-0.38R)
+2026-11-10 08:07:38,276 [__main__] INFO — QCOM 2026-11-05: entry zone ($154.51-$158.99) not reached yet — order still pending
+2026-11-10 08:07:39,363 [__main__] INFO — ADI 2026-11-05: still open after 2 trading days | mark=394.66 | $-348.96 (-0.80R)
+2026-11-10 08:07:40,295 [__main__] INFO — CFG 2026-11-05: entry zone ($61.01-$61.82) not reached yet — order still pending
+2026-11-10 08:07:41,335 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-10 08:07:42,392 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-10 08:07:43,393 [__main__] INFO — MTB 2026-11-06: entry zone ($211.07-$213.49) not reached yet — order still pending
+2026-11-10 08:07:44,317 [__main__] INFO — ONB 2026-11-06: entry zone ($24.07-$24.39) not reached yet — order still pending
+2026-11-10 08:07:45,827 [__main__] INFO — JNJ 2026-11-06: still open after 1 trading days | mark=282.11 | $+32.98 (+0.24R)
+2026-11-10 08:07:46,688 [__main__] INFO — TMO 2026-11-06: still open after 1 trading days | mark=721.63 | $+105.21 (+0.67R)
+2026-11-10 08:07:47,926 [__main__] INFO — TJX 2026-11-06: still open after 1 trading days | mark=138.13 | $-68.40 (-0.51R)
+2026-11-10 08:07:47,927 [__main__] WARNING — PNFP: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:47,927 [__main__] WARNING — HBAN: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:47,927 [__main__] WARNING — LLY: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:47,927 [__main__] WARNING — VRTX: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:47,927 [__main__] WARNING — AMZN: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:47,927 [__main__] WARNING — MCD: no price data since 2026-11-10 — skipping
+2026-11-10 08:07:48,063 [__main__] INFO — KEY 2026-10-26: hypothetical (immediate-fill) outcome time_stop | +0.08R — entry-zone opportunity cost
+2026-11-10 08:08:04,076 [__main__] INFO — ONB 2026-11-05: hypothetical (immediate-fill) outcome loss | -2.00R — entry-zone opportunity cost
+2026-11-10 08:08:05,048 [__main__] INFO — AMZN 2026-11-05: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-10 08:08:06,077 [__main__] INFO — 3 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-10 08:08:06,087 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+2026-11-10 08:08:06,551 [__main__] INFO — 29 open paper trade(s) to check
+2026-11-10 08:08:07,269 [__main__] INFO — LLY 2026-10-23: still open after 11 trading days | mark=1411.95 | $+237.66 (+0.81R)
+2026-11-10 08:08:08,390 [__main__] INFO — KEY 2026-10-26: time_stop | exit=21.41 | pnl=+0.38% | +0.08R | $+18.80 | 10d
+2026-11-10 08:08:09,359 [__main__] INFO — BMY 2026-10-27: still open after 9 trading days | mark=62.14 | $-80.34 (-0.54R)
+2026-11-10 08:08:10,280 [__main__] INFO — RF 2026-10-27: still open after 9 trading days | mark=28.93 | $+22.36 (+0.12R)
+2026-11-10 08:08:11,262 [__main__] INFO — HD 2026-10-29: still open after 7 trading days | mark=353.42 | $+301.05 (+0.97R)
+2026-11-10 08:08:12,364 [__main__] INFO — PNFP 2026-10-29: still open after 7 trading days | mark=102.91 | $+18.74 (+0.06R)
+2026-11-10 08:08:13,337 [__main__] INFO — FITB 2026-10-29: still open after 7 trading days | mark=54.36 | $-20.93 (-0.09R)
+2026-11-10 08:08:14,258 [__main__] INFO — SBUX 2026-10-30: still open after 6 trading days | mark=109.44 | $+146.64 (+0.52R)
+2026-11-10 08:08:15,267 [__main__] INFO — ORLY 2026-11-02: still open after 5 trading days | mark=89.79 | $-122.04 (-0.52R)
+2026-11-10 08:08:16,617 [__main__] INFO — AMD 2026-11-02: still open after 5 trading days | mark=508.58 | $-238.49 (-0.56R)
+2026-11-10 08:08:17,545 [__main__] INFO — KLAC 2026-11-02: still open after 5 trading days | mark=151.38 | $-245.70 (-0.44R)
+2026-11-10 08:08:18,313 [__main__] INFO — MCD 2026-11-03: still open after 4 trading days | mark=281.44 | $+227.70 (+1.37R)
+2026-11-10 08:08:19,294 [__main__] INFO — TJX 2026-11-03: still open after 4 trading days | mark=138.13 | $-106.19 (-0.71R)
+2026-11-10 08:08:20,272 [__main__] INFO — AVGO 2026-11-04: still open after 3 trading days | mark=319.48 | $-113.85 (-0.33R)
+2026-11-10 08:08:21,360 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-10 08:08:22,300 [__main__] INFO — NKE 2026-11-05: entry zone ($40.80-$41.40) not reached yet — order still pending
+2026-11-10 08:08:23,308 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-10 08:08:24,351 [__main__] INFO — ADI 2026-11-05: still open after 2 trading days | mark=394.66 | $-348.96 (-0.80R)
+2026-11-10 08:08:25,271 [__main__] INFO — ASML 2026-11-05: entry zone ($1340.04-$1373.26) not reached yet — order still pending
+2026-11-10 08:08:26,360 [__main__] INFO — TSLA 2026-11-06: entry zone ($333.97-$342.33) not reached yet — order still pending
+2026-11-10 08:08:27,300 [__main__] INFO — TMO 2026-11-06: still open after 1 trading days | mark=721.63 | $+105.21 (+0.67R)
+2026-11-10 08:08:28,299 [__main__] INFO — CFG 2026-11-06: entry zone ($61.02-$61.81) not reached yet — order still pending
+2026-11-10 08:08:29,319 [__main__] INFO — ONB 2026-11-06: entry zone ($24.07-$24.39) not reached yet — order still pending
+2026-11-10 08:08:30,409 [__main__] INFO — TXN 2026-11-06: entry zone ($267.66-$273.72) not reached yet — order still pending
+2026-11-10 08:08:30,409 [__main__] WARNING — VRTX: no price data since 2026-11-10 — skipping
+2026-11-10 08:08:30,409 [__main__] WARNING — ABBV: no price data since 2026-11-10 — skipping
+2026-11-10 08:08:30,409 [__main__] WARNING — ZION: no price data since 2026-11-10 — skipping
+2026-11-10 08:08:30,409 [__main__] WARNING — NVDA: no price data since 2026-11-10 — skipping
+2026-11-10 08:08:30,409 [__main__] WARNING — MU: no price data since 2026-11-10 — skipping
+2026-11-10 08:08:35,056 [__main__] INFO — VRTX 2026-11-06: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-10 08:08:35,056 [__main__] INFO — 1 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-10 08:08:35,060 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (35 closed, 18 open, 11 expired, 97 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 48.6%
+  Target hits:        4
+  Stops:              14
+  Time stops:         14  (+12 profitable)
+  Earnings exits:     3  (+1 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.66R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 11
+  Superseded (pending, replaced by a newer signal): 97  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE, PFE, PFE, LLY, PFE, PFE, PFE, ABBV, AMGN, PFE, PFE, PFE, UNH, UNH, UNH, UNH, UNH, KEY, KEY, UNH, ISRG, LOW, KEY, LOW, UNH, TJX, KEY, UNH, ABT, KEY, UNH, TSLA, KEY, UNH, LOW, SYK, LOW, UNH, SYK, LOW, SYK, LOW, PFE, UNH, AMGN, SYK, LOW, AMZN, PFE, UNH, AMGN, SYK, LOW, AMGN, SYK, ABT, LOW, AMGN, SYK)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        18
+  Open unrealized P&L: $+231.68  (6 marked position(s))
+==================================================
+
+[threshold] Closed 0 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (82 closed, 24 open, 40 expired, 266 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 41.5%
+  Target hits:        8
+  Stops:              36
+  Time stops:         32  (+22 profitable)
+  Earnings exits:     6  (+4 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.35R
+  Expired (never filled): 40
+  Superseded (pending, replaced by a newer signal): 266  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, LLY, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY, NVDA, CFR, PFE, ORLY, NVDA, TXN, PNFP, CFR, LLY, PFE, KLAC, TXN, PNFP, CFR, KLAC, TFC, ISRG, ABT, ORLY, AMZN, MU, TFC, ISRG, ABT, ORLY, MU, TFC, HBAN, ORLY, AMZN, MU, TFC, ABBV, ORLY, MU, UMBF, TFC, ABBV, ORLY, MU, TFC, AMGN, ABBV, AMZN, ZION, TFC, AMZN, ZION, PFE, AMZN, TSLA, ADI, AMGN, PFE, AMZN, PFE, AMZN, HBAN, UNH, PFE, CFG, KEY, UNH, PFE, LOW, HD, FITB, UNH, PFE, HD, UNH, PFE, AMZN, HD, UNH, PFE, AMZN, ADI, KEY, TJX, KEY, ISRG, TJX, KEY, ZION, ABT, TXN, ADI, KEY, ABT, JNJ, TSLA, NKE, ADI, KEY, TFC, TMO, JNJ, TSLA, NKE, ADI, QCOM, KEY, TMO, JNJ, TSLA, NKE, QCOM, ADI, KEY, TFC, NKE, ADI, KEY, TFC, LLY, NKE, ADI, KEY, TFC, SYK, LLY, NKE, ORLY, ADI, KEY, SYK, NKE, CFG, SYK, AMZN, ONB, JNJ, AMZN, MCD)
+    -> entry-zone opportunity cost: 18 resolved (0 still pending), hypothetical win rate 5.6%, avg -0.94R if filled immediately at signal time
+  Open trades:        24
+  Open unrealized P&L: $+231.36  (12 marked position(s))
+==================================================
+
+[rank] Closed 0 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (58 closed, 28 open, 5 expired, 46 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 34.5%
+  Target hits:        5
+  Stops:              30
+  Time stops:         6  (+6 profitable)
+  Earnings exits:     17  (+9 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.53R
+  Expired (never filled): 5
+  Superseded (pending, replaced by a newer signal): 46  (TGT, JNJ, PFE, TGT, KEY, ONB, AVGO, LOW, NKE, ONB, CFG, AVGO, TGT, TMO, ISRG, KEY, ONB, MU, LOW, AVGO, TSLA, ADI, TSLA, ADI, VRTX, HBAN, TSLA, SYK, HBAN, NVDA, VRTX, HBAN, ADI, HD, AMZN, ONB, ADI, GILD, MRK, ONB, BKNG, ONB, BKNG, NKE, CFG, VRTX)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        28
+  Open unrealized P&L: $-217.14  (15 marked position(s))
+==================================================
+
+[random] Closed 1 trade(s) this run.
+Rank-track go/no-go: COLLECTING (82/100 closed trades)
+  mean R after costs +0.094 (need >= +0.15) | week-clustered t 0.33 over 11 weeks (need >= 2) | vs sector ETF +0.04%/trade (need > 0)
+  random-pick control: 58 closed, mean R after costs -0.159
+[threshold] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[rank] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[random] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+2026-11-11 08:07:02,118 [__main__] INFO — 18 open paper trade(s) to check
+2026-11-11 08:07:02,893 [__main__] INFO — HBAN 2026-10-30: still open after 7 trading days | mark=15.84 | $-21.91 (-0.11R)
+2026-11-11 08:07:03,643 [__main__] INFO — TFC 2026-10-30: still open after 7 trading days | mark=50.26 | $+102.01 (+0.93R)
+2026-11-11 08:07:04,552 [__main__] INFO — LLY 2026-11-02: still open after 6 trading days | mark=1432.29 | $+77.94 (+0.29R)
+2026-11-11 08:07:05,612 [__main__] INFO — AMZN 2026-11-05: still open after 3 trading days | mark=270.87 | $+125.64 (+0.41R)
+2026-11-11 08:07:06,532 [__main__] INFO — NKE 2026-11-05: entry zone ($40.20-$40.78) not reached yet — order still pending
+2026-11-11 08:07:07,565 [__main__] INFO — BKNG 2026-11-05: entry zone ($169.37-$172.57) not reached yet — order still pending
+2026-11-11 08:07:08,652 [__main__] INFO — SBUX 2026-11-05: still open after 3 trading days | mark=109.95 | $+37.80 (+0.27R)
+2026-11-11 08:07:09,592 [__main__] INFO — UNH 2026-11-06: entry zone ($423.40-$429.70) not reached yet — order still pending
+2026-11-11 08:07:10,621 [__main__] INFO — JNJ 2026-11-06: still open after 2 trading days | mark=280.78 | $+10.37 (+0.08R)
+2026-11-11 08:07:11,594 [__main__] INFO — ORLY 2026-11-06: entry zone ($93.19-$94.31) not reached yet — order still pending
+2026-11-11 08:07:12,539 [__main__] INFO — LOW 2026-11-09: entry zone ($233.18-$236.32) not reached yet — order still pending
+2026-11-11 08:07:13,485 [__main__] INFO — VRTX 2026-11-09: entry zone ($564.30-$573.04) not reached yet — order still pending
+2026-11-11 08:07:13,485 [__main__] WARNING — AMGN: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:13,485 [__main__] WARNING — TMO: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:13,485 [__main__] WARNING — ABT: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:13,485 [__main__] WARNING — SYK: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:13,485 [__main__] INFO — KEY: signal is from today — no bars possible yet, skipping
+2026-11-11 08:07:13,486 [__main__] INFO — PFE: signal is from today — no bars possible yet, skipping
+2026-11-11 08:07:14,305 [__main__] INFO — KEY 2026-10-27: hypothetical (immediate-fill) outcome time_stop | +0.13R — entry-zone opportunity cost
+2026-11-11 08:07:24,530 [__main__] INFO — PFE 2026-11-06: hypothetical immediate entry impossible — first open $29.59 already through the $29.81 stop
+2026-11-11 08:07:28,312 [__main__] INFO — SYK 2026-11-09: hypothetical immediate entry impossible — first open $324.07 already through the $325.41 stop
+2026-11-11 08:07:29,299 [__main__] INFO — 3 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-11 08:07:29,308 [__main__] INFO — Paper updater complete — 0 trade(s) closed
+2026-11-11 08:07:29,941 [__main__] INFO — 26 open paper trade(s) to check
+2026-11-11 08:07:30,537 [__main__] INFO — NVDA 2026-10-23: win | exit=170.06 | pnl=+19.96% | +3.50R | $+975.43 | 9d
+2026-11-11 08:07:31,532 [__main__] INFO — SBUX 2026-10-30: still open after 7 trading days | mark=109.95 | $+170.61 (+0.60R)
+2026-11-11 08:07:32,771 [__main__] INFO — AVGO 2026-11-02: still open after 6 trading days | mark=331.98 | $-143.25 (-0.76R)
+2026-11-11 08:07:33,671 [__main__] INFO — TFC 2026-11-03: still open after 5 trading days | mark=50.26 | $-68.31 (-0.36R)
+2026-11-11 08:07:34,790 [__main__] INFO — ORLY 2026-11-03: still open after 5 trading days | mark=89.39 | $-144.18 (-0.63R)
+2026-11-11 08:07:35,582 [__main__] INFO — KLAC 2026-11-04: still open after 4 trading days | mark=152.99 | $-287.56 (-0.52R)
+2026-11-11 08:07:36,651 [__main__] INFO — MU 2026-11-04: still open after 4 trading days | mark=725.11 | $+110.32 (+0.18R)
+2026-11-11 08:07:37,533 [__main__] INFO — KEY 2026-11-04: still open after 4 trading days | mark=21.34 | $-122.43 (-0.44R)
+2026-11-11 08:07:38,631 [__main__] INFO — ADI 2026-11-05: still open after 3 trading days | mark=393.30 | $-332.64 (-0.76R)
+2026-11-11 08:07:39,571 [__main__] INFO — CFG 2026-11-05: entry zone ($61.01-$61.82) not reached yet — order still pending
+2026-11-11 08:07:40,500 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-11 08:07:41,562 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-11 08:07:42,645 [__main__] INFO — MTB 2026-11-06: entry zone ($211.07-$213.49) not reached yet — order still pending
+2026-11-11 08:07:43,532 [__main__] INFO — ONB 2026-11-06: entry zone ($24.07-$24.39) not reached yet — order still pending
+2026-11-11 08:07:44,622 [__main__] INFO — JNJ 2026-11-06: still open after 2 trading days | mark=280.78 | $+10.37 (+0.08R)
+2026-11-11 08:07:45,706 [__main__] INFO — TMO 2026-11-06: still open after 2 trading days | mark=718.20 | $+81.20 (+0.52R)
+2026-11-11 08:07:46,595 [__main__] INFO — TJX 2026-11-06: still open after 2 trading days | mark=136.92 | $-24.84 (-0.18R)
+2026-11-11 08:07:47,571 [__main__] INFO — HBAN 2026-11-09: entry zone ($16.38-$16.58) not reached yet — order still pending
+2026-11-11 08:07:47,571 [__main__] WARNING — TXN: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,571 [__main__] WARNING — QCOM: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,571 [__main__] WARNING — PNFP: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,571 [__main__] WARNING — ZION: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,571 [__main__] WARNING — LLY: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,571 [__main__] WARNING — VRTX: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,572 [__main__] WARNING — AMZN: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:47,572 [__main__] WARNING — MCD: no price data since 2026-11-11 — skipping
+2026-11-11 08:07:48,333 [__main__] INFO — TFC 2026-10-27: hypothetical (immediate-fill) outcome time_stop | +0.97R — entry-zone opportunity cost
+2026-11-11 08:08:03,333 [__main__] INFO — QCOM 2026-11-05: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-11 08:08:07,356 [__main__] INFO — VRTX 2026-11-09: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-11 08:08:09,337 [__main__] INFO — 3 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-11 08:08:09,347 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+2026-11-11 08:08:09,931 [__main__] INFO — 30 open paper trade(s) to check
+2026-11-11 08:08:10,637 [__main__] INFO — LLY 2026-10-23: still open after 12 trading days | mark=1432.29 | $+298.68 (+1.02R)
+2026-11-11 08:08:11,589 [__main__] INFO — BMY 2026-10-27: still open after 10 trading days | mark=62.80 | $-28.86 (-0.19R)
+2026-11-11 08:08:12,558 [__main__] INFO — RF 2026-10-27: still open after 10 trading days | mark=28.70 | $-17.20 (-0.09R)
+2026-11-11 08:08:13,654 [__main__] INFO — HD 2026-10-29: still open after 8 trading days | mark=351.00 | $+264.75 (+0.85R)
+2026-11-11 08:08:14,528 [__main__] INFO — PNFP 2026-10-29: still open after 8 trading days | mark=102.80 | $+12.98 (+0.04R)
+2026-11-11 08:08:15,677 [__main__] INFO — FITB 2026-10-29: still open after 8 trading days | mark=54.19 | $-36.40 (-0.16R)
+2026-11-11 08:08:16,625 [__main__] INFO — SBUX 2026-10-30: still open after 7 trading days | mark=109.95 | $+170.61 (+0.60R)
+2026-11-11 08:08:17,511 [__main__] INFO — ORLY 2026-11-02: still open after 6 trading days | mark=89.39 | $-143.64 (-0.61R)
+2026-11-11 08:08:18,576 [__main__] INFO — AMD 2026-11-02: loss | exit=535.86 | pnl=-12.93% | -1.00R | $-429.45 | 6d
+2026-11-11 08:08:19,596 [__main__] INFO — KLAC 2026-11-02: still open after 6 trading days | mark=152.99 | $-287.56 (-0.51R)
+2026-11-11 08:08:20,549 [__main__] INFO — MCD 2026-11-03: still open after 5 trading days | mark=282.17 | $+240.84 (+1.45R)
+2026-11-11 08:08:21,511 [__main__] INFO — TJX 2026-11-03: still open after 5 trading days | mark=136.92 | $-61.42 (-0.41R)
+2026-11-11 08:08:22,523 [__main__] INFO — AVGO 2026-11-04: still open after 4 trading days | mark=331.98 | $-301.35 (-0.87R)
+2026-11-11 08:08:23,545 [__main__] INFO — BKNG 2026-11-05: entry zone ($172.42-$175.76) not reached yet — order still pending
+2026-11-11 08:08:24,546 [__main__] INFO — NKE 2026-11-05: entry zone ($40.80-$41.40) not reached yet — order still pending
+2026-11-11 08:08:25,515 [__main__] INFO — SYK 2026-11-05: entry zone ($339.64-$345.66) not reached yet — order still pending
+2026-11-11 08:08:26,651 [__main__] INFO — ADI 2026-11-05: still open after 3 trading days | mark=393.30 | $-332.64 (-0.76R)
+2026-11-11 08:08:27,617 [__main__] INFO — ASML 2026-11-05: entry zone ($1340.04-$1373.26) not reached yet — order still pending
+2026-11-11 08:08:28,508 [__main__] INFO — TSLA 2026-11-06: entry zone ($333.97-$342.33) not reached yet — order still pending
+2026-11-11 08:08:29,586 [__main__] INFO — TMO 2026-11-06: still open after 2 trading days | mark=718.20 | $+81.20 (+0.52R)
+2026-11-11 08:08:30,537 [__main__] INFO — CFG 2026-11-06: entry zone ($61.02-$61.81) not reached yet — order still pending
+2026-11-11 08:08:31,594 [__main__] INFO — ONB 2026-11-06: entry zone ($24.07-$24.39) not reached yet — order still pending
+2026-11-11 08:08:32,761 [__main__] INFO — TXN 2026-11-06: entry zone ($267.66-$273.72) not reached yet — order still pending
+2026-11-11 08:08:33,521 [__main__] INFO — ABBV 2026-11-09: entry zone ($301.03-$304.83) not reached yet — order still pending
+2026-11-11 08:08:33,521 [__main__] WARNING — AMZN: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:33,522 [__main__] WARNING — GILD: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:33,522 [__main__] WARNING — VRTX: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:33,522 [__main__] WARNING — ZION: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:33,522 [__main__] WARNING — NVDA: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:33,522 [__main__] WARNING — MU: no price data since 2026-11-11 — skipping
+2026-11-11 08:08:38,367 [__main__] INFO — VRTX 2026-11-09: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-11 08:08:39,325 [__main__] INFO — ZION 2026-11-09: hypothetical (immediate-fill) outcome loss | -1.00R — entry-zone opportunity cost
+2026-11-11 08:08:41,335 [__main__] INFO — 2 hypothetical (never-filled opportunity cost) outcome(s) resolved
+2026-11-11 08:08:41,340 [__main__] INFO — Paper updater complete — 1 trade(s) closed
+
+==================================================
+PAPER TRADING SUMMARY  (35 closed, 18 open, 11 expired, 99 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 48.6%
+  Target hits:        4
+  Stops:              14
+  Time stops:         14  (+12 profitable)
+  Earnings exits:     3  (+1 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.66R
+  Closed but never funded (sized to 0 units): 2  (LLY, MU) — real directional result, no capital at risk, excluded from win rate
+  Expired (never filled): 11
+  Superseded (pending, replaced by a newer signal): 99  (NVDA, QCOM, ABT, NVDA, QCOM, GILD, BMY, NVDA, GILD, BMY, PFE, BMY, VRTX, GILD, GILD, MRK, TSM, MU, TSM, TSM, TSM, TSM, TSM, NVDA, MU, ADI, NVDA, TSM, MU, ADI, QCOM, AMD, PFE, NVDA, QCOM, PFE, MU, PFE, PFE, PFE, PFE, LLY, PFE, PFE, PFE, ABBV, AMGN, PFE, PFE, PFE, UNH, UNH, UNH, UNH, UNH, KEY, KEY, UNH, ISRG, LOW, KEY, LOW, UNH, TJX, KEY, UNH, ABT, KEY, UNH, TSLA, KEY, UNH, LOW, SYK, LOW, UNH, SYK, LOW, SYK, LOW, PFE, UNH, AMGN, SYK, LOW, AMZN, PFE, UNH, AMGN, SYK, LOW, PFE, AMGN, SYK, ABT, LOW, AMGN, SYK, KEY)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        18
+  Open unrealized P&L: $+331.85  (6 marked position(s))
+==================================================
+
+[threshold] Closed 0 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (83 closed, 25 open, 40 expired, 272 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 42.2%
+  Target hits:        9
+  Stops:              36
+  Time stops:         32  (+22 profitable)
+  Earnings exits:     6  (+4 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.36R
+  Expired (never filled): 40
+  Superseded (pending, replaced by a newer signal): 272  (MU, QCOM, ABBV, AMGN, AMZN, SBUX, QCOM, UMBF, KEY, AMZN, TGT, MU, QCOM, UMBF, KEY, JNJ, AMZN, SBUX, MU, UMBF, JNJ, AMZN, TGT, MU, TSM, BMY, AMZN, MU, TSM, ZION, JNJ, MRK, TGT, MU, TXN, HBAN, JNJ, MRK, MU, TXN, TFC, UMBF, JNJ, AMZN, TGT, MU, UMBF, JNJ, BMY, TGT, AMZN, MU, ADI, UMBF, ONB, ABBV, TGT, MU, MTB, BMY, JNJ, BKNG, TGT, MU, MTB, ONB, SBUX, MU, TXN, ONB, MTB, JNJ, ABBV, SBUX, TGT, JNJ, ABBV, TXN, TSM, MTB, RF, JNJ, ABBV, TGT, TSLA, KLAC, TXN, MTB, ABBV, PFE, TSLA, MTB, JNJ, PFE, TSLA, TSM, NVDA, CFR, MTB, PFE, ORLY, TGT, CFR, MTB, JNJ, TGT, QCOM, NVDA, CFR, MTB, PFE, LLY, TSLA, QCOM, MU, FITB, PFE, JNJ, ORLY, TSLA, QCOM, MU, CFR, FITB, PFE, JNJ, ORLY, QCOM, CFR, PFE, ORLY, NVDA, CFR, PFE, ORLY, NVDA, TXN, PNFP, CFR, LLY, PFE, KLAC, TXN, PNFP, CFR, KLAC, TFC, ISRG, ABT, ORLY, AMZN, MU, TFC, ISRG, ABT, ORLY, MU, TFC, HBAN, ORLY, AMZN, MU, TFC, ABBV, ORLY, MU, UMBF, TFC, ABBV, ORLY, MU, TFC, AMGN, ABBV, AMZN, ZION, TFC, AMZN, ZION, PFE, AMZN, TSLA, ADI, AMGN, PFE, AMZN, PFE, AMZN, HBAN, UNH, PFE, CFG, KEY, UNH, PFE, LOW, HD, FITB, UNH, PFE, HD, UNH, PFE, AMZN, HD, UNH, PFE, AMZN, ADI, KEY, TJX, KEY, ISRG, TJX, KEY, ZION, ABT, TXN, ADI, KEY, ABT, JNJ, TSLA, NKE, ADI, KEY, TFC, TMO, JNJ, TSLA, NKE, ADI, QCOM, KEY, TMO, JNJ, TSLA, NKE, QCOM, ADI, KEY, TFC, NKE, ADI, KEY, TFC, LLY, NKE, ADI, KEY, TFC, SYK, LLY, NKE, ORLY, ADI, KEY, SYK, NKE, CFG, SYK, AMZN, QCOM, ONB, JNJ, AMZN, MCD, PNFP, LLY, VRTX, AMZN, MCD)
+    -> entry-zone opportunity cost: 18 resolved (0 still pending), hypothetical win rate 5.6%, avg -0.94R if filled immediately at signal time
+  Open trades:        25
+  Open unrealized P&L: $-750.71  (11 marked position(s))
+==================================================
+
+[rank] Closed 1 trade(s) this run.
+
+==================================================
+PAPER TRADING SUMMARY  (59 closed, 29 open, 5 expired, 50 superseded)
+==================================================
+  Win rate (wins + profitable time stops/earnings/confidence exits): 33.9%
+  Target hits:        5
+  Stops:              31
+  Time stops:         6  (+6 profitable)
+  Earnings exits:     17  (+9 profitable)
+  Confidence early exits: 0  (+0 profitable)
+  Avg R:R on wins:    3.53R
+  Expired (never filled): 5
+  Superseded (pending, replaced by a newer signal): 50  (TGT, JNJ, PFE, TGT, KEY, ONB, AVGO, LOW, NKE, ONB, CFG, AVGO, TGT, TMO, ISRG, KEY, ONB, MU, LOW, AVGO, TSLA, ADI, TSLA, ADI, VRTX, HBAN, TSLA, SYK, HBAN, NVDA, VRTX, HBAN, ADI, HD, AMZN, ONB, ADI, GILD, MRK, ONB, BKNG, ONB, BKNG, NKE, CFG, VRTX, VRTX, ZION, NVDA, MU)
+    -> entry-zone opportunity cost: 2 resolved (0 still pending), hypothetical win rate 0.0%, avg -1.00R if filled immediately at signal time
+  Open trades:        29
+  Open unrealized P&L: $-140.01  (14 marked position(s))
+==================================================
+
+[random] Closed 1 trade(s) this run.
+Rank-track go/no-go: COLLECTING (83/100 closed trades)
+  mean R after costs +0.135 (need >= +0.15) | week-clustered t 0.66 over 11 weeks (need >= 2) | vs sector ETF +0.11%/trade (need > 0)
+  random-pick control: 59 closed, mean R after costs -0.173
+[threshold] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[rank] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}
+[random] options pricing: {'opened': 0, 'marked': 0, 'closed': 0, 'missed': 0}

@@ -1,18 +1,18 @@
 {
   "semiconductors": {
-    "black_swan_normal_days": 0,
-    "black_swan_mode": true
+    "black_swan_normal_days": 11,
+    "black_swan_mode": false
   },
   "regional_banks": {
-    "black_swan_normal_days": 0,
-    "black_swan_mode": true
+    "black_swan_normal_days": 12,
+    "black_swan_mode": false
   },
   "healthcare": {
-    "black_swan_normal_days": 0,
-    "black_swan_mode": true
+    "black_swan_normal_days": 12,
+    "black_swan_mode": false
   },
   "consumer_discretionary": {
-    "black_swan_normal_days": 0,
-    "black_swan_mode": true
+    "black_swan_normal_days": 12,
+    "black_swan_mode": false
   }
 }
