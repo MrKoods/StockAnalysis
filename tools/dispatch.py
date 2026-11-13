@@ -210,7 +210,7 @@ def write_dropped() -> None:
     lines = ["# Dropped ideas and the Director's reasons (written by the dispatcher)", "",
              "Don't re-propose these, and don't propose another idea that fails for the same reason.", ""]
     def why(notes: str) -> str:         # the Director's own words: the "<date> dropped: ..." part of the history
-        part = next((p for p in reversed(notes.split(" | ")) if " dropped" in p[:16]), notes)
+        part = next((p for p in reversed(notes.split(" | ")) if " dropped" in p[:20]), notes)
         return part.strip()[-400:] or "no reason recorded"
     lines += [f"- **{r['id']}** ({r.get('family', '')}): {why(r.get('notes') or '')}" for r in rows]
     (STATE / "dropped_ideas.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
