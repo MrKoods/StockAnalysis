@@ -73,3 +73,13 @@ def test_bearish_trade_vs_etf_is_signed(tmp_path, monkeypatch):
     v = rv.compute_verdict(CFG, tmp_path / "r.csv", tmp_path / "none.csv")
     # short made 5%; ETF fell ~0.3% over each 3-day hold, which a short also earns -> excess ~ +4.7%
     assert 0.04 < v["vs_etf"] < 0.05
+
+
+def test_final_no_go_at_max_trades(tmp_path, flat_etf):
+    cfg = {**CFG, "rank_track": {"go_no_go": {**CFG["rank_track"]["go_no_go"], "max_closed_trades": 6}}}
+    noisy = [1.0, -0.9, 1.1, -0.8, 0.9, -0.7]             # positive mean, t far below 2: "keep" until the end point
+    _write(tmp_path / "r.csv", _weeks(noisy[:5]))
+    assert rv.compute_verdict(cfg, tmp_path / "r.csv", tmp_path / "none.csv")["verdict"] == "KEEP COLLECTING"
+    _write(tmp_path / "r.csv", _weeks(noisy))
+    v = rv.compute_verdict(cfg, tmp_path / "r.csv", tmp_path / "none.csv")
+    assert v["verdict"] == "NO-GO" and v["final"] and "6/6" in v["text"]

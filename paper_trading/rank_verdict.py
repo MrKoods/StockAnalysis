@@ -11,6 +11,8 @@ applies it:
   * week-clustered t    — trades opened the same week move together (same
     market, same sectors), so they're averaged per fill week first and the
     t-stat is taken across weeks, not across trades
+  * final verdict at max_closed_trades (added 2026-11-13): GO if the
+    conditions hold, otherwise NO-GO - "keep collecting" ends there
   * vs sector ETF       — each trade's return minus its sector ETF's return
     over the same fill->exit days, signed by the trade's side
 
@@ -89,6 +91,7 @@ def compute_verdict(cfg: Optional[dict] = None,
     cfg = cfg if cfg is not None else load_config()
     rule = cfg.get("rank_track", {}).get("go_no_go", {})
     min_n = int(rule.get("min_closed_trades", 100))
+    max_n = int(rule.get("max_closed_trades", 0)) or None   # final verdict here: GO or NO-GO, never "keep"
     min_r = float(rule.get("min_mean_r", 0.15))
     min_t = float(rule.get("min_week_t", 2.0))
     cost = float(rule.get("cost_per_side", 0.001))
@@ -116,13 +119,17 @@ def compute_verdict(cfg: Optional[dict] = None,
         out["verdict"] = "NO-GO"
     elif out["mean_r_net"] >= min_r and week_t is not None and week_t >= min_t and vs_etf is not None and vs_etf > 0:
         out["verdict"] = "GO"
+    elif max_n and len(d) >= max_n:
+        out["verdict"] = "NO-GO"           # final: the GO conditions never held by the end point
+        out["final"] = True
     else:
         out["verdict"] = "KEEP COLLECTING"
 
     t_txt = f"{week_t:.2f}" if week_t is not None else "n/a"
     etf_txt = f"{vs_etf:+.2%}" if vs_etf is not None else "n/a"
     lines = [
-        f"Rank-track go/no-go: {out['verdict']} ({len(d)}/{min_n} closed trades)",
+        f"Rank-track go/no-go: {out['verdict']} ({len(d)}/{max_n if max_n and len(d) >= min_n else min_n} "
+        f"closed trades{'; final - GO never held by ' + str(max_n) if out.get('final') else ''})",
         f"  mean R after costs {out['mean_r_net']:+.3f} (need >= {min_r:+.2f}) | "
         f"week-clustered t {t_txt} over {weeks} weeks (need >= {min_t:g}) | "
         f"vs sector ETF {etf_txt}/trade (need > 0)",

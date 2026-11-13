@@ -605,12 +605,17 @@ rank_track:
   #     (same side, same days) — a profit that's only the sector moving
   #     isn't the model's.
   #   NO-GO (shelve): mean R after costs < 0.
-  #   Anything else: keep collecting.
+  #   Anything else: keep collecting - but only until max_closed_trades
+  #     (added 2026-11-13, user's decision, at 88 closed trades, before the
+  #     100-trade verdict): there the GO conditions either hold or the
+  #     verdict is a final NO-GO ("not proven"). Without an end point
+  #     "keep collecting" could run forever.
   # cost_per_side is a fraction of price (0.001 = 0.1%), turned into R per
   # trade via each trade's own stop distance. The random-pick control track
   # (random_trades.csv) is reported alongside as context, not as a condition.
   go_no_go:
     min_closed_trades: 100
+    max_closed_trades: 200
     min_mean_r: 0.15
     min_week_t: 2.0
     cost_per_side: 0.001
