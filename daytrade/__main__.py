@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from pathlib import Path
 
 from . import backtest, data
 from .config import OUTPUT_DIR
@@ -36,8 +37,15 @@ def main():
         print("hourly bars updated for", fetch_hourly(hourly), "tickers")
         # C6 retired 2026-10-23 (no edge in 8 years of minute data; forward t -2.16 at 14 sessions).
         # Its ledger data/forward/c6_forward_trades.csv is kept as the record; forward.update() still exists.
-        print("G2", json.dumps(forward.update_g2(), default=str))
-        print("ON1 (secondary)", json.dumps(forward.update_on1(), default=str))
+        # G2 retired 2026-11-08 (FAILED its day-20 paper check): its forward ledger is no longer extended
+        # (user's decision 2026-11-13). The hourly fetch above stays - team research reads those bars.
+        # data/forward/g2_forward_trades.csv is kept as the record; forward.update_g2() still exists.
+        # ON1 stops with its paper test: the team's dispatcher writes this file when ON1's real-price rule FAILs.
+        retired = Path(r"C:\Users\user\Documents\Git\StockAnalysis-Team\state\on1_retired.json")
+        if retired.exists():
+            print("ON1 retired:", retired.read_text(encoding="utf-8")[:200])
+        else:
+            print("ON1 (secondary)", json.dumps(forward.update_on1(), default=str))
         return
 
     df = backtest.run()
