@@ -1,5 +1,15 @@
 # Engineer notes
 
+## Open / for the user (not my editable files)
+- 2026-11-13 quote_clerk failed x2 (open 06:31, close 12:56 PT): headless Claude was NOT LOGGED IN
+  (`apiKeySource:"none"`, `authentication_failed`, "Not logged in · Please run /login" in both
+  state/logs/2026-11-13-quote_clerk-{open,close}.jsonl; usage.csv rows at $0/0 tokens). NOT a code bug
+  — clerk fired on time, Claude refused. Same-day dispatch roles (scorekeeper, scout) were OK, so login
+  was absent only at the two Quote-task windows. Different from 2026-11-10 (that was machine-asleep).
+  No code fix: quotes.py + Quote tasks + Claude login all off-list. Proposal in reports/2026-11-13-engineer.md:
+  user re-logins the CLI and confirms the scheduled Quote tasks see a persistent credential. One-day
+  real-price gap (ON1/EPRE), unrecoverable. If it recurs, it's STILL auth — don't try to code around it.
+
 ## Fixed
 - 2026-11-12: the 2026-11-11 self-flag fix stopped NEW ScanOps self-tickets, but the stale 2026-11-10 ScanOps
   record stayed in scan_ops.json `issues` (pruned only by one-week age), so engineer.py:183-185 replayed it as a
