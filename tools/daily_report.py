@@ -21,6 +21,9 @@ import outlook
 import plan_limit
 from common import OUTBOX, STATE, TEAM, load_json, post
 
+EPRE_CHECKPOINTS = [(1000, "A - FAIL if hedged mean < -20 bps"),
+                    (3000, "B - FAIL if < 0; small real money OK if >= +10 bps, t >= 1, date accuracy >= 90%"),
+                    (6000, "C - PASS if >= +10 bps and t >= 2")]          # StockAnalysis-V4/RULES.md
 LIMIT = 1900   # Discord caps a message at 2,000 characters; longer reports go out as several messages
 
 
@@ -40,11 +43,14 @@ def live_tests(snapshot: str) -> list[str]:
                 out.append(f"  ↳ {need[label]}")
     g = _num(r"\[EPRE paper\] closed (\d+) \| hedged mean ([+-][\d.]+) bps.*?exit-day t ([+-]?[\w.]+)", snapshot)
     if g:
-        out.append(f"• **V4 EPRE** - {int(g[0]):,}/1,000 trades · hedged {g[1]} bps · t {g[2]}")
-        out.append("  ↳ checkpoint A at 1,000 trades: FAIL if hedged mean < -20 bps")
-    g = _num(r"COLLECTING \((\d+)/100 closed trades\)\s+mean R after costs ([+-][\d.]+)", snapshot)
+        n = int(g[0])
+        nxt, rule = next(((c, r) for c, r in EPRE_CHECKPOINTS if n < c), EPRE_CHECKPOINTS[-1])
+        out.append(f"• **V4 EPRE** - {n:,}/{nxt:,} trades · hedged {g[1]} bps · t {g[2]}")
+        out.append(f"  ↳ checkpoint at {nxt:,} trades: {rule}")
+    g = _num(outlook.V2_RX, snapshot)
     if g:
-        out.append(f"• **V2 rank** - {g[0]}/100 trades · {g[1]}R after costs (GO needs +0.15)")
+        out.append(f"• **V2 rank** - {g[0]}/{g[1]} trades · {g[2]}R after costs (GO needs +0.15"
+                   + ("; final verdict at 200" if int(g[1]) > 100 else "") + ")")
         if "V2 rank" in need:
             out.append(f"  ↳ {need['V2 rank']}")
     g = _num(r"random-pick control: (\d+) closed, mean R after costs ([+-][\d.]+)", snapshot)

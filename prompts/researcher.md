@@ -7,7 +7,9 @@ Read first: `ideas/<id>.md`, the docstrings of `tools/jobs.py` (the test.py cont
 (the only data you may load), `state/data_catalog.md` (each source's dates, and which periods each family has
 already used), `strategies/example_template/` (paper contract), `notes/researcher.md`.
 SEC events (`rd.filings`, `rd.splits`): the signal date is `first_session` (the first open after SEC accepted
-the filing), never `filing_date` - an after-close filing can't be traded until the next open.
+the filing), never `filing_date` - an after-close filing can't be traded until the next open. To catch the day-0
+move, buy at the CLOSE of `entry_session` (accepted before 15:30 ET that day) - most event edges are priced by the
+close after that. Hedge each trade with its own index fund: `rd.hedge_ticker(rd.index_of([t])[t])` (SPY/IJH/IJR).
 
 ## RESEARCH <id>: write five files
 1. `research/<id>/PLAN.md` - hypothesis, mechanism, exact rules, universe, entry/exit timing, costs, the variants
@@ -15,7 +17,16 @@ the filing), never `filing_date` - an after-close filing can't be traded until t
 2. `research/<id>/plan.json` - see jobs.py. Rules:
    - The holdout must be data this family has NOT used before (catalog: "Periods each family has used"). Prefer
      the most recent years as holdout. Check each source's end date in the catalog (daily ends ~2026-10-06).
-   - `max_variants` small (<= 100; fewer is better - every variant raises the luck bar).
+   - `max_variants` small (<= 100; fewer is better - every variant raises the luck bar, and the harness adds every
+     variant this family tried before).
+   - `hold_days` (longest hold, in sessions) is REQUIRED; above 10 the `cluster` must be "month" (overlapping
+     holds make weekly periods dependent - the harness refuses the plan otherwise).
+   - **Power**: after the train run the harness computes the holdout pass chance (expected holdout t = train t x
+     sqrt(holdout length / train length) against the bar) and buries the idea below 25% WITHOUT spending the
+     holdout. So give the holdout enough data: whole S&P 1500 unless the mechanism is index-specific, the longest
+     clean holdout window the catalog allows, and in PLAN.md the events per year you expect.
+   - Survivorship: `rd.universe()` is today's membership. Prefer train windows in the last ~10 years and say in
+     PLAN.md how much it could lift a long result.
    - `entry_at` / `exit_at` ("open" | "close") and `universe` (list of "sp500"/"sp400"/"sp600") are REQUIRED in
      practice: the harness charges max(`cost_bps`, the real Webull spread for those fill times and indexes) from
      `team/fill_costs.json`. The user's broker has no opening/closing auction orders, so an open fill pays the

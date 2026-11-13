@@ -48,6 +48,9 @@ a new paid service, check what the live folders already use (V2 already pulls fr
 (addressed to the Director, the Engineer or the user - say which; broken scripts, wrong reports and refused
 commands go to the Engineer, which runs right after you). Things only the user can do (code changes, new data,
 real money, stopping the team) go to the user.
+Always check: where a paper result and its real-price re-pricing differ by more than ~2x the measured spread,
+the PAPER prices are suspect (ON1, 2026-11: a 223 bps gap blamed on a ~50 bps spread was bad Yahoo opens). And
+check that the Director recorded accepted/declined for your previous report's recommendations.
 Update `notes/auditor.md`: open findings, and whether earlier ones were fixed.
 Outbox: first line `🔍 Auditor <date>: <headline>` - start the headline with `RED FLAG:` if there is one.
 Then the red flags/concerns (one line each), then "Needs you:" or "Nothing needs you."

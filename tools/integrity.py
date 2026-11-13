@@ -26,7 +26,7 @@ STALE_BDAYS = 3         # a ledger whose newest row is older than this many busi
 V2_LEDGERS = {"V2 threshold": "paper_trades.csv", "V2 rank": "rank_trades.csv", "V2 random": "random_trades.csv"}
 V3_LEDGERS = {  # label: (path, key columns, value column, date column)
     "V3 ON1 paper": ("data/paper/on1_paper_ledger.csv", ["day", "ticker"], "bps", "day"),
-    "V3 G2 forward": ("data/forward/g2_forward_trades.csv", ["day", "ticker", "direction"], None, "day"),
+    # G2 forward left out: G2 retired 2026-11-08 and its forward ledger stopped 2026-11-13 (user's decision).
     # no ticker column: several trades per day per index are normal, so no duplicate key
     "V3 ON1 forward": ("data/forward/on1_forward_trades.csv", [], "bps", "day"),
 }
@@ -105,9 +105,10 @@ def scan(today: date | None = None) -> list[str]:
         p = LIVE_V2 / "paper_trading" / name
         if p.exists():
             out += v2_checks(pd.read_csv(p), label, today)
+    on1_retired = (STATE / "on1_retired.json").exists()     # tools/dispatch.retire_on1: its ledgers stop growing
     for label, (rel, keys, val, day_col) in V3_LEDGERS.items():
         p = LIVE_V3 / rel
-        if p.exists():
+        if p.exists() and not (on1_retired and "ON1" in label):
             out += v3_checks(pd.read_csv(p), label, keys, val, day_col, today)
     p = LIVE_V4 / "data" / "paper" / "epre_ledger.csv"
     if p.exists():

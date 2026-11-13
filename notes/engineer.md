@@ -1,14 +1,21 @@
 # Engineer notes
 
+## Resolved - don't repeat (from the user's session, 2026-11-13 audit; TEAM.md "Settled facts" has the details)
+- 2026-11-10 was a POWER LOSS (09:52-15:23), not sleep. A gap; nothing to fix. Gaps are now notes, not tickets.
+- The quotes.py late-run guard (too_late) exists since 2026-11-11 - don't propose it again.
+- G2 is retired and its tasks are off. ON1 retires automatically on its real-price FAIL. Don't ask the user.
+
 ## Open / for the user (not my editable files)
 - 2026-11-13 quote_clerk failed x2 (open 06:31, close 12:56 PT): headless Claude was NOT LOGGED IN
   (`apiKeySource:"none"`, `authentication_failed`, "Not logged in · Please run /login" in both
   state/logs/2026-11-13-quote_clerk-{open,close}.jsonl; usage.csv rows at $0/0 tokens). NOT a code bug
   — clerk fired on time, Claude refused. Same-day dispatch roles (scorekeeper, scout) were OK, so login
-  was absent only at the two Quote-task windows. Different from 2026-11-10 (that was machine-asleep).
+  was absent only at the two Quote-task windows. Different from 2026-11-10 (that was a power loss).
   No code fix: quotes.py + Quote tasks + Claude login all off-list. Proposal in reports/2026-11-13-engineer.md:
   user re-logins the CLI and confirms the scheduled Quote tasks see a persistent credential. One-day
   real-price gap (ON1/EPRE), unrecoverable. If it recurs, it's STILL auth — don't try to code around it.
+  UPDATE (user's session, same day): quotes.py now detects the logout, posts LOGIN_HELP and exits 1; the
+  dispatcher stops launching roles after the first logged-out one. Nothing left for you here.
 
 ## Fixed
 - 2026-11-12: the 2026-11-11 self-flag fix stopped NEW ScanOps self-tickets, but the stale 2026-11-10 ScanOps

@@ -84,7 +84,9 @@ def check(now: datetime, tasks: list[dict], sched: dict, st: dict, dry_run: bool
             once(f"missing:{name}", f"⚠️ **{short}** ({j['what']}) is in the master schedule but has no Windows task.")
             continue
         if t["State"] == "Disabled":
-            once(f"disabled:{name}", f"⚠️ **{short}** ({j['what']}) is DISABLED but the master schedule expects it.")
+            # A job retired by rule (schedule.json `retired_when` = a state file that exists) is meant to be off.
+            if not (j.get("retired_when") and (STATE / j["retired_when"]).exists()):
+                once(f"disabled:{name}", f"⚠️ **{short}** ({j['what']}) is DISABLED but the master schedule expects it.")
             continue
         weekly = [tr for tr in t.get("Triggers") or [] if tr.get("Kind") == "MSFT_TaskWeeklyTrigger"]
         times = {(tr.get("Start") or "")[11:16] for tr in weekly}

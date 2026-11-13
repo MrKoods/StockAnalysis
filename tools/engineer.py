@@ -46,9 +46,16 @@ GUARDED = ("tools/", "prompts/", "tests/", "team/", "TEAM.md")
 FORBIDDEN_PY = [r"\bsubprocess\b", r"\bos\.(system|popen|exec|spawn|remove|unlink|environ)", r"\b(eval|exec|compile)\(",
                 r"__import__", r"\bimportlib\b", r"\bsocket\b", r"\burllib\b", r"\brequests\b", r"\bhttpx\b",
                 r"\brmtree\b", r"\.unlink\(", r"ScheduledTask", r"schtasks", r"\.env\b", r"registry\.json",
+                r"\bshutil\b", r"\bos\.(replace|rename|makedirs|chmod)", r"\bctypes\b", r"\bbuiltins\b",
+                r"\bglobals\(",
                 r"ideas\.csv", r"trials\.csv", r"decisions\.csv", r"schedule\.json", r"real_price_rules",
                 r"fill_costs\.json", r"settings", r"place_\w*instruction", r"\bholdout\b", r"\bSTOP\b",
                 r"\bLIVE_V[234]\b", r"\bgit\b", r"\bclaude\b"]
+# tools/ code only (2026-11-13): new ways to write or move files. Not tests - they build fixtures in tmp_path with
+# exactly these calls, and anything a test writes inside the repo is caught by finish()'s after-test check.
+# (A regex list is a speed bump, not a sandbox - e.g. a file name built from pieces gets past it. The real limits
+# are the editable list, the after-test check, every change being a visible commit, and the Auditor's review.)
+FORBIDDEN_TOOL_PY = [r"\.(symlink_to|chmod)\(", r"\bopen\([^)]*['\"](w|a|x|r\+)"]
 # A prompt edit may add guidance, not remove a limit.
 LIMIT_WORDS = re.compile(r"\b(never|frozen|must|hard rule|don't|do not|not allowed|forbid\w*|only)\b", re.I)
 
@@ -69,6 +76,16 @@ def code_changes() -> list[Change]:
     for entry in _run_git("status", "--porcelain=v1", "-z", "--untracked-files=all").split("\0"):
         if len(entry) > 3 and entry[3:].startswith(GUARDED):
             out.append(Change(entry[3:], entry[:2]))
+    return out
+
+
+def _status_all() -> dict[str, str]:
+    """Every changed or new file in the repo (not just GUARDED ones): path -> porcelain status + size."""
+    out = {}
+    for entry in _run_git("status", "--porcelain=v1", "-z", "--untracked-files=all").split("\0"):
+        if len(entry) > 3:
+            f = TEAM / entry[3:]
+            out[entry[3:]] = entry[:2] + (f":{f.stat().st_size}" if f.is_file() else "")
     return out
 
 
@@ -98,8 +115,9 @@ def review(changes: list[Change]) -> list[str]:
         added, removed = _lines(c)
         total += len(added)
         if c.path.endswith(".py"):
+            rules = FORBIDDEN_PY + (FORBIDDEN_TOOL_PY if c.path.startswith("tools/") else [])
             for line in added:
-                if hit := next((rx for rx in FORBIDDEN_PY if re.search(rx, line)), None):
+                if hit := next((rx for rx in rules if re.search(rx, line)), None):
                     problems.append(f"{c.path}: added line matches forbidden pattern {hit}: {line.strip()[:100]}")
         elif c.path.endswith(".md"):
             problems += [f"{c.path}: removes a limit: {l.strip()[:100]}" for l in removed if LIMIT_WORDS.search(l)]
@@ -136,18 +154,36 @@ def _record(today: date, result: str, changes: list[Change], why: str) -> None:
         w.writerow([str(today), result, " ".join(c.path for c in changes), why[:500]])
 
 
+def mark_handled(status: str) -> None:
+    """A finished Engineer run has looked at every ticket it was given: don't hand those occurrences over again
+    (fixed, or turned into a proposal - either way re-reading them is wasted Opus time). Kept for 3 weeks."""
+    if status != "ok":
+        return
+    st = load_json(STATEF, {})
+    handled = st.get("handled", []) + [u for u in st.get("pending", []) if u not in st.get("handled", [])]
+    save_json(STATEF, {**st, "handled": handled[-300:], "pending": []})
+
+
 def finish(today: date, status: str) -> str:
     """After an Engineer run, before the dispatcher commits: keep the code changes or roll all of them back."""
+    mark_handled(status)
     changes = code_changes()
     if not changes:
         return "no code changes"
     problems = [] if status == "ok" else [f"the run ended with status {status}"]
+    before = _status_all()
     try:
         problems += review(changes)
         if not problems:
             ok, output = run_tests()
             if not ok:
                 problems.append("tests failed: " + output[-400:])
+            # Anything that appeared or changed WHILE the tests ran was written by test code: it is never reviewed
+            # and would be swept into the next commit (git add -A). Name it, undo it, and refuse the run.
+            during = [Change(path, st[:2]) for path, st in _status_all().items() if before.get(path) != st]
+            if during:
+                problems.append("tests wrote outside the job: " + ", ".join(c.path for c in during)[:300])
+                revert(during)
     except Exception as e:  # noqa: BLE001 - when the guard itself breaks, nothing stays
         problems.append(f"guard error: {e}")
     names = ", ".join(c.path for c in changes)
@@ -210,11 +246,18 @@ def _key(text: str) -> str:
     return hashlib.sha1(re.sub(r"\d+", "#", text).encode()).hexdigest()[:12]
 
 
-def prepare(today: date, weekly_day: bool, dry_run: bool = False) -> str | None:
-    """Write the ticket file and say why the Engineer should run; None = nothing to do today."""
+def prepare(today: date, weekly_day: bool, dry_run: bool = False, diagnose: list[str] | None = None) -> str | None:
+    """Write the ticket file and say why the Engineer should run; None = nothing to do today. `diagnose` = the Ops
+    Monitor's "worth a look" items (crashed task, traceback): the Engineer diagnoses them since the Scorekeeper was
+    retired (2026-11-13) - one role, so two can't disagree about the same failure (as on 2026-11-10)."""
     st = load_json(STATEF, {})
     since = st.get("last_run") or str(today - timedelta(days=7))
     urgent, weekly = collect(today, since)
+    urgent += [f"Ops Monitor ({today}): {d[:300]}" for d in diagnose or []]
+    # The exact text of an item names its date, so "handled" means THAT occurrence only: a new failure of the same
+    # job on another day is a new ticket. (2026-11-10..12: one power cut re-ticketed for three Engineer runs.)
+    handled = set(st.get("handled", []))
+    urgent = [u for u in urgent if u not in handled]
     attempts: dict = st.get("attempts", {})
     fresh = [u for u in urgent if attempts.get(_key(u), 0) < MAX_ATTEMPTS]
     stuck = [u for u in urgent if u not in fresh]
@@ -234,7 +277,7 @@ def prepare(today: date, weekly_day: bool, dry_run: bool = False) -> str | None:
         TICKETS.write_text("\n".join(body), encoding="utf-8")
         for u in fresh:
             attempts[_key(u)] = attempts.get(_key(u), 0) + 1
-        save_json(STATEF, {"last_run": str(today), "attempts": attempts})
+        save_json(STATEF, {**st, "last_run": str(today), "attempts": attempts, "pending": fresh})
     kind = "weekly review of the team's machinery" if weekly_day else "something failed"
     return f"{kind}: {len(fresh)} failure ticket(s) - read state/engineer_tickets.md"
 

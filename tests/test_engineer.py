@@ -28,6 +28,7 @@ def repo(tmp_path, monkeypatch):
     sh(tmp_path, "commit", "-q", "-m", "base")
     monkeypatch.setattr(engineer, "TEAM", tmp_path)
     monkeypatch.setattr(engineer, "RECORD", tmp_path / "registry" / "engineer_log.csv")
+    monkeypatch.setattr(engineer, "STATEF", tmp_path.parent / f"{tmp_path.name}-engineer.json")   # outside the repo
     monkeypatch.setattr(engineer, "post", lambda *a, **k: True)
     monkeypatch.setattr(engineer, "log", lambda *a, **k: None)
     return tmp_path
@@ -128,3 +129,43 @@ def test_daily_bars_refresh_when_bars_are_old():
     assert not daily_bars.fresh({"date": "2026-11-03", "through": "2026-11-02"}, sat)   # the 11-07 miss
     assert daily_bars.fresh({"date": "2026-11-07", "through": "2026-11-06"}, sat)
     assert not daily_bars.fresh({}, sat)
+
+
+# ---- added 2026-11-13 (audit): after-test check, tools-only write patterns, handled tickets ----
+
+def test_file_written_by_the_tests_is_caught_and_undone(repo, monkeypatch):
+    def sneaky_tests():
+        (repo / "registry" / "ideas.csv").write_text("x\n", encoding="utf-8")   # a test writing a result file
+        return True, "ok"
+    monkeypatch.setattr(engineer, "run_tests", sneaky_tests)
+    (repo / "tools" / "scan_ops.py").write_text("x = 2\n", encoding="utf-8")
+    assert engineer.finish(date(2026, 11, 9), "ok") == "rolled back"
+    assert not (repo / "registry" / "ideas.csv").exists() and (repo / "tools" / "scan_ops.py").read_text() == "x = 1\n"
+
+
+def test_raw_file_writes_refused_in_tools_but_fine_in_tests(repo):
+    (repo / "tools" / "scan_ops.py").write_text("x = 1\nopen('out.txt', 'w').write('x')\n", encoding="utf-8")
+    assert any("forbidden" in p for p in engineer.review(engineer.code_changes()))
+    sh(repo, "checkout", "--", "tools/scan_ops.py")
+    (repo / "tests" / "test_eng_x.py").write_text("def test_a(tmp_path):\n    (tmp_path / 'a').write_text('1')\n"
+                                                  "    open(tmp_path / 'b', 'w').close()\n", encoding="utf-8")
+    assert engineer.review(engineer.code_changes()) == []
+
+
+def test_handled_occurrence_is_not_reticketed(tmp_path, monkeypatch):
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "usage.csv").write_text("date,role,model,turns,minutes,cost,status\n"
+                                        "2026-11-09,scout,sonnet,3,1,0.1,failed\n", encoding="utf-8")
+    monkeypatch.setattr(engineer, "STATE", tmp_path)
+    monkeypatch.setattr(engineer, "STATEF", tmp_path / "engineer.json")
+    monkeypatch.setattr(engineer, "TICKETS", tmp_path / "tickets.md")
+    monkeypatch.setattr(engineer, "TEAM", tmp_path)
+    monkeypatch.setattr(engineer, "post", lambda *a, **k: True)
+    assert engineer.prepare(date(2026, 11, 9), weekly_day=False)
+    engineer.mark_handled("ok")                                       # the Engineer run finished
+    st = engineer.load_json(engineer.STATEF, {})
+    engineer.save_json(engineer.STATEF, {**st, "last_run": "2026-11-08"})
+    assert engineer.prepare(date(2026, 11, 9), weekly_day=False) is None            # same occurrence: no ticket
+    with open(tmp_path / "usage.csv", "a", encoding="utf-8") as fh:                 # same job, NEW day: ticket
+        fh.write("2026-11-10,scout,sonnet,3,1,0.1,failed\n")
+    assert "1 failure ticket" in engineer.prepare(date(2026, 11, 10), weekly_day=False)

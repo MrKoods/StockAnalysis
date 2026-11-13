@@ -2,7 +2,8 @@
   "_doc": "Frozen real-price rules (tools/quotes.py). Set 2026-10-30, before any quote was captured. Change only BEFORE a test starts being judged; a changed rule afterwards = a new test.",
   "on1": {
     "text": "ON1 picks re-priced at real quotes (buy at the ask ~3:56 PM ET, sell at the bid ~9:31 AM ET, no other costs). Day-clustered over days with both quotes. From 15 days: PASS if mean >= +5 bps/trade and day-t >= 2; FAIL if mean < 0; otherwise continue; at 30 days PASS or FAIL.",
-    "min_days": 15, "max_days": 30, "pass_mean_bps": 5, "pass_t": 2.0
+    "min_days": 15, "max_days": 30, "pass_mean_bps": 5, "pass_t": 2.0,
+    "on_fail": "ON1 is retired at once: tools/dispatch.retire_on1 disables its V3 paper tasks and V3 stops its forward ledger (user's decision 2026-11-13, made at 7 of 15 days, before any verdict - the rule itself is unchanged)"
   },
   "epre": {
     "text": "V4 EPRE closed trades re-priced (buy at the ask ~3:56 PM ET on the entry day, sell at the bid ~3:56 PM ET on the exit day; hedge leg unchanged). No separate verdict: V4 RULES.md checkpoint B's real-money condition (hedged mean >= +10 bps, day-t >= 1.0) must ALSO hold on these real-price numbers before real money is considered.",

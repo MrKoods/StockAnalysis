@@ -49,9 +49,9 @@ def _setup(monkeypatch, tmp_path, limited_role):
 
 def test_nothing_runs_after_the_limit_and_the_rest_is_held(monkeypatch, tmp_path):
     ran, cfg, a = _setup(monkeypatch, tmp_path, limited_role="scout")
-    want = {"scorekeeper": "diagnose", "scout": "scouting", "director": "pipeline has room"}
+    want = {"scout": "scouting", "director": "pipeline has room"}   # Scorekeeper retired 2026-11-13
     limit = dispatch.run_roles(date(2026, 11, 3), a, cfg, want, ops_monitor.Findings(), [], {}, [])
-    assert ran == ["scorekeeper", "scout"]                       # director/researcher never launched
+    assert ran == ["scout"]                                      # director/researcher never launched
     assert list(limit["roles"]) == ["scout", "director", "researcher"]
     assert limit["roles"]["researcher"] == "RESEARCH idea-a"
     assert limit["resets_at"] == "2026-11-03T17:50:00"

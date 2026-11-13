@@ -103,7 +103,9 @@ def _train(monkeypatch, tmp_path, t, mean):
     monkeypatch.setattr(jobs, "RESEARCH", tmp_path)
     (tmp_path / "x").mkdir()
     (tmp_path / "x" / "plan.json").write_text('{"family": "f", "train_start": "2005-01-01", "train_end": "2013-12-31",'
-                                              ' "cost_bps": 20, "cluster": "week", "max_variants": 4}')
+                                              ' "holdout_start": "2014-01-01", "holdout_end": "2026-06-30",'
+                                              ' "cost_bps": 20, "cluster": "week", "max_variants": 4, "hold_days": 3}')
+    (tmp_path / "x" / "test.py").write_text("def run(*a): pass")
     res = {"variants": 2, "chosen": "a", "configs": {"a": {"t": t, "mean_bps": mean, "n_periods": 300}},
            "cost_bps_used": 22.0, "cost_floor_bps": 22.0, "plan_cost_bps": 20.0}
     monkeypatch.setattr(jobs, "run_phase", lambda iid, phase: (res, ""))

@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 
-from common import LIVE_V3, LIVE_V4, STATE, TEAM, load_json, log, now_pt, post, save_json
+from common import LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, STATE, TEAM, load_json, log, now_pt, post, save_json
 
 QUOTES = TEAM / "paper" / "quotes.csv"
 QFIELDS = ["date", "when", "ticker", "bid", "ask", "bid_size", "ask_size", "last", "quote_time"]
@@ -74,7 +74,7 @@ def runs_this_week() -> int:
         return 0
     monday = (now_pt().date() - timedelta(days=now_pt().weekday())).isoformat()
     return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:]
-               if line[:10] >= monday and ",quote_clerk," in line)
+               if line[:10] >= monday and ",quote_clerk," in line and not line.endswith(",logged_out"))
 
 
 def prompt(batches: list[list[str]]) -> str:
@@ -173,38 +173,31 @@ def capture(when: str, dry_run: bool = False) -> str:
     text = prompt(batches)
     if dry_run:
         return f"[dry-run] {len(tickers)} tickers in {len(batches)} batch(es)\n{text}"
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "ANTHROPIC"))}
-    cmd = [shutil.which("claude") or "claude", "-p", text, "--permission-mode", "dontAsk",
-           "--settings", str(TEAM / "team" / "settings" / "quote_clerk.json"), "--model", cfg["model"],
-           "--max-turns", str(cfg["max_turns"]), "--output-format", "stream-json", "--verbose",
-           "-n", f"team-quote-clerk-{today}-{when}"]
-    start = time.time()
-    try:
-        r = subprocess.run(cmd, cwd=TEAM, env=env, capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", timeout=cfg["timeout_min"] * 60)
-        stream = r.stdout
-    except subprocess.TimeoutExpired as e:
-        stream = e.stdout.decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
-    (STATE / "logs").mkdir(parents=True, exist_ok=True)
-    (STATE / "logs" / f"{today}-quote_clerk-{when}.jsonl").write_text(stream, encoding="utf-8")
-    want, rows = set(tickers), {}
-    results = _tool_results(stream)
-    # Webull doesn't list these. Only from tool results - the prompt's own "INVALID_SYMBOL [X]" example is
-    # in the stream too.
-    bad = {s for line in stream.splitlines() if '"tool_result"' in line
-           for s in re.findall(r"INVALID_SYMBOL[^\[]*\[([A-Z0-9.\-]+)\]", line)}
-    if bad:
-        save_json(INVALID, sorted(invalid | bad))
-        want -= bad
-    for d in results:
-        sym = str(d.get("symbol", "")).upper()
-        qt = d.get("quote_time")
-        qday = (datetime.fromtimestamp(int(qt) / 1000).date() if str(qt).isdigit() else None)
-        bid, ask = _f(d.get("bid")), _f(d.get("ask"))
-        if sym in want and bid and ask and ask >= bid and qday == today:   # stale (holiday) quotes are dropped
-            rows[sym] = {"date": str(today), "when": when, "ticker": sym, "bid": bid, "ask": ask,
-                         "bid_size": d.get("bid_size", ""), "ask_size": d.get("ask_size", ""),
-                         "last": d.get("price", ""), "quote_time": qt}
+    want, rows, bad, results, res, status, start = set(tickers), {}, set(), [], {}, "failed", time.time()
+    # One retry inside the capture window: the Scan Operator ticks every 10 min, so it can never re-run a
+    # 3-minute quote window itself - a transient failure (Webull/CLI hiccup) gets its second chance here.
+    for attempt in (1, 2):
+        todo = sorted(want - set(rows))
+        stream = _launch(prompt([todo[i:i + 100] for i in range(0, len(todo), 100)]), cfg, today, when, attempt)
+        if re.search(LOGGED_OUT_RX, stream) and not _tool_results(stream):
+            status = "logged_out"
+            break
+        results += _tool_results(stream)
+        # Webull doesn't list these. Only from tool results - the prompt's own "INVALID_SYMBOL [X]" example is
+        # in the stream too.
+        new_bad = {s for line in stream.splitlines() if '"tool_result"' in line
+                   for s in re.findall(r"INVALID_SYMBOL[^\[]*\[([A-Z0-9.\-]+)\]", line)}
+        if new_bad:
+            bad |= new_bad
+            save_json(INVALID, sorted(invalid | bad))
+            want -= new_bad
+        rows |= _rows(_tool_results(stream), want, today, when)
+        res = next((json.loads(l) for l in stream.splitlines()[::-1] if l.startswith('{"type":"result"')), res)
+        status = "ok" if len(rows) >= 0.9 * len(want) else ("partial" if rows else "failed")
+        if status == "ok" or (rows == {} and results) or attempt == 2 or too_late(when, now_pt()):
+            break
+        log(f"quotes {when}: attempt 1 got {len(rows)}/{len(want)} - retrying once in 30 s", "quotes")
+        time.sleep(30)
     if rows:
         new = not QUOTES.exists()
         QUOTES.parent.mkdir(parents=True, exist_ok=True)
@@ -213,8 +206,6 @@ def capture(when: str, dry_run: bool = False) -> str:
             if new:
                 w.writeheader()
             w.writerows(rows.values())
-    res = next((json.loads(l) for l in stream.splitlines()[::-1] if l.startswith('{"type":"result"')), {})
-    status = "ok" if len(rows) >= 0.9 * len(want) else ("partial" if rows else "failed")
     if not rows and results:
         status = "market_closed"            # Webull answered, but every quote is from an earlier day (holiday)
     new_usage = not USAGE.exists()
@@ -226,11 +217,48 @@ def capture(when: str, dry_run: bool = False) -> str:
     msg = (f"quotes {when}: {len(rows)}/{len(want)} tickers captured ({status})"
            + (f"; {len(skipped) + len(bad)} not on Webull, skipped: {sorted(set(skipped) | bad)[:10]}"
               if skipped or bad else ""))
-    if status in ("partial", "failed"):
+    if status == "logged_out":
+        post("ops", f"🔴 Quote Clerk {when} {today}: NOTHING captured - {LOGIN_HELP} Every team role fails until "
+                    f"then.", "Team - Ops Monitor")
+    elif status in ("partial", "failed"):
         post("ops", f"⚠️ Quote Clerk {when} {today}: only {len(rows)}/{len(want)} quotes captured - those trades "
                     f"fall back to official prices. Log: state/logs/{today}-quote_clerk-{when}.jsonl",
              "Team - Ops Monitor")
     return msg
+
+
+def _launch(text: str, cfg: dict, today, when: str, attempt: int) -> str:
+    """One headless Quote Clerk run; returns its stream-json output (also saved to state/logs)."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "ANTHROPIC"))}
+    cmd = [shutil.which("claude") or "claude", "-p", text, "--permission-mode", "dontAsk",
+           "--settings", str(TEAM / "team" / "settings" / "quote_clerk.json"), "--model", cfg["model"],
+           "--max-turns", str(cfg["max_turns"]), "--output-format", "stream-json", "--verbose",
+           "-n", f"team-quote-clerk-{today}-{when}"]
+    try:
+        r = subprocess.run(cmd, cwd=TEAM, env=env, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=cfg["timeout_min"] * 60)
+        stream = r.stdout + r.stderr
+    except subprocess.TimeoutExpired as e:
+        stream = e.stdout.decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+    (STATE / "logs").mkdir(parents=True, exist_ok=True)
+    name = f"{today}-quote_clerk-{when}" + ("" if attempt == 1 else f"-{attempt}") + ".jsonl"
+    (STATE / "logs" / name).write_text(stream, encoding="utf-8")
+    return stream
+
+
+def _rows(results: list, want: set, today, when: str) -> dict:
+    """Usable quotes from Webull tool results: wanted ticker, bid <= ask, quoted today (holiday quotes dropped)."""
+    rows = {}
+    for d in results:
+        sym = str(d.get("symbol", "")).upper()
+        qt = d.get("quote_time")
+        qday = (datetime.fromtimestamp(int(qt) / 1000).date() if str(qt).isdigit() else None)
+        bid, ask = _f(d.get("bid")), _f(d.get("ask"))
+        if sym in want and bid and ask and ask >= bid and qday == today:
+            rows[sym] = {"date": str(today), "when": when, "ticker": sym, "bid": bid, "ask": ask,
+                         "bid_size": d.get("bid_size", ""), "ask_size": d.get("ask_size", ""),
+                         "last": d.get("price", ""), "quote_time": qt}
+    return rows
 
 
 # ---------- real-price scoring ----------
@@ -320,6 +348,9 @@ if __name__ == "__main__":
     if args[:1] == ["capture"]:
         msg = capture(args[1], dry_run="--dry-run" in args)
         log(msg, "quotes")
+        # A failed capture must show as a failed task (exit 1): the Scan Operator and Ops Monitor read the exit
+        # code, and on 2026-11-13 a logged-out Clerk exited 0 and nothing looked wrong all day.
+        sys.exit(1 if re.search(r"\((failed|logged_out)\)", msg) else 0)
     elif args[:1] == ["on1"]:
         print(on1())
     elif args[:1] == ["epre"]:

@@ -20,6 +20,10 @@ STATE = TEAM / "state"        # untracked: run state, caches, logs
 LOGS = STATE / "logs"
 OUTBOX = TEAM / "outbox"      # each role writes <role>.txt; the dispatcher posts it
 STOP_FILE = TEAM / "STOP"     # kill switch: present = no Claude roles, no new paper signals
+# Headless Claude's answer when its login is gone (dispatch.run_role, quotes.capture). Not a bare "401": that once
+# matched normal output and raised a false alarm.
+LOGGED_OUT_RX = r"Not logged in|Please run /login|authentication_error|OAuth token"
+LOGIN_HELP = "Claude is LOGGED OUT - open a terminal on the PC, run `claude`, then `/login`."
 
 # Channel -> .env key, then fallbacks. Never the general scan channel (DISCORD_WEBHOOK_URL).
 CHANNELS = {

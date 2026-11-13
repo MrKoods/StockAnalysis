@@ -17,7 +17,8 @@ holdout. Webull retail has no auction orders: an "open" fill pays the 9:31 sprea
 measured), a "close" fill the 3:56 spread (5-16 bps).
 
 research/<id>/plan.json:
-  {"family", "train_start", "train_end", "holdout_start", "holdout_end", "cost_bps", "cluster": "day"|"week",
+  {"family", "train_start", "train_end", "holdout_start", "holdout_end", "cost_bps",
+   "cluster": "day"|"week"|"month" (month required when hold_days > 10), "hold_days": <longest hold, sessions>,
    "max_variants", "metric": "raw"|"hedged",
    "entry_at": "open"|"close", "exit_at": "open"|"close", "universe": ["sp500"|"sp400"|"sp600", ...]}
   entry_at/exit_at/universe set the real-cost floor; left out = open/open on the most expensive index.
@@ -47,8 +48,13 @@ from common import PYTHON, TEAM, commit, git, load_json, log, post, save_json
 RESEARCH = TEAM / "research"
 TIMEOUT_MIN = 45
 SKEPTIC_MIN_T = 2.0      # prompts/skeptic.md check 2: the chosen train t must be >= 2.0 to PASS
+# The holdout is spent only when it has a real chance to confirm (added 2026-11-13). Expected holdout t = train
+# t x sqrt(holdout periods / train periods); split-drift (10%) and insider-cluster (17%) spent theirs at odds a
+# real edge would mostly fail. Below this, the idea is buried WITHOUT touching the holdout, so the family keeps it.
+MIN_HOLDOUT_POWER = 0.25
+LONG_HOLD_DAYS = 10      # holds longer than this overlap across weeks: cluster by month
 PLAN_KEYS = ("family", "train_start", "train_end", "holdout_start", "holdout_end", "cost_bps", "cluster",
-             "max_variants")
+             "max_variants", "hold_days")
 # Research scripts reach data only through research_data (which enforces the cutoff). This is a guard
 # against accidents, not a sandbox - the Skeptic reviews the code too.
 FORBIDDEN = [r"\byfinance\b", r"\brequests\b", r"\burllib\b", r"\bhttp\b", r"\bsocket\b", r"\bsubprocess\b",
@@ -75,8 +81,13 @@ def plan_problems(iid: str) -> list[str]:
         probs.append("need train_start < train_end < holdout_start <= holdout_end")
     if he > date.today():
         probs.append("holdout_end is in the future")
-    if p["cluster"] not in ("day", "week"):
-        probs.append("cluster must be day or week")
+    if p["cluster"] not in ("day", "week", "month"):
+        probs.append("cluster must be day, week or month")
+    try:
+        if int(p["hold_days"]) > LONG_HOLD_DAYS and p["cluster"] != "month":
+            probs.append(f"hold_days {p['hold_days']} > {LONG_HOLD_DAYS}: overlapping holds - cluster must be month")
+    except (TypeError, ValueError):
+        probs.append("hold_days must be a whole number of sessions")
     for k in ("entry_at", "exit_at"):
         if k in p and p[k] not in ("open", "close"):
             probs.append(f"{k} must be open or close")
@@ -123,7 +134,8 @@ def stats(trades, cost_bps: float, cluster: str, start: str, end: str) -> dict:
     outside = int((~inside).sum())
     df = df[inside]
     df["net"] = df["gross_bps"].astype(float) - float(cost_bps)
-    key = df["date"].dt.normalize() if cluster == "day" else df["date"].dt.to_period("W")
+    key = (df["date"].dt.normalize() if cluster == "day" else
+           df["date"].dt.to_period("M") if cluster == "month" else df["date"].dt.to_period("W"))
     per = df.groupby(key)["net"].mean()
     n = len(per)
     mean = float(per.mean()) if n else 0.0
@@ -137,6 +149,32 @@ def stats(trades, cost_bps: float, cluster: str, start: str, end: str) -> dict:
 def luck_t(n_variants: int) -> float:
     """Rough best-of-N t under no edge (independent tests): sqrt(2 ln N). Correlated variants => lower."""
     return round(math.sqrt(2 * math.log(n_variants)), 2) if n_variants > 1 else 0.0
+
+
+def family_search_variants(family: str) -> int:
+    """Every search variant already looked at for this family (all ideas, all runs), plus - for a family the free
+    8-K screen opened - every variant the screen tried across ALL its families: the idea was picked as the best
+    of those, so the luck bar must count them (the screen tried 57; trials.csv booked 3 per family)."""
+    rows = budget.rows()
+    n = sum(int(float(r["variants"] or 0)) for r in rows if r["family"] == family and r["stage"] == "search")
+    if any(r["idea_id"] == "screen" and r["family"] == family for r in rows):
+        n += sum(int(float(r["variants"] or 0)) for r in rows
+                 if r["idea_id"] == "screen" and r["family"] != family)
+    return n
+
+
+def holdout_power(plan: dict, chosen: dict, bar: float) -> dict:
+    """Chance a REAL edge of the train size clears the holdout bar: expected t = train t x sqrt(holdout periods /
+    train periods), periods scaled by calendar length; P = 1 - Phi(bar - expected t). Optimistic (train t is the
+    best of several variants), so a low number means the holdout cannot confirm the idea."""
+    from scipy.stats import norm
+
+    def days(a: str, b: str) -> int:
+        return (date.fromisoformat(plan[b]) - date.fromisoformat(plan[a])).days + 1
+    ratio = days("holdout_start", "holdout_end") / max(1, days("train_start", "train_end"))
+    exp_t = float(chosen.get("t") or 0) * math.sqrt(ratio)
+    return {"expected_holdout_t": round(exp_t, 2), "bar": round(bar, 2), "holdout_to_train": round(ratio, 2),
+            "pass_prob": round(float(1 - norm.cdf(bar - exp_t)), 3)}
 
 
 # ---------- running a script (child process) ----------
@@ -187,15 +225,21 @@ def run_phase(iid: str, phase: str) -> tuple[dict | None, str]:
 
 # ---------- pipeline ----------
 
-def plan_hash(iid: str) -> str:
+def plan_hash(iid: str, name: str = "plan.json") -> str:
     import hashlib
-    return hashlib.sha256((RESEARCH / iid / "plan.json").read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
+    return hashlib.sha256((RESEARCH / iid / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
 
 
 def plan_changed(iid: str) -> bool:
-    """plan.lock is written when the plan is committed; windows/variants/costs may not move after that."""
-    lock = RESEARCH / iid / "plan.lock"
-    return lock.exists() and lock.read_text().strip() != plan_hash(iid)
+    """plan.lock is written when the plan is committed; windows/variants/costs may not move after that.
+    test.lock (added 2026-11-13) is written at the first train RESULT: until then the Researcher may still fix a
+    crashing test.py (it has seen nothing), after it the code that produced the result is frozen too - the holdout
+    must run the exact script the train result came from."""
+    d = RESEARCH / iid
+    plan_moved = (d / "plan.lock").exists() and (d / "plan.lock").read_text().strip() != plan_hash(iid)
+    test_moved = ((d / "test.lock").exists() and (d / "test.py").exists()
+                  and (d / "test.lock").read_text().strip() != plan_hash(iid, "test.py"))
+    return plan_moved or test_moved
 
 
 def bury(iid: str, why: str) -> None:
@@ -216,6 +260,7 @@ def do_train(iid: str, dry_run: bool) -> None:
         log(f"train {iid}: {err[:300]}", "jobs")
         return
     (d / "train_error.txt").unlink(missing_ok=True)
+    (d / "test.lock").write_text(plan_hash(iid, "test.py"), encoding="utf-8")   # results exist: freeze the code
     chosen = res.get("chosen")
     problems = []
     if res["variants"] > int(plan["max_variants"]):
@@ -223,8 +268,10 @@ def do_train(iid: str, dry_run: bool) -> None:
     if chosen not in res["configs"]:
         problems.append(f"chosen config {chosen!r} not among results")
     best = max(res["configs"].values(), key=lambda c: c["t"], default={"t": 0})
-    res |= {"luck_t_best_of_n": luck_t(res["variants"]), "best_t": best["t"],
-            "chosen_stats": res["configs"].get(chosen), "problems": problems}
+    n_luck = res["variants"] + family_search_variants(plan["family"])
+    power = holdout_power(plan, res["configs"].get(chosen) or {}, budget.holdout_bar(plan["family"], extra=1))
+    res |= {"luck_t_best_of_n": luck_t(n_luck), "luck_variants_counted": n_luck, "best_t": best["t"],
+            "chosen_stats": res["configs"].get(chosen), "holdout_power": power, "problems": problems}
     if len(res["configs"]) > 50:  # keep the file readable; top 50 by t
         res["configs"] = dict(sorted(res["configs"].items(), key=lambda kv: -kv[1]["t"])[:50])
     save_json(d / "train_result.json", res)
@@ -244,10 +291,19 @@ def do_train(iid: str, dry_run: bool) -> None:
         bury(iid, f"train result below the minimum: chosen {chosen} t {cs.get('t')}, {cs.get('mean_bps')} bps after "
                   f"{cost} - no holdout spent, no review needed")
         return
+    if power["pass_prob"] < MIN_HOLDOUT_POWER:
+        why = (f"underpowered: chosen {chosen} t {t}, {mean} bps after {cost}, but a real edge this size would clear "
+               f"the holdout bar {power['bar']} only {power['pass_prob']:.0%} of the time (expected holdout t "
+               f"{power['expected_holdout_t']}). Holdout NOT spent - the family keeps it. Redesign as a new idea "
+               f"with more events (wider universe, longer holdout window, longer hold) to test it properly")
+        post("research", f"🧪 **{iid}** {why}", "Team - Research Pipeline")
+        bury(iid, why)
+        return
     ideas.set_stage(iid, "awaiting_review", f"train done: chosen {chosen} t {cs.get('t')}")
     post("research", f"🧪 **{iid}** train result: chosen `{chosen}` mean {cs.get('mean_bps')} bps, t {cs.get('t')} "
                      f"over {cs.get('n_periods')} {plan['cluster']}s, {cost}; {res['variants']} variants "
-                     f"(best-of-N luck t ~{res['luck_t_best_of_n']}). Skeptic reviews next.",
+                     f"(best-of-{n_luck} luck t ~{res['luck_t_best_of_n']}, family total incl. the screen); holdout "
+                     f"pass chance {power['pass_prob']:.0%}. Skeptic reviews next.",
          "Team - Research Pipeline")
 
 

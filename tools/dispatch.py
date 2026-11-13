@@ -42,26 +42,31 @@ import plan_limit
 import quotes
 import scan_ops
 import screen
-from common import (LIVE_V2, LIVE_V3, LIVE_V4, OUTBOX, STATE, TEAM, commit, git, load_json, log, now_pt,
-                    post, save_json, stopped)
+from common import (LIVE_V2, LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, OUTBOX, STATE, TEAM, commit, git,
+                    load_json, log, now_pt, post, save_json, stopped)
 
 ROLES = TEAM / "team" / "roles.json"
 USAGE = STATE / "usage.csv"
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-IDEA_TARGET = 10          # the Scout runs Mon-Fri until this many ideas wait
+IDEA_TARGET = 10          # the Scout runs (SCOUT_DAYS) until this many ideas wait
+SCOUT_DAYS = ("Mon", "Thu")   # 2026-11-13: daily runs added 1-3 ideas at rising cost ($0.85 -> $2.73 a run)
 MAX_ACTIVE = 2            # ideas in research at once (queued + planned + under review)
 ACTIVE_STAGES = ("queued", "planned", "awaiting_review")
 PER_DAY = 2               # Researcher / Skeptic runs per dispatch (one idea each)
+NOTES_CAP = 150           # lines per notes/<role>.md (prompts/common.md); over it, the role is told to prune
 
-# Frozen checkpoints of the live V2/V3/V4 tests (from their rules). Crossing one wakes the Scorekeeper.
+# Frozen checkpoints of the live V2/V3/V4 tests (from their rules). Crossing one wakes the Director.
+# G2 left out: retired 2026-11-08. ON1 runs only until its real-price verdict (ON1_RETIRE below).
 CHECKPOINTS = {
-    "V2 rank go/no-go (closed trades)": (r"go/no-go: COLLECTING \((\d+)/100", [100]),
-    "V3 G2 forward (days)": (r"\[G2 forward\] (\d+) days", [40]),
+    "V2 rank go/no-go (closed trades)": (r"go/no-go: \w+[ -]*\w* \((\d+)/\d+", [100, 200]),
     "V3 ON1 forward (days)": (r"\[ON1 forward\] (\d+) days", [40]),
-    "V3 G2 paper (days)": (r"\[G2 paper\] (\d+) days", [20, 40]),
     "V3 ON1 paper (days)": (r"\[ON1 paper\] (\d+) days", [20, 40]),
     "V4 EPRE (closed trades)": (r"\[EPRE paper\] closed (\d+)", [1000, 3000, 6000]),   # void trades never count
 }
+# User's decision 2026-11-13: ON1 is retired when its REAL-price rule (team/real_price_rules.json) says FAIL,
+# instead of running its paper rule to day 40 - a strategy that loses at Webull's bid/ask can't be traded.
+ON1_TASKS = ("StockAnalysis_V3_ON1Paper_Signals", "StockAnalysis_V3_ON1Paper_Evaluate")
+ON1_RETIRED = STATE / "on1_retired.json"
 
 
 def metrics(snapshot: str) -> dict[str, int]:
@@ -89,10 +94,11 @@ def runs_this_week() -> int:
         return 0
     monday = (now_pt().date() - timedelta(days=now_pt().weekday())).isoformat()
     # The Quote Clerk has its own cap (tools/quotes.py) - its fixed-time runs must not crowd out the team's.
-    # A run refused at once by the plan limit (0-1 turns, no tokens) is not a run.
+    # A run refused at once (plan limit, lost login, crash before work: 0-1 turns, no tokens) is not a run.
     return sum(1 for line in USAGE.read_text(encoding="utf-8").splitlines()[1:]
                if line[:10] >= monday and ",quote_clerk," not in line
-               and not (line.endswith(",limited") and line.split(",")[3] in ("", "0", "1")))
+               and not (line.rsplit(",", 1)[-1] in ("limited", "logged_out", "failed")
+                        and line.split(",")[3] in ("", "0", "1")))
 
 
 def in_stage(stage: str) -> list[str]:
@@ -128,19 +134,14 @@ def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict,
     verdicts = [f"{sid} verdict {s.get('verdict')}" for sid, s in paper.items()
                 if s.get("verdict") in ("PASS", "FAIL", "ERROR")
                 and prev_paper.get(sid, {}).get("verdict") != s.get("verdict")]
-    # Scorekeeper: diagnose real failures, report checkpoints, weekly scorecard on Friday.
-    why = []
-    if f.diagnose:
-        why.append("diagnose: " + "; ".join(f.diagnose)[:600])
-    if hits:
-        why.append("checkpoint: " + "; ".join(hits))
-    if day == "Fri":
-        why.append("weekly scorecard")
-    if why:
-        want["scorekeeper"] = " | ".join(why)
-    if day != "Sat" and open_items("idea") < IDEA_TARGET:
+    # The Scorekeeper was retired 2026-11-13 (user's decision): failures go to the Engineer (engineer.prepare
+    # reads f.diagnose), checkpoints to the Director, and the Friday scorecard is a script (write_scorecard).
+    if day in SCOUT_DAYS and open_items("idea") < IDEA_TARGET:
         want["scout"] = f"scouting ({open_items('idea')} ideas waiting, target {IDEA_TARGET})"
     director = (["weekly review"] if day == "Sat" else []) + verdicts
+    if hits:
+        director.append("checkpoint (apply its frozen rule, state PASS/FAIL/CONTINUE with the deciding numbers): "
+                        + "; ".join(hits))
     if open_items("holdout_done"):
         director.append(f"decide on holdout passes: {', '.join(in_stage('holdout_done'))}")
     active = sum(open_items(s) for s in ACTIVE_STAGES)
@@ -175,8 +176,44 @@ def write_context(today: date, f: ops_monitor.Findings, hits: list[str], paper: 
               "paper/on1_real_price_status.json, paper/epre_real_price_status.json.",
               "Every scan's schedule and health (Scan Operator): team/schedule.json, state/scan_ops.json "
               "(`issues` = jobs that failed and could not be re-run validly this week; `gaps` = jobs that "
-              "could not run because the PC was off/asleep through their whole window - expected, nothing to fix)."]
+              "could not run because the PC was off/asleep through their whole window - expected, nothing to fix).",
+              "Ideas the Director dropped and why (Scout: don't re-propose these or the same pattern): "
+              "state/dropped_ideas.md."]
+    if todo := housekeeping():
+        lines[1:1] = ["## MUST do this run, before anything else (the dispatcher checks)"] + \
+                     [f"- {x}" for x in todo] + [""]
     (STATE / "context.md").write_text("\n".join(lines), encoding="utf-8")
+    write_dropped()
+
+
+def housekeeping() -> list[str]:
+    """Things roles kept skipping (Auditor 2026-11-13 audit): notes over their cap, Auditor recommendations the
+    Director never answered on record."""
+    out = []
+    for p in sorted((TEAM / "notes").glob("*.md")):
+        n = len(p.read_text(encoding="utf-8", errors="replace").splitlines())
+        if n > NOTES_CAP:
+            out.append(f"{p.stem}: notes/{p.name} is {n} lines (cap {NOTES_CAP}) - prune it to under {NOTES_CAP}: "
+                       "drop resolved items and copied numbers, keep a short 'Resolved - don't repeat' list")
+    audits = sorted((TEAM / "reports").glob("*-auditor.md"))
+    director = TEAM / "notes" / "director.md"
+    text = director.read_text(encoding="utf-8", errors="replace") if director.exists() else ""
+    if audits and audits[-1].name not in text:
+        out.append(f"director: record 'accepted' (and do it) or 'declined - <why>' for each recommendation in "
+                   f"reports/{audits[-1].name}, under a heading that names that file, in notes/director.md")
+    return out
+
+
+def write_dropped() -> None:
+    """Every dropped idea with the Director's reason, for the Scout (it repeated rejected patterns 6 times)."""
+    rows = [r for r in ideas.load() if r["stage"] == "dropped"]
+    lines = ["# Dropped ideas and the Director's reasons (written by the dispatcher)", "",
+             "Don't re-propose these, and don't propose another idea that fails for the same reason.", ""]
+    def why(notes: str) -> str:         # the Director's own words: the "<date> dropped: ..." part of the history
+        part = next((p for p in reversed(notes.split(" | ")) if " dropped" in p[:16]), notes)
+        return part.strip()[-400:] or "no reason recorded"
+    lines += [f"- **{r['id']}** ({r.get('family', '')}): {why(r.get('notes') or '')}" for r in rows]
+    (STATE / "dropped_ideas.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def write_audit_pack(today: date) -> None:
@@ -220,7 +257,8 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
         stdout, raw = r.stdout, r.stdout + r.stderr
     except subprocess.TimeoutExpired:
         raw = f"TIMEOUT after {cfg['timeout_min']} min"
-    (STATE / "logs" / f"{today}-{role}.json").write_text(raw, encoding="utf-8")
+    log_path = run_log_path(today, role)
+    log_path.write_text(raw, encoding="utf-8")
     try:
         res = json.loads(stdout) if stdout.strip().startswith("{") else {}
     except json.JSONDecodeError:
@@ -233,7 +271,7 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
         # a lost login (a bare "401" matched normal output once and raised a false LOGGED OUT alarm).
         finished = out_file.exists() and out_file.stat().st_mtime > start
         status = ("ok" if finished else
-                  "logged_out" if re.search(r"Not logged in|Please run /login|authentication_error|OAuth token", raw)
+                  "logged_out" if re.search(LOGGED_OUT_RX, raw)
                   else "limited" if plan_limit.is_limited(raw, res) else "failed")
         fh.write(f"{today},{role},{cfg['model']},{res.get('num_turns', '')},{(time.time() - start) / 60:.1f},"
                  f"{res.get('total_cost_usd', '')},{status}\n")
@@ -248,10 +286,20 @@ def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> d
             channel = "ops"
         post(channel, out_file.read_text(encoding="utf-8"), cfg["username"])
     else:
-        why = ("Claude is LOGGED OUT - open Claude Code on the computer and log in."
-               if status == "logged_out" else f"no report written - see state/logs/{today}-{role}.json")
+        why = (f"{LOGIN_HELP} No more roles are launched today." if status == "logged_out"
+               else f"no report written - see state/logs/{log_path.name}")
         post("ops", f"🔴 Team role **{role}** did not finish ({today}): {why}", "Team - Ops Monitor")
     return {"status": status, "date": str(today), "note": raw[-300:] if status != "ok" else ""}
+
+
+def run_log_path(today: date, role: str):
+    """state/logs/<date>-<role>.json, then -2, -3 for a second run the same day (a Researcher or a refilled
+    Director often runs twice; the second used to overwrite the first, losing its refused-command record)."""
+    path, n = STATE / "logs" / f"{today}-{role}.json", 1
+    while path.exists():
+        n += 1
+        path = STATE / "logs" / f"{today}-{role}-{n}.json"
+    return path
 
 
 def ran_ok_today(role: str, today: date) -> int:
@@ -273,6 +321,9 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     def launch(role: str, why: str, again: bool = False) -> None:
         if limit["roles"]:
             limit["roles"].setdefault(role, why)
+            return
+        if limit.get("logged_out"):          # every further launch would fail the same way and post its own alarm
+            log(f"{role} not launched - Claude is logged out", "dispatch")
             return
         if not cfg["roles"].get(role, {}).get("enabled") and role not in a.force:
             return
@@ -299,9 +350,11 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
         if role_runs[role]["status"] == "limited":
             limit["roles"][role] = why
             limit["resets_at"] = role_runs[role]["resets_at"]
+        elif role_runs[role]["status"] == "logged_out":
+            limit["logged_out"] = True
 
     # 5. roles. Scout before Director (so it sees today's ideas); Director before Researcher (it may queue one).
-    for role in ("scorekeeper", "scout", "director"):
+    for role in ("scout", "director"):
         if role in want:
             launch(role, want[role])
     # Researcher writes a plan -> committed above -> train run -> Skeptic -> holdout, all in this dispatch.
@@ -335,10 +388,47 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
         write_audit_pack(today)
         launch("auditor", want["auditor"])
     # Engineer after everyone, so it can act on today's failures and the Auditor's report (tools/engineer.py).
-    fix = want.get("engineer") or engineer.prepare(today, DAYS[today.weekday()] == "Sat", a.dry_run)
+    fix = want.get("engineer") or engineer.prepare(today, DAYS[today.weekday()] == "Sat", a.dry_run, f.diagnose)
     if fix:
         launch("engineer", fix)
     return limit
+
+
+def retire_on1(status: dict, dry_run: bool = False) -> bool:
+    """User's decision 2026-11-13: when ON1's REAL-price rule says FAIL, ON1 stops (both V3 paper tasks disabled)
+    instead of running its paper rule to day 40. Once only; True if it retired ON1 now."""
+    if status.get("verdict") != "FAIL" or ON1_RETIRED.exists():
+        return False
+    done = []
+    for task in ON1_TASKS:
+        if dry_run:
+            done.append(f"{task} (dry run)")
+            continue
+        r = subprocess.run(["powershell", "-NoProfile", "-Command", f"Disable-ScheduledTask -TaskName '{task}'"],
+                           capture_output=True, text=True)
+        done.append(task if r.returncode == 0 else f"{task} NOT disabled: {(r.stderr or r.stdout)[-200:]}")
+    if not dry_run:
+        save_json(ON1_RETIRED, {"date": str(now_pt().date()), "status": status, "tasks": done})
+    post("director", f"⚪ **ON1 retired** - its real-price rule says FAIL ({status.get('days')} days, "
+                     f"{status.get('real_mean_bps')} bps/trade at Webull bid/ask vs {status.get('paper_mean_bps_same_trades')} "
+                     f"on paper). User's rule of 2026-11-13: a strategy that loses at real prices stops. "
+                     f"Tasks: {'; '.join(done)}. Ledgers kept.", "Team - Paper Runner", dry_run)
+    return True
+
+
+def write_scorecard(today: date, f: ops_monitor.Findings) -> None:
+    """Friday scorecard - a script since the Scorekeeper was retired (2026-11-13). Numbers come only from
+    snapshot.py's text and the real-price status files: nothing is re-computed here."""
+    lines = [f"# Scorecard {today} - written by the dispatcher (script, no Claude)", "",
+             "## Live tests (snapshot.py)"] + (daily_report.live_tests(f.snapshot) or ["- no snapshot"]) + [
+             "", "## Real Webull prices"] + (daily_report.real_prices(today) or ["- none"])
+    outlook = f.snapshot.split("Outlook", 1)
+    if len(outlook) == 2:
+        lines += ["", "## Outlook (what each next decision needs - snapshot.py)", "```", "Outlook" + outlook[1].strip(),
+                  "```"]
+    lines += ["", "## Research pipeline"] + [f"- {s}: {', '.join(in_stage(s))}" for s in ideas.STAGES
+                                             if s not in ("dead", "dropped") and in_stage(s)]
+    (TEAM / "reports" / f"{today}-scorecard.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _clock(at: datetime) -> str:
@@ -419,6 +509,10 @@ def main(argv: list[str]) -> int:
     if today.weekday() == 6:
         log("Sunday - nothing scheduled", "dispatch")
         return 0
+    # 0. Edits made outside a dispatch (the user's sessions) get their own commit, so a runner commit only ever
+    #    holds what the run itself did - commit order is the evidence that plans came before results.
+    if not a.dry_run and git("status", "--porcelain"):
+        commit(f"pre-dispatch {today}: changes made outside the team run (user's session)")
 
     # 1. paper runner (evaluates even when STOPped; STOP only blocks new signals)
     prev_paper = load_json(STATE / "paper_status.json", {})
@@ -431,7 +525,10 @@ def main(argv: list[str]) -> int:
         for name, job in (("on1 real-price", quotes.on1), ("epre real-price", quotes.epre),
                           ("scan operator", scan_ops.run)):
             try:
-                log(f"{name}: {job()}", "dispatch")
+                out = job()
+                log(f"{name}: {out}", "dispatch")
+                if name == "on1 real-price":
+                    retire_on1(out)
             except Exception as e:
                 log(f"{name} failed: {e}", "dispatch")
 
@@ -453,6 +550,11 @@ def main(argv: list[str]) -> int:
 
     # 2. ops (script only; Saturday has no market tasks worth a heartbeat)
     f = ops_monitor.run(dry_run=a.dry_run, post_it=today.weekday() < 5)
+    if DAYS[today.weekday()] == "Fri" and not a.dry_run:
+        try:
+            write_scorecard(today, f)
+        except Exception as e:  # noqa: BLE001 - the report is a convenience, never fatal
+            log(f"scorecard failed: {e}", "dispatch")
     pipeline: list[str] = []
     # 6. the end-of-day report (tools/daily_report.py) - in `finally`, so a crashed role can't swallow it
     try:

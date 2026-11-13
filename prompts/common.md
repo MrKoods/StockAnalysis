@@ -10,8 +10,13 @@
   command itself is allowed). Read files with the Read tool, not Bash.
 - A refused tool means your permission file forbids it. If a refused command matters to your job, retry it once
   in the plain form above; if it is still refused, say so in your outbox with the exact command.
-- Your memory is `notes/<your role>.md`: read it at the start, update it at the end (keep it under ~150 lines;
-  prune old entries). Put what you checked, what to watch, and anything the next run must not redo.
+- Your memory is `notes/<your role>.md`: read it at the start, update it at the end (keep it under 150 lines -
+  the dispatcher tells you in `state/context.md` when you're over; then pruning is the first job). Put what you
+  checked, what to watch, and anything the next run must not redo. Keep a short **Resolved - don't repeat** list:
+  once something is settled, never raise it again. Don't copy numbers into notes - they go stale; scripts print
+  them fresh.
+- `TEAM.md` "Settled facts" beats your notes. If they disagree, fix your notes.
+- If `state/context.md` starts with "MUST do this run", do those items first.
 - The user reads Discord on a phone. `outbox/<your role>.txt` is posted for you: max 1,200 characters, plain
   text, first line = the headline, no tables. Say plainly what matters and what (if anything) the user must do.
   Write the outbox file last, only when the run's work is done - the dispatcher treats it as "finished".

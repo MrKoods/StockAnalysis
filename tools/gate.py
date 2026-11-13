@@ -62,7 +62,11 @@ def checks(sid: str, smoke: bool = True) -> list[tuple[str, bool, str]]:
 
     ho = load_json(res / "holdout_result.json", {})
     spec = load_json(strat / "spec.json", {})
-    fam = spec.get("family", "")
+    # The bar comes from the LOCKED plan's family (plan.json can't change after commit); spec.json is written
+    # later and could name a family with fewer holdouts, i.e. a lower bar.
+    fam = load_json(res / "plan.json", {}).get("family", "")
+    out.append(("spec family = plan family", bool(fam) and spec.get("family") == fam,
+                f"plan {fam or '?'} / spec {spec.get('family', '?')}"))
     bar = budget.holdout_bar(fam, extra=0) if fam else budget.FLOOR_T
     ok_ho = ho.get("runs") == 1 and float(ho.get("t", 0)) >= bar and float(ho.get("mean_bps", 0)) > 0
     out.append(("holdout passed once, clears budget bar", ok_ho,

@@ -81,6 +81,6 @@ def test_plan_windows_must_be_ordered(tmp_path, monkeypatch):
     for f in ("PLAN.md", "test.py"):
         (d / f).write_text("import research_data as rd\n")
     plan = {"family": "f", "train_start": "2010-01-01", "train_end": "2018-12-31", "holdout_start": "2018-06-01",
-            "holdout_end": "2020-01-01", "cost_bps": 10, "cluster": "day", "max_variants": 5}
+            "holdout_end": "2020-01-01", "cost_bps": 10, "cluster": "day", "max_variants": 5, "hold_days": 1}
     (d / "plan.json").write_text(json.dumps(plan))
     assert any("train_end < holdout_start" in p for p in jobs.plan_problems("y"))

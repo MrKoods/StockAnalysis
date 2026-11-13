@@ -62,28 +62,33 @@ def v3_short(per_day: pd.Series) -> str:
     return f"PASS at day {v['target']} needs {v['need_pass']:+.0f} bps/day over the next {v['left']} days"
 
 
-def _v2(snapshot: str) -> tuple[int, float] | None:
-    m = re.search(r"COLLECTING \((\d+)/100 closed trades\)\s+mean R after costs ([+-][\d.]+)", snapshot)
-    return (int(m.group(1)), float(m.group(2))) if m else None
+# "COLLECTING (88/100 ...)" until 100 trades, then "KEEP COLLECTING (105/200 ...)" up to the final verdict at 200.
+V2_RX = r"COLLECTING \((\d+)/(\d+) closed trades[^)]*\)\s+mean R after costs ([+-][\d.]+)"
+
+
+def _v2(snapshot: str) -> tuple[int, float, int] | None:
+    m = re.search(V2_RX, snapshot)
+    return (int(m.group(1)), float(m.group(3)), int(m.group(2))) if m else None
 
 
 def v2_line(snapshot: str) -> str | None:
     v = _v2(snapshot)
     if not v:
         return None
-    n, mean = v
-    left = 100 - n
-    return (f"V2 rank go/no-go: {n}/100, mean {mean:+.3f}R after costs. To reach GO (+0.15) the last {left} trade(s) "
-            f"must average {(0.15 * 100 - mean * n) / left:+.3f}R; to avoid NO-GO (< 0) {(-mean * n) / left:+.3f}R.")
+    n, mean, target = v
+    left = max(1, target - n)
+    end = "final verdict" if target > 100 else "go/no-go"
+    return (f"V2 rank {end}: {n}/{target}, mean {mean:+.3f}R after costs. To reach GO (+0.15) the last {left} trade(s) "
+            f"must average {(0.15 * target - mean * n) / left:+.3f}R; to avoid NO-GO (< 0) {(-mean * n) / left:+.3f}R.")
 
 
 def v2_short(snapshot: str) -> str | None:
     v = _v2(snapshot)
     if not v:
         return None
-    n, mean = v
-    left = 100 - n
-    return (f"GO needs {(0.15 * 100 - mean * n) / left:+.2f}R/trade for the last {left}; "
+    n, mean, target = v
+    left = max(1, target - n)
+    return (f"GO needs {(0.15 * target - mean * n) / left:+.2f}R/trade for the last {left}; "
             f"NO-GO if they average below {(-mean * n) / left:+.2f}R")
 
 

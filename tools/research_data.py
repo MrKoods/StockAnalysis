@@ -20,6 +20,10 @@ Team archive (data/edgar, from tools/edgar.py - updated by the dispatcher every 
   splits(tickers)   stock splits: ex-date, ratio, and the first filing that said "stock split" (2001+)
 Both add `first_session` = the first session whose 09:30 ET open is after the event became public - the
 earliest a strategy could have traded it. Use it, not the filing date, as the signal date.
+And `entry_session` (2026-11-13) = the first session whose CLOSE can be bought after the event (SEC accepted it
+before 15:30 ET that day). Buying at the close of entry_session catches the day-0 move that a buy at the close
+AFTER first_session misses - most event edges are priced by then (decomposition, 2026-11-13 audit).
+Hedge with the trade's own index fund: hedge_ticker('sp600') = IJR, 'sp400' = IJH, 'sp500' = SPY; index_of().
 The full list of sources, their coverage and each family's used periods: state/data_catalog.md.
 """
 from __future__ import annotations
@@ -93,11 +97,44 @@ def _bars(folder: str, tickers) -> dict[str, pd.DataFrame]:
     return out
 
 
+ETFS = {"SPY", "IWM", "IJR", "IJH", "MDY", "QQQ", "DIA", "VTI"}   # index/hedge funds in data/daily, not stocks
+# Hedge each index's trades with ITS OWN index fund (added 2026-11-13): small-cap longs hedged with SPY carried
+# the small-cap-vs-large-cap swing as noise - five sp600 longs in a row came out negative.
+HEDGE = {"sp500": "SPY", "sp400": "IJH", "sp600": "IJR"}
+
+
+def hedge_ticker(index: str) -> str:
+    """The fund to hedge a trade from `index` ('sp500'|'sp400'|'sp600') with: SPY / IJH / IJR."""
+    return HEDGE[index]
+
+
+def index_of(tickers) -> dict[str, str]:
+    """ticker -> 'sp500'|'sp400'|'sp600' (current membership - see universe()); others left out."""
+    out = {}
+    for name in ("sp600", "sp400", "sp500"):       # sp500 last: a ticker in two lists counts as the larger one
+        for t in universe(name):
+            out[t] = name
+    wanted = set(tickers)
+    return {t: i for t, i in out.items() if t in wanted}
+
+
 def universe(name: str = "all") -> list[str]:
+    """CURRENT index members (survivorship: names that left the index, or were added after a period, are not
+    handled - a long test over many years is biased up; say so in PLAN.md and prefer recent train windows)."""
     if name == "all":
-        return sorted(p.stem for p in DAILY.glob("*.parquet"))
+        return sorted(p.stem for p in DAILY.glob("*.parquet") if p.stem not in ETFS)
     df = pd.read_csv(V3 / "daytrade" / UNIVERSES[name])
-    return sorted(df.iloc[:, 0].astype(str).str.strip().tolist())
+    names = set(df.iloc[:, 0].astype(str).str.strip())
+    if name == "sp500":
+        # sp500_new.csv holds only the names V3 ADDED to its 50-ticker core (daytrade/config.py UNIVERSE), so the
+        # 40 largest stocks were missing from "sp500" until 2026-11-13. They are the core's stocks.
+        names |= SP500_CORE
+    return sorted(names)
+
+
+SP500_CORE = {"AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "AMD", "NFLX", "JPM", "BAC", "WFC",
+              "C", "GS", "V", "MA", "XOM", "CVX", "UNH", "LLY", "JNJ", "PFE", "MRK", "ABBV", "KO", "PEP", "WMT",
+              "COST", "HD", "DIS", "INTC", "MU", "QCOM", "ORCL", "CRM", "ADBE", "CSCO", "BA", "PLTR"}
 
 
 def daily(tickers) -> dict[str, pd.DataFrame]:
@@ -171,6 +208,25 @@ def _first_session(ts: pd.Series, sessions: pd.DatetimeIndex) -> pd.Series:
     return out
 
 
+ENTRY_CUTOFF_H = 15.5   # 15:30 ET: a filing SEC accepted by then can be bought at that session's close
+
+
+def _entry_session(ts: pd.Series, sessions: pd.DatetimeIndex) -> pd.Series:
+    """First session whose CLOSE can still be bought after the event: the acceptance day itself when SEC accepted
+    it before 15:30 ET on a session day (overnight/pre-market filings included - their first_session), else the
+    next session. No time (00:00, old filings) = after the close, as in _first_session. Paper-trading a strategy
+    that enters here needs a live intraday EDGAR check (~12:45 PT) that is NOT built yet - the Director asks the
+    user's session to build it when such a strategy passes its holdout (prompts/director.md)."""
+    day = ts.dt.normalize()
+    secs = (ts - day).dt.total_seconds()
+    before = (secs > 0) & (secs < ENTRY_CUTOFF_H * 3600)
+    i = sessions.searchsorted(day.where(before, day + pd.Timedelta(days=1)), side="left")
+    out = pd.Series(pd.NaT, index=ts.index, dtype="datetime64[ns]")
+    ok = (i < len(sessions)) & ts.notna().to_numpy()
+    out[ok] = sessions[i[ok]]
+    return out
+
+
 def filings(forms=None, items=None, tickers=None) -> pd.DataFrame:
     """SEC filings accepted up to the cutoff. forms: e.g. ['8-K'] (matches 8-K/A too); items: 8-K item codes,
     e.g. ['5.02'] (any match). Columns: ticker cik form filing_date accepted items accession primary_doc
@@ -188,7 +244,9 @@ def filings(forms=None, items=None, tickers=None) -> pd.DataFrame:
     if tickers is not None:
         df = df[df["ticker"].isin(list(tickers))]
     df = df.copy()
-    df["first_session"] = _first_session(df["accepted"], _sessions(end))
+    sessions = _sessions(end)
+    df["first_session"] = _first_session(df["accepted"], sessions)
+    df["entry_session"] = _entry_session(df["accepted"], sessions)
     return df.reset_index(drop=True)
 
 
@@ -207,7 +265,9 @@ def splits(tickers=None) -> pd.DataFrame:
     if tickers is not None:
         df = df[df["ticker"].isin(list(tickers))]
     df = df.copy()
-    df["first_session"] = _first_session(df["announced"], _sessions(end))
+    sessions = _sessions(end)
+    df["first_session"] = _first_session(df["announced"], sessions)
+    df["entry_session"] = _entry_session(df["announced"], sessions)
     return df.reset_index(drop=True)
 
 

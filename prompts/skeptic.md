@@ -23,7 +23,12 @@ Checklist - any clear failure = FAIL:
    or survivorship (today's constituents back-tested - say how much that could inflate it).
 6. **Paper match**: strategy.py implements the same rule as test.py's `chosen` with the same timing, and
    spec.json `entry_at`/`exit_at` match plan.json.
-7. **Not a graveyard rerun** under a new name.
+7. **Not a graveyard rerun** under a new name - except a declared day-0 re-test (`<old-id>-day0`, entering at
+   `entry_session` - TEAM.md "Where the search goes"), which is allowed once.
+8. **Family**: is `plan.json` `family` honest? Same events/data as an existing family = that family (a new name
+   would get a fresh holdout it doesn't have). Hedge fund matches the universe (`rd.hedge_ticker`)?
+9. **Power**: `train_result.json` `holdout_power.pass_prob` - the harness already buried anything under 25%; between
+   25% and 50%, say plainly that the holdout is likelier to fail than pass even if the edge is real.
 
 Write `research/<id>/review.md` (each check: pass/fail + evidence with file:line) and LAST
 `research/<id>/skeptic.json`: `{"verdict": "PASS"|"FAIL", "summary": "<one line>", "checks": {"lookahead": "...",

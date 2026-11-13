@@ -1,5 +1,10 @@
 # Director notes
 
+## Resolved - don't repeat (from the user's session, 2026-11-13 audit; TEAM.md "Settled facts" has the details)
+- 2026-11-10 was a POWER LOSS (09:52-15:23), not sleep. A gap; nothing to fix. Gaps are now notes, not tickets.
+- The quotes.py late-run guard (too_late) exists since 2026-11-11 - don't propose it again.
+- G2 is retired and its tasks are off. ON1 retires automatically on its real-price FAIL. Don't ask the user.
+
 ## 2026-10-27 (Tue) — forced run
 State at start: pipeline empty, 1 registered idea (insider-officer-buys), 0 team paper tests.
 
