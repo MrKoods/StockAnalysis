@@ -1,6 +1,6 @@
 {
   "_doc": "Mean HALF-spread (bps) paid per fill at Webull, by fill time and index (tools/fill_costs.py). A round trip costs entry half + exit half. Cells with < 30 quotes use the 2026-11-04 defaults.",
-  "updated": "2026-11-12 14:50",
+  "updated": "2026-11-13 14:51",
   "quote_days": 9,
   "first_day": "2026-11-02",
   "last_day": "2026-11-12",
