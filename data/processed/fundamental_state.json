@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-11T13:34:01.420327+00:00",
+  "last_updated": "2026-11-13T13:31:02.154220+00:00",
   "update_cadence": "weekly",
   "update_day": "Monday",
   "tickers": {
@@ -102,14 +102,14 @@
     "AVGO": {
       "ticker": "AVGO",
       "valuation": {
-        "trailingPE": 37.23244,
-        "forwardPE": 14.977084,
-        "enterpriseToEbitda": 27.308,
-        "enterpriseToRevenue": 16.016,
+        "trailingPE": 46.533844,
+        "forwardPE": 18.718657,
+        "enterpriseToEbitda": 33.96,
+        "enterpriseToRevenue": 19.918,
         "recommendationMean": 1.23529,
-        "targetMeanPrice": 526.80835,
+        "targetMeanPrice": 533.4238,
         "suspect_fields": [],
-        "forward_pe_yfinance": 14.977084,
+        "forward_pe_yfinance": 18.718657,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -131,9 +131,9 @@
         "gross_margin_prior": 0.6813
       },
       "revisions": {
-        "analyst_target_price": 526.80835,
-        "current_price": 291.53,
-        "implied_upside_pct": 0.807,
+        "analyst_target_price": 533.4238,
+        "current_price": 364.36,
+        "implied_upside_pct": 0.464,
         "analyst_rating_breakdown": {
           "strongBuy": 17,
           "buy": 37,
@@ -144,26 +144,26 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 530.14166,
-        "prior_target_as_of": "2026-10-30"
+        "prior_analyst_target_price": 526.80835,
+        "prior_target_as_of": "2026-11-06"
       }
     },
     "TSM": {
       "ticker": "TSM",
       "valuation": {
-        "trailingPE": 25.648088,
-        "forwardPE": 16.88771,
-        "enterpriseToEbitda": 3.661,
-        "enterpriseToRevenue": 2.674,
+        "trailingPE": 26.788723,
+        "forwardPE": 17.675642,
+        "enterpriseToEbitda": 3.863,
+        "enterpriseToRevenue": 2.821,
         "recommendationMean": 1.38095,
         "targetMeanPrice": 586.693,
         "suspect_fields": [],
-        "forward_pe_yfinance": 16.88771,
+        "forward_pe_yfinance": 17.675642,
         "forward_pe_finnhub": null
       },
       "earnings": {
         "earnings_surprises": [
-          4.0936,
+          0.0065,
           0.1092,
           0.0444,
           0.0521
@@ -181,8 +181,8 @@
       },
       "revisions": {
         "analyst_target_price": 586.693,
-        "current_price": 395.75,
-        "implied_upside_pct": 0.4825,
+        "current_price": 413.35,
+        "implied_upside_pct": 0.4194,
         "analyst_rating_breakdown": {
           "strongBuy": 12,
           "buy": 28,
@@ -193,8 +193,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 584.39294,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 586.693,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "MU": {
@@ -300,14 +300,14 @@
     "ZION": {
       "ticker": "ZION",
       "valuation": {
-        "trailingPE": 8.17546,
-        "forwardPE": 9.590831,
+        "trailingPE": 8.164417,
+        "forwardPE": 9.599128,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 1.919,
+        "enterpriseToRevenue": 2.092,
         "recommendationMean": 2.56522,
-        "targetMeanPrice": 72.77273,
+        "targetMeanPrice": 72.63636,
         "suspect_fields": [],
-        "forward_pe_yfinance": 9.590831,
+        "forward_pe_yfinance": 9.599128,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -327,9 +327,9 @@
         "revenue_yoy_growth": 0.3568
       },
       "revisions": {
-        "analyst_target_price": 72.77273,
-        "current_price": 66.63,
-        "implied_upside_pct": 0.0922,
+        "analyst_target_price": 72.63636,
+        "current_price": 66.54,
+        "implied_upside_pct": 0.0916,
         "analyst_rating_breakdown": {
           "strongBuy": 5,
           "buy": 7,
@@ -340,8 +340,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 72.72727,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 72.77273,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "KEY": {
@@ -441,14 +441,14 @@
     "RF": {
       "ticker": "RF",
       "valuation": {
-        "trailingPE": 11.384315,
-        "forwardPE": 10.188897,
+        "trailingPE": 11.231373,
+        "forwardPE": 10.052014,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 3.589,
+        "enterpriseToRevenue": 4.649,
         "recommendationMean": 2.69565,
-        "targetMeanPrice": 31.20952,
+        "targetMeanPrice": 31.22143,
         "suspect_fields": [],
-        "forward_pe_yfinance": 10.188897,
+        "forward_pe_yfinance": 10.052014,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -468,9 +468,9 @@
         "revenue_yoy_growth": 0.001
       },
       "revisions": {
-        "analyst_target_price": 31.20952,
-        "current_price": 29.03,
-        "implied_upside_pct": 0.0751,
+        "analyst_target_price": 31.22143,
+        "current_price": 28.64,
+        "implied_upside_pct": 0.0901,
         "analyst_rating_breakdown": {
           "strongBuy": 5,
           "buy": 8,
@@ -481,8 +481,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 31.18571,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 31.20952,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "FITB": {
@@ -535,19 +535,19 @@
     "LLY": {
       "ticker": "LLY",
       "valuation": {
-        "trailingPE": 46.112785,
-        "forwardPE": 27.981625,
-        "enterpriseToEbitda": null,
-        "enterpriseToRevenue": null,
+        "trailingPE": 46.650116,
+        "forwardPE": 28.382124,
+        "enterpriseToEbitda": 28.499,
+        "enterpriseToRevenue": 15.323,
         "recommendationMean": 1.6129,
-        "targetMeanPrice": 1377.7117,
+        "targetMeanPrice": 1460.298,
         "suspect_fields": [],
-        "forward_pe_yfinance": 27.981625,
+        "forward_pe_yfinance": 28.382124,
         "forward_pe_finnhub": null
       },
       "earnings": {
         "earnings_surprises": [
-          0.1314,
+          0.1832,
           0.3814,
           0.2704,
           0.1192
@@ -559,16 +559,15 @@
           4.8037,
           0.9177
         ],
-        "revenue_yoy_growth": 0.4767,
-        "_earnings_trend_source": "sec_xbrl"
+        "revenue_yoy_growth": 0.4767
       },
       "revisions": {
-        "analyst_target_price": 1377.7117,
-        "current_price": 1373.7,
-        "implied_upside_pct": 0.0029,
+        "analyst_target_price": 1460.298,
+        "current_price": 1437.29,
+        "implied_upside_pct": 0.016,
         "analyst_rating_breakdown": {
           "strongBuy": 11,
-          "buy": 20,
+          "buy": 21,
           "hold": 4,
           "sell": 1,
           "strongSell": 0
@@ -576,8 +575,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 1333.7213,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 1377.7117,
+        "prior_target_as_of": "2026-10-30"
       }
     },
     "PFE": {
@@ -869,14 +868,14 @@
     "TSLA": {
       "ticker": "TSLA",
       "valuation": {
-        "trailingPE": 377.6813,
-        "forwardPE": 159.17322,
-        "enterpriseToEbitda": 135.202,
-        "enterpriseToRevenue": 12.843,
-        "recommendationMean": 2.29545,
-        "targetMeanPrice": 413.10126,
+        "trailingPE": 436.75824,
+        "forwardPE": 184.0711,
+        "enterpriseToEbitda": 156.802,
+        "enterpriseToRevenue": 14.894,
+        "recommendationMean": 2.27273,
+        "targetMeanPrice": 412.47626,
         "suspect_fields": [],
-        "forward_pe_yfinance": 159.17322,
+        "forward_pe_yfinance": 184.0711,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -898,9 +897,9 @@
         "gross_margin_prior": 0.2108
       },
       "revisions": {
-        "analyst_target_price": 413.10126,
-        "current_price": 343.69,
-        "implied_upside_pct": 0.202,
+        "analyst_target_price": 412.47626,
+        "current_price": 397.45,
+        "implied_upside_pct": 0.0378,
         "analyst_rating_breakdown": {
           "strongBuy": 10,
           "buy": 19,
@@ -911,21 +910,21 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 411.8155,
-        "prior_target_as_of": "2026-10-30"
+        "prior_analyst_target_price": 413.10126,
+        "prior_target_as_of": "2026-11-06"
       }
     },
     "HD": {
       "ticker": "HD",
       "valuation": {
-        "trailingPE": 24.488453,
-        "forwardPE": 21.91342,
-        "enterpriseToEbitda": 16.644,
-        "enterpriseToRevenue": 2.425,
+        "trailingPE": 24.37089,
+        "forwardPE": 21.836716,
+        "enterpriseToEbitda": 16.576,
+        "enterpriseToRevenue": 2.415,
         "recommendationMean": 1.88889,
-        "targetMeanPrice": 379.0,
+        "targetMeanPrice": 377.8125,
         "suspect_fields": [],
-        "forward_pe_yfinance": 21.91342,
+        "forward_pe_yfinance": 21.836716,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -947,9 +946,9 @@
         "gross_margin_prior": 0.3264
       },
       "revisions": {
-        "analyst_target_price": 379.0,
-        "current_price": 349.94,
-        "implied_upside_pct": 0.083,
+        "analyst_target_price": 377.8125,
+        "current_price": 348.26,
+        "implied_upside_pct": 0.0849,
         "analyst_rating_breakdown": {
           "strongBuy": 9,
           "buy": 20,
@@ -961,20 +960,20 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 379.0,
-        "prior_target_as_of": "2026-10-30"
+        "prior_target_as_of": "2026-11-06"
       }
     },
     "NKE": {
       "ticker": "NKE",
       "valuation": {
-        "trailingPE": 19.466347,
-        "forwardPE": 26.00397,
-        "enterpriseToEbitda": 12.855,
-        "enterpriseToRevenue": 1.371,
-        "recommendationMean": 2.88372,
-        "targetMeanPrice": 36.44595,
+        "trailingPE": 18.423077,
+        "forwardPE": 24.79986,
+        "enterpriseToEbitda": 12.196,
+        "enterpriseToRevenue": 1.3,
+        "recommendationMean": 2.93182,
+        "targetMeanPrice": 36.46053,
         "suspect_fields": [],
-        "forward_pe_yfinance": 26.00397,
+        "forward_pe_yfinance": 24.79986,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -996,9 +995,9 @@
         "gross_margin_prior": 0.406
       },
       "revisions": {
-        "analyst_target_price": 36.44595,
-        "current_price": 40.49,
-        "implied_upside_pct": -0.0999,
+        "analyst_target_price": 36.46053,
+        "current_price": 38.32,
+        "implied_upside_pct": -0.0485,
         "analyst_rating_breakdown": {
           "strongBuy": 8,
           "buy": 6,
@@ -1009,8 +1008,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 36.5,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 36.44595,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "SBUX": {
@@ -1210,22 +1209,22 @@
     "AMAT": {
       "ticker": "AMAT",
       "valuation": {
-        "trailingPE": 32.142365,
-        "forwardPE": 20.075499,
-        "enterpriseToEbitda": 28.927,
-        "enterpriseToRevenue": 9.526,
-        "recommendationMean": 1.41463,
-        "targetMeanPrice": 620.78375,
+        "trailingPE": 30.186214,
+        "forwardPE": 15.750191,
+        "enterpriseToEbitda": 25.11,
+        "enterpriseToRevenue": 8.689,
+        "recommendationMean": 1.425,
+        "targetMeanPrice": 608.2778,
         "suspect_fields": [],
-        "forward_pe_yfinance": 20.075499,
+        "forward_pe_yfinance": 15.750191,
         "forward_pe_finnhub": null
       },
       "earnings": {
         "earnings_surprises": [
+          0.0062,
           0.0108,
           0.0524,
-          0.0586,
-          0.0163
+          0.0586
         ],
         "consecutive_beats": 4,
         "eps_growth_trend": [
@@ -1240,9 +1239,9 @@
         "_earnings_trend_source": "sec_xbrl"
       },
       "revisions": {
-        "analyst_target_price": 620.78375,
-        "current_price": 372.53,
-        "implied_upside_pct": 0.6664,
+        "analyst_target_price": 608.2778,
+        "current_price": 380.95,
+        "implied_upside_pct": 0.5967,
         "analyst_rating_breakdown": {
           "strongBuy": 12,
           "buy": 28,
@@ -1253,8 +1252,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 620.78375,
-        "prior_target_as_of": "2026-11-10"
+        "prior_analyst_target_price": 623.30554,
+        "prior_target_as_of": "2026-11-12"
       }
     },
     "QCOM": {
@@ -1357,14 +1356,14 @@
     "CFG": {
       "ticker": "CFG",
       "valuation": {
-        "trailingPE": 13.313132,
-        "forwardPE": 10.150924,
+        "trailingPE": 13.20808,
+        "forwardPE": 10.070825,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 4.063,
+        "enterpriseToRevenue": 4.038,
         "recommendationMean": 1.55,
         "targetMeanPrice": 76.39474,
         "suspect_fields": [],
-        "forward_pe_yfinance": 10.150924,
+        "forward_pe_yfinance": 10.070825,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -1385,8 +1384,8 @@
       },
       "revisions": {
         "analyst_target_price": 76.39474,
-        "current_price": 65.9,
-        "implied_upside_pct": 0.1593,
+        "current_price": 65.38,
+        "implied_upside_pct": 0.1685,
         "analyst_rating_breakdown": {
           "strongBuy": 6,
           "buy": 15,
@@ -1398,7 +1397,7 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 76.39474,
-        "prior_target_as_of": "2026-10-29"
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "TFC": {
@@ -1451,14 +1450,14 @@
     "MTB": {
       "ticker": "MTB",
       "valuation": {
-        "trailingPE": 11.736677,
-        "forwardPE": 10.640329,
+        "trailingPE": 11.50418,
+        "forwardPE": 10.42955,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 4.14,
+        "enterpriseToRevenue": 4.118,
         "recommendationMean": 2.77273,
         "targetMeanPrice": 245.92857,
         "suspect_fields": [],
-        "forward_pe_yfinance": 10.640329,
+        "forward_pe_yfinance": 10.42955,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -1479,8 +1478,8 @@
       },
       "revisions": {
         "analyst_target_price": 245.92857,
-        "current_price": 224.64,
-        "implied_upside_pct": 0.0948,
+        "current_price": 220.19,
+        "implied_upside_pct": 0.1169,
         "analyst_rating_breakdown": {
           "strongBuy": 3,
           "buy": 7,
@@ -1492,7 +1491,7 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 245.92857,
-        "prior_target_as_of": "2026-10-29"
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "WBS": {
@@ -1588,14 +1587,14 @@
     "PNFP": {
       "ticker": "PNFP",
       "valuation": {
-        "trailingPE": 13.957163,
-        "forwardPE": 8.96339,
+        "trailingPE": 13.6332,
+        "forwardPE": 8.755339,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 4.966,
+        "enterpriseToRevenue": 4.875,
         "recommendationMean": 1.59091,
         "targetMeanPrice": 121.40909,
         "suspect_fields": [],
-        "forward_pe_yfinance": 8.96339,
+        "forward_pe_yfinance": 8.755339,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -1616,8 +1615,8 @@
       },
       "revisions": {
         "analyst_target_price": 121.40909,
-        "current_price": 104.26,
-        "implied_upside_pct": 0.1645,
+        "current_price": 101.84,
+        "implied_upside_pct": 0.1922,
         "analyst_rating_breakdown": {
           "strongBuy": 6,
           "buy": 16,
@@ -1628,8 +1627,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 119.72727,
-        "prior_target_as_of": "2026-10-23"
+        "prior_analyst_target_price": 121.40909,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "ONB": {
@@ -1682,14 +1681,14 @@
     "UMBF": {
       "ticker": "UMBF",
       "valuation": {
-        "trailingPE": 10.189107,
-        "forwardPE": 9.525439,
+        "trailingPE": 10.096823,
+        "forwardPE": 9.439166,
         "enterpriseToEbitda": null,
-        "enterpriseToRevenue": 4.114,
+        "enterpriseToRevenue": 4.083,
         "recommendationMean": 1.8125,
-        "targetMeanPrice": 160.9375,
+        "targetMeanPrice": 161.0625,
         "suspect_fields": [],
-        "forward_pe_yfinance": 9.525439,
+        "forward_pe_yfinance": 9.439166,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -1709,9 +1708,9 @@
         "revenue_yoy_growth": 0.1289
       },
       "revisions": {
-        "analyst_target_price": 160.9375,
-        "current_price": 134.7,
-        "implied_upside_pct": 0.1948,
+        "analyst_target_price": 161.0625,
+        "current_price": 133.48,
+        "implied_upside_pct": 0.2066,
         "analyst_rating_breakdown": {
           "strongBuy": 4,
           "buy": 14,
@@ -1722,29 +1721,29 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 163.125,
-        "prior_target_as_of": "2026-10-27"
+        "prior_analyst_target_price": 160.9375,
+        "prior_target_as_of": "2026-11-06"
       }
     },
     "AMGN": {
       "ticker": "AMGN",
       "valuation": {
-        "trailingPE": 28.909939,
-        "forwardPE": 18.999851,
-        "enterpriseToEbitda": 17.081,
-        "enterpriseToRevenue": 7.743,
-        "recommendationMean": 2.64706,
-        "targetMeanPrice": 397.3231,
+        "trailingPE": 27.13681,
+        "forwardPE": 18.707518,
+        "enterpriseToEbitda": 16.676,
+        "enterpriseToRevenue": 7.558,
+        "recommendationMean": 2.70588,
+        "targetMeanPrice": 431.80585,
         "suspect_fields": [],
-        "forward_pe_yfinance": 18.999851,
+        "forward_pe_yfinance": 18.707518,
         "forward_pe_finnhub": null
       },
       "earnings": {
         "earnings_surprises": [
+          0.0916,
           0.0981,
           0.0614,
-          0.0956,
-          0.1028
+          0.0956
         ],
         "consecutive_beats": 4,
         "eps_growth_trend": [
@@ -1754,13 +1753,12 @@
           0.9203
         ],
         "revenue_yoy_growth": 0.0953,
-        "gross_margin_latest": 0.7073,
-        "_earnings_trend_source": "sec_xbrl"
+        "gross_margin_latest": 0.7073
       },
       "revisions": {
-        "analyst_target_price": 397.3231,
-        "current_price": 465.45,
-        "implied_upside_pct": -0.1464,
+        "analyst_target_price": 431.80585,
+        "current_price": 468.11,
+        "implied_upside_pct": -0.0776,
         "analyst_rating_breakdown": {
           "strongBuy": 6,
           "buy": 12,
@@ -1772,7 +1770,7 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 397.3231,
-        "prior_target_as_of": "2026-11-02"
+        "prior_target_as_of": "2026-11-03"
       }
     },
     "GILD": {
@@ -1827,19 +1825,19 @@
     "BMY": {
       "ticker": "BMY",
       "valuation": {
-        "trailingPE": 13.522026,
-        "forwardPE": 9.271398,
-        "enterpriseToEbitda": null,
-        "enterpriseToRevenue": null,
-        "recommendationMean": 2.48148,
-        "targetMeanPrice": 65.3913,
+        "trailingPE": 13.949001,
+        "forwardPE": 9.390477,
+        "enterpriseToEbitda": 8.816,
+        "enterpriseToRevenue": 3.214,
+        "recommendationMean": 2.5,
+        "targetMeanPrice": 65.25,
         "suspect_fields": [],
-        "forward_pe_yfinance": 9.271398,
+        "forward_pe_yfinance": 9.390477,
         "forward_pe_finnhub": null
       },
       "earnings": {
         "earnings_surprises": [
-          0.1166,
+          0.1699,
           0.272,
           0.104,
           0.1185
@@ -1853,25 +1851,24 @@
         ],
         "revenue_yoy_growth": 0.0574,
         "gross_margin_latest": 0.7371,
-        "gross_margin_prior": 0.7626,
-        "_earnings_trend_source": "sec_xbrl"
+        "gross_margin_prior": 0.7626
       },
       "revisions": {
-        "analyst_target_price": 65.3913,
-        "current_price": 61.39,
-        "implied_upside_pct": 0.0652,
+        "analyst_target_price": 65.25,
+        "current_price": 62.91,
+        "implied_upside_pct": 0.0372,
         "analyst_rating_breakdown": {
-          "strongBuy": 7,
+          "strongBuy": 6,
           "buy": 8,
-          "hold": 18,
+          "hold": 19,
           "sell": 1,
           "strongSell": 0
         },
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 65.25,
-        "prior_target_as_of": "2026-10-29"
+        "prior_analyst_target_price": 65.3913,
+        "prior_target_as_of": "2026-10-30"
       }
     },
     "VRTX": {
@@ -1925,14 +1922,14 @@
     "TMO": {
       "ticker": "TMO",
       "valuation": {
-        "trailingPE": 37.244724,
-        "forwardPE": 25.416843,
-        "enterpriseToEbitda": 24.488,
-        "enterpriseToRevenue": 6.274,
+        "trailingPE": 37.853905,
+        "forwardPE": 25.832565,
+        "enterpriseToEbitda": 24.841,
+        "enterpriseToRevenue": 6.365,
         "recommendationMean": 1.44444,
-        "targetMeanPrice": 752.12,
+        "targetMeanPrice": 756.52,
         "suspect_fields": [],
-        "forward_pe_yfinance": 25.416843,
+        "forward_pe_yfinance": 25.832565,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -1954,9 +1951,9 @@
         "gross_margin_prior": 0.4405
       },
       "revisions": {
-        "analyst_target_price": 752.12,
-        "current_price": 706.16,
-        "implied_upside_pct": 0.0651,
+        "analyst_target_price": 756.52,
+        "current_price": 717.71,
+        "implied_upside_pct": 0.0541,
         "analyst_rating_breakdown": {
           "strongBuy": 11,
           "buy": 16,
@@ -1967,8 +1964,8 @@
         "data_limitations": "Neither yfinance nor Finnhub's free tier provides a historical estimate revision sequence (upgrades vs. downgrades vs. 30 days ago) \u2014 only current target price and the latest rating snapshot are available without a paid tier.",
         "sa_quant_rating": null,
         "sa_rating_revision": null,
-        "prior_analyst_target_price": 750.92,
-        "prior_target_as_of": "2026-10-23"
+        "prior_analyst_target_price": 752.12,
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "ABT": {
@@ -2072,14 +2069,14 @@
     "SYK": {
       "ticker": "SYK",
       "valuation": {
-        "trailingPE": 32.305702,
-        "forwardPE": 18.722486,
-        "enterpriseToEbitda": 17.835,
-        "enterpriseToRevenue": 5.091,
-        "recommendationMean": 1.73333,
-        "targetMeanPrice": 362.6154,
+        "trailingPE": 33.949947,
+        "forwardPE": 19.571959,
+        "enterpriseToEbitda": 17.779,
+        "enterpriseToRevenue": 5.077,
+        "recommendationMean": 1.8,
+        "targetMeanPrice": 339.37296,
         "suspect_fields": [],
-        "forward_pe_yfinance": 18.722486,
+        "forward_pe_yfinance": 19.571959,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -2098,17 +2095,16 @@
         ],
         "revenue_yoy_growth": 0.0942,
         "gross_margin_latest": 0.6827,
-        "gross_margin_prior": 0.6329,
-        "_earnings_trend_source": "sec_xbrl"
+        "gross_margin_prior": 0.6329
       },
       "revisions": {
-        "analyst_target_price": 362.6154,
-        "current_price": 311.75,
-        "implied_upside_pct": 0.1632,
+        "analyst_target_price": 339.37296,
+        "current_price": 318.79,
+        "implied_upside_pct": 0.0646,
         "analyst_rating_breakdown": {
           "strongBuy": 12,
           "buy": 15,
-          "hold": 6,
+          "hold": 8,
           "sell": 0,
           "strongSell": 0
         },
@@ -2116,7 +2112,7 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 362.6154,
-        "prior_target_as_of": "2026-10-29"
+        "prior_target_as_of": "2026-10-30"
       }
     },
     "MCD": {
@@ -2267,14 +2263,14 @@
     "LOW": {
       "ticker": "LOW",
       "valuation": {
-        "trailingPE": 19.389688,
-        "forwardPE": 17.66372,
-        "enterpriseToEbitda": 13.163,
-        "enterpriseToRevenue": 1.853,
+        "trailingPE": 19.577347,
+        "forwardPE": 17.885275,
+        "enterpriseToEbitda": 13.261,
+        "enterpriseToRevenue": 1.867,
         "recommendationMean": 1.74286,
-        "targetMeanPrice": 251.9697,
+        "targetMeanPrice": 252.63635,
         "suspect_fields": [],
-        "forward_pe_yfinance": 17.66372,
+        "forward_pe_yfinance": 17.885275,
         "forward_pe_finnhub": null
       },
       "earnings": {
@@ -2296,9 +2292,9 @@
         "gross_margin_prior": 0.3246
       },
       "revisions": {
-        "analyst_target_price": 251.9697,
-        "current_price": 229.38,
-        "implied_upside_pct": 0.0985,
+        "analyst_target_price": 252.63635,
+        "current_price": 231.6,
+        "implied_upside_pct": 0.0908,
         "analyst_rating_breakdown": {
           "strongBuy": 11,
           "buy": 18,
@@ -2310,7 +2306,7 @@
         "sa_quant_rating": null,
         "sa_rating_revision": null,
         "prior_analyst_target_price": 251.9697,
-        "prior_target_as_of": "2026-10-29"
+        "prior_target_as_of": "2026-11-05"
       }
     },
     "ORLY": {
@@ -2364,42 +2360,42 @@
     }
   },
   "fetched_dates": {
-    "AVGO": "2026-11-06",
-    "TSM": "2026-11-05",
+    "AVGO": "2026-11-13",
+    "TSM": "2026-11-12",
     "MU": "2026-11-10",
-    "ZION": "2026-11-05",
+    "ZION": "2026-11-12",
     "HBAN": "2026-11-10",
-    "RF": "2026-11-05",
-    "LLY": "2026-10-30",
+    "RF": "2026-11-12",
+    "LLY": "2026-11-12",
     "MRK": "2026-11-10",
     "UNH": "2026-11-10",
     "JNJ": "2026-11-09",
     "AMZN": "2026-11-09",
-    "TSLA": "2026-11-06",
-    "HD": "2026-11-06",
-    "NKE": "2026-11-05",
+    "TSLA": "2026-11-13",
+    "HD": "2026-11-13",
+    "NKE": "2026-11-12",
     "SBUX": "2026-11-09",
     "TGT": "2026-11-09",
     "TXN": "2026-11-10",
     "ADI": "2026-11-10",
-    "AMAT": "2026-11-11",
+    "AMAT": "2026-11-13",
     "KLAC": "2026-11-09",
-    "CFG": "2026-11-05",
+    "CFG": "2026-11-12",
     "TFC": "2026-11-10",
-    "MTB": "2026-11-05",
+    "MTB": "2026-11-12",
     "WBS": "2026-08-25",
     "CFR": "2026-11-09",
-    "PNFP": "2026-11-05",
+    "PNFP": "2026-11-12",
     "ONB": "2026-11-10",
-    "UMBF": "2026-11-06",
-    "AMGN": "2026-11-03",
-    "BMY": "2026-10-30",
+    "UMBF": "2026-11-13",
+    "AMGN": "2026-11-12",
+    "BMY": "2026-11-12",
     "VRTX": "2026-11-05",
-    "TMO": "2026-11-05",
-    "SYK": "2026-10-30",
+    "TMO": "2026-11-12",
+    "SYK": "2026-11-12",
     "BKNG": "2026-11-06",
     "TJX": "2026-11-10",
-    "LOW": "2026-11-05",
+    "LOW": "2026-11-12",
     "NVDA": "2026-11-11",
     "AMD": "2026-11-11",
     "ASML": "2026-11-11",
@@ -2440,7 +2436,7 @@
     "TGT": "2026-08-19",
     "TXN": "2026-10-23",
     "ADI": "2026-08-25",
-    "AMAT": "2026-11-11",
+    "AMAT": "2026-11-13",
     "QCOM": "2026-11-06",
     "KLAC": "2026-10-30",
     "CFG": "2026-10-19",

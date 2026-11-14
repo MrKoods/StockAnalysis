@@ -2807,9 +2807,107 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-11-11T21:35:36.503910+00:00"
+    },
+    {
+      "id": "97a168f1-46d8-475d-8b8b-be40163f2a59",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Stock Trades at Widest Gap Versus 200-Day Average Since Trump's Tariffs Rout",
+      "trigger_match": "tariff",
+      "source": "benzinga.com",
+      "event_timestamp_utc": "2026-11-09T14:05:08+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-12T13:34:23.632847+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-12T21:35:20.368627+00:00"
+    },
+    {
+      "id": "45590c14-43ff-4bb2-928c-f60dc2355f2a",
+      "tickers": [
+        "TSLA"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "Tesla offered $5,000 to a homeowner whose $110K Solar Roof never produced power. A judge has deemed it liable for fraud",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-09T17:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-12T13:38:12.347460+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-12T21:35:20.368635+00:00"
+    },
+    {
+      "id": "a7f1d7c5-7e50-4f4a-9408-0e249b73fa76",
+      "tickers": [
+        "NVDA"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "Wall Street Steady Pre-Bell Amid Nvidia CEO Departure; Asia Off, Europe Up",
+      "trigger_match": "CEO departure",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-13T11:19:11+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-13T13:31:56.766355+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-13T21:34:16.433402+00:00"
+    },
+    {
+      "id": "28278342-df2d-4b32-8754-043f59cad86f",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Stock Trades at Widest Gap Versus 200-Day Average Since Trump's Tariffs Rout",
+      "trigger_match": "tariff",
+      "source": "benzinga.com",
+      "event_timestamp_utc": "2026-11-09T14:05:08+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-13T13:32:13.982296+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-13T21:34:16.433410+00:00"
+    },
+    {
+      "id": "4d370d1d-24a2-4f44-93de-e5fe8bd07cf7",
+      "tickers": [
+        "TSLA"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "Tesla offered $5,000 to a homeowner whose $110K Solar Roof never produced power. A judge has deemed it liable for fraud",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-09T17:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-13T13:36:15.831701+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-13T21:34:16.433413+00:00"
     }
   ],
-  "critical_alerts_sent": {
-    "LOW|guidance cut|2026-11-05T16:13:41+00:00": "2026-11-05T21:34:08.027660+00:00"
-  }
+  "critical_alerts_sent": {}
 }

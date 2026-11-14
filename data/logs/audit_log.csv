@@ -349,3 +349,13 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-11-11T13:37:57.712021+00:00,v2.2.134,pre_market,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
 2026-11-11T21:35:37.168668+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
 2026-11-11T21:35:37.717215+00:00,v2.2.134,post_close,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-11-12T13:34:24.109965+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='benzinga.com',True,tariff
+2026-11-12T13:38:12.810386+00:00,v2.2.134,pre_market,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-11-12T21:35:20.815771+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-11-12T21:35:21.334609+00:00,v2.2.134,post_close,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-11-13T13:31:57.445679+00:00,v2.2.134,pre_market,NVDA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='CEO departure' source='yahoo.com',True,CEO departure
+2026-11-13T13:32:14.475488+00:00,v2.2.134,pre_market,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='benzinga.com',True,tariff
+2026-11-13T13:36:16.279973+00:00,v2.2.134,pre_market,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
+2026-11-13T21:34:16.871581+00:00,v2.2.134,post_close,NVDA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='CEO departure',False,CEO departure
+2026-11-13T21:34:17.344143+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='tariff',False,tariff
+2026-11-13T21:34:17.747431+00:00,v2.2.134,post_close,TSLA,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud

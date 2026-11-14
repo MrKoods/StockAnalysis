@@ -1,83 +1,113 @@
 {
   "NVDA": {
-    "fetched_at": "2026-11-11T21:30:29.614548+00:00",
+    "fetched_at": "2026-11-13T21:30:38.383555+00:00",
     "items": [
       {
-        "article_id": "4670800",
-        "timestamp_utc": "2026-11-11T11:42:30-05:00",
-        "title": "Nvidia's Huang is likely to be subpoenaed by Congress, lawmaker says",
-        "comment_count": 58
+        "article_id": "4672646",
+        "timestamp_utc": "2026-11-13T16:16:39-05:00",
+        "title": "Cohere announces acquisition of cubic, aimed at boosting AI cyber defense",
+        "comment_count": 0
       },
       {
-        "article_id": "4670658",
-        "timestamp_utc": "2026-11-11T09:39:29-05:00",
-        "title": "The next AI battleground is compute, and China has a cost advantage",
-        "comment_count": 20
+        "article_id": "4672600",
+        "timestamp_utc": "2026-11-13T16:05:02-05:00",
+        "title": "RenTech takes new stake in Goldman Sachs, trims position in megacap tech stocks in Q3",
+        "comment_count": 0
       },
       {
-        "article_id": "4670657",
-        "timestamp_utc": "2026-11-11T09:35:42-05:00",
-        "title": "Chinese university on US blacklist bought Nvidia H200 AI chips: report",
+        "article_id": "4672606",
+        "timestamp_utc": "2026-11-13T15:57:48-05:00",
+        "title": "SA Asks: How much will Jensen Huang's departure hurt Nvidia? (Update)",
         "comment_count": 14
       },
       {
-        "article_id": "4670625",
-        "timestamp_utc": "2026-11-11T08:54:37-05:00",
-        "title": "Chip, memory stocks rally after CoreWeave results ease AI demand worries",
-        "comment_count": 16
+        "article_id": "4672618",
+        "timestamp_utc": "2026-11-13T15:51:21-05:00",
+        "title": "SA Asks: Is Nvidia a buy, sell or hold after Jensen Huang's departure?",
+        "comment_count": 4
       },
       {
-        "article_id": "4670631",
-        "timestamp_utc": "2026-11-11T08:47:50-05:00",
-        "title": "4 stocks to watch on Wednesday: LLY, BABA, PYPL, and NVDA",
-        "comment_count": 5
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
       },
       {
-        "article_id": "4670602",
-        "timestamp_utc": "2026-11-11T07:56:09-05:00",
-        "title": "Nvidia attempts to rebound despite Baird downgrade, Morgan Stanley removing as top pick",
-        "comment_count": 26
+        "article_id": "4672539",
+        "timestamp_utc": "2026-11-13T12:29:48-05:00",
+        "title": "SA analyst upgrades/downgrades: NVDA, AAPL, SMCI, TSLA",
+        "comment_count": 6
       },
       {
-        "article_id": "4670413",
-        "timestamp_utc": "2026-11-11T01:08:56-05:00",
-        "title": "Michael Burry calls Nvidia 'a heck of a trade' while betting big on MercadoLibre",
-        "comment_count": 68
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
       },
       {
-        "article_id": "4670411",
-        "timestamp_utc": "2026-11-11T00:03:01-05:00",
-        "title": "CoreWeave stands by Nvidia partnership despite growing controversy",
-        "comment_count": 10
+        "article_id": "4672196",
+        "timestamp_utc": "2026-11-13T10:23:36-05:00",
+        "title": "Biggest stock movers Friday: CBRS, MOD, and more",
+        "comment_count": 1
       },
       {
-        "article_id": "4670148",
-        "timestamp_utc": "2026-11-10T16:24:54-05:00",
-        "title": "NVIDIA falls another 5% amid ongoing concerns about Huang probe and China exports",
-        "comment_count": 98
+        "article_id": "4672404",
+        "timestamp_utc": "2026-11-13T09:24:28-05:00",
+        "title": "Polen Global Growth adds Seagate, AMD And SK Hynix, trims Nvidia and Broadcom among Q3 moves",
+        "comment_count": 8
       },
       {
-        "article_id": "4670083",
-        "timestamp_utc": "2026-11-10T15:52:47-05:00",
-        "title": "Megaspeed absent from US Commerce Department's trade blacklist: report",
-        "comment_count": 36
+        "article_id": "4672394",
+        "timestamp_utc": "2026-11-13T09:20:54-05:00",
+        "title": "Bessent says Treasury has long-backed restrictions on Megaspeed",
+        "comment_count": 29
       }
     ]
   },
   "AMD": {
-    "fetched_at": "2026-11-11T21:30:35.188031+00:00",
+    "fetched_at": "2026-11-13T21:30:46.614727+00:00",
     "items": [
+      {
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
+      },
+      {
+        "article_id": "4672404",
+        "timestamp_utc": "2026-11-13T09:24:28-05:00",
+        "title": "Polen Global Growth adds Seagate, AMD And SK Hynix, trims Nvidia and Broadcom among Q3 moves",
+        "comment_count": 8
+      },
+      {
+        "article_id": "4671395",
+        "timestamp_utc": "2026-11-12T08:44:39-05:00",
+        "title": "AMD teams with PsiQuantum to design fault-tolerant, utility-scale quantum infrastructure",
+        "comment_count": 33
+      },
+      {
+        "article_id": "4671343",
+        "timestamp_utc": "2026-11-12T07:36:49-05:00",
+        "title": "AMD rises as William Blair upgrades on potential benefit from Nvidia fallout",
+        "comment_count": 20
+      },
+      {
+        "article_id": "4671101",
+        "timestamp_utc": "2026-11-11T23:46:54-05:00",
+        "title": "Chip rivals AMD, Broadcom rally as Nvidia board weighs ousting CEO Jensen Huang",
+        "comment_count": 33
+      },
       {
         "article_id": "4670625",
         "timestamp_utc": "2026-11-11T08:54:37-05:00",
         "title": "Chip, memory stocks rally after CoreWeave results ease AI demand worries",
-        "comment_count": 16
+        "comment_count": 26
       },
       {
         "article_id": "4669384",
         "timestamp_utc": "2026-11-09T17:29:49-05:00",
         "title": "Advanced Micro Devices soars 13% on Google Cloud deal, tech rally",
-        "comment_count": 10
+        "comment_count": 9
       },
       {
         "article_id": "4669027",
@@ -96,47 +126,41 @@
         "timestamp_utc": "2026-11-09T09:03:36-05:00",
         "title": "4 stocks to watch on Monday: AMD, NVDA, NRG, and RTX",
         "comment_count": 10
-      },
-      {
-        "article_id": "4668976",
-        "timestamp_utc": "2026-11-09T08:41:05-05:00",
-        "title": "AMD surges as Google Cloud taps EPYC for secure TPU 8tx AI",
-        "comment_count": 9
-      },
-      {
-        "article_id": "4667797",
-        "timestamp_utc": "2026-11-07T11:45:02-05:00",
-        "title": "Earnings Scoreboard: 86% of reporting firms beat EPS estimates, 78% post Y/Y earnings growth",
-        "comment_count": 3
-      },
-      {
-        "article_id": "4668609",
-        "timestamp_utc": "2026-11-07T10:05:58-05:00",
-        "title": "Notable tech headlines for the week: AMD, Qualcomm and Lumentum in focus",
-        "comment_count": 4
-      },
-      {
-        "article_id": "4667921",
-        "timestamp_utc": "2026-11-06T07:10:22-05:00",
-        "title": "AI and chip stocks rebound after steep selloff",
-        "comment_count": 110
-      },
-      {
-        "article_id": "4667146",
-        "timestamp_utc": "2026-11-05T15:32:44-05:00",
-        "title": "Tech selloff sends AMD down 15%",
-        "comment_count": 12
       }
     ]
   },
   "AVGO": {
-    "fetched_at": "2026-11-11T21:30:39.096439+00:00",
+    "fetched_at": "2026-11-13T21:30:54.292896+00:00",
     "items": [
+      {
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
+      },
+      {
+        "article_id": "4672440",
+        "timestamp_utc": "2026-11-13T10:45:50-05:00",
+        "title": "Broadcom in focus as Rothschild downgrades to Neutral but flags potential upside",
+        "comment_count": 12
+      },
+      {
+        "article_id": "4672404",
+        "timestamp_utc": "2026-11-13T09:24:28-05:00",
+        "title": "Polen Global Growth adds Seagate, AMD And SK Hynix, trims Nvidia and Broadcom among Q3 moves",
+        "comment_count": 8
+      },
+      {
+        "article_id": "4671101",
+        "timestamp_utc": "2026-11-11T23:46:54-05:00",
+        "title": "Chip rivals AMD, Broadcom rally as Nvidia board weighs ousting CEO Jensen Huang",
+        "comment_count": 33
+      },
       {
         "article_id": "4670625",
         "timestamp_utc": "2026-11-11T08:54:37-05:00",
         "title": "Chip, memory stocks rally after CoreWeave results ease AI demand worries",
-        "comment_count": 16
+        "comment_count": 26
       },
       {
         "article_id": "4670003",
@@ -166,42 +190,24 @@
         "article_id": "4667921",
         "timestamp_utc": "2026-11-06T07:10:22-05:00",
         "title": "AI and chip stocks rebound after steep selloff",
-        "comment_count": 110
-      },
-      {
-        "article_id": "4667426",
-        "timestamp_utc": "2026-11-05T17:00:15-05:00",
-        "title": "Broadcom drops 10% amid broad chip selloff",
-        "comment_count": 4
-      },
-      {
-        "article_id": "4666706",
-        "timestamp_utc": "2026-11-05T10:20:36-05:00",
-        "title": "AI and chip stocks plunge in broad selloff on data center outlook",
-        "comment_count": 139
-      },
-      {
-        "article_id": "4664849",
-        "timestamp_utc": "2026-11-04T10:43:17-05:00",
-        "title": "AI infrastructure stocks drop, hyperscalers gain as Democrats win Congress",
-        "comment_count": 99
-      },
-      {
-        "article_id": "4662699",
-        "timestamp_utc": "2026-11-02T15:43:54-05:00",
-        "title": "Capex cuts could be 'unwelcome' but extend the cycle: BofA",
-        "comment_count": 32
+        "comment_count": 111
       }
     ]
   },
   "TSM": {
-    "fetched_at": "2026-11-11T21:30:42.338279+00:00",
+    "fetched_at": "2026-11-13T21:30:58.441709+00:00",
     "items": [
+      {
+        "article_id": "4671436",
+        "timestamp_utc": "2026-11-12T09:10:38-05:00",
+        "title": "TSMC discovers data on thousands of current, former employees leaked to external website",
+        "comment_count": 2
+      },
       {
         "article_id": "4670625",
         "timestamp_utc": "2026-11-11T08:54:37-05:00",
         "title": "Chip, memory stocks rally after CoreWeave results ease AI demand worries",
-        "comment_count": 16
+        "comment_count": 26
       },
       {
         "article_id": "4669903",
@@ -237,7 +243,7 @@
         "article_id": "4666706",
         "timestamp_utc": "2026-11-05T10:20:36-05:00",
         "title": "AI and chip stocks plunge in broad selloff on data center outlook",
-        "comment_count": 139
+        "comment_count": 143
       },
       {
         "article_id": "4664849",
@@ -250,29 +256,35 @@
         "timestamp_utc": "2026-11-02T13:41:59-05:00",
         "title": "Chip and AI stocks give up some gains ahead of AMD earnings",
         "comment_count": 40
-      },
-      {
-        "article_id": "4661555",
-        "timestamp_utc": "2026-10-31T08:55:14-04:00",
-        "title": "Alphabet\u2019s record plunge, Intel\u2019s 30% collapse: tech\u2019s brutal week of reckoning",
-        "comment_count": 54
       }
     ]
   },
   "MU": {
-    "fetched_at": "2026-11-11T21:30:45.868124+00:00",
+    "fetched_at": "2026-11-13T21:31:04.142326+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
+      },
       {
         "article_id": "4670857",
         "timestamp_utc": "2026-11-11T13:54:28-05:00",
         "title": "Micron Technology climbs 13% as one-month slide reverses",
-        "comment_count": 6
+        "comment_count": 12
       },
       {
         "article_id": "4670625",
         "timestamp_utc": "2026-11-11T08:54:37-05:00",
         "title": "Chip, memory stocks rally after CoreWeave results ease AI demand worries",
-        "comment_count": 16
+        "comment_count": 26
       },
       {
         "article_id": "4670524",
@@ -284,7 +296,7 @@
         "article_id": "4670043",
         "timestamp_utc": "2026-11-10T14:14:00-05:00",
         "title": "BofA sees memory chip supercycle extending through 2028",
-        "comment_count": 14
+        "comment_count": 15
       },
       {
         "article_id": "4669687",
@@ -308,24 +320,12 @@
         "article_id": "4667921",
         "timestamp_utc": "2026-11-06T07:10:22-05:00",
         "title": "AI and chip stocks rebound after steep selloff",
-        "comment_count": 110
-      },
-      {
-        "article_id": "4667445",
-        "timestamp_utc": "2026-11-05T17:05:39-05:00",
-        "title": "Micron Technology plunges 17% amid chip selloff, Taiwan plant halt",
-        "comment_count": 26
-      },
-      {
-        "article_id": "4667360",
-        "timestamp_utc": "2026-11-05T16:35:41-05:00",
-        "title": "Micron board member Linnie Haynesworth to retire",
-        "comment_count": 7
+        "comment_count": 111
       }
     ]
   },
   "ASML": {
-    "fetched_at": "2026-11-11T21:30:50.203935+00:00",
+    "fetched_at": "2026-11-13T21:31:09.326137+00:00",
     "items": [
       {
         "article_id": "4657065",
@@ -390,7 +390,7 @@
     ]
   },
   "ZION": {
-    "fetched_at": "2026-11-11T17:01:22.037109+00:00",
+    "fetched_at": "2026-11-13T21:31:40.360815+00:00",
     "items": [
       {
         "article_id": "4661677",
@@ -455,8 +455,14 @@
     ]
   },
   "KEY": {
-    "fetched_at": "2026-11-11T21:31:30.399103+00:00",
+    "fetched_at": "2026-11-13T21:31:43.581734+00:00",
     "items": [
+      {
+        "article_id": "4672126",
+        "timestamp_utc": "2026-11-13T01:26:36-05:00",
+        "title": "KeyCorp declares $0.205 dividend",
+        "comment_count": 1
+      },
       {
         "article_id": "4663428",
         "timestamp_utc": "2026-11-03T09:09:26-05:00",
@@ -510,17 +516,11 @@
         "timestamp_utc": "2026-07-27T10:12:38-04:00",
         "title": "Earnings scoreboard: 18 financial names posted earnings last week",
         "comment_count": 1
-      },
-      {
-        "article_id": "4616105",
-        "timestamp_utc": "2026-07-21T13:16:19-04:00",
-        "title": "KeyCorp targets 3% to 3.05% net interest margin exit in 2026 while guiding 4% to 5% average loan growth",
-        "comment_count": 0
       }
     ]
   },
   "HBAN": {
-    "fetched_at": "2026-11-11T21:31:33.575478+00:00",
+    "fetched_at": "2026-11-13T21:31:49.227778+00:00",
     "items": [
       {
         "article_id": "4656306",
@@ -585,7 +585,7 @@
     ]
   },
   "RF": {
-    "fetched_at": "2026-11-11T21:31:38.526064+00:00",
+    "fetched_at": "2026-11-13T21:31:53.686351+00:00",
     "items": [
       {
         "article_id": "4653948",
@@ -650,7 +650,7 @@
     ]
   },
   "FITB": {
-    "fetched_at": "2026-11-11T21:31:41.922885+00:00",
+    "fetched_at": "2026-11-13T21:31:57.723345+00:00",
     "items": [
       {
         "article_id": "4663595",
@@ -715,19 +715,37 @@
     ]
   },
   "LLY": {
-    "fetched_at": "2026-11-11T21:32:18.340676+00:00",
+    "fetched_at": "2026-11-13T21:32:32.536983+00:00",
     "items": [
+      {
+        "article_id": "4672561",
+        "timestamp_utc": "2026-11-13T13:13:09-05:00",
+        "title": "Viking Therapeutics gains amid report of renewed takeover interest",
+        "comment_count": 13
+      },
+      {
+        "article_id": "4671898",
+        "timestamp_utc": "2026-11-12T17:18:51-05:00",
+        "title": "Eli Lilly breaks ground on $3.5B Pennsylvania manufacturing site for obesity meds",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4671267",
+        "timestamp_utc": "2026-11-12T06:23:54-05:00",
+        "title": "US FDA shelves fast-track priority voucher pilot program: Reuters",
+        "comment_count": 12
+      },
+      {
+        "article_id": "4671225",
+        "timestamp_utc": "2026-11-12T04:48:57-05:00",
+        "title": "China approves Eli Lilly's GLP-1 weight-loss pill, giving it lead over Novo - report",
+        "comment_count": 1
+      },
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 11
-      },
-      {
-        "article_id": "4670631",
-        "timestamp_utc": "2026-11-11T08:47:50-05:00",
-        "title": "4 stocks to watch on Wednesday: LLY, BABA, PYPL, and NVDA",
-        "comment_count": 5
+        "comment_count": 64
       },
       {
         "article_id": "4670583",
@@ -751,42 +769,48 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4668037",
         "timestamp_utc": "2026-11-06T07:35:13-05:00",
         "title": "Hims & Hers gains on partnership with Eli Lilly",
         "comment_count": 2
-      },
-      {
-        "article_id": "4667326",
-        "timestamp_utc": "2026-11-05T16:49:39-05:00",
-        "title": "Half of RFK Jr. health panel appointees granted waivers to keep stocks: NY Times",
-        "comment_count": 21
-      },
-      {
-        "article_id": "4663682",
-        "timestamp_utc": "2026-11-03T12:13:35-05:00",
-        "title": "How health care is on the ballot in the midterms",
-        "comment_count": 70
-      },
-      {
-        "article_id": "4662029",
-        "timestamp_utc": "2026-11-03T10:00:49-05:00",
-        "title": "Most and least shorted mid- to mega-cap healthcare stocks at the end of October",
-        "comment_count": 0
       }
     ]
   },
   "PFE": {
-    "fetched_at": "2026-11-11T21:33:06.936745+00:00",
+    "fetched_at": "2026-11-13T21:32:36.213893+00:00",
     "items": [
+      {
+        "article_id": "4672640",
+        "timestamp_utc": "2026-11-13T16:23:38-05:00",
+        "title": "AstraZeneca gains additional bladder cancer indication for Imfinzi",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4672600",
+        "timestamp_utc": "2026-11-13T16:05:02-05:00",
+        "title": "RenTech takes new stake in Goldman Sachs, trims position in megacap tech stocks in Q3",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4672561",
+        "timestamp_utc": "2026-11-13T13:13:09-05:00",
+        "title": "Viking Therapeutics gains amid report of renewed takeover interest",
+        "comment_count": 13
+      },
+      {
+        "article_id": "4671060",
+        "timestamp_utc": "2026-11-11T17:52:58-05:00",
+        "title": "Blackstone to provide Pfizer up to $1.5B to advance monthly GLP-1 for weight loss",
+        "comment_count": 23
+      },
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 13
+        "comment_count": 64
       },
       {
         "article_id": "4667797",
@@ -804,7 +828,7 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4667326",
@@ -817,41 +841,35 @@
         "timestamp_utc": "2026-11-04T08:05:42-05:00",
         "title": "United Therapeutics buys out Pfizer royalties linked to lung disease therapy",
         "comment_count": 0
-      },
-      {
-        "article_id": "4664466",
-        "timestamp_utc": "2026-11-04T00:36:39-05:00",
-        "title": "Pfizer raises 2026 outlook to $62B-$64B revenue and $2.95-$3.05 adjusted EPS, targeting high single-digit revenue CAGR from 2028-2033",
-        "comment_count": 3
-      },
-      {
-        "article_id": "4663682",
-        "timestamp_utc": "2026-11-03T12:13:35-05:00",
-        "title": "How health care is on the ballot in the midterms",
-        "comment_count": 70
-      },
-      {
-        "article_id": "4663309",
-        "timestamp_utc": "2026-11-03T07:24:04-05:00",
-        "title": "Pfizer hikes 2026 outlook despite flat Q3 revenue: names new CFO",
-        "comment_count": 5
-      },
-      {
-        "article_id": "4663288",
-        "timestamp_utc": "2026-11-03T07:10:14-05:00",
-        "title": "Pfizer in Charts: Primary Care rebounds sharply in Q3, while Oncology extends its growth streak",
-        "comment_count": 0
       }
     ]
   },
   "MRK": {
-    "fetched_at": "2026-11-11T21:33:10.280898+00:00",
+    "fetched_at": "2026-11-13T21:32:40.447319+00:00",
     "items": [
+      {
+        "article_id": "4672609",
+        "timestamp_utc": "2026-11-13T15:21:28-05:00",
+        "title": "Measles cases rise to over 5,400 across US",
+        "comment_count": 15
+      },
+      {
+        "article_id": "4672532",
+        "timestamp_utc": "2026-11-13T12:07:50-05:00",
+        "title": "Merck gains EMA panel endorsement for expanded use of Enflonsia in infants",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4671267",
+        "timestamp_utc": "2026-11-12T06:23:54-05:00",
+        "title": "US FDA shelves fast-track priority voucher pilot program: Reuters",
+        "comment_count": 12
+      },
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 13
+        "comment_count": 64
       },
       {
         "article_id": "4670667",
@@ -881,36 +899,18 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4667326",
         "timestamp_utc": "2026-11-05T16:49:39-05:00",
         "title": "Half of RFK Jr. health panel appointees granted waivers to keep stocks: NY Times",
         "comment_count": 21
-      },
-      {
-        "article_id": "4664798",
-        "timestamp_utc": "2026-11-04T09:23:52-05:00",
-        "title": "Merck parasiticide granted FDA emergency use nod for screwworm infestations in dogs",
-        "comment_count": 1
-      },
-      {
-        "article_id": "4663682",
-        "timestamp_utc": "2026-11-03T12:13:35-05:00",
-        "title": "How health care is on the ballot in the midterms",
-        "comment_count": 70
-      },
-      {
-        "article_id": "4663168",
-        "timestamp_utc": "2026-11-03T06:01:08-05:00",
-        "title": "New York reports first measles-linked death in over 30 years",
-        "comment_count": 7
       }
     ]
   },
   "ABBV": {
-    "fetched_at": "2026-11-11T21:33:13.983408+00:00",
+    "fetched_at": "2026-11-13T21:32:43.828534+00:00",
     "items": [
       {
         "article_id": "4668783",
@@ -975,7 +975,7 @@
     ]
   },
   "UNH": {
-    "fetched_at": "2026-11-11T21:33:17.262478+00:00",
+    "fetched_at": "2026-11-13T21:32:46.917973+00:00",
     "items": [
       {
         "article_id": "4669019",
@@ -1040,19 +1040,13 @@
     ]
   },
   "JNJ": {
-    "fetched_at": "2026-11-11T21:33:23.315867+00:00",
+    "fetched_at": "2026-11-13T21:32:56.074669+00:00",
     "items": [
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 14
-      },
-      {
-        "article_id": "4670835",
-        "timestamp_utc": "2026-11-11T12:09:25-05:00",
-        "title": "Halozyme downgraded at Morgan Stanley on valuation",
-        "comment_count": 0
+        "comment_count": 64
       },
       {
         "article_id": "4669758",
@@ -1088,7 +1082,7 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4667626",
@@ -1101,6 +1095,12 @@
         "timestamp_utc": "2026-11-05T16:49:39-05:00",
         "title": "Half of RFK Jr. health panel appointees granted waivers to keep stocks: NY Times",
         "comment_count": 21
+      },
+      {
+        "article_id": "4663682",
+        "timestamp_utc": "2026-11-03T12:13:35-05:00",
+        "title": "How health care is on the ballot in the midterms",
+        "comment_count": 70
       }
     ]
   },
@@ -1170,8 +1170,32 @@
     ]
   },
   "AMZN": {
-    "fetched_at": "2026-11-11T21:34:44.863785+00:00",
+    "fetched_at": "2026-11-13T21:33:32.127191+00:00",
     "items": [
+      {
+        "article_id": "4672600",
+        "timestamp_utc": "2026-11-13T16:05:02-05:00",
+        "title": "RenTech takes new stake in Goldman Sachs, trims position in megacap tech stocks in Q3",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672274",
+        "timestamp_utc": "2026-11-13T07:33:18-05:00",
+        "title": "Amazon's plan to take on AI agents is to scoop up all the shopping data",
+        "comment_count": 4
+      },
+      {
+        "article_id": "4671816",
+        "timestamp_utc": "2026-11-12T16:54:21-05:00",
+        "title": "Microsoft scrambles to repair Outlook outages",
+        "comment_count": 50
+      },
       {
         "article_id": "4670617",
         "timestamp_utc": "2026-11-11T08:27:26-05:00",
@@ -1207,41 +1231,47 @@
         "timestamp_utc": "2026-11-09T06:30:33-05:00",
         "title": "A major food delivery shakeup includes new alliances and Wonder's IPO bid",
         "comment_count": 2
-      },
-      {
-        "article_id": "4668530",
-        "timestamp_utc": "2026-11-06T16:43:25-05:00",
-        "title": "Bipartisan US Senate bill could speed up AI data center buildout: report",
-        "comment_count": 243
-      },
-      {
-        "article_id": "4668200",
-        "timestamp_utc": "2026-11-06T10:35:16-05:00",
-        "title": "Amazon's Alexa for Shopping now answers to texts",
-        "comment_count": 2
-      },
-      {
-        "article_id": "4667921",
-        "timestamp_utc": "2026-11-06T07:10:22-05:00",
-        "title": "AI and chip stocks rebound after steep selloff",
-        "comment_count": 110
-      },
-      {
-        "article_id": "4666706",
-        "timestamp_utc": "2026-11-05T10:20:36-05:00",
-        "title": "AI and chip stocks plunge in broad selloff on data center outlook",
-        "comment_count": 139
       }
     ]
   },
   "TSLA": {
-    "fetched_at": "2026-11-11T21:34:48.225007+00:00",
+    "fetched_at": "2026-11-13T21:33:37.028067+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672539",
+        "timestamp_utc": "2026-11-13T12:29:48-05:00",
+        "title": "SA analyst upgrades/downgrades: NVDA, AAPL, SMCI, TSLA",
+        "comment_count": 6
+      },
+      {
+        "article_id": "4671718",
+        "timestamp_utc": "2026-11-12T15:22:37-05:00",
+        "title": "SpaceX, Tesla are said to move toward merger as soon as December",
+        "comment_count": 187
+      },
+      {
+        "article_id": "4671124",
+        "timestamp_utc": "2026-11-12T02:07:03-05:00",
+        "title": "Global EV sales bounce back in October on European gains and Chinese exports",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4671098",
+        "timestamp_utc": "2026-11-11T23:28:56-05:00",
+        "title": "Elon Musk says it would be an \u2018honor\u2019 to hire Nvidia\u2019s Jensen Huang",
+        "comment_count": 215
+      },
       {
         "article_id": "4670853",
         "timestamp_utc": "2026-11-11T12:30:15-05:00",
         "title": "Musk says Tesla to extend Cybertruck production through summer 2027",
-        "comment_count": 30
+        "comment_count": 41
       },
       {
         "article_id": "4670522",
@@ -1259,49 +1289,31 @@
         "article_id": "4668898",
         "timestamp_utc": "2026-11-09T07:40:48-05:00",
         "title": "Musk says Tesla will return Cybertruck deposits to many buyers",
-        "comment_count": 146
+        "comment_count": 151
       },
       {
         "article_id": "4668796",
         "timestamp_utc": "2026-11-09T03:12:04-05:00",
         "title": "Elon Musk's Terafab targets 1M wafers per month by 2032 - report",
         "comment_count": 40
-      },
-      {
-        "article_id": "4668774",
-        "timestamp_utc": "2026-11-08T15:00:26-05:00",
-        "title": "Democrats signal Musk, corporate probes as investors face new oversight risks",
-        "comment_count": 227
-      },
-      {
-        "article_id": "4668737",
-        "timestamp_utc": "2026-11-07T14:05:43-05:00",
-        "title": "Musk says Tesla Cybertruck demand is outpacing production",
-        "comment_count": 184
-      },
-      {
-        "article_id": "4668715",
-        "timestamp_utc": "2026-11-07T08:49:27-05:00",
-        "title": "The long, strange trip of Tesla's Cybertruck",
-        "comment_count": 53
-      },
-      {
-        "article_id": "4667786",
-        "timestamp_utc": "2026-11-06T01:44:24-05:00",
-        "title": "Tesla to end Cybertruck production at Texas factory by mid-2027 to ramp up Cybercab output, Musk says",
-        "comment_count": 216
-      },
-      {
-        "article_id": "4667285",
-        "timestamp_utc": "2026-11-05T16:20:00-05:00",
-        "title": "Tesla slides 11% amid political and regulatory uncertainty",
-        "comment_count": 32
       }
     ]
   },
   "HD": {
-    "fetched_at": "2026-11-11T21:34:56.693345+00:00",
+    "fetched_at": "2026-11-13T21:33:40.728569+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672392",
+        "timestamp_utc": "2026-11-13T10:09:52-05:00",
+        "title": "Lowe's downgraded to sell as Stifel raises questions over homeowner's health",
+        "comment_count": 1
+      },
       {
         "article_id": "4662813",
         "timestamp_utc": "2026-11-02T15:30:29-05:00",
@@ -1349,29 +1361,23 @@
         "timestamp_utc": "2026-08-21T08:49:45-04:00",
         "title": "Dividend Roundup: Home Depot, Sysco, 3M, T-Mobile, and more",
         "comment_count": 0
-      },
-      {
-        "article_id": "4635684",
-        "timestamp_utc": "2026-08-20T16:19:01-04:00",
-        "title": "Home Depot declares $2.33 dividend",
-        "comment_count": 5
-      },
-      {
-        "article_id": "4634447",
-        "timestamp_utc": "2026-08-18T13:14:09-04:00",
-        "title": "Home Depot reaffirms fiscal 2026 outlook with comp sales flat to 2% and operating margin 12.4% to 12.6%",
-        "comment_count": 3
       }
     ]
   },
   "NKE": {
-    "fetched_at": "2026-11-11T21:35:00.264924+00:00",
+    "fetched_at": "2026-11-13T21:33:44.771877+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
       {
         "article_id": "4661859",
         "timestamp_utc": "2026-10-31T11:44:50-04:00",
         "title": "Nike has a new plan for retro Michael Jordan shoes",
-        "comment_count": 18
+        "comment_count": 19
       },
       {
         "article_id": "4656529",
@@ -1420,18 +1426,18 @@
         "timestamp_utc": "2026-10-02T16:24:36-04:00",
         "title": "Nike seeks supply chain overhaul to improve profitability -- report",
         "comment_count": 4
-      },
-      {
-        "article_id": "4649832",
-        "timestamp_utc": "2026-10-02T09:49:02-04:00",
-        "title": "Running to stand still: Nike's performance business still can't outrun Jordan, China, Sportswear",
-        "comment_count": 6
       }
     ]
   },
   "SBUX": {
-    "fetched_at": "2026-11-11T21:35:03.063613+00:00",
+    "fetched_at": "2026-11-13T21:33:50.486843+00:00",
     "items": [
+      {
+        "article_id": "4671633",
+        "timestamp_utc": "2026-11-12T12:03:28-05:00",
+        "title": "Starbucks pays ~80% of its baristas a quarterly bonus tied to sales performance",
+        "comment_count": 8
+      },
       {
         "article_id": "4669635",
         "timestamp_utc": "2026-11-10T06:35:30-05:00",
@@ -1485,23 +1491,23 @@
         "timestamp_utc": "2026-10-29T16:08:45-04:00",
         "title": "Starbucks Non-GAAP EPS of $0.80 beats by $0.09, revenue of $9.14B misses by $90M",
         "comment_count": 1
-      },
-      {
-        "article_id": "4658957",
-        "timestamp_utc": "2026-10-28T10:43:35-04:00",
-        "title": "Starbucks Q3 earnings preview: Same-store sales growth and margins in focus",
-        "comment_count": 0
       }
     ]
   },
   "TGT": {
-    "fetched_at": "2026-11-11T21:35:06.948960+00:00",
+    "fetched_at": "2026-11-13T17:04:12.164188+00:00",
     "items": [
+      {
+        "article_id": "4671299",
+        "timestamp_utc": "2026-11-12T06:59:19-05:00",
+        "title": "Target taps former Diageo North America CEO Sally Grimes to board to bolster growth strategy",
+        "comment_count": 1
+      },
       {
         "article_id": "4666409",
         "timestamp_utc": "2026-11-05T07:05:30-05:00",
         "title": "Midterm signals: Property breaks, billionaire taxes and supermarket inflation",
-        "comment_count": 12
+        "comment_count": 14
       },
       {
         "article_id": "4657732",
@@ -1550,17 +1556,11 @@
         "timestamp_utc": "2026-10-03T10:05:01-04:00",
         "title": "Notable analyst calls this week: Target, Moderna and PepsiCo among top picks",
         "comment_count": 0
-      },
-      {
-        "article_id": "4648556",
-        "timestamp_utc": "2026-09-30T10:06:47-04:00",
-        "title": "HSBC upgrades Target to Buy, raises PT to $190",
-        "comment_count": 1
       }
     ]
   },
   "TXN": {
-    "fetched_at": "2026-11-11T21:31:03.553690+00:00",
+    "fetched_at": "2026-11-13T21:31:15.670389+00:00",
     "items": [
       {
         "article_id": "4667381",
@@ -1625,8 +1625,14 @@
     ]
   },
   "ADI": {
-    "fetched_at": "2026-11-11T21:31:11.405572+00:00",
+    "fetched_at": "2026-11-13T21:31:20.147382+00:00",
     "items": [
+      {
+        "article_id": "4672443",
+        "timestamp_utc": "2026-11-13T11:16:26-05:00",
+        "title": "Analog Devices receives Buy rating due to expanding content in AI infrastructure: Roth",
+        "comment_count": 0
+      },
       {
         "article_id": "4662699",
         "timestamp_utc": "2026-11-02T15:43:54-05:00",
@@ -1680,83 +1686,83 @@
         "timestamp_utc": "2026-08-22T09:35:27-04:00",
         "title": "Earnings Scoreboard: All 12 key S&P 500 reporting firms top EPS estimates; 11 deliver Y/Y growth",
         "comment_count": 7
-      },
-      {
-        "article_id": "4635877",
-        "timestamp_utc": "2026-08-21T10:37:58-04:00",
-        "title": "Nvidia, Micron among 10 stocks initiated with bullish views at BMO Capital",
-        "comment_count": 10
       }
     ]
   },
   "AMAT": {
-    "fetched_at": "2026-11-11T21:31:15.144812+00:00",
+    "fetched_at": "2026-11-13T21:31:24.157240+00:00",
     "items": [
+      {
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
+      },
+      {
+        "article_id": "4672359",
+        "timestamp_utc": "2026-11-13T08:53:51-05:00",
+        "title": "4 stocks to watch on the day: MSFT, AMAT, PANW, SPCX",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4672295",
+        "timestamp_utc": "2026-11-13T08:00:47-05:00",
+        "title": "Applied Materials' results show strong semiconductor equipment demand, analysts say",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672010",
+        "timestamp_utc": "2026-11-12T20:29:58-05:00",
+        "title": "Applied Materials expects $11.1B Q1 revenue as it forecasts WFE demand up more than 30% in 2027",
+        "comment_count": 4
+      },
+      {
+        "article_id": "4671828",
+        "timestamp_utc": "2026-11-12T16:37:19-05:00",
+        "title": "Applied Materials in charts: Taiwan revenue rises 59% Y/Y, contributing the highest to top line",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4671780",
+        "timestamp_utc": "2026-11-12T16:08:42-05:00",
+        "title": "Earnings Snapshot: Applied Materials Q4 revenue surges 53% YoY; issues strong Q1 guidance",
+        "comment_count": 5
+      },
+      {
+        "article_id": "4671636",
+        "timestamp_utc": "2026-11-12T16:06:51-05:00",
+        "title": "Applied Materials perks up on strong Q4 results, guidance",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4671772",
+        "timestamp_utc": "2026-11-12T16:04:47-05:00",
+        "title": "Applied Materials Non-GAAP EPS of $4.16 beats by $0.11, revenue of $10.4B beats by $100M",
+        "comment_count": 5
+      },
       {
         "article_id": "4670855",
         "timestamp_utc": "2026-11-11T12:24:50-05:00",
         "title": "Applied Materials Q4 preview: What to expect",
-        "comment_count": 0
+        "comment_count": 1
       },
       {
         "article_id": "4669275",
         "timestamp_utc": "2026-11-09T16:24:49-05:00",
         "title": "Applied Materials climbs 11% amid broad market rally",
         "comment_count": 0
-      },
-      {
-        "article_id": "4657591",
-        "timestamp_utc": "2026-10-26T16:43:01-04:00",
-        "title": "Applied Materials boosts investment in chip assembly equipment manufacturer Besi",
-        "comment_count": 1
-      },
-      {
-        "article_id": "4657065",
-        "timestamp_utc": "2026-10-26T06:39:31-04:00",
-        "title": "Jefferies sees semiconductor equipment growth through 2028",
-        "comment_count": 6
-      },
-      {
-        "article_id": "4652681",
-        "timestamp_utc": "2026-10-13T16:50:45-04:00",
-        "title": "Applied Materials retreats 7% as losing streak reaches six sessions",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4652547",
-        "timestamp_utc": "2026-10-13T12:24:37-04:00",
-        "title": "Applied Materials drops during Investor Day as it eyes growing optical inspection market",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4652276",
-        "timestamp_utc": "2026-10-12T16:53:00-04:00",
-        "title": "Applied Materials unveils $5B EPIC center to speed up AI chip R&D",
-        "comment_count": 12
-      },
-      {
-        "article_id": "4651902",
-        "timestamp_utc": "2026-10-10T11:03:46-04:00",
-        "title": "Insider trades: P&G, Marvell Technology, TSMC among notable names",
-        "comment_count": 18
-      },
-      {
-        "article_id": "4650442",
-        "timestamp_utc": "2026-10-06T09:35:58-04:00",
-        "title": "Stocks with the lowest short interest on Wall Street",
-        "comment_count": 7
-      },
-      {
-        "article_id": "4650539",
-        "timestamp_utc": "2026-10-06T09:11:19-04:00",
-        "title": "Applied Materials, Intel deepen collaboration for AI chipmaking",
-        "comment_count": 1
       }
     ]
   },
   "QCOM": {
-    "fetched_at": "2026-11-11T21:31:18.831968+00:00",
+    "fetched_at": "2026-11-13T21:31:28.716991+00:00",
     "items": [
+      {
+        "article_id": "4672499",
+        "timestamp_utc": "2026-11-13T11:44:59-05:00",
+        "title": "Chip stocks slide as Nvidia rebound fades",
+        "comment_count": 31
+      },
       {
         "article_id": "4669027",
         "timestamp_utc": "2026-11-09T11:26:29-05:00",
@@ -1785,13 +1791,13 @@
         "article_id": "4667921",
         "timestamp_utc": "2026-11-06T07:10:22-05:00",
         "title": "AI and chip stocks rebound after steep selloff",
-        "comment_count": 110
+        "comment_count": 111
       },
       {
         "article_id": "4666706",
         "timestamp_utc": "2026-11-05T10:20:36-05:00",
         "title": "AI and chip stocks plunge in broad selloff on data center outlook",
-        "comment_count": 139
+        "comment_count": 143
       },
       {
         "article_id": "4666622",
@@ -1810,17 +1816,11 @@
         "timestamp_utc": "2026-11-04T16:17:37-05:00",
         "title": "Qualcomm in charts: QCT revenue continues Y/Y decline for third straight quarter",
         "comment_count": 0
-      },
-      {
-        "article_id": "4665593",
-        "timestamp_utc": "2026-11-04T16:14:12-05:00",
-        "title": "Earnings Snapshot: Qualcomm Q4 auto sales surge 89%; targets 60%+ non-handset jump in FY27",
-        "comment_count": 0
       }
     ]
   },
   "KLAC": {
-    "fetched_at": "2026-11-11T21:31:22.395864+00:00",
+    "fetched_at": "2026-11-13T21:31:35.815097+00:00",
     "items": [
       {
         "article_id": "4669308",
@@ -1885,7 +1885,7 @@
     ]
   },
   "CFG": {
-    "fetched_at": "2026-11-11T21:31:46.139887+00:00",
+    "fetched_at": "2026-11-13T21:32:02.234115+00:00",
     "items": [
       {
         "article_id": "4653735",
@@ -1950,7 +1950,7 @@
     ]
   },
   "TFC": {
-    "fetched_at": "2026-11-11T21:31:50.314100+00:00",
+    "fetched_at": "2026-11-13T21:32:08.470950+00:00",
     "items": [
       {
         "article_id": "4661856",
@@ -2015,8 +2015,14 @@
     ]
   },
   "MTB": {
-    "fetched_at": "2026-11-11T21:31:55.207933+00:00",
+    "fetched_at": "2026-11-13T21:32:12.685898+00:00",
     "items": [
+      {
+        "article_id": "4672385",
+        "timestamp_utc": "2026-11-13T09:06:50-05:00",
+        "title": "O'Keefe Stevens Advisory adds Octave Intelligence, sells M&T Bank among Q3 moves",
+        "comment_count": 0
+      },
       {
         "article_id": "4653930",
         "timestamp_utc": "2026-10-16T12:55:41-04:00",
@@ -2070,17 +2076,11 @@
         "timestamp_utc": "2026-07-15T07:02:57-04:00",
         "title": "M&T Bank Q2 earnings beat as noninterest income climbed, credit loss fell",
         "comment_count": 0
-      },
-      {
-        "article_id": "4613859",
-        "timestamp_utc": "2026-07-15T05:36:11-04:00",
-        "title": "M&T Bank GAAP EPS of $5.32 beats by $0.66, revenue of $2.53B beats by $70M",
-        "comment_count": 0
       }
     ]
   },
   "CFR": {
-    "fetched_at": "2026-11-11T21:31:59.114823+00:00",
+    "fetched_at": "2026-11-13T21:32:16.403965+00:00",
     "items": [
       {
         "article_id": "4661243",
@@ -2145,7 +2145,7 @@
     ]
   },
   "PNFP": {
-    "fetched_at": "2026-11-11T21:32:01.520829+00:00",
+    "fetched_at": "2026-11-13T21:32:20.961298+00:00",
     "items": [
       {
         "article_id": "4657828",
@@ -2210,8 +2210,14 @@
     ]
   },
   "ONB": {
-    "fetched_at": "2026-11-11T21:32:10.804017+00:00",
+    "fetched_at": "2026-11-13T21:32:25.033930+00:00",
     "items": [
+      {
+        "article_id": "4671464",
+        "timestamp_utc": "2026-11-12T09:11:05-05:00",
+        "title": "Old National Bancorp declares $0.145 dividend",
+        "comment_count": 0
+      },
       {
         "article_id": "4666228",
         "timestamp_utc": "2026-11-05T02:24:45-05:00",
@@ -2265,17 +2271,11 @@
         "timestamp_utc": "2026-07-22T07:14:03-04:00",
         "title": "Old National Bancorp Non-GAAP EPS of $0.65 beats by $0.02, revenue of $740.06M beats by $23.82M",
         "comment_count": 0
-      },
-      {
-        "article_id": "4592639",
-        "timestamp_utc": "2026-05-14T00:19:03-04:00",
-        "title": "Old National Bancorp declares $0.145 dividend",
-        "comment_count": 0
       }
     ]
   },
   "UMBF": {
-    "fetched_at": "2026-11-11T21:32:14.530241+00:00",
+    "fetched_at": "2026-11-13T21:32:28.464826+00:00",
     "items": [
       {
         "article_id": "4659494",
@@ -2340,13 +2340,13 @@
     ]
   },
   "AMGN": {
-    "fetched_at": "2026-11-11T21:33:27.519141+00:00",
+    "fetched_at": "2026-11-13T21:32:59.855030+00:00",
     "items": [
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 14
+        "comment_count": 64
       },
       {
         "article_id": "4670630",
@@ -2358,7 +2358,7 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4664437",
@@ -2376,7 +2376,7 @@
         "article_id": "4664079",
         "timestamp_utc": "2026-11-03T16:05:03-05:00",
         "title": "Amgen Non-GAAP EPS of $6.45 beats by $0.67, revenue of $10.4B beats by $340M",
-        "comment_count": 3
+        "comment_count": 2
       },
       {
         "article_id": "4663682",
@@ -2405,13 +2405,13 @@
     ]
   },
   "GILD": {
-    "fetched_at": "2026-11-11T21:33:30.655128+00:00",
+    "fetched_at": "2026-11-13T17:03:25.119337+00:00",
     "items": [
       {
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 194
       },
       {
         "article_id": "4663891",
@@ -2470,13 +2470,25 @@
     ]
   },
   "BMY": {
-    "fetched_at": "2026-11-11T21:33:35.874333+00:00",
+    "fetched_at": "2026-11-13T21:33:06.269047+00:00",
     "items": [
+      {
+        "article_id": "4672600",
+        "timestamp_utc": "2026-11-13T16:05:02-05:00",
+        "title": "RenTech takes new stake in Goldman Sachs, trims position in megacap tech stocks in Q3",
+        "comment_count": 0
+      },
+      {
+        "article_id": "4671334",
+        "timestamp_utc": "2026-11-12T07:25:55-05:00",
+        "title": "Bristol Myers to operate R&D under one organization",
+        "comment_count": 1
+      },
       {
         "article_id": "4670944",
         "timestamp_utc": "2026-11-11T15:39:48-05:00",
         "title": "Democratic senators probe gifts to RFK Jr. from large donor to his presidential campaign",
-        "comment_count": 15
+        "comment_count": 64
       },
       {
         "article_id": "4668650",
@@ -2488,7 +2500,7 @@
         "article_id": "4668363",
         "timestamp_utc": "2026-11-06T12:13:27-05:00",
         "title": "Democratic lawmakers seen probing Trump drug pricing deals come January",
-        "comment_count": 188
+        "comment_count": 195
       },
       {
         "article_id": "4667326",
@@ -2519,23 +2531,11 @@
         "timestamp_utc": "2026-10-29T07:28:50-04:00",
         "title": "Bristol Myers lifts sales outlook as newer drugs drive growth",
         "comment_count": 1
-      },
-      {
-        "article_id": "4660070",
-        "timestamp_utc": "2026-10-29T07:14:59-04:00",
-        "title": "Bristol Myers Squibb in charts: Legacy revenue rises 1%, while growth portfolio sales jump 12%",
-        "comment_count": 0
-      },
-      {
-        "article_id": "4660049",
-        "timestamp_utc": "2026-10-29T07:00:41-04:00",
-        "title": "Bristol-Myers Squibb Company Non-GAAP EPS of $1.35 beats by $0.13, revenue of $13.1B beats by $370M, raises FY guidance",
-        "comment_count": 0
       }
     ]
   },
   "VRTX": {
-    "fetched_at": "2026-11-11T21:34:24.652977+00:00",
+    "fetched_at": "2026-11-13T21:33:10.281668+00:00",
     "items": [
       {
         "article_id": "4663148",
@@ -2600,7 +2600,7 @@
     ]
   },
   "TMO": {
-    "fetched_at": "2026-11-11T21:34:27.912968+00:00",
+    "fetched_at": "2026-11-13T21:33:15.100198+00:00",
     "items": [
       {
         "article_id": "4667496",
@@ -2665,7 +2665,7 @@
     ]
   },
   "ABT": {
-    "fetched_at": "2026-11-11T21:34:32.447762+00:00",
+    "fetched_at": "2026-11-13T21:33:18.923582+00:00",
     "items": [
       {
         "article_id": "4661348",
@@ -2730,7 +2730,7 @@
     ]
   },
   "ISRG": {
-    "fetched_at": "2026-11-11T17:02:59.082664+00:00",
+    "fetched_at": "2026-11-13T21:33:24.240485+00:00",
     "items": [
       {
         "article_id": "4655304",
@@ -2795,7 +2795,7 @@
     ]
   },
   "SYK": {
-    "fetched_at": "2026-11-11T21:34:41.071238+00:00",
+    "fetched_at": "2026-11-13T17:03:46.233148+00:00",
     "items": [
       {
         "article_id": "4661092",
@@ -2860,14 +2860,8 @@
     ]
   },
   "MCD": {
-    "fetched_at": "2026-11-11T21:35:10.563446+00:00",
+    "fetched_at": "2026-11-13T21:33:57.096779+00:00",
     "items": [
-      {
-        "article_id": "4670593",
-        "timestamp_utc": "2026-11-11T08:26:24-05:00",
-        "title": "OKXICE's tokenized stock trading platform pushing ahead despite opposition - report",
-        "comment_count": 4
-      },
       {
         "article_id": "4669173",
         "timestamp_utc": "2026-11-09T14:00:25-05:00",
@@ -2921,17 +2915,29 @@
         "timestamp_utc": "2026-11-03T09:46:43-05:00",
         "title": "McDonald\u2019s Q3 earnings on deck: Focus on US sales",
         "comment_count": 2
+      },
+      {
+        "article_id": "4654057",
+        "timestamp_utc": "2026-10-18T09:09:19-04:00",
+        "title": "Retailers\u2019 AI pricing push faces consumer distrust, regulatory scrutiny",
+        "comment_count": 3
       }
     ]
   },
   "BKNG": {
-    "fetched_at": "2026-11-11T21:35:14.434977+00:00",
+    "fetched_at": "2026-11-13T21:34:00.740716+00:00",
     "items": [
+      {
+        "article_id": "4672600",
+        "timestamp_utc": "2026-11-13T16:05:02-05:00",
+        "title": "RenTech takes new stake in Goldman Sachs, trims position in megacap tech stocks in Q3",
+        "comment_count": 0
+      },
       {
         "article_id": "4670913",
         "timestamp_utc": "2026-11-11T13:43:17-05:00",
         "title": "United Airlines doesn't want AI agents to be the travel middleman",
-        "comment_count": 4
+        "comment_count": 5
       },
       {
         "article_id": "4667830",
@@ -2980,18 +2986,18 @@
         "timestamp_utc": "2026-10-21T06:50:20-04:00",
         "title": "The European Commission probes Booking Holdings for fraud and scams in listings",
         "comment_count": 14
-      },
-      {
-        "article_id": "4652899",
-        "timestamp_utc": "2026-10-14T10:34:26-04:00",
-        "title": "Booking Holdings plans a $100M investment in its AI-powered Vayo app",
-        "comment_count": 4
       }
     ]
   },
   "TJX": {
-    "fetched_at": "2026-11-11T21:35:20.820272+00:00",
+    "fetched_at": "2026-11-13T21:34:04.103761+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
       {
         "article_id": "4662813",
         "timestamp_utc": "2026-11-02T15:30:29-05:00",
@@ -3045,18 +3051,24 @@
         "timestamp_utc": "2026-08-20T10:24:43-04:00",
         "title": "TJX Companies facing competition for precious off-price dollars\u2014Citi Research",
         "comment_count": 5
-      },
-      {
-        "article_id": "4635140",
-        "timestamp_utc": "2026-08-19T16:23:36-04:00",
-        "title": "TJX outlines 7,500-store long-term target while raising FY2027 EPS to $5.15-$5.20",
-        "comment_count": 0
       }
     ]
   },
   "LOW": {
-    "fetched_at": "2026-11-11T21:35:24.079254+00:00",
+    "fetched_at": "2026-11-13T21:34:07.356959+00:00",
     "items": [
+      {
+        "article_id": "4672450",
+        "timestamp_utc": "2026-11-13T15:08:47-05:00",
+        "title": "Catalyst Watch: Anthropic IPO, Nvidia shockwaves, Nike event, and GTA 6 arrives",
+        "comment_count": 1
+      },
+      {
+        "article_id": "4672392",
+        "timestamp_utc": "2026-11-13T10:09:52-05:00",
+        "title": "Lowe's downgraded to sell as Stifel raises questions over homeowner's health",
+        "comment_count": 1
+      },
       {
         "article_id": "4650674",
         "timestamp_utc": "2026-10-06T14:43:34-04:00",
@@ -3104,23 +3116,11 @@
         "timestamp_utc": "2026-08-19T06:04:08-04:00",
         "title": "Lowe's Non-GAAP EPS of $4.40 beats by $0.18, revenue of $25.96B misses by $150M",
         "comment_count": 1
-      },
-      {
-        "article_id": "4634432",
-        "timestamp_utc": "2026-08-18T12:20:59-04:00",
-        "title": "Macroeconomic headwinds cast clouds over Lowe's Q2 earnings",
-        "comment_count": 1
-      },
-      {
-        "article_id": "4634228",
-        "timestamp_utc": "2026-08-18T06:47:31-04:00",
-        "title": "Retail earnings will reveal consumer health with spending under pressure",
-        "comment_count": 0
       }
     ]
   },
   "ORLY": {
-    "fetched_at": "2026-11-11T21:35:30.894433+00:00",
+    "fetched_at": "2026-11-13T21:34:11.765208+00:00",
     "items": [
       {
         "article_id": "4665034",
