@@ -25,3 +25,4 @@ Price/volume patterns on free hourly/daily data are largely exhausted; edges fou
 - **pre-earnings-premium** (2026-11-11): train result below the minimum: chosen h1_sp500 t 0.44, 1.09 bps after cost 8.0 bps round trip - no holdout spent, no review needed
 - **issuer-self-tender-long** (2026-11-11): train result below the minimum: chosen sp1500_h3 t -1.76, -38.38 bps after cost 25.0 bps round trip - no holdout spent, no review needed
 - **proxy-contest-long** (2026-11-12): train result below the minimum: chosen dfan_sp46_h3 t 0.31, 23.9 bps after cost 25.0 bps round trip - no holdout spent, no review needed
+- **material-impairment-short** (2026-11-14): train result below the minimum: chosen e0_sp1500_h3 t -0.86, -18.33 bps after cost 25.0 bps round trip - no holdout spent, no review needed

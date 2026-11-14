@@ -1,0 +1,102 @@
+{
+  "phase": "train",
+  "start": "2004-09-01",
+  "end": "2013-12-31",
+  "variants": 9,
+  "chosen": "e0_sp1500_h3",
+  "configs": {
+    "e0_sp1500_h3": {
+      "n_trades": 566,
+      "n_periods": 307,
+      "mean_bps": -18.33,
+      "t": -0.86,
+      "trade_mean_bps": -4.59,
+      "outside_window": 0
+    },
+    "e0_sp1500_h5": {
+      "n_trades": 565,
+      "n_periods": 308,
+      "mean_bps": -6.99,
+      "t": -0.25,
+      "trade_mean_bps": 3.06,
+      "outside_window": 0
+    },
+    "e0_sp1500_h2": {
+      "n_trades": 566,
+      "n_periods": 304,
+      "mean_bps": -15.29,
+      "t": -0.86,
+      "trade_mean_bps": -12.31,
+      "outside_window": 0
+    },
+    "e0_sp500_h3": {
+      "n_trades": 286,
+      "n_periods": 210,
+      "mean_bps": -9.61,
+      "t": -0.47,
+      "trade_mean_bps": -4.53,
+      "outside_window": 0
+    },
+    "e0_sp46_h3": {
+      "n_trades": 286,
+      "n_periods": 196,
+      "mean_bps": 7.97,
+      "t": 0.25,
+      "trade_mean_bps": 25.51,
+      "outside_window": 0
+    },
+    "e1_sp1500_h3": {
+      "n_trades": 565,
+      "n_periods": 309,
+      "mean_bps": -35.0,
+      "t": -1.62,
+      "trade_mean_bps": -26.98,
+      "outside_window": 0
+    },
+    "e1_sp500_h3": {
+      "n_trades": 285,
+      "n_periods": 211,
+      "mean_bps": -48.47,
+      "t": -2.02,
+      "trade_mean_bps": -38.83,
+      "outside_window": 0
+    },
+    "e0_sp1500_h3_drop": {
+      "n_trades": 278,
+      "n_periods": 196,
+      "mean_bps": -12.65,
+      "t": -0.45,
+      "trade_mean_bps": 7.9,
+      "outside_window": 0
+    },
+    "e0_sp1500_h3_noearn": {
+      "n_trades": 413,
+      "n_periods": 261,
+      "mean_bps": -22.17,
+      "t": -0.9,
+      "trade_mean_bps": -14.06,
+      "outside_window": 0
+    }
+  },
+  "cost_bps_used": 25.0,
+  "cost_floor_bps": 21.8,
+  "plan_cost_bps": 25.0,
+  "luck_t_best_of_n": 2.89,
+  "luck_variants_counted": 66,
+  "best_t": 0.25,
+  "chosen_stats": {
+    "n_trades": 566,
+    "n_periods": 307,
+    "mean_bps": -18.33,
+    "t": -0.86,
+    "trade_mean_bps": -4.59,
+    "outside_window": 0
+  },
+  "holdout_power": {
+    "expected_holdout_t": -1.01,
+    "bar": 3.0,
+    "holdout_to_train": 1.37,
+    "pass_prob": 0.0
+  },
+  "problems": []
+}
