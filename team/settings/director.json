@@ -9,6 +9,8 @@
    "Bash(python tools/gate.py *)",
    "Bash(python tools/budget.py)",
    "Bash(python tools/budget.py *)",
+   "Bash(python tools/autonomy.py)",
+   "Bash(python tools/autonomy.py *)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/registry/graveyard.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/notes/director.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/outbox/director.txt)",

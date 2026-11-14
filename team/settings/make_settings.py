@@ -50,13 +50,13 @@ ROLES = {
                           "Bash(python tools/ideas.py list)", "Bash(python tools/ideas.py list *)"] + own("skeptic"),
                 "deny": ["WebFetch"]},
     "director": {"allow": ["Read", "Glob", "Grep", "Bash(python tools/ideas.py *)", "Bash(python tools/gate.py *)",
-                           "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)", f"Edit({T}/registry/graveyard.md)"] + own("director"),
+                           "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)", "Bash(python tools/autonomy.py)", "Bash(python tools/autonomy.py *)", f"Edit({T}/registry/graveyard.md)"] + own("director"),
                  "deny": ["WebFetch", "WebSearch"]},
     # Read-only overseer: can run the read-only views of the tools, write only its own report/notes/outbox.
     "auditor": {"allow": ["Read", "Glob", "Grep", "Bash(python tools/ideas.py list)", "Bash(python tools/ideas.py list *)",
                           "Bash(python tools/gate.py list)", "Bash(python tools/gate.py check *)",
                           "Bash(python tools/jobs.py check *)",
-                          "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)"] + own("auditor"),
+                          "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)", "Bash(python tools/autonomy.py)", "Bash(python tools/autonomy.py *)"] + own("auditor"),
                 "deny": ["WebFetch", "WebSearch", "Bash(python tools/ideas.py set *)", "Bash(python tools/ideas.py add *)",
                          "Bash(python tools/gate.py promote *)", "Bash(python tools/gate.py retire *)"]},
     # Fixes machinery. Editing is limited here AND re-checked by tools/engineer.py, which rolls back anything off its

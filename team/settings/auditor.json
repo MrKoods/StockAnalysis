@@ -12,6 +12,8 @@
    "Bash(python tools/jobs.py check *)",
    "Bash(python tools/budget.py)",
    "Bash(python tools/budget.py *)",
+   "Bash(python tools/autonomy.py)",
+   "Bash(python tools/autonomy.py *)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/notes/auditor.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/outbox/auditor.txt)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/reports/**)"

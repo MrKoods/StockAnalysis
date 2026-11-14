@@ -8,6 +8,7 @@ Script only, zero Claude tokens. One message the user can read top to bottom:
     💵 Real prices (Webull)       - today's quote captures, ON1 / EPRE re-priced at real bid/ask
     🔁 V2 trades today            - what the threshold / rank tracks opened and closed
     🤖 Team today                 - which roles ran and their headline, research moves (or "quiet day")
+    🧭 Self-running (7 days)      - how often the user stepped in vs the team fixing itself (tools/autonomy.py)
     ℹ️ Notes                      - one-time context (e.g. a loss cluster)
 
 Problems are ALSO posted straight away by the Ops Monitor, so a slow research run never delays an alert.
@@ -17,6 +18,7 @@ from __future__ import annotations
 import re
 from datetime import date, datetime
 
+import autonomy
 import outlook
 import plan_limit
 from common import OUTBOX, STATE, TEAM, load_json, post
@@ -136,6 +138,10 @@ def compose(today: date, f, pipeline: list[str]) -> str:
         parts.append("**💵 Real prices (Webull)**\n" + "\n".join(rp))
     parts.append("**🔁 V2 trades today**\n" + "\n".join(v2_trades(f.snapshot)))
     parts.append("**🤖 Team today**\n" + "\n".join(team_today(today, pipeline)))
+    try:
+        parts.append("**🧭 Self-running (7 days)**\n" + "\n".join(autonomy.summary(today)))
+    except Exception as e:  # noqa: BLE001 - a convenience section never stops the report
+        parts.append(f"**🧭 Self-running**\n• could not be computed: {str(e)[:120]}")
     if f.notes:
         parts.append("**ℹ️ Notes**\n" + "\n".join(f"• {n}" for n in f.notes))
     return "\n\n".join(parts)

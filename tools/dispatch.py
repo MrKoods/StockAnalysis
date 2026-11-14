@@ -27,6 +27,7 @@ import sys
 import time
 from datetime import date, datetime, timedelta
 
+import autonomy
 import budget
 import catalog
 import daily_bars
@@ -238,10 +239,23 @@ def claude_env() -> dict[str, str]:
     return {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "ANTHROPIC"))}
 
 
+def allowed_commands(role: str) -> str:
+    """The exact shell commands this role may run, from its settings allowlist - so it stops guessing tools that
+    don't exist (Engineer 2026-11-14: six roles in a week tried usage.py, research.py, graveyard.py, ... - each a
+    refused, paid turn). Generated, so it can't drift from what is really allowed."""
+    allow = load_json(TEAM / "team" / "settings" / f"{role}.json", {}).get("permissions", {}).get("allow", [])
+    cmds = [a[5:-1] for a in allow if a.startswith("Bash(") and a.endswith(")")]
+    if not cmds:
+        return ""
+    return ("\n\nShell commands you may run - the COMPLETE list, exactly as written (`*` = any arguments); any other "
+            "command, tool name or shell syntax (pipes, &&, ;, -c, redirects) is refused. For files use Read/Grep/Glob:\n"
+            + "\n".join(f"  {c}" for c in cmds))
+
+
 def run_role(role: str, cfg: dict, reason: str, today: date, dry_run: bool) -> dict:
     out_file = OUTBOX / f"{role}.txt"
     prompt = (f"Today is {today}. You are the team's {role.upper()}. Read TEAM.md, then prompts/common.md, "
-              f"then prompts/{role}.md, and follow them exactly. Why you were woken: {reason}")
+              f"then prompts/{role}.md, and follow them exactly. Why you were woken: {reason}" + allowed_commands(role))
     cmd = [shutil.which("claude") or "claude", "-p", prompt, "--permission-mode", "dontAsk",
            "--settings", str(TEAM / "team" / "settings" / f"{role}.json"),
            "--model", cfg["model"], "--effort", cfg.get("effort", "medium"),
@@ -427,6 +441,8 @@ def write_scorecard(today: date, f: ops_monitor.Findings) -> None:
     if len(outlook) == 2:
         lines += ["", "## Outlook (what each next decision needs - snapshot.py)", "```", "Outlook" + outlook[1].strip(),
                   "```"]
+    lines += ["", "## Self-running (tools/autonomy.py - the user's goal: the team gets there on its own)"]
+    lines += autonomy.report(today).splitlines()[1:]
     lines += ["", "## Research pipeline"] + [f"- {s}: {', '.join(in_stage(s))}" for s in ideas.STAGES
                                              if s not in ("dead", "dropped") and in_stage(s)]
     (TEAM / "reports" / f"{today}-scorecard.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -552,6 +568,8 @@ def main(argv: list[str]) -> int:
 
     # 2. ops (script only; Saturday has no market tasks worth a heartbeat)
     f = ops_monitor.run(dry_run=a.dry_run, post_it=today.weekday() < 5)
+    if not a.dry_run:
+        autonomy.record(today, f)          # the 'you stepped in' count (tools/autonomy.py)
     if DAYS[today.weekday()] == "Fri" and not a.dry_run:
         try:
             write_scorecard(today, f)

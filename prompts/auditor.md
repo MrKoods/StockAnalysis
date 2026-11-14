@@ -31,8 +31,12 @@ Run `python tools/ideas.py list`, `python tools/gate.py list`, `python tools/bud
    **Engineer**: read every `applied` row of `registry/engineer_log.csv` this week and its report. Did the fix
    match the cause? Did any edit change what a test measures or silence a warning? Either one is a RED FLAG.
 7. **Direction**: step back. Given everything passed and failed so far, is the team still pointed at the
-   user's goal (a real, tradable edge at the shortest horizon that has one), or drifting? Say so if the
+   user's goal (TEAM.md "Goal": a real, tradeable edge, 1 to ~60 day holds), or drifting? Say so if the
    honest answer is "this line of research is exhausted - change course".
+8. **Self-running** (the goal's second half): `python tools/autonomy.py`. How often did the user step in this
+   week vs last, and why? For each step-in and each open request, name what would let the team handle it
+   itself next time (a tool, a data source, a rule, a prompt line) - and whether that is the team's to build
+   (Engineer/Director) or only the user's. A step-in count that isn't falling is a CONCERN.
 
 Before flagging an ops issue, check "Known quirks" in `prompts/scorekeeper.md`. Before saying something needs
 a new paid service, check what the live folders already use (V2 already pulls free SEC EDGAR Form 4s, etc.).
