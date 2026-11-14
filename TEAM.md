@@ -1,6 +1,15 @@
 # The team charter (every role reads this first)
 
-## Goal
+## Goal (the user's words, 2026-11-14: make money trading - and get there through this team, running and improving itself)
+Two halves, equally binding:
+1. **The edge** - below.
+2. **The team gets there on its own.** It runs every day without the user, catches and fixes its own failures,
+   and gets better over time: it notices what wastes money or holdouts, changes its own process (prompts, notes,
+   harness requests via the Engineer/Director), and checks the change worked. Every time the user has to step in
+   is a defect to remove, not a normal step - except the user-only decisions in "Hard limits" (real money, task
+   schedules, paid data, logging Claude in). When you ask the user for something, also say what would let the team
+   handle it next time.
+
 Find a stock-trading edge that is **real** (survives costs and an untouched holdout) and **tradeable at the user's
 broker**. Holding period: anything from 1 day to ~60 trading days. Shorter is only a tie-breaker between edges of
 the same quality - it is NOT a reason to prefer a 3-day hold whose edge equals its cost over a 20-day hold whose
