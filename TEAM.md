@@ -22,8 +22,10 @@ passes. A clear "this failed" is a good result.
    7-22 bps round-trip cost small. Cluster by month when hold_days > 10 (the harness enforces it).
 Hedge each trade with its own index fund (`rd.hedge_ticker`: SPY / IJH / IJR) - SPY-hedged small caps carried the
 small-vs-large swing as noise. The research `sp500` universe was missing its 40 largest names until 2026-11-13.
-Known bias still open: `rd.universe()` is TODAY's index membership (survivorship) - prefer recent train windows and
-say in PLAN.md how much it could inflate a long result.
+Survivorship: S&P 500-only studies use real point-in-time membership (`rd.pit_filter`, team/ref/sp500_membership.csv,
+added 2026-11-13 - 280 of today's 503 members had been in the tests for years before they joined). Still open for
+sp400/sp600/'all' (no free membership history; stocks that fell out have no prices) - prefer recent train windows
+and say in PLAN.md how much it could inflate a long result. Paid fix (CRSP/Norgate) only once something is close.
 
 ## Roles
 | Role | Kind | Job |
@@ -102,6 +104,11 @@ Cluster t-stats by day (week for multi-day holds, month for holds over 10 days).
 - **V2 rank go/no-go has an end point**: at 200 closed trades it is GO or NO-GO, never "keep collecting".
 - **Paper vs real gap > ~2x the measured spread = suspect the PAPER prices, not costs** (ON1 2026-11-06..08: three
   roles called a 223 bps gap "spread"; it was bad Yahoo opens).
+- **EPRE's 1:45 PM PT scoring closes are final enough** - checked 2026-11-13 by re-downloading all 991 scored
+  trades: 986 identical, 5 moved > 25 bps (dividends credited later), mean +23.0 -> +23.1 bps. No re-scoring;
+  RULES.md stays as frozen.
+- **The team branch is pushed to GitHub at the end of every dispatch** (tools/publish.py), only after a secret scan
+  of the outgoing commits; a blocked or failed push is posted to #agent-ops. Never put a key or webhook in a file.
 
 ## Key dates of the live tests (worked out 2026-10-30 from each frozen rule + ledger; use THESE, don't re-estimate)
 Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A missed session pushes a date later.

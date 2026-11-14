@@ -21,7 +21,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from common import STATE, TEAM, load_json, log, now_pt, post, save_json
+from common import STATE, TEAM, LockBusy, load_json, log, now_pt, post, save_json, state_lock
 from ops_monitor import OK_RESULTS, last_due, scheduled_tasks, window_gap
 
 SCHEDULE = TEAM / "team" / "schedule.json"
@@ -144,9 +144,34 @@ def check(now: datetime, tasks: list[dict], sched: dict, st: dict, dry_run: bool
 
 
 def run(dry_run: bool = False) -> list[str]:
+    """One tick. The whole read-check-write runs under a lock: two overlapping ticks (a slow tick plus the next one,
+    or a manual run) would otherwise each read the old state and the later save would silently drop the other's
+    issues/retries. A tick that can't get the lock skips - the next one is 10 minutes away."""
+    try:
+        with state_lock("scan_ops"):
+            return _run(dry_run)
+    except LockBusy as e:
+        log(f"scan_ops: skipped this tick - another tick is still running ({e})", "scan_ops")
+        return []
+
+
+def _load_state() -> dict:
+    """scan_ops.json, or {} - but an unreadable file is kept aside and logged, not silently replaced by {}."""
+    if not STATEF.exists():
+        return {}
+    try:
+        return json.loads(STATEF.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        bad = STATEF.with_name(f"scan_ops.corrupt-{now_pt():%Y%m%d-%H%M%S}.json")
+        STATEF.replace(bad)
+        log(f"scan_ops: state file unreadable ({e}) - moved to {bad.name}, starting fresh", "scan_ops")
+        return {}
+
+
+def _run(dry_run: bool) -> list[str]:
     now = now_pt()
     sched = load_json(SCHEDULE, {}).get("jobs", {})
-    st = load_json(STATEF, {})
+    st = _load_state()
     for k in [k for k in st if k[:2] == "20" and k < (now.date() - timedelta(days=7)).isoformat()]:
         st.pop(k)                                 # keep a week of per-day state
     week_ago = (now.date() - timedelta(days=7)).isoformat()

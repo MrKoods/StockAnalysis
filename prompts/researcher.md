@@ -25,8 +25,10 @@ close after that. Hedge each trade with its own index fund: `rd.hedge_ticker(rd.
      sqrt(holdout length / train length) against the bar) and buries the idea below 25% WITHOUT spending the
      holdout. So give the holdout enough data: whole S&P 1500 unless the mechanism is index-specific, the longest
      clean holdout window the catalog allows, and in PLAN.md the events per year you expect.
-   - Survivorship: `rd.universe()` is today's membership. Prefer train windows in the last ~10 years and say in
-     PLAN.md how much it could lift a long result.
+   - Survivorship: `rd.universe()` is today's membership. An S&P 500-only study MUST run its events through
+     `rd.pit_filter(events, date_col)` (real membership on each date, 1996+; the harness refuses the plan without
+     it). sp400/sp600/'all' have no such list: prefer train windows in the last ~10 years and say in PLAN.md how
+     much it could lift a long result.
    - `entry_at` / `exit_at` ("open" | "close") and `universe` (list of "sp500"/"sp400"/"sp600") are REQUIRED in
      practice: the harness charges max(`cost_bps`, the real Webull spread for those fill times and indexes) from
      `team/fill_costs.json`. The user's broker has no opening/closing auction orders, so an open fill pays the

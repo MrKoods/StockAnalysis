@@ -24,6 +24,9 @@ And `entry_session` (2026-11-13) = the first session whose CLOSE can be bought a
 before 15:30 ET that day). Buying at the close of entry_session catches the day-0 move that a buy at the close
 AFTER first_session misses - most event edges are priced by then (decomposition, 2026-11-13 audit).
 Hedge with the trade's own index fund: hedge_ticker('sp600') = IJR, 'sp400' = IJH, 'sp500' = SPY; index_of().
+Survivorship (2026-11-13): an 'sp500' study MUST pass its events through pit_filter(df, date_col) - keeps only
+rows dated while the stock was really in the S&P 500 (team/ref/sp500_membership.csv, 1996+). sp400/sp600/'all'
+have no such list: their long results stay biased up (stocks that later fell out are missing entirely).
 The full list of sources, their coverage and each family's used periods: state/data_catalog.md.
 """
 from __future__ import annotations
@@ -135,6 +138,46 @@ def universe(name: str = "all") -> list[str]:
 SP500_CORE = {"AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "AMD", "NFLX", "JPM", "BAC", "WFC",
               "C", "GS", "V", "MA", "XOM", "CVX", "UNH", "LLY", "JNJ", "PFE", "MRK", "ABBV", "KO", "PEP", "WMT",
               "COST", "HD", "DIS", "INTC", "MU", "QCOM", "ORCL", "CRM", "ADBE", "CSCO", "BA", "PLTR"}
+
+# Point-in-time S&P 500 membership (tools/sp500_membership.py, added 2026-11-13). 280 of today's 503 members have
+# price history from BEFORE they joined - usually a strong run that got them added - so an "sp500" test on
+# universe("sp500") quietly buys future winners. pit_filter() keeps only rows dated while the stock was a member.
+SP500_PIT = Path(__file__).resolve().parent.parent / "team" / "ref" / "sp500_membership.csv"
+
+
+def _pit_spells() -> tuple[pd.DataFrame, pd.Timestamp]:
+    with open(SP500_PIT, encoding="utf-8") as f:
+        head = f.readline()
+    src_end = pd.Timestamp(head.split("lists through ")[1][:10])
+    spells = pd.read_csv(SP500_PIT, comment="#", parse_dates=["start", "end"])
+    return spells, src_end
+
+
+def sp500_member(tickers, dates) -> pd.Series:
+    """Was tickers[i] in the S&P 500 on dates[i]? (bool Series, aligned with the inputs' order). After the source's
+    last list (see the file header) membership = today's universe('sp500')."""
+    d = pd.to_datetime(pd.Series(list(dates)))
+    if d.dt.tz is not None:
+        d = d.dt.tz_convert("America/New_York").dt.tz_localize(None)
+    q = pd.DataFrame({"ticker": list(tickers), "date": d.dt.normalize().to_numpy()})
+    q["_i"] = range(len(q))
+    spells, src_end = _pit_spells()
+    m = q.merge(spells, on="ticker", how="inner")
+    hit = m[(m["start"] <= m["date"]) & (m["end"].isna() | (m["date"] < m["end"]))]["_i"]
+    out = q["_i"].isin(hit)
+    late = q["date"] > src_end
+    out[late] = q.loc[late, "ticker"].isin(set(universe("sp500")))
+    return pd.Series(out.to_numpy(), index=range(len(q)), name="sp500_member")
+
+
+def pit_filter(df: pd.DataFrame, date_col: str = "entry_session", ticker_col: str = "ticker") -> pd.DataFrame:
+    """Rows of an 'sp500' study whose stock was an S&P 500 member on its signal/entry date. REQUIRED for any
+    universe('sp500') test (the Skeptic checks). Not for sp400/sp600/'all': a stock that later moved up to the S&P 500
+    was usually in the 400/600 before, and no point-in-time list exists for those (that bias stays open)."""
+    if df.empty:
+        return df
+    keep = sp500_member(df[ticker_col], df[date_col]).to_numpy()
+    return df[keep]
 
 
 def daily(tickers) -> dict[str, pd.DataFrame]:

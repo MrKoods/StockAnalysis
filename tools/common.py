@@ -5,7 +5,9 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.request
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -98,14 +100,58 @@ def load_json(path: Path, default):
 
 
 def save_json(path: Path, data) -> None:
+    """Atomic write. The temp name is per-process (two writers never share one), and the final rename is retried:
+    on Windows it fails with PermissionError while another process has the target open for reading."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp = path.with_suffix(path.suffix + f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
-    tmp.replace(path)
+    for attempt in range(10):
+        try:
+            tmp.replace(path)
+            return
+        except PermissionError:
+            if attempt == 9:
+                tmp.unlink(missing_ok=True)
+                raise
+            time.sleep(0.2)
+
+
+class LockBusy(Exception):
+    """Another live process holds the lock (see state_lock)."""
+
+
+@contextmanager
+def state_lock(name: str, wait_s: float = 60, stale_s: float = 900):
+    """Exclusive lock on STATE/<name>.lock around a read-modify-write of shared state.
+    Waits up to wait_s for the holder to finish; a lock older than stale_s is from a crashed run and is taken over.
+    Raises LockBusy when it can't get the lock - the caller skips this run rather than overwrite another's update."""
+    lock = STATE / f"{name}.lock"
+    deadline = time.monotonic() + wait_s
+    while True:
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, f"{os.getpid()} {now_pt().isoformat(timespec='seconds')}".encode())
+            os.close(fd)
+            break
+        except FileExistsError:
+            try:
+                if time.time() - lock.stat().st_mtime > stale_s:
+                    lock.unlink(missing_ok=True)
+                    continue
+            except FileNotFoundError:
+                continue
+            if time.monotonic() >= deadline:
+                holder = lock.read_text(errors="replace") if lock.exists() else "?"
+                raise LockBusy(f"{lock.name} held by {holder}")
+            time.sleep(1)
+    try:
+        yield
+    finally:
+        lock.unlink(missing_ok=True)
 
 
 def git(*args: str) -> str:
-    r = subprocess.run(["git", *args], cwd=TEAM, capture_output=True, text=True)
+    r = subprocess.run(["git", *args], cwd=TEAM, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return (r.stdout + r.stderr).strip()
 
 

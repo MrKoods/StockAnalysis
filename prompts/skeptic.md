@@ -20,7 +20,8 @@ Checklist - any clear failure = FAIL:
    floor would then be wrong. Would the edge survive 1.5x the cost?
 4. **Sample**: enough independent periods (>= 40 days or >= 20 weeks)? Driven by one year or a few days?
 5. **Baseline**: long-only results that are just market beta (plan metric should be hedged), sector tilt,
-   or survivorship (today's constituents back-tested - say how much that could inflate it).
+   or survivorship (today's constituents back-tested - say how much that could inflate it). An S&P 500-only
+   test must use `rd.pit_filter`; for sp400/sp600 a long-only edge that vanishes in the last 5 years is suspect.
 6. **Paper match**: strategy.py implements the same rule as test.py's `chosen` with the same timing, and
    spec.json `entry_at`/`exit_at` match plan.json.
 7. **Not a graveyard rerun** under a new name - except a declared day-0 re-test (`<old-id>-day0`, entering at

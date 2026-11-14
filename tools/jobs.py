@@ -97,7 +97,24 @@ def plan_problems(iid: str) -> list[str]:
     idea = ideas.get(iid)
     if idea and idea["family"] and p["family"] != idea["family"]:
         probs.append(f"plan family {p['family']} != idea family {idea['family']}")
+    probs += pit_problems(p, d / "test.py")
     return probs + static_problems(d / "test.py")
+
+
+SP500_ONLY_RX = re.compile(r"""universe\(\s*['"]sp500['"]\s*\)""")
+
+
+def pit_problems(plan: dict, path) -> list[str]:
+    """An S&P 500-only study must drop rows dated before a stock joined / after it left (research_data.pit_filter,
+    2026-11-13): 280 of today's 503 members have pre-joining history, mostly the run-up that got them added."""
+    if not path.exists():
+        return []
+    code = path.read_text(encoding="utf-8", errors="replace")
+    sp500_only = plan.get("universe") == ["sp500"] or SP500_ONLY_RX.search(code)
+    if sp500_only and "pit_filter(" not in code:
+        return ["S&P 500-only study without rd.pit_filter(events, date_col): today's members include ~280 "
+                "stocks in the years before they joined (survivorship) - filter the events first"]
+    return []
 
 
 def static_problems(path) -> list[str]:

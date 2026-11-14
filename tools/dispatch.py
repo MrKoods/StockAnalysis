@@ -39,6 +39,7 @@ import jobs
 import ops_monitor
 import paper_runner
 import plan_limit
+import publish
 import quotes
 import scan_ops
 import screen
@@ -490,6 +491,7 @@ def resume(a) -> int:
         return 0
     finally:
         plan_limit.drop_lock()
+        _publish(a.dry_run)
 
 
 def main(argv: list[str]) -> int:
@@ -601,6 +603,17 @@ def main(argv: list[str]) -> int:
             except Exception as e:  # noqa: BLE001
                 log(f"daily report failed: {e}", "dispatch")
                 post("ops", f"⚠️ Daily report could not be built: {str(e)[:300]}", "Team - Ops Monitor", a.dry_run)
+        _publish(a.dry_run)
+
+
+def _publish(dry_run: bool) -> None:
+    """7. Push the day's team commits to GitHub, behind a secret scan (tools/publish.py). Never fatal."""
+    if dry_run:
+        return
+    try:
+        log(publish.run(), "dispatch")
+    except Exception as e:  # noqa: BLE001
+        log(f"publish failed: {e}", "dispatch")
 
 
 if __name__ == "__main__":
