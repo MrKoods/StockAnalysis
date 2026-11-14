@@ -5,6 +5,16 @@
 - The quotes.py late-run guard (too_late) exists since 2026-11-11 - don't propose it again.
 - G2 is retired and its tasks are off. ON1 retires automatically on its real-price FAIL. Don't ask the user.
 
+## Resolved - don't repeat (weekly review 2026-11-14)
+- The weekly "Refused for …" ticket list is role-side, NOT machinery. Every plain-command refusal targets a
+  tool/subcommand that doesn't exist: usage.py, research.py, graveyard.py, edgar_forms_probe.py (no such files);
+  ideas.py has only list/add/set (no `get`); engineer.py has only tickets/check (no `log`); research_data has no
+  CLI (filings() is a function, research_data.py:273). The rest are banned shell syntax (pipes/-c/;/&&/2>/dev/null
+  /heredoc). Don't propose permission-allowlist changes for these — nothing real is being blocked. If this list
+  keeps growing, the only fix is a "tools that exist" crib in common.md (off-list; user proposal). Don't re-diagnose.
+- 11-10 QuoteClose x5 stale `issues` in scan_ops.json are real power-loss give-up records (not OWN_TASK), pruned
+  by one-week age -> gone 11-17. Leave them; auditor called them settled.
+
 ## Open / for the user (not my editable files)
 - 2026-11-13 quote_clerk failed x2 (open 06:31, close 12:56 PT): headless Claude was NOT LOGGED IN
   (`apiKeySource:"none"`, `authentication_failed`, "Not logged in · Please run /login" in both
