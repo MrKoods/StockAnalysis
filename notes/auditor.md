@@ -1,5 +1,33 @@
 # Auditor notes
 
+## 2026-11-14 — 4th audit (regular Saturday slot)
+No red flags. Honest week: 5 ideas died at TRAIN (seo-short t−5.92, issuer-self-tender −1.76, pre-earnings-premium
+0.44, proxy-contest 0.31, material-impairment-short −0.86) — all distinct families, all auto-buried below luck bar,
+NO holdout spent. Spot-checked material-impairment-short: plan committed before train (45f7cba→0eed3d5), chosen
+e0_sp1500_h3 PRE-REGISTERED (PLAN.md:36, not train-best), train t−0.86/−18.33 bps = graveyard exact. Paper-vs-real
+OK (ON1 gap 87 < spread 93; EPRE 0.6 bps gap). Engineer's 3 scan_ops edits sound (self-flag removal; ops_monitor.py:116
+still covers ScanOps — no warning silenced). gate.py list EMPTY (0 team paper tests ever).
+
+### Prior findings — resolution
+- **C6 CLOSED**: 11-13 scorecard pairs after-cost mean +0.070R with after-cost bar +0.15. Fixed (scorekeeper retired,
+  now a script). Don't reopen.
+- **C7 → ESCALATED to C8**: Director now agrees the vein is exhausted (own report:66-68). See below.
+
+### Open findings (check next audit)
+- **C8 OPEN (User/direction)**: event-research vein EXHAUSTED by Director's own admission. 6 weeks, ~15 ideas, 0 paper
+  promotions. Unlock = 8-K/press-release text-parsing NLP on the SEC archive already held (no new API) OR a new data
+  domain — a USER build, not fixable by more team research. The one real-price winner (V4 EPRE +91.7) predates the
+  team. CHECK: did the user build NLP / redirect? Did the Director queue only tradeable mechanisms?
+- **C9 OPEN (Director)**: day-0-entry 8-K ideas can't be paper-replicated without an intraday ~12:45 PT EDGAR check
+  that isn't built (material-impairment PLAN.md:89-93). CHECK: before queuing more day-0 8-K ideas, did the Director
+  confirm a PASS could actually be paper-tested?
+
+### Watch calendar
+- V2 rank go/no-go at 100 (~11-20..25) — NO-GO near-certain; user's call on the rank signal.
+- ON1 real-price verdict ~11-24 — FAIL trajectory; did dispatcher auto-retire ON1's V3 tasks on FAIL?
+- V4 EPRE checkpoint A (~next week) — FAIL-only, informational; PASS authorizes nothing.
+- Next audit: regular Saturday slot after the Director.
+
 ## 2026-11-07 — 3rd audit (regular Saturday slot)
 No red flags. Honest week: 8 ideas died (reg-fd, analyst-init, early-10q, restructuring, turn-of-month,
 nt-filing, activist-13d, pipe-short) — all clean nulls. Spot-checked pipe-short + activist train_result.json
