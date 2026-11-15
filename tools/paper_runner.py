@@ -13,7 +13,9 @@ Strategy contract - strategies/<id>/strategy.py:
     def universe() -> list[str]
     def signals(asof: date, bars: dict[str, pd.DataFrame]) -> list[dict]   # {"ticker", "side": "long"|"short"}
 strategies/<id>/spec.json:
-    {"family", "entry_at": "open" (default: the next session's open) | "close" (the next session's close - on
+    {"family", "entry_at": "open" (default: the next session's open) | "same_close" (the close of the SIGNAL day
+     itself = day-0 entry; signals made pre-close by run_day0 from tools/edgar_live.py, filings accepted before
+     15:30 ET only) | "close" (the next session's close - on
      Webull the close is ~10x cheaper than the open: no auction orders for retail, 9:31 spreads 64-194 bps vs 5-16
      at 3:56, see team/fill_costs.json),
      "hold_sessions": 0 (= exit at the entry day's close; open entries only) | N, "exit_at": "close"|"open",
@@ -120,13 +122,14 @@ def advance(row: dict, spec: dict, bars: dict[str, pd.DataFrame], sessions: list
         return row
     row = dict(row)
     sig = date.fromisoformat(row["signal_date"])
-    later = [s for s in sessions if s > sig]
+    day0 = spec.get("entry_at") == "same_close"      # bought at the close of the signal day itself
+    later = [s for s in sessions if (s >= sig if day0 else s > sig)]
     if not later:
         return row
     entry_day = later[0]
     df = bars.get(row["ticker"])
     spy = bars["SPY"]
-    at_close = spec.get("entry_at", "open") == "close"
+    at_close = spec.get("entry_at", "open") in ("close", "same_close")
     entry_col = "Close" if at_close else "Open"
     if df is None or entry_day not in df.index or pd.isna(df.at[entry_day, entry_col]):
         row.update(status="void", exit_reason="no bar on entry day")
@@ -256,7 +259,10 @@ def run_one(sid: str, asof: date, bars_cache: dict, dry_run: bool) -> dict:
     rows = [advance(r, spec, bars, sessions, q) for r in read_ledger(sid)]
     traded_today = bool(sessions) and sessions[-1] == asof
     new = 0
-    if traded_today and not stopped() and not any(r["signal_date"] == str(asof) for r in rows):
+    # A day-0 strategy's signals are made BEFORE the close by run_day0() - never here, after the close, when
+    # filings accepted after 15:30 ET (untradeable at today's close) would already be visible.
+    day0 = spec.get("entry_at") == "same_close"
+    if traded_today and not day0 and not stopped() and not any(r["signal_date"] == str(asof) for r in rows):
         sigs = validate_signals(mod.signals(asof, truncate(bars, asof)), set(uni),
                                 int(spec.get("max_signals_per_day", 20)))
         rows += [{"strategy": sid, "signal_date": str(asof), "status": "pending", **s} for s in sigs]
@@ -266,6 +272,47 @@ def run_one(sid: str, asof: date, bars_cache: dict, dry_run: bool) -> dict:
         write_ledger(sid, rows)
         save_json(PAPER / f"{sid}_status.json", status)
     return status
+
+
+def run_day0(asof: date, dry_run: bool = False) -> dict[str, int]:
+    """Pre-close signals for day-0 strategies (spec entry_at "same_close"), run by the Scan Operator tick at
+    ~12:40 PT right after tools/edgar_live.py has captured today's filings. Each such strategy sees bars up to
+    YESTERDAY only (today's bar is not complete) and gets today's filings via edgar_live.filings_asof(asof), which
+    drops anything accepted after 15:30 ET. Signals are logged 'pending' with signal_date = today, so the 12:56 PT
+    Quote Clerk prices them and the after-close run fills them at today's close. Returns {strategy: new signals}."""
+    from datetime import timedelta
+    reg = load_json(REGISTRY, {"strategies": {}})
+    out: dict[str, int] = {}
+    if stopped():
+        return out
+    for sid, meta in reg.get("strategies", {}).items():
+        if meta.get("status") != "active":
+            continue
+        mod, spec = load_strategy(sid)
+        if spec.get("entry_at") != "same_close":
+            continue
+        if meta.get("fingerprint") and fingerprint(sid) != meta["fingerprint"]:
+            log(f"paper day0 {sid} REFUSED: files changed since promotion", "paper")
+            continue
+        try:
+            rows = read_ledger(sid)
+            if any(r["signal_date"] == str(asof) for r in rows):
+                out[sid] = 0
+                continue
+            uni = list(mod.universe())
+            # yesterday's (complete) bars - and cached under yesterday's key, so today's after-close run downloads
+            # fresh bars instead of reusing a cache holding a half-finished day
+            bars = {t: df[df.index < asof] for t, df in download(uni, asof - timedelta(days=1)).items()}
+            sigs = validate_signals(mod.signals(asof, bars), set(uni), int(spec.get("max_signals_per_day", 20)))
+            rows += [{"strategy": sid, "signal_date": str(asof), "status": "pending", **x} for x in sigs]
+            if not dry_run:
+                write_ledger(sid, rows)
+            out[sid] = len(sigs)
+            log(f"paper day0 {sid}: {len(sigs)} signal(s) for today's close", "paper")
+        except Exception as e:  # noqa: BLE001
+            out[sid] = -1
+            log(f"paper day0 {sid} ERROR {e!r}", "paper")
+    return out
 
 
 def run(asof: date, dry_run: bool = False, only: str | None = None) -> dict[str, dict]:

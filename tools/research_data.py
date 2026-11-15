@@ -18,6 +18,8 @@ Team archive (data/edgar, from tools/edgar.py - updated by the dispatcher every 
   filings(forms, items, tickers)  every SEC filing (not Forms 3/4/5/144) since the 1990s, with SEC's exact
                     acceptance time and 8-K item codes (codes exist from 2004-08; see EIGHT_K_ITEMS)
   splits(tickers)   stock splits: ex-date, ratio, and the first filing that said "stock split" (2001+)
+  filing_text(df)   adds each 8-K's WORDS to filings() rows (body + attached press release for 8.01), 2026-11-14
+  fomc()            FOMC meetings/calls since 2000 (scheduled dates usable in advance; calls only after)
 Both add `first_session` = the first session whose 09:30 ET open is after the event became public - the
 earliest a strategy could have traded it. Use it, not the filing date, as the signal date.
 And `entry_session` (2026-11-13) = the first session whose CLOSE can be bought after the event (SEC accepted it
@@ -32,6 +34,7 @@ The full list of sources, their coverage and each family's used periods: state/d
 from __future__ import annotations
 
 import os
+import re
 import time
 from pathlib import Path
 
@@ -270,9 +273,15 @@ def _entry_session(ts: pd.Series, sessions: pd.DatetimeIndex) -> pd.Series:
     return out
 
 
+def form_std(form: str) -> str:
+    """SEC renamed 'SC 13D'/'SC 13G' to 'SCHEDULE 13D'/'SCHEDULE 13G' in late 2024 (2026 so far: 68 'SCHEDULE 13D',
+    0 'SC 13D'). Map both to the old name, so a filter on 'SC 13D' keeps working across the change."""
+    return re.sub(r"^SCHEDULE (13[DG])", lambda m: "SC " + m.group(1), str(form))
+
+
 def filings(forms=None, items=None, tickers=None) -> pd.DataFrame:
     """SEC filings accepted up to the cutoff. forms: e.g. ['8-K'] (matches 8-K/A too); items: 8-K item codes,
-    e.g. ['5.02'] (any match). Columns: ticker cik form filing_date accepted items accession primary_doc
+    e.g. ['5.02'] (any match). 'SC 13D' also matches the post-2024 name 'SCHEDULE 13D' (form_std). Columns: ticker cik form filing_date accepted items accession primary_doc
     description first_session."""
     end = data_end()
     df = _read(EDGAR / "filings.parquet")
@@ -280,7 +289,8 @@ def filings(forms=None, items=None, tickers=None) -> pd.DataFrame:
         raise RuntimeError("no EDGAR archive - the dispatcher builds it (tools/edgar.py)")
     df = df[df["accepted"].dt.normalize() <= end]
     if forms:
-        df = df[df["form"].str.replace("/A", "", regex=False).isin([f.replace("/A", "") for f in forms])]
+        base = df["form"].map(form_std).str.replace("/A", "", regex=False)
+        df = df[base.isin([form_std(f).replace("/A", "") for f in forms])]
     if items:
         codes = df["items"].fillna("").str.split(",")
         df = df[codes.apply(lambda c: any(x.strip() in items for x in c))]
@@ -291,6 +301,44 @@ def filings(forms=None, items=None, tickers=None) -> pd.DataFrame:
     df["first_session"] = _first_session(df["accepted"], sessions)
     df["entry_session"] = _entry_session(df["accepted"], sessions)
     return df.reset_index(drop=True)
+
+
+TEXT = EDGAR / "text"                                    # tools/edgar_text.py
+FOMC = Path(__file__).resolve().parent.parent / "team" / "ref" / "fomc_dates.csv"   # tools/fomc_dates.py
+
+
+def filing_text(df: pd.DataFrame) -> pd.DataFrame:
+    """Add the words of each 8-K to rows from filings() (added 2026-11-14). Columns added: text (the 8-K body from
+    its first 'Item x.xx' heading), exhibit (for item 8.01 whose body is only a cover note, the attached press
+    release - else ''), has_text (False = not downloaded: out of scope or the backfill hasn't reached it).
+    In scope: items 8.01 5.02 1.01 1.02 2.01 3.02 2.05 2.06 3.01 5.03 7.01 (not 2.02 earnings, 5.07 votes).
+    Use it to SPLIT an event by what it says (buyback authorized vs completed, CEO departs vs is appointed,
+    special dividend), with simple, pre-registered keyword rules written in PLAN.md - a keyword list tuned on the
+    train results is a variant like any other and counts in the luck bar.
+    Coverage per item and period: state/data_catalog.md / `python tools/edgar_text.py status`."""
+    out = df.copy()
+    parts = sorted(TEXT.glob("part-*.parquet"))
+    if not parts or out.empty:
+        out["text"], out["exhibit"], out["has_text"] = "", "", False
+        return out
+    want = set(out["accession"])
+    got = [t[t["accession"].isin(want)] for t in (_read(p) for p in parts) if t is not None]
+    txt = pd.concat(got)[["accession", "text", "exhibit"]].drop_duplicates("accession") if got else pd.DataFrame(
+        columns=["accession", "text", "exhibit"])
+    out = out.merge(txt, on="accession", how="left")
+    out["has_text"] = out["text"].notna()
+    out[["text", "exhibit"]] = out[["text", "exhibit"]].fillna("")
+    return out
+
+
+def fomc() -> pd.DataFrame:
+    """FOMC meetings and calls since 2000 (federalreserve.gov, added 2026-11-14): start, date (statement day; the
+    statement comes at 14:00 ET), kind ('meeting' = scheduled, published ~a year ahead, so usable BEFORE it happens;
+    'call' = conference call / unscheduled meeting, known only on the day - never use one before its date), sep
+    (projections, 2021+). Rows after the cutoff are kept only for scheduled meetings (their dates were public)."""
+    df = pd.read_csv(FOMC, parse_dates=["start", "date"])
+    end = data_end()
+    return df[(df["date"] <= end) | (df["kind"] == "meeting")].reset_index(drop=True)
 
 
 def splits(tickers=None) -> pd.DataFrame:

@@ -8,6 +8,8 @@
    "Bash(python tools/engineer.py check)",
    "Bash(python tools/engineer.py tickets)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tests/test_eng_*.py)",
+   "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tools/lab/*.py)",
+   "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tests/test_lab_*.py)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tools/catalog.py)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tools/daily_bars.py)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/tools/daily_report.py)",

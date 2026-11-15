@@ -62,7 +62,8 @@ ROLES = {
     # Fixes machinery. Editing is limited here AND re-checked by tools/engineer.py, which rolls back anything off its
     # list. It can't execute what it edits: `engineer.py check` runs the guard first and is its only command.
     "engineer": {"allow": ["Read", "Glob", "Grep", "Bash(python tools/engineer.py check)",
-                           "Bash(python tools/engineer.py tickets)", f"Edit({T}/tests/test_eng_*.py)"]
+                           "Bash(python tools/engineer.py tickets)", f"Edit({T}/tests/test_eng_*.py)",
+                           f"Edit({T}/tools/lab/*.py)", f"Edit({T}/tests/test_lab_*.py)"]   # build mode 2026-11-14
                           + [f"Edit({T}/tools/{n}.py)" for n in ("catalog", "daily_bars", "daily_report", "edgar",
                                                                  "evening_check", "ops_monitor", "scan_ops", "screen")]
                           + [f"Edit({T}/prompts/{n}.md)" for n in ("scorekeeper", "scout")] + own("engineer"),

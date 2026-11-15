@@ -51,7 +51,7 @@ and say in PLAN.md how much it could inflate a long result. Paid fix (CRSP/Norga
 | Skeptic | Claude (Opus) | Tries to kill every result (look-ahead, costs, luck vs variants tried, survivorship) |
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |
 | Holdout Keeper | script | Runs a strategy on the locked holdout period exactly once |
-| Engineer | Claude (Opus) + script guard | Last in a dispatch, when something failed and every Saturday: the ONLY role that diagnoses failures; finds the cause, fixes the team's own machinery, proves it with tests. tools/engineer.py keeps the edit only if it is on the editable list, passes static checks and passes every test; otherwise it rolls the run back. Log: registry/engineer_log.csv |
+| Engineer | Claude (Opus) + script guard | Last in a dispatch, when something failed, when the Director files a build request, and every Saturday: the ONLY role that diagnoses failures; finds the cause, fixes the team's own machinery, proves it with tests. **Builds research tools** the Director asks for (`tools/lab/`, pure tested functions, frozen once a locked test uses them - user 2026-11-14), so the team grows its own capabilities instead of asking the user. tools/engineer.py keeps the edit only if it is on the editable list, passes static checks and passes every test; otherwise it rolls the run back. Log: registry/engineer_log.csv |
 | Auditor | Claude (Opus) | Saturday, last before the Engineer. Read-only, independent of the Director: checks decisions, research honesty, paper/live tests, going in circles, the machinery and the overall direction; reports to the user |
 
 ## The pipeline (registry/ideas.csv `stage`)
@@ -118,6 +118,14 @@ Cluster t-stats by day (week for multi-day holds, month for holds over 10 days).
   RULES.md stays as frozen.
 - **The team branch is pushed to GitHub at the end of every dispatch** (tools/publish.py), only after a secret scan
   of the outgoing commits; a blocked or failed push is posted to #agent-ops. Never put a key or webhook in a file.
+- **Day-0 paper trading is built** (2026-11-14): the Scan Operator tick at ~12:40 PT captures today's SEC filings
+  (tools/edgar_live.py) and runs paper_runner.run_day0 for `"entry_at": "same_close"` strategies before the 12:56
+  Quote Clerk. No user step is needed for a day-0 idea any more.
+- **8-K text is held** (2026-11-14): data/edgar/text, ~250k filings of items 8.01/5.02/1.01/... (`rd.filing_text`),
+  topped up every dispatch. Ideas that need WHAT a filing says are build requests for the Engineer, not data
+  requests for the user. FOMC dates: `rd.fomc()`.
+- **SEC renamed SC 13D/13G to SCHEDULE 13D/13G in late 2024**: `rd.filings(forms=['SC 13D'])` matches both since
+  2026-11-14. Older code filtering the raw form missed every 13D after 2024 (e.g. strategies/activist-13d-long).
 
 ## Key dates of the live tests (worked out 2026-10-30 from each frozen rule + ledger; use THESE, don't re-estimate)
 Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A missed session pushes a date later.

@@ -10,6 +10,11 @@ SEC events (`rd.filings`, `rd.splits`): the signal date is `first_session` (the 
 the filing), never `filing_date` - an after-close filing can't be traded until the next open. To catch the day-0
 move, buy at the CLOSE of `entry_session` (accepted before 15:30 ET that day) - most event edges are priced by the
 close after that. Hedge each trade with its own index fund: `rd.hedge_ticker(rd.index_of([t])[t])` (SPY/IJH/IJR).
+WHAT a filing says (2026-11-14): `rd.filing_text(rd.filings(...))` adds each 8-K's words (body + the attached press
+release for 8.01; `has_text` False = not downloaded). Research tools built on request are in `tools/lab/`
+(`from lab import <module>`, listed in the catalog). FOMC dates: `rd.fomc()`. 'SC 13D' also matches the post-2024
+'SCHEDULE 13D'. Day-0 paper trading works: strategy.py gets today's filings from `edgar_live.filings_asof(asof)`
+(15:30 ET cutoff built in) and spec.json uses `"entry_at": "same_close"`.
 
 ## RESEARCH <id>: write five files
 1. `research/<id>/PLAN.md` - hypothesis, mechanism, exact rules, universe, entry/exit timing, costs, the variants

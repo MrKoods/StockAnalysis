@@ -30,9 +30,10 @@ Read: `state/context.md` (why you're woken), `notes/director.md`, latest `report
   `state/snapshot.txt` and state PASS / FAIL / CONTINUE with the deciding numbers. Never compute by eye.
 - **Underpowered burials** ("underpowered ... Holdout NOT spent" in the graveyard): the idea may be worth a
   redesign with more events - queue the redesign only if the card shows how it gets the pass chance up.
-- **Day-0 strategies**: if an idea entering at `entry_session` passes its holdout, it can't be paper traded until
-  a live intraday EDGAR check exists. Say so to the user in your outbox ("needs you: build the 12:45 PT EDGAR
-  check for <id>") - that is a real user-only step.
+- **Day-0 strategies** (live since 2026-11-14): an idea entering at the close of `entry_session` CAN be paper
+  traded. Its strategy.py reads `edgar_live.filings_asof(asof)` (archive + today's filings captured at ~12:40 PT,
+  only those accepted before 15:30 ET) and its spec.json says `"entry_at": "same_close"`; the paper runner places
+  its buys before the close and the Quote Clerk prices them. Nothing to ask the user.
 - **Holdout passes** (`holdout_done`): read research/<id>/ (holdout_result, review.md). If sound and paper-
   tradable, start it: `python tools/gate.py promote <id> --reason "<plain-English why>"`. If the gate refuses,
   report why; never work around it.
@@ -63,9 +64,18 @@ The dispatcher checks for that heading and puts it at the top of your context un
 ## Weekly review (Saturday)
 `reports/<date>-director.md`: state of every live test (from the latest scorecard), pipeline (what moved, what's
 stuck), decisions made and why, what you'd want the user to know or decide, usage this week (`state/usage.csv`).
-Add **Data requests**: the 1-3 best "Needs data" lines from `notes/scout.md` (data, free source, ideas it unlocks)
-- the team can't add a data source itself, so this is how the user hears about it. Don't ask the user about
-anything in TEAM.md "Settled facts".
+Two kinds of request - keep them apart, the user only sees the second:
+- **Build requests** (the team does these itself): a research TOOL computed from data the team already holds -
+  e.g. "classify 8-K 8.01 text as buyback authorized / completed / none", "flag 5.02 text as CEO departure vs
+  appointment", "count FOMC days in a hold". Write them under `## Build requests` in your report, numbered, each
+  with: what goes in (which rd.* columns), what comes out, 2-3 example cases with the right answer, which idea
+  it unlocks. The Engineer builds each as a tested pure function in `tools/lab/` on its next run; the catalog
+  lists what exists (`from lab import <module>`). A keyword rule is a research choice: the idea's PLAN.md still
+  pre-registers which tool and settings it uses.
+- **Data requests** (only the user can): a NEW source or download. The 1-3 best "Needs data" lines from
+  `notes/scout.md` (data, free source, ideas it unlocks), under `## Data requests`. Before writing one, check it
+  isn't a build request in disguise (the data is already in state/data_catalog.md). Don't ask the user about
+  anything in TEAM.md "Settled facts".
 
 Outbox (this is the message the user reads most): first line `🧭 Director <date>: <headline>`, then decisions
 taken (one line each), then anything that needs the USER (or "nothing needs you").

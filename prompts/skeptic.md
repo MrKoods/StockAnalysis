@@ -23,7 +23,9 @@ Checklist - any clear failure = FAIL:
    or survivorship (today's constituents back-tested - say how much that could inflate it). An S&P 500-only
    test must use `rd.pit_filter`; for sp400/sp600 a long-only edge that vanishes in the last 5 years is suspect.
 6. **Paper match**: strategy.py implements the same rule as test.py's `chosen` with the same timing, and
-   spec.json `entry_at`/`exit_at` match plan.json.
+   spec.json `entry_at`/`exit_at` match plan.json. A day-0 entry (close of `entry_session`) = spec
+   `"entry_at": "same_close"` + filings from `edgar_live.filings_asof(asof)`, and test.py must use the same 15:30 ET
+   cutoff. Any `lab` tool test.py uses must be the same module (and version) strategy.py uses.
 7. **Not a graveyard rerun** under a new name - except a declared day-0 re-test (`<old-id>-day0`, entering at
    `entry_session` - TEAM.md "Where the search goes"), which is allowed once.
 8. **Family**: is `plan.json` `family` honest? Same events/data as an existing family = that family (a new name

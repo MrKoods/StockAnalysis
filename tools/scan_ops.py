@@ -206,6 +206,33 @@ def status() -> str:
     return "\n".join(lines)
 
 
+def day0_live(now: datetime | None = None) -> str | None:
+    """Weekdays, the first tick in 12:40-12:54 PT (15:40-15:54 ET): capture today's SEC filings (tools/edgar_live.py)
+    and let day-0 paper strategies place their buys for today's close (paper_runner.run_day0) - before the 12:56
+    Quote Clerk, which then prices them at Webull's bid/ask. A failure retries on the next tick (no file yet);
+    alerts only when an active day-0 strategy loses its day."""
+    import edgar_live
+    import paper_runner
+    now = now or now_pt()
+    if "--dry-run" in sys.argv or not edgar_live.due(now):
+        return None
+    try:
+        msg = edgar_live.capture(now.date())
+        sigs = paper_runner.run_day0(now.date())
+        msg += f"; day-0 signals: {sigs or 'no active day-0 strategy'}"
+        log(msg, "scan_ops")
+        return msg
+    except Exception as e:  # noqa: BLE001
+        log(f"edgar live capture failed: {e}", "scan_ops")
+        reg = load_json(paper_runner.REGISTRY, {"strategies": {}}).get("strategies", {})
+        active_day0 = [s for s, m in reg.items() if m.get("status") == "active"
+                       and load_json(TEAM / "strategies" / s / "spec.json", {}).get("entry_at") == "same_close"]
+        if active_day0 and now.time() >= edgar_live.time(12, 50):
+            post("ops", f"⚠️ Day-0 SEC capture failed ({str(e)[:200]}) - {', '.join(active_day0)} can't trade "
+                        "today's close; a gap, not a loss.", USER)
+        return None
+
+
 if __name__ == "__main__":
     if sys.argv[1:2] == ["status"]:
         print(status())
@@ -218,6 +245,7 @@ if __name__ == "__main__":
                 plan_limit.spawn(wait=False)
         except Exception as e:  # noqa: BLE001
             log(f"plan-limit resume check failed: {e}", "scan_ops")
+        day0_live()
         try:  # the first tick at/after 18:00 on a weekday also runs the evening check (no task of its own)
             import evening_check
             evening_check.run(dry_run="--dry-run" in sys.argv)

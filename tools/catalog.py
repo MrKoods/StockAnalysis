@@ -84,6 +84,25 @@ def sources() -> list[str]:
                      f"{int((sp['ratio'] < 1).sum())} reverse); announcement found for {ann} | "
                      f"{sp['ex_date'].min():%Y-%m-%d} .. {sp['ex_date'].max():%Y-%m-%d} | ex-date, ratio, first "
                      f"'stock split' filing (2001+) | {LIVE['splits(tickers)']} |")
+    parts = sorted((rd.EDGAR / "text").glob("part-*.parquet"))
+    if parts:
+        t = pd.concat(pd.read_parquet(p, columns=["group", "status"]) for p in parts)
+        by = t[t["status"] == "ok"].groupby("group").size()
+        lines.append(f"| `filing_text(df)` | {len(t):,} 8-Ks with text (" + ", ".join(f"{g} {by[g]:,}" for g in by.index)
+                     + ") | all years in filings() | 8-K body + attached press release (8.01) - split events by WHAT "
+                     "they say | yes - edgar_text update each dispatch (newest first) |")
+    if rd.FOMC.exists():
+        fo = pd.read_csv(rd.FOMC)
+        lines.append(f"| `fomc()` | {int((fo['kind'] == 'meeting').sum())} scheduled meetings, "
+                     f"{int((fo['kind'] == 'call').sum())} calls | {fo['date'].min()} .. {fo['date'].max()} | "
+                     "statement days (14:00 ET); scheduled dates known ~1 year ahead | yes - fixed calendar |")
+    lab_lines = []
+    for p in sorted((TEAM / "tools" / "lab").glob("*.py")):
+        doc = p.read_text(encoding="utf-8", errors="replace").split('"""')
+        if p.stem != "__init__" and len(doc) >= 3:
+            lab_lines.append(f"- `from lab import {p.stem}` - {(doc[1].strip().splitlines() or ['?'])[0]}")
+    lines += ["", "### Research tools (tools/lab/, built by the Engineer on Director build requests)", ""] + (
+        lab_lines or ["- none yet - the Director asks for one under '## Build requests' in its report"])
     return lines + ["", "### 8-K event types available (2004-08+, our universe) - each is a possible family", ""] + \
         item_lines + ([f"", f"Most common forms: {form_line}"] if form_line else [])
 

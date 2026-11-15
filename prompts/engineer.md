@@ -14,9 +14,25 @@ Edit only these. `tools/engineer.py` rolls back your whole run if you touch anyt
   `scan_ops.py`, `screen.py`
 - `prompts/scorekeeper.md`, `prompts/scout.md` (add guidance; you can't remove a limit)
 - new tests: `tests/test_eng_<topic>.py`
+- **build mode**: research tools in `tools/lab/<module>.py` + their tests `tests/test_lab_<module>.py`
 
-At most 6 files and 250 added lines. New Python can't use processes, the network, secrets, schedules or result
-files; the guard refuses those lines. You can't run the code you edit, so tests are how you prove a fix.
+At most 6 files and 250 added lines (450 for a run that touches only `tools/lab/` and `tests/test_lab_*`). New
+Python can't use processes, the network, secrets, schedules or result files; the guard refuses those lines. You
+can't run the code you edit, so tests are how you prove a fix.
+
+## How to build a research tool (tickets under "Build requests")
+The Director asks for a tool computed from data the team already holds (e.g. classify 8-K text). Build it as a
+module of PURE functions in `tools/lab/`: inputs are arguments (strings, DataFrames a research script got from
+research_data), outputs are return values. The guard refuses any file, network, clock or process access and any
+import of research_data/edgar/jobs/gate there - so the holdout cutoff still protects everything built on it.
+1. The module's docstring: first line = what it does (the catalog shows it), then inputs, outputs, limits.
+2. Tests in `tests/test_lab_<module>.py`: every example case from the request, plus edge cases (empty text, no
+   match, conflicting words). Simple, readable rules beat clever ones: a researcher must be able to state the rule
+   in PLAN.md. Never tune a rule on research results - you don't read train or holdout results for this.
+3. `python tools/engineer.py check` until it passes. Too big for one run: build a working core, list the rest in
+   `notes/engineer.md`, and say in your report what is left.
+A lab module used by a locked research plan or a paper strategy is FROZEN (the guard refuses edits): a better
+version is a new module `<module>_v2.py`.
 
 ## How to fix something
 1. Write the failing case as a test in `tests/test_eng_<topic>.py` where the code allows it.

@@ -33,13 +33,19 @@ TICKETS = STATE / "engineer_tickets.md"
 RECORD = TEAM / "registry" / "engineer_log.csv"
 USER = "Team - Engineer"
 MAX_FILES, MAX_ADDED = 6, 250
+MAX_ADDED_BUILD = 450  # a run that touches ONLY tools/lab/ + tests/test_lab_*.py (a new research tool, 2026-11-14)
 MAX_ATTEMPTS = 2       # the same problem twice unfixed goes to the user instead of burning more runs
 
 # Machinery only. NOT here, on purpose: gate, budget, jobs, ideas, paper_runner, research_data, quotes, fill_costs,
 # integrity, outlook (they decide or score results); dispatch, common, plan_limit, this file (they run the agents).
 EDITABLE = ["tools/catalog.py", "tools/daily_bars.py", "tools/daily_report.py", "tools/edgar.py",
             "tools/evening_check.py", "tools/ops_monitor.py", "tools/scan_ops.py", "tools/screen.py",
-            "prompts/scorekeeper.md", "prompts/scout.md", "tests/test_eng_*.py"]
+            "prompts/scorekeeper.md", "prompts/scout.md", "tests/test_eng_*.py",
+            # Build mode (user, 2026-11-14): research tools the Director asks for - pure functions over data a
+            # research script already got from research_data (no file, network or process access; see
+            # FORBIDDEN_LAB_PY). A lab module that a locked research plan or a paper strategy uses is FROZEN.
+            "tools/lab/*.py", "tests/test_lab_*.py"]
+LAB = "tools/lab/"
 GUARDED = ("tools/", "prompts/", "tests/", "team/", "TEAM.md")
 
 # Added lines of Python may not reach outside the job: processes, network, secrets, schedules, rules, results.
@@ -56,6 +62,13 @@ FORBIDDEN_PY = [r"\bsubprocess\b", r"\bos\.(system|popen|exec|spawn|remove|unlin
 # (A regex list is a speed bump, not a sandbox - e.g. a file name built from pieces gets past it. The real limits
 # are the editable list, the after-test check, every change being a visible commit, and the Auditor's review.)
 FORBIDDEN_TOOL_PY = [r"\.(symlink_to|chmod)\(", r"\bopen\([^)]*['\"](w|a|x|r\+)"]
+# tools/lab/ (research tools) may not touch data at all - data reaches them only as arguments, so research_data's
+# TEAM_DATA_END cutoff (the holdout wall) still holds for anything built on them.
+FORBIDDEN_LAB_PY = [r"\bread_(parquet|csv|pickle|json|excel|feather|table|fwf|sql)\b", r"\.to_(parquet|csv|pickle|json)\(",
+                    r"\bopen\(", r"\bPath\b", r"\bpathlib\b", r"\bimport\s+(os|sys|glob|io|time)\b",
+                    r"\bfrom\s+(os|sys|glob|io)\b", r"\bos\.", r"\bresearch_data\b", r"\bcommon\b",
+                    r"TEAM_DATA_END", r"\b(edgar|edgar_text|edgar_live|jobs|gate|paper_runner|quotes)\b",
+                    r"\bdatetime\.(now|today)\(", r"\bdate\.today\(", r"\brandom\b"]
 # A prompt edit may add guidance, not remove a limit.
 LIMIT_WORDS = re.compile(r"\b(never|frozen|must|hard rule|don't|do not|not allowed|forbid\w*|only)\b", re.I)
 
@@ -102,6 +115,17 @@ def _lines(c: Change) -> tuple[list[str], list[str]]:
             [l[1:] for l in diff if l.startswith("-") and not l.startswith("---")])
 
 
+def lab_users(path: str) -> str | None:
+    """Which locked research plans / paper strategies import this lab module (then it may not change)."""
+    mod = path[len(LAB):-3]
+    rx = re.compile(rf"\blab\b[\w\s.,()]*\b{re.escape(mod)}\b")
+    users = [f"research/{d.name}" for d in sorted((TEAM / "research").glob("*")) if (d / "plan.lock").exists()
+             and (d / "test.py").exists() and rx.search((d / "test.py").read_text(encoding="utf-8", errors="replace"))]
+    users += [f"strategies/{d.name}" for d in sorted((TEAM / "strategies").glob("*")) if (d / "strategy.py").exists()
+              and rx.search((d / "strategy.py").read_text(encoding="utf-8", errors="replace"))]
+    return ", ".join(users) or None
+
+
 def review(changes: list[Change]) -> list[str]:
     """Why these changes may not stay. Empty = the guard accepts them (the tests still have to pass)."""
     problems = [f"{c.path}: not on the Engineer's editable list" for c in changes if not editable(c.path)]
@@ -115,14 +139,21 @@ def review(changes: list[Change]) -> list[str]:
         added, removed = _lines(c)
         total += len(added)
         if c.path.endswith(".py"):
-            rules = FORBIDDEN_PY + (FORBIDDEN_TOOL_PY if c.path.startswith("tools/") else [])
+            rules = FORBIDDEN_PY + (FORBIDDEN_TOOL_PY if c.path.startswith("tools/") else []) + (
+                FORBIDDEN_LAB_PY if c.path.startswith(LAB) else [])
             for line in added:
                 if hit := next((rx for rx in rules if re.search(rx, line)), None):
                     problems.append(f"{c.path}: added line matches forbidden pattern {hit}: {line.strip()[:100]}")
         elif c.path.endswith(".md"):
             problems += [f"{c.path}: removes a limit: {l.strip()[:100]}" for l in removed if LIMIT_WORDS.search(l)]
-    if total > MAX_ADDED:
-        problems.append(f"{total} lines added (max {MAX_ADDED}) - too big for an unattended fix")
+    problems += [f"{c.path}: FROZEN - used by {who}; put the new version in a new module (e.g. "
+                 f"{c.path[len(LAB):-3]}_v2.py) so that test keeps the code it was registered with"
+                 for c in changes if c.path.startswith(LAB) and c.status != "??" and (who := lab_users(c.path))]
+    build = bool(changes) and all(c.path.startswith((LAB, "tests/test_lab_")) for c in changes)
+    cap = MAX_ADDED_BUILD if build else MAX_ADDED
+    if total > cap:
+        problems.append(f"{total} lines added (max {cap}) - too big for an unattended "
+                        f"{'build' if build else 'fix'}; split it over runs")
     return problems
 
 
@@ -228,6 +259,8 @@ def collect(today: date, since: str) -> tuple[list[str], list[str]]:
                     urgent.append(f"Dispatch on {d}: {line[20:300]}")
         if (TEAM / "reports" / f"{d}-diagnosis.md").exists():
             urgent.append(f"Scorekeeper diagnosis to act on: reports/{d}-diagnosis.md")
+        for item in build_requests(TEAM / "reports" / f"{d}-director.md"):
+            urgent.append(f"Build request (Director {d}): {item}")
         if (TEAM / "reports" / f"{d}-auditor.md").exists():
             weekly.append(f"Auditor report: reports/{d}-auditor.md - act on the recommendations addressed to you "
                           "and any machinery CONCERN")
@@ -240,6 +273,18 @@ def collect(today: date, since: str) -> tuple[list[str], list[str]]:
                 cmd = (x.get("tool_input") or {}).get("command", x.get("tool_name", "?"))
                 weekly.append(f"Refused for {log_file.stem}: {str(cmd)[:160]}")
     return urgent, weekly
+
+
+BUILD_HEADING = "Build requests"
+
+
+def build_requests(report) -> list[str]:
+    """Numbered items under '## Build requests' in a Director report: research tools for tools/lab/ (2026-11-14)."""
+    if not report.exists():
+        return []
+    m = re.search(rf"^##\s*{BUILD_HEADING}[^\n]*\n(.*?)(?=^## |\Z)",
+                  report.read_text(encoding="utf-8", errors="replace"), re.M | re.S)
+    return [i.strip()[:400] for i in re.findall(r"^\d+\.\s+(.+)$", m.group(1) if m else "", re.M)]
 
 
 def _key(text: str) -> str:
@@ -269,7 +314,9 @@ def prepare(today: date, weekly_day: bool, dry_run: bool = False, diagnose: list
             save_json(STATEF, {**st, "last_run": str(today)})
         return None
     body = ["# Engineer tickets", "", f"Problems since {since}. Newest evidence is in the files named.", "",
-            "## Must fix (something failed)"] + [f"- {u}" for u in fresh or ["none"]] + [
+            "## Must fix (something failed)"] + ([f"- {u}" for u in fresh if not u.startswith("Build request")]
+            or ["- none"]) + ["", "## Build requests (research tools for tools/lab/ - see prompts/engineer.md)"] + (
+            [f"- {u}" for u in fresh if u.startswith("Build request")] or ["- none"]) + [
             "", "## Weekly review items"] + [f"- {w}" for w in (weekly if weekly_day else []) or ["none"]]
     if dry_run:
         print("\n".join(body))
@@ -278,7 +325,9 @@ def prepare(today: date, weekly_day: bool, dry_run: bool = False, diagnose: list
         for u in fresh:
             attempts[_key(u)] = attempts.get(_key(u), 0) + 1
         save_json(STATEF, {**st, "last_run": str(today), "attempts": attempts, "pending": fresh})
-    kind = "weekly review of the team's machinery" if weekly_day else "something failed"
+    builds = sum(u.startswith("Build request") for u in fresh)
+    kind = ("weekly review of the team's machinery" if weekly_day else
+            "build request(s) from the Director" if builds == len(fresh) else "something failed")
     return f"{kind}: {len(fresh)} failure ticket(s) - read state/engineer_tickets.md"
 
 
