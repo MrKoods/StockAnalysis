@@ -16,6 +16,19 @@
   by one-week age -> gone 11-17. Leave them; auditor called them settled.
 
 ## Open / for the user (not my editable files)
+- 2026-11-16 quote_clerk failed x2 (open 0/73, close 0/82): the WEBULL MCP was NOT AUTHENTICATED in both
+  windows. Init line lists `claude.ai Webull` status `pending`; ToolSearch for `get_stock_snapshot` returns
+  "No matching deferred tools found" in both sessions, only `__authenticate`/`__complete_authentication` exposed.
+  NOT the 11-13 full logout - Claude itself ran (Haiku thinking + tool calls), only the Webull MCP needed auth.
+  KEY: `apiKeySource:"none"` is NORMAL for these headless subscription runs, NOT the logout signal. The real
+  signal is the MCP server status + which Webull tools are exposed. No code fix for me (quotes.py + MCP auth
+  off-list). Remedy: user re-auths the Webull MCP and confirms it persists. Proposal in
+  reports/2026-11-16-engineer.md also suggests a quotes.py WEBULL_AUTH_HELP detector (off-list, user's session),
+  mirroring the 11-13 LOGIN_HELP guard. If it recurs, it is STILL Webull-MCP auth - don't code around it.
+- 2026-11-16 paper_runner premarket SEC error ticket = transient `All retries exhausted` to www.sec.gov at
+  05:42 (1 of 528 lines, amid Yahoo-down + SEC 400s that morning). V2 live-folder log; snapshot.py (off-list)
+  counts it, ops_monitor forwards non-outage error lines to diagnose as designed. Transient external blip,
+  nothing to fix. Don't re-diagnose a single transient SEC/Yahoo error line as machinery.
 - 2026-11-13 quote_clerk failed x2 (open 06:31, close 12:56 PT): headless Claude was NOT LOGGED IN
   (`apiKeySource:"none"`, `authentication_failed`, "Not logged in · Please run /login" in both
   state/logs/2026-11-13-quote_clerk-{open,close}.jsonl; usage.csv rows at $0/0 tokens). NOT a code bug
