@@ -1,0 +1,70 @@
+{
+  "phase": "train",
+  "start": "2014-01-01",
+  "end": "2019-12-31",
+  "variants": 5,
+  "chosen": "all_sp1500_h20",
+  "configs": {
+    "all_sp1500_h20": {
+      "n_trades": 175,
+      "n_periods": 60,
+      "mean_bps": 226.02,
+      "t": 2.67,
+      "trade_mean_bps": 178.52,
+      "outside_window": 186
+    },
+    "all_sp1500_h10": {
+      "n_trades": 175,
+      "n_periods": 64,
+      "mean_bps": 126.64,
+      "t": 2.11,
+      "trade_mean_bps": 91.27,
+      "outside_window": 189
+    },
+    "midsmall_h20": {
+      "n_trades": 140,
+      "n_periods": 56,
+      "mean_bps": 266.97,
+      "t": 3.14,
+      "trade_mean_bps": 191.21,
+      "outside_window": 134
+    },
+    "all_sp500_h20": {
+      "n_trades": 23,
+      "n_periods": 20,
+      "mean_bps": 261.68,
+      "t": 1.45,
+      "trade_mean_bps": 246.62,
+      "outside_window": 36
+    },
+    "e1_sp1500_h20": {
+      "n_trades": 175,
+      "n_periods": 59,
+      "mean_bps": 181.19,
+      "t": 1.95,
+      "trade_mean_bps": 159.84,
+      "outside_window": 186
+    }
+  },
+  "cost_bps_used": 25.0,
+  "cost_floor_bps": 21.8,
+  "plan_cost_bps": 25.0,
+  "luck_t_best_of_n": 2.87,
+  "luck_variants_counted": 62,
+  "best_t": 3.14,
+  "chosen_stats": {
+    "n_trades": 175,
+    "n_periods": 60,
+    "mean_bps": 226.02,
+    "t": 2.67,
+    "trade_mean_bps": 178.52,
+    "outside_window": 186
+  },
+  "holdout_power": {
+    "expected_holdout_t": 2.85,
+    "bar": 3.0,
+    "holdout_to_train": 1.14,
+    "pass_prob": 0.439
+  },
+  "problems": []
+}
