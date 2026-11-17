@@ -1,6 +1,13 @@
 # Skeptic notes
 
 ## Reviewed
+- 2026-11-17 **special-dividend-drift-long** -> FAIL (honest, under-powered + survivorship). Family 8k_8_01,
+  text-filtered 8.01 special-div LONG, day-0 close entry, 20d hold. Pre-registered chosen all_sp1500_h20
+  t 2.67 < luck_t_best_of_n 2.87 (62 variants) -> fails the "clearly above luck" rule. Only midsmall_h20
+  (t 3.14) clears luck, and it's the survivorship-dirtiest cut (no PIT for sp400/sp600); PIT-clean sp500
+  cut only t 1.45 (n=23) -> edge strongest where data dirtiest = survivorship tell. period mean 226 >
+  trade mean 178 = heavy-month composition. holdout_power pass_prob 0.439 (<50%, exp t 2.85 < 3.0 bar).
+  Look-ahead/costs/paper-match all CLEAN. 8k_8_01 holdout NOT spent (stays clean, holdouts=0).
 - 2026-11-05 **restructuring-bounce** -> FAIL. Pre-registered sp600_h3 (8k_2_05, item 2.05 LONG)
   train t -0.85, mean -24.43 bps. Thesis INVERTED (smallest caps keep falling at open+2->open+5);
   no variant clears luck 1.67 (best sp46_h5 t0.99), signs flip across grid. Clean look-ahead,
