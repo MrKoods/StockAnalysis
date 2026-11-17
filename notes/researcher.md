@@ -1,5 +1,25 @@
 # Researcher notes
 
+## 2026-11-17 — activist-13d-long-day0 (planned, check+smoke pass)
+- research/activist-13d-long-day0/ + strategies/. Family `activist_13d` (train 2001-2015 REUSED from the dead
+  activist-13d-long; holdout 2016-2026 CLEAN — the dead idea auto-died at train). Day-0 re-proposal per the audit:
+  ONLY change vs the dead idea = enter at the CLOSE of entry_session (day 0) instead of the close AFTER
+  first_session. Everything else mirrors it (week cluster, cost 25, universe sp1500+sp500 PIT) for a clean e0-vs-e1
+  comparison; family's prior 6 variants count in the luck bar automatically.
+- LONG initial Schedule 13D on the TARGET (13D is SUBJECT-indexed). INITIAL filter = `form.map(rd.form_std)=="SC
+  13D"` — NOT the raw form (the dead idea used raw `=="SC 13D"` and missed EVERY post-2024 initial, now named
+  "SCHEDULE 13D"; TEAM.md). form_std maps SCHEDULE 13D→SC 13D, SCHEDULE 13D/A→SC 13D/A, so ==SC 13D = initial only.
+- 5 variants CONFIGS dict name→(entry_mode,univ,hold): e0=entry_session close, e1=first_session+1 close (=dead
+  idea, should be ~0). chosen PRE-REG `e0_sp1500_h3`. Per-index hedge (SPY/IJH/IJR). Smoke: e0_sp1500 170 trades/yr,
+  sp500 66 — ample power.
+- CENTRAL risk for Skeptic/Director: the audit's +51 bps t 5.6 is RAW/un-hedged/un-clustered full-sample; the day-0
+  move happened DURING the session, before the close we buy at — so even the day-0-close entry may capture only the
+  residual next-day drift (same ~0 the dead idea found). e0_h1 vs e1_h3 is the direct test; if e0_h1≈0 the premium
+  is intraday-only and untradeable at any close.
+- PROMOTABLE now (unlike material-impairment's note): day-0 paper IS built (same_close + run_day0 + edgar_live).
+  strategy.py uses entry_at "same_close", imports edgar_live, replicates _entry_session (signal when an initial
+  13D's entry_session==today). metric real_hedged_bps (runner hedges vs SPY only — research is per-index; noted).
+
 ## 2026-11-14 — material-impairment-short (planned, check+smoke pass)
 - Five files in research/material-impairment-short/ + strategies/. Family `8k_2_06` (SHORT + holdout 2014-2026
   clean; the 2005-2013 screen used only the LONG direction, 3 search variants booked → luck counts 9+3=12, t~2.23).
