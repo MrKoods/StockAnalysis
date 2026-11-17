@@ -27,3 +27,4 @@ Price/volume patterns on free hourly/daily data are largely exhausted; edges fou
 - **proxy-contest-long** (2026-11-12): train result below the minimum: chosen dfan_sp46_h3 t 0.31, 23.9 bps after cost 25.0 bps round trip - no holdout spent, no review needed
 - **material-impairment-short** (2026-11-14): train result below the minimum: chosen e0_sp1500_h3 t -0.86, -18.33 bps after cost 25.0 bps round trip - no holdout spent, no review needed
 - **activist-13d-long-day0** (2026-11-17): train result below the minimum: chosen e0_sp1500_h3 t -0.35, -4.64 bps after cost 25.0 bps round trip - no holdout spent, no review needed
+- **special-dividend-drift-long** (2026-11-17): Skeptic FAIL: Chosen t 2.67 < luck bar 2.87; only the survivorship-dirty midsmall cut clears it; holdout pass_prob 0.439 (<50%).
