@@ -1,5 +1,22 @@
 # Researcher notes
 
+## 2026-11-17 — special-dividend-drift-long (planned, check+smoke pass)
+- research/special-dividend-drift-long/ + strategies/. Family `8k_8_01` (used only 2005-2013 screen →
+  2014+ clean). LONG an 8-K item 8.01 whose TEXT matches a FROZEN special-div regex
+  `special\s+(?:cash\s+|one[-\s]?time\s+|year[-\s]?end\s+)?dividend` (case-insens, body+exhibit). First
+  idea using rd.filing_text to SPLIT an event by what it says. Ahn 2024 ~120 bps over days +2..+20.
+- Day-0 close entry (entry_session), hold 20, hedged per index. 5 variants CONFIGS dict
+  name→(entry_mode,univ,hold); chosen PRE-REG `all_sp1500_h20`. midsmall + sp500(PIT) + h10 + e1 robustness.
+- WINDOWS CHOSEN FOR POWER (deviates from card's 2014-20/21-26): train 2014-2019, holdout 2020-2026-10-24
+  → holdout/train ≈1.14 (a LONGER train would LOWER the ratio and hurt expected holdout t). 2012 fiscal-
+  cliff surge excluded from both; COVID+post-COVID in holdout (conservative). cluster MONTH (hold>10).
+- Smoke 2014 (low-special year): all_sp1500 24 trades, midsmall 17, sp500 6 — regex NOT catching junk.
+  Over 6y ≈150-200 events/72 month-clusters. Power is train-t-dependent; harness buries if <25%.
+- PROMOTABLE day-0 (edgar_live built). strategy.py: edgar_live.filings_asof + text_asof for today's
+  8.01 text; falls back to archive text parts (data/edgar/text) for the rare prior-session-after-cutoff
+  accession. NO cross-filing dedup (only ticker/day) so research==paper; reminder 8-Ks dilute = conservative.
+  metric real_hedged_bps (runner hedges SPY only — research per-index; noted). pass_mean_bps 30, t 2.0.
+
 ## 2026-11-17 — activist-13d-long-day0 (planned, check+smoke pass)
 - research/activist-13d-long-day0/ + strategies/. Family `activist_13d` (train 2001-2015 REUSED from the dead
   activist-13d-long; holdout 2016-2026 CLEAN — the dead idea auto-died at train). Day-0 re-proposal per the audit:
