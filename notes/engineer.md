@@ -16,19 +16,19 @@
   by one-week age -> gone 11-17. Leave them; auditor called them settled.
 
 ## Open / for the user (not my editable files)
-- 2026-11-16 AND 2026-11-17 quote_clerk failed in every window (4 windows total): the WEBULL MCP was NOT
-  AUTHENTICATED. Init line lists `claude.ai Webull` status `pending`; ToolSearch for `get_stock_snapshot` returns
-  "No matching deferred tools found", only `__authenticate`/`__complete_authentication` exposed. 11-17 open log
-  ends with the clerk saying "Webull authentication is required. Please run /mcp" and result subtype success
-  (Claude ran fine, num_turns 7) - state/logs/2026-11-17-quote_clerk-open.jsonl:461-462. quotes.py parses 0 rows
-  -> exits 1 (NOTHING-captured, quotes.py:221) -> Quote tasks result 1 -> scan_ops+ops_monitor ticket (checks are
-  CORRECT, nothing to fix/quiet). NOT the 11-13 full logout. KEY: `apiKeySource:"none"` is NORMAL for headless
-  subscription runs, NOT the logout signal; the real signal is MCP server status + which Webull tools are exposed.
-  No code fix for me (quotes.py + MCP auth off-list). RECURRED 2 days running => the 11-16 re-auth wasn't done or
-  didn't persist to the headless Task-Scheduler sessions - that persistence may be the real bug. Remedy: user
-  re-auths Webull MCP AND confirms it survives a fresh scheduled launch. Proposal (reports/2026-11-16 + -17): a
-  quotes.py WEBULL_AUTH_HELP detector (off-list, user's session) mirroring LOGIN_HELP. If it recurs AGAIN, it is
-  STILL Webull-MCP auth - don't code around it. Real-price capture gap now 2 days (ON1 verdict ~11-23, EPRE).
+- 2026-11-16, 11-17 AND 11-18 quote_clerk failed in every window: the WEBULL MCP is NOT AUTHENTICATED in the
+  headless scheduled sessions. Init line lists `claude.ai Webull` status `pending` (open) / `needs-auth` (close);
+  ToolSearch for `get_stock_snapshot` returns "No matching deferred tools found" (11-18 close-2.jsonl:111). Clerk
+  runs fine otherwise (11-17 open: "Webull authentication is required. Please run /mcp", result subtype success,
+  num_turns 7). quotes.py parses 0 rows -> exits 1 (NOTHING-captured, quotes.py:221) -> Quote tasks result 1 ->
+  scan_ops+ops_monitor ticket (checks are CORRECT, nothing to fix/quiet). NOT the 11-13 full logout. KEY:
+  `apiKeySource:"none"` is NORMAL for headless subscription runs, NOT the logout signal; the real signal is MCP
+  server status + which Webull tools are exposed. No code fix for me (quotes.py + MCP auth off-list). RECURRED 3
+  days running => the re-auth wasn't done or doesn't persist to the Task-Scheduler sessions - that persistence IS
+  the real bug. Remedy: user re-auths Webull MCP AND confirms it survives a fresh scheduled launch. Proposal
+  (reports 11-16/-17/-18): a quotes.py WEBULL_AUTH_HELP detector (off-list, user's session) mirroring LOGIN_HELP.
+  CONFIRMED pattern - don't re-diagnose or code around it; it is STILL Webull-MCP auth. Real-price gap now 3 days
+  and THREATENS the ON1 real-price verdict due ~11-23 (EPRE too). Escalate harder each day it stays dark.
 - 2026-11-16 paper_runner premarket SEC error ticket = transient `All retries exhausted` to www.sec.gov at
   05:42 (1 of 528 lines, amid Yahoo-down + SEC 400s that morning). V2 live-folder log; snapshot.py (off-list)
   counts it, ops_monitor forwards non-outage error lines to diagnose as designed. Transient external blip,
