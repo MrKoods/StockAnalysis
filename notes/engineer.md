@@ -16,8 +16,18 @@
   by one-week age -> gone 11-17. Leave them; auditor called them settled.
 
 ## Open / for the user (not my editable files)
-- 2026-11-16, 11-17 AND 11-18 quote_clerk failed in every window: the WEBULL MCP is NOT AUTHENTICATED in the
-  headless scheduled sessions. Init line lists `claude.ai Webull` status `pending` (open) / `needs-auth` (close);
+- 2026-11-19 V4 EPRE Signals scan crashed: `KeyError: 'posted'` at StockAnalysis-V4\epre\paper.py:185
+  (`buys["posted"]`), called from signals() line 239 -> _lines(). ROOT CAUSE paper.py:233:
+  `rows[[...comprehension...]]` -> when rows is EMPTY the list is `[]` and pandas `df[[]]` selects ZERO
+  COLUMNS (not zero rows), dropping `posted` + all cols. Empty rows = a zero-new-entry day (mid-Nov
+  earnings lull) OR all candidates already held. Ran fine 10-26..11-18 because every day had >=1 entry;
+  first zero-entry day = first crash. Line 230 is safe (.isin -> bool Series); only 233 uses a raw list.
+  OFF-LIMITS (V4 live folder) -> proposal in reports/2026-11-19-engineer.md: wrap the comprehension in
+  `np.array(..., bool)` (the idiom already at lines 105/169). Will recur EVERY zero-entry day until fixed;
+  blocks EPRE paper entries + real-price capture those days. Don't try to code-fix in team code or write a
+  V4 test. If it recurs after the user's fix, re-check paper.py:233 uses a numpy bool array.
+- 2026-11-16..11-19 (now 4 straight days) quote_clerk failed in every window: the WEBULL MCP is NOT
+  AUTHENTICATED in the headless scheduled sessions. Init line lists `claude.ai Webull` status `pending` (open) / `needs-auth` (close);
   ToolSearch for `get_stock_snapshot` returns "No matching deferred tools found" (11-18 close-2.jsonl:111). Clerk
   runs fine otherwise (11-17 open: "Webull authentication is required. Please run /mcp", result subtype success,
   num_turns 7). quotes.py parses 0 rows -> exits 1 (NOTHING-captured, quotes.py:221) -> Quote tasks result 1 ->
@@ -27,8 +37,8 @@
   days running => the re-auth wasn't done or doesn't persist to the Task-Scheduler sessions - that persistence IS
   the real bug. Remedy: user re-auths Webull MCP AND confirms it survives a fresh scheduled launch. Proposal
   (reports 11-16/-17/-18): a quotes.py WEBULL_AUTH_HELP detector (off-list, user's session) mirroring LOGIN_HELP.
-  CONFIRMED pattern - don't re-diagnose or code around it; it is STILL Webull-MCP auth. Real-price gap now 3 days
-  and THREATENS the ON1 real-price verdict due ~11-23 (EPRE too). Escalate harder each day it stays dark.
+  CONFIRMED pattern - don't re-diagnose or code around it; it is STILL Webull-MCP auth. Real-price gap now 4 days
+  (11-16..11-19) and THREATENS the ON1 real-price verdict due ~11-23 (EPRE too). Escalate harder each day dark.
 - 2026-11-16 paper_runner premarket SEC error ticket = transient `All retries exhausted` to www.sec.gov at
   05:42 (1 of 528 lines, amid Yahoo-down + SEC 400s that morning). V2 live-folder log; snapshot.py (off-list)
   counts it, ops_monitor forwards non-outage error lines to diagnose as designed. Transient external blip,
