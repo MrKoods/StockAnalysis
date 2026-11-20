@@ -26,19 +26,26 @@
   `np.array(..., bool)` (the idiom already at lines 105/169). Will recur EVERY zero-entry day until fixed;
   blocks EPRE paper entries + real-price capture those days. Don't try to code-fix in team code or write a
   V4 test. If it recurs after the user's fix, re-check paper.py:233 uses a numpy bool array.
-- 2026-11-16..11-19 (now 4 straight days) quote_clerk failed in every window: the WEBULL MCP is NOT
+- 2026-11-16..11-20 (now 5 straight days) quote_clerk failed in every window: the WEBULL MCP is NOT
   AUTHENTICATED in the headless scheduled sessions. Init line lists `claude.ai Webull` status `pending` (open) / `needs-auth` (close);
-  ToolSearch for `get_stock_snapshot` returns "No matching deferred tools found" (11-18 close-2.jsonl:111). Clerk
+  ToolSearch for `get_stock_snapshot` returns "No matching deferred tools found" (11-20 close-2.jsonl:60). Clerk
   runs fine otherwise (11-17 open: "Webull authentication is required. Please run /mcp", result subtype success,
   num_turns 7). quotes.py parses 0 rows -> exits 1 (NOTHING-captured, quotes.py:221) -> Quote tasks result 1 ->
   scan_ops+ops_monitor ticket (checks are CORRECT, nothing to fix/quiet). NOT the 11-13 full logout. KEY:
   `apiKeySource:"none"` is NORMAL for headless subscription runs, NOT the logout signal; the real signal is MCP
-  server status + which Webull tools are exposed. No code fix for me (quotes.py + MCP auth off-list). RECURRED 3
+  server status + which Webull tools are exposed. No code fix for me (quotes.py + MCP auth off-list). RECURRED 5
   days running => the re-auth wasn't done or doesn't persist to the Task-Scheduler sessions - that persistence IS
   the real bug. Remedy: user re-auths Webull MCP AND confirms it survives a fresh scheduled launch. Proposal
-  (reports 11-16/-17/-18): a quotes.py WEBULL_AUTH_HELP detector (off-list, user's session) mirroring LOGIN_HELP.
-  CONFIRMED pattern - don't re-diagnose or code around it; it is STILL Webull-MCP auth. Real-price gap now 4 days
-  (11-16..11-19) and THREATENS the ON1 real-price verdict due ~11-23 (EPRE too). Escalate harder each day dark.
+  (reports 11-16..-20): a quotes.py WEBULL_AUTH_HELP detector (off-list, user's session) mirroring LOGIN_HELP.
+  CONFIRMED pattern - don't re-diagnose or code around it; it is STILL Webull-MCP auth. Real-price gap now 5 days
+  (11-16..11-20) and the ON1 real-price verdict is due ~Mon 11-23 (EPRE too) - CANNOT be scored while dark.
+  Escalate harder each day dark.
+- 2026-11-20 integrity ON1 forward "1 row |bps|>5000": the row is `2026-10-20,sp500,-8709.49` (on1_forward_trades.csv
+  line 658), a -87% one-night move = one bad underlying V3 price. families2.run computes the bps, forward.update_on1
+  (V3 daytrade\forward.py:119-130) pools every finite bps with NO per-stock sanity clip. Same class as the known
+  "bad Yahoo opens inflated ON1". integrity.py (BPS_MAX=5000) is CORRECT - don't quiet it; it reports once, so it
+  won't re-ticket. OFF-LIMITS (V3). Impact low (corrupts one day of the secondary forward stat, not the real-price
+  status; ON1 retiring ~11-23). Proposal 11-20: V3 clip overnight |bps|>5000 before pooling. Don't re-diagnose.
 - 2026-11-16 paper_runner premarket SEC error ticket = transient `All retries exhausted` to www.sec.gov at
   05:42 (1 of 528 lines, amid Yahoo-down + SEC 400s that morning). V2 live-folder log; snapshot.py (off-list)
   counts it, ops_monitor forwards non-outage error lines to diagnose as designed. Transient external blip,
