@@ -54,12 +54,17 @@ refills every weekday. Every drop note states the reason (the Scout reads state/
   Real-money gate = cp B AND the real-price condition. Nothing for the user to do yet.
 
 ## Watch next run
-- Pipeline now 2/2 (queued 11-17: activist-13d-long-day0, special-dividend-drift-long). Both should move to
-  `planned`; confirm the Researcher honors day-0 entry_session close + (special-div) text-filter false-positive check
-  and event-count/power. Don't queue more until room reopens.
+- 11-17 queue died: activist-13d-long-day0 + special-dividend-drift-long both `dead` (ran through Researcher/
+  Skeptic, failed). 8-K text-NLP vein now producing differentiated ideas but still 0 survivors from it.
+- Pipeline refilled to 2/2 on 11-20: queued buyback-announcement-long (8.01 LONG 20d, strongest) +
+  antitakeover-adoption-short (5.03 SHORT 15d, POWER-caveated: Researcher must confirm >=60 events/yr post-filter
+  BEFORE pre-reg or verdict-only without spending holdout). Dropped acquirer-stock-deal-short (day-0-close->20d
+  residual only 30-70 bps per its card, below floor-with-margin once short-borrow+hedge shrink added).
+- Both filing_text/filings confirmed live-for-paper (data_catalog 11-19). Don't re-check that for 8-K text ideas.
 - V2 rank go/no-go at 100 (~11-20..25); ON1 real-price verdict ~11-24 (did the dispatcher auto-retire on FAIL?).
-- Two quote captures FAILED 11-17 (QuoteOpen 06:31, QuoteClose 12:56, result 1) - Engineer to diagnose (likely
-  logged-out again per 11-13 settled fact); not mine. Ops already alerted.
-- Saturday = weekly report + read/respond to the newest Auditor report.
+- Quote captures FAILED again 11-20 (QuoteOpen 06:31, QuoteClose 12:56, result 1) - 2nd straight day; Engineer to
+  diagnose (likely logged-out per 11-13 settled fact); not mine. Ops already alerted. Also ON1 forward integrity:
+  1 row |bps|>5000 - Engineer/Ops.
+- Saturday (11-21) = weekly report + read/respond to the newest Auditor report.
 </content>
 </invoke>
