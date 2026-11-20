@@ -56,3 +56,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-11-14,material-impairment-short,8k_2_06,search,9,2004-09-01..2013-12-31,-0.86,-18.33,,team train run
 2026-11-17,activist-13d-long-day0,activist_13d,search,5,2001-01-01..2015-12-31,-0.35,-4.64,,team train run
 2026-11-17,special-dividend-drift-long,8k_8_01,search,5,2014-01-01..2019-12-31,2.67,226.02,,team train run
+2026-11-20,buyback-announcement-long,8k_8_01,search,5,2014-01-01..2019-12-31,-0.8,-17.14,,team train run
