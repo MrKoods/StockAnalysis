@@ -29,3 +29,4 @@ Price/volume patterns on free hourly/daily data are largely exhausted; edges fou
 - **activist-13d-long-day0** (2026-11-17): train result below the minimum: chosen e0_sp1500_h3 t -0.35, -4.64 bps after cost 25.0 bps round trip - no holdout spent, no review needed
 - **special-dividend-drift-long** (2026-11-17): Skeptic FAIL: Chosen t 2.67 < luck bar 2.87; only the survivorship-dirty midsmall cut clears it; holdout pass_prob 0.439 (<50%).
 - **buyback-announcement-long** (2026-11-20): train result below the minimum: chosen all_sp1500_h20 t -0.8, -17.14 bps after cost 25.0 bps round trip - no holdout spent, no review needed
+- **antitakeover-adoption-short** (2026-11-20): train result below the minimum: chosen e0_sp1500_h15 t 0.64, 59.81 bps after cost 25.0 bps round trip - no holdout spent, no review needed
