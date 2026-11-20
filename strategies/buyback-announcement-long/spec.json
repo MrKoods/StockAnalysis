@@ -1,0 +1,3 @@
+{"family": "8k_8_01", "entry_at": "same_close", "hold_sessions": 20, "exit_at": "close",
+ "stop_pct": null, "target_pct": null, "cost_bps": 25, "max_signals_per_day": 10,
+ "rule": {"metric": "real_hedged_bps", "min_days": 20, "max_days": 40, "pass_mean_bps": 30, "pass_t": 2.0}}

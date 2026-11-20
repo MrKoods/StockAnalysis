@@ -1,5 +1,23 @@
 # Researcher notes
 
+## 2026-11-20 — buyback-announcement-long (planned, check+smoke pass)
+- research/buyback-announcement-long/ + strategies/. Family `8k_8_01` (REUSED special-div skeleton; same
+  day-0 8.01 close entry, hold 20, per-index hedge, month cluster). ONLY substantive change = the TEXT
+  filter. LONG an 8-K item 8.01 announcing an open-market SHARE REPURCHASE authorization (ILV 1995,
+  Peyer-Vermaelen 2009 ~2.4% first-month alpha, persists post-pub).
+- FROZEN filter = strip `repurchase\s+agreements?` (repo contracts) THEN require BUYBACK_RE (share/stock
+  repurchase | repurchase program/plan/authoriz | authoriz…repurchase/buyback | buy[-\s]?back |
+  repurchase of its (common) stock/shares). DELIBERATELY tighter than card's bare "repurchase" (which
+  also catches debt/note repurchases). Not tuned on results.
+- Windows: train 2014-2019 (REUSED, same as special-div), holdout 2020-2026-10-24 CLEAN (special-div died
+  at Skeptic before spending it; catalog doesn't list a 2020-26 holdout for 8k_8_01). ratio ≈1.14.
+- 5 variants CONFIGS dict: all_sp1500_h20 (CHOSEN), _h10, midsmall_h20, all_sp500_h20 (PIT), e1_sp1500_h20.
+  Smoke 2014: sp1500 286/yr, midsmall 160, sp500 107 — ample power, regex not over-catching (raw 8.01 huge).
+- CENTRAL risk for Skeptic/Director: 30yr-published large-cap effect → decay; day-0 close is AFTER the pop
+  so residual drift may be « cited full-month alpha. e0-vs-e1 and all_sp500 PIT are the realism reads.
+- PROMOTABLE day-0 (edgar_live built). strategy.py mirrors the repo-strip+regex; metric real_hedged_bps
+  (runner hedges SPY only — research per-index; noted). pass_mean_bps 30, t 2.0.
+
 ## 2026-11-17 — special-dividend-drift-long (planned, check+smoke pass)
 - research/special-dividend-drift-long/ + strategies/. Family `8k_8_01` (used only 2005-2013 screen →
   2014+ clean). LONG an 8-K item 8.01 whose TEXT matches a FROZEN special-div regex
