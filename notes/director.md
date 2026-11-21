@@ -46,25 +46,25 @@ refills every weekday. Every drop note states the reason (the Scout reads state/
   (see reports/2026-10-31-director.md and 2026-11-07-director.md). Don't reopen.
 
 ## Live tests — current read (from scripts; don't copy numbers into notes, re-read snapshot.txt)
-- V2 rank: NO-GO near-certain at 100 trades (~11-20..25). On NO-GO the rank track closes (user's call).
-- V3 ON1 paper: cliff-edge, barely above FAIL floor. ON1 real-price: FAIL trajectory, verdict ~11-24 -> auto-retire.
-- V4 EPRE paper: cp A CROSSED 11-17 at 1,003 trades = CONTINUE (+29.0 bps hedged >= -20 FAIL floor; cp A is
-  FAIL-only, authorizes nothing). Continues to cp B (3,000 trades) where small real money is first possible.
+- V2 rank: NO-GO near-certain at 100 trades. On NO-GO the dispatcher auto-retires all 5 V2 tasks (settled 11-21,
+  not the user's manual call). Nothing for me/user.
+- V3 ON1 paper: cliff-edge, barely above FAIL floor. ON1 real-price: FAIL trajectory (-85 bps), verdict ~11-23/24
+  -> dispatcher auto-retires on FAIL. BUT right now blocked by the dead Webull connector (no quotes since 11-11).
+- V4 EPRE paper: cp A CROSSED 11-17 = CONTINUE (cp A is FAIL-only, authorizes nothing). -> cp B (3,000 trades).
 - V4 EPRE real-price: the bright spot (+91.7 bps, 12.6 bps spread, t 1.48 on 5 exit days - too early to trust t).
   Real-money gate = cp B AND the real-price condition. Nothing for the user to do yet.
 
 ## Watch next run
-- 11-17 queue died: activist-13d-long-day0 + special-dividend-drift-long both `dead` (ran through Researcher/
-  Skeptic, failed). 8-K text-NLP vein now producing differentiated ideas but still 0 survivors from it.
-- Pipeline refilled to 2/2 on 11-20: queued buyback-announcement-long (8.01 LONG 20d, strongest) +
-  antitakeover-adoption-short (5.03 SHORT 15d, POWER-caveated: Researcher must confirm >=60 events/yr post-filter
-  BEFORE pre-reg or verdict-only without spending holdout). Dropped acquirer-stock-deal-short (day-0-close->20d
-  residual only 30-70 bps per its card, below floor-with-margin once short-borrow+hedge shrink added).
-- Both filing_text/filings confirmed live-for-paper (data_catalog 11-19). Don't re-check that for 8-K text ideas.
-- V2 rank go/no-go at 100 (~11-20..25); ON1 real-price verdict ~11-24 (did the dispatcher auto-retire on FAIL?).
-- Quote captures FAILED again 11-20 (QuoteOpen 06:31, QuoteClose 12:56, result 1) - 2nd straight day; Engineer to
-  diagnose (likely logged-out per 11-13 settled fact); not mine. Ops already alerted. Also ON1 forward integrity:
-  1 row |bps|>5000 - Engineer/Ops.
-- Saturday (11-21) = weekly report + read/respond to the newest Auditor report.
+- PIPELINE EMPTY (11-21): buyback-announcement-long + antitakeover-adoption-short both `dead` this week;
+  acquirer-stock-deal-short dropped. 0/2 in research AND 0 ideas waiting -> left short, Scout refills Mon.
+- Single-filing 8-K event vein looks EXHAUSTED: since 11-14, 5 event ideas died + drops; text-filter path now
+  exercised, still 0 survivors. My stance (11-21 report): lean REDIRECT over building more 8-K NLP (no idea
+  behind a classifier yet). Steer Scout toward longer-hold drift / different data. If Scout keeps sending
+  single-8-K LONG/SHORT cards, be strict and drop with that reason.
+- THE user action this week = reconnect Webull connector (7+ days dark, blocks ON1 real-price verdict ~11-23/24).
+  Put in 11-21 outbox headline. Only the user can; re-auth doesn't survive scheduled launch (settled).
+- Next run checks: did V2 auto-retire on NO-GO? did ON1 auto-retire on real-price FAIL ~11-24? did the user
+  reconnect Webull (quotes resuming = non-zero captures)?
+- Latest auditor = 11-14, already answered in notes. New auditor runs AFTER me today (11-21) - respond next run.
 </content>
 </invoke>
