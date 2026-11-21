@@ -101,9 +101,10 @@ def scan(today: date | None = None) -> list[str]:
     """Every problem in every live ledger today (known ones included)."""
     today = today or date.today()
     out: list[str] = []
+    v2_retired = (STATE / "v2_rank_retired.json").exists()  # tools/dispatch.retire_v2_rank: V2 stops scanning
     for label, name in V2_LEDGERS.items():
         p = LIVE_V2 / "paper_trading" / name
-        if p.exists():
+        if p.exists() and not v2_retired:
             out += v2_checks(pd.read_csv(p), label, today)
     on1_retired = (STATE / "on1_retired.json").exists()     # tools/dispatch.retire_on1: its ledgers stop growing
     for label, (rel, keys, val, day_col) in V3_LEDGERS.items():

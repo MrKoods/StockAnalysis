@@ -16,7 +16,7 @@ import pandas as pd
 from common import LIVE_V3
 
 V3_PAPER = {  # label: (ledger, value column); rule (both): from day 20 PASS if mean >= +5 bps & day-t >= 2,
-    "G2 paper": ("data/paper/g2_paper_ledger.csv", "bps_at_0932_entry"),   # FAIL if mean < 0; day 40 decides
+    # G2 paper left out: retired 2026-11-08 (FAILED day 20); listing it kept a stale "day 21/40" on every scorecard.
     "ON1 paper": ("data/paper/on1_paper_ledger.csv", "bps"),
 }
 PASS_BPS, CHECK_DAYS = 5.0, (20, 40)

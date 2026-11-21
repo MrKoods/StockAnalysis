@@ -223,3 +223,25 @@ def test_entry_session_buys_the_day_zero_close():
 def test_each_index_hedges_with_its_own_fund():
     assert (rd.hedge_ticker("sp500"), rd.hedge_ticker("sp400"), rd.hedge_ticker("sp600")) == ("SPY", "IJH", "IJR")
     assert {"AAPL", "MSFT", "NVDA"} <= set(rd.universe("sp500"))          # the 40 megacaps were missing
+
+
+def test_v2_retires_once_on_rank_no_go_and_never_on_go(monkeypatch, tmp_path):
+    """User 2026-11-21: when the rank track's frozen go/no-go says NO-GO, every V2 task stops (once)."""
+    monkeypatch.setattr(dispatch, "V2_RETIRED", tmp_path / "v2_rank_retired.json")
+    posts = []
+    monkeypatch.setattr(dispatch, "post", lambda ch, text, user, dry=False: posts.append(text))
+    for text in ("Rank-track go/no-go: COLLECTING (99/100 closed trades)\n",
+                 "Rank-track go/no-go: KEEP COLLECTING (150/200 closed trades)\n",
+                 "Rank-track go/no-go: GO (120/200 closed trades)\n", ""):
+        assert not dispatch.retire_v2_rank(text, dry_run=True)
+    no_go = "Rank-track go/no-go: NO-GO (100/100 closed trades)\n  mean R after costs -0.03\n"
+    assert dispatch.retire_v2_rank(no_go, dry_run=True)
+    assert "V2 retired" in posts[0] and all(t in posts[0] for t in dispatch.V2_TASKS)
+    (tmp_path / "v2_rank_retired.json").write_text("{}")
+    assert not dispatch.retire_v2_rank(no_go, dry_run=True)        # once only
+
+
+def test_retired_v2_jobs_are_marked_in_the_schedule():
+    import json as _j
+    jobs = _j.loads((dispatch.TEAM / "team" / "schedule.json").read_text(encoding="utf-8"))["jobs"]
+    assert all(jobs[t].get("retired_when") == "v2_rank_retired.json" for t in dispatch.V2_TASKS)

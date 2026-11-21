@@ -45,7 +45,7 @@ import publish
 import quotes
 import scan_ops
 import screen
-from common import (LIVE_V2, LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, OUTBOX, STATE, TEAM, commit, git,
+from common import (LIVE_V2, LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, OUTBOX, PYTHON, STATE, TEAM, commit, git,
                     load_json, log, now_pt, post, save_json, stopped)
 
 ROLES = TEAM / "team" / "roles.json"
@@ -70,6 +70,11 @@ CHECKPOINTS = {
 # instead of running its paper rule to day 40 - a strategy that loses at Webull's bid/ask can't be traded.
 ON1_TASKS = ("StockAnalysis_V3_ON1Paper_Signals", "StockAnalysis_V3_ON1Paper_Evaluate")
 ON1_RETIRED = STATE / "on1_retired.json"
+# V2 rank: when its pre-registered go/no-go says NO-GO (paper_trading/rank_verdict.py), every V2 task stops -
+# the rank track was the last thing V2 was testing (user, 2026-11-21). Ledgers are kept.
+V2_TASKS = ("StockAnalysis_PaperRunner_PreMarket", "StockAnalysis_PaperRunner_MidSession", "StockAnalysis_PaperRunner",
+            "StockAnalysis_PaperUpdater", "StockAnalysis_WeeklyDashboard")
+V2_RETIRED = STATE / "v2_rank_retired.json"
 
 
 def metrics(snapshot: str) -> dict[str, int]:
@@ -410,19 +415,46 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     return limit
 
 
-def retire_on1(status: dict, dry_run: bool = False) -> bool:
-    """User's decision 2026-11-13: when ON1's REAL-price rule says FAIL, ON1 stops (both V3 paper tasks disabled)
-    instead of running its paper rule to day 40. Once only; True if it retired ON1 now."""
-    if status.get("verdict") != "FAIL" or ON1_RETIRED.exists():
-        return False
+def _disable(tasks: tuple[str, ...], dry_run: bool) -> list[str]:
     done = []
-    for task in ON1_TASKS:
+    for task in tasks:
         if dry_run:
             done.append(f"{task} (dry run)")
             continue
         r = subprocess.run(["powershell", "-NoProfile", "-Command", f"Disable-ScheduledTask -TaskName '{task}'"],
                            capture_output=True, text=True)
         done.append(task if r.returncode == 0 else f"{task} NOT disabled: {(r.stderr or r.stdout)[-200:]}")
+    return done
+
+
+def v2_rank_verdict() -> str:
+    """The V2 rank track's own verdict text (read-only run in the V2 folder)."""
+    r = subprocess.run([PYTHON, "-m", "paper_trading.rank_verdict"], cwd=LIVE_V2, capture_output=True, text=True,
+                       timeout=300)
+    return r.stdout
+
+
+def retire_v2_rank(text: str, dry_run: bool = False) -> bool:
+    """When the rank track's frozen rule says NO-GO, all V2 tasks stop (user's decision 2026-11-21) instead of
+    scanning a model nothing is testing any more. Once only; True if it retired V2 now. Any other verdict (GO included) does nothing."""
+    first = text.strip().splitlines()[0] if text.strip() else ""
+    if not re.search(r"go/no-go: NO-GO\b", first) or V2_RETIRED.exists():
+        return False
+    done = _disable(V2_TASKS, dry_run)
+    if not dry_run:
+        save_json(V2_RETIRED, {"date": str(now_pt().date()), "verdict": text.strip(), "tasks": done})
+    post("director", f"⚪ **V2 retired** - the rank track's pre-registered go/no-go says NO-GO:\n```\n{text.strip()}\n```\n"
+                     f"User's rule of 2026-11-21: a model whose last live test fails stops scanning. "
+                     f"Tasks: {'; '.join(done)}. Ledgers kept.", "Team - Paper Runner", dry_run)
+    return True
+
+
+def retire_on1(status: dict, dry_run: bool = False) -> bool:
+    """User's decision 2026-11-13: when ON1's REAL-price rule says FAIL, ON1 stops (both V3 paper tasks disabled)
+    instead of running its paper rule to day 40. Once only; True if it retired ON1 now."""
+    if status.get("verdict") != "FAIL" or ON1_RETIRED.exists():
+        return False
+    done = _disable(ON1_TASKS, dry_run)
     if not dry_run:
         save_json(ON1_RETIRED, {"date": str(now_pt().date()), "status": status, "tasks": done})
     post("director", f"⚪ **ON1 retired** - its real-price rule says FAIL ({status.get('days')} days, "
@@ -550,6 +582,11 @@ def main(argv: list[str]) -> int:
                     retire_on1(out)
             except Exception as e:
                 log(f"{name} failed: {e}", "dispatch")
+        if not V2_RETIRED.exists():
+            try:
+                retire_v2_rank(v2_rank_verdict())
+            except Exception as e:
+                log(f"v2 rank retire check failed: {e}", "dispatch")
 
     # 1b. research data: EDGAR filings (daily, only companies that filed), splits + daily bars (Saturday),
     #     data catalog.
