@@ -66,7 +66,8 @@ ROLES = {
                            f"Edit({T}/tools/lab/*.py)", f"Edit({T}/tests/test_lab_*.py)"]   # build mode 2026-11-14
                           + [f"Edit({T}/tools/{n}.py)" for n in ("catalog", "daily_bars", "daily_report", "edgar",
                                                                  "evening_check", "ops_monitor", "scan_ops", "screen")]
-                          + [f"Edit({T}/prompts/{n}.md)" for n in ("scorekeeper", "scout")] + own("engineer"),
+                          + [f"Edit({T}/prompts/{n}.md)" for n in ("scorekeeper", "scout")] + own("engineer")
+                          + [f"Edit({T}/state/patches/*.json)"],                     # patch mode, user 2026-11-21
                  "deny": ["WebFetch", "WebSearch"], "drop": (f"Edit({T}/tools/**)", f"Edit({T}/prompts/**)")},
     # One read-only quote tool and nothing else: no files, no shell, no web.
     "quote_clerk": {"allow": ["ToolSearch", "mcp__claude_ai_Webull__get_stock_snapshot"],

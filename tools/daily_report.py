@@ -20,6 +20,7 @@ from datetime import date, datetime
 
 import autonomy
 import outlook
+import patches
 import plan_limit
 from common import LIVE_V4, OUTBOX, STATE, TEAM, load_json, post
 
@@ -152,8 +153,10 @@ def compose(today: date, f, pipeline: list[str]) -> str:
     head = (f"🛑 **Daily report {today:%a %m-%d}** - {len(f.alerts)} problem(s)" if f.alerts else
             f"✅ **Daily report {today:%a %m-%d}** - all {f.tasks_checked} scheduled jobs ran OK")
     parts = [head]
-    if f.alerts:
-        parts.append("**⚠️ Needs you**\n" + "\n".join(f"• {a}" for a in f.alerts))
+    waiting = [f"Engineer patch waiting for your yes: {t} - `python tools/patches.py apply {pid}` "
+               f"(or `show {pid}` / `reject {pid} <why>`)" for pid, t in patches.ready()]
+    if f.alerts or waiting:
+        parts.append("**⚠️ Needs you**\n" + "\n".join(f"• {a}" for a in f.alerts + waiting))
     if lt := live_tests(f.snapshot):
         parts.append("**📈 Live tests**\n" + "\n".join(lt))
     if rp := real_prices(today):

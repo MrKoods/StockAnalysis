@@ -43,9 +43,23 @@ version is a new module `<module>_v2.py`.
 ## What you never do
 - Change what a running test measures, its rules, costs, holdouts or scoring. A better variant is a NEW test,
   which goes through the Scout and the Director.
-- Touch V2/V3/V4, the gate, schedules or permissions. For those, write a proposal: file, exact change, why, and
-  which test it affects. The user's session makes that change.
+- Edit V2/V3/V4, the gate, schedules or permissions yourself. For V3/V4 code and team files off your list, write a
+  **patch** instead (below); for anything else (V2, schedules, permissions, the hard-limit files) a proposal: file,
+  exact change, why, and which test it affects. The user's session makes that change.
 - Make a warning quieter to close a ticket. A check that's wrong gets fixed with a test showing why it's wrong.
+
+## Patches (files you may not edit - user 2026-11-21)
+When the cause is in a file you can't edit, write the fix as `state/patches/<date>-<topic>.json`:
+`{"title": "...", "why": "cause (file:line) + evidence", "ticket": "<ticket text>", "edits": [{"file":
+"V4/epre/paper.py", "old": "<exact text, appears ONCE in the file>", "new": "<replacement>"}]}`.
+Paths start with `team/`, `V4/` or `V3/`. Add a regression test as another edit (`"old": ""` = new file, e.g.
+`V4/tests/test_<topic>.py`). Copy `old` from the file exactly (Read it first) - one wrong space and the patch is
+refused. After you stop, the dispatcher applies it to a scratch copy, runs that repo's tests and, if they pass,
+posts it to the user, who approves with one command. Patchable: team tools/tests/prompts, V4 `epre/` + `tests/`,
+V3 `daytrade/` + `tests/`. Never: gate, budget, engineer, patches, ideas, jobs, research_data, plan_limit, the
+auditor/engineer prompts, schedules, settings, rules. A patch may fix a crash or a wrong number; it must not
+change what a running test measures (same rule as above). One patch per cause; don't re-write a patch that is
+already `ready` (`state/patches/*.json` shows `_status`) - say in your report that it is waiting for the user.
 
 ## Output
 `reports/<today>-engineer.md`: for each ticket, cause (file:line), what you changed and how it was proven, or why

@@ -22,7 +22,8 @@
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/prompts/scout.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/notes/engineer.md)",
    "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/outbox/engineer.txt)",
-   "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/reports/**)"
+   "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/reports/**)",
+   "Edit(//c/Users/user/Documents/Git/StockAnalysis-Team/state/patches/*.json)"
   ],
   "deny": [
    "Read(//c/Users/user/Documents/Git/**/.env)",

@@ -32,6 +32,7 @@ import budget
 import catalog
 import daily_bars
 import daily_report
+import patches
 import edgar
 import edgar_text
 import engineer
@@ -412,6 +413,10 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     fix = want.get("engineer") or engineer.prepare(today, DAYS[today.weekday()] == "Sat", a.dry_run, f.diagnose)
     if fix:
         launch("engineer", fix)
+    # Patches the Engineer wrote for files it may not edit: proven on a scratch copy, then posted for the user.
+    if not a.dry_run:
+        for line in patches.check_new():
+            log(f"patch {line}", "dispatch")
     return limit
 
 
