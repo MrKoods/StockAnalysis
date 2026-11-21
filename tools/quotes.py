@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 
-from common import LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, STATE, TEAM, load_json, log, now_pt, post, save_json
+from common import LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, STATE, WEBULL_AUTH_RX, WEBULL_HELP, TEAM, load_json, log, now_pt, post, save_json
 
 QUOTES = TEAM / "paper" / "quotes.csv"
 QFIELDS = ["date", "when", "ticker", "bid", "ask", "bid_size", "ask_size", "last", "quote_time"]
@@ -182,6 +182,9 @@ def capture(when: str, dry_run: bool = False) -> str:
         if re.search(LOGGED_OUT_RX, stream) and not _tool_results(stream):
             status = "logged_out"
             break
+        if re.search(WEBULL_AUTH_RX, stream) and not _tool_results(stream):
+            status = "webull_auth"          # retrying can't help - only the user can sign the connector back in
+            break
         results += _tool_results(stream)
         # Webull doesn't list these. Only from tool results - the prompt's own "INVALID_SYMBOL [X]" example is
         # in the stream too.
@@ -220,6 +223,9 @@ def capture(when: str, dry_run: bool = False) -> str:
     if status == "logged_out":
         post("ops", f"🔴 Quote Clerk {when} {today}: NOTHING captured - {LOGIN_HELP} Every team role fails until "
                     f"then.", "Team - Ops Monitor")
+    elif status == "webull_auth":
+        post("ops", f"🔴 Quote Clerk {when} {today}: NOTHING captured - {WEBULL_HELP} Real-price checks (ON1/EPRE) "
+                    f"lose every day until then.", "Team - Ops Monitor")
     elif status in ("partial", "failed"):
         post("ops", f"⚠️ Quote Clerk {when} {today}: only {len(rows)}/{len(want)} quotes captured - those trades "
                     f"fall back to official prices. Log: state/logs/{today}-quote_clerk-{when}.jsonl",
@@ -350,7 +356,7 @@ if __name__ == "__main__":
         log(msg, "quotes")
         # A failed capture must show as a failed task (exit 1): the Scan Operator and Ops Monitor read the exit
         # code, and on 2026-11-13 a logged-out Clerk exited 0 and nothing looked wrong all day.
-        sys.exit(1 if re.search(r"\((failed|logged_out)\)", msg) else 0)
+        sys.exit(1 if re.search(r"\((failed|logged_out|webull_auth)\)", msg) else 0)
     elif args[:1] == ["on1"]:
         print(on1())
     elif args[:1] == ["epre"]:

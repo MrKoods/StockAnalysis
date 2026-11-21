@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 import integrity
 import outlook
-from common import PYTHON, SNAPSHOT, STATE, TEAM, LIVE_V2, load_json, log, now_pt, post, save_json
+from common import LOGS, PYTHON, SNAPSHOT, STATE, TEAM, LIVE_V2, WEBULL_HELP, load_json, log, now_pt, post, save_json
 
 # 0 = success, 267009 = still running, 267011 = never run (new task)
 OK_RESULTS = {0, 267009, 267011}
@@ -107,6 +107,12 @@ def window_gap(name: str, due: datetime, now: datetime, sched: dict, ticks: list
             f"nothing to fix.")
 
 
+def webull_signed_out(day: datetime) -> bool:
+    """True when that day's Quote Clerk log says the Webull connector was signed out (quotes.py status)."""
+    p = LOGS / f"{day:%Y-%m-%d}-quotes.log"
+    return p.exists() and "(webull_auth)" in p.read_text(encoding="utf-8", errors="replace")
+
+
 def check_tasks(tasks: list[dict], now: datetime, f: Findings, sched: dict | None = None,
                 ticks: list[str] | None = None) -> None:
     if sched is None:
@@ -131,7 +137,11 @@ def check_tasks(tasks: list[dict], now: datetime, f: Findings, sched: dict | Non
             f.alerts.append(f"{name} did NOT run at {due:%a %m-%d %H:%M} ({ran}) - computer off or asleep?")
         elif int(t["LastResult"]) not in OK_RESULTS:
             msg = f"{name} ran {last:%a %m-%d %H:%M} but FAILED (result {t['LastResult']})"
-            f.alerts.append(msg + " - check its log.")
+            if name.startswith("Team_Quote") and webull_signed_out(last):
+                msg += f" - {WEBULL_HELP}"     # name the user-only fix, so no one burns a run diagnosing it
+                f.alerts.append(msg)
+            else:
+                f.alerts.append(msg + " - check its log.")
             f.diagnose.append(msg)
 
 

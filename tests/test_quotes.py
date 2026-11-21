@@ -47,3 +47,40 @@ def test_stream_parsing_reads_inline_and_saved_results(tmp_path):
                           f"saved to {raw}.\nFormat: Plain text"}]}]}})
     got = quotes._tool_results("\n".join(json.dumps(x) for x in lines))
     assert sorted(d["symbol"] for d in got) == ["AAA", "BIG", "RAW"]   # model-typed text is never trusted
+
+
+def test_signed_out_webull_connector_is_named_not_generic_failed(tmp_path, monkeypatch):
+    """2026-11-13..20: the claude.ai Webull connector's OAuth expired; 6 days of 0/N quotes showed only as a
+    generic FAILED. The Clerk must stop at once (no retry), say exactly what the user has to do, and exit 1."""
+    from datetime import datetime
+    stream = "\n".join(json.dumps(x) for x in [
+        {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "ToolSearch",
+                                                       "input": {"query": "select:mcp__claude_ai_Webull__get_stock_snapshot"}}]}},
+        {"type": "user", "message": {"content": [{"type": "tool_result", "content": "No matching deferred tools found"}]}},
+        {"type": "assistant", "message": {"content": [{"type": "text", "text":
+            "Only mcp__claude_ai_Webull__authenticate is available - the Webull MCP server requires OAuth authentication."}]}},
+        {"type": "result", "num_turns": 4, "total_cost_usd": 0.05},
+    ])
+    launches, posts = [], []
+    monkeypatch.setattr(quotes, "now_pt", lambda: datetime(2026, 11, 20, 6, 31))
+    monkeypatch.setattr(quotes, "too_late", lambda *a: None)
+    monkeypatch.setattr(quotes, "needs", lambda *a: ["AAPL", "MSFT"])
+    monkeypatch.setattr(quotes, "runs_this_week", lambda: 0)
+    monkeypatch.setattr(quotes, "_launch", lambda *a: launches.append(1) or stream)
+    monkeypatch.setattr(quotes, "post", lambda ch, text, who: posts.append(text))
+    monkeypatch.setattr(quotes.time, "sleep", lambda s: None)
+    for name in ("QUOTES", "USAGE", "INVALID"):
+        monkeypatch.setattr(quotes, name, tmp_path / name)
+    msg = quotes.capture("open")
+    assert "0/2" in msg and "(webull_auth)" in msg
+    assert len(launches) == 1                                   # retrying can't fix a signed-out connector
+    assert len(posts) == 1 and "Connectors -> Webull" in posts[0]
+    assert not (tmp_path / "QUOTES").exists()
+
+
+def test_webull_marker_never_matches_a_good_run():
+    import re
+    from common import WEBULL_AUTH_RX
+    good = json.dumps({"type": "user", "message": {"content": [{"type": "tool_result", "content": [{"type": "text",
+                      "text": json.dumps([{"symbol": "AAPL", "bid": "342.5", "ask": "342.6"}])}]}]}})
+    assert not re.search(WEBULL_AUTH_RX, good)

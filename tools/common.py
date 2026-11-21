@@ -26,6 +26,11 @@ STOP_FILE = TEAM / "STOP"     # kill switch: present = no Claude roles, no new p
 # matched normal output and raised a false alarm.
 LOGGED_OUT_RX = r"Not logged in|Please run /login|authentication_error|OAuth token"
 LOGIN_HELP = "Claude is LOGGED OUT - open a terminal on the PC, run `claude`, then `/login`."
+# The claude.ai Webull connector's own OAuth expired (2026-11-13..20: 6 days of 0/N quotes behind a generic FAILED).
+# Claude then offers only this placeholder tool instead of the real Webull tools; it never appears in a good run.
+WEBULL_AUTH_RX = r"mcp__claude_ai_Webull__authenticate|Webull MCP server requires (OAuth )?authentication"
+WEBULL_HELP = ("the Webull CONNECTOR is signed out - go to claude.ai -> Settings -> Connectors -> Webull -> Connect "
+               "and sign in again (can't be done by the team).")
 
 # Channel -> .env key, then fallbacks. Never the general scan channel (DISCORD_WEBHOOK_URL).
 CHANNELS = {
