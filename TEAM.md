@@ -111,6 +111,17 @@ Cluster t-stats by day (week for multi-day holds, month for holds over 10 days).
 - **ON1 is retired when its REAL-price rule says FAIL** (15 days of quotes, ~11-23), not at paper day 40 - it is
   -85 bps/trade at Webull's bid/ask after 7 days. The dispatcher does it; don't ask the user to.
 - **V2 rank go/no-go has an end point**: at 200 closed trades it is GO or NO-GO, never "keep collecting".
+- **V2 retires itself on rank NO-GO** (user 2026-11-21): the dispatcher disables all 5 V2 tasks once
+  (tools/dispatch.retire_v2_rank, state/v2_rank_retired.json). Don't ask the user to.
+- **2026-11-13..20: the claude.ai Webull CONNECTOR was signed out** (not Claude) - 6 days of 0/N quotes, lost for
+  good. quotes.py now names it (`webull_auth`); only the user can reconnect it (claude.ai -> Settings ->
+  Connectors). Don't diagnose it again.
+- **Patch mode** (user 2026-11-21): fixes to files the Engineer may not edit (V4 epre/, V3 daytrade/, team scoring
+  code like quotes.py) go in state/patches/<id>.json; tools/patches.py proves them on a scratch copy, posts them,
+  and the user applies with one command. Hard-limit files are never patchable.
+- **EPRE's t counts exit days, not trades**: 1,037 trades = 17 exit days (2026-11-20). The daily report also shows
+  hedged mean by index - live sp600 was -42 bps while the backtest had the edge in smaller names. Informational;
+  RULES.md checkpoints are unchanged.
 - **Paper vs real gap > ~2x the measured spread = suspect the PAPER prices, not costs** (ON1 2026-11-06..08: three
   roles called a 223 bps gap "spread"; it was bad Yahoo opens).
 - **EPRE's 1:45 PM PT scoring closes are final enough** - checked 2026-11-13 by re-downloading all 991 scored
