@@ -138,11 +138,13 @@ def check_tasks(tasks: list[dict], now: datetime, f: Findings, sched: dict | Non
         elif int(t["LastResult"]) not in OK_RESULTS:
             msg = f"{name} ran {last:%a %m-%d %H:%M} but FAILED (result {t['LastResult']})"
             if name.startswith("Team_Quote") and webull_signed_out(last):
-                msg += f" - {WEBULL_HELP}"     # name the user-only fix, so no one burns a run diagnosing it
-                f.alerts.append(msg)
+                # Known external blocker: only the user can reconnect the connector. Tell the user (alert),
+                # but DON'T diagnose - the Engineer can't fix it and should not be re-woken daily to re-confirm
+                # a known user-only cause. Same class as a PC-off `gap` (window_gap above, which also skips diagnose).
+                f.alerts.append(msg + f" - {WEBULL_HELP}")
             else:
                 f.alerts.append(msg + " - check its log.")
-            f.diagnose.append(msg)
+                f.diagnose.append(msg)
 
 
 def check_snapshot(f: Findings) -> None:
