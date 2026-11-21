@@ -1,5 +1,35 @@
 # Auditor notes
 
+## 2026-11-21 — 5th audit (regular Saturday slot)
+No red flags. Honest week. Research: 4 ideas died (special-dividend, activist-13d-day0, buyback, antitakeover),
+NO holdout spent (families 8k_8_01/activist_13d/8k_5_03 all 0 holdouts). Spot-checked special-dividend = clean:
+chosen all_sp1500_h20 PRE-REGISTERED (PLAN.md:61), honored over train-best midsmall_h20 (t3.14); chosen t2.67 <
+luck bar 2.87 → honest Skeptic FAIL that caught the survivorship signature (sp500 PIT-clean t1.45 vs dirty
+midsmall t3.14). Engineer 0 edits (all 4 tickets off-limits V3/V4/Webull, correctly untouched). Live tests not
+talked up (EPRE real-price "5 exit days = noise"; ON1 FAIL-traj honest). Paper-vs-real: ON1 gap 86.9 < full
+spread ~93 = within cost, not suspect; EPRE 0.6 bps. gate.py list still EMPTY (0 team paper tests ever).
+
+### Prior findings — resolution
+- **C9 CLOSED**: day-0 8-K ideas paper-replicable (run_day0 infra built 11-14, used by both day-0 ideas this wk).
+- **C8 ESCALATED → Concern 1 below**: Director now AGREES vein exhausted + leans redirect. Good — but redirect
+  not yet at the Scout (11-16/11-19 Scout still fed 8-K cards). Director can't edit Scout prompt.
+
+### Open findings (check next audit)
+- **Concern 1 (User/direction) — C8 persists**: ~20 team ideas / 7 wks / 0 paper promotions. Director agrees
+  redirect but can't reprogram Scout. CHECK: did a Scout prompt line appear steering off single-8-K, OR did user
+  decide on NLP? If Scout keeps sending 8-K cards and they keep dying at train, this is now wasted Opus spend.
+- **Concern 2 (Engineer) — recurring waste**: Engineer woken daily 11-16..20 (~$2/day) on webull_auth Quote
+  give-ups it structurally can't fix; inflates autonomy "couldn't fix 11×" (9 of 11 = this connector). Rec:
+  suppress webull_auth give-ups from Engineer tickets like `gaps` (keep EPRE-crash ticket firing). CHECK: did
+  the Engineer act on this? editable team code (scan_ops/dispatch), not hard-limit.
+- **Concern 3 (minor)**: notes/director.md lines 69-70 have stray </content></invoke> tags (leaked tool artifact).
+
+### Watch calendar
+- ON1 real-price verdict ~11-23/24 — FAIL traj (-85 bps); did dispatcher auto-retire ON1 on FAIL? (blocked until Webull reconnects)
+- V2 rank go/no-go at 100 (~now) — NO-GO near-certain; did dispatcher auto-retire all 5 V2 tasks (settled 11-21)?
+- V4 EPRE cp B at 3,000 trades (~1,037 now) — far off; cp A crossed 11-17 = CONTINUE.
+- Webull reconnect = non-zero quote captures resuming. Next audit: regular Saturday slot after the Director.
+
 ## 2026-11-14 — 4th audit (regular Saturday slot)
 No red flags. Honest week: 5 ideas died at TRAIN (seo-short t−5.92, issuer-self-tender −1.76, pre-earnings-premium
 0.44, proxy-contest 0.31, material-impairment-short −0.86) — all distinct families, all auto-buried below luck bar,
