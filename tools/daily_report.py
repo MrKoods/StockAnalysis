@@ -21,7 +21,7 @@ from datetime import date, datetime
 import autonomy
 import outlook
 import plan_limit
-from common import OUTBOX, STATE, TEAM, load_json, post
+from common import LIVE_V4, OUTBOX, STATE, TEAM, load_json, post
 
 EPRE_CHECKPOINTS = [(1000, "A - FAIL if hedged mean < -20 bps"),
                     (3000, "B - FAIL if < 0; small real money OK if >= +10 bps, t >= 1, date accuracy >= 90%"),
@@ -32,6 +32,26 @@ LIMIT = 1900   # Discord caps a message at 2,000 characters; longer reports go o
 def _num(rx: str, text: str) -> tuple[str, ...] | None:
     m = re.search(rx, text)
     return m.groups() if m else None
+
+
+def epre_breakdown(ledger=None) -> str:
+    """Context the frozen EPRE checkpoints don't show (user 2026-11-21) - informational, never a verdict:
+    how many independent exit days the t rests on (trades on one day move together, so 1,000 trades on 17 days is
+    ~17 observations), and hedged mean by index, since the 2018-26 backtest had all three positive with the edge
+    in the smaller names."""
+    import pandas as pd
+    try:
+        d = ledger if ledger is not None else pd.read_csv(LIVE_V4 / "data" / "paper" / "epre_ledger.csv")
+        d = d[d["void"].isna()] if "void" in d else d
+        d = d.dropna(subset=["hedged_bps"])
+        if d.empty:
+            return ""
+        by = d.groupby("index")["hedged_bps"].agg(["mean", "count"])
+        parts = " · ".join(f"{k} {r['mean']:+.0f} ({int(r['count'])})" for k, r in by.iterrows())
+        return (f"{d['exit_day'].nunique()} exit days behind that t · by index: {parts} "
+                f"(backtest: all three positive, edge in the smaller names)")
+    except Exception:
+        return ""
 
 
 def live_tests(snapshot: str) -> list[str]:
@@ -49,6 +69,8 @@ def live_tests(snapshot: str) -> list[str]:
         nxt, rule = next(((c, r) for c, r in EPRE_CHECKPOINTS if n < c), EPRE_CHECKPOINTS[-1])
         out.append(f"• **V4 EPRE** - {n:,}/{nxt:,} trades · hedged {g[1]} bps · t {g[2]}")
         out.append(f"  ↳ checkpoint at {nxt:,} trades: {rule}")
+        if extra := epre_breakdown():
+            out.append(f"  ↳ {extra}")
     g = _num(outlook.V2_RX, snapshot)
     if g:
         out.append(f"• **V2 rank** - {g[0]}/{g[1]} trades · {g[2]}R after costs (GO needs +0.15"
