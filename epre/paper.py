@@ -230,7 +230,10 @@ def signals(dry: bool = False, day: date | None = None) -> None:
         rows = rows[~rows["ticker"].isin(led.loc[led["entry_day"] == str(d), "ticker"])]
         # never a second trade on the same report (e.g. the calendar re-timed it after the first entry)
         held = set(zip(led["ticker"].astype(str), led["report_day"].astype(str)))
-        rows = rows[[(t, r) not in held for t, r in zip(rows["ticker"].astype(str), rows["report_day"].astype(str))]]
+        # boolean mask, not a list: rows[[]] on an empty frame selects zero COLUMNS and drops "posted" (11-19 crash)
+        keep = np.array([(t, r) not in held for t, r in zip(rows["ticker"].astype(str), rows["report_day"].astype(str))],
+                        dtype=bool)
+        rows = rows[keep]
         new.append(rows)
         sells = pd.concat([led, rows])
         sells = sells[sells["exit_day"] == str(d)]
