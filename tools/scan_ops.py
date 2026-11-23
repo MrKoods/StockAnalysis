@@ -246,6 +246,18 @@ if __name__ == "__main__":
         except Exception as e:  # noqa: BLE001
             log(f"plan-limit resume check failed: {e}", "scan_ops")
         day0_live()
+        try:  # free daily option-chain record (tools/option_chains.py): first weekday tick 12:30-12:54 PT
+            import option_chains
+            if "--dry-run" not in sys.argv and option_chains.due(now_pt()):
+                log(option_chains.capture(), "scan_ops")
+        except Exception as e:  # noqa: BLE001 - a missed day is a gap in a record, never worth failing the tick
+            log(f"option chain capture failed: {e}", "scan_ops")
+        try:  # ~9:45 AM ET second open quote capture (tools/quotes.py open2) - no task of its own
+            import quotes
+            if "--dry-run" not in sys.argv and quotes.open2_due(now_pt()):
+                log(quotes.capture("open2"), "quotes")
+        except Exception as e:  # noqa: BLE001
+            log(f"open2 quote capture failed: {e}", "scan_ops")
         try:  # the first tick at/after 18:00 on a weekday also runs the evening check (no task of its own)
             import evening_check
             evening_check.run(dry_run="--dry-run" in sys.argv)

@@ -242,15 +242,17 @@ def test_outlook_arithmetic():
 
 
 def test_research_cadence(monkeypatch):
+    # 2026-11-23 (user): halved - Scout Mondays to 5 waiting ideas, 1 idea in research at a time.
     f = ops_monitor.Findings()
-    stages = {"idea": ["a", "b", "c"], "queued": ["q"]}
+    stages = {"idea": ["a", "b", "c"]}
     monkeypatch.setattr(dispatch, "in_stage", lambda s: stages.get(s, []))
     mon = dispatch.triggers(date(2026, 11, 2), f, [], {}, {})
-    assert "scout" in mon and "target 10" in mon["scout"]           # every weekday until 10 ideas wait
-    assert "queue up to 1" in mon["director"]                       # room for 1 more (1 of 2 in research)
-    stages["queued"] = ["q1", "q2"]
-    assert "director" not in dispatch.triggers(date(2026, 11, 2), f, [], {}, {})   # pipeline full
-    stages["idea"] = [str(i) for i in range(10)]
+    assert "scout" in mon and "target 5" in mon["scout"]
+    assert "queue up to 1" in mon["director"]                       # empty pipeline: room for 1
+    assert "scout" not in dispatch.triggers(date(2026, 11, 5), f, [], {}, {})      # Thursday: no Scout any more
+    stages["queued"] = ["q1"]
+    assert "director" not in dispatch.triggers(date(2026, 11, 2), f, [], {}, {})   # pipeline full at 1
+    stages["idea"] = [str(i) for i in range(5)]
     assert "scout" not in dispatch.triggers(date(2026, 11, 2), f, [], {}, {})      # queue full
     sat = dispatch.triggers(date(2026, 11, 7), f, [], {}, {})
     assert "scout" not in sat and sat["director"] == "weekly review"

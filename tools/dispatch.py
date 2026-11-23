@@ -30,6 +30,7 @@ from datetime import date, datetime, timedelta
 import autonomy
 import budget
 import catalog
+import cboe_history
 import daily_bars
 import daily_report
 import patches
@@ -52,11 +53,11 @@ from common import (LIVE_V2, LIVE_V3, LIVE_V4, LOGGED_OUT_RX, LOGIN_HELP, OUTBOX
 ROLES = TEAM / "team" / "roles.json"
 USAGE = STATE / "usage.csv"
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-IDEA_TARGET = 10          # the Scout runs (SCOUT_DAYS) until this many ideas wait
-SCOUT_DAYS = ("Mon", "Thu")   # 2026-11-13: daily runs added 1-3 ideas at rising cost ($0.85 -> $2.73 a run)
-MAX_ACTIVE = 2            # ideas in research at once (queued + planned + under review)
+IDEA_TARGET = 5           # the Scout runs (SCOUT_DAYS) until this many ideas wait (10 until 2026-11-23)
+SCOUT_DAYS = ("Mon",)    # 2026-11-23 (user): research cadence halved - 19 ideas averaged t -0.2; Mon+Thu before
+MAX_ACTIVE = 1            # ideas in research at once (queued + planned + under review); 2 until 2026-11-23
 ACTIVE_STAGES = ("queued", "planned", "awaiting_review")
-PER_DAY = 2               # Researcher / Skeptic runs per dispatch (one idea each)
+PER_DAY = 1               # Researcher / Skeptic runs per dispatch (one idea each); 2 until 2026-11-23
 NOTES_CAP = 150           # lines per notes/<role>.md (prompts/common.md); over it, the role is told to prune
 
 # Frozen checkpoints of the live V2/V3/V4 tests (from their rules). Crossing one wakes the Director.
@@ -601,7 +602,8 @@ def main(argv: list[str]) -> int:
         for name, job in [("edgar update", edgar.update), ("edgar text", edgar_text.update)] + ([("edgar splits", edgar.splits),
                                                                ("daily bars", daily_bars.run)]
                                                               if today.weekday() == 5 else []) + [
-                ("screen", screen.run), ("fill costs", fill_costs.write), ("catalog", catalog.write)]:
+                ("cboe history", cboe_history.run), ("screen", screen.run), ("fill costs", fill_costs.write),
+                ("catalog", catalog.write)]:
             try:
                 log(job(), "dispatch")
             except Exception as e:

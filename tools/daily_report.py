@@ -55,6 +55,21 @@ def epre_breakdown(ledger=None) -> str:
         return ""
 
 
+def epre_ml() -> str:
+    """The pre-registered EPRE-ML variant's status (StockAnalysis-V4 RULES.md amendment 2026-11-23), computed by
+    V4's own code so the team never re-implements its rule."""
+    import sys
+    import pandas as pd
+    try:
+        if str(LIVE_V4) not in sys.path:
+            sys.path.insert(0, str(LIVE_V4))
+        from epre import paper as v4
+        text = v4.variant_ml_verdict(pd.read_csv(LIVE_V4 / "data" / "paper" / "epre_ledger.csv"))
+        return text.split(": ", 1)[1].replace("\nVerdict (EPRE-ML): ", " · ")
+    except Exception:
+        return ""
+
+
 def live_tests(snapshot: str) -> list[str]:
     need = outlook.short(snapshot)
     out = []
@@ -72,6 +87,8 @@ def live_tests(snapshot: str) -> list[str]:
         out.append(f"  ↳ checkpoint at {nxt:,} trades: {rule}")
         if extra := epre_breakdown():
             out.append(f"  ↳ {extra}")
+        if ml := epre_ml():
+            out.append(f"• **V4 EPRE-ML** (S&P 500+400 only, from 11-24) - {ml}")
     g = _num(outlook.V2_RX, snapshot)
     if g:
         out.append(f"• **V2 rank** - {g[0]}/{g[1]} trades · {g[2]}R after costs (GO needs +0.15"
@@ -90,15 +107,34 @@ def quote_coverage(today: date) -> str | None:
         return None
     got = {}
     for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
-        if m := re.search(r"quotes (open|close): (\d+)/(\d+) tickers captured \((\w+)\)", line):
+        if m := re.search(r"quotes (open2|open|close): (\d+)/(\d+) tickers captured \((\w+)\)", line):
             got[m.group(1)] = f"{m.group(2)}/{m.group(3)}" + ("" if m.group(4) == "ok" else f" ({m.group(4)})")
     return " · ".join(f"{k} {v}" for k, v in got.items()) or None
+
+
+def etf_line() -> str | None:
+    """ETF fill costs (tools/quotes.py etf_fills) - measurement for the overnight idea, never a verdict."""
+    try:
+        import quotes
+        r = quotes.etf_fills()
+    except Exception:
+        return None
+    cells = []
+    for t in ("SPY", "IWM", "IJR"):
+        x = r.get(t) or {}
+        if "close" in x:
+            cells.append(f"{t} {x['close']:.1f}/{x.get('open', float('nan')):.1f}/{x.get('open2', float('nan')):.1f}")
+    days = max((r.get(t, {}).get("days_close", 0) for t in ("SPY", "IWM", "IJR")), default=0)
+    return (f"• ETF half-spreads close/9:31/9:45 (bps, {days} days): {' · '.join(cells)} "
+            f"- overnight idea needs close+open <= ~2") if cells else None
 
 
 def real_prices(today: date) -> list[str]:
     out = []
     if q := quote_coverage(today):
         out.append(f"• Quotes captured: {q}")
+    if etf := etf_line():
+        out.append(etf)
     on1 = load_json(TEAM / "paper" / "on1_real_price_status.json", {})
     if on1.get("days"):
         out.append(f"• **ON1 at real prices** - {on1['verdict']} · day {on1['days']}/15 · real {on1['real_mean_bps']:+.1f} bps "

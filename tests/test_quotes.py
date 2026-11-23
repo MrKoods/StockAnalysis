@@ -84,3 +84,41 @@ def test_webull_marker_never_matches_a_good_run():
     good = json.dumps({"type": "user", "message": {"content": [{"type": "tool_result", "content": [{"type": "text",
                       "text": json.dumps([{"symbol": "AAPL", "bid": "342.5", "ask": "342.6"}])}]}]}})
     assert not re.search(WEBULL_AUTH_RX, good)
+
+
+def test_every_capture_quotes_the_etfs_and_open2_follows_open(tmp_path, monkeypatch):
+    monkeypatch.setattr(quotes, "ON1_LEDGER", tmp_path / "none.csv")
+    monkeypatch.setattr(quotes, "EPRE_LEDGER", tmp_path / "none.csv")
+    monkeypatch.setattr(pr, "REGISTRY", tmp_path / "none.json")
+    for when in ("close", "open", "open2"):
+        assert set(quotes.ETFS) <= set(quotes.needs(when, D1))
+
+
+def test_open2_window_tries_and_stops_after_success(tmp_path, monkeypatch):
+    from datetime import datetime
+    monkeypatch.setattr(quotes, "OPEN2_STATE", tmp_path / "o2.json")
+    mon = lambda h, m: datetime(2026, 11, 23, h, m)   # a Monday  # noqa: E731
+    assert [quotes.open2_due(mon(h, m)) for h, m in [(6, 39), (6, 40), (6, 50), (6, 55)]] == [False, True, True, False]
+    assert not quotes.open2_due(datetime(2026, 11, 28, 6, 40))                 # Saturday
+    quotes.save_json(quotes.OPEN2_STATE, {"date": "2026-11-23", "tries": 1, "ok": True})
+    assert not quotes.open2_due(mon(6, 50))                                    # done for today
+    quotes.save_json(quotes.OPEN2_STATE, {"date": "2026-11-23", "tries": 1, "ok": False})
+    assert quotes.open2_due(mon(6, 50))                                        # one more try
+    quotes.save_json(quotes.OPEN2_STATE, {"date": "2026-11-23", "tries": 2, "ok": False})
+    assert not quotes.open2_due(mon(6, 50))
+    assert quotes.too_late("open2", mon(6, 57)) and not quotes.too_late("open2", mon(6, 50))
+
+
+def test_etf_fills_half_spreads_and_real_overnight(tmp_path, monkeypatch):
+    f = tmp_path / "q.csv"
+    f.write_text("date,when,ticker,bid,ask,bid_size,ask_size,last,quote_time\n"
+                 "2026-11-20,close,SPY,99.99,100.01,,,,\n"
+                 "2026-11-23,open,SPY,100.48,100.52,,,,\n"
+                 "2026-11-23,open2,SPY,100.49,100.51,,,,\n"
+                 "2026-11-23,close,XYZ,1,2,,,,\n")
+    monkeypatch.setattr(quotes, "QUOTES", f)
+    r = quotes.etf_fills(write=False)
+    assert "XYZ" not in r and abs(r["SPY"]["close"] - 1.0) < 0.01 and r["SPY"]["open"] > r["SPY"]["open2"]
+    o = r["SPY"]["overnight_to_open"]                        # Friday close -> Monday open = one night
+    assert o["nights"] == 1 and abs(o["real_mean_bps"] - (100.48 / 100.01 - 1) * 1e4) < 0.1
+    assert o["mid_mean_bps"] > o["real_mean_bps"]

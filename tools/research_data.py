@@ -20,6 +20,8 @@ Team archive (data/edgar, from tools/edgar.py - updated by the dispatcher every 
   splits(tickers)   stock splits: ex-date, ratio, and the first filing that said "stock split" (2001+)
   filing_text(df)   adds each 8-K's WORDS to filings() rows (body + attached press release for 8.01), 2026-11-14
   fomc()            FOMC meetings/calls since 2000 (scheduled dates usable in advance; calls only after)
+  cboe(symbols)     CBOE daily closes (data/cboe, tools/cboe_history.py, 2026-11-23): VIX VIX9D VIX3M SKEW and the
+                    option-strategy benchmarks PUT WPUT BXM CNDR BFLY (mid-price, BEFORE trading costs)
 Both add `first_session` = the first session whose 09:30 ET open is after the event became public - the
 earliest a strategy could have traded it. Use it, not the filing date, as the signal date.
 And `entry_session` (2026-11-13) = the first session whose CLOSE can be bought after the event (SEC accepted it
@@ -339,6 +341,24 @@ def fomc() -> pd.DataFrame:
     df = pd.read_csv(FOMC, parse_dates=["start", "date"])
     end = data_end()
     return df[(df["date"] <= end) | (df["kind"] == "meeting")].reset_index(drop=True)
+
+
+CBOE = Path(__file__).resolve().parent.parent / "data" / "cboe"   # tools/cboe_history.py
+
+
+def cboe(symbols=("VIX",)) -> pd.DataFrame:
+    """CBOE index daily closes, one column per symbol, up to the cutoff. A value for day D is that day's close
+    (known after 16:15 ET) - a rule may use it for a trade at D's close only if it uses an earlier proxy; the safe
+    use is for trades from D+1 on. The strategy indexes (PUT, WPUT, BXM, CNDR, BFLY) are mid-price benchmarks:
+    a test on them must charge real option spreads (paper/options, from 2026-11-23) - they are not tradeable."""
+    if isinstance(symbols, str):
+        symbols = [symbols]
+    end = data_end()
+    cols = {}
+    for s in symbols:
+        df = pd.read_csv(CBOE / f"{s}.csv", parse_dates=["date"])
+        cols[s] = df.set_index("date")["close"]
+    return pd.DataFrame(cols).loc[:end]
 
 
 def splits(tickers=None) -> pd.DataFrame:

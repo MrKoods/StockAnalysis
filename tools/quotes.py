@@ -2,7 +2,9 @@
 
     python tools/quotes.py capture close     # StockAnalysis_Team_QuoteClose, Mon-Fri 12:56 PT (3:56 PM ET)
     python tools/quotes.py capture open      # StockAnalysis_Team_QuoteOpen,  Mon-Fri 06:31 PT (9:31 AM ET)
+    python tools/quotes.py capture open2     # ~9:45 AM ET - run by the Scan Operator's 06:40/06:50 PT tick (no own task)
     python tools/quotes.py on1               # re-price ON1's paper trades at the captured quotes
+    python tools/quotes.py etf               # ETF fill costs: close / 9:31 / ~9:45 half-spreads, real overnight
     python tools/quotes.py capture close --dry-run    # print the tickers + prompt, launch nothing
 
 Why: paper tests fill at the official open/close. Webull (via its connector) takes LIMIT orders only - no
@@ -38,6 +40,11 @@ RULES = TEAM / "team" / "real_price_rules.json"
 USAGE = STATE / "usage.csv"
 INVALID = TEAM / "paper" / "quote_invalid_symbols.json"     # tickers Webull's quote tool doesn't know
 TOOL = "mcp__claude_ai_Webull__get_stock_snapshot"
+# Always quoted at every capture (2026-11-23, user-approved plan): measures whether the ETF overnight premium
+# (buy the close, sell the open) survives real Webull fills - it needs <= ~1 bp per side. Measurement, not a test.
+ETFS = ["SPY", "QQQ", "IWM", "IJR", "MDY", "DIA"]
+OPEN2_FROM, OPEN2_UNTIL = (6, 40), (6, 54)        # PT; the Scan Operator ticks at :40 and :50 -> ~9:40-9:52 ET
+OPEN2_STATE = STATE / "quotes_open2.json"
 
 
 # ---------- which tickers ----------
@@ -45,8 +52,10 @@ TOOL = "mcp__claude_ai_Webull__get_stock_snapshot"
 def needs(when: str, today: date) -> list[str]:
     """Tickers whose paper trade fills at this capture.
     close: ON1 picks made today (bought at the close) + team trades that may exit at today's close.
-    open:  ON1 picks from the previous session (sold at the open) + team trades entering/exiting at the open."""
-    out: set[str] = set()
+    open:  ON1 picks from the previous session (sold at the open) + team trades entering/exiting at the open.
+    open2 (~9:45 ET): the same tickers as open - is a later open fill cheaper than 9:31, the widest minute?
+    Every capture also quotes ETFS."""
+    out: set[str] = set(ETFS)
     if ON1_LEDGER.exists():
         led = pd.read_csv(ON1_LEDGER, usecols=["day", "ticker"])
         days = sorted(led["day"].unique())
@@ -139,9 +148,21 @@ def _f(x) -> float | None:
         return None
 
 
+def open2_due(now: datetime) -> bool:
+    """The Scan Operator's first weekday tick in the open2 window, at most 2 tries a day, none after a success."""
+    if now.weekday() >= 5 or not (datetime.strptime("%d:%d" % OPEN2_FROM, "%H:%M").time() <= now.time()
+                                  <= datetime.strptime("%d:%d" % OPEN2_UNTIL, "%H:%M").time()):
+        return False
+    st = load_json(OPEN2_STATE, {})
+    return st.get("date") != str(now.date()) or (st.get("tries", 0) < 2 and not st.get("ok"))
+
+
 def too_late(when: str, now: datetime) -> str | None:
     """A capture after its valid window (team/schedule.json retry_until + 2 min grace) would record quotes from
     the wrong moment (e.g. after hours, when the PC woke late) - those are worse than no quotes. Skip it."""
+    if when == "open2":
+        end = datetime.combine(now.date(), datetime.strptime("%d:%d" % OPEN2_UNTIL, "%H:%M").time())             + timedelta(minutes=2)
+        return f"quotes open2: skipped - started {now:%H:%M}, after its window" if now > end else None
     j = load_json(TEAM / "team" / "schedule.json", {}).get("jobs", {}).get(
         f"StockAnalysis_Team_Quote{when.capitalize()}", {})
     if not j.get("retry_until"):
@@ -211,6 +232,12 @@ def capture(when: str, dry_run: bool = False) -> str:
             w.writerows(rows.values())
     if not rows and results:
         status = "market_closed"            # Webull answered, but every quote is from an earlier day (holiday)
+    if when == "open2":
+        st = load_json(OPEN2_STATE, {})
+        st = st if st.get("date") == str(today) else {"date": str(today), "tries": 0}
+        st["tries"] += 1
+        st["ok"] = st.get("ok") or status in ("ok", "partial", "market_closed")
+        save_json(OPEN2_STATE, st)
     new_usage = not USAGE.exists()
     with open(USAGE, "a", encoding="utf-8") as fh:
         if new_usage:
@@ -349,6 +376,45 @@ def epre(write: bool = True) -> dict:
     return out
 
 
+def etf_fills(write: bool = True) -> dict:
+    """Per ETF: median half-spread (bps of the ask) at the close, 9:31 and ~9:45 captures, and the real overnight
+    return (buy at the close ask, sell at the next open bid) next to the mid-to-mid return. The overnight idea
+    needs the two half-spreads to total <= ~2 bps (2005-2017 probe: 1 bp/side IJR beat holding, 2 bp/side dead)."""
+    if not QUOTES.exists():
+        return {"note": "no quotes yet"}
+    q = pd.read_csv(QUOTES)
+    q = q[q["ticker"].isin(ETFS)].copy()
+    if q.empty:
+        return {"note": "no ETF quotes yet"}
+    q["half_bps"] = (q["ask"] - q["bid"]) / q["ask"] / 2 * 1e4
+    q["mid"] = (q["ask"] + q["bid"]) / 2
+    q = q.drop_duplicates(["date", "when", "ticker"], keep="last")
+    out = {"bar": "close half-spread + open half-spread <= ~2 bps total for the overnight idea to have a chance"}
+    for t in ETFS:
+        x = q[q["ticker"] == t]
+        if x.empty:
+            continue
+        row = {w: round(float(x.loc[x["when"] == w, "half_bps"].median()), 2)
+               for w in ("close", "open", "open2") if (x["when"] == w).any()}
+        row |= {f"days_{w}": int((x["when"] == w).sum()) for w in ("close", "open", "open2")}
+        c = x[x["when"] == "close"].set_index("date")
+        for w in ("open", "open2"):
+            o = x[x["when"] == w].set_index("date")
+            days = sorted(c.index)
+            nxt = [next((e for e in sorted(o.index) if e > d), None) for d in days]
+            pairs = [(d, n) for d, n in zip(days, nxt)                      # one night (a weekend counts as one)
+                     if n is not None and (date.fromisoformat(n) - date.fromisoformat(d)).days <= 4]
+            if pairs:
+                real = [(o.loc[n, "bid"] / c.loc[d, "ask"] - 1) * 1e4 for d, n in pairs]
+                mid = [(o.loc[n, "mid"] / c.loc[d, "mid"] - 1) * 1e4 for d, n in pairs]
+                row[f"overnight_to_{w}"] = {"nights": len(pairs), "real_mean_bps": round(float(pd.Series(real).mean()), 1),
+                                            "mid_mean_bps": round(float(pd.Series(mid).mean()), 1)}
+        out[t] = row
+    if write:
+        save_json(TEAM / "paper" / "etf_fill_status.json", out)
+    return out
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if args[:1] == ["capture"]:
@@ -361,5 +427,7 @@ if __name__ == "__main__":
         print(on1())
     elif args[:1] == ["epre"]:
         print(epre())
+    elif args[:1] == ["etf"]:
+        print(json.dumps(etf_fills(), indent=1))
     else:
         print(__doc__)

@@ -3,7 +3,12 @@ stage moves are checked here.
 
     python tools/ideas.py list [stage]
     python tools/ideas.py add --id <slug> --family <f> --horizon <h> --summary "..." --mechanism "..."
-                              --data "..." --cost <bps> [--source "..."] [--notes "..."]          (Scout)
+                              --data "..." --cost <bps> --gross <bps> [--source "..."] [--notes "..."]  (Scout)
+
+Cost hurdle (user's decision 2026-11-23): an idea is refused unless its stated gross edge per trade (--gross, bps,
+from a paper/screen - say where on the card) is at least HURDLE x its round-trip cost (--cost), and --cost is not
+below the cheapest real round trip at the user's broker (team/fill_costs.json, S&P 500 close->close). 19 ideas
+averaged t -0.2 = no edge minus cost; edges under ~3x cost never survived the winner's curse plus real spreads.
     python tools/ideas.py set <id> <stage> --note "..."                                         (Director)
 
 Roles may only make these moves; every later stage is set by the scripts from the files on disk
@@ -22,7 +27,8 @@ from common import TEAM
 
 IDEAS = TEAM / "registry" / "ideas.csv"
 FIELDS = ["id", "date", "source", "family", "horizon", "stage", "summary", "mechanism", "data_needed",
-          "est_cost_bps", "notes"]
+          "est_cost_bps", "notes", "est_gross_bps"]
+HURDLE = 3.0
 STAGES = ["idea", "queued", "planned", "awaiting_review", "skeptic_pass", "holdout_done", "paper", "passed",
           "dead", "dropped"]
 ROLE_MOVES = {("idea", "queued"), ("idea", "dropped"), ("queued", "dropped"), ("queued", "idea")}
@@ -65,15 +71,37 @@ def set_stage(iid: str, stage: str, note: str = "", by_script: bool = True) -> N
     raise SystemExit(f"no idea with id {iid}")
 
 
+def cost_hurdle(gross, cost) -> str | None:
+    """None if the idea clears the hurdle, else why not."""
+    try:
+        g, c = float(gross), float(cost)
+    except (TypeError, ValueError):
+        return "--gross and --cost must be numbers (bps per trade)"
+    try:
+        import fill_costs
+        floor = fill_costs.floor_bps("close", "close", ["sp500"])
+    except Exception:  # noqa: BLE001
+        floor = 6.6
+    if c < floor:
+        return (f"--cost {c:g} bps is below the cheapest real round trip at the user's broker ({floor:g} bps, "
+                f"S&P 500 close->close, team/fill_costs.json) - use the real cost for this idea's fills")
+    if g < HURDLE * c:
+        return (f"gross edge {g:g} bps < {HURDLE:g} x round-trip cost {c:g} bps = {HURDLE * c:g} - too thin to "
+                f"survive the winner's curse and real spreads (cost hurdle, 2026-11-23)")
+    return None
+
+
 def add(a) -> None:
     if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{2,40}", a.id):
         raise SystemExit("id must be a lowercase slug (a-z 0-9 _ -), 3-41 chars")
+    if why := cost_hurdle(a.gross, a.cost):
+        raise SystemExit(f"refused: {why}")
     rows = load()
     if any(r["id"] == a.id for r in rows):
         raise SystemExit(f"id {a.id} already exists")
     rows.append({"id": a.id, "date": str(date.today()), "source": a.source, "family": a.family,
                  "horizon": a.horizon, "stage": "idea", "summary": a.summary, "mechanism": a.mechanism,
-                 "data_needed": a.data, "est_cost_bps": a.cost, "notes": a.notes})
+                 "data_needed": a.data, "est_cost_bps": a.cost, "notes": a.notes, "est_gross_bps": a.gross})
     save(rows)
     print(f"added {a.id}")
 
@@ -84,7 +112,7 @@ def main(argv: list[str]) -> None:
     ls = sub.add_parser("list")
     ls.add_argument("stage", nargs="?")
     ad = sub.add_parser("add")
-    for k in ("id", "family", "horizon", "summary", "mechanism", "data", "cost"):
+    for k in ("id", "family", "horizon", "summary", "mechanism", "data", "cost", "gross"):
         ad.add_argument(f"--{k}", required=True)
     ad.add_argument("--source", default="")
     ad.add_argument("--notes", default="")

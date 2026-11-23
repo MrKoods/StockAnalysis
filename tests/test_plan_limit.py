@@ -110,6 +110,9 @@ def test_director_refills_the_same_day_when_research_closes_ideas(monkeypatch, t
                       ("post", lambda *x, **k: None), ("write_context", lambda *x, **k: None)):
         monkeypatch.setattr(dispatch, name, val)
     monkeypatch.setattr(dispatch.jobs, "advance", lambda dry: [])
+    # The refill mechanism, tested at the 2-slot cadence it was built for (live cadence is 1 since 2026-11-23).
+    monkeypatch.setattr(dispatch, "PER_DAY", 2)
+    monkeypatch.setattr(dispatch, "MAX_ACTIVE", 2)
     monkeypatch.setattr(dispatch, "in_stage", lambda s: list(stages.get(s, [])))
     monkeypatch.setattr(dispatch, "research_work", lambda: f"RESEARCH {stages['queued'][0]}" if stages["queued"] else None)
     monkeypatch.setattr(dispatch, "review_work",

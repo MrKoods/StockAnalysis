@@ -17,7 +17,27 @@ cost is a rounding error. Day-trading on price/volume patterns failed at scale h
 holdout pass (EPRE, V4) holds ~1-2 days. The user's aim is money; no real money moves until a pre-registered test
 passes. A clear "this failed" is a good result.
 
-## Where the search goes (user's decision 2026-11-13, from the full audit)
+## Where the search goes (user's decision 2026-11-23, from the deep strategy review - read first)
+~400,000 variants across V2/V3/V4/team found ONE survivor (EPRE, a risk premium). Cost is the binding limit, not
+ideas. So:
+- **Cost hurdle**: an idea's gross edge per trade must be >= 3x its real round-trip cost (tools/ideas.py refuses
+  it otherwise). Research cadence halved: Scout Mondays to 5 waiting ideas, 1 idea in research at a time.
+- **Look at risk premia and forced flows in index ETFs** (overnight vs intraday, rebalance / month-end flows,
+  volatility-premium timing, macro-announcement premia), and longer holds at the close. Single 8-K events and
+  single-stock short holds are deprioritized (19 ideas, mean t -0.2).
+- **The user's account is $20k** (under the $25k pattern-day-trader line): real money can only use rules that
+  hold overnight or longer. Options (defined-risk spreads) are allowed; there is no free option HISTORY, so the
+  team records its own: tools/option_chains.py saves SPY/QQQ/IWM/SPX chains with bid/ask daily (paper/options,
+  from 2026-11-23). Pre-cost, 2007-2017: put-writing ~= SPY's Sharpe, condors/butterflies ~0 - selling options
+  is not an edge by itself; only a timed/selective rule that clears the cost hurdle at the recorded spreads is.
+- **ETF fills**: the Quote Clerk quotes SPY/QQQ/IWM/IJR/MDY/DIA at every capture plus a ~9:45 ET capture (`open2`,
+  run by the Scan Operator) - `python tools/quotes.py etf`. The ETF overnight premium needs <= ~1 bp a side.
+- **EPRE-ML** (S&P 500+400 only, entries from 2026-11-24) is judged beside EPRE under its own pre-registered rule
+  (StockAnalysis-V4/RULES.md amendment 2026-11-23). No further EPRE variants from live results.
+- Free data inventory and what's NOT free (delisted prices, option history, Webull option/futures quotes):
+  memory/notes of 2026-11-22; ask the user before paying for any data.
+
+## Where the search went before (user's decision 2026-11-13, from the full audit)
 14 team ideas, 0 survivors. Three causes, now fixed in the machinery - use them:
 1. **Event tests bought a day late.** They entered at the close AFTER `first_session`; most event moves happen on
    day 0 and are priced by then (self-tender day 0 +78 bps t 3.8, 13D +51 t 5.6; what was left after was ~cost).
@@ -43,10 +63,10 @@ and say in PLAN.md how much it could inflate a long result. Paid fix (CRSP/Norga
 | Ops Monitor | script | Every dispatch: every scheduled task ran, ACTION NEEDED alerts, ledger integrity (tools/integrity.py: duplicates, impossible values, stale ledgers). A problem goes to #agent-ops at once |
 | Daily Report | script | **The user's end-of-day report** in #agent-ops (Mon-Fri, end of the dispatch, ~2:51 PM PT on a quiet day): jobs OK?, needs you, live tests + what each next decision needs, real Webull prices, V2 trades, what the team did. tools/daily_report.py. Replaced the old review agent (retired 2026-11-01) |
 | Evening Check | script | First Scan Operator tick at/after 6 PM PT, Mon-Fri: jobs since the report ran, and the V4 EPRE calendar is fresh and didn't shift abnormally (tools/evening_check.py). 🌙 all OK or 🛑 |
-| Quote Clerk | Claude (Haiku) | Twice a day (9:31 AM / 3:56 PM ET) captures live Webull bid/ask for every paper trade that fills then. One read-only tool; numbers parsed by script |
+| Quote Clerk | Claude (Haiku) | 9:31 AM / ~9:45 AM / 3:56 PM ET captures live Webull bid/ask for every paper trade that fills then, plus 6 index ETFs. One read-only tool; numbers parsed by script |
 | Paper Runner | script | Trades every active team strategy on paper; scores it against its frozen rule |
 | Scorekeeper | retired 2026-11-13 | Its jobs moved: failures -> Engineer, checkpoints -> Director, Friday scorecard -> a script (`reports/<Fri>-scorecard.md`, tools/dispatch.py) |
-| Scout | Claude (Sonnet) | Mon + Thu until 10 ideas wait: finds ideas (papers, practitioner work, the free 8-K event screen in state/screen.md, Webull market data) -> idea cards that name their data. Reads `state/dropped_ideas.md` (why the Director dropped ideas) |
+| Scout | Claude (Sonnet) | Mondays until 5 ideas wait (halved 2026-11-23): finds ideas (papers, practitioner work, the free 8-K event screen in state/screen.md, Webull market data) -> idea cards that name their data. Reads `state/dropped_ideas.md` (why the Director dropped ideas) |
 | Researcher | Claude (Opus) | Writes a pre-registered PLAN + test script for a queued idea; scripts run it on TRAIN data |
 | Skeptic | Claude (Opus) | Tries to kill every result (look-ahead, costs, luck vs variants tried, survivorship) |
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |

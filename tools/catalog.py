@@ -25,6 +25,7 @@ NOT_AVAILABLE = [
 # test, until someone builds a live feed for it (the user decides). Keep in step with what actually refreshes.
 LIVE = {
     "daily(tickers)": "yes - the paper runner downloads each day's bars",
+    "cboe(symbols)": "yes - refreshed every dispatch (after 16:15 ET closes)",
     "hourly(tickers)": "yes - V3 fetch task, daily ~14:00 PT",
     "five_min / one_min": "yes - V3 fetch task, daily ~14:00 PT",
     "earnings(tickers)": "dates yes via Yahoo's calendar (as V4 EPRE does); this file is a 2026-10-23 copy",
@@ -96,6 +97,15 @@ def sources() -> list[str]:
         lines.append(f"| `fomc()` | {int((fo['kind'] == 'meeting').sum())} scheduled meetings, "
                      f"{int((fo['kind'] == 'call').sum())} calls | {fo['date'].min()} .. {fo['date'].max()} | "
                      "statement days (14:00 ET); scheduled dates known ~1 year ahead | yes - fixed calendar |")
+    if (rd.CBOE / "VIX.csv").exists():
+        files = sorted(rd.CBOE.glob("*.csv"))
+        spans = []
+        for p in files:
+            d = pd.read_csv(p, usecols=["date"])["date"]
+            spans.append(f"{p.stem} {d.iloc[0][:10]}+")
+        lines.append(f"| `cboe(symbols)` | {', '.join(spans)} | .. {pd.read_csv(rd.CBOE / 'VIX.csv')['date'].iloc[-1]} | "
+                     "VIX family + CBOE option-strategy indexes (mid-price, pre-cost; ETF daily bars for SPY/QQQ/IWM/"
+                     f"IJR/IJH/MDY/DIA/TLT/GLD are in daily()) | {LIVE['cboe(symbols)']} |")
     lab_lines = []
     for p in sorted((TEAM / "tools" / "lab").glob("*.py")):
         doc = p.read_text(encoding="utf-8", errors="replace").split('"""')

@@ -1,7 +1,7 @@
 # Scout
 
 Find **new, testable** trading ideas (hold 1 to ~60 trading days - read TEAM.md "Where the search goes"). You run
-Monday and Thursday until 10 ideas are waiting - quality over quantity: add at most 4 per run; 0 is fine.
+Mondays until 5 ideas are waiting - quality over quantity: add at most 2 per run; 0 is fine.
 
 1. Read `notes/scout.md`, `state/data_catalog.md` (what data exists, its dates, and each family's used periods),
    `registry/graveyard.md` (dead ideas - never re-propose them or a renamed variant, with ONE exception below),
@@ -12,13 +12,18 @@ Monday and Thursday until 10 ideas are waiting - quality over quantity: add at m
    back ONCE as a new idea entering at the close of `entry_session` (day 0), same family, id `<old-id>-day0`. Say on
    the card what the day-0 move looked like in the source. Best candidates: self-tenders, 13D activists, SEOs/424B
    (short the day-0 close? or fade the rebound), PIPEs.
-   The SEC company-event archive (8-K item types: officer changes, deals, restatements, buybacks, splits...) is
-   largely untested ground. `state/screen.md` (tools/screen.py, free) is a first look at every 8-K event type
-   on 2005-2013 only: buy after the filing, 1/3/5 days, vs SPY and the stock's own drift. Use it to aim, not
-   as evidence: a promising subset (by size, sector, direction, a second condition...) of an event type with a
-   mechanism is a good card. Such an idea's family is the screen's `family` (e.g. `8k_2_04`), so its holdout
-   stays 2014-2026.
-2. Search for ideas with a **mechanism** - who is on the other side and why they pay you (forced flows,
+   **Deprioritized (user, 2026-11-23):** single 8-K event types and single-stock short-hold (<= 5 day) rules.
+   19 team ideas there averaged t -0.2 and the best train results (t ~3) fell to ~1 on holdout. A card in these
+   areas needs an unusually large published gross edge (the hurdle below) - don't mine `state/screen.md` subsets.
+2. **Where to look first (user, 2026-11-23 - TEAM.md "Where the search goes")**: RISK PREMIA and FORCED FLOWS
+   that a patient trader is paid to carry, mostly in index ETFs / index-level baskets where survivorship and
+   spreads are small: overnight vs intraday returns of ETFs, index-rebalance and month-end/turn-of-month flows,
+   volatility-premium timing (VIX vs realized vol, VIX term structure; the VIX history loaders in the catalog),
+   pre-FOMC / macro-announcement premia, and longer-hold (10-60 day) anomalies at the close. Option-strategy ideas
+   can't be backtested here (no free option history) - write them under "Needs data" as "forward record:
+   paper/options (tools/option_chains.py, from 2026-11-23)" with the exact rule, so they can be paper traded once
+   enough days are recorded.
+   Search for ideas with a **mechanism** - who is on the other side and why they pay you (forced flows,
    index rebalances, liquidity provision, behavioural over/under-reaction to events, information leakage,
    calendar/settlement effects, short-sale constraints). Sources: academic papers (SSRN, arXiv q-fin, journals),
    practitioner research, replication studies (note when an effect was found to decay after publication).
@@ -40,9 +45,11 @@ Monday and Thursday until 10 ideas are waiting - quality over quantity: add at m
      wrong way, and one index alone rarely has enough events for a holdout to confirm anything;
    - plausible after REAL costs at the user's broker (`team/fill_costs.json`: close fills ~7-22 bps round trip,
      open fills ~80-250 bps - small caps the most);
-   - **big enough before costs**: published or screened gross edge of at least ~50 bps per trade (about twice the
-     close-to-close cost floor). Edges of 15-30 bps kept dying against costs (8 ideas, week of 2026-11-02). State the
-     gross edge and where it comes from on the card; if nothing gives a number, don't add it;
+   - **COST HURDLE (code-enforced, 2026-11-23)**: published or screened gross edge per trade at least **3x** its
+     real round-trip cost at the user's broker (`team/fill_costs.json`; ETFs ~1-3 bps a side). `tools/ideas.py add`
+     refuses anything below it (`--gross` and `--cost`, both bps per trade). Discount a published number for decay
+     after publication. State the gross edge and where it comes from on the card; if nothing gives a number,
+     don't add it;
    - paper-tradable by `tools/paper_runner.py` (daily signal after the close, entry next open, exit at an open or
      close N sessions later, optional stop/target) - or flag that it needs a different engine. Entry at a later
      close is also supported and is far cheaper on the user's broker (round trip close->close ~7-22 bps vs
@@ -56,7 +63,7 @@ Monday and Thursday until 10 ideas are waiting - quality over quantity: add at m
    under 25% without spending the holdout), horizon, entry (day-0 `entry_session` close, or later and why),
    cost estimate, why it might NOT work, how it differs from graveyard entries), then add it:
    `python tools/ideas.py add --id <slug> --family <family> --horizon <e.g. 1d> --summary "..." --mechanism "..."
-   --data "..." --cost <bps> --source "<link/citation>"`. Reuse an existing family name when it fits (the
+   --data "..." --cost <bps> --gross <bps> --source "<link/citation>"`. Reuse an existing family name when it fits (the
    trial budget is per family). **A new family name is only for new DATA or a new event type** - an idea on the
    same events as an existing family (e.g. earnings dates) IS that family, even with a new twist; renaming it would
    hand it a fresh holdout it doesn't have.
