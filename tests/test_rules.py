@@ -69,3 +69,21 @@ def test_upcoming_placeholder_follows_dst(monkeypatch):
     assert ev["time_source"] == "history" and not ev["bmo"]
     monkeypatch.setattr(cal, "earnings_frame", lambda t, limit=8: frame(8 * 60, 16 * 60))   # a real upcoming time
     assert cal.next_event("X", today)["time_source"] == "yahoo"
+
+
+def test_variant_ml_counts_only_forward_mid_large_trades():
+    import pandas as pd
+    from epre import paper
+    rows = []
+    for i in range(800):
+        rows.append({"entry_day": "2026-11-24" if i % 2 else "2026-11-20", "exit_day": f"2026-12-{1 + i % 20:02d}",
+                     "index": ["sp500", "sp400", "sp600", "sp500"][i % 4], "hedged_bps": 15.0 + (i % 7),
+                     "date_ok": "True"})
+    led = pd.DataFrame(rows)
+    out = paper.variant_ml_verdict(led)
+    # forward (odd i) AND sp500/sp400: i % 4 in (1, 3) -> sp400 / sp500, all odd -> 400 trades
+    assert "400 closed" in out and "collecting (400/700" in out
+    assert "no closed trades yet" in paper.variant_ml_verdict(led[led["entry_day"] < paper.ML_START])
+    big = pd.concat([led[led["entry_day"] >= paper.ML_START]] * 2)
+    big = big.assign(hedged_bps=-30.0)
+    assert "FAIL at checkpoint A" in paper.variant_ml_verdict(big)

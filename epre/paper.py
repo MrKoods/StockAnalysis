@@ -344,7 +344,51 @@ def evaluate(dry: bool = False) -> None:
             lines += ["```"] + [f"{r.ticker:6s} {r.net_bps:+8.1f} bps (hedged {r.hedged_bps:+8.1f})" for r in p.itertuples()] + ["```"]
         lines.append(f"Posted {len(p)}: {p['hedged_bps'].mean():+.1f} bps hedged | all {len(g)}: {g['hedged_bps'].mean():+.1f} bps hedged")
     lines.append(verdict(led))
+    lines.append(variant_ml_verdict(led))
     post("\n".join(lines), dry)
+
+
+# ------------------------------------------------------------------ variant ML (RULES.md amendment 2026-11-23)
+ML_START = "2026-11-24"           # forward-only: the live split that suggested it (seen 2026-11-21) is never reused
+ML_INDEXES = ("sp500", "sp400")
+ML_CHECKPOINTS = (700, 2000, 4000)
+
+
+def _day_t(x: pd.DataFrame) -> float:
+    per_day = x.groupby("exit_day")["hedged_bps"].mean()
+    sd = per_day.std(ddof=1)
+    return float(per_day.mean() / (sd / np.sqrt(len(per_day)))) if len(per_day) > 1 and sd > 0 else float("nan")
+
+
+def variant_ml_verdict(led: pd.DataFrame) -> str:
+    """EPRE-ML: the same paper trades, S&P 500 + 400 only, entries from ML_START on. Judged on its own, beside
+    the original - it never changes the original's verdict."""
+    x = led.dropna(subset=["hedged_bps"])
+    x = x[x["index"].isin(ML_INDEXES) & (x["entry_day"].astype(str) >= ML_START)]
+    n = len(x)
+    head = f"EPRE-ML (S&P 500+400, entries from {ML_START})"
+    if n == 0:
+        return f"{head}: no closed trades yet."
+    t, m = _day_t(x), float(x["hedged_bps"].mean())
+    chk = x["date_ok"].dropna().astype(str).str.lower() == "true"
+    acc = float(chk.mean()) if len(chk) else float("nan")
+    a, b, c = ML_CHECKPOINTS
+    if n < a:
+        state = f"collecting ({n}/{a:,} trades to checkpoint A)"
+    elif n < b:
+        state = ("FAIL at checkpoint A (mean < -20 bps) - stop" if m < -20
+                 else f"checkpoint A passed; collecting ({n}/{b:,} to checkpoint B)")
+    elif n < c:
+        if m < 0:
+            state = "FAIL at checkpoint B (mean < 0) - stop"
+        elif m >= 10 and t >= 1.0 and acc >= 0.90:
+            state = f"checkpoint B: SMALL REAL MONEY OK (mean >= +10, t >= 1, dates >= 90%); keep paper to {c:,}"
+        else:
+            state = f"checkpoint B inconclusive; collecting ({n}/{c:,} to checkpoint C)"
+    else:
+        state = "PASS (mean >= +10 bps, t >= 2)" if m >= 10 and t >= 2 else "FAIL at checkpoint C"
+    return (f"{head}: {n} closed, {x['exit_day'].nunique()} exit days | hedged {m:+.1f} bps | day-t {t:.2f} | "
+            f"dates {acc:.0%}\nVerdict (EPRE-ML): {state}")
 
 
 # ------------------------------------------------------------------ verdict (RULES.md)

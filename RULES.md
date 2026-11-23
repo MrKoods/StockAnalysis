@@ -45,3 +45,22 @@ stock that cannot be bought is not a trade.
   prices for that day. Void trades count as neither open nor closed and are excluded from every checkpoint.
 - First voids: ACA (decided 2026-11-04), WBD, HLX, RAMP (on their 2026-11-05 evaluation). Before this rule no trade
   had been scored on a stock that had stopped trading (KVUE, delisted 2026-11-02, was a normal 10-28 -> 10-30 trade).
+
+## Amendment 2026-11-23 - variant EPRE-ML, judged beside the original (approved by the user)
+Why: after 1,037 live trades the S&P 600 names were losing (-42 bps hedged) while S&P 400/500 were positive
+(+108 / +57). That split was SEEN, so it cannot be its own evidence - and the backtest said the edge lived in the
+smaller names. The research did find each index positive on its own, and the smaller names also carry the
+widest real spreads and the survivorship risk. So the mid/large half is worth judging on its own, forward only.
+- Trades: exactly the original's paper trades (no new signals, no other change), keeping only S&P 500 and S&P 400
+  stocks with entry_day >= 2026-11-24. Nothing before that date counts, ever.
+- Scoring: identical (hedged_bps, costs, void rule, exit-day-clustered t, report-date accuracy).
+- Decision rule (fixed now, before its first trade):
+  - A, >= 700 closed trades: FAIL and stop if mean hedged < -20 bps.
+  - B, >= 2,000: FAIL if mean < 0. SMALL REAL MONEY OK if mean >= +10 bps AND day-t >= 1.0 AND dates >= 90%.
+  - C, >= 4,000: PASS if mean >= +10 bps and day-t >= 2.0; otherwise FAIL.
+  (~2/3 of the original's ~5,500 trades/year -> C in ~1-1.5 years. Fewer, larger-cap trades have a lower sd
+  per trade, which is why the counts are lower than the original's.)
+- It is ONE extra test, chosen once. The original's rules and verdict are unchanged; no further index, timing
+  (before-open vs after-close) or size variants will be added from live results.
+- Real-money use also needs the team's real-price check (Webull bid/ask) to hold on these trades.
+- Code: epre/paper.py variant_ml_verdict; printed by `python -m epre status` and in every evaluate post.

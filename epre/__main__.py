@@ -22,7 +22,9 @@ def main() -> None:
     elif cmd == "evaluate":
         paper.evaluate(dry)
     elif cmd == "status":
-        print(paper.verdict(paper.load_ledger()))
+        led = paper.load_ledger()
+        print(paper.verdict(led))
+        print(paper.variant_ml_verdict(led))
     else:
         raise SystemExit(__doc__)
 
