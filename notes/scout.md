@@ -1,5 +1,14 @@
 # Scout notes (max ~150 lines)
 
+## Last run: 2026-11-23
+- Run reason: scouting (0 ideas waiting, target 5)
+- Ideas at start: 0 (all 3 from prior run dead/dropped)
+- Added 2 new ideas: acquirer-stockdeal-short40 (8k_1_01), vrp-spy-long (cboe_vrp)
+- Pipeline now at 2 ideas
+- Focus shift (user 2026-11-23): risk premia + ETF flows + longer holds; 8-K single events deprioritized
+- acquirer-stockdeal-short40: Director drop note explicitly invited 40d variant of acquirer-stock-deal-short; same family (8k_1_01), clean holdout 2014-2026; Rau-Vermaelen continuation drift published ~200 bps in 40-60 days
+- vrp-spy-long: new family cboe_vrp (cboe() just added to catalog); VRP = VIX - realized_vol; BTZ (2009) ~50-100 bps per high-VRP month; note pre-team "VIX timing" failed 2018-26 holdout → researcher must verify overlap before spending holdout
+
 ## Last run: 2026-11-19
 - Run reason: scouting (0 ideas waiting, target 10)
 - Ideas at start: 0 (activist-13d-long-day0 and special-dividend-drift-long both DEAD since last run)
@@ -12,6 +21,16 @@
 ## Last run: 2026-11-16
 - Added 2 new ideas: activist-13d-long-day0 (activist_13d), special-dividend-drift-long (8k_8_01)
   — both since DEAD (train FAIL and Skeptic FAIL respectively)
+
+## New direction notes (2026-11-23)
+- 8-K events DEPRIORITIZED (user): 19 ideas averaged t -0.2; needs unusually large published gross edge
+- Focus: risk premia and forced flows in ETFs, overnight vs intraday, vol-premium timing, pre-FOMC/macro, longer holds (10-60d) at close
+- cboe() loader NOW IN CATALOG (VIX, VIX3M, VIX9D, PUT, BXM, WPUT, BFLY, CNDR, SKEW) → new families possible
+- ETF overnight premium (buy SPY close, sell 9:31): open fills for SP500 avg 38.7 bps half-spread = 77 bps RT → too expensive; SPY specific spread unknown until ~20 days of ETF quotes collected; leave as forward record idea for now
+- FOMC biweekly cycle (Cieslak et al. 2019): 24 bps/week even-week; only ~24 entries/year at 5-day hold → below 60/year threshold; leave in Needs data
+- VIX backwardation signal: ~20-30 signal days/year → below 60/year threshold
+- Pre-FOMC drift (Lucca-Moench): 8 events/year → already in Needs data, below threshold
+- issuer-self-tender-long-day0: estimated 20-30 events/year → below 60/year threshold; keep in notes as deferred
 
 ## Resolved — don't repeat
 - 8-K screen (57 variants, 2005-2013 LONG direction): ALL VIABLE LONG LEADS EXHAUSTED
@@ -45,6 +64,10 @@
   verify actual SC TO-I event count from filings() before registering
 
 ## Needs data (not registered — the user decides)
+- ETF overnight premium (buy SPY close, sell 9:31 open): spread at open for SPY is probably ~0.5-1 bps (not measured yet); ETF quote data collecting from 2026-11-23; revisit once ~20 days of data show actual spreads. Lou-Polk-Skouras (2019) show ~7-10 bps unconditional overnight, ~15-25 bps conditional on down-day; needs 2 bps RT to work. Register once ETF spreads confirmed.
+- FOMC biweekly cycle (Cieslak et al. 2019 JoF): 24 bps/week in even-weeks (weeks 0,2,4 of FOMC cycle); ~24 entries/year at 5-day hold = below 60/year; would need very short 1-day hold (120 events/year) but gross edge ~5 bps/day vs ~2 bps cost = marginal. Leave until a cleaner implementation is clear.
+
+
 - sp-reconstitution: S&P 400/600 addition announcement dates (spglobal.com press releases)
 - analyst-upgrade-on-pullback: ratings() has no live feed; train 2012-2019 / holdout 2020-2026 clean
 - dividend capture: needs ex-date calendar (not in catalog)
@@ -65,9 +88,10 @@
 ## Family status (clean holdouts only shown)
 | family | status |
 |---|---|
+| cboe_vrp | CLEAN (new family, cboe() data never used in pipeline); vrp-spy-long registered; overlap risk with pre-team vix_timing needs researcher verification |
 | activist_13d | holdout 2016-2026 technically clean but BOTH angles exhausted (t 0.17, t -0.35); done |
 | 8k_8_01 | holdout 2020-2026 clean (search 2005-2019 used); buyback-announcement-long registered |
-| 8k_1_01 | holdout 2014-2026 clean (3 screen variants only); acquirer-stock-deal-short registered |
+| 8k_1_01 | holdout 2014-2026 clean (3 screen variants only); acquirer-stockdeal-short40 registered (40d hold, Director invited revival) |
 | 8k_5_03 | holdout 2014-2026 clean (3 screen variants only); antitakeover-adoption-short registered |
 | 8k_1_02 | holdout 2014-2026 clean; screen flat (+4-7 bps); no published edge for 15-day drift |
 | 8k_2_01 | holdout 2014-2026 clean; screen flat; completion returns mostly priced at announcement |
