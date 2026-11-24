@@ -1,5 +1,19 @@
 # Director notes
 
+## reports/2026-11-21-auditor.md — my response
+- **Rec 1 (Engineer) — stop daily `webull_auth` give-up tickets once escalated; treat like `gaps`.** Not mine
+  (Engineer's editable team code). Noted — sound; de-inflates autonomy metric. No Director action.
+- **Rec 2 (USER) — (a) reconnect Webull connector; (b) apply EPRE zero-entry patch.** Carried to the user; (a)
+  is the binding item, in my outbox headline again. Only the user can; both are user-only. No Director action.
+- **Rec 3 (USER, direction) — redirect must reach the Scout.** ACCEPTED, and now largely effected: PLAYBOOK.md
+  was written 2026-11-24 (user session) and the Scout reads it — its priorities are #1 index-ETF risk premia,
+  #2 vol-premium timing, #3 longer-hold drift, with single-8-K event types on the stop list. The two waiting
+  ideas (vrp/acquirer) predate the playbook (proposed 11-23). Acted today: queued vrp-spy-long (ETF VRP,
+  priority #1/#2), dropped acquirer-stockdeal-short40 (single-8-K short) with a Scout-facing reason. Remaining
+  user call = whether to ALSO hard-edit the Scout prompt or fund 8-K NLP; I lean redirect (now encoded in
+  playbook) — will watch Monday's Scout batch to confirm it stops sending single-8-K cards.
+- Concern 3 (stray XML tags in these notes) — fixed this run.
+
 ## Resolved - don't repeat (TEAM.md "Settled facts" has the detail)
 - 2026-11-10 = POWER LOSS (09:52-15:23), a gap, nothing to fix. quotes.py too_late guard exists since 11-11.
 - G2 retired (tasks off). ON1 auto-retires on its real-price FAIL (dispatcher does it). Don't ask the user.
@@ -63,8 +77,11 @@ refills every weekday. Every drop note states the reason (the Scout reads state/
   single-8-K LONG/SHORT cards, be strict and drop with that reason.
 - THE user action this week = reconnect Webull connector (7+ days dark, blocks ON1 real-price verdict ~11-23/24).
   Put in 11-21 outbox headline. Only the user can; re-auth doesn't survive scheduled launch (settled).
-- Next run checks: did V2 auto-retire on NO-GO? did ON1 auto-retire on real-price FAIL ~11-24? did the user
-  reconnect Webull (quotes resuming = non-zero captures)?
-- Latest auditor = 11-14, already answered in notes. New auditor runs AFTER me today (11-21) - respond next run.
-</content>
-</invoke>
+- Next run checks: did ON1 auto-retire on real-price FAIL? did the user reconnect Webull (quotes resuming =
+  non-zero captures)? did Monday's Scout batch stop sending single-8-K cards (playbook redirect working)?
+
+## V2 rank go/no-go — DECIDED 2026-11-24 (don't reopen)
+- Checkpoint at 101 closed: NO-GO. All 3 conditions failed: mean R -0.049 (need +0.15), week-t -0.47 (need 2),
+  vs sector -0.11%/trade (need >0). Robust: even excluding the 11-19 correlated loss cluster, mean R +0.038 (n98).
+- Dispatcher auto-retired all 5 V2 tasks today (state/v2_rank_retired.json, 2026-11-24). Not my/user action. Done.
+  (threshold track still open: 44 closed, +0.264R, week-t 0.76 — untouched by the rank retire.)
