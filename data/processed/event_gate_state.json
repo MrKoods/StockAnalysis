@@ -2907,7 +2907,241 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-11-13T21:34:16.433413+00:00"
+    },
+    {
+      "id": "dae26323-3ea9-4ba5-af3e-1726e26dd876",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "President Donald Trump Claims, \"Tariffs Don't Cause Inflation, They Cause Wealth\" -- but Economic Data Says Otherwise",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-15T09:26:02+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-16T13:33:58.230797+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-16T21:34:28.009134+00:00"
+    },
+    {
+      "id": "732cd72a-ba89-4973-82a5-a4ea6098e32e",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Tanks as Altman Joins Dario in AI Chip Export Ban",
+      "trigger_match": "export ban",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-13T20:07:30+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-16T13:35:08.084462+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-16T21:34:28.009141+00:00"
+    },
+    {
+      "id": "303b6ef3-72c7-47f7-98ac-ae3affad83f7",
+      "tickers": [
+        "KEY"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "KeyBank Provides Six Tips to Help Consumers Fight Fraud and Scams During International Fraud Awareness Week",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-16T14:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-16T21:32:00.120122+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-17T21:36:16.197429+00:00"
+    },
+    {
+      "id": "b5e7b1ba-70f0-44af-8619-2bae1e3d312f",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Tanks as Altman Joins Dario in AI Chip Export Ban",
+      "trigger_match": "export ban",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-13T20:07:30+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-17T13:35:39.385835+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-17T21:36:16.197436+00:00"
+    },
+    {
+      "id": "6f0ff916-f70d-4ecd-9dce-3a869287885b",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Nvidia Tanks as Altman Joins Dario in AI Chip Export Ban",
+      "trigger_match": "export ban",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-13T20:07:30+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-18T13:34:12.679861+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-18T21:36:23.734117+00:00"
+    },
+    {
+      "id": "15dfafad-ba1e-4bd9-bd8d-689fea6f95bc",
+      "tickers": [
+        "KEY"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "KeyBank Provides Six Tips to Help Consumers Fight Fraud and Scams During International Fraud Awareness Week",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-16T14:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-18T13:35:28.277673+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-18T21:36:23.734126+00:00"
+    },
+    {
+      "id": "a790cb94-141b-4b70-be3f-794a1af2a3fb",
+      "tickers": [
+        "UNH"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "UnitedHealth Sinks 5% on Medicare Advantage Audit Plan as CMS Moves to \u201cCrush\u201d Medical Fraud",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-17T21:04:50+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-18T13:38:07.518463+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-18T21:36:23.734130+00:00"
+    },
+    {
+      "id": "e0e59b4c-77db-4726-9d6b-c78d2420fc3f",
+      "tickers": [
+        "KEY"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "KeyBank Provides Six Tips to Help Consumers Fight Fraud and Scams During International Fraud Awareness Week",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-16T14:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-19T13:51:58.915847+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-19T21:34:50.083841+00:00"
+    },
+    {
+      "id": "6c1c058b-ab42-4e9e-943f-46edc0388199",
+      "tickers": [
+        "UNH"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "UnitedHealth Shares Sink as New Federal Fraud Crackdown Sparks Healthcare Sell-Off",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-19T12:25:29+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-19T14:02:58.782916+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-19T21:34:50.083849+00:00"
+    },
+    {
+      "id": "9369ac04-f248-4108-b1bf-8e2fd60af86d",
+      "tickers": [
+        "KEY"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "KeyBank Provides Six Tips to Help Consumers Fight Fraud and Scams During International Fraud Awareness Week",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-16T14:30:00+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-20T13:35:27.367297+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-20T21:34:05.822437+00:00"
+    },
+    {
+      "id": "e3b0f38a-8422-427b-8084-c97e0c5c7767",
+      "tickers": [
+        "UNH"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "UnitedHealth Shares Sink as New Federal Fraud Crackdown Sparks Healthcare Sell-Off",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-19T12:25:29+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-20T13:39:12.763170+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-20T21:34:05.822445+00:00"
+    },
+    {
+      "id": "5d88efba-33e3-4862-b2d4-8a8b7b59300b",
+      "tickers": [
+        "UNH"
+      ],
+      "scope": "ticker",
+      "trigger_headline": "UnitedHealth Shares Sink as New Federal Fraud Crackdown Sparks Healthcare Sell-Off",
+      "trigger_match": "fraud",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-19T12:25:29+00:00",
+      "ner_sentiment": "neutral",
+      "created_at_utc": "2026-11-23T13:36:30.870073+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": true,
+      "expired_at_utc": "2026-11-23T21:33:53.908906+00:00"
     }
   ],
-  "critical_alerts_sent": {}
+  "critical_alerts_sent": {
+    "KEY|fraud|2026-11-16T14:30:00+00:00": "2026-11-16T21:32:01.213859+00:00"
+  }
 }

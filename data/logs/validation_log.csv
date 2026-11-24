@@ -79,3 +79,7 @@ timestamp_utc,ticker,failure_type,detail
 2026-11-10T17:00:31.790096+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-11-10 05:00:00+00:00
 2026-11-10T23:30:43.014033+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-11-10 00:00:00+00:00
 2026-11-10T23:30:58.165382+00:00,MTB,ohlcv,ohlcv_open_out_of_range_2026-11-10 05:00:00+00:00
+2026-11-16T13:42:24.532865+00:00,KEY,sec_edgar,sec_edgar_request_failed_8-K
+2026-11-19T13:38:32.158501+00:00,NVDA,sec_edgar,sec_edgar_request_failed_8-K
+2026-11-19T13:49:37.082976+00:00,TXN,sec_edgar,sec_edgar_request_failed_8-K
+2026-11-19T13:55:04.955862+00:00,HBAN,sec_edgar,sec_edgar_request_failed_8-K
