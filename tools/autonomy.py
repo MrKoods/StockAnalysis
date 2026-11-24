@@ -11,7 +11,11 @@ Counted over a 7-day window, all from records the team already keeps:
                     the team can't build or buy itself - the gaps that stop it improving on its own
   fixed itself    - Engineer code fixes kept (registry/engineer_log.csv "applied"), Scan Operator re-runs that
                     recovered a failed job (state/scan_ops.json "recovered:")
-  couldn't        - Engineer fixes rolled back, Scan Operator give-ups ("gave_up:")
+  couldn't        - Engineer fixes rolled back, Scan Operator give-ups ("gave_up:") - except a give-up on a day the
+                    Quote Clerk was signed out of Webull/Claude (only the user can sign in): counted as "needed
+                    your sign-in" instead, so the number says what the TEAM could have fixed (2026-11-24)
+  goal            - GOAL_DAYS in a row with no step-in (no user-session commit, no needs-you alert); streak() is
+                    shown in every daily report so progress toward "runs a month without you" is visible
 """
 from __future__ import annotations
 
@@ -20,12 +24,15 @@ import re
 import sys
 from datetime import date, timedelta
 
-from common import STATE, TEAM, git, load_json, save_json
+from common import LOGGED_OUT_RX, STATE, TEAM, WEBULL_AUTH_RX, git, load_json, save_json
 
 LEDGER = STATE / "autonomy.json"
 ENG_LOG = TEAM / "registry" / "engineer_log.csv"
-ASK_HEADINGS = {"director": "Data requests", "engineer": "Proposals for the user"}
+ASK_HEADINGS = {"director": "Data requests", "engineer": "Proposals for the user",
+                "strategist": "Proposals for the user"}
 KEEP_DAYS = 60
+GOAL_DAYS = 30
+SIGNIN_RX = re.compile(r"\((webull_auth|logged_out)\)")
 
 
 def record(today: date, f) -> None:
@@ -64,6 +71,25 @@ def asks(start: str, end: str) -> list[str]:
     return out
 
 
+def signed_out(day: str) -> bool:
+    """The Quote Clerk could not sign in that day - a retry could never fix it. Read from its status line
+    (state/logs/<day>-quotes.log) or, for days before that status existed (2026-11-21), its own stream logs."""
+    logs = STATE / "logs"
+    p = logs / f"{day}-quotes.log"
+    if p.exists() and SIGNIN_RX.search(p.read_text(encoding="utf-8", errors="replace")):
+        return True
+    auth = re.compile(f"{WEBULL_AUTH_RX}|{LOGGED_OUT_RX}")
+    return any(auth.search(f.read_text(encoding="utf-8", errors="replace"))
+               for f in logs.glob(f"{day}-quote_clerk-*.jsonl"))
+
+
+def signins(start: str, end: str) -> list[str]:
+    st = load_json(STATE / "scan_ops.json", {})
+    return [f"{d[5:]} {k.split(':', 1)[1].removeprefix('StockAnalysis_')} (Webull/Claude signed out)"
+            for d, day in st.items() if d[:2] == "20" and start <= d <= end and isinstance(day, dict)
+            for k in day if k.startswith("gave_up:StockAnalysis_Team_Quote") and signed_out(d)]
+
+
 def self_fixes(start: str, end: str) -> tuple[list[str], list[str]]:
     fixed, failed = [], []
     if ENG_LOG.exists():
@@ -80,7 +106,7 @@ def self_fixes(start: str, end: str) -> tuple[list[str], list[str]]:
                 job = k.split(":", 1)[-1].removeprefix("StockAnalysis_")
                 if k.startswith("recovered:"):
                     fixed.append(f"{d[5:]} Scan Operator re-ran {job} - recovered")
-                elif k.startswith("gave_up:"):
+                elif k.startswith("gave_up:") and not (job.startswith("Team_Quote") and signed_out(d)):
                     failed.append(f"{d[5:]} Scan Operator gave up on {job}")
     return fixed, failed
 
@@ -89,7 +115,29 @@ def week(end: date) -> dict:
     s, e = _days(end)
     fixed, failed = self_fixes(s, e)
     return {"commits": user_commits(s, e), "alert_days": alert_days(s, e), "asks": asks(s, e),
-            "fixed": fixed, "failed": failed}
+            "fixed": fixed, "failed": failed, "signin": signins(s, e)}
+
+
+def stepped_in_days(start: str, end: str) -> set[str]:
+    """Days (YYYY-MM-DD) with a user-session commit or a needs-you alert."""
+    out = git("log", f"--since={start} 00:00", f"--until={end} 23:59", "--date=format:%Y-%m-%d", "--format=%ad %s")
+    days = {l[:10] for l in out.splitlines() if l[:4].isdigit() and not l[11:].startswith("team-runner:")}
+    return days | set(alert_days(start, end))
+
+
+def streak(today: date) -> tuple[int, int]:
+    """(current, longest within the ledger window): consecutive days with no step-in, ending today."""
+    first = min((d for d in load_json(LEDGER, {}) if d[:2] == "20"), default=str(today))
+    start = max(date.fromisoformat(first), today - timedelta(days=KEEP_DAYS))
+    bad = stepped_in_days(str(start), str(today))
+    cur = best = run = 0
+    d = start
+    while d <= today:
+        run = 0 if str(d) in bad else run + 1
+        best = max(best, run)
+        d += timedelta(days=1)
+    cur = run
+    return cur, best
 
 
 def summary(today: date) -> list[str]:
@@ -101,7 +149,11 @@ def summary(today: date) -> list[str]:
     lines = [f"• You stepped in **{stepped}×** this week (last week {stepped_prev}× - {trend}): "
              f"{len(w['commits'])} change(s) from your sessions, {len(w['alert_days'])} day(s) with a needs-you alert",
              f"• Team fixed itself **{len(w['fixed'])}×**, couldn't **{len(w['failed'])}×**"
-             + (f" ({'; '.join(w['failed'][:3])})" if w["failed"] else "")]
+             + (f" ({'; '.join(w['failed'][:3])})" if w["failed"] else "")
+             + (f"; needed your sign-in {len(w['signin'])}× (Webull/Claude - only you can)" if w["signin"] else "")]
+    cur, best = streak(today)
+    lines.insert(0, f"• 🎯 Goal: {GOAL_DAYS} days in a row without you - now **{cur} day(s)**"
+                    + (" ✅ reached" if cur >= GOAL_DAYS else f" (best {best})"))
     if w["asks"]:
         lines.append(f"• Open requests the team can't do itself ({len(w['asks'])}): "
                      + " | ".join(a[:90] for a in w["asks"][:3]))
@@ -115,6 +167,7 @@ def report(today: date) -> str:
     out += ["Needs-you alert days:"] + ([f"  {d}: {a[0][:120]}" for d, a in w["alert_days"].items()] or ["  none"])
     out += ["Team fixed itself:"] + ([f"  {x}" for x in w["fixed"]] or ["  none"])
     out += ["Couldn't fix itself:"] + ([f"  {x}" for x in w["failed"]] or ["  none"])
+    out += ["Needed your sign-in:"] + ([f"  {x}" for x in w["signin"]] or ["  none"])
     out += ["Asked you for:"] + ([f"  {x}" for x in w["asks"]] or ["  none"])
     return "\n".join(out)
 

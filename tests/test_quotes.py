@@ -69,13 +69,31 @@ def test_signed_out_webull_connector_is_named_not_generic_failed(tmp_path, monke
     monkeypatch.setattr(quotes, "_launch", lambda *a: launches.append(1) or stream)
     monkeypatch.setattr(quotes, "post", lambda ch, text, who: posts.append(text))
     monkeypatch.setattr(quotes.time, "sleep", lambda s: None)
-    for name in ("QUOTES", "USAGE", "INVALID"):
+    for name in ("QUOTES", "USAGE", "INVALID", "BACKUP"):
         monkeypatch.setattr(quotes, name, tmp_path / name)
+    ms = int(datetime(2026, 11, 20, 6, 31).timestamp() * 1000)
+    monkeypatch.setattr(quotes, "_yahoo_one", lambda t: {"symbol": t, "bid": 10.0, "ask": 10.01, "quote_time": ms}
+                        if t == "AAPL" else None)
     msg = quotes.capture("open")
-    assert "0/2" in msg and "(webull_auth)" in msg
+    assert "0/2" in msg and "(webull_auth)" in msg and "backup 1/2" in msg
     assert len(launches) == 1                                   # retrying can't fix a signed-out connector
-    assert len(posts) == 1 and "Connectors -> Webull" in posts[0]
-    assert not (tmp_path / "QUOTES").exists()
+    assert len(posts) == 1 and "Connectors -> Webull" in posts[0] and "Backup quotes (Yahoo) saved 1/2" in posts[0]
+    assert not (tmp_path / "QUOTES").exists()                   # the Webull record holds Webull quotes only
+    assert "AAPL" in (tmp_path / "BACKUP").read_text() and "yahoo" in (tmp_path / "BACKUP").read_text()
+
+
+def test_backup_check_compares_only_matching_quotes(tmp_path, monkeypatch):
+    import pandas as pd
+    monkeypatch.setattr(quotes, "QUOTES", tmp_path / "q.csv")
+    monkeypatch.setattr(quotes, "BACKUP", tmp_path / "b.csv")
+    pd.DataFrame([{"date": "2026-11-24", "when": "close", "ticker": "SPY", "bid": 99.99, "ask": 100.01},
+                  {"date": "2026-11-24", "when": "open", "ticker": "SPY", "bid": 99.0, "ask": 99.1}]).to_csv(tmp_path / "q.csv")
+    pd.DataFrame([{"date": "2026-11-24", "when": "close", "ticker": "SPY", "bid": 100.00, "ask": 100.04},
+                  {"date": "2026-11-25", "when": "close", "ticker": "SPY", "bid": 1.0, "ask": 1.01}]).to_csv(tmp_path / "b.csv")
+    r = quotes.backup_check(write=False)
+    assert r["pairs"] == 1 and r["days"] == 1 and r["backup_only_quotes"] == 1
+    assert r["median_abs_mid_diff_bps"] == 2.0                  # mid 100.00 vs 100.02
+    assert r["median_half_spread_bps"] == {"webull": 1.0, "yahoo": 2.0}
 
 
 def test_webull_marker_never_matches_a_good_run():

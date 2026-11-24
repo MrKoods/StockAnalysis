@@ -5,7 +5,8 @@ your plan, then the harness runs your script on the TRAIN window and computes th
 
 Read first: `ideas/<id>.md`, the docstrings of `tools/jobs.py` (the test.py contract) and `tools/research_data.py`
 (the only data you may load), `state/data_catalog.md` (each source's dates, and which periods each family has
-already used), `strategies/example_template/` (paper contract), `notes/researcher.md`.
+already used), `strategies/example_template/` (paper contract), `notes/researcher.md`, and "Research methods" in
+`playbook/PLAYBOOK.md` (lessons from every earlier idea - follow them in PLAN.md).
 SEC events (`rd.filings`, `rd.splits`): the signal date is `first_session` (the first open after SEC accepted
 the filing), never `filing_date` - an after-close filing can't be traded until the next open. To catch the day-0
 move, buy at the CLOSE of `entry_session` (accepted before 15:30 ET that day) - most event edges are priced by the

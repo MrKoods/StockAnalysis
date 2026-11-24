@@ -69,6 +69,14 @@ ROLES = {
                           + [f"Edit({T}/prompts/{n}.md)" for n in ("scorekeeper", "scout")] + own("engineer")
                           + [f"Edit({T}/state/patches/*.json)"],                     # patch mode, user 2026-11-21
                  "deny": ["WebFetch", "WebSearch"], "drop": (f"Edit({T}/tools/**)", f"Edit({T}/prompts/**)")},
+    # Monthly self-review (user 2026-11-24): reads everything, writes only the playbook (its fixed section is restored
+    # by tools/playbook.py guard after every run) and its own notes/report/outbox.
+    "strategist": {"allow": ["Read", "Glob", "Grep", "WebSearch", "WebFetch",
+                             "Bash(python tools/ideas.py list)", "Bash(python tools/ideas.py list *)",
+                             "Bash(python tools/budget.py)", "Bash(python tools/budget.py *)",
+                             "Bash(python tools/autonomy.py)", "Bash(python tools/autonomy.py *)",
+                             "Bash(python tools/gate.py list)", f"Edit({T}/playbook/PLAYBOOK.md)"] + own("strategist"),
+                   "deny": ["Bash(python tools/ideas.py set *)", "Bash(python tools/ideas.py add *)"] + WEBULL_READ},
     # One read-only quote tool and nothing else: no files, no shell, no web.
     "quote_clerk": {"allow": ["ToolSearch", "mcp__claude_ai_Webull__get_stock_snapshot"],
                     "deny": ["Read", "Glob", "Grep", "Edit", "Write", "Bash", "WebFetch", "WebSearch"]},

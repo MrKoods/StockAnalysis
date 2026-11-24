@@ -17,6 +17,12 @@ exact find-and-replace edits in state/patches/<id>.json:
 `check` proves it: every file is patchable, every `old` matches exactly once, then the patch is applied to a
 SCRATCH COPY of that repo and its whole test suite runs there. Only then is it posted to #agent-ops as ready. The
 live files are touched only by `apply`, which the user runs - and which checks again first.
+
+Auto-apply (user 2026-11-24, "runs a month without me"): a patch that touches ONLY machinery (AUTO_FILES - data
+collection, reports, scan operations; never scoring, rules, V3/V4 or the runner) applies itself AUTO_WAIT_H hours
+after it became ready, unless the user rejected it. Same path as the user's apply (live re-check, full tests, roll
+back on failure), committed as team-runner and logged in registry/engineer_log.csv. A WATCH pattern (network,
+processes, ...) in an added line keeps it for the user unless that file already used the same thing.
 """
 from __future__ import annotations
 
@@ -42,7 +48,7 @@ PATCHABLE = {"team": ["tools/*.py", "tests/*.py", "prompts/*.md"],
 # remove a limit (holdout wall, gate, budget, the guard itself, settings, schedule, frozen rules).
 BLOCKED = {"team": ["tools/gate.py", "tools/budget.py", "tools/engineer.py", "tools/patches.py", "tools/ideas.py",
                     "tools/jobs.py", "tools/research_data.py", "tools/plan_limit.py", "prompts/auditor.md",
-                    "prompts/engineer.md"],
+                    "prompts/engineer.md", "tools/playbook.py", "prompts/strategist.md"],
            "V4": [], "V3": []}
 BIG_DIRS = ("data",)            # linked, not copied, into the scratch copy (team 640 MB, V3 1.4 GB)
 SKIP = {".git", "__pycache__", ".pytest_cache", "output", "research_results"}
@@ -50,6 +56,11 @@ MAX_ADDED = 200
 # Not blocked (the user decides) but called out in the post so a yes is an informed one.
 WATCH = [r"\bsubprocess\b", r"\brequests\b|\burllib\b|\bsocket\b", r"ScheduledTask|schtasks", r"\.env\b",
          r"\bholdout\b", r"registry\.json|ideas\.csv|trials\.csv", r"real_price_rules|RULES\.md", r"\brmtree\b|\.unlink\("]
+AUTO_FILES = ["team/tools/" + n + ".py" for n in (
+    "catalog", "cboe_history", "daily_bars", "daily_report", "edgar", "edgar_live", "edgar_text", "evening_check",
+    "fomc_dates", "ops_monitor", "option_chains", "scan_ops", "screen")] + ["team/tests/test_eng_*.py"]
+AUTO_WAIT_H = 24
+ENG_LOG = TEAM / "registry" / "engineer_log.csv"
 
 
 def _split(file: str) -> tuple[str, str]:
@@ -188,13 +199,24 @@ def check(pid: str) -> dict:
                    tests={r: o[1][-400:] for r, o in outs.items()},
                    sha={x: _sha(ROOTS[_split(x)[0]] / _split(x)[1]) for x in texts},
                    watch=sorted({rx for l in d.splitlines() if l.startswith("+") for rx in WATCH if re.search(rx, l)}))
-    first_ready = res["status"] == "ready" and p.get("_status", {}).get("status") != "ready"
+    prev = p.get("_status", {})
+    first_ready = res["status"] == "ready" and prev.get("status") != "ready"
+    if res["status"] == "ready":
+        res["ready_since"] = prev.get("ready_since") if not first_ready else res["checked"]
+        res["ready_since"] = res["ready_since"] or res["checked"]
+        if prev.get("auto"):
+            res["auto"] = prev["auto"]
     p["_status"] = res
     save_json(f, p)
     if first_ready:
         d = (DIR / f"{pid}.diff").read_text(encoding="utf-8")
         files = ", ".join(sorted({e["file"] for e in p["edits"]}))
         warn = f"\n⚠️ touches: {', '.join(res['watch'])} - read it before saying yes." if res["watch"] else ""
+        if (why_not := auto_blocker(p)) is None:
+            warn += (f"\n⏱️ Machinery only - it applies ITSELF in {AUTO_WAIT_H} h unless you reject it "
+                     f"(`python tools/patches.py reject {pid} <why>`).")
+        else:
+            warn += f"\n🙋 Waits for your yes: {why_not}."
         post("ops", f"🩹 **Engineer patch ready: {p.get('title', pid)}** ({files}) - tests pass on a scratch copy.\n"
                     f"{p.get('why', '')[:400]}{warn}\n```diff\n{d[:900]}{' ...' if len(d) > 900 else ''}\n```"
                     f"Apply: `python tools/patches.py apply {pid}` · full diff: `python tools/patches.py show {pid}` · "
@@ -227,7 +249,63 @@ def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True)
 
 
-def apply(pid: str) -> int:
+def auto_blocker(p: dict) -> str | None:
+    """None if this patch may apply itself; else why it waits for the user."""
+    files = sorted({e.get("file", "") for e in p.get("edits") or []})
+    off = [x for x in files if not any(fnmatch.fnmatch(x, a) for a in AUTO_FILES)]
+    if not files or off:
+        return f"touches {', '.join(off) or 'nothing'} (scoring, rules, V3/V4 or the runner - user only)"
+    for e in p["edits"]:
+        repo, rel = _split(e["file"])
+        cur = (ROOTS[repo] / rel).read_text(encoding="utf-8") if (ROOTS[repo] / rel).exists() else ""
+        old_lines = set(e.get("old", "").splitlines())
+        added = [l for l in e.get("new", "").splitlines() if l not in old_lines]
+        for rx in WATCH:
+            if any(re.search(rx, l) for l in added) and not re.search(rx, cur):
+                return f"adds {rx} to {e['file']}, which never used it"
+    return None
+
+
+def auto_apply_due(now=None) -> list[str]:
+    """Dispatcher hook: apply each machinery-only patch that has been ready AUTO_WAIT_H hours without a reject."""
+    from datetime import datetime, timedelta
+    now, out = now or now_pt(), []
+    for pid, title in ready():
+        f = DIR / f"{pid}.json"
+        p = load_json(f, {})
+        st = p.get("_status", {})
+        since = st.get("ready_since")
+        if st.get("auto") or not since or auto_blocker(p) is not None:
+            continue
+        if now - datetime.strptime(since, "%Y-%m-%d %H:%M") < timedelta(hours=AUTO_WAIT_H):
+            continue
+        rc = apply(pid, auto=True)
+        p = load_json(f, {})
+        if rc != 0:                       # never retried automatically; the user can still apply it
+            p["_status"]["auto"] = "failed"
+            save_json(f, p)
+        _log_fix(now, "applied" if rc == 0 else "rolled_back", p,
+                 "patch auto-applied: machinery only, ready 24 h, tests pass" if rc == 0 else
+                 "auto-apply refused or tests failed on the live files - waits for the user")
+        post("ops", (f"🛠️ Engineer patch applied itself: {title} - tests pass on the live files." if rc == 0 else
+                     f"↩️ Engineer patch {title} could NOT apply itself (live files moved or tests failed) - rolled "
+                     f"back; it waits for you: `python tools/patches.py show {pid}`"), "Team - Engineer")
+        out.append(f"{pid}: auto {'applied' if rc == 0 else 'failed'}")
+    return out
+
+
+def _log_fix(now, result: str, p: dict, why: str) -> None:
+    import csv
+    new = not ENG_LOG.exists()
+    ENG_LOG.parent.mkdir(parents=True, exist_ok=True)
+    with open(ENG_LOG, "a", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        if new:
+            w.writerow(["date", "result", "files", "why"])
+        w.writerow([f"{now:%Y-%m-%d}", result, " ".join(sorted({e["file"] for e in p.get("edits", [])})), why])
+
+
+def apply(pid: str, auto: bool = False) -> int:
     f = DIR / f"{pid}.json"
     p = load_json(f, {})
     st = p.get("_status", {})
@@ -257,9 +335,12 @@ def apply(pid: str) -> int:
     for r in repos:
         rels = [_split(x)[1] for x in texts if _split(x)[0] == r]
         _git(ROOTS[r], "add", "--", *rels)
-        _git(ROOTS[r], "commit", "-m", f"Engineer patch {pid}: {p.get('title', '')}\n\n{p.get('why', '')}\n\n"
-                                       f"Approved and applied by the user (tools/patches.py apply).", "--", *rels)
-    st.update(status="applied", applied=f"{now_pt():%Y-%m-%d %H:%M}")
+        msg = (f"team-runner: auto-applied Engineer patch {pid}: {p.get('title', '')}\n\n{p.get('why', '')}\n\n"
+               f"Machinery only, ready {AUTO_WAIT_H} h without a reject (tools/patches.py auto_apply_due)." if auto else
+               f"Engineer patch {pid}: {p.get('title', '')}\n\n{p.get('why', '')}\n\n"
+               f"Approved and applied by the user (tools/patches.py apply).")
+        _git(ROOTS[r], "commit", "-m", msg, "--", *rels)
+    st.update(status="applied", applied=f"{now_pt():%Y-%m-%d %H:%M}", by="auto" if auto else "user")
     save_json(f, p)
     print(f"APPLIED {pid} and committed in {', '.join(repos)}; tests pass.")
     return 0

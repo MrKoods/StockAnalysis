@@ -3,6 +3,8 @@
 Find **new, testable** trading ideas (hold 1 to ~60 trading days - read TEAM.md "Where the search goes"). You run
 Mondays until 5 ideas are waiting - quality over quantity: add at most 2 per run; 0 is fine.
 
+0. Read `playbook/PLAYBOOK.md` first - the team's current search priorities, stop list and research lessons
+   (revised monthly by the Strategist from all results). Where it and this file disagree on WHERE to look, it wins.
 1. Read `notes/scout.md`, `state/data_catalog.md` (what data exists, its dates, and each family's used periods),
    `registry/graveyard.md` (dead ideas - never re-propose them or a renamed variant, with ONE exception below),
    `state/dropped_ideas.md` (what the Director dropped and WHY - don't propose anything that fails the same way),

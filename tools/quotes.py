@@ -5,6 +5,7 @@
     python tools/quotes.py capture open2     # ~9:45 AM ET - run by the Scan Operator's 06:40/06:50 PT tick (no own task)
     python tools/quotes.py on1               # re-price ON1's paper trades at the captured quotes
     python tools/quotes.py etf               # ETF fill costs: close / 9:31 / ~9:45 half-spreads, real overnight
+    python tools/quotes.py backup            # how close the Yahoo backup quotes are to Webull's
     python tools/quotes.py capture close --dry-run    # print the tickers + prompt, launch nothing
 
 Why: paper tests fill at the official open/close. Webull (via its connector) takes LIMIT orders only - no
@@ -14,6 +15,11 @@ How: the script decides the tickers (zero tokens), then launches the Quote Clerk
 only allowed tool is Webull's get_stock_snapshot (<= 100 symbols per call). The numbers are read straight from the
 tool results in Claude's output stream, never retyped by the model. Results: paper/quotes.csv (committed;
 irreplaceable live data). Each run is logged in state/usage.csv as role quote_clerk, under its own weekly cap.
+
+Backup (2026-11-24, user-approved): at every capture the same tickers are ALSO read from Yahoo (free, no Claude),
+in parallel with the Clerk, into paper/quotes_backup.csv. When Webull is signed out the record keeps going. The
+backup is kept separately and NEVER feeds a test's score (those rules are frozen on Webull quotes); backup_check()
+compares the two on days both exist (paper/quote_backup_status.json), so whether it is good enough is measured.
 """
 from __future__ import annotations
 
@@ -45,6 +51,9 @@ TOOL = "mcp__claude_ai_Webull__get_stock_snapshot"
 ETFS = ["SPY", "QQQ", "IWM", "IJR", "MDY", "DIA"]
 OPEN2_FROM, OPEN2_UNTIL = (6, 40), (6, 54)        # PT; the Scan Operator ticks at :40 and :50 -> ~9:40-9:52 ET
 OPEN2_STATE = STATE / "quotes_open2.json"
+BACKUP = TEAM / "paper" / "quotes_backup.csv"
+BFIELDS = QFIELDS + ["source"]
+BACKUP_SECONDS = 60          # a slow Yahoo must never hold up the Clerk's result
 
 
 # ---------- which tickers ----------
@@ -195,6 +204,7 @@ def capture(when: str, dry_run: bool = False) -> str:
     if dry_run:
         return f"[dry-run] {len(tickers)} tickers in {len(batches)} batch(es)\n{text}"
     want, rows, bad, results, res, status, start = set(tickers), {}, set(), [], {}, "failed", time.time()
+    backup = start_backup(tickers, today, when)
     # One retry inside the capture window: the Scan Operator ticks every 10 min, so it can never re-run a
     # 3-minute quote window itself - a transient failure (Webull/CLI hiccup) gets its second chance here.
     for attempt in (1, 2):
@@ -232,6 +242,7 @@ def capture(when: str, dry_run: bool = False) -> str:
             w.writerows(rows.values())
     if not rows and results:
         status = "market_closed"            # Webull answered, but every quote is from an earlier day (holiday)
+    nb = finish_backup(backup)
     if when == "open2":
         st = load_json(OPEN2_STATE, {})
         st = st if st.get("date") == str(today) else {"date": str(today), "tries": 0}
@@ -246,16 +257,18 @@ def capture(when: str, dry_run: bool = False) -> str:
                  f"{res.get('total_cost_usd', '')},{status}\n")
     msg = (f"quotes {when}: {len(rows)}/{len(want)} tickers captured ({status})"
            + (f"; {len(skipped) + len(bad)} not on Webull, skipped: {sorted(set(skipped) | bad)[:10]}"
-              if skipped or bad else ""))
+              if skipped or bad else "") + f"; backup {nb}/{len(tickers)}")
+    kept = (f" Backup quotes (Yahoo) saved {nb}/{len(tickers)} - kept separately, never used for test scores."
+            if nb else " Backup quotes (Yahoo) also failed.")
     if status == "logged_out":
         post("ops", f"🔴 Quote Clerk {when} {today}: NOTHING captured - {LOGIN_HELP} Every team role fails until "
                     f"then.", "Team - Ops Monitor")
     elif status == "webull_auth":
         post("ops", f"🔴 Quote Clerk {when} {today}: NOTHING captured - {WEBULL_HELP} Real-price checks (ON1/EPRE) "
-                    f"lose every day until then.", "Team - Ops Monitor")
+                    f"lose every day until then.{kept}", "Team - Ops Monitor")
     elif status in ("partial", "failed"):
         post("ops", f"⚠️ Quote Clerk {when} {today}: only {len(rows)}/{len(want)} quotes captured - those trades "
-                    f"fall back to official prices. Log: state/logs/{today}-quote_clerk-{when}.jsonl",
+                    f"fall back to official prices.{kept} Log: state/logs/{today}-quote_clerk-{when}.jsonl",
              "Team - Ops Monitor")
     return msg
 
@@ -292,6 +305,94 @@ def _rows(results: list, want: set, today, when: str) -> dict:
                          "bid_size": d.get("bid_size", ""), "ask_size": d.get("ask_size", ""),
                          "last": d.get("price", ""), "quote_time": qt}
     return rows
+
+
+# ---------- backup quotes (Yahoo, free) ----------
+
+def _yahoo_one(t: str) -> dict | None:
+    import yfinance as yf
+    i = yf.Ticker(t.replace(".", "-")).info
+    return {"symbol": t, "bid": i.get("bid"), "ask": i.get("ask"), "bid_size": i.get("bidSize", ""),
+            "ask_size": i.get("askSize", ""), "price": i.get("regularMarketPrice", ""),
+            "quote_time": int(i["regularMarketTime"]) * 1000 if i.get("regularMarketTime") else None}
+
+
+def yahoo_quotes(tickers: list[str], today, when: str, fetch=None) -> list[dict]:
+    """Same checks as the Webull rows (bid <= ask, both > 0, quoted today), tagged with their source."""
+    from concurrent.futures import ThreadPoolExecutor
+    fetch = fetch or _yahoo_one
+
+    def safe(t):
+        try:
+            return fetch(t)
+        except Exception:  # noqa: BLE001 - one bad symbol never loses the rest
+            return None
+    with ThreadPoolExecutor(8) as ex:
+        got = [g for g in ex.map(safe, tickers) if g]
+    return [r | {"source": "yahoo"} for r in _rows(got, set(tickers), today, when).values()]
+
+
+def save_backup(rows: list[dict]) -> int:
+    if not rows:
+        return 0
+    new = not BACKUP.exists()
+    BACKUP.parent.mkdir(parents=True, exist_ok=True)
+    with open(BACKUP, "a", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=BFIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(rows)
+    return len(rows)
+
+
+def start_backup(tickers: list[str], today, when: str):
+    """Runs alongside the Clerk (a thread), so the Webull capture is not delayed."""
+    import threading
+    box: dict = {}
+
+    def work():
+        try:
+            box["n"] = save_backup(yahoo_quotes(tickers, today, when))
+        except Exception as e:  # noqa: BLE001
+            box["err"] = str(e)[:120]
+    th = threading.Thread(target=work, daemon=True)
+    th.start()
+    return th, box
+
+
+def finish_backup(handle) -> int:
+    th, box = handle
+    th.join(BACKUP_SECONDS)
+    if box.get("err"):
+        log(f"backup quotes failed: {box['err']}", "quotes")
+    return int(box.get("n", 0))
+
+
+def backup_check(write: bool = True) -> dict:
+    """How close the Yahoo backup is to Webull on the same (date, capture, ticker): median absolute difference of
+    the mid and of the half-spread, in bps. Measurement only - whether a test may ever use the backup is the
+    user's decision (team/real_price_rules.json)."""
+    if not (QUOTES.exists() and BACKUP.exists()):
+        return {"pairs": 0, "note": "need both files"}
+    key = ["date", "when", "ticker"]
+    w = pd.read_csv(QUOTES).drop_duplicates(key, keep="last")
+    b = pd.read_csv(BACKUP).drop_duplicates(key, keep="last")
+    m = w.merge(b, on=key, suffixes=("_w", "_b"))
+    out: dict = {"pairs": int(len(m))}
+    if len(m):
+        mid_w, mid_b = (m.bid_w + m.ask_w) / 2, (m.bid_b + m.ask_b) / 2
+        half_w = (m.ask_w - m.bid_w) / m.ask_w / 2 * 1e4
+        half_b = (m.ask_b - m.bid_b) / m.ask_b / 2 * 1e4
+        out |= {"days": int(m["date"].nunique()),
+                "median_abs_mid_diff_bps": round(float(((mid_b / mid_w - 1).abs() * 1e4).median()), 2),
+                "median_abs_half_spread_diff_bps": round(float((half_b - half_w).abs().median()), 2),
+                "median_half_spread_bps": {"webull": round(float(half_w.median()), 2),
+                                           "yahoo": round(float(half_b.median()), 2)}}
+    only = b.merge(w[key], on=key, how="left", indicator=True)
+    out["backup_only_quotes"] = int((only["_merge"] == "left_only").sum())   # captures Webull missed
+    if write:
+        save_json(TEAM / "paper" / "quote_backup_status.json", out)
+    return out
 
 
 # ---------- real-price scoring ----------
@@ -429,5 +530,7 @@ if __name__ == "__main__":
         print(epre())
     elif args[:1] == ["etf"]:
         print(json.dumps(etf_fills(), indent=1))
+    elif args[:1] == ["backup"]:
+        print(json.dumps(backup_check(), indent=1))
     else:
         print(__doc__)

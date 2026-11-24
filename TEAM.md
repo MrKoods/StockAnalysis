@@ -72,6 +72,7 @@ and say in PLAN.md how much it could inflate a long result. Paid fix (CRSP/Norga
 | Director | Claude (Opus) | Runs the pipeline: queues ideas, starts/stops paper tests via the gate, tells the user what matters |
 | Holdout Keeper | script | Runs a strategy on the locked holdout period exactly once |
 | Engineer | Claude (Opus) + script guard | Last in a dispatch, when something failed, when the Director files a build request, and every Saturday: the ONLY role that diagnoses failures; finds the cause, fixes the team's own machinery, proves it with tests. **Builds research tools** the Director asks for (`tools/lab/`, pure tested functions, frozen once a locked test uses them - user 2026-11-14), so the team grows its own capabilities instead of asking the user. tools/engineer.py keeps the edit only if it is on the editable list, passes static checks and passes every test; otherwise it rolls the run back. Log: registry/engineer_log.csv |
+| Strategist | Claude (Opus) | Monthly (first Saturday 4+ weeks after its last review, before the Auditor): reads every result so far (`state/review_pack.md`, tools/playbook.py) and revises **`playbook/PLAYBOOK.md`** - search priorities, stop list, research methods - which the Scout, Director and Researcher follow. The self-improving part of the loop (user 2026-11-24). Its fixed section (the user's decisions) is restored by script after every run; it never touches rules, tests or results |
 | Auditor | Claude (Opus) | Saturday, last before the Engineer. Read-only, independent of the Director: checks decisions, research honesty, paper/live tests, going in circles, the machinery and the overall direction; reports to the user |
 
 ## The pipeline (registry/ideas.csv `stage`)
@@ -138,7 +139,14 @@ Cluster t-stats by day (week for multi-day holds, month for holds over 10 days).
   Connectors). Don't diagnose it again.
 - **Patch mode** (user 2026-11-21): fixes to files the Engineer may not edit (V4 epre/, V3 daytrade/, team scoring
   code like quotes.py) go in state/patches/<id>.json; tools/patches.py proves them on a scratch copy, posts them,
-  and the user applies with one command. Hard-limit files are never patchable.
+  and the user applies with one command. Hard-limit files are never patchable. **Since 2026-11-24 a patch that
+  touches only machinery** (patches.AUTO_FILES: data collection, reports, scan operations) **applies itself 24 h
+  after it is ready** unless the user rejects it; scoring code, V3/V4, the runner and new network/process reach
+  still wait for the user.
+- **Quote backup** (2026-11-24): every capture also saves Yahoo bid/ask to paper/quotes_backup.csv, so a signed-out
+  Webull no longer loses the record. Never used for a test's score; `python tools/quotes.py backup` measures how
+  close it is to Webull. A Quote Clerk give-up on a signed-out day counts as "needed your sign-in", not a team
+  failure (tools/autonomy.py). Goal shown daily: 30 days in a row without the user.
 - **EPRE's t counts exit days, not trades**: 1,037 trades = 17 exit days (2026-11-20). The daily report also shows
   hedged mean by index - live sp600 was -42 bps while the backtest had the edge in smaller names. Informational;
   RULES.md checkpoints are unchanged.
@@ -173,4 +181,5 @@ Days = trading days with scored trades (NYSE; Thanksgiving 11-26 closed). A miss
 `state/data_catalog.md` (every data source, its dates, each family's used periods - regenerated every run) |
 `registry/` ideas, trials (budget), graveyard, decisions | `research/<id>/` | `strategies/<id>/` | `paper/` ledgers |
 `notes/<role>.md` (your memory, max ~150 lines) | `reports/` | `outbox/<role>.txt` (what gets posted) |
+`playbook/PLAYBOOK.md` (search priorities, stop list, research methods - the Strategist's, revised monthly) |
 V3 research code you may import read-only: `C:\Users\user\Documents\Git\StockAnalysis-V3\daytrade\research\`.

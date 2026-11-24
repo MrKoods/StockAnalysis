@@ -129,12 +129,28 @@ def etf_line() -> str | None:
             f"- overnight idea needs close+open <= ~2") if cells else None
 
 
+def backup_line() -> str | None:
+    """Yahoo backup quotes vs Webull (tools/quotes.py backup_check) - measurement, never used for a score."""
+    try:
+        import quotes
+        r = quotes.backup_check()
+    except Exception:
+        return None
+    if not r.get("pairs"):
+        return None
+    return (f"• Backup quotes (Yahoo) vs Webull, {r['days']} day(s): mid differs {r['median_abs_mid_diff_bps']} bps, "
+            f"half-spread {r['median_abs_half_spread_diff_bps']} bps (median)"
+            + (f" · {r['backup_only_quotes']} quotes only the backup got" if r.get("backup_only_quotes") else ""))
+
+
 def real_prices(today: date) -> list[str]:
     out = []
     if q := quote_coverage(today):
         out.append(f"• Quotes captured: {q}")
     if etf := etf_line():
         out.append(etf)
+    if b := backup_line():
+        out.append(b)
     on1 = load_json(TEAM / "paper" / "on1_real_price_status.json", {})
     if on1.get("days"):
         out.append(f"• **ON1 at real prices** - {on1['verdict']} · day {on1['days']}/15 · real {on1['real_mean_bps']:+.1f} bps "

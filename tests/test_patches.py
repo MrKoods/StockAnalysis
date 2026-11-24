@@ -67,6 +67,35 @@ def test_failing_patch_is_not_ready_and_apply_refuses(tmp_path, monkeypatch):
     assert patches.apply("bad") == 1 and "return 1" in (v4 / "epre/m.py").read_text()
 
 
+def test_machinery_patch_applies_itself_after_24h_scoring_patch_never(tmp_path, monkeypatch):
+    """User 2026-11-24: machinery-only patches apply themselves 24 h after they are ready (no reject); anything that
+    scores a test (V4, quotes, ...) or adds a new kind of reach (network, processes) still waits for the user."""
+    from datetime import datetime, timedelta
+    v4, posts = _setup(tmp_path, monkeypatch, "    assert m.f() in (1, 2)")
+    team = _repo(tmp_path / "team", {"tools/scan_ops.py": "def g():\n    return 1\n",
+                                     "tests/test_g.py": "import sys, pathlib\nsys.path.insert(0, str(pathlib.Path("
+                                                        "__file__).parent.parent / 'tools'))\nimport scan_ops\n\n"
+                                                        "def test_g():\n    assert scan_ops.g() in (1, 2)\n"})
+    monkeypatch.setattr(patches, "ROOTS", {"team": team, "V4": v4, "V3": tmp_path / "none"})
+    monkeypatch.setattr(patches, "ENG_LOG", tmp_path / "engineer_log.csv")
+    _write("mach", [{"file": "team/tools/scan_ops.py", "old": "return 1", "new": "return 2"}])
+    _write("score", [{"file": "V4/epre/m.py", "old": "return 1", "new": "return 2"}])
+    _write("net", [{"file": "team/tools/scan_ops.py", "old": "return 1", "new": "import urllib  # x\n    return 2"}])
+    for pid in ("mach", "score", "net"):
+        assert patches.check(pid)["status"] == "ready", pid
+    assert "applies ITSELF in 24 h" in posts[0] and "Waits for your yes" in posts[1] and "urllib" in posts[2]
+    ready_at = datetime.strptime(json.loads((patches.DIR / "mach.json").read_text())["_status"]["ready_since"],
+                                 "%Y-%m-%d %H:%M")
+    assert patches.auto_apply_due(ready_at + timedelta(hours=23)) == []           # not yet
+    assert patches.auto_apply_due(ready_at + timedelta(hours=25)) == ["mach: auto applied"]
+    assert "return 2" in (team / "tools/scan_ops.py").read_text()
+    assert "return 1" in (v4 / "epre/m.py").read_text()                          # scoring code: user only
+    log = subprocess.run(["git", "log", "-1", "--format=%s"], cwd=team, capture_output=True, text=True).stdout
+    assert log.startswith("team-runner: auto-applied Engineer patch mach")       # not counted as a user step-in
+    assert ",applied,team/tools/scan_ops.py," in (tmp_path / "engineer_log.csv").read_text()
+    assert patches.auto_apply_due(ready_at + timedelta(hours=48)) == []          # "net" moved: live file changed
+
+
 def test_old_text_must_match_exactly_once_and_live_drift_blocks_apply(tmp_path, monkeypatch):
     v4, _ = _setup(tmp_path, monkeypatch, "    assert m.f() in (1, 2)")
     _write("typo", [{"file": "V4/epre/m.py", "old": "return  1", "new": "return 2"}])

@@ -81,6 +81,8 @@ def _quotes(monkeypatch, tmp_path, streams):
     monkeypatch.setattr(quotes, "post", lambda ch, text, user: posts.append(text))
     calls = iter(streams)
     monkeypatch.setattr(quotes, "_launch", lambda *a: next(calls))
+    monkeypatch.setattr(quotes, "BACKUP", tmp_path / "backup.csv")     # no network, no write into paper/
+    monkeypatch.setattr(quotes, "_yahoo_one", lambda t: None)
     return posts
 
 

@@ -61,7 +61,31 @@ def test_asks_read_latest_report_section_only(env):
 
 def test_summary_lines(env):
     lines = autonomy.summary(date(2026, 11, 14))
-    assert lines[0].startswith("• You stepped in **") and "Team fixed itself" in lines[1]
+    assert lines[0].startswith("• 🎯 Goal: 30 days") and lines[1].startswith("• You stepped in **")
+    assert "Team fixed itself" in lines[2]
+
+
+def test_signed_out_quote_give_up_is_not_a_team_failure(env):
+    (env / "state" / "logs").mkdir()
+    (env / "state" / "logs" / "2026-11-17-quotes.log").write_text("quotes open: 0/73 tickers captured (webull_auth)\n")
+    (env / "state" / "logs" / "2026-11-16-quote_clerk-open.jsonl").write_text(        # before the status existed
+        '{"result": "Only mcp__claude_ai_Webull__authenticate is available"}')
+    (env / "state" / "logs" / "2026-11-18-quote_clerk-open.jsonl").write_text('{"result": "DONE"}')
+    (env / "state" / "scan_ops.json").write_text(
+        '{"2026-11-16": {"gave_up:StockAnalysis_Team_QuoteOpen": true},'
+        ' "2026-11-17": {"gave_up:StockAnalysis_Team_QuoteOpen": true},'
+        ' "2026-11-18": {"gave_up:StockAnalysis_Team_QuoteOpen": true}}', encoding="utf-8")
+    fixed, failed = autonomy.self_fixes("2026-11-12", "2026-11-18")
+    assert failed == ["11-18 Scan Operator gave up on Team_QuoteOpen"]       # no sign-in problem logged that day
+    assert autonomy.signins("2026-11-12", "2026-11-18") == ["11-16 Team_QuoteOpen (Webull/Claude signed out)",
+                                                            "11-17 Team_QuoteOpen (Webull/Claude signed out)"]
+
+
+def test_streak_counts_days_since_the_last_step_in(env, monkeypatch):
+    autonomy.record(date(2026, 11, 1), SimpleNamespace(alerts=[]))
+    autonomy.record(date(2026, 11, 5), SimpleNamespace(alerts=["needs you"]))
+    monkeypatch.setattr(autonomy, "git", lambda *a: "2026-11-03 my session change\n2026-11-09 team-runner: x\n")
+    assert autonomy.streak(date(2026, 11, 10)) == (5, 5)          # 11-06..11-10 clean; 11-01..02 = 2
 
 
 def test_allowed_commands_lists_only_bash_rules(tmp_path, monkeypatch):

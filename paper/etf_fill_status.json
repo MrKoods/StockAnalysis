@@ -1,0 +1,51 @@
+{
+  "bar": "close half-spread + open half-spread <= ~2 bps total for the overnight idea to have a chance",
+  "SPY": {
+    "close": 0.28,
+    "open": 1.11,
+    "open2": 0.63,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  },
+  "QQQ": {
+    "close": 0.31,
+    "open": 3.37,
+    "open2": 0.77,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  },
+  "IWM": {
+    "close": 0.19,
+    "open": 1.32,
+    "open2": 0.95,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  },
+  "IJR": {
+    "close": 0.37,
+    "open": 6.29,
+    "open2": 0.75,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  },
+  "MDY": {
+    "close": 0.77,
+    "open": 5.19,
+    "open2": 3.58,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  },
+  "DIA": {
+    "close": 0.4,
+    "open": 2.12,
+    "open2": 1.02,
+    "days_close": 1,
+    "days_open": 1,
+    "days_open2": 1
+  }
+}

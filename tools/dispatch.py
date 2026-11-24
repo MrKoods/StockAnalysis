@@ -43,6 +43,7 @@ import jobs
 import ops_monitor
 import paper_runner
 import plan_limit
+import playbook
 import publish
 import quotes
 import scan_ops
@@ -160,6 +161,8 @@ def triggers(today: date, f: ops_monitor.Findings, hits: list[str], paper: dict,
                         f"idea(s) waiting - queue up to {MAX_ACTIVE - active}")
     if director:
         want["director"] = "; ".join(director)
+    if day == "Sat" and playbook.due(today):
+        want["strategist"] = playbook.why_due(today)
     if day == "Sat":
         want["auditor"] = "weekly audit of the whole project"
     # Researcher and Skeptic are re-checked after the Director (it may queue work) - see main().
@@ -357,7 +360,7 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
             return
         # Exempt: the Auditor (heavy usage is exactly what it should flag) and the Director's Saturday weekly
         # review - one run each a week, and a busy Friday must not be able to crowd them out.
-        weekly = role == "auditor" or (role in ("director", "engineer") and "weekly review" in why)
+        weekly = role in ("auditor", "strategist") or (role in ("director", "engineer") and "weekly review" in why)
         if not a.dry_run and runs_this_week() >= cap and role not in a.force and not weekly:
             post("ops", f"⚠️ Weekly Claude run cap ({cap}) reached - skipped {role}: {why}", "Team - Ops Monitor")
             return
@@ -406,6 +409,15 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
                            f"({active}/{MAX_ACTIVE}) with {open_items('idea')} idea(s) waiting - queue up to "
                            f"{MAX_ACTIVE - active}", again=True)
         research()
+    # Strategist (monthly): revises the search playbook from everything learned - before the Auditor, which
+    # then reviews the change the same day. Its guard restores the user's fixed section if it was touched.
+    if "strategist" in want:
+        if not a.dry_run:
+            playbook.write_pack(today)
+        launch("strategist", want["strategist"])
+        if not a.dry_run:
+            log(f"playbook guard: {playbook.guard()}", "dispatch")
+            commit(f"team-runner: playbook guard {today}")
     # Auditor last, so it sees everything the other roles did today.
     if "auditor" in want:
         write_audit_pack(today)
@@ -417,6 +429,9 @@ def run_roles(today: date, a, cfg: dict, want: dict[str, str], f: ops_monitor.Fi
     # Patches the Engineer wrote for files it may not edit: proven on a scratch copy, then posted for the user.
     if not a.dry_run:
         for line in patches.check_new():
+            log(f"patch {line}", "dispatch")
+        # Machinery-only patches ready 24 h without a reject apply themselves (user 2026-11-24).
+        for line in patches.auto_apply_due():
             log(f"patch {line}", "dispatch")
     return limit
 
