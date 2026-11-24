@@ -58,3 +58,4 @@ date,idea_id,family,stage,variants,data,result_t,result_bps,verdict,note
 2026-11-17,special-dividend-drift-long,8k_8_01,search,5,2014-01-01..2019-12-31,2.67,226.02,,team train run
 2026-11-20,buyback-announcement-long,8k_8_01,search,5,2014-01-01..2019-12-31,-0.8,-17.14,,team train run
 2026-11-20,antitakeover-adoption-short,8k_5_03,search,6,2005-01-01..2013-12-31,0.64,59.81,,team train run
+2026-11-24,vrp-spy-long,cboe_vrp,search,6,2000-01-01..2013-12-31,-0.49,-10.3,,team train run
