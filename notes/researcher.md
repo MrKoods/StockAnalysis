@@ -1,5 +1,32 @@
 # Researcher notes
 
+## 2026-11-24 — vrp-spy-long (planned, check+smoke pass) — FIRST cboe()/ETF idea
+- Family `cboe_vrp` (NEW, whole history clean). Variance-risk-premium timing on SPY. VRP = VIX −
+  annualized 20-sess realized vol of SPY; z = (VRP − trailing mean)/std over zwin sessions.
+- KEY DESIGN CALL: tested LONG/SHORT, NOT long-only as the card asked. Reason: SPY has no hedge
+  (hedge SPY with SPY = 0) → paper metric must be real_bps = RAW SPY return → long-only "passes" on
+  the equity premium (unconditional monthly t≈2.2, no signal). Long high-VRP / short low-VRP is
+  beta-neutral: under the null the legs cancel, E[gross]=0, so a positive mean IS the VRP edge. Also
+  the ONLY way this is promotable (long-only demeaned rule can't be expressed in real_bps). Documented
+  prominently in PLAN for Skeptic/Director. Short SPY overnight = tradeable on Webull margin (20-sess
+  hold, no PDT, no options).
+- Entry at NEXT session's close (not signal-day close) to dodge VIX's 16:15 ET close look-ahead
+  (cboe() docstring). Overlapping DAILY entries (not non-overlap monthly) so paper accrues ~1 exit/day
+  — a monthly rule gives ~1 trade/month and could never reach min_days in 20-45d. cluster=month (hold
+  20>10) handles overlap in research.
+- COST TRAP (reuse): SPY isn't in sp500/400/600, but `universe` only sets the cost floor. `["sp500"]`
+  alone FORCES pit_filter (jobs static-checks the literal) which DELETES SPY (not a member). So used
+  `["sp500","sp400"]` → floor 12 bps RT (overcharges SPY ~6-12×; true ~1-2 bps). Conservative; paper
+  charges SPY's real captured spread. cost_bps 2 (my est; dominated by the 12-bp floor).
+- 6 variants k∈{0,.5,1}×zwin∈{126,252}; CHOSEN pre-registered = k0_z126 (median split, 6-mo window;
+  252 needs 272 sessions but paper download is only ~275 cal days ≈275 sess → 126 is the safe choice).
+  strategy.py mirrors k0_z126. Not best-of-train; others are robustness.
+- Windows train 2000-2013 / holdout 2014-2026-10-31. ratio≈0.92 → exp holdout t≈train t×0.96; need
+  train t≥~2.43 to clear the underpower gate. Expect holdout death even on a good train (winner's
+  curse). Adjacency risk DISCLOSED: pre-team "VIX timing" died on 2018-26 holdout; VRP≠VIX-level and
+  cboe_vrp is new, but my holdout overlaps 2018-26 — false-PASS risk flagged for Skeptic.
+- Smoke (2000): k0_z126 252 trades/12 periods, scales down with k and up-warm-up with zwin. Good.
+
 ## 2026-11-20 — antitakeover-adoption-short (planned, check+smoke pass)
 - research/antitakeover-adoption-short/ + strategies/. Family `8k_5_03` (used only 2005-2013 screen, 3
   variants → 2014+ clean). SHORT an 8-K item 5.03 that ADOPTS a stockholder rights plan / poison pill
