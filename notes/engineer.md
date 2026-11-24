@@ -15,6 +15,13 @@
 - 11-10 QuoteClose x5 stale `issues` in scan_ops.json are real power-loss give-up records (not OWN_TASK), pruned
   by one-week age -> gone 11-17. Leave them; auditor called them settled.
 
+## Resolved - don't repeat (user's session, 2026-11-24)
+- EPRE zero-entry crash: FIXED in V4 commit 48f97a4 (paper.py:233-236 now a numpy bool mask). Don't propose it again.
+- Webull connector: RECONNECTED - headless quote_clerk probe 2026-11-24 00:57 PT got a live SPY snapshot. Don't ask
+  the user to reconnect unless a NEW (webull_auth) give-up appears after 11-24. Yahoo backup quotes now run at every
+  capture (paper/quotes_backup.csv), so a future sign-out no longer loses the whole price record.
+- The EPRE and Webull bullets below are kept for history; both are closed.
+
 ## Open / for the user (not my editable files)
 - 2026-11-19 V4 EPRE Signals scan crashed: `KeyError: 'posted'` at StockAnalysis-V4\epre\paper.py:185
   (`buys["posted"]`), called from signals() line 239 -> _lines(). ROOT CAUSE paper.py:233:
