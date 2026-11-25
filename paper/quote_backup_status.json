@@ -1,0 +1,11 @@
+{
+  "pairs": 143,
+  "days": 1,
+  "median_abs_mid_diff_bps": 95.37,
+  "median_abs_half_spread_diff_bps": 213.24,
+  "median_half_spread_bps": {
+    "webull": 11.71,
+    "yahoo": 244.3
+  },
+  "backup_only_quotes": 0
+}
