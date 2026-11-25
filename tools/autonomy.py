@@ -71,10 +71,10 @@ def asks(start: str, end: str) -> list[str]:
     return out
 
 
-def signed_out(day: str) -> bool:
+def signed_out(day: str, logs=None) -> bool:
     """The Quote Clerk could not sign in that day - a retry could never fix it. Read from its status line
     (state/logs/<day>-quotes.log) or, for days before that status existed (2026-11-21), its own stream logs."""
-    logs = STATE / "logs"
+    logs = logs or STATE / "logs"
     p = logs / f"{day}-quotes.log"
     if p.exists() and SIGNIN_RX.search(p.read_text(encoding="utf-8", errors="replace")):
         return True

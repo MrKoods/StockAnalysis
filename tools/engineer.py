@@ -26,6 +26,7 @@ import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
 
+import autonomy
 from common import STATE, TEAM, load_json, log, post, save_json
 
 STATEF = STATE / "engineer.json"
@@ -241,13 +242,20 @@ def _days(since: str, today: date) -> list[str]:
 def collect(today: date, since: str) -> tuple[list[str], list[str]]:
     """(urgent, weekly) problems newer than `since`. Urgent ones wake the Engineer on any dispatch day."""
     days, urgent, weekly = _days(since, today), [], []
+    # A Webull sign-out is the user's to fix (Ops Monitor alerts them; autonomy counts it as "needed your sign-in").
+    # Ticketing it only burned Engineer runs and then posted "could not fix" lists (2026-11-13..20, user 11-24).
+    out = {d for d in days if autonomy.signed_out(d, STATE / "logs")}
     usage = STATE / "usage.csv"
     if usage.exists():
         for line in usage.read_text(encoding="utf-8").splitlines()[1:]:
             p = line.split(",")
+            if p[0] in out and p[1] == "quote_clerk":
+                continue
             if p[0] in days and p[-1] == "failed" and p[1] != "engineer":
                 urgent.append(f"Role {p[1]} failed on {p[0]} - see state/logs/{p[0]}-{p[1]}.json")
     for i in load_json(STATE / "scan_ops.json", {}).get("issues", []):
+        if i["date"] in out and "_Quote" in i["job"]:
+            continue
         if i["date"] in days:
             urgent.append(f"Scan {i['job']} {i['problem']} on {i['date']} and could not be re-run validly")
     for d in days:

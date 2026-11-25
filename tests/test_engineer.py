@@ -169,3 +169,20 @@ def test_handled_occurrence_is_not_reticketed(tmp_path, monkeypatch):
     with open(tmp_path / "usage.csv", "a", encoding="utf-8") as fh:                 # same job, NEW day: ticket
         fh.write("2026-11-10,scout,sonnet,3,1,0.1,failed\n")
     assert "1 failure ticket" in engineer.prepare(date(2026, 11, 10), weekly_day=False)
+
+
+def test_webull_sign_out_days_are_not_engineer_tickets(tmp_path, monkeypatch):
+    """User 2026-11-24: the 11-13..20 sign-out made the Engineer post 'could not fix' lists - only the user can."""
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "usage.csv").write_text(
+        "date,role,x,status\n2026-11-17,quote_clerk,1,failed\n2026-11-18,quote_clerk,1,failed\n"
+        "2026-11-18,scout,1,failed\n", encoding="utf-8")
+    (tmp_path / "scan_ops.json").write_text(
+        '{"issues": [{"date": "2026-11-17", "job": "StockAnalysis_Team_QuoteOpen", "problem": "exited with an error"}]}',
+        encoding="utf-8")
+    (tmp_path / "logs" / "2026-11-17-quotes.log").write_text("quotes open: 0/78 (webull_auth)\n", encoding="utf-8")
+    monkeypatch.setattr(engineer, "STATE", tmp_path)
+    monkeypatch.setattr(engineer, "TEAM", tmp_path)
+    urgent, _ = engineer.collect(date(2026, 11, 18), "2026-11-16")
+    assert urgent == ["Role quote_clerk failed on 2026-11-18 - see state/logs/2026-11-18-quote_clerk.json",
+                      "Role scout failed on 2026-11-18 - see state/logs/2026-11-18-scout.json"]
