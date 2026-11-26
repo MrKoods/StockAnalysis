@@ -2,110 +2,110 @@
   "bar": "close half-spread + open half-spread <= ~2 bps total for the overnight idea to have a chance",
   "SPY": {
     "close": 0.28,
-    "open": 0.66,
-    "open2": 0.56,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "open": 0.57,
+    "open2": 0.49,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -94.9,
-      "mid_mean_bps": -94.4
+      "nights": 2,
+      "real_mean_bps": -152.2,
+      "mid_mean_bps": -151.5
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": -108.4,
-      "mid_mean_bps": -107.6
+      "nights": 2,
+      "real_mean_bps": -185.2,
+      "mid_mean_bps": -184.6
     }
   },
   "QQQ": {
     "close": 0.31,
-    "open": 1.96,
-    "open2": 0.7,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "open": 0.65,
+    "open2": 0.77,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -153.1,
-      "mid_mean_bps": -152.3
+      "nights": 2,
+      "real_mean_bps": -236.0,
+      "mid_mean_bps": -235.1
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": -212.4,
-      "mid_mean_bps": -211.5
+      "nights": 2,
+      "real_mean_bps": -307.0,
+      "mid_mean_bps": -306.0
     }
   },
   "IWM": {
     "close": 0.19,
-    "open": 1.13,
-    "open2": 0.85,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "open": 0.95,
+    "open2": 0.75,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -38.5,
-      "mid_mean_bps": -37.3
+      "nights": 2,
+      "real_mean_bps": -95.8,
+      "mid_mean_bps": -94.8
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": 32.0,
-      "mid_mean_bps": 33.0
+      "nights": 2,
+      "real_mean_bps": -85.2,
+      "mid_mean_bps": -84.4
     }
   },
   "IJR": {
     "close": 0.37,
-    "open": 9.46,
-    "open2": 0.56,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "open": 6.29,
+    "open2": 0.75,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -56.2,
-      "mid_mean_bps": -43.3
+      "nights": 2,
+      "real_mean_bps": -96.8,
+      "mid_mean_bps": -88.7
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": -10.4,
-      "mid_mean_bps": -9.6
+      "nights": 2,
+      "real_mean_bps": -86.8,
+      "mid_mean_bps": -85.9
     }
   },
   "MDY": {
-    "close": 0.93,
-    "open": 4.5,
-    "open2": 2.99,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "close": 1.08,
+    "open": 3.81,
+    "open2": 2.4,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -63.5,
-      "mid_mean_bps": -59.0
+      "nights": 2,
+      "real_mean_bps": -102.2,
+      "mid_mean_bps": -97.9
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": -33.4,
-      "mid_mean_bps": -30.2
+      "nights": 2,
+      "real_mean_bps": -93.6,
+      "mid_mean_bps": -90.5
     }
   },
   "DIA": {
-    "close": 0.45,
-    "open": 1.67,
-    "open2": 0.96,
-    "days_close": 2,
-    "days_open": 2,
-    "days_open2": 2,
+    "close": 0.5,
+    "open": 1.22,
+    "open2": 0.91,
+    "days_close": 3,
+    "days_open": 3,
+    "days_open2": 3,
     "overnight_to_open": {
-      "nights": 1,
-      "real_mean_bps": -40.6,
-      "mid_mean_bps": -39.0
+      "nights": 2,
+      "real_mean_bps": -88.0,
+      "mid_mean_bps": -86.4
     },
     "overnight_to_open2": {
-      "nights": 1,
-      "real_mean_bps": -11.5,
-      "mid_mean_bps": -10.2
+      "nights": 2,
+      "real_mean_bps": -96.4,
+      "mid_mean_bps": -95.2
     }
   }
 }
