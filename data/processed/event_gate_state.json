@@ -3139,9 +3139,33 @@
       "expiry_condition": "next_post_close_scan",
       "expired": true,
       "expired_at_utc": "2026-11-23T21:33:53.908906+00:00"
+    },
+    {
+      "id": "716b76b3-12c7-4cd1-b035-9a5114849ebb",
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "TSM",
+        "MU",
+        "ASML",
+        "TXN",
+        "ADI",
+        "AMAT",
+        "QCOM",
+        "KLAC"
+      ],
+      "scope": "sector",
+      "trigger_headline": "Trump Is Bringing Tariffs Back, and China Will Likely Get Hit Hardest: WSJ",
+      "trigger_match": "tariff",
+      "source": "yahoo.com",
+      "event_timestamp_utc": "2026-11-24T13:47:52+00:00",
+      "ner_sentiment": null,
+      "created_at_utc": "2026-11-24T21:30:31.044545+00:00",
+      "expiry_condition": "next_post_close_scan",
+      "expired": false,
+      "expired_at_utc": null
     }
   ],
-  "critical_alerts_sent": {
-    "KEY|fraud|2026-11-16T14:30:00+00:00": "2026-11-16T21:32:01.213859+00:00"
-  }
+  "critical_alerts_sent": {}
 }

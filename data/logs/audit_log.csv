@@ -384,3 +384,4 @@ timestamp_utc,model_version,scan_type,ticker,technical_score,positioning_score,s
 2026-11-20T21:34:06.955579+00:00,v2.2.134,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
 2026-11-23T13:36:31.308893+00:00,v2.2.134,pre_market,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=ticker trigger='fraud' source='yahoo.com',True,fraud
 2026-11-23T21:33:54.538611+00:00,v2.2.134,post_close,UNH,,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_EXPIRED — trigger='fraud',False,fraud
+2026-11-24T21:30:31.515393+00:00,v2.2.134,post_close,"NVDA,AMD,AVGO,TSM,MU,ASML,TXN,ADI,AMAT,QCOM,KLAC",,,,,,,,,,,,,False,,,,,,,,,EVENT_GATE_TRIGGERED — scope=sector trigger='tariff' source='yahoo.com',True,tariff
